@@ -35,8 +35,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
             var o = new PropertyFetcher<HDRaytracingEnvironment>(serializedObject);
 
-            // Ambient Occlusion
+            // Generic Attributes
             rayBias = o.Find(x => x.rayBias);
+
+            // Ambient Occlusion
             aoLayerMask = o.Find(x => x.aoLayerMask);
 
             // Reflections Attributes

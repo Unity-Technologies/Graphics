@@ -51,6 +51,15 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 }
             }
 
+            FrameSettingsOverrideMask fsm = default;
+            StringBuilder availables = new StringBuilder();
+            for (int i = 0; i < fsm.mask.capacity; ++i)
+            {
+                if(!singleValues.Contains(i))
+                    availables.AppendFormat("{0} ", i);
+            }
+            Debug.Log($"Available bit in FrameSettings: {availables}");
+
             Assert.AreEqual(values.Length, singleValues.Count(), String.Format("Double bit index found: {0}\nNumber of bit index against number of distinct bit index:", messageDuplicates.ToString()));
         }
 
@@ -385,9 +394,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 }
                 Assert.AreEqual(litShaderModeEquivalent, frameSettingsData.litShaderMode);
 
-                Assert.AreEqual(legacyFrameSettingsData.enableShadow, frameSettingsData.IsEnabled(FrameSettingsField.Shadow));
+                Assert.AreEqual(legacyFrameSettingsData.enableShadow, frameSettingsData.IsEnabled(FrameSettingsField.ShadowMaps));
                 Assert.AreEqual(legacyFrameSettingsData.enableContactShadows, frameSettingsData.IsEnabled(FrameSettingsField.ContactShadows));
-                Assert.AreEqual(legacyFrameSettingsData.enableShadowMask, frameSettingsData.IsEnabled(FrameSettingsField.ShadowMask));
+                Assert.AreEqual(legacyFrameSettingsData.enableShadowMask, frameSettingsData.IsEnabled(FrameSettingsField.Shadowmask));
                 Assert.AreEqual(legacyFrameSettingsData.enableSSR, frameSettingsData.IsEnabled(FrameSettingsField.SSR));
                 Assert.AreEqual(legacyFrameSettingsData.enableSSAO, frameSettingsData.IsEnabled(FrameSettingsField.SSAO));
                 Assert.AreEqual(legacyFrameSettingsData.enableSubsurfaceScattering, frameSettingsData.IsEnabled(FrameSettingsField.SubsurfaceScattering));
@@ -425,9 +434,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableFptlForForwardOpaque, frameSettingsData.IsEnabled(FrameSettingsField.FPTLForForwardOpaque));
 
 
-                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Shadow) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Shadow]);
+                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.Shadow) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ShadowMaps]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.ContactShadow) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ContactShadows]);
-                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.ShadowMask) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ShadowMask]);
+                Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.ShadowMask) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.Shadowmask]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.SSR) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.SSR]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.SSAO) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.SSAO]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.SubsurfaceScattering) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.SubsurfaceScattering]);

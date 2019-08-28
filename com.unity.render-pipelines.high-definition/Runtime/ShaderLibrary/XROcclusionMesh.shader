@@ -23,9 +23,8 @@ Shader "Hidden/HDRP/XROcclusionMesh"
             return output;
         }
 
-        void Frag(out float4 outColor : SV_Target0, out float outputDepth : SV_Depth)
+        void Frag(out float outputDepth : SV_Depth)
         {
-            outColor = (0.0).xxxx;
             outputDepth = UNITY_NEAR_CLIP_VALUE;
         }
     ENDHLSL
@@ -37,6 +36,7 @@ Shader "Hidden/HDRP/XROcclusionMesh"
         Pass
         {
             ZWrite On ZTest Always Blend Off Cull Off
+            ColorMask 0
 
             HLSLPROGRAM
                 #pragma vertex Vert

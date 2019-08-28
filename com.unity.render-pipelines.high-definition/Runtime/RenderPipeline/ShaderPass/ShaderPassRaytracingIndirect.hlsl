@@ -24,7 +24,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = uint2(0, 0);
+    posInput.positionSS = rayIntersection.pixelCoord;
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
@@ -52,8 +52,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     {
         // Generate the new sample (follwing values of the sequence)
         float2 sample = float2(0.0, 0.0);
-        sample.x = GetRaytracingNoiseSample(rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2, rayIntersection.scramblingValue.x);
-        sample.y = GetRaytracingNoiseSample(rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1, rayIntersection.scramblingValue.y);
+        sample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
+        sample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
 
         #ifdef DIFFUSE_LIGHTING_ONLY
         // Importance sample with a cosine lobe
@@ -67,22 +67,24 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         rayDescriptor.TMax = _RaytracingRayMaxLength;
 
         // Create and init the RayIntersection structure for this
-        RayIntersection rayIntersection;
-        rayIntersection.color = float3(0.0, 0.0, 0.0);
-        rayIntersection.incidentDirection = rayDescriptor.Direction;
-        rayIntersection.origin = rayDescriptor.Origin;
-        rayIntersection.t = -1.0f;
-        rayIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
-
+        RayIntersection reflectedIntersection;
+        reflectedIntersection.color = float3(0.0, 0.0, 0.0);
+        reflectedIntersection.incidentDirection = rayDescriptor.Direction;
+        reflectedIntersection.origin = rayDescriptor.Origin;
+        reflectedIntersection.t = -1.0f;
+        reflectedIntersection.remainingDepth = reflectedIntersection.remainingDepth + 1;
+        reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
+        reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
+        
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-        rayIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
-        rayIntersection.cone.width = rayIntersection.cone.width;
+        reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
+        reflectedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, reflectedIntersection);
 
         // Contribute to the pixel
-        builtinData.bakeDiffuseLighting = rayIntersection.color;
+        builtinData.bakeDiffuseLighting = reflectedIntersection.color;
         #else
         // Importance sample the direction using GGX
         float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -107,6 +109,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
             reflectedIntersection.origin = reflectedRay.Origin;
             reflectedIntersection.t = -1.0f;
             reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
+            reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
+            reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
 
             // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
             reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
@@ -158,7 +162,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = uint2(0, 0);
+    posInput.positionSS = rayIntersection.pixelCoord;
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;

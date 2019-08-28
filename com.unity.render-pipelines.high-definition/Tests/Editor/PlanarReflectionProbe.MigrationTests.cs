@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEditor.Rendering.TestFramework;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -152,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             }
 
             string GeneratePrefabYAML(LegacyProbeData legacyProbeData)
-                => $@"%YAML 1.1
+                => FormattableString.Invariant($@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &6171638715142251291
 GameObject:
@@ -298,7 +299,7 @@ MonoBehaviour:
   m_ObsoleteOverrideFieldOfView: 0
   m_ObsoleteFieldOfViewOverride: 90
   m_ObsoleteCaptureNearPlane: 0.3
-  m_ObsoleteCaptureFarPlane: 1000";
+  m_ObsoleteCaptureFarPlane: 1000");
         }
     }
 }

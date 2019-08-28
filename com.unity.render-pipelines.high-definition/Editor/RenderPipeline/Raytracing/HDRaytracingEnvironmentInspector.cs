@@ -29,40 +29,18 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Area Light Shadow
-            public static GUIContent shadowEnableText = new GUIContent("Enable");
-            public static GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Shadow Layer Mask");
             public static GUIContent shadowSectionText = new GUIContent("Ray-traced Shadows");
-            public static GUIContent shadowBilateralRadius = new GUIContent("Shadows Bilateral Radius");
-            public static GUIContent shadowNumSamplesText = new GUIContent("Shadows Num Samples");
-            public static GUIContent splitIntegrationText = new GUIContent("Split Integration");
-
-            // Shadow Bilateral Filter Data
-            public static GUIContent numAreaLightShadows = new GUIContent("Max Num Shadows");
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////
-            // Light Cluster
-            public static readonly GUIContent lightClusterSectionText = EditorGUIUtility.TrTextContent("Light Cluster");
-            public static GUIContent maxNumLightsText = new GUIContent("Cluster Cell Max Lights");
-            public static GUIContent cameraClusterRangeText = new GUIContent("Cluster Range");
+            public static GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Shadow Layer Mask");
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Primary visibility
             public static readonly GUIContent primaryRaytracingSectionText = EditorGUIUtility.TrTextContent("Primary Visiblity Raytracing");
-            public static readonly GUIContent raytracingEnableText = new GUIContent("Enable");
             public static readonly GUIContent raytracedLayerMaskText = EditorGUIUtility.TrTextContent("Primary Visibility Layer Mask");
-            public static readonly GUIContent rayMaxDepth = new GUIContent("Raytracing Maximal Depth");
-            public static readonly GUIContent raytracingRayLength = new GUIContent("Raytracing Ray Length");
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Indirect Diffuse
             public static readonly GUIContent indirectDiffuseSectionText = EditorGUIUtility.TrTextContent("Indirect Diffuse Raytracing");
-            public static readonly GUIContent indirectDiffuseEnableText = new GUIContent("Enable");
             public static readonly GUIContent indirectDiffuseLayerMaskText = EditorGUIUtility.TrTextContent("Indirect Diffuse Layer Mask");
-            public static readonly GUIContent indirectDiffuseNumSamplesText = new GUIContent("Indirect Diffuse Num Samples");
-            public static readonly GUIContent indirectDiffuseRayLengthText = new GUIContent("Indirect Diffuse Ray Length");
-            public static readonly GUIContent indirectDiffuseClampText = new GUIContent("Indirect Diffuse Clamp Value");
-            public static readonly GUIContent indirectDiffuseFilterModeText = new GUIContent("Indirect Diffuse Filter Mode");
-            public static readonly GUIContent indirectDiffuseFilterRadiusText = new GUIContent("Filter Radius");
         }
 
         SerializedHDRaytracingEnvironment m_SerializedHDRaytracingEnvironment;

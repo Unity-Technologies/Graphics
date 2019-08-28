@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent lowShadowQualitySubHeader = new GUIContent("Low Quality Settings");
 
             // Base (copy from LightEditor.cs)
-            public readonly GUIContent outterAngle = new GUIContent("Outter Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
+            public readonly GUIContent outterAngle = new GUIContent("Outer Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
             public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Sets the width of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Sets the height of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which HDRP pushes shadows away from the Light. Useful for avoiding false self-shadowing artifacts.");
@@ -104,10 +104,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
 #if ENABLE_RAYTRACING
-            public readonly GUIContent useRayTracedShadows = new GUIContent("Use Ray traced shadows", "If selected, ray traced shadows are used in place of rasterized ones");
-            public readonly GUIContent numRayTracingSamples = new GUIContent("Num samples", "This defines the number of samples that will be used to evaluate this shadow.");
-            public readonly GUIContent filterTracedShadow = new GUIContent("Enable filtering", "This defines if the ray traced shadow should be filtered.");
-            public readonly GUIContent filterSizeTraced = new GUIContent("Filter size", "This defines the size of the filter used for ray traced shadows.");
+            public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows", "If selected, ray traced shadows are used in place of rasterized ones.");
+            public readonly GUIContent numRayTracingSamples = new GUIContent("Sample Count", "This defines the number of samples that will be used to evaluate this shadow.");
+            public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
+            public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
             public readonly GUIContent sunLightConeAngle = new GUIContent("Sun angle", "This defines the size of the sun in the sky.");
 #endif
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");

@@ -23,7 +23,7 @@ CBUFFER_END
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 srcOffset = _SrcOffsetAndLimit.xy;
     uint2 srcLimit  = _SrcOffsetAndLimit.zw;

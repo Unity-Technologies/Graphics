@@ -19,7 +19,7 @@ TEXTURE2D_X_UINT(_AOPackedData);
 [numthreads(8,8,1)]
 void AOUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
  
     // Gather half res samples + depths.
     float2 uv = (dispatchThreadId.xy + 0.5) * _ScreenSize.zw;

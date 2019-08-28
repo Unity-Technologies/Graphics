@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -59,6 +61,26 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        public abstract bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData);
+        public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,
+            ShaderCompilerData inputData)
+        {
+            return IsMaterialQualityVariantStripped(hdrpAsset, inputData) || DoShadersStripper(hdrpAsset, shader, snippet, inputData);
+        }
+
+        protected abstract bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData);
+
+        protected static bool IsMaterialQualityVariantStripped(HDRenderPipelineAsset hdrpAsset, ShaderCompilerData inputData)
+        {
+            var shaderMaterialLevel = inputData.shaderKeywordSet.GetMaterialQuality();
+            // if there are material quality defines in this shader
+            // and they don't match the material quality accepted by the hdrp asset
+            if (shaderMaterialLevel != 0 && (hdrpAsset.materialQualityLevels & shaderMaterialLevel) == 0)
+            {
+                // then strip this variant
+                return true;
+            }
+
+            return false;
+        }
     }
 }

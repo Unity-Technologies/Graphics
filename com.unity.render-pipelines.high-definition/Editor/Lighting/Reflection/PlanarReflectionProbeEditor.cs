@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Get the exposure texture used in this scene view
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp))
                 return;
-            var hdCamera = HDCamera.GetOrCreate(sceneView.camera, new XRPass());
+            var hdCamera = HDCamera.GetOrCreate(sceneView.camera);
             var exposureTex = hdrp.GetExposureTexture(hdCamera);
 
             var index = Array.IndexOf(m_TypedTargets, target);

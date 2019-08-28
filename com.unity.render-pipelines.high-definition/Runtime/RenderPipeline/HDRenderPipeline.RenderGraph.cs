@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
                     var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
                     HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
-                    if (rSettings.enableRaytracing.value && rtEnv != null)
+                    if (rSettings.rayTracing.value && rtEnv != null)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
                         PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);

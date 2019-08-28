@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
 
-                return true;
+                return display.running;
             }
             else
             {

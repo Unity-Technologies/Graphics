@@ -265,7 +265,7 @@ void AreaShadowEstimateNoise(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     }
 
     // Quasi-random angular offset, to break pattern
-    float angle = ScramblingValue(centerCoord.x, centerCoord.y).x * (PI / 256);
+    float angle = ScramblingValueFloat(centerCoord) * PI;
 
     float maxNoise = 0.0;
     float2 axis;

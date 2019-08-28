@@ -36,18 +36,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ProceduralSkyMaterial);
         }
 
-        public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
-        {
-            if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
-            }
-            else
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
-            }
-        }
-
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             CoreUtils.SetKeyword(m_ProceduralSkyMaterial, "_ENABLE_SUN_DISK", m_ProceduralSkyParams.enableSunDisk.value);

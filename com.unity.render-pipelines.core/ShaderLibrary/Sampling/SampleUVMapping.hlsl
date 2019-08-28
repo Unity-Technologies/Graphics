@@ -1,6 +1,9 @@
 // This structure abstract uv mapping inside one struct.
 // It represent a mapping of any uv (with its associated tangent space for derivative if SurfaceGradient mode) - UVSet0 to 4, planar, triplanar
 
+#ifndef __SAMPLEUVMAPPING_HLSL__
+#define __SAMPLEUVMAPPING_HLSL__
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 
 #define UV_MAPPING_UVSET 0
@@ -68,3 +71,5 @@ struct UVMapping
 #define SAMPLE_UVMAPPING_NORMALMAP_RGB(textureName, samplerName, uvMapping, scale)              SampleUVMappingNormalRGB(TEXTURE2D_ARGS(textureName, samplerName), uvMapping, scale, 0.0)
 #define SAMPLE_UVMAPPING_NORMALMAP_RGB_LOD(textureName, samplerName, uvMapping, scale, lod)     SampleUVMappingNormalRGBLod(TEXTURE2D_ARGS(textureName, samplerName), uvMapping, scale, lod)
 #define SAMPLE_UVMAPPING_NORMALMAP_RGB_BIAS(textureName, samplerName, uvMapping, scale, bias)   SampleUVMappingNormalRGBBias(TEXTURE2D_ARGS(textureName, samplerName), uvMapping, scale, bias)
+
+#endif //__SAMPLEUVMAPPING_HLSL__

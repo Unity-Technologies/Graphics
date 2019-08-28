@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // XR Specific
-        class StereoRenderingPassData
+        class XRRenderingPassData
         {
             public Camera camera;
             public XRPass xr;
@@ -73,13 +73,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.xr.enabled)
             {
-                using (var builder = renderGraph.AddRenderPass<StereoRenderingPassData>("Start Stereo Rendering", out var passData))
+                using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Start XR single-pass", out var passData))
                 {
                     passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (StereoRenderingPassData data, RenderGraphContext context) =>
+                    (XRRenderingPassData data, RenderGraphContext context) =>
                     {
                         data.xr.StartSinglePass(context.cmd, data.camera, context.renderContext);
                     });
@@ -89,15 +89,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void StopSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (hdCamera.xr.enabled && hdCamera.camera.stereoEnabled)
+            if (hdCamera.xr.enabled)
             {
-                using (var builder = renderGraph.AddRenderPass<StereoRenderingPassData>("Stop Stereo Rendering", out var passData))
+                using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Stop XR single-pass", out var passData))
                 {
                     passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (StereoRenderingPassData data, RenderGraphContext context) =>
+                    (XRRenderingPassData data, RenderGraphContext context) =>
                     {
                         data.xr.StopSinglePass(context.cmd, data.camera, context.renderContext);
                     });
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EndCameraXR(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (hdCamera.xr.enabled && hdCamera.camera.stereoEnabled)
+            if (hdCamera.xr.enabled)
             {
                 using (var builder = renderGraph.AddRenderPass<EndCameraXRPassData>("End Camera", out var passData))
                 {
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderOcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
         {
-            if (hdCamera.xr.enabled && hdCamera.xr.xrSdkEnabled)
+            if (hdCamera.xr.enabled && hdCamera.xr.xrSdkEnabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
                 {
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
                     {
-                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, null, ctx.resources.GetTexture(data.depthBuffer));
+                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, ctx.resources.GetTexture(data.depthBuffer));
                     });
                 }
             }

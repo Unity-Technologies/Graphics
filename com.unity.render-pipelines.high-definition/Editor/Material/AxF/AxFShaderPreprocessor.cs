@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public AxFShaderPreprocessor() {}
 
-        public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
+        protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
             // Note: We know that all the rules of common stripper and Lit Stripper are apply, here we only need to do what is specific to AxF shader
             bool isForwardPass = snippet.passName == "ForwardOnly";

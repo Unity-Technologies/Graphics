@@ -31,6 +31,7 @@ float3 GetFogColor(float3 V, float fragDist)
         return  float3(0.0, 0.0, 0.0);
 }
 
+// All units in meters!
 // Assumes that there is NO sky occlusion along the ray AT ALL.
 // We evaluate atmospheric scattering for the sky and other celestial bodies
 // during the sky pass. The opaque atmospheric scattering pass applies atmospheric
@@ -46,7 +47,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
     // TODO: Not sure it's possible to precompute cam rel pos since variables
     // in the two constant buffers may be set at a different frequency?
-    const float3 O = worldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
+    const float3 O     = worldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
+    const float  tFrag = distAlongRay * 0.001;                                // Convert m to km
 
     float3 N; float r; // These params correspond to the entry point
     float  tEntry = IntersectAtmosphere(O, V, N, r).x;
@@ -59,7 +61,17 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
     bool rayIntersectsAtmosphere = (tEntry >= 0);
     bool lookAboveHorizon        = (cosChi >= cosHor);
 
-    float tFrag = distAlongRay;
+    // If it's outside the atmosphere, we only need one texture look-up.
+    bool rayEndsInsideAtmosphere = tFrag * (1 + 2 * FLT_EPS) < tExit;
+
+    // Our precomputed tables only contain information above ground.
+    if (!lookAboveHorizon) // See the ground?
+    {
+        float tGround = tEntry + IntersectSphere(R, cosChi, r).x;
+
+        // Being on or below ground still counts as outside.
+        rayEndsInsideAtmosphere = tFrag * (1 + 2 * FLT_EPS) < min(tGround, tExit);
+    }
 
     if (rayIntersectsAtmosphere)
     {
@@ -69,7 +81,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         float r1, cosChi1;
         float3 N1;
 
-        if (tFrag < tExit) // Still inside?
+        if (tFrag < tExit)
         {
             float3 P1 = O + tFrag * -V;
 
@@ -90,7 +102,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             ch0.y = RescaledChapmanFunction(z0.y, Z.y, cosChi0);
         }
 
-        if (tFrag < tExit) // Still inside?
+        if (tFrag < tExit)
         {
             float2 z1 = r1 * n;
 
@@ -106,12 +118,6 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
         skyOpacity = 1 - TransmittanceFromOpticalDepth(optDepth); // from 'tEntry' to 'tFrag'
 
-        // Our precomputed tables only contain information above ground.
-        if (!lookAboveHorizon) // See the ground?
-        {
-            float tGround = tEntry + IntersectSphere(R, cosChi, r).x;
-            tExit = min(tExit, tGround);
-        }
 
         for (uint i = 0; i < _DirectionalLightCount; i++)
         {
@@ -178,7 +184,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
                              SAMPLE_TEXTURE3D_LOD(_MultipleScatteringTexture,      s_linear_clamp_sampler, float3(tc.u, tc.v, tc.w1), 0).rgb,
                              tc.a);
 
-            if (tFrag < tExit) // Still inside?
+            if (rayEndsInsideAtmosphere)
             {
                 float3 radiance1 = 0; // from 'tFrag' to 'tExit'
 

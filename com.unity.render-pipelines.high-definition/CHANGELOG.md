@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Transparency Overdraw debug mode. Allows to visualize transparent objects draw calls as an "heat map".
 - Enabled single-pass instancing support for XR SDK with new API cmd.SetInstanceMultiplier()
+- XR settings are now available in the HDRP asset
+- Support for Material Quality in Shader Graph
+- Material Quality support selection in HDRP Asset
+- Renamed XR shader macro from UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX to UNITY_XR_ASSIGN_VIEW_INDEX
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
@@ -16,6 +20,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed invalid contact shadow shaders being created on metal
 - Fixed  a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
 - Fixed typo in AXF decal property preventing to compile
+- Fixed reflection probe with XR single-pass and FPTL
+- Fixed force gizmo shown when selecting camera in hierarchy
+- Fixed issue with XR occlusion mesh and dynamic resolution
+- Fixed an issue where lighting compute buffers were re-created with the wrong size when resizing the window, causing tile artefacts at the top of the screen.
+- Fix FrameSettings names and tooltips
+- Fixed error with XR SDK when the Editor is not in focus
+- Fixed errors with RenderGraph, XR SDK and occlusion mesh
 
 ### Changed
 - Update Wizard layout.
@@ -24,6 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Call the End/Begin camera rendering callbacks for camera with customRender enabled
 - Changeg framesettings migration order of postprocess flags as a pr for reflection settings flags have been backported to 2019.2
 - Replaced usage of ENABLE_VR in XRSystem.cs by version defines based on the presence of the built-in VR and XR modules
+- Added an update virtual function to the SkyRenderer class. This is called once per frame. This allows a given renderer to amortize heavy computation at the rate it chooses. Currently only the physically based sky implements this.
+- Removed mandatory XRPass argument in HDCamera.GetOrCreate()
 
 ## [7.0.1] - 2019-07-25
 

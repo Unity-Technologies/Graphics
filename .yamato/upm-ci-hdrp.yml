@@ -10,8 +10,6 @@ platforms:
 #    image: buildfarm/mac:stable
 #    flavor: m1.mac
 testplatforms:
-  - name: Standalone
-    args: --suite=playmode --platform=Standalone
   - name: playmode
     args: --suite=playmode
   - name: editmode
@@ -20,13 +18,16 @@ projects:
   - name: HDRP
     folder: HDRP_Tests
     packagename: com.unity.render-pipelines.high-definition
+# - name: HDRP_DebugCrossFade_Tests
+#   folder: HDRP_DebugCrossFade_Tests
+#   packagename: none
 ---
 {% for project in projects %}
 {% for editor in editors %}
 {% for platform in platforms %}
 {% for testplatform in testplatforms %}
 {{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}:
-  name : Build and Test {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
+  name : Build and Test {{ project.folder }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" and platform.name == "Windows64" %}
     type: Unity::VM
@@ -79,8 +80,8 @@ projects:
 
 
 
-All_{{ project.name }}:
-  name: All {{ project.name }} CI
+All_{{ project.folder }}:
+  name: All {{ project.folder }} CI
   agent:
     name: whatever
     type: Unity::VM
@@ -92,7 +93,7 @@ All_{{ project.name }}:
   {% for editor in editors %}
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
+    - .yamato/upm-ci-hdrp.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endfor %}
   {% endfor %}
   {% endfor %}

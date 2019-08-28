@@ -148,8 +148,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         Pass
         {
-            Cull Off ZWrite Off
-            ZTest Less // Required for XR occlusion mesh optimization
+            Cull Off ZWrite Off ZTest Always
 
             HLSLPROGRAM
 

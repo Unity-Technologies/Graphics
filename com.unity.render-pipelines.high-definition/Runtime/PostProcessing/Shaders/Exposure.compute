@@ -122,7 +122,7 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     // For XR, interleave single-pass views in a checkerboard pattern
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX((dispatchThreadId.x + dispatchThreadId.y) % _XRViewCount)
+    UNITY_XR_ASSIGN_VIEW_INDEX((dispatchThreadId.x + dispatchThreadId.y) % _XRViewCount)
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), 1.0 / 1024.0, uint2(8u, 8u));
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);

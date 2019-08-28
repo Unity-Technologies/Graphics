@@ -33,16 +33,16 @@ namespace UnityEditor.Rendering.HighDefinition
         //separated to add enum popup on default frame settings
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true) => CED.Group(
                 CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(194, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
+                    CED.Group(198, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(194, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
+                    CED.Group(198, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(194, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
+                    CED.Group(198, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(194, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
+                    CED.Group(198, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
                     )
                 );
 
@@ -160,7 +160,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 overridedDefaultValue: QualitySettings.lodBias,
                 customGetter: () => serialized.lodBias.floatValue,
                 customSetter: v => serialized.lodBias.floatValue = (float)v,
-                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings);
+                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings,
+                labelOverride: serialized.lodBiasMode.enumValueIndex == (int)LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias");
 
             area.AmmendInfo(
                 FrameSettingsField.MaximumLODLevelMode,
@@ -172,7 +173,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 overridedDefaultValue: QualitySettings.maximumLODLevel,
                 customGetter: () => serialized.maximumLODLevel.intValue,
                 customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings);
+                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings,
+                labelOverride: serialized.maximumLODLevelMode.enumValueIndex == (int)MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level");
 
             area.Draw(withOverride);
         }
@@ -182,7 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
             FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
             var area = OverridableFrameSettingsArea.GetGroupContent(1, defaultFrameSettings, serialized);
-            area.AmmendInfo(FrameSettingsField.ShadowMask, overrideable: () => hdrpSettings.supportShadowMask);
+            area.AmmendInfo(FrameSettingsField.Shadowmask, overrideable: () => hdrpSettings.supportShadowMask);
             area.AmmendInfo(FrameSettingsField.SSR, overrideable: () => hdrpSettings.supportSSR);
             area.AmmendInfo(FrameSettingsField.SSAO, overrideable: () => hdrpSettings.supportSSAO);
             area.AmmendInfo(FrameSettingsField.SubsurfaceScattering, overrideable: () => hdrpSettings.supportSubsurfaceScattering);
