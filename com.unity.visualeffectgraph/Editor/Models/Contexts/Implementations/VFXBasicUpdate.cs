@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Write);
                 }
 
-                if (GetData().IsAttributeStored(VFXAttribute.Alive) && GetData().dependenciesOut.Any(d => ((VFXDataParticle)d).hasStrip))
+                if (GetData().IsCurrentAttributeWritten(VFXAttribute.Alive) && GetData().dependenciesOut.Any(d => ((VFXDataParticle)d).hasStrip))
                     yield return new VFXAttributeInfo(VFXAttribute.StripAlive, VFXAttributeMode.ReadWrite);
             }
         }
