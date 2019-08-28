@@ -347,7 +347,7 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.World) != 0)
                                 callSG.builder.AppendLine("INSG.WorldSpacePosition = WorldSpacePosition;");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Object) != 0)
-                                callSG.builder.AppendLine("INSG.ObjectSpacePosition =  TransformWorldToObjectDir(WorldSpacePosition);");
+                                callSG.builder.AppendLine("INSG.ObjectSpacePosition =  TransformWorldToObject(WorldSpacePosition);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.View) != 0)
                                 callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformWorldToView(WorldSpacePosition);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Tangent) != 0)
