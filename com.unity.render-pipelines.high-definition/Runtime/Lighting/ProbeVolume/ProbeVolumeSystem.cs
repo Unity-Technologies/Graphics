@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int k_MaxProbeVolumeProbeCount = 1 << 19;
         public const int k_ProbeVolumeAtlasWidth = 1024;
         public const int k_ProbeVolumeAtlasHeight = 1024;
-        RTHandleSystem.RTHandle m_ProbeVolumeAtlasRTHandle;
-        public Texture2DAtlas probeVolumeAtlas = null;
+        RTHandle m_ProbeVolumeAtlasRTHandle;
+        Texture2DAtlas probeVolumeAtlas = null; // TODO(Nicholas): it was marked as public, but Texture2DAtlas is not publicly accessible anymore.
         public static int s_ProbeVolumeMaxResolutionSide = 1024;
 
         public void Build(HDRenderPipelineAsset asset)
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 width: k_ProbeVolumeAtlasWidth,
                 height: k_ProbeVolumeAtlasHeight,
                 dimension: TextureDimension.Tex2D,
-                colorFormat: GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
+                colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
                 enableRandomWrite: true,
                 useMipMap: false,
                 name: "ProbeVolumeAtlas"
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void ProbeVolumeLightingPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
+        public void ProbeVolumeLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 return;

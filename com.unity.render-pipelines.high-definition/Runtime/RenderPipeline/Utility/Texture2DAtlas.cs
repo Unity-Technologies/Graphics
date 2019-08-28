@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AtlasAllocator = new AtlasAllocator(width, height);
         }
 
-        public Texture2DAtlas(int width, int height, RTHandleSystem.RTHandle atlasTexture)
+        public Texture2DAtlas(int width, int height, RTHandle atlasTexture)
         {
             m_Width = width;
             m_Height = height;
