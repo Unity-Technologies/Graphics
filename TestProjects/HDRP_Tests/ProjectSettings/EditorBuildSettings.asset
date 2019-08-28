@@ -443,4 +443,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9500_LightScripting.unity
     guid: 134ab13db8156a14891996196de4cf63
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9601_SkinnedMeshBatching-Off.unity
+    guid: d0d3270af482d2349baf7fc2a1dc7d4f
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9602_SkinnedMeshBatching-On.unity
+    guid: 78446c36daacd444c8a07b5671274a51
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9603_MeshRendererBatching-Off.unity
+    guid: 7edc6301457ff2c41a22f11ed10a9aee
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9604_MeshRendererBatching-On.unity
+    guid: 0dcef9d74b6e30247bf7390c1da4abe5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5007_Exponential_Fog.unity
+    guid: d41e3091708565747bbadd792e5dd01b
   m_configObjects: {}

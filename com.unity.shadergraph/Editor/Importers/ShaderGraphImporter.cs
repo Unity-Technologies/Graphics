@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
     {
         public const string Extension = "shadergraph";
 
-        const string k_ErrorShader = @"
+        public const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
 {
     SubShader
@@ -73,7 +73,7 @@ Shader ""Hidden/GraphErrorShader2""
             string path = ctx.assetPath;
             var sourceAssetDependencyPaths = new List<string>();
             var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths, out var graph);
-            var shader = ShaderUtil.CreateShaderAsset(text);
+            var shader = ShaderUtil.CreateShaderAsset(text, false);
 
             if (graph != null && graph.messageManager.nodeMessagesChanged)
             {

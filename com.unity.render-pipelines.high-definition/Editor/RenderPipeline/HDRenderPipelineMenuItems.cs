@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var light in lights)
             {
                 // Do not add a component if there already is one.
-                if (light.GetComponent<HDAdditionalLightData>() == null)
+                if (!light.TryGetComponent<HDAdditionalLightData>(out _))
                 {
                     var hdLight = light.gameObject.AddComponent<HDAdditionalLightData>();
                     HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
@@ -147,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var camera in cameras)
             {
                 // Do not add a component if there already is one.
-                if (camera.GetComponent<HDAdditionalCameraData>() == null)
+                if (!camera.TryGetComponent<HDAdditionalCameraData>(out _))
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
@@ -265,7 +265,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                 var h = Debug.unityLogger.logHandler;
                 Debug.unityLogger.logHandler = new UnityContextualLogHandler(mat);
-                HDEditorUtils.ResetMaterialKeywords(mat);
+                HDShaderUtils.ResetMaterialKeywords(mat);
                 Debug.unityLogger.logHandler = h;
             }
         }
@@ -287,7 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 CoreEditorUtils.CheckOutFile(VCSEnabled, materials[i]);
 
-                if (HDEditorUtils.ResetMaterialKeywords(materials[i]))
+                if (HDShaderUtils.ResetMaterialKeywords(materials[i]))
                 {
                     anyMaterialDirty = true;
                 }

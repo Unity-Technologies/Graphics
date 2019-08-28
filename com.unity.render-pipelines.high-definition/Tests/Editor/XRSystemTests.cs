@@ -1,6 +1,4 @@
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
 

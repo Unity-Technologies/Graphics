@@ -212,8 +212,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // GC.Alloc
-        // VolumeParameter`.op_Equality()
         public bool UpdateEnvironment(SkyUpdateContext skyContext, Light sunLight, Vector3 worldSpaceCameraPos, bool updateRequired, bool updateAmbientProbe, int frameIndex, CommandBuffer cmd)
         {
             bool result = false;
@@ -234,10 +232,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     sunHash = GetSunLightHashCode(sunLight);
                 int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode();
 
-                bool forceUpdate = (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);
+                bool forceUpdate = skyContext.renderer.Update(m_BuiltinParameters);
+                forceUpdate |= (updateRequired || skyContext.updatedFramesRequired > 0 || m_NeedUpdate);
+
                 if (forceUpdate ||
-                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
-                    (skyContext.skySettings.updateMode == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
+                    (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnChanged && skyHash != skyContext.skyParametersHash) ||
+                    (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime > skyContext.skySettings.updatePeriod.value))
                 {
                     using (new ProfilingSample(cmd, "Sky Environment Pass"))
                     {
@@ -323,7 +323,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BuiltinParameters.frameIndex                = frameIndex;
                     m_BuiltinParameters.updateMode                = skyContext.skySettings.updateMode.value;
 
-                    skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
+                    if (depthBuffer == BuiltinSkyParameters.nullRT)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, colorBuffer);
+                    }
+                    else
+                    {
+                        CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+                    }
 
                     // If the luxmeter is enabled, we don't render the sky
                     if (debugSettings.data.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)

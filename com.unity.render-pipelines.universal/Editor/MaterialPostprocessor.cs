@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor.Rendering.Universal.ShaderGUI;
@@ -23,7 +23,9 @@ namespace UnityEditor.Rendering.Universal
     {
         const string Key = "LWRP-material-upgrader";
 
-        [InitializeOnLoadMethod]
+        // Upgrade materials only after we compiled shaders.
+        // This fixes a case that caused ReloadAllNullIn to be called before shaders finished compiling.
+        [Callbacks.DidReloadScripts]
         static void ReimportAllMaterials()
         {
             //Check to see if the upgrader has been run for this project/LWRP version

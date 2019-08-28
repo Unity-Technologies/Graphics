@@ -55,6 +55,10 @@ namespace UnityEngine.Rendering.Universal
         // True when this is the very last pass in the pipeline
         bool m_IsFinalPass;
 
+        // If there's a final post process pass after this pass.
+        // If yes, Film Grain and Dithering are setup in the final pass, otherwise they are setup in this pass.
+        bool m_HasFinalPass;
+
         public PostProcessPass(RenderPassEvent evt, PostProcessData data)
         {
             renderPassEvent = evt;
@@ -97,7 +101,7 @@ namespace UnityEngine.Rendering.Universal
             m_ResetHistory = true;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass)
         {
             m_Descriptor = baseDescriptor;
             m_Source = source;
@@ -105,6 +109,7 @@ namespace UnityEngine.Rendering.Universal
             m_Depth = depth;
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
+            m_HasFinalPass = hasFinalPass;
         }
 
         public void SetupFinalPass(in RenderTargetHandle source)
@@ -112,6 +117,7 @@ namespace UnityEngine.Rendering.Universal
             m_Source = source;
             m_Destination = RenderTargetHandle.CameraTarget;
             m_IsFinalPass = true;
+            m_HasFinalPass = false;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -295,9 +301,12 @@ namespace UnityEngine.Rendering.Universal
                 SetupVignette(m_Materials.uber);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
-                // Only apply dithering & grain if we're the final pass
+                // Only apply dithering & grain if there isn't a final pass.
                 SetupGrain(cameraData.camera, m_Materials.uber);
                 SetupDithering(ref cameraData, m_Materials.uber);
+				
+				if (Display.main.requiresSrgbBlitToBackbuffer)
+					m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // Done with Uber, blit it
                 cmd.SetGlobalTexture("_BlitTex", GetSource());
@@ -310,7 +319,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     cmd.SetRenderTarget(m_Destination.Identifier());
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                    cmd.SetViewport(cameraData.camera.pixelRect);
+
+                    if (m_Destination == RenderTargetHandle.CameraTarget)
+                        cmd.SetViewport(cameraData.camera.pixelRect);
+
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
                     cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 }
@@ -889,7 +901,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupGrain(Camera camera, Material material)
         {
-            if (m_Destination == RenderTargetHandle.CameraTarget && m_FilmGrain.IsActive())
+            if (!m_HasFinalPass && m_FilmGrain.IsActive())
             {
                 material.EnableKeyword(ShaderKeywordStrings.FilmGrain);
                 PostProcessUtils.ConfigureFilmGrain(
@@ -907,7 +919,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupDithering(ref CameraData cameraData, Material material)
         {
-            if (m_Destination == RenderTargetHandle.CameraTarget && cameraData.isDitheringEnabled)
+            if (!m_HasFinalPass && cameraData.isDitheringEnabled)
             {
                 material.EnableKeyword(ShaderKeywordStrings.Dithering);
                 m_DitheringTextureIndex = PostProcessUtils.ConfigureDithering(
@@ -935,6 +947,9 @@ namespace UnityEngine.Rendering.Universal
 
             SetupGrain(cameraData.camera, material);
             SetupDithering(ref cameraData, material);
+			
+			if (Display.main.requiresSrgbBlitToBackbuffer)
+				material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
 
