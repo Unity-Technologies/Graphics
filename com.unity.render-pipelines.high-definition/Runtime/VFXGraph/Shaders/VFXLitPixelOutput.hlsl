@@ -98,18 +98,30 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
             
 #else
-float4 VFXGetPixelOutputForwardShaderGraph(const SurfaceData surfaceData, const BuiltinData builtinData,const VFX_VARYING_PS_INPUTS i)
+float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData builtinData,const VFX_VARYING_PS_INPUTS i)
 {
-    float3 posRWS = VFXGetPositionRWS(i);
     PreLightData preLightData = (PreLightData)0;
-    BSDFData bsdfData = (BSDFData)0;
+	BSDFData bsdfData = (BSDFData)0;
 
 	uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-
-	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
-
-	bsdfData = ConvertSurfaceDataToBSDFData(i.VFX_VARYING_POSCS.xy, surfaceData);
-	preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
+    float3 posRWS = VFXGetPositionRWS(i);
+	float4 posSS = i.VFX_VARYING_POSCS;
+	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+    surfaceData.specularOcclusion = 1.0f;
+    surfaceData.ambientOcclusion = 1.0f;
+    surfaceData.subsurfaceMask = 1.0f;
+    bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
+    
+    preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
+    preLightData.diffuseFGD = 1.0f;
+    
+    
+    float3 emissive = builtinData.emissiveColor;
+    InitBuiltinData(posInput, builtinData.opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData);
+    builtinData.emissiveColor = emissive;
+    PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surfaceData, builtinData);
     
     return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
 }
