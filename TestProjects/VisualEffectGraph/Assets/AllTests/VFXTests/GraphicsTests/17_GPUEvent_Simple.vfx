@@ -9390,6 +9390,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614711}
   m_Disabled: 0
   mode: 0
+  clampToOne: 1
 --- !u!114 &8926484042661614710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11524,6 +11525,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614795}
   m_Disabled: 0
   mode: 1
+  clampToOne: 1
 --- !u!114 &8926484042661614794
 MonoBehaviour:
   m_ObjectHideFlags: 0
