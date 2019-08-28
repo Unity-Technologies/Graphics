@@ -95,8 +95,11 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
+
+
                 if (shaderGraph != null)
                 {
+                    properties = properties.Where(t => t.property.name != "alphaThreshold");
                     properties = properties.Concat(shaderGraph.properties
                         .Where(t => !t.hidden)
                         .Select(t => new { property = t, type = GetSGPropertyType(t) })
@@ -158,6 +161,7 @@ namespace UnityEditor.VFX
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
+                if(shaderGraph == null && exp.name != "alphaThreshold")
                 yield return exp;
 
             if (shaderGraph != null)
@@ -283,7 +287,7 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                     {
                         GraphCode graphCode = shaderGraph.GetCode(kvPass.Value.pixelPorts.Select(t => shaderGraph.GetOutput(t)).Where(t => !string.IsNullOrEmpty(t.referenceName)).ToArray());
 
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(graphCode.code));
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl\"\n" + graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
