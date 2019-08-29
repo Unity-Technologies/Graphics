@@ -366,12 +366,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void ProbeVolumeLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
-                return;
-        }
-
         static float CalculateProbeVolumeLogVolume(Vector3 size)
         {
             //Notes:

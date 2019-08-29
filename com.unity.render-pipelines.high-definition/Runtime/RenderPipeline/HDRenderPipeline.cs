@@ -2075,9 +2075,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
                 VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
 
-                // Render probe volumes
-                m_ProbeVolumeSystem.ProbeVolumeLightingPass(hdCamera, cmd, m_FrameCount);
-
                 if (hdCamera.frameSettings.SSAORunsAsync())
                 {
                     SSAOTask.EndWithPostWork(cmd, hdCamera, Callback);
