@@ -97,6 +97,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Internal max count for how many ScriptableRendererData can be added to a single Universal RP asset
+        internal static int maxScriptableRenderers
+        {
+            get => 8;
+        }
+
+        /// <summary>
+        /// Returns the current render pipeline asset for the current quality setting.
+        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
+        /// </summary>
         public static UniversalRenderPipelineAsset asset
         {
             get
@@ -186,7 +196,7 @@ namespace UnityEngine.Rendering.Universal
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
                 camera.gameObject.TryGetComponent(out additionalCameraData);
 
-                InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
+            InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
 
             ScriptableRenderer renderer = (additionalCameraData != null) ? additionalCameraData.scriptableRenderer : settings.scriptableRenderer;
@@ -196,11 +206,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-#if UNITY_EDITOR
-            string tag = camera.name;
-#else
-            string tag = k_RenderCameraTag;
-#endif
+            string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name: k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
             using (new ProfilingSample(cmd, tag))
             {
@@ -286,7 +292,9 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
-            cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
+            cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
+            cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ?
+                cameraData.maxShadowDistance : 0.0f;
 
             if (additionalCameraData != null)
             {

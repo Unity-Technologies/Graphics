@@ -27,6 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
         bool m_WizardPopupAtStart = false;
+        [SerializeField]
+        string m_PackageVersionForMaterials = "";
 
         public static GameObject defaultScenePrefab
         {
@@ -54,6 +56,16 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 instance.m_WizardPopupAtStart = value;
+                Save();
+            }
+        }
+
+        public static string packageVersionForMaterialUpgrade
+        {
+            get => instance.m_PackageVersionForMaterials;
+            set
+            {
+                instance.m_PackageVersionForMaterials = value;
                 Save();
             }
         }

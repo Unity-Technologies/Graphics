@@ -59,7 +59,7 @@ float2 ComputeMotionVec(PositionInputs posInput, float2 sampledMotionVec)
 [numthreads(8, 8,1)]
 void MotionVecPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     float3 motionVecAndDepth = 0.0f;
     float4 motionVecBufferSample = LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, dispatchThreadId.xy);

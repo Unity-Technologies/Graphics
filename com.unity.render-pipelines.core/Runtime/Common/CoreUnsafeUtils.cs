@@ -80,6 +80,11 @@ namespace UnityEngine.Rendering
         internal struct DefaultKeyGetter<T> : IKeyGetter<T, T>
         { public T Get(ref T v) { return v; } }
 
+        // Note: this is a workaround needed to circumvent some AOT issues when building for xbox
+        internal struct UintKeyGetter : IKeyGetter<uint, uint>
+        { public uint Get(ref uint v) { return v; } }
+
+
         public static void CopyTo<T>(this List<T> list, void* dest, int count)
             where T : struct
         {
@@ -99,7 +104,7 @@ namespace UnityEngine.Rendering
         public static unsafe void QuickSort(uint[] arr, int left, int right)
         {
             fixed (uint* ptr = arr)
-                CoreUnsafeUtils.QuickSort<uint, uint, DefaultKeyGetter<uint>>(ptr, left, right);
+                CoreUnsafeUtils.QuickSort<uint, uint, UintKeyGetter>(ptr, left, right);
         }
 
         public static void QuickSort<T>(int count, void* data)

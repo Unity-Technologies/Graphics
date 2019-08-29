@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
             if (IsNull(container))
                 return;
 
-            foreach (var fieldInfo in container.GetType().GetFields())
+            foreach (var fieldInfo in container.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static))
             {
                 //Recurse on sub-containers
                 if (IsReloadGroup(fieldInfo))

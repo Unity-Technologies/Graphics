@@ -170,7 +170,7 @@ float4 ProcessSample(uint sampleNumber, float2 dir, float invSampleCount, float2
 [numthreads(16, 16, 1)]
 void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     float3 debugColor = 1.0f;
 
