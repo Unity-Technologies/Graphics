@@ -7,12 +7,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
 
     /// <summary>
-    /// Class <c>LightReactor2D</c> controls how the the game object will interact with lights
+    /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Light Reactor 2D (Experimental)")]
-    public class LightReactor2D : ShadowCasterGroup2D
+    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
+    public class ShadowCaster2D : ShadowCasterGroup2D
     {
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
