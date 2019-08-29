@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - toolbar toggle appearing light with light skin.
 - multiselection of gradient in visual effect graph
 - clipped "reseed" in visual effect editor
+- Unlit outputs are no longer pre-exposed by default in HDRP
 
 ## [7.0.1] - 2019-07-25
 ### Added
