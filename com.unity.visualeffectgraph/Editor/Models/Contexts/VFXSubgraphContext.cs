@@ -53,12 +53,12 @@ namespace UnityEditor.VFX
                 if(m_SubChildren == null && m_Subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                 {
                     foreach (var slot in inputSlots)
-                    {
                         yield return new VFXPropertyWithValue(slot.property);
-                    }
                 }
 
-                foreach ( var param in GetParameters(t=> InputPredicate(t)))
+
+                var categoriesOrder = m_Subgraph.GetResource().GetOrCreateGraph().UIInfos.categories;
+                foreach ( var param in GetParameters(t=> InputPredicate(t)).OrderBy(t=> categoriesOrder.FindIndex(u => u.name == t.category)).ThenBy(t=> t.order))
                     yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
             }
         }
