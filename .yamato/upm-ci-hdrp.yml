@@ -80,8 +80,8 @@ projects:
 
 
 
-All_{{ project.folder }}:
-  name: All {{ project.folder }} CI
+All_{{ project.name }}:
+  name: All {{ project.name }} CI
   agent:
     name: whatever
     type: Unity::VM
