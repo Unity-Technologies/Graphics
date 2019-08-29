@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             deleteSelection = DeleteSelectionImplementation;
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-            AddElement(m_MasterScope);
         }
 
         protected override bool canCopySelection
@@ -41,15 +40,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
-
-        Scope m_MasterScope = new Scope();
-        public Scope masterScope
-        {
-            get
-            {
-                return m_MasterScope;
-            }
-        }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
         {
@@ -107,15 +97,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (ISelectable selectedObject in selection)
                     {
                         if (selectedObject is Group)
-                            return DropdownMenuAction.Status.Disabled;
-                        VisualElement ve = selectedObject as VisualElement;
-                        if (ve.userData is AbstractMaterialNode)
                         {
-                            var selectedNode = selectedObject as Node;
-                            if (selectedNode.GetContainingScope() is Group)
-                                return DropdownMenuAction.Status.Disabled;
+                            continue;
+                        }
 
-                            filteredSelection.Add(selectedObject);
+                        VisualElement ve = selectedObject as VisualElement;
+                        if (ve.userData is IMasterNode)
+                        {
+                            continue;
+                        }
+
+                        if (selectedObject is Node selectedNode)
+                        {
+                            if (!(selectedNode.GetContainingScope() is Group))
+                            {
+                                filteredSelection.Add(selectedObject);
+                            }
                         }
                     }
 
@@ -147,8 +144,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     else
                         return DropdownMenuAction.Status.Disabled;
                 });
-
-                
 
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
                 if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
@@ -296,15 +291,35 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void GroupSelection()
         {
-            var title = "New Group";
-            var groupData = new GroupData(title, new Vector2(10f,10f));
-
-            graph.owner.RegisterCompleteObjectUndo("Create Group Node");
-            graph.CreateGroup(groupData);
+            List<IShaderNodeView> nodesToGroup = new List<IShaderNodeView>();
 
             foreach (var shaderNodeView in selection.OfType<IShaderNodeView>())
             {
-                graph.SetGroup(shaderNodeView.node, groupData);
+                if (shaderNodeView.node is IMasterNode)
+                {
+                    continue;
+                }
+
+                if (shaderNodeView.gvNode.GetContainingScope() is Group)
+                {
+                    continue;
+                }
+
+                nodesToGroup.Add(shaderNodeView);
+            }
+
+            if (nodesToGroup.Any())
+            {
+                var title = "New Group";
+                var groupData = new GroupData(title, new Vector2(10f,10f));
+
+                graph.owner.RegisterCompleteObjectUndo("Create Group Node");
+                graph.CreateGroup(groupData);
+
+                foreach (var nodeView in nodesToGroup)
+                {
+                    graph.SetGroup(nodeView.node, groupData);
+                }
             }
         }
 

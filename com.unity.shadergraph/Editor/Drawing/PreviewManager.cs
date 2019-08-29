@@ -209,13 +209,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool HandleGraphChanges()
         {
-            if (m_Graph.didActiveOutputNodeChange)
-            {
-                DestroyPreview(masterRenderData.shaderData.node.tempId);
-            }
-
             foreach (var node in m_Graph.removedNodes)
             {
+                Debug.Log(node.name);
                 DestroyPreview(node.tempId);
                 m_NodesToUpdate.Remove(node);
                 m_NodesToDraw.Remove(node);
@@ -247,6 +243,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_NodesToUpdate.Add(node);
                     m_RefreshTimedNodes = true;
                 }
+            }
+
+            if (m_Graph.didActiveOutputNodeChange)
+            {
+                if (masterRenderData.shaderData.node.guid != m_Graph.activeOutputNodeGuid)
+                {
+                    DestroyPreview(masterRenderData.shaderData.node.tempId);
+                    AddPreview(m_Graph.outputNode);
+                }
+
             }
 
             return m_NodesToUpdate.Count > 0;
@@ -588,6 +594,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 return;
             }
+            Debug.Log(renderData.shaderData.node.name);
 
             DestroyRenderData(renderData);
 

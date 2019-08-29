@@ -70,10 +70,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphView; }
         }
 
-        PreviewManager previewManager
+        public PreviewManager previewManager
         {
             get { return m_PreviewManager; }
-            set { m_PreviewManager = value; }
+            set
+            {
+                if (m_PreviewManager != null)
+                {
+                    m_PreviewManager.onPrimaryMasterChanged = null;
+                }
+
+                m_PreviewManager = value;
+
+                if (m_PreviewManager != null)
+                {
+                    m_PreviewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
+                }
+            }
         }
 
         public string assetName
@@ -90,13 +103,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_ColorManager;
         }
 
+        Scope m_MasterScope;// = new Scope();
+        public Scope masterScope
+        {
+            get
+            {
+                return m_MasterScope;
+            }
+        }
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
             m_Graph = graph;
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph, messageManager);
-            previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
 
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
@@ -234,14 +254,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddStickyNote(stickyNote);
             }
 
+            // Add Master scope Visual Element to graph view
+            if (!m_Graph.isSubGraph)
+            {
+                m_MasterScope = new Scope();
+                m_GraphView.AddElement(m_MasterScope);
+            }
+
             foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                 AddNode(node);
 
             foreach (var edge in graph.edges)
                 AddEdge(edge);
 
-            // Show which Master node is active
-            VisualizeActiveMasterNode();
+
 
             Add(content);
         }
@@ -253,11 +279,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (m_Graph.activeOutputNodeGuid == nodeView.node.guid)
                 {
-                    foreach (GraphElement element in m_GraphView.masterScope.containedElements.ToList())
+                    foreach (GraphElement element in masterScope.containedElements.ToList())
                     {
-                        m_GraphView.masterScope.RemoveElement(element);
+                        masterScope.RemoveElement(element);
                     }
-                    m_GraphView.masterScope.AddElement(nodeView);
+
+                    var color = new StyleColor(new Color(1f, 0.74f, 0.13f) );
+                    masterScope.style.opacity = .5f;
+                    masterScope.style.borderRightColor = color;
+                    masterScope.style.borderLeftColor = color;
+                    masterScope.style.borderTopColor = color;
+                    masterScope.style.borderBottomColor = color;
+                    masterScope.AddElement(nodeView);
                 }
             }
         }
@@ -492,7 +525,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-            if(previewManager.HandleGraphChanges())
+            if (previewManager != null && previewManager.HandleGraphChanges())
             {
                 var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
 
@@ -500,7 +533,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
-            previewManager.RenderPreviews();
+            previewManager?.RenderPreviews();
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 
@@ -547,6 +580,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.addedNodes)
             {
                 AddNode(node);
+            }
+
+            if (m_Graph.didActiveOutputNodeChange)
+            {
+
+                //m_Graph.owner.RegisterCompleteObjectUndo("Active Master Change");
+                VisualizeActiveMasterNode();
             }
 
             foreach (var groupChange in m_Graph.parentGroupChanges)
@@ -664,6 +704,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             UpdateBadges();
+
+            //VisualizeActiveMasterNode();
         }
 
         void UpdateBadges()
@@ -715,6 +757,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             node.RegisterCallback(OnNodeChanged);
             nodeView.MarkDirtyRepaint();
+
+            if (m_Graph.activeOutputNodeGuid == node.guid)
+            {
+                //Debug.Log(Environment.StackTrace);
+                VisualizeActiveMasterNode();
+                //m_Graph.didActiveOutputNodeChange = true;
+                Debug.Log("Muppets!");
+            }
 
             if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
             {
@@ -908,7 +958,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView?.RemoveFromHierarchy();
             CreateMasterPreview();
             ApplyMasterPreviewLayout();
-            VisualizeActiveMasterNode();
+
+            //VisualizeActiveMasterNode();
         }
 
         void HandleEditorViewChanged(GeometryChangedEvent evt)

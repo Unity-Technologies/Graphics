@@ -331,6 +331,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SetMasterAsActive(DropdownMenuAction action)
         {
+            node.owner.owner.RegisterCompleteObjectUndo("Active Master Change");
+            //Undo.RegisterCompleteObjectUndo(node.owner.owner, "Florp");
             node.owner.activeOutputNodeGuid = node.guid;
         }
 

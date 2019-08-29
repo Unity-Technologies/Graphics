@@ -183,7 +183,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphEditorView = null;
                 graphObject = null;
                 Debug.LogException(e);
-                throw;
             }
         }
 
