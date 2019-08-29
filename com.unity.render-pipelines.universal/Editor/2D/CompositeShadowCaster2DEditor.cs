@@ -7,8 +7,8 @@ using UnityEngine.Experimental.Rendering.Universal;
 namespace UnityEditor.Experimental.Rendering.Universal
 {
 
-    [CustomEditor(typeof(CompositeLightReactor2D))]
-    internal class CompositeLightReactor2DEditor : Editor
+    [CustomEditor(typeof(CompositeShadowCaster2D))]
+    internal class CompositeShadowCaster2DEditor : Editor
     {
         public override void OnInspectorGUI()
         {

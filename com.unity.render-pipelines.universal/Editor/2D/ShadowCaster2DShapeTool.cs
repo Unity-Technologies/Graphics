@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
  
         protected override IShape GetShape(Object target)
         {
-            return (target as LightReactor2D).shapePath.ToPolygon(false);
+            return (target as ShadowCaster2D).shapePath.ToPolygon(false);
         }
 
         protected override void SetShape(ScriptablePath shapeEditor, SerializedObject serializedObject)
@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             // This is untracked right now...
             serializedObject.ApplyModifiedProperties();
 
-            LightReactor2D shadowCaster = target as LightReactor2D;
+            ShadowCaster2D shadowCaster = target as ShadowCaster2D;
             if (shadowCaster != null)
             {
                 int hash = LightUtility.GetShapePathHash(shadowCaster.shapePath);
