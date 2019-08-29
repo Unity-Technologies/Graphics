@@ -361,7 +361,12 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
 
                         if(graphCode.requirements.requiresMeshUVs.Contains(UVChannel.UV0))
                         {
-                            callSG.builder.AppendLine($"INSG.uv0.xy = i.uv;");
+                            callSG.builder.AppendLine("INSG.uv0.xy = i.uv;");
+                        }
+
+                        if (graphCode.requirements.requiresTime)
+                        {
+                            callSG.builder.AppendLine("INSG.TimeParameters = _TimeParameters.xyz;");
                         }
 
                         if (taskType == VFXTaskType.ParticleMeshOutput)
