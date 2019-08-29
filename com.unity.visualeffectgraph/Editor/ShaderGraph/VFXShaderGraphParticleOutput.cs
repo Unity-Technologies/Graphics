@@ -90,6 +90,7 @@ namespace UnityEditor.VFX
 
         public override bool supportsUV => base.supportsUV && shaderGraph == null;
         public override bool exposeAlphaThreshold { get => base.exposeAlphaThreshold && shaderGraph == null; }
+        public override bool supportSoftParticles { get => base.supportSoftParticles && shaderGraph == null; }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
