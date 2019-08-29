@@ -100,6 +100,8 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 #else
 float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData builtinData,const VFX_VARYING_PS_INPUTS i)
 {
+    VFXClipFragmentColor(builtinData.opacity,i);
+    
     PreLightData preLightData = (PreLightData)0;
 	BSDFData bsdfData = (BSDFData)0;
 
@@ -122,6 +124,7 @@ float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData 
     InitBuiltinData(posInput, builtinData.opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData);
     builtinData.emissiveColor = emissive;
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surfaceData, builtinData);
+    
     
     return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
 }
