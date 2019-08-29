@@ -154,8 +154,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var res = new Vector3[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
             for (int i = 0, iLen = res.Length; i < iLen; ++i)
             {
-                // res[i] = new Vector3(Random.value, Random.value, Random.value);
-                res[i] = new Vector3(parameters.debugColor.r + (Random.value * 2.0f - 1.0f) * 0.1f, parameters.debugColor.g + (Random.value * 2.0f - 1.0f) * 0.1f, parameters.debugColor.b + (Random.value * 2.0f - 1.0f) * 0.1f);
+                Vector3 value = new Vector3(parameters.debugColor.r, parameters.debugColor.g, parameters.debugColor.b);
+                Vector3 random = new Vector3((Random.value * 2.0f - 1.0f) * 0.1f, (Random.value * 2.0f - 1.0f) * 0.1f, (Random.value * 2.0f - 1.0f) * 0.1f);
+
+                res[i] = value + random;
 
             }
             return res;
