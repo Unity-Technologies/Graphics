@@ -30,7 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
                                    | (uint)SkySettingsUIElement.Exposure
-                                   | (uint)SkySettingsUIElement.Multiplier;
+                                   | (uint)SkySettingsUIElement.Multiplier
+                                   | (uint)SkySettingsUIElement.IncludeSunInBaking;
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 

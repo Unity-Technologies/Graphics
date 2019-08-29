@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
             AddAfterPostProcessFrameSetting,
             AddFrameSettingSpecularLighting = 5, // Not used anymore - don't removed the number
             AddReflectionSettings,
-            AddPostProcessFrameSettings  
+            AddPostProcessFrameSettings,
+            AddRayTracingFrameSettings,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -42,6 +43,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.AddPostProcessFrameSettings, (HDRenderPipelineAsset data) =>
             {
                 FrameSettings.MigrateToPostProcess(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            }),
+            MigrationStep.New(Version.AddRayTracingFrameSettings, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToRayTracing(ref data.m_RenderingPathDefaultCameraFrameSettings);
             })
         );
 
