@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
                     if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 
-                    foreach (var param in GetParameters(t => InputPredicate(t)))
+                    foreach (var param in GetParameters(t => InputPredicate(t)).OrderBy(t => t.order))
                     {
                         yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
                     }
