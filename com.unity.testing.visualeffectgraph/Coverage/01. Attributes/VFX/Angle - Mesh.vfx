@@ -29,6 +29,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114946465509916290}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114307113894698210
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -290,7 +294,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -349,7 +353,10 @@ MonoBehaviour:
   - {fileID: 114946465509916290}
   - {fileID: 114780028408030698}
   - {fileID: 8926484042661615415}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -929,6 +936,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614551}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1301,7 +1312,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614551}
   - {fileID: 8926484042661614571}
   - {fileID: 8926484042661615423}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614571
 MonoBehaviour:
@@ -1368,6 +1382,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614633}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1807,7 +1825,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614633}
   - {fileID: 8926484042661614647}
   - {fileID: 8926484042661615450}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614647
 MonoBehaviour:
@@ -1871,6 +1892,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614703}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2242,7 +2267,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614703}
   - {fileID: 8926484042661614723}
   - {fileID: 8926484042661615466}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614723
 MonoBehaviour:
@@ -2691,7 +2719,10 @@ MonoBehaviour:
   - {fileID: 8926484042661615497}
   - {fileID: 8926484042661615510}
   - {fileID: 8926484042661615539}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614767
 MonoBehaviour:
@@ -2722,6 +2753,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614753}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614782
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2986,6 +3021,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614839}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614839
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3358,7 +3397,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614839}
   - {fileID: 8926484042661614862}
   - {fileID: 8926484042661615436}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614853
 MonoBehaviour:
@@ -3509,6 +3551,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661615064}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661615061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3997,7 +4043,10 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 8926484042661615064}
   - {fileID: 8926484042661615091}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615075
 MonoBehaviour:
@@ -4090,6 +4139,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615627}
   cullMode: 0
@@ -4411,6 +4462,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615628}
   cullMode: 0
@@ -4582,7 +4635,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615093}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615099
 MonoBehaviour:
@@ -4723,6 +4779,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615629}
   cullMode: 0
@@ -4894,7 +4952,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615107}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615113
 MonoBehaviour:
@@ -5035,6 +5096,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615630}
   cullMode: 0
@@ -5206,7 +5269,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615121}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615127
 MonoBehaviour:
@@ -6804,7 +6870,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615077}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615373
 MonoBehaviour:
@@ -7068,7 +7137,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615631}
   cullMode: 0
@@ -7300,7 +7371,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615632}
   cullMode: 0
@@ -7558,7 +7631,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615633}
   cullMode: 0
@@ -7857,7 +7932,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615634}
   cullMode: 0
@@ -8217,7 +8294,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615635}
   cullMode: 0
@@ -8578,7 +8657,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615636}
   cullMode: 0
@@ -8896,7 +8977,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615637}
   cullMode: 0
@@ -9157,7 +9240,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615638}
   cullMode: 0
@@ -9943,7 +10028,9 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615639}
   cullMode: 0
@@ -10256,7 +10343,9 @@ MonoBehaviour:
   - link: []
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615640}
   cullMode: 0
@@ -10385,7 +10474,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615554}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615558
 MonoBehaviour:
@@ -10414,6 +10506,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615641}
   cullMode: 0
@@ -10483,7 +10577,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615558}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615561
 MonoBehaviour:
@@ -10534,7 +10631,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615561}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615580
 MonoBehaviour:
@@ -10563,6 +10663,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615642}
   cullMode: 0
@@ -10632,7 +10734,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615580}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615583
 MonoBehaviour:
@@ -10660,6 +10765,10 @@ MonoBehaviour:
   - link: []
   m_OutputFlowSlot:
   - link: []
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661615584
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10709,7 +10818,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615584}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615586
 MonoBehaviour:
@@ -11075,7 +11187,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615586}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615597
 MonoBehaviour:
@@ -11126,7 +11241,10 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615597}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661615599
 MonoBehaviour:

@@ -278,6 +278,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614633}
   cullMode: 0
@@ -506,6 +508,10 @@ MonoBehaviour:
       slotIndex: 0
     - context: {fileID: 114599355351612716}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114147303298684628
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -672,7 +678,10 @@ MonoBehaviour:
   - {fileID: 114039840005636358}
   - {fileID: 114711023100229378}
   - {fileID: 114080780605895098}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114180286948436762
 MonoBehaviour:
@@ -1068,6 +1077,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114651974820844972}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114296272477006304
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1135,6 +1148,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614632}
   cullMode: 0
@@ -2059,6 +2074,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114039840005636358}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114605799051773202
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2232,7 +2251,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114844792954375938}
   m_ParameterInfo: []
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -2498,6 +2517,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114651974820844972}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114665378916553646
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3443,7 +3466,10 @@ MonoBehaviour:
   - {fileID: 114651974820844972}
   - {fileID: 114886225546399154}
   - {fileID: 114299483806011458}
-  m_Capacity: 3200
+  dataType: 0
+  capacity: 3200
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114844792954375938
 MonoBehaviour:
@@ -3587,6 +3613,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114651974820844972}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114870055252344518
 MonoBehaviour:
   m_ObjectHideFlags: 1

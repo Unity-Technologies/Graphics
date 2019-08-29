@@ -208,7 +208,10 @@ MonoBehaviour:
   - {fileID: 114994506220172388}
   - {fileID: 114824449325116086}
   - {fileID: 114771415308128800}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114044494152853828
 MonoBehaviour:
@@ -773,7 +776,10 @@ MonoBehaviour:
   - {fileID: 114824373451130264}
   - {fileID: 114381269657133868}
   - {fileID: 114466790188343014}
-  m_Capacity: 32
+  dataType: 0
+  capacity: 32
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114116903808439296
 MonoBehaviour:
@@ -1522,7 +1528,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":1.0,"y":0.6506772041320801,"z":0.0}'
+      m_SerializableObject: '{"x":1.0,"y":0.6499999761581421,"z":0.0}'
     m_Space: 2147483647
   m_Property:
     name: Color
@@ -2150,6 +2156,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114071166642346198}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114306614083848816
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2685,10 +2695,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -1827
-    y: -339
+    x: -1835
+    y: -347
     width: 2914
-    height: 1633
+    height: 1641
 --- !u!114 &114348141417522650
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3129,6 +3139,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614603}
   cullMode: 0
@@ -3190,7 +3202,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114336804244793132}
   m_ParameterInfo: []
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -4415,6 +4427,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114824373451130264}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114648519296311600
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4528,7 +4544,10 @@ MonoBehaviour:
   - {fileID: 114071166642346198}
   - {fileID: 114102166860691056}
   - {fileID: 114966030249881500}
-  m_Capacity: 3200
+  dataType: 0
+  capacity: 3200
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114669236053635934
 MonoBehaviour:
@@ -4667,6 +4686,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114994506220172388}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114694092575903060
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5272,6 +5295,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614602}
   cullMode: 0
@@ -6190,6 +6215,8 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614601}
   cullMode: 0
