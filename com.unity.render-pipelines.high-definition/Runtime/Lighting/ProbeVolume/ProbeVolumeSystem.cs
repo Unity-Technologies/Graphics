@@ -72,6 +72,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         static ComputeBuffer s_VisibleProbeVolumeBoundsBuffer = null;
         static ComputeBuffer s_VisibleProbeVolumeDataBuffer = null;
+        static ComputeBuffer s_VisibleProbeVolumeBoundsBufferDefault = null;
+        static ComputeBuffer s_VisibleProbeVolumeDataBufferDefault = null;
 
         // Is the feature globally disabled?
         bool m_SupportProbeVolume = false;
@@ -102,6 +104,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_ProbeVolumeAtlasBlitCS = asset.renderPipelineResources.shaders.probeVolumeAtlasBlitCS;
                 s_ProbeVolumeAtlasBlitKernel = s_ProbeVolumeAtlasBlitCS.FindKernel("ProbeVolumeAtlasBlitKernel");
             }
+            else
+            {
+                CreateBuffersDefault();
+            }
+        }
+
+        void CreateBuffersDefault()
+        {
+            s_VisibleProbeVolumeBoundsBufferDefault = new ComputeBuffer(1, Marshal.SizeOf(typeof(OrientedBBox)));
+            s_VisibleProbeVolumeDataBufferDefault = new ComputeBuffer(1, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
         }
 
         void CreateBuffers()
@@ -165,6 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DestroyBuffers()
         {
+            CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBufferDefault);
+            CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBufferDefault);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBuffer);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBuffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataBuffer);
@@ -187,7 +201,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!m_SupportProbeVolume)
+            {
+                ProbeVolumeSystem.PushGlobalParamsDefault(hdCamera, cmd, frameIndex);
                 return;
+            }
 
             var currFrameParams = hdCamera.probeVolumeSystemParams;
 
@@ -201,6 +218,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.width,
                     1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.height
             ));
+        }
+
+        private static void PushGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
+        {
+            cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
+            cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBufferDefault);
+            cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, 0);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlas", Texture2D.blackTexture);
         }
 
         private bool EnsureProbeVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolume volume)
@@ -394,6 +419,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
         {
+            if (!m_SupportProbeVolume) { return; }
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
             float rWidth = 1.0f / m_ProbeVolumeAtlasRTHandle.rt.width;
             float rHeight = 1.0f / m_ProbeVolumeAtlasRTHandle.rt.height;
