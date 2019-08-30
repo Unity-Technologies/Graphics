@@ -292,6 +292,11 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
 
+                        if (graphCode.requirements.requiresNormal != NeededCoordinateSpace.None || graphCode.requirements.requiresTangent != NeededCoordinateSpace.None || graphCode.requirements.requiresBitangent != NeededCoordinateSpace.None)
+                        {
+
+                        }
+
                         if (graphCode.requirements.requiresNormal != NeededCoordinateSpace.None)
                         {
                             callSG.builder.AppendLine("float3 WorldSpaceNormal = normalize(normalWS.xyz);");
@@ -369,7 +374,7 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                                     callSG.builder.AppendLine("INSG.ViewSpaceViewDirection = TransformWorldToViewDir(V);");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0)
                                     callSG.builder.AppendLine(@"float3x3 tangentSpaceTransform = float3x3(normalize(tangentWS.xyz),normalize(bitangentWS.xyz),normalize(normalWS.xyz));
-INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);");
+INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, V);");
                             }
 
                         }
