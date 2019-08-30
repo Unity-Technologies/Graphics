@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
         const string k_CreateCameraTextures = "Create Camera Texture";
 
         DepthOnlyPass m_DepthPrepass;
+        TileDepthRangePass m_TileDepthRangePass;
         DrawObjectsPass m_RenderOpaqueForwardPass;
         FinalBlitPass m_FinalBlitPass;
 
@@ -17,9 +18,12 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
+        RenderTargetHandle m_TileDepthRangeTexture;
 
         DeferredPass m_DeferredPass;
         StencilState m_DefaultStencilState;
+
+        DeferredLights m_DeferredLights;
 
         public DeferredRenderer(DeferredRendererData data) : base(data)
         {
@@ -27,8 +31,8 @@ namespace UnityEngine.Rendering.Universal
 //            Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
 //            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
 //            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
+            Material tileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
             Material tilingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tilingPS);
-
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -38,12 +42,16 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
+            m_DeferredLights = new DeferredLights(tileDepthInfoMaterial, tilingMaterial);
+
+
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.AfterRenderingPrePasses, m_DeferredLights);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             //            m_DeferredPass = new DeferredPass();
-            m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingSkybox, RenderQueueRange.opaque, tilingMaterial);
+            m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingSkybox, RenderQueueRange.opaque, m_DeferredLights);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -54,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
             m_ColorGradingLut.Init("_InternalGradingLut");
+            m_TileDepthRangeTexture.Init("_TileDepthRangeTexture");
         }
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -114,15 +123,19 @@ namespace UnityEngine.Rendering.Universal
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
+            // GBuffer pass, all needed RTs are passed here.
+            m_DeferredLights.Setup(m_TileDepthRangeTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
+
             if (requiresDepthPrepass)
             {
                 m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                 EnqueuePass(m_DepthPrepass);
             }
 
+            EnqueuePass(m_TileDepthRangePass);
+
             EnqueuePass(m_RenderOpaqueForwardPass);
 
-            m_DeferredPass.Setup(m_DepthTexture);
             EnqueuePass(m_DeferredPass);
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||
@@ -145,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
 //            if (!renderingData.cameraData.isSceneViewCamera)
 //                return;
 
-            m_DeferredPass.SetupLights(context, ref renderingData);
+            m_DeferredLights.SetupLights(context, ref renderingData);
         }
 
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,

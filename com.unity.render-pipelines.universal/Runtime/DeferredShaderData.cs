@@ -4,13 +4,12 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // Vector2Int  and Vector3Int exist, but not Vector4Int ...
-    struct Vector4Int
+    struct Vector4UInt
     {
-        uint x;
-        uint y;
-        uint z;
-        uint w;
+        public uint x;
+        public uint y;
+        public uint z;
+        public uint w;
     };
 
     class DeferredShaderData : IDisposable
@@ -19,31 +18,29 @@ namespace UnityEngine.Rendering.Universal
 
         /// Precomputed tiles.
         NativeArray<PreTile> m_PreTiles;
-        // Store tileID for drawing instanced tiles.
-        ComputeBuffer[] m_TileIDBuffers = null;
-        // Store an index in RealLightIndexBuffer for each tile.
-        ComputeBuffer[] m_TileRelLightBuffers = null;
+        // Store tileData for drawing instanced tiles.
+        ComputeBuffer[,] m_TileDataBuffers = null;
         // Store point lights data for a draw call.
-        ComputeBuffer[] m_PointLightBuffers = null;
+        ComputeBuffer[,] m_PointLightBuffers = null;
         // Store lists of lights. Each tile has a list of lights, which start address is given by m_TileRelLightBuffer.
         // The data stored is a relative light index, which is an index into m_PointLightBuffer. 
-        ComputeBuffer[] m_RelLightIndexBuffers = null;
+        ComputeBuffer[,] m_RelLightIndexBuffers = null;
 
-        int m_TileIDBuffer_UsedCount = 0;
-        int m_TileRelLightBuffer_UsedCount = 0;
+        int m_TileDataBuffer_UsedCount = 0;
         int m_PointLightBuffer_UsedCount = 0;
         int m_RelLightIndexBuffer_UsedCount = 0;
+
+        int m_FrameLatency = 4;
+        int m_FrameIndex = 0;
 
         DeferredShaderData()
         {
             // TODO: make it a vector
-            m_TileIDBuffers = new ComputeBuffer[16];
-            m_TileRelLightBuffers = new ComputeBuffer[16];
-            m_PointLightBuffers = new ComputeBuffer[16];
-            m_RelLightIndexBuffers = new ComputeBuffer[16];
+            m_TileDataBuffers = new ComputeBuffer[m_FrameLatency, 32]; 
+            m_PointLightBuffers = new ComputeBuffer[m_FrameLatency,32];
+            m_RelLightIndexBuffers = new ComputeBuffer[m_FrameLatency,32];
 
-            m_TileIDBuffer_UsedCount = 0;
-            m_TileRelLightBuffer_UsedCount = 0;
+            m_TileDataBuffer_UsedCount = 0;
             m_PointLightBuffer_UsedCount = 0;
             m_RelLightIndexBuffer_UsedCount = 0;
         }
@@ -62,61 +59,55 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             DisposeNativeArray(ref m_PreTiles);
-            DisposeBuffers(m_TileIDBuffers);
-            DisposeBuffers(m_TileRelLightBuffers);
+            DisposeBuffers(m_TileDataBuffers);
             DisposeBuffers(m_PointLightBuffers);
             DisposeBuffers(m_RelLightIndexBuffers);
         }
 
         internal void ResetBuffers()
         {
-            m_TileIDBuffer_UsedCount = 0;
-            m_TileRelLightBuffer_UsedCount = 0;
+            m_TileDataBuffer_UsedCount = 0;
             m_PointLightBuffer_UsedCount = 0;
             m_RelLightIndexBuffer_UsedCount = 0;
+            m_FrameIndex = (m_FrameIndex + 1) % m_FrameLatency;
         }
 
-        internal NativeArray<PreTile> GetPreTiles(int size)
+        internal NativeArray<PreTile> GetPreTiles(int count)
         {
-            return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, size);
+            return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, count);
         }
 
-        internal ComputeBuffer ReserveTileIDBuffer(int size)
+        internal ComputeBuffer ReserveTileDataBuffer(int count)
         {
-            return GetOrUpdateBuffer<Vector4Int>(m_TileIDBuffers, (size + 3) / 4, ComputeBufferType.Constant, m_TileIDBuffer_UsedCount++);
+            return GetOrUpdateBuffer<Vector4UInt>(m_TileDataBuffers, count, ComputeBufferType.Constant, m_TileDataBuffer_UsedCount++);
         }
 
-        internal ComputeBuffer ReserveTileRelLightBuffer(int size)
-        {
-            return GetOrUpdateBuffer<Vector4Int>(m_TileRelLightBuffers, (size + 3) / 4, ComputeBufferType.Constant, m_TileRelLightBuffer_UsedCount++);
-        }
-
-        internal ComputeBuffer ReservePointLightBuffer(int size)
+        internal ComputeBuffer ReservePointLightBuffer(int count)
         {
 #if UNITY_SUPPORT_STRUCT_IN_CBUFFER
-            return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, size, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
+            return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
 #else
             int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
             int float4Count = sizeof_PointLightData / 16;
-            return GetOrUpdateBuffer<Vector4>(m_PointLightBuffers, size * float4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
+            return GetOrUpdateBuffer<Vector4>(m_PointLightBuffers, count * float4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
 #endif
         }
 
-        internal ComputeBuffer ReserveRelLightIndexBuffer(int size)
+        internal ComputeBuffer ReserveRelLightIndexBuffer(int count)
         {
-            return GetOrUpdateBuffer<Vector4Int>(m_RelLightIndexBuffers, (size + 3) / 4, ComputeBufferType.Constant, m_RelLightIndexBuffer_UsedCount++);
+            return GetOrUpdateBuffer<Vector4UInt>(m_RelLightIndexBuffers, (count + 3) / 4, ComputeBufferType.Constant, m_RelLightIndexBuffer_UsedCount++);
         }
 
-        NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T> nativeArray, int size) where T : struct
+        NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T> nativeArray, int count) where T : struct
         {
             if (!nativeArray.IsCreated)
             {
-                nativeArray = new NativeArray<T>(size, Allocator.Persistent);
+                nativeArray = new NativeArray<T>(count, Allocator.Persistent);
             }
-            else if (size > nativeArray.Length)
+            else if (count > nativeArray.Length)
             {
                 nativeArray.Dispose();
-                nativeArray = new NativeArray<T>(size, Allocator.Persistent);
+                nativeArray = new NativeArray<T>(count, Allocator.Persistent);
             }
 
             return nativeArray;
@@ -128,29 +119,33 @@ namespace UnityEngine.Rendering.Universal
                 nativeArray.Dispose();
         }
 
-        ComputeBuffer GetOrUpdateBuffer<T>(ComputeBuffer[] buffers, int size, ComputeBufferType type, int index) where T : struct
+        ComputeBuffer GetOrUpdateBuffer<T>(ComputeBuffer[,] buffers, int count, ComputeBufferType type, int index) where T : struct
         {
-            if (buffers[index] == null)
+            if (buffers[m_FrameIndex,index] == null)
             {
-                buffers[index] = new ComputeBuffer(size, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
+                buffers[m_FrameIndex, index] = new ComputeBuffer(count, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
             }
-            else if (size > buffers[index].count)
+            else if (count > buffers[m_FrameIndex, index].count)
             {
-                buffers[index].Dispose();
-                buffers[index] = new ComputeBuffer(size, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
+                buffers[m_FrameIndex, index].Dispose();
+                buffers[m_FrameIndex, index] = new ComputeBuffer(count, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
             }
 
-            return buffers[index];
+            return buffers[m_FrameIndex, index];
         }
 
-        void DisposeBuffers(ComputeBuffer[] buffers)
+        void DisposeBuffers(ComputeBuffer[,] buffers)
         {
-            for (int i = 0; i < buffers.Length; ++i)
+            for (int i = 0; i < buffers.GetLength(0); ++i)
             {
-                if (buffers[i] != null)
+                for (int j = 0; j < buffers.GetLength(1); ++j)
                 {
-                    buffers[i].Dispose();
-                    buffers[i] = null;
+
+                    if (buffers[i, j] != null)
+                    {
+                        buffers[i, j].Dispose();
+                        buffers[i, j] = null;
+                    }
                 }
             }
         }
