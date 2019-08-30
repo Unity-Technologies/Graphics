@@ -22,7 +22,7 @@ projects:
 {% for platform in platforms %}
 {% for testplatform in testplatforms %}
 {{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}:
-  name : Build and Test {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
+  name : Test {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" and platform.name == "Windows64" %}
     type: Unity::VM
