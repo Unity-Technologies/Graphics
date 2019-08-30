@@ -64,15 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyBlockString()
         {
-            var result = new StringBuilder();
-
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", TextureStack) = {");
-            result.Append(GetSlotNamesString(" "));
-            result.Append("}");
-            return result.ToString();
+            return ""; //A stack only has variables declared in the actual shader not in the shaderlab wrapper code
         }
 
         public override string GetPropertyDeclarationString(string delimiter = ";")

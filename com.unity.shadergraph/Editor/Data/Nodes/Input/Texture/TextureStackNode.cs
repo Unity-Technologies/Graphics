@@ -194,6 +194,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectShaderProperties(properties, generationMode);
 
+            // Get names of connected textures
             List<string> slotNames = new List<string>();
             for (int i = 0; i < numSlots; i++)
             {
@@ -201,9 +202,30 @@ namespace UnityEditor.ShaderGraph
                 slotNames.Add(id);
             }
 
+            string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
+
+            // Add attributes to any connected textures
+            int found = 0;
+            foreach (var prop in properties.properties.OfType<TextureShaderProperty>())
+            {
+                foreach (var inputTex in slotNames)
+                {
+                    if (string.Compare(inputTex, prop.referenceName) == 0)
+                    {
+                        prop.textureStack = stackName;
+                        found++;
+                    }
+                }
+            }
+
+            if (found != slotNames.Count)
+            {
+                Debug.LogWarning("Could not find some texture properties for stack " + stackName);
+            }
+
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack",
+                overrideReferenceName = stackName,
                 generatePropertyBlock = true,
                 modifiable = false,
                 slotNames = slotNames
