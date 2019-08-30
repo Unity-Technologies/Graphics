@@ -123,20 +123,20 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 {
     // Abstraction over Light input constants
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    float3 lightPositionWS = _AdditionalLightsBuffer[perObjectLightIndex].position.xyz;
+    float4 lightPositionWS = _AdditionalLightsBuffer[perObjectLightIndex].position;
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
     half4 lightOcclusionProbeInfo = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
 #else
-    float3 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex].xyz;
+    float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
     half4 lightOcclusionProbeInfo = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
 
-    float3 lightVector = lightPositionWS - positionWS;
+    float3 lightVector = lightPositionWS.xyz - positionWS;
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
@@ -144,7 +144,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 
     Light light;
     light.direction = lightDirection;
-    light.distanceAttenuation = attenuation;
+    light.distanceAttenuation = (lightPositionWS.w <= 0.0 ? attenuation : 1.0);;
     light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
     light.color = color;
 

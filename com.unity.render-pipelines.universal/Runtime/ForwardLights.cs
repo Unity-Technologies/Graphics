@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 Vector4 pos = lightData.localToWorldMatrix.GetColumn(3);
-                lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, 0.0f);
             }
 
             // VisibleLight.finalColor already returns color in active color space
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
                         VisibleLight light = lights[i];
-                        if (lightData.mainLightIndex != i && light.lightType != LightType.Directional)
+                        if (lightData.mainLightIndex != i)
                         {
                             ShaderInput.LightData data;
                             InitializeLightConstants(lights, i,
@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
                         VisibleLight light = lights[i];
-                        if (lightData.mainLightIndex != i && light.lightType != LightType.Directional)
+                        if (lightData.mainLightIndex != i)
                         {
                             InitializeLightConstants(lights, i, out m_AdditionalLightPositions[lightIter],
                                 out m_AdditionalLightColors[lightIter],
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.Universal
 
             var visibleLights = lightData.visibleLights;
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
-            int directionalLightsCount = 0;
+            int globalDirectionalLightsCount = 0;
             int additionalLightsCount = 0;
 
             // Disable all directional lights from the perobject light indices
@@ -299,20 +299,20 @@ namespace UnityEngine.Rendering.Universal
                     break;
 
                 VisibleLight light = visibleLights[i];
-                if (light.lightType == LightType.Directional)
+                if (i == lightData.mainLightIndex)
                 {
                     perObjectLightIndexMap[i] = -1;
-                    ++directionalLightsCount;
+                    ++globalDirectionalLightsCount;
                 }
                 else
                 {
-                    perObjectLightIndexMap[i] -= directionalLightsCount;
+                    perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
                     ++additionalLightsCount;
                 }
             }
 
             // Disable all remaining lights we cannot fit into the global light buffer.
-            for (int i = directionalLightsCount + additionalLightsCount; i < perObjectLightIndexMap.Length; ++i)
+            for (int i = globalDirectionalLightsCount + additionalLightsCount; i < perObjectLightIndexMap.Length; ++i)
                 perObjectLightIndexMap[i] = -1;
 
             cullResults.SetLightIndexMap(perObjectLightIndexMap);
