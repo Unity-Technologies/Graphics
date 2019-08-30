@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                AddSlot(new ColorRGBMaterialSlot(ShaderGraphVfxAsset.ColorSlotId, ColorSlotName, NodeUtils.GetHLSLSafeName(ColorSlotName), SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
+                AddSlot(new ColorRGBMaterialSlot(ShaderGraphVfxAsset.ColorSlotId, ColorSlotName, NodeUtils.GetHLSLSafeName(ColorSlotName), SlotType.Input, Color.grey.gamma, ColorMode.HDR, ShaderStageCapability.Fragment));
                 usedSlots.Add(ShaderGraphVfxAsset.ColorSlotId);
             }
 
