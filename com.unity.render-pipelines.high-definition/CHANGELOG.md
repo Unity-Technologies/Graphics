@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix FrameSettings names and tooltips
 - Fixed error with XR SDK when the Editor is not in focus
 - Fixed errors with RenderGraph, XR SDK and occlusion mesh
+- Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 
 ### Changed
 - Update Wizard layout.
