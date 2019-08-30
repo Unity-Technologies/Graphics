@@ -339,7 +339,7 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                         if(requiresTangent)
                             yield return new KeyValuePair<string, VFXShaderWriter>($"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}", new VFXShaderWriter("1"));
 
-                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None)
+                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None || graphCode.requirements.requiresScreenPosition)
                         {
                             yield return new KeyValuePair<string, VFXShaderWriter>("VFX_NEEDS_POSWS_INTERPOLATOR",new VFXShaderWriter("1"));
 
@@ -354,12 +354,14 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                                 callSG.builder.AppendLine("INSG.TangentSpacePosition = float3(0.0f, 0.0f, 0.0f);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) != 0)
                                 callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePosition = GetAbsolutePositionWS(WorldSpacePosition);");
-                            
-                        }
-                        if (graphCode.requirements.requiresScreenPosition)
-                            callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(i.posWS), _ProjectionParams.x);");
 
-                        if(graphCode.requirements.requiresMeshUVs.Contains(UVChannel.UV0))
+                            if(graphCode.requirements.requiresScreenPosition)
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(i.posWS), _ProjectionParams.x);");
+
+
+                        }
+
+                        if (graphCode.requirements.requiresMeshUVs.Contains(UVChannel.UV0))
                         {
                             callSG.builder.AppendLine("INSG.uv0.xy = i.uv;");
                         }
