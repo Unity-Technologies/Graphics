@@ -101,11 +101,28 @@ namespace UnityEditor.VFX
 
                 if (shaderGraph != null)
                 {
-                    properties = properties.Concat(shaderGraph.properties
+                    var shaderGraphProperties = new List<VFXPropertyWithValue>();
+                    foreach (var property in shaderGraph.properties
                         .Where(t => !t.hidden)
                         .Select(t => new { property = t, type = GetSGPropertyType(t) })
-                        .Where(t => t.type != null)
-                        .Select(t => new VFXPropertyWithValue(new VFXProperty(t.type, t.property.referenceName), GetSGPropertyValue(t.property)))).ToArray();
+                        .Where(t => t.type != null) )
+                   {
+                        if( property.property.propertyType == PropertyType.Vector1 )
+                        {
+                            var prop = property.property as Vector1ShaderProperty;
+
+                            if( prop.floatType == FloatType.Slider)
+                                shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName,new VFXPropertyAttribute(VFXPropertyAttribute.Type.kRange,prop.rangeValues.x, prop.rangeValues.y)), GetSGPropertyValue(property.property)));
+                            else if (prop.floatType == FloatType.Integer)
+                                shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(typeof(int), property.property.referenceName), VFXConverter.ConvertTo(GetSGPropertyValue(property.property),typeof(int))));
+                            else
+                                shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName), GetSGPropertyValue(property.property)));
+                        }
+                        else
+                            shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName), GetSGPropertyValue(property.property)));
+                   }
+
+                    properties = properties.Concat(shaderGraphProperties);
                 }
                 return properties;
             }
