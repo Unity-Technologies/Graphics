@@ -312,7 +312,7 @@ namespace UnityEditor.VFX
             return new VFXExpression[] { theta, distance };
         }
 
-        static public VFXExpression SphericalToRectangular(VFXExpression theta, VFXExpression phi, VFXExpression distance)
+        static public VFXExpression SphericalToRectangular(VFXExpression distance, VFXExpression theta, VFXExpression phi)
         {
             //x = cos(theta) * cos(phi) * distance
             //y = sin(theta) * cos(phi) * distance
@@ -339,7 +339,7 @@ namespace UnityEditor.VFX
             var distance = Length(coord);
             var theta = new VFXExpressionATan2(components[2], components[0]);
             var phi = new VFXExpressionASin(components[1] / distance);
-            return new VFXExpression[] { theta, phi, distance };
+            return new VFXExpression[] { distance, theta, phi };
         }
 
         static public VFXExpression CircleArea(VFXExpression radius)
