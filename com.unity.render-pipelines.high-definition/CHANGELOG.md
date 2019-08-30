@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an update virtual function to the SkyRenderer class. This is called once per frame. This allows a given renderer to amortize heavy computation at the rate it chooses. Currently only the physically based sky implements this.
 - Removed mandatory XRPass argument in HDCamera.GetOrCreate()
 
+## Added
+- Raytracing ShaderGraph node for HDRP shaders
+
 ## [7.0.1] - 2019-07-25
 
 ### Added
