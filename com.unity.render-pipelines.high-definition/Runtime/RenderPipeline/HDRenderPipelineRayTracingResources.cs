@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]
         public ComputeShader shadowFilterCS;
 
-        // Primary visibility
+        // Recursive tracing
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
         public RayTracingShader forwardRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
