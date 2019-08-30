@@ -331,15 +331,14 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                         }
 
 
-                        if(kvPass.Value.pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId))
-                        {
+                        if (kvPass.Value.pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId))
                             yield return new KeyValuePair<string, VFXShaderWriter>("SHADERGRAPH_HAS_NORMAL", new VFXShaderWriter("1"));
-                        }
+
                         bool requiresTangent = (graphCode.requirements.requiresTangent & ~NeededCoordinateSpace.Tangent) != 0 || (graphCode.requirements.requiresBitangent & ~NeededCoordinateSpace.Tangent)!= 0;
                         if(requiresTangent)
                             yield return new KeyValuePair<string, VFXShaderWriter>($"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}", new VFXShaderWriter("1"));
 
-                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None || graphCode.requirements.requiresScreenPosition)
+                        if (graphCode.requirements.requiresPosition != NeededCoordinateSpace.None || graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                         {
                             yield return new KeyValuePair<string, VFXShaderWriter>("VFX_NEEDS_POSWS_INTERPOLATOR",new VFXShaderWriter("1"));
 
@@ -358,6 +357,20 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                             if(graphCode.requirements.requiresScreenPosition)
                                 callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(i.posWS), _ProjectionParams.x);");
 
+
+                            if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
+                            {
+                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(i.posWS);");
+                                if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.World) != 0)
+                                    callSG.builder.AppendLine("INSG.WorldSpaceViewDirection =  V;");
+                                if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Object) != 0)
+                                    callSG.builder.AppendLine("INSG.ObjectSpaceViewDirection =  TransformWorldToObjectDir(V);");
+                                if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.View) != 0)
+                                    callSG.builder.AppendLine("INSG.ViewSpaceViewDirection = TransformWorldToViewDir(V);");
+                                if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Tangent) != 0)
+                                    callSG.builder.AppendLine(@"float3x3 tangentSpaceTransform = float3x3(normalize(tangentWS.xyz),normalize(bitangentWS.xyz),normalize(normalWS.xyz));
+INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);");
+                            }
 
                         }
 
