@@ -176,6 +176,8 @@ Shader ""Hidden/GraphErrorShader2""
             var mode = GenerationMode.ForReals;
             var graph = masterNode.owner;
 
+            asset.lit = masterNode.lit.isOn;
+
             var assetGuid = masterNode.owner.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
             var hlslName = NodeUtils.GetHLSLSafeName(Path.GetFileNameWithoutExtension(assetPath));

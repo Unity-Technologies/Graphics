@@ -365,6 +365,8 @@ namespace UnityEditor.VFX
 
         static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
         {
+            if (!context.SetupCompilation())
+                return null;
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
 
             var globalDeclaration = new VFXShaderWriter();
@@ -537,6 +539,7 @@ namespace UnityEditor.VFX
             if (VFXViewPreference.advancedLogs)
                 Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
 
+            context.EndCompilation();
             return stringBuilder;
         }
 

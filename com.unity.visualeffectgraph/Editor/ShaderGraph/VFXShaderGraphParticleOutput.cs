@@ -265,6 +265,44 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual bool isLitShader { get => false; }
+
+        Dictionary<string, GraphCode> graphCodes;
+
+        public override bool SetupCompilation()
+        {
+            if (!base.SetupCompilation()) return false;
+            if (shaderGraph != null)
+            {
+                if (!isLitShader && shaderGraph.lit)
+                {
+                    Debug.LogError("You must use a lit vfx master node with a lit output");
+                    return false;
+                }
+                if (isLitShader && !shaderGraph.lit)
+                {
+                    Debug.LogError("You must use an unlit vfx master node with an unlit output");
+                    return false;
+                }
+
+                graphCodes = currentRP.passInfos.ToDictionary(t => t.Key, t => shaderGraph.GetCode(t.Value.pixelPorts.Select(u => shaderGraph.GetOutput(u)).Where(u => !string.IsNullOrEmpty(u.referenceName)).ToArray()));
+
+                if( !isLitShader && graphCodes.Values.Any(t=> t.requirements.requiresNormal != NeededCoordinateSpace.None || t.requirements.requiresTangent != NeededCoordinateSpace.None || t.requirements.requiresBitangent != NeededCoordinateSpace.None))
+                {
+                    Debug.LogError("You can't use normal, tangent and bitangent related nodes with unlit outputs");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public override void EndCompilation()
+        {
+            if (graphCodes != null)
+                graphCodes.Clear();
+        }
+
 public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
@@ -283,19 +321,15 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                             yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.id}"));
                     }
 
-                    foreach (var kvPass in info.passInfos)
+                    foreach (var kvPass in graphCodes)
                     {
-                        GraphCode graphCode = shaderGraph.GetCode(kvPass.Value.pixelPorts.Select(t => shaderGraph.GetOutput(t)).Where(t => !string.IsNullOrEmpty(t.referenceName)).ToArray());
+                        GraphCode graphCode = kvPass.Value;
 
                         yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter("#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl\"\n" + graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
 
-                        if (graphCode.requirements.requiresNormal != NeededCoordinateSpace.None || graphCode.requirements.requiresTangent != NeededCoordinateSpace.None || graphCode.requirements.requiresBitangent != NeededCoordinateSpace.None)
-                        {
-
-                        }
 
                         if (graphCode.requirements.requiresNormal != NeededCoordinateSpace.None)
                         {
@@ -335,8 +369,9 @@ public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalRep
                                 callSG.builder.AppendLine("INSG.TangentSpaceBiTangent = float3(0.0f, 1.0f, 0.0f);");
                         }
 
+                        var pixelPorts = currentRP.passInfos[kvPass.Key].pixelPorts;
 
-                        if (kvPass.Value.pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId))
+                        if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId))
                             yield return new KeyValuePair<string, VFXShaderWriter>("SHADERGRAPH_HAS_NORMAL", new VFXShaderWriter("1"));
 
                         bool requiresTangent = (graphCode.requirements.requiresTangent & ~NeededCoordinateSpace.Tangent) != 0 || (graphCode.requirements.requiresBitangent & ~NeededCoordinateSpace.Tangent)!= 0;
@@ -407,7 +442,7 @@ INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, V);");
                                 callSG.builder.AppendLine($"INSG.VertexColor = i.vertexColor;");
                             }
                         }
-                        
+
                         callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
 
                         if(graphCode.properties.Any())
@@ -415,7 +450,7 @@ INSG.TangentSpaceViewDirection =   mul(tangentSpaceTransform, V);");
 
                         callSG.builder.AppendLine(");");
 
-                        if (kvPass.Value.pixelPorts.Any(t=>t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
+                        if (pixelPorts.Any(t=>t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
                         {
                             callSG.builder.AppendLine(
 @"#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)

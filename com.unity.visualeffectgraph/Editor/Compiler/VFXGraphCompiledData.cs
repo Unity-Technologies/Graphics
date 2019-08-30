@@ -617,13 +617,16 @@ namespace UnityEditor.VFX
                     {
                         var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData);
 
-                        outGeneratedCodeData.Add(new GeneratedCodeData()
+                        if(generatedContent!= null)
                         {
-                            context = context,
-                            computeShader = context.codeGeneratorCompute,
-                            compilMode = compilationMode,
-                            content = generatedContent
-                        });
+                            outGeneratedCodeData.Add(new GeneratedCodeData()
+                            {
+                                context = context,
+                                computeShader = context.codeGeneratorCompute,
+                                compilMode = compilationMode,
+                                content = generatedContent
+                            });
+                        }
                     }
                 }
             }

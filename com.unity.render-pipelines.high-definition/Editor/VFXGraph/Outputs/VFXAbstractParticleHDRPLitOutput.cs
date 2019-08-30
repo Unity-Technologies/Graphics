@@ -160,6 +160,7 @@ namespace UnityEditor.VFX
         {
             get { return hdrpLitInfo; }
         }
+        public override bool isLitShader { get => true; }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

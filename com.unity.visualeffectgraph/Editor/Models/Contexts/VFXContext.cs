@@ -167,6 +167,9 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual bool SetupCompilation() { return true; }
+        public virtual void EndCompilation() {}
+
 
         public void RefreshInputFlowSlots()
         {
