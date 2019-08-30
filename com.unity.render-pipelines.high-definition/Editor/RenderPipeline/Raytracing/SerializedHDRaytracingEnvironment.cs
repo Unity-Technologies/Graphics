@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         // Reflections Attributes
         public SerializedProperty reflLayerMask;
 
-        // Primary visiblity raytracing
+        // Recursive Ray Tracing
         public SerializedProperty raytracedLayerMask;
 
         // Area Shadow Properties
