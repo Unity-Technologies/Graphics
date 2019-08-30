@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 #if ENABLE_RAYTRACING
         // Reflection
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace")]
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
         public RayTracingShader reflectionRaytracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.compute")]
         public ComputeShader reflectionRaytracingCS;
