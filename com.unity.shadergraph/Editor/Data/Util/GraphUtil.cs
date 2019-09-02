@@ -1004,9 +1004,20 @@ namespace UnityEditor.ShaderGraph
 
         public static Type GetOutputNodeType(string path)
         {
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            var graph = JsonUtility.FromJson<GraphData>(textGraph);
-            return graph.outputNode.GetType();
+            var metadata = AssetDatabase.LoadAssetAtPath<ShaderGraphMetadata>(path);
+            if (metadata != null)
+            {
+                var outputNodeTypeName = metadata.outputNodeTypeName;
+                foreach (var type in TypeCache.GetTypesDerivedFrom<IMasterNode>())
+                {
+                    if (type.FullName == outputNodeTypeName)
+                    {
+                        return type;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public static bool IsShaderGraph(this Shader shader)
