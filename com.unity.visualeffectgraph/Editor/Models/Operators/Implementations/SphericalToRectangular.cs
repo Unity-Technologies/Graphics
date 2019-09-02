@@ -11,9 +11,9 @@ namespace UnityEditor.VFX.Operator
         {
             [Tooltip("The radial coordinate (Radius).")]
             public float distance = 1.0f;
-            [Tooltip("The angular coordinate (Polar angle).")]
+            [Tooltip("The angular coordinate (Polar angle) in radians.")]
             public float theta = 45.0f;
-            [Tooltip("The pitch coordinate (Azimuth angle).")]
+            [Tooltip("The pitch coordinate (Azimuth angle) in radians.")]
             public float phi = 45.0f;
         }
 
