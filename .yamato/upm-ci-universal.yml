@@ -118,6 +118,8 @@ projects:
         - "**/test-results/**"
 {% endif %}
 {% endfor %}
+{% endfor %}    
+{% endfor %}
 
 
 All_Universal:
@@ -132,6 +134,7 @@ All_Universal:
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
+  {% for project in projects %}
   {% if platform.name == "OSX_OpenGLCore" %}
   
   {% if testplatform.name == "editmode" %}
@@ -147,6 +150,5 @@ All_Universal:
     
   {% endfor %}
   {% endfor %}
+  {% endfor %}
 
-{% endfor %}    
-{% endfor %}
