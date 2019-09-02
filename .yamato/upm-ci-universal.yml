@@ -135,6 +135,7 @@ All_Universal:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
   {% for project in projects %}
+  {% for editor in editors %}
   {% if platform.name == "OSX_OpenGLCore" %}
   
   {% if testplatform.name == "editmode" %}
@@ -151,4 +152,4 @@ All_Universal:
   {% endfor %}
   {% endfor %}
   {% endfor %}
-
+  {% endfor %}
