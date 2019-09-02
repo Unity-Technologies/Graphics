@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ShadowCaster2D, and CompositeShadowCaster2D components.
 - Added shadow intensity and shadow volume intensity properties to Light2D.
 - Added new Gizmos for Lights.
-- Added support for additional directional lights. The amount of additional directional lights is limited by the requested maximum per-object lights in the render pipeline asset.
+- Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
 
 ### Changed
 - Increased visible lights limit for the forward renderer. It now supports 256 visible lights except in mobile platforms. Mobile platforms support 32 visible lights.
