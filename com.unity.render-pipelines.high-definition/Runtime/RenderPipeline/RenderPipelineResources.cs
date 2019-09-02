@@ -273,6 +273,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D owenScrambled256Tex;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png")]
             public Texture2D scramblingTex;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile1SPP.png")]
+            public Texture2D rankingTile1SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile1SPP.png")]
+            public Texture2D scramblingTile1SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile8SPP.png")]
+            public Texture2D rankingTile8SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile8SPP.png")]
+            public Texture2D scramblingTile8SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile256SPP.png")]
+            public Texture2D rankingTile256SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
+            public Texture2D scramblingTile256SPP;
 
             // Post-processing
             [Reload(new[]
