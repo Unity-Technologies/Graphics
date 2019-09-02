@@ -98,6 +98,8 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
             
 #else
+
+
 float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData builtinData,const VFX_VARYING_PS_INPUTS i)
 {
     VFXClipFragmentColor(builtinData.opacity,i);
@@ -130,6 +132,23 @@ float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData 
 }
 #endif
 #else
+
+
+void VFXSetupBuiltin(inout BuiltinData builtin,SurfaceData surface,float3 emissiveColor, VFX_VARYING_PS_INPUTS i)
+{
+    uint2 tileIndex = uint2(0,0);
+    float3 posRWS = VFXGetPositionRWS(i);
+    float4 posSS = i.VFX_VARYING_POSCS;
+    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    InitBuiltinData(posInput, builtin.opacity, surface.normalWS, -surface.normalWS, (float4)0, (float4)0, builtin);
+    
+    #if HAS_SHADERGRAPH_PARAM_EMISSIVE
+        builtin.emissiveColor = emissiveColor;
+    #endif
+    PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surface, builtin);
+}
+
+
 #define VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer) \
 { \
     SurfaceData surfaceData; \
