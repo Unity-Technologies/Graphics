@@ -234,6 +234,14 @@ namespace UnityEngine.Rendering.Universal
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
 
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            var localCmd = CommandBufferPool.Get(string.Empty);
+            //Triggers dispatch per camera, all global parameters should have been setup at this stage.
+            VFX.VFXManager.ProcessCameraCommand(camera, localCmd);
+            context.ExecuteCommandBuffer(localCmd);
+            CommandBufferPool.Release(localCmd);
+#endif
+
             // In this block main rendering executes.
             ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
 

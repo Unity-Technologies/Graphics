@@ -172,8 +172,10 @@ namespace UnityEngine.Rendering.Universal
             foreach (Camera camera in cameras)
             {
                 BeginCameraRendering(renderContext, camera);
-
-                VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                VFX.VFXManager.PrepareCamera(camera);
+#endif
                 RenderSingleCamera(renderContext, camera);
 
                 EndCameraRendering(renderContext, camera);
