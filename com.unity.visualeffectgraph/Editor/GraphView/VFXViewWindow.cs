@@ -40,7 +40,7 @@ namespace  UnityEditor.VFX.UI
         }
 
         public static VFXViewWindow currentWindow;
-        
+
         [MenuItem("Window/Visual Effects/Visual Effect Graph",false,3011)]
         public static void ShowWindow()
         {
@@ -212,6 +212,7 @@ namespace  UnityEditor.VFX.UI
                 m_OnUpdateAction();
                 m_OnUpdateAction = null;
             }
+
             VFXViewController controller = graphView.controller;
             var filename = "No Asset";
             if (controller != null)
@@ -243,7 +244,8 @@ namespace  UnityEditor.VFX.UI
             }
 
             titleContent.text = filename;
-            if (graphView.controller.model.visualEffectObject != null)
+
+            if (graphView?.controller?.model?.visualEffectObject != null)
             {
                 if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
                     StatusQueryOptions.UseCachedIfPossible))
@@ -252,7 +254,9 @@ namespace  UnityEditor.VFX.UI
                     graphView.checkoutButton.SetEnabled(true);
                 }
                 else
+                {
                     graphView.checkoutButton.SetEnabled(false);
+                }
             }
         }
 
