@@ -145,7 +145,7 @@ void VFXSetupBuiltin(inout BuiltinData builtin,SurfaceData surface,float3 emissi
     BuiltinData builtinData; \
     VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
  \
-    ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS, outGBuffer); \
+    ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS.xy, outGBuffer); \
 }
 
 #define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
