@@ -329,7 +329,7 @@ Shader ""Hidden/GraphErrorShader2""
                 codeSnippets.Add($"// Property: {property.displayName}{nl}{property.GetPropertyDeclarationString()}{nl}{nl}");
             }
 
-            
+
 
             var inputStructName = $"SG_Input_{assetGuid}";
             var outputStructName = $"SG_Output_{assetGuid}";
@@ -483,7 +483,6 @@ Shader ""Hidden/GraphErrorShader2""
                     if (portNodeSet.Contains(mapping.node))
                     {
                         portCodeIndices[portIndex].Add(codeIndex);
-                        break;
                     }
                 }
             }
