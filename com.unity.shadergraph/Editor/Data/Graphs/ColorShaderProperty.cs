@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    [FormerName("UnityEditor.ShaderGraph.ColorShaderProperty ")]
+    [FormerName("UnityEditor.ShaderGraph.ColorShaderProperty")]
     public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
         internal ColorShaderProperty()
