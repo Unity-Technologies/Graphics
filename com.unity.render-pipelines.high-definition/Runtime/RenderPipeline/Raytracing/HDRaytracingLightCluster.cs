@@ -227,33 +227,37 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightCount = 0;
             totalLightCount = 0;
 
+            int realIndex = 0;
             for (int lightIdx = 0; lightIdx < lightArray.hdLightArray.Count; ++lightIdx)
             {
                 HDAdditionalLightData currentLight = lightArray.hdLightArray[lightIdx];
+                Light light = currentLight.gameObject.GetComponent<Light>();
+
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to not add it if it is null for that invalid frame
-                if (currentLight != null)
+                if (currentLight != null && light.enabled)
                 {
-                    float lightRange = currentLight.gameObject.GetComponent<Light>().range;
-                    m_LightVolumesCPUArray[lightIdx].range = new Vector3(lightRange, lightRange, lightRange);
-                    m_LightVolumesCPUArray[lightIdx].position = currentLight.gameObject.transform.position;
-                    m_LightVolumesCPUArray[lightIdx].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                    m_LightVolumesCPUArray[lightIdx].lightIndex = (uint)lightIdx;
+                    float lightRange = light.range;
+                    m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
+                    m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
+                    m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                    m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
 
                     if (currentLight.lightTypeExtent == LightTypeExtent.Punctual)
                     {
-                        m_LightVolumesCPUArray[lightIdx].lightType = 0;
+                        m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
                     }
                     else
                     {
-                        m_LightVolumesCPUArray[lightIdx].lightType = 1;
+                        m_LightVolumesCPUArray[realIndex].lightType = 1;
                         areaLightCount++;
                     }
+                    realIndex++;
                 }
             }
 
-            int indexOffset = punctualLightCount + areaLightCount;
+            int indexOffset = realIndex;
 
             // Set Env Light volume data to the CPU buffer
             for (int lightIdx = 0; lightIdx < lightArray.reflectionProbeArray.Count; ++lightIdx)

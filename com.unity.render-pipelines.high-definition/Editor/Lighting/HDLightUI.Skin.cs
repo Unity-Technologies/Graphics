@@ -109,6 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
             public readonly GUIContent sunLightConeAngle = new GUIContent("Sun angle", "This defines the size of the sun in the sky.");
+            public readonly GUIContent lightShadowRadius = new GUIContent("Radius", "This defines the radius of the light for evaluating ray traced shadows.");
 #endif
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
