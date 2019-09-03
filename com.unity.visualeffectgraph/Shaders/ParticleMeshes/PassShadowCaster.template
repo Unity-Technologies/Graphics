@@ -33,16 +33,16 @@ Pass
 		// x: alpha threshold
 		// y: frame blending factor
 		// z: alpha
-		nointerpolation float3 builtInInterpolants : TEXCOORD1;
+		nointerpolation float3 builtInInterpolants : TEXCOORD4;
 		#endif
 		#if USE_FLIPBOOK_MOTIONVECTORS
 		// x: motion vectors scale X
 		// y: motion vectors scale Y
-		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD5;
 		#endif
         
         #if VFX_NEEDS_POSWS_INTERPOLATOR
-		float3 posWS : TEXCOORD4;
+		float3 posWS : TEXCOORD6;
 		#endif
         
         ${VFXAdditionalInterpolantsDeclaration}

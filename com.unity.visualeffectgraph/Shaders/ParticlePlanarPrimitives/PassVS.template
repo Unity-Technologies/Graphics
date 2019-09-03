@@ -143,6 +143,12 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	float3 vPos = mul(elementToVFX,float4(inputVertexPosition, 1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+    
+    float3 vPosWS = TransformPositionVFXToWorld(vPos);
+	
+    #ifdef VFX_VARYING_POSWS
+        o.VFX_VARYING_POSWS = vPosWS;
+    #endif
 
 	float3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
 	#ifdef VFX_VARYING_NORMAL
