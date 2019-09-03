@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added ShadowCaster2D, and CompositeShadowCaster2D components.
 - Added shadow intensity and shadow volume intensity properties to Light2D.
 - Added new Gizmos for Lights.
+- Added CinemachineUniversalPixelPerfect, a Cinemachine Virtual Camera Extension that solves some compatibility issues between Cinemachine and Pixel Perfect Camera.
+- Added an option that disables the depth/stencil buffer for the 2D Renderer.
 - Added manipulation handles for the inner cone angle for spot lights.
 
 ### Changed
@@ -52,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a post-processing rendering issue with non-fullscreen viewport. [case 1177660](https://issuetracker.unity3d.com/issues/urp-render-scale-slider-value-modifies-viewport-coordinates-of-the-screen-instead-of-the-resolution)
 - Fixed an issue where **Undo** would not undo the creation of Additional Camera Data. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
 - Fixed an issue where selecting the same drop-down menu item twice would trigger a change event. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
+- Fixed an issue where selecting certain objects that use instancing materials would throw console warnings. [case 1127324](https://issuetracker.unity3d.com/issues/console-warning-is-being-spammed-when-having-lwrp-enabled-and-shader-with-gpu-instancing-present-in-the-scene)
 - Fixed a GUID conflict with LWRP. [case 1179895](https://issuetracker.unity3d.com/product/unity/issues/guid/1179895/)
 - Fixed an issue that caused the `Opaque Color` pass to never render at half or quarter resolution.
 
