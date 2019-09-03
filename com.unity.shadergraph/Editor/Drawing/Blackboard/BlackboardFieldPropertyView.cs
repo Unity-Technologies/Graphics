@@ -89,6 +89,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 DirtyNodes();
             });
             AddRow("Precision", precisionField);
+            if (property.isGpuInstanceable)
+            {
+                Toggle gpuInstancedToogle = new Toggle { value = property.gpuInstanced };
+                gpuInstancedToogle.OnToggleChanged(evt =>
+                {
+                    graph.owner.RegisterCompleteObjectUndo("Change Hybrid Instanced Toggle");
+                    property.gpuInstanced = evt.newValue;
+                    DirtyNodes(ModificationScope.Graph);
+                });
+                AddRow("Hybrid Instanced (experimental)", gpuInstancedToogle);
+            }
+
         }
 
         void BuildVector1PropertyField(Vector1ShaderProperty property)

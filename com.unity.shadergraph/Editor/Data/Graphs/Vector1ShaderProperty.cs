@@ -25,7 +25,8 @@ namespace UnityEditor.ShaderGraph
         public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-        
+        public override bool isGpuInstanceable => true;
+
         string enumTagString
         {
             get
