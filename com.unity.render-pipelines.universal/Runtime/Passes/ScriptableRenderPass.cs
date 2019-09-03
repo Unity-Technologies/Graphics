@@ -188,9 +188,11 @@ namespace UnityEngine.Rendering.Universal
             DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
             {
                 perObjectData = renderingData.perObjectData,
-                enableInstancing = true,
                 mainLightIndex = renderingData.lightData.mainLightIndex,
                 enableDynamicBatching = renderingData.supportsDynamicBatching,
+
+                // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
+                enableInstancing = camera.cameraType == CameraType.Preview ? false : true,
             };
             return settings;
         }

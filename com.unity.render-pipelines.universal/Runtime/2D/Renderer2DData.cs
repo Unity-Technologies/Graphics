@@ -22,6 +22,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Light2DBlendStyle[] m_LightBlendStyles = null;
 
         [SerializeField]
+        bool m_UseDepthStencilBuffer = true;
+
+        [SerializeField]
         Shader m_ShapeLightShader = null;
 
         [SerializeField]
@@ -50,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
+        internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
 
 
         internal Shader shapeLightShader => m_ShapeLightShader;
