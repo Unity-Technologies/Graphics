@@ -49,6 +49,10 @@ Pass
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;
 		#endif
+        #if VFX_NEEDS_POSWS_INTERPOLATOR
+            float3 posWS : TEXCOORD7;
+        #endif
+
         ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
