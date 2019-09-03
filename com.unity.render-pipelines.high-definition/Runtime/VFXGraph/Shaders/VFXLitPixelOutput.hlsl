@@ -103,30 +103,23 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData builtinData,const VFX_VARYING_PS_INPUTS i)
 {
     VFXClipFragmentColor(builtinData.opacity,i);
-    
-    PreLightData preLightData = (PreLightData)0;
-	BSDFData bsdfData = (BSDFData)0;
 
 	uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
     float3 posRWS = VFXGetPositionRWS(i);
 	float4 posSS = i.VFX_VARYING_POSCS;
 	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
     
-    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
-    surfaceData.specularOcclusion = 1.0f;
-    surfaceData.ambientOcclusion = 1.0f;
-    surfaceData.subsurfaceMask = 1.0f;
+    PreLightData preLightData = (PreLightData)0;
+	BSDFData bsdfData = (BSDFData)0;
     bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
     
     preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
     preLightData.diffuseFGD = 1.0f;
     
-    
     float3 emissive = builtinData.emissiveColor;
     InitBuiltinData(posInput, builtinData.opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData);
     builtinData.emissiveColor = emissive;
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surfaceData, builtinData);
-    
     
     return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
 }
@@ -141,10 +134,7 @@ void VFXSetupBuiltin(inout BuiltinData builtin,SurfaceData surface,float3 emissi
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
     InitBuiltinData(posInput, builtin.opacity, surface.normalWS, -surface.normalWS, (float4)0, (float4)0, builtin);
-    
-    #if HAS_SHADERGRAPH_PARAM_EMISSIVE
-        builtin.emissiveColor = emissiveColor;
-    #endif
+    builtin.emissiveColor = emissiveColor;
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surface, builtin);
 }
 

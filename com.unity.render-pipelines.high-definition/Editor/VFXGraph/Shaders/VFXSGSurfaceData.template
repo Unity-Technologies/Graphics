@@ -3,6 +3,11 @@ BuiltinData builtin;
 surface = (SurfaceData)0;
 builtin = (BuiltinData)0;
 
+surface.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+surface.specularOcclusion = 1.0f;
+surface.ambientOcclusion = 1.0f;
+surface.subsurfaceMask = 1.0f;
+
 #if HAS_SHADERGRAPH_PARAM_ALPHA
     builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
     VFXClipFragmentColor(builtin.opacity,i);
