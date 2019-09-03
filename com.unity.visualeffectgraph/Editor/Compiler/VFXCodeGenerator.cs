@@ -306,7 +306,7 @@ namespace UnityEditor.VFX
             return templateContent;
         }
 
-        static private void SubstituteMacros(StringBuilder builder, Dictionary<string, string> additionalMacros)
+        static private void SubstituteMacros(StringBuilder builder)
         {
             var definesToCode = new Dictionary<string, string>();
             var source = builder.ToString();
@@ -323,13 +323,7 @@ namespace UnityEditor.VFX
                 var tag = source.Substring(currentPos, endPos - currentPos + 1);
                 // Replace any tag found
                 string macro;
-                if(additionalMacros.TryGetValue(tag, out macro))
-                {
-                    builder.Remove(currentPos + builderOffset, tag.Length);
-                    var indentedMacro = macro.Replace("\n", "\n" + GetIndent(source, currentPos));
-                    builder.Insert(currentPos + builderOffset, indentedMacro);
-                }
-                else if (definesToCode.TryGetValue(tag, out macro))
+                if (definesToCode.TryGetValue(tag, out macro))
                 {
                     builder.Remove(currentPos + builderOffset, tag.Length);
                     var indentedMacro = macro.Replace("\n", "\n" + GetIndent(source, currentPos));
@@ -528,13 +522,8 @@ namespace UnityEditor.VFX
                 ReplaceMultiline(stringBuilder, addionalReplacement.Key, addionalReplacement.Value.builder);
             }
 
-
-
-            var additionalMacros = new Dictionary<string, string>();
-            context.FillAdditionnalMacros(additionalMacros);
-
             // Replace defines
-            SubstituteMacros(stringBuilder, additionalMacros);
+            SubstituteMacros(stringBuilder);
 
             if (VFXViewPreference.advancedLogs)
                 Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());

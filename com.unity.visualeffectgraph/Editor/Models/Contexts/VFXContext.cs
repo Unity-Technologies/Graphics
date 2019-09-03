@@ -588,8 +588,5 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        public virtual void FillAdditionnalMacros(Dictionary<string, string> macros)
-        {
-        }
     }
 }
