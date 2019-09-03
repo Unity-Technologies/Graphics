@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - multiselection of gradient in visual effect graph
 - clipped "reseed" in visual effect editor
 - Unlit outputs are no longer pre-exposed by default in HDRP
+- Spherical coordinates to Rectangular (Cartesians) coordinates node input: angles are now expressed in radians
+- Turbulence noise updated: noise type and frequency can be specified [Case  1141282] (https://issuetracker.unity3d.com/issues/vfx-particles-flicker-when-blend-mode-is-set-to-alpha-turbulence-block-is-enabled-and-there-is-more-than-50000-particles)
 
 ## [7.0.1] - 2019-07-25
 ### Added
