@@ -141,7 +141,7 @@ namespace UnityEditor.VFX
             VFXGraph graph = m_Subgraph.GetResource().GetOrCreateGraph();
 
             // Change all the inputExpressions of the parameters.
-            var parameters = GetParameters(t => VFXSubgraphUtility.InputPredicate(t));
+            var parameters = GetParameters(t => VFXSubgraphUtility.InputPredicate(t)).OrderBy(t => t.order);
 
             var backedUpExpressions = new List<VFXExpression>();
 

@@ -167,7 +167,7 @@ namespace UnityEditor.VFX
                 inputExpressions.Add(slot.GetExpression());
             }
 
-            VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)));
+            VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)).OrderBy(t => t.order));
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
