@@ -1004,16 +1004,27 @@ namespace UnityEditor.ShaderGraph
 
         public static Type GetOutputNodeType(string path)
         {
-            var metadata = AssetDatabase.LoadAssetAtPath<ShaderGraphMetadata>(path);
-            if (metadata != null)
+            ShaderGraphMetadata metadata = null;
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
             {
-                var outputNodeTypeName = metadata.outputNodeTypeName;
-                foreach (var type in TypeCache.GetTypesDerivedFrom<IMasterNode>())
+                if (asset is ShaderGraphMetadata metadataAsset)
                 {
-                    if (type.FullName == outputNodeTypeName)
-                    {
-                        return type;
-                    }
+                    metadata = metadataAsset;
+                    break;
+                }
+            }
+
+            if (metadata == null)
+            {
+                return null;
+            }
+
+            var outputNodeTypeName = metadata.outputNodeTypeName;
+            foreach (var type in TypeCache.GetTypesDerivedFrom<IMasterNode>())
+            {
+                if (type.FullName == outputNodeTypeName)
+                {
+                    return type;
                 }
             }
 
