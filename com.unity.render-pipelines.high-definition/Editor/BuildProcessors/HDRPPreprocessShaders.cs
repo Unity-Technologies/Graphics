@@ -12,6 +12,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     // The common shader stripper function 
     public class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
+        public override int Priority => 100;
+
         public CommonShaderPreprocessor() { }
 
         public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -41,23 +43,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Here we can't strip based on opaque or transparent but we will strip based on HDRP Asset configuration.
 
             bool isMotionPass = snippet.passName == "MotionVectors";
-            bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
-            bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
-            bool isTransparentBackface = snippet.passName == "TransparentBackface";
-            bool isDistortionPass = snippet.passName == "DistortionVectors";
-
             if (isMotionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMotionVectors)
                 return true;
 
+            bool isDistortionPass = snippet.passName == "DistortionVectors";
             if (isDistortionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDistortion)
                 return true;
 
+            bool isTransparentBackface = snippet.passName == "TransparentBackface";
             if (isTransparentBackface && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentBackface)
                 return true;
 
+            bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
             if (isTransparentPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPrepass)
                 return true;
 
+            bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
             if (isTransparentPostpass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPostpass)
                 return true;
 
@@ -180,8 +181,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             int inputShaderVariantCount = inputData.Count;
-
-            for (int i = 0; i < inputData.Count; ++i)
+            for (int i = 0; i < inputShaderVariantCount; ++i)
             {
                 ShaderCompilerData input = inputData[i];
 
@@ -190,7 +190,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 
                 foreach (var hdAsset in hdPipelineAssets)
                 {
-                    var stripedByPreprocessor = false;
+                    var strippedByPreprocessor  = false;
                     
                     // Call list of strippers
                     // Note that all strippers cumulate each other, so be aware of any conflict here
@@ -198,12 +198,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         if ( shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input) )
                         {
-                            stripedByPreprocessor = true;
+                            strippedByPreprocessor  = true;
                             break;
                         }
                     }
 
-                    if (!stripedByPreprocessor)
+                    if (!strippedByPreprocessor )
                     {
                         removeInput = false;
                         break;
@@ -211,11 +211,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 if (removeInput)
-                {
-                    inputData.RemoveAt(i);
-                    i--;
-                }
+                    inputData[i] = inputData[--inputShaderVariantCount];
+                else
+                    ++i;
             }
+
+            if (inputData is List<ShaderCompilerData> inputDataList)
+                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+            else
+                for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
+                    inputData.RemoveAt(i);
 
             foreach (var hdAsset in hdPipelineAssets)
             {
