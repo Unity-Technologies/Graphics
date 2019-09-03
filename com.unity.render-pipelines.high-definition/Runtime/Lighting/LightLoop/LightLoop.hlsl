@@ -525,6 +525,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                         float3 samplePositionBNDC = samplePositionBCS * 0.5 + 0.5;
 
+                        // TODO: Investigate why the X-axis is flipped in the middle
+                        if (samplePositionBNDC.x > 0.5)
+                            samplePositionBNDC.x -= 0.5;
+                        else
+                            samplePositionBNDC.x += 0.5;
+
                         float fadeFactor = ProbeVolumeComputeFadeFactor(
                             samplePositionBNDC,
                             posInput.linearDepth,
