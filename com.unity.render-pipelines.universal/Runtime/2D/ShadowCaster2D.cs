@@ -19,10 +19,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] bool m_CastsShadows = true;
         [SerializeField] bool m_SelfShadows = false;
         [SerializeField] int[] m_ApplyToSortingLayers = null;
-        [SerializeField] Vector3[] m_ShapePath;
+        [SerializeField] Vector3[] m_ShapePath = null;
         [SerializeField] int m_ShapePathHash = 0;
-        [SerializeField] int m_PreviousPathHash = 0;
         [SerializeField] Mesh m_Mesh;
+        [SerializeField] int m_InstanceId;
+
 
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
@@ -33,6 +34,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
+        int m_PreviousPathHash = 0;
+
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
@@ -114,11 +117,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected void OnEnable()
         {
-            if (m_Mesh == null)
+            if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
                 ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
-                m_PreviousPathHash = m_ShapePathHash;
+                m_InstanceId = GetInstanceID();
             }
 
             m_ShadowCasterGroup = null;
@@ -134,9 +137,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Renderer renderer = GetComponent<Renderer>();
             m_HasRenderer = renderer != null;
 
-            bool rebuildMesh = false;
-            rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
-
+            bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
                 ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
 

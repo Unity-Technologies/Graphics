@@ -16,6 +16,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         RenderTargetHandle m_AfterPostProcessColorHandle;
         RenderTargetHandle m_ColorGradingLutHandle;
 
+        Renderer2DData m_Renderer2DData;
+
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
@@ -28,6 +30,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
             m_ColorGradingLutHandle.Init("_InternalGradingLut");
+
+            m_Renderer2DData = data;
+        }
+
+        public Renderer2DData GetRenderer2DData()
+        {
+            return m_Renderer2DData;
         }
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
