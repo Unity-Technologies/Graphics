@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
@@ -11,6 +12,8 @@ using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
+    [Title("Master", "Visual Effect")]
     sealed class VfxMasterNode : MasterNode, IMayRequirePosition
     {
         const string BaseColorSlotName = "Base Color";
