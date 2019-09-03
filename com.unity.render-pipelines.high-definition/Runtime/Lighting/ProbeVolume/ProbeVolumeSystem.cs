@@ -241,6 +241,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // and attempt to allocate a new chunk from the atlas for the new resolution settings.
             // Currently atlas allocator only handles spliting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
             bool isSlotAllocated = probeVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, ref volume.parameters.scaleBias, key, width, height);
+
+            // TODO: Add code to override this value once new probe data becomes available so we can force an update
+            isUploadNeeded = true;
+
             if (isSlotAllocated)
             {
                 if (isUploadNeeded)
@@ -266,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.height
                     ));
 
-                    var data = volume.GetDataStub();
+                    var data = volume.GetData();
                     Debug.Log("data[0] = " + data[0]);
                     Debug.Assert(data.Length == size, "Error: ProbeVolumeSystem: volume data length = " + data.Length + ", resolution size = " + size);
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);

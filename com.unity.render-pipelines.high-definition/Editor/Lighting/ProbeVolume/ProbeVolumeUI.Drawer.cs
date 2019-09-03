@@ -53,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.drawProbes, Styles.s_DrawProbesLabel); 
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.resolutionX, Styles.s_ResolutionXLabel);
