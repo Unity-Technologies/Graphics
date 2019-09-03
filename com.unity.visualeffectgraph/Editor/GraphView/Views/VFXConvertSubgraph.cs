@@ -485,7 +485,7 @@ namespace UnityEditor.VFX.UI
                 foreach (var edge in m_SourceController.dataEdges.Where(
                     t =>
                     {
-                        if (t.output.sourceNode is VFXParameterNodeController || t.input.sourceNode is VFXParameterNodeController)
+                        if (t.output.sourceNode is VFXParameterNodeController)
                             return false;
                         var inputInControllers = m_SourceControllersWithBlocks.Contains(t.input.sourceNode);
                         var outputInControllers = m_SourceControllersWithBlocks.Contains(t.output.sourceNode);

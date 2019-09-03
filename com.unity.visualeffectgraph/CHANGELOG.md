@@ -11,6 +11,19 @@ The version number for this package has increased due to a version update of a r
 
 ## [6.9.1-preview] - 2019-07-29
 ### Fixed
+- Using struct as subgraph parameters.
+- Objectproperty not consuming delete key.
+- Converting a subgraph operator inside a subgraph operator with outputs.
+- Selecting a GameObject with a VFX Property Binder spams exception.
+- Wrong motion vector while modifying local matrix of a VisualEffect.
+- Convert output settings copy.
+- Fixed some outputs failing to compile when used with certain UV Modes [Case 1126200] (https://issuetracker.unity3d.com/issues/output-some-outputs-fail-to-compile-when-used-with-certain-uv-modes)
+- Removed Gradient Mapping Mode from some outputs type where it was irrelevant [Case 1164045]
+- Soft Particles work with Distortion outputs [Case 1167426] (https://issuetracker.unity3d.com/issues/output-soft-particles-do-not-work-with-distortion-outputs)
+
+## [7.0.1] - 2019-07-25
+### Added
+- Add Position depth operator along with TransformVector4 and LoadTexture2D expressions.
 - Fix normal bending factor computation for primitive outputs
 - Inherit attribute block appears three times [Case 1166905](https://issuetracker.unity3d.com/issues/attributes-each-inherit-attribute-block-appears-3-times-in-the-search-and-some-have-a-seed-attribute)
 - Unexpected exception : `Trying to modify space on a not spaceable slot` error when adding collision or conform blocks [Case 1163442](https://issuetracker.unity3d.com/issues/block-trying-to-modify-space-on-a-not-spaceable-slot-error-when-adding-collision-or-conform-blocks)
@@ -19,6 +32,8 @@ The version number for this package has increased due to a version update of a r
 ## [6.9.0-preview] - 2019-07-05
 ### Fixed
 - Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
+- Inherit attribute block appears three times [Case 1166905](https://issuetracker.unity3d.com/issues/attributes-each-inherit-attribute-block-appears-3-times-in-the-search-and-some-have-a-seed-attribute)
+- Unexpected exception : `Trying to modify space on a not spaceable slot` error when adding collision or conform blocks [Case 1163442](https://issuetracker.unity3d.com/issues/block-trying-to-modify-space-on-a-not-spaceable-slot-error-when-adding-collision-or-conform-blocks)
 
 ## [6.8.0-preview] - 2019-06-12
 ### Added
