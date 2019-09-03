@@ -1497,7 +1497,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Bounds bounds;
             float cameraDistance = Vector3.Distance(hdCamera.camera.transform.position, transform.position);
 
-            m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
+            m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.ShadowMaps);
 
             m_WillRenderShadowMap &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows

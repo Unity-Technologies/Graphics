@@ -15,7 +15,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedShadow,
         RaytracedAreaAnalytic,
         RaytracedReflection,
-        RaytracedIndirectDiffuse,
+        RaytracedIndirectDiffuseHF,
+        RaytracedIndirectDiffuseLF,
 #endif
         Count
     }

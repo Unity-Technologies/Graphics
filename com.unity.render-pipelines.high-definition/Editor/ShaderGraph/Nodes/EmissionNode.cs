@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kEmissionExposureWeightInputSlotId = 3;
         const string kEmissionOutputSlotName = "Output";
         const string kEmissionColorInputSlotName = "Color";
-        const string kEmissionExpositionWeightInputSlotName = "ExpositionWeight";
+        const string kEmissionExpositionWeightInputSlotName = "Exposure Weight";
         const string kEmissionIntensityInputSlotName = "Intensity";
 
         public override bool hasPreview { get { return false; } }

@@ -16,13 +16,14 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "Vector1";
         }
-
+        
         public override PropertyType propertyType => PropertyType.Vector1;
-
+        
         internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-
+        internal override bool isGpuInstanceable => true;
+        
         string enumTagString
         {
             get
@@ -59,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
             }
         }
-
+        
         [SerializeField]
         FloatType m_FloatType = FloatType.Default;
 
@@ -85,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumType;
             set => m_EnumType = value;
         }
-
+    
         Type m_CSharpEnumType;
 
         public Type cSharpEnumType
@@ -95,7 +96,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         List<string> m_EnumNames = new List<string>();
-
+        
         public List<string> enumNames
         {
             get => m_EnumNames;
@@ -109,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumValues;
             set => m_EnumValues = value;
         }
-
+        
         internal override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)

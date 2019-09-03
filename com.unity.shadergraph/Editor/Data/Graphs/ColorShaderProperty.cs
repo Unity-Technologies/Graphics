@@ -13,13 +13,14 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "Color";
         }
-
+        
         public override PropertyType propertyType => PropertyType.Color;
-
+        
         internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-
+        internal override bool isGpuInstanceable => true;
+        
         internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
         internal override string GetPropertyBlockString()
@@ -31,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             return $"Color_{GuidEncoder.Encode(guid)}";
         }
-
+        
         [SerializeField]
         ColorMode m_ColorMode;
 
@@ -40,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_ColorMode;
             set => m_ColorMode = value;
         }
-
+        
         internal override AbstractMaterialNode ToConcreteNode()
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };
@@ -53,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 name = referenceName,
                 colorValue = value
             };
-        }
+        }        
 
         internal override ShaderInput Copy()
         {

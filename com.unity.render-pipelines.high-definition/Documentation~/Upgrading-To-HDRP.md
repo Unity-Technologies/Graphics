@@ -23,7 +23,7 @@ Next, create and set up a High Definition Render Pipeline Asset.
 
 3. Assign the High Definition Render Pipeline Asset to the __Scriptable Render Pipelines Settings__ field, at the top of the window. To do this, click the radio button and select the Asset from the list, or drag the Asset into the field. 
 
-After installing the HDRP package and assigning the HDRP Asset, your Scene will not render correctly (see screenshot below). This is because the Scene still uses the built-in Shaders. The following section shows you how to upgrade these built-in Shaders to an HDRP-compatible shader . 
+After installing the HDRP package and assigning the HDRP Asset, your Scene will not render correctly (see screenshot below). This is because the Scene still uses the built-in Shaders. The following section shows you how to upgrade these built-in Shaders to an HDRP-compatible Shader . 
 
 ![](Images/UpgradingToHDRP2.png)
 

@@ -95,8 +95,13 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
     #endif
     surfaceData.baseColor = SAMPLE_TEXTURE2D_LOD(_BaseColorMap, sampler_BaseColorMap, uvBase, lod).rgb * _BaseColor.rgb;
 
-    // Transparency Data
-    float alpha = SAMPLE_TEXTURE2D_LOD(_BaseColorMap, sampler_BaseColorMap, uvBase, lod).a * _BaseColor.a;
+    // If we are using this value to do an alpha test, we should read from the base LOD and not from the rough LOD
+    #ifdef _ALPHATEST_ON
+    float alphaLOD = baseLOD;
+    #else
+    float alphaLOD = lod;
+    #endif
+    float alpha = SAMPLE_TEXTURE2D_LOD(_BaseColorMap, sampler_BaseColorMap, uvBase, alphaLOD).a * _BaseColor.a;
 
 #ifdef _ALPHATEST_ON
     if(alpha < _AlphaCutoff)

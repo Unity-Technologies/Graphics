@@ -23,10 +23,10 @@
 #define RAYTRACING_REFLECTION_TILE_SIZE 8
 
 // Input textures for the spatial filtering
-Texture2DArray<float> _NoiseTexture;
+Texture2DArray<float> _BlueNoiseTexture;
 TEXTURE2D_X(_DepthTexture);
-RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
-RW_TEXTURE2D_X(float4, _SsrHitPointTexture);
+TEXTURE2D_X(_SsrLightingTextureRW);
+TEXTURE2D_X(_SsrHitPointTexture);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);
 
 // Output Textures for the spatial filtering
@@ -130,7 +130,7 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
             if(sampleDepth == 0.0f) continue;
 
             // Compute the target pixel that it will impact
-            float sample = _NoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            float sample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
             int index = clamp(floor(sample * 4.0f), 0, 3);
 
             if (index != localIndex) continue;
@@ -166,12 +166,12 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
     }
 
     // Compute the full res coordinate
-    if(depth == 0.0f || sampleCount == 0)
+    if(depth == 0.0f || sampleCount == 0 || resultSum.w == 0.0)
     {
         _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
     else
     {
-        _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4((resultSum.xyz / resultSum.w),  _RaytracingDenoiseRadius > 0 ? roughness : 1.0);
+        _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, _RaytracingDenoiseRadius > 0 ? roughness : 1.0);
     }
 }

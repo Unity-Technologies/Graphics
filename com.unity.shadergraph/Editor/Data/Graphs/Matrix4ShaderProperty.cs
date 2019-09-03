@@ -13,9 +13,10 @@ namespace UnityEditor.ShaderGraph
             displayName = "Matrix4x4";
             value = Matrix4x4.identity;
         }
-
+        internal override bool isGpuInstanceable => true;
+        
         public override PropertyType propertyType => PropertyType.Matrix4;
-
+        
         internal override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix4Node

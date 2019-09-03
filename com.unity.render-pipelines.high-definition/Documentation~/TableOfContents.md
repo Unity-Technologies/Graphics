@@ -34,6 +34,7 @@
     * Sky
       * [Gradient Sky](Override-Gradient-Sky)
       * [HDRI Sky](Override-HDRI-Sky)
+      * [Physically Based Sky](Override-Physically-Based-Sky)
       * [Procedural Sky](Override-Procedural-Sky)
     * [Visual Environment](Override-Visual-Environment)
 * Render Pipeline Settings
@@ -45,13 +46,13 @@
   * [Displacement Mode](Displacement-Mode)
   * [Double Sided](Double-Sided)
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing)
+  * [Mask Map and Detail Map](Mask-Map-and-Detail-Map)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
-  * [Decal Projector](Decal-Projector)
   * Shader List
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
@@ -101,13 +102,15 @@
     * [Tonemapping](Post-Processing-Tonemapping)
     * [Vignette](Post-Processing-Vignette)
     * [White Balance](Post-Processing-White-Balance)
+* Components
+  * [Decal Projector](Decal-Projector)
+* Tools
+  * Look Dev
+    * [Look Dev Window](Look-Dev)
+    * [Environment Library](Look-Dev-Environment-Library)
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
-* Tools
-  * Look Dev
-    - [Look Dev Window](Look-Dev)
-    - [Environment Library](Look-Dev-Environment-Library)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky ](Creating-a-Custom-Sky)
