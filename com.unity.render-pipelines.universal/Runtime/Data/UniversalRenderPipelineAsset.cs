@@ -740,6 +740,10 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 5;
                 m_NeedsUpgrade = true;
             }
+#if UNITY_EDITOR
+            if(m_NeedsUpgrade)
+                EditorApplication.delayCall = () => UpgradeAsset(this);
+#endif
         }
 
 
