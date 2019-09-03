@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
-            return false;
+            return true;
         }
 
         public override int GetPreviewPassIndex()
