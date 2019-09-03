@@ -90,5 +90,29 @@ namespace UnityEditor.Experimental.Rendering.Universal
             else
                 return 0;
         }
+
+        public static Renderer2DData GetRenderer2DData()
+        {
+            UniversalRenderPipelineAsset pipelineAsset = UniversalRenderPipeline.asset;
+            Renderer2DData rendererData  = pipelineAsset != null ? pipelineAsset.scriptableRendererData as Renderer2DData : null;
+            if(rendererData == null)
+            {
+                foreach (Camera camera in Camera.allCameras)
+                {
+                    UniversalAdditionalCameraData additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+                    ScriptableRenderer renderer = additionalCameraData.scriptableRenderer;
+                    Renderer2D renderer2D = renderer as Renderer2D;
+                    if (renderer2D != null)
+                        return renderer2D.GetRenderer2DData();
+                }
+            }
+
+            return rendererData;
+        }
+
+        public static bool IsUsing2DRenderer()
+        {
+            return GetRenderer2DData() != null;
+        }
     }
 }
