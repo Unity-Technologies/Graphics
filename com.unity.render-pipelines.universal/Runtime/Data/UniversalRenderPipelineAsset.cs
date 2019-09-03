@@ -92,6 +92,21 @@ namespace UnityEngine.Rendering.Universal
         HighDynamicRange
     }
 
+    public enum ScalingMode
+    {
+        Fixed,
+        Maximum
+    }
+
+    public enum ScaleResolution
+    {
+        Native,
+        _420p,
+        _720p,
+        _1080p,
+        _2440p
+    }
+
     public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
@@ -118,7 +133,9 @@ namespace UnityEngine.Rendering.Universal
         // Quality settings
         [SerializeField] bool m_SupportsHDR = false;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
+        [SerializeField] private ScalingMode m_ScalingMode = ScalingMode.Fixed;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] private ScaleResolution m_ScaleResolution = ScaleResolution.Native;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -468,8 +485,49 @@ namespace UnityEngine.Rendering.Universal
 
         public float renderScale
         {
-            get { return m_RenderScale; }
+            get
+            {
+                switch (m_ScalingMode)
+                {
+                    case ScalingMode.Fixed:
+                        return m_RenderScale;
+                    case ScalingMode.Maximum:
+                        return MaxRenderResolution();
+                    default:
+                        return 1f;
+                }
+            }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        private float MaxRenderResolution()
+        {
+            float res;
+            switch (m_ScaleResolution)
+            {
+                case ScaleResolution._420p:
+                    res = 420f;
+                    break;
+                case ScaleResolution._720p:
+                    res = 720f;
+                    break;
+                case ScaleResolution._1080p:
+                    res = 1080f;
+                    break;
+                case ScaleResolution._2440p:
+                    res = 2440f;
+                    break;
+                default:
+                    res = Display.main.renderingHeight;
+                    break;
+            }
+            return ValidateRenderScale(Mathf.Clamp01(res / Display.main.renderingHeight));
+        }
+
+        public ScaleResolution renderScaleResolution
+        {
+            get { return m_ScaleResolution; }
+            set { m_ScaleResolution = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode

@@ -33,7 +33,9 @@ namespace UnityEditor.Rendering.Universal
             // Quality
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
+            public static GUIContent renderScaleMode = EditorGUIUtility.TrTextContent("Scaling Mode", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
+            public static GUIContent renderScaleResolution = EditorGUIUtility.TrTextContent("Equivelent Resolution", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
@@ -100,7 +102,9 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_HDR;
         SerializedProperty m_MSAA;
+        SerializedProperty m_ScalingMode;
         SerializedProperty m_RenderScale;
+        SerializedProperty m_ScaleResolution;
 
         SerializedProperty m_MainLightRenderingModeProp;
         SerializedProperty m_MainLightShadowsSupportedProp;
@@ -165,7 +169,9 @@ namespace UnityEditor.Rendering.Universal
 
             m_HDR = serializedObject.FindProperty("m_SupportsHDR");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
+            m_ScalingMode = serializedObject.FindProperty("m_ScalingMode");
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
+            m_ScaleResolution = serializedObject.FindProperty("m_ScaleResolution");
 
             m_MainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             m_MainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
@@ -238,9 +244,23 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
                 EditorGUILayout.PropertyField(m_MSAA, Styles.msaaText);
+
                 EditorGUI.BeginDisabledGroup(XRGraphics.enabled);
-                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+                EditorGUILayout.PropertyField(m_ScalingMode, Styles.renderScaleMode);
+                EditorGUI.indentLevel++;
+                switch (m_ScalingMode.enumValueIndex)
+                {
+                    case (int)ScalingMode.Fixed:
+                        m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue,
+                        UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+                        break;
+                    case (int)ScalingMode.Maximum:
+                        EditorGUILayout.PropertyField(m_ScaleResolution, Styles.renderScaleResolution);
+                        break;
+                }
+                EditorGUI.indentLevel--;
                 EditorGUI.EndDisabledGroup();
+
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
