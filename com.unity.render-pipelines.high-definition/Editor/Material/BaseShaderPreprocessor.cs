@@ -28,6 +28,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected Dictionary<HDShadowQuality, ShaderKeyword> m_ShadowVariants;
 
+        public virtual int Priority => 0;
+
         public BaseShaderPreprocessor()
         {
             // NOTE: All these keyword should be automatically stripped so there's no need to handle them ourselves.

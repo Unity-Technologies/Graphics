@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace hidden specular lighting control on framesettings by EnableSkyLighting and ReplaceFresnel0Diffuse.
 - Increase max limit of area light and reflection probe to 128
 - Change default texture for detailmap to grey
+- Improve build time of shader (reduce shader stripper overhead)
 
 ## [6.9.0] - 2019-07-02
 
