@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph.Internal
         
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
-        public virtual bool isGpuInstanceable => false;
+        internal virtual bool isGpuInstanceable => false;
     }
     
     [Serializable]

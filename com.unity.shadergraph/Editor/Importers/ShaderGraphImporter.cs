@@ -75,7 +75,17 @@ Shader ""Hidden/GraphErrorShader2""
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;
             var sourceAssetDependencyPaths = new List<string>();
-            if (masterNode is VfxMasterNode vfxMasterNode)
+
+            UnityEngine.Object mainObject;
+
+            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
+            graph.messageManager = new MessageManager();
+            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            if (graph.outputNode is VfxMasterNode vfxMasterNode)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
                 
@@ -83,7 +93,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
             else
             {
-            var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths, out var graph);
+            var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths,graph);
             var shader = ShaderUtil.CreateShaderAsset(text, false);
 
             if (graph != null && graph.messageManager.nodeMessagesChanged)
@@ -131,20 +141,13 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, GraphData graph)
         {
             graph = null;
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
             try
             {
-                var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graph = JsonUtility.FromJson<GraphData>(textGraph);
-                graph.messageManager = new MessageManager();
-                graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
-                graph.OnEnable();
-                graph.ValidateGraph();
-
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
                 shaderString = ((IMasterNode)graph.outputNode).GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
@@ -167,7 +170,14 @@ Shader ""Hidden/GraphErrorShader2""
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            return GetShaderText(path, out configuredTextures, null, out _);
+            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
+            graph.messageManager = new MessageManager();
+            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            return GetShaderText(path, out configuredTextures, null,graph );
         }
 
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(VfxMasterNode masterNode)
