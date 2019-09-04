@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Material Quality support selection in HDRP Asset
 - Renamed XR shader macro from UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX to UNITY_XR_ASSIGN_VIEW_INDEX
 - Raytracing ShaderGraph node for HDRP shaders
+- Custom passes volume component with 3 injection points: Before Rendering, Before Transparent and Before Post Process
 - Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
 
 ### Fixed
