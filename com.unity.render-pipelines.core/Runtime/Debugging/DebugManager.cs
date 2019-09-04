@@ -95,6 +95,9 @@ namespace UnityEngine.Rendering
 
         DebugManager()
         {
+            if (!Debug.isDebugBuild)
+                return;
+
             RegisterInputs();
             RegisterActions();
         }
