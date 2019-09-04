@@ -165,6 +165,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector3[] GetData()
         {
+            if (!this.gameObject.activeInHierarchy)
+                return null;
+
+            if (id == -1)
+                return null;
+
             var res = new Vector3[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
             
             var nativeData = new NativeArray<SphericalHarmonicsL2>(res.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
