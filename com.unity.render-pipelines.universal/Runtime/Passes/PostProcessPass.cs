@@ -9,10 +9,16 @@ namespace UnityEngine.Rendering.Universal
         bool IsActive();
         bool IsTileCompatible();
     }
+}
 
+namespace UnityEngine.Rendering.Universal.Internal
+{
     // TODO: TAA
     // TODO: Motion blur
-    internal class PostProcessPass : ScriptableRenderPass
+    /// <summary>
+    /// Renders the post-processing effect stack.
+    /// </summary>
+    public class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
         RenderTargetHandle m_Source;

@@ -1,5 +1,6 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {

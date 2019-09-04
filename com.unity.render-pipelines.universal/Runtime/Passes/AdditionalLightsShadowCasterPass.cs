@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
-    internal class AdditionalLightsShadowCasterPass : ScriptableRenderPass
+    /// <summary>
+    /// Renders a shadow map atlas for additional shadow-casting Lights.
+    /// </summary>
+    public class AdditionalLightsShadowCasterPass : ScriptableRenderPass
     {
         private static class AdditionalShadowsConstantBuffer
         {
