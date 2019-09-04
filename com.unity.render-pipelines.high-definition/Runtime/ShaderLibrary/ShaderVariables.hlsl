@@ -3,7 +3,9 @@
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
 #define UNITY_SHADER_VARIABLES_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
 // CAUTION:
@@ -87,6 +89,10 @@ SAMPLER(sampler_CameraDepthTexture);
 // Color pyramid (width, height, lodcount, Unused)
 TEXTURE2D_X(_ColorPyramidTexture);
 
+// Custom pass buffer
+TEXTURE2D_X(_CustomDepthTexture);
+TEXTURE2D_X(_CustomColorTexture);
+
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -132,6 +138,7 @@ CBUFFER_START(UnityGlobal)
     float4x4 _InvViewProjMatrix;
     float4x4 _NonJitteredViewProjMatrix;
     float4x4 _PrevViewProjMatrix;       // non-jittered
+    float4x4 _PrevInvViewProjMatrix;       // non-jittered
 
     // TODO: put commonly used vars together (below), and then sort them by the frequency of use (descending).
     // Note: a matrix is 4 * 4 * 4 = 64 bytes (1x cache line), so no need to sort those.
@@ -231,7 +238,8 @@ CBUFFER_START(UnityGlobal)
 
     #define DEFAULT_LIGHT_LAYERS 0xFF
     uint _EnableLightLayers;
-    uint _EnableSpecularLighting;
+    float _ReplaceDiffuseForIndirect;
+    uint _EnableSkyLighting;
 
     uint _EnableSSRefraction;
 
@@ -278,6 +286,26 @@ float3 LoadCameraColor(uint2 pixelCoords)
 float3 SampleCameraColor(float2 uv)
 {
     return SampleCameraColor(uv, 0);
+}
+
+float3 SampleCustomColor(float2 uv)
+{
+    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0).rgb;
+}
+
+float3 LoadCustomColor(uint2 pixelCoords)
+{
+    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0).rgb;
+}
+
+float LoadCustomDepth(uint2 pixelCoords)
+{
+    return LOAD_TEXTURE2D_X_LOD(_CustomDepthTexture, pixelCoords, 0).r;
+}
+
+float SampleCustomDepth(float2 uv)
+{
+    return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)
@@ -377,13 +405,6 @@ float2 ClampAndScaleUVForBilinear(float2 UV)
 float2 ClampAndScaleUVForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandleScale.xy;
-}
-
-bool ReplaceDiffuseForReflectionPass(float3 fresnel0)
-{
-    // we want to use Fresnel0 instead diffuse when doing reflection (reflection probe, planar reflection,
-    // DXR reflection). Dieletric are suppose to have a fresnel of around 0.04. Let's consider anything above 0.3 as metal.
-    return (_EnableSpecularLighting.x == 0) && Max3(fresnel0.r, fresnel0.g, fresnel0.b) > 0.3;
 }
 
 // Define Model Matrix Macro

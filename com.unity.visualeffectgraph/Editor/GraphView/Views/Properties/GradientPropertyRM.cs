@@ -8,7 +8,7 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 
-using GradientField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.UIElements.GradientField, UnityEngine.Gradient>;
+using GradientField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.GradientField, UnityEngine.Gradient>;
 
 namespace UnityEditor.VFX.UI
 {
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
             m_GradientField.style.flexDirection = FlexDirection.Column;
             m_GradientField.style.alignItems = Align.Stretch;
             m_GradientField.style.flexGrow = 1f;
-            m_GradientField.style.flexShrink = 0f;
+            m_GradientField.style.flexShrink = 1f;
 
             Add(m_GradientField);
         }

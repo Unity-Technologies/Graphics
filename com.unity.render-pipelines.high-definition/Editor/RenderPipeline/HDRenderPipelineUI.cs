@@ -1,11 +1,11 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using System.Text;
-using static UnityEngine.Experimental.Rendering.HDPipeline.RenderPipelineSettings;
-using UnityEditor.Rendering;
+using Utilities;
+using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDRenderPipelineAsset>;
 
@@ -28,10 +28,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Decal = 1 << 12,
             PostProcess = 1 << 13,
             DynamicResolution = 1 << 14,
-            LowResTransparency = 1 << 15
+            LowResTransparency = 1 << 15,
+            PostProcessQuality = 1 << 16,
+            DepthOfFieldQuality = 1 << 17,
+            MotionBlurQuality = 1 << 18,
+            BloomQuality = 1 << 19,
+            ChromaticAberrationQuality = 1 << 20,
+            XR = 1 << 21
         }
 
-        readonly static ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
+        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
 
         enum ShadowResolutionValue
         {
@@ -60,8 +66,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Inspector = CED.Group(
                 //CED.Group(SupportedSettingsInfoSection),
-                FrameSettingsSection,
-                CED.FoldoutGroup(k_GeneralSectionTitle, Expandable.General, k_ExpandedState, Drawer_SectionGeneral),
                 CED.FoldoutGroup(k_RenderingSectionTitle, Expandable.Rendering, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
                     CED.FoldoutGroup(k_DecalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
@@ -77,7 +81,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CED.FoldoutGroup(k_LightLoopSubTitle, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionLightLoop)
                     ),
                 CED.FoldoutGroup(k_MaterialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
-                CED.FoldoutGroup(k_PostProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings)
+                CED.FoldoutGroup(k_PostProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings),
+                CED.FoldoutGroup(k_PostProcessQualitySubTitle, Expandable.PostProcessQuality, k_ExpandedState, 
+                    CED.FoldoutGroup(k_DepthOfFieldQualitySettings, Expandable.DepthOfFieldQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionDepthOfFieldQualitySettings),
+                    CED.FoldoutGroup(k_MotionBlurQualitySettings, Expandable.MotionBlurQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionMotionBlurQualitySettings),
+                    CED.FoldoutGroup(k_BloomQualitySettings, Expandable.BloomQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionBloomQualitySettings),
+                    CED.FoldoutGroup(k_ChromaticAberrationQualitySettings, Expandable.ChromaticAberrationQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionChromaticAberrationQualitySettings)
+                    ),
+                CED.FoldoutGroup(k_XrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings)
             );
 
             // fix init of selection along what is serialized
@@ -91,7 +102,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static readonly CED.IDrawer Inspector;
 
-        static readonly CED.IDrawer FrameSettingsSection = CED.Group(
+        public static readonly CED.IDrawer GeneralSection = CED.Group(Drawer_SectionGeneral);
+
+        public static readonly CED.IDrawer FrameSettingsSection = CED.Group(
             CED.Group(
                 (serialized, owner) => EditorGUILayout.BeginVertical("box"),
                 Drawer_TitleDefaultFrameSettings
@@ -291,24 +304,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        static private bool m_ShowDirectionalLightSection = false;
+        static private bool m_ShowPunctualLightSection = false;
+        static private bool m_ShowAreaLightSection = false;
+
         static void Drawer_SectionShadows(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportShadowMask, k_SupportShadowMaskContent);
-            EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_DirectionalShadowPrecisionContent);
-
-            EditorGUILayout.LabelField(k_ShadowPunctualLightAtlasSubTitle);
-            ++EditorGUI.indentLevel;
-            CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), k_ResolutionContent);
-            EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_PrecisionContent);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
-            --EditorGUI.indentLevel;
-
-            EditorGUILayout.LabelField(k_ShadowAreaLightAtlasSubTitle);
-            ++EditorGUI.indentLevel;
-            CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), k_ResolutionContent);
-            EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_PrecisionContent);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
-            --EditorGUI.indentLevel;
 
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests, k_MaxRequestContent);
 
@@ -318,10 +320,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded.
                 if (isDeferredOnly)
-                    serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality.intValue = (int)HDShadowQuality.Low;
+                    serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.intValue = (int)ShaderConfig.s_DeferredShadowFiltering;
 
                 using (new EditorGUI.DisabledScope(isDeferredOnly))
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowQuality, k_FilteringQuality);
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, k_FilteringQuality);
             }
             else
             {
@@ -329,12 +331,96 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.LabelField(k_MultipleDifferenteValueMessage);
             }
 
-            EditorGUILayout.LabelField(k_ScreenSpaceShadowsTitle);
-            ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows, k_SupportScreenSpaceShadows);
+            ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows.boolValue))
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, k_MaxScreenSpaceShadows);
             --EditorGUI.indentLevel;
+
+            m_ShowDirectionalLightSection = EditorGUILayout.Foldout(m_ShowDirectionalLightSection, k_DirectionalShadowsSubTitle);
+            if (m_ShowDirectionalLightSection)
+            {
+                ++EditorGUI.indentLevel;
+                {
+                    EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_DirectionalShadowPrecisionContent);
+
+                    EditorGUILayout.LabelField(k_DirectionalLightsShadowTiers);
+                    ++EditorGUI.indentLevel;
+                    {
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.lowQualityShadowMap, k_LowQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.mediumQualityShadowMap, k_MediumQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.highQualityShadowMap, k_HighQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedDirectionalLightTiers.veryHighQualityShadowMap, k_VeryHighQualityContent);
+                    }
+                    --EditorGUI.indentLevel;
+                }
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, k_MaxShadowResolution);
+                --EditorGUI.indentLevel;
+            }
+
+            m_ShowPunctualLightSection = EditorGUILayout.Foldout(m_ShowPunctualLightSection, k_PunctualShadowsSubTitle);
+            if (m_ShowPunctualLightSection)
+            {
+                ++EditorGUI.indentLevel;
+                {
+                    EditorGUILayout.LabelField(k_ShadowPunctualLightAtlasSubTitle);
+                    ++EditorGUI.indentLevel;
+                    {
+                        CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), k_ResolutionContent);
+                        EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_PrecisionContent);
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
+                    }
+                    --EditorGUI.indentLevel;
+                }
+                --EditorGUI.indentLevel;
+
+                ++EditorGUI.indentLevel;
+                {
+                    EditorGUILayout.LabelField(k_PunctualLightsShadowTiers);
+                    ++EditorGUI.indentLevel;
+                    {
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.lowQualityShadowMap, k_LowQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.mediumQualityShadowMap, k_MediumQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.highQualityShadowMap, k_HighQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedPunctualLightTiers.veryHighQualityShadowMap, k_VeryHighQualityContent);
+                    }
+                    --EditorGUI.indentLevel;
+                }
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution, k_MaxShadowResolution);
+                --EditorGUI.indentLevel;
+            }
+
+            m_ShowAreaLightSection = EditorGUILayout.Foldout(m_ShowAreaLightSection, k_AreaShadowsSubTitle);
+            if (m_ShowAreaLightSection)
+            {
+                ++EditorGUI.indentLevel;
+                {
+                    EditorGUILayout.LabelField(k_ShadowAreaLightAtlasSubTitle);
+                    ++EditorGUI.indentLevel;
+                    {
+                        CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapResolution, typeof(ShadowResolutionValue), k_ResolutionContent);
+                        EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.shadowMapDepthBits, k_ShadowBitDepthNames, k_ShadowBitDepthValues, k_PrecisionContent);
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaAtlasInit.useDynamicViewportRescale, k_DynamicRescaleContent);
+                    }
+                    --EditorGUI.indentLevel;
+                }
+                --EditorGUI.indentLevel;
+
+                ++EditorGUI.indentLevel;
+                {
+                    EditorGUILayout.LabelField(k_AreaLightsShadowTiers);
+                    ++EditorGUI.indentLevel;
+                    {
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.lowQualityShadowMap, k_LowQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.mediumQualityShadowMap, k_MediumQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.highQualityShadowMap, k_HighQualityContent);
+                        EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.serializedAreaLightTiers.veryHighQualityShadowMap, k_VeryHighQualityContent);
+                    }
+                    --EditorGUI.indentLevel;
+                }
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution, k_MaxShadowResolution);
+                --EditorGUI.indentLevel;
+            }
         }
 
         static void Drawer_SectionDecalSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -472,6 +558,148 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.lutFormat, k_LutFormat);
         }
 
+        static void Drawer_SectionXRSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.occlusionMesh, k_XROcclusionMesh);
+        }
+
+        static private bool m_ShowDoFLowQualitySection = false;
+        static private bool m_ShowDoFMediumQualitySection = false;
+        static private bool m_ShowDoFHighQualitySection = false;
+
+        static void DrawDepthOfFieldQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+            ++EditorGUI.indentLevel;
+            {
+                EditorGUILayout.LabelField(k_NearBlurSubTitle);
+                ++EditorGUI.indentLevel;
+                {
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.NearBlurSampleCount.GetArrayElementAtIndex(tier), k_SampleCountQuality);
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.NearBlurMaxRadius.GetArrayElementAtIndex(tier), k_MaxRadiusQuality);
+                }
+                --EditorGUI.indentLevel;
+                EditorGUILayout.LabelField(k_FarBlurSubTitle);
+                ++EditorGUI.indentLevel;
+                {
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.FarBlurSampleCount.GetArrayElementAtIndex(tier), k_SampleCountQuality);
+                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.FarBlurMaxRadius.GetArrayElementAtIndex(tier), k_MaxRadiusQuality);
+                }
+                --EditorGUI.indentLevel;
+            }
+
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFResolution.GetArrayElementAtIndex(tier), k_ResolutionQuality);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.DoFHighFilteringQuality.GetArrayElementAtIndex(tier), k_HighQualityFiltering);
+            --EditorGUI.indentLevel;
+        }
+
+        static void Drawer_SectionDepthOfFieldQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowDoFLowQualitySection = EditorGUILayout.Foldout(m_ShowDoFLowQualitySection, k_LowQualityContent);
+            if (m_ShowDoFLowQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Low;
+                DrawDepthOfFieldQualitySetting(serialized, quality);
+            }
+
+            m_ShowDoFMediumQualitySection = EditorGUILayout.Foldout(m_ShowDoFMediumQualitySection, k_MediumQualityContent);
+            if (m_ShowDoFMediumQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                DrawDepthOfFieldQualitySetting(serialized, quality);
+            }
+
+            m_ShowDoFHighQualitySection = EditorGUILayout.Foldout(m_ShowDoFHighQualitySection, k_HighQualityContent);
+            if (m_ShowDoFHighQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.High;
+                DrawDepthOfFieldQualitySetting(serialized, quality);
+            }
+        }
+
+        static private bool m_ShowMotionBlurLowQualitySection = false;
+        static private bool m_ShowMotionBlurMediumQualitySection = false;
+        static private bool m_ShowMotionBlurHighQualitySection = false;
+
+        static void Drawer_SectionMotionBlurQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowMotionBlurLowQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurLowQualitySection, k_LowQualityContent);
+            if (m_ShowMotionBlurLowQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Low;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), k_SampleCountQuality);
+            }
+            m_ShowMotionBlurMediumQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurMediumQualitySection, k_MediumQualityContent);
+            if (m_ShowMotionBlurMediumQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), k_SampleCountQuality);
+            }
+            m_ShowMotionBlurHighQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurHighQualitySection, k_HighQualityContent);
+            if (m_ShowMotionBlurHighQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.High;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), k_SampleCountQuality);
+            }
+        }
+
+        static private bool m_ShowBloomLowQualitySection = false;
+        static private bool m_ShowBloomMediumQualitySection = false;
+        static private bool m_ShowBloomHighQualitySection = false;
+
+        static void DrawBloomQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomRes.GetArrayElementAtIndex(tier), k_ResolutionQuality);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighFilteringQuality.GetArrayElementAtIndex(tier), k_HighQualityFiltering);
+        }
+
+        static void Drawer_SectionBloomQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowBloomLowQualitySection = EditorGUILayout.Foldout(m_ShowBloomLowQualitySection, k_LowQualityContent);
+            if (m_ShowBloomLowQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Low;
+                DrawBloomQualitySetting(serialized, quality);
+            }
+            m_ShowBloomMediumQualitySection = EditorGUILayout.Foldout(m_ShowBloomMediumQualitySection, k_MediumQualityContent);
+            if (m_ShowBloomMediumQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                DrawBloomQualitySetting(serialized, quality);
+            }
+            m_ShowBloomHighQualitySection = EditorGUILayout.Foldout(m_ShowBloomHighQualitySection, k_HighQualityContent);
+            if (m_ShowBloomHighQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.High;
+                DrawBloomQualitySetting(serialized, quality);
+            }
+        }
+
+        static private bool m_ShowChromaticAberrationLowQualitySection = false;
+        static private bool m_ShowChromaticAberrationMediumQualitySection = false;
+        static private bool m_ShowChromaticAberrationHighQualitySection = false;
+
+        static void Drawer_SectionChromaticAberrationQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowChromaticAberrationLowQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationLowQualitySection, k_LowQualityContent);
+            if (m_ShowChromaticAberrationLowQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Low;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
+            }
+            m_ShowChromaticAberrationMediumQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationMediumQualitySection, k_MediumQualityContent);
+            if (m_ShowChromaticAberrationMediumQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
+            }
+            m_ShowChromaticAberrationHighQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationHighQualitySection, k_HighQualityContent);
+            if (m_ShowChromaticAberrationHighQualitySection)
+            {
+                int quality = (int)VolumeQualitySettingsLevels.High;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
+            }
+        }
+
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.colorBufferFormat, k_ColorBufferFormatContent);
@@ -495,25 +723,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportMotionVectors, k_SupportMotionVectorContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRuntimeDebugDisplay, k_SupportRuntimeDebugDisplayContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDitheringCrossFade, k_SupportDitheringCrossFadeContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTerrainHole, k_SupportTerrainHoleContent);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTransparentBackface, k_SupportTransparentBackface);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTransparentDepthPrepass, k_SupportTransparentDepthPrepass);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportTransparentDepthPostpass, k_SupportTransparentDepthPostpass);
 
-            // Only display the support ray tracing feature if the platform supports it
-#if REALTIME_RAYTRACING_SUPPORT
-            if(UnityEngine.SystemInfo.supportsRayTracing)
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
-                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
-                {
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRaytracingTier, k_RaytracingTier);
-                }
-            }
-            else
-#endif
-            {
-                serialized.renderPipelineSettings.supportRayTracing.boolValue = false;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRaytracingTier, k_RaytracingTier);
             }
 
             EditorGUILayout.Space(); //to separate with following sub sections
@@ -539,6 +758,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionMaterialUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.materialQualityLevels);
+            var v = EditorGUILayout.EnumPopup(k_CurrentMaterialQualityLevelContent, (MaterialQuality) serialized.currentMaterialQualityLevel.intValue);
+            serialized.currentMaterialQualityLevel.intValue = (int)(object)v;
+            
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSubsurfaceScattering, k_SupportedSSSContent);
@@ -618,13 +841,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             AppendSupport(builder, serialized.renderPipelineSettings.supportMotionVectors, k_SupportMotionVectorContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRuntimeDebugDisplay, k_SupportRuntimeDebugDisplayContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDitheringCrossFade, k_SupportDitheringCrossFadeContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportTerrainHole, k_SupportTerrainHoleContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportDistortion, k_SupportDistortion);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentBackface, k_SupportTransparentBackface);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, k_SupportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, k_SupportTransparentDepthPostpass);
-#if REALTIME_RAYTRACING_SUPPORT
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, k_SupportRaytracing);
-#endif
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

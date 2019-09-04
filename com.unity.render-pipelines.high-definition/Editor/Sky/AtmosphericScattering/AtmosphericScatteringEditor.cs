@@ -1,9 +1,9 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class AtmosphericScatteringEditor : VolumeComponentEditor
+    class AtmosphericScatteringEditor : VolumeComponentEditor
     {
         protected SerializedDataParameter m_MaxFogDistance;
         SerializedDataParameter m_ColorMode;

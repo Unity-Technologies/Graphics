@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public static partial class StringExtention
+    static partial class StringExtention
     {
         /// <summary>Runtime alternative to UnityEditor.ObjectNames.NicifyVariableName. Only prefix 'm_' is not skipped.</summary>
         public static string CamelToPascalCaseWithSpace(this string text, bool preserveAcronyms = true)
@@ -31,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     /// <summary>Should only be used on enum value of field to describe aspect in DebugMenu</summary>
     [AttributeUsage(AttributeTargets.Field)]
-    public class FrameSettingsFieldAttribute : Attribute
+    class FrameSettingsFieldAttribute : Attribute
     {
         public enum DisplayType { BoolAsCheckbox, BoolAsEnumPopup, Others }
         public readonly DisplayType type;
@@ -56,12 +52,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <param name="positiveDependencies">[Optional] Dependencies that must be activated in order to appear activable in Inspector. Indentation is deduced frm this information.</param>
         /// <param name="customOrderInGroup">[Optional] If order is not the same than the order of value in the FrameSettingsField enum, you can ask to rewrite order from this element.
         /// Could be asked to use this on another element too to have correct ordering amongst everything.
-        /// (Exemple if the 2nd element must be showed at position 10, add this property with value 10 to in and this parameter with value 3 to the following one (the 3rd).</param>
-        public FrameSettingsFieldAttribute(int group, FrameSettingsField autoName = FrameSettingsField.None, string displayedName = null, string tooltip = null, DisplayType type = DisplayType.BoolAsCheckbox, Type targetType = null, FrameSettingsField[] positiveDependencies = null, FrameSettingsField[] negativeDependencies = null, int customOrderInGroup = -1)
+        /// (Example if the 2nd element must be showed at position 10, add this property with value 10 to in and this parameter with value 3 to the following one (the 3rd).</param>
+        public FrameSettingsFieldAttribute(
+            int group,
+            FrameSettingsField autoName = FrameSettingsField.None,
+            string displayedName = null,
+            string tooltip = null,
+            DisplayType type = DisplayType.BoolAsCheckbox,
+            Type targetType = null,
+            FrameSettingsField[] positiveDependencies = null,
+            FrameSettingsField[] negativeDependencies = null,
+            int customOrderInGroup = -1)
         {
             if (string.IsNullOrEmpty(displayedName))
                 displayedName = autoName.ToString().CamelToPascalCaseWithSpace();
-            
+
             // Editor and Runtime debug menu
             this.group = group;
             if (customOrderInGroup != -1)
@@ -82,6 +87,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
         }
 
-        public bool IsNegativeDependency(FrameSettingsField frameSettingsField) => Array.FindIndex(dependencies, fsf => fsf == frameSettingsField) >= dependencySeparator;
+        public bool IsNegativeDependency(FrameSettingsField frameSettingsField)
+            => Array.FindIndex(dependencies, fsf => fsf == frameSettingsField) >= dependencySeparator;
     }
 }

@@ -11,7 +11,7 @@ using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(8, Extension)]
+    [ScriptedImporter(9, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph
 
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.inputs = graph.properties.ToList();
+            asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
             
@@ -163,7 +164,7 @@ namespace UnityEditor.ShaderGraph
                 var arguments = new List<string>();
                 foreach (var prop in asset.inputs)
                 {
-                    prop.SetConcretePrecision(asset.graphPrecision);
+                    prop.ValidateConcretePrecision(asset.graphPrecision);
                     arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
                 }
 
@@ -229,7 +230,9 @@ namespace UnityEditor.ShaderGraph
         {
             if (!dependencyMap.ContainsKey(assetPath))
             {
-                MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
+                if(assetPath.EndsWith(Extension))
+                    MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
+                
                 var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
                 dependencies.Clear();
                 foreach (var dependencyPath in dependencyPaths)

@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
         [Texture3DControl("")]
         public Texture3D texture
         {
-            get { return (Texture3D)m_Texture.texture; }
+            get { return m_Texture.texture as Texture3D; }
             set
             {
                 if (m_Texture.texture == value)

@@ -10,12 +10,12 @@ using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(28, Extension)]
+    [ScriptedImporter(30, Extension, 3)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
 
-        const string k_ErrorShader = @"
+        public const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
 {
     SubShader
@@ -56,7 +56,7 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -73,8 +73,8 @@ Shader ""Hidden/GraphErrorShader2""
             string path = ctx.assetPath;
             var sourceAssetDependencyPaths = new List<string>();
             var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths, out var graph);
-            var shader = ShaderUtil.CreateShaderAsset(text);
-            
+            var shader = ShaderUtil.CreateShaderAsset(text, false);
+
             if (graph != null && graph.messageManager.nodeMessagesChanged)
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
@@ -96,6 +96,14 @@ Shader ""Hidden/GraphErrorShader2""
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon@64");
             ctx.AddObjectToAsset("MainAsset", shader, texture);
             ctx.SetMainObject(shader);
+
+            var metadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
+            metadata.hideFlags = HideFlags.HideInHierarchy;
+            if (graph != null)
+            {
+                metadata.outputNodeTypeName = graph.outputNode.GetType().FullName;
+            }
+            ctx.AddObjectToAsset("Metadata", metadata);
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
             {

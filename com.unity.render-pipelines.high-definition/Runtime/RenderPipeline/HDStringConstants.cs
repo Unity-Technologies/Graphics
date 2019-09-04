@@ -1,8 +1,6 @@
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public static class HDShaderPassNames
+    static class HDShaderPassNames
     {
         // ShaderPass string - use to have consistent name through the code
         public static readonly string s_EmptyStr = "";
@@ -73,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // Pre-hashed shader ids - naming conventions are a bit off in this file as we use the same
     // fields names as in the shaders for ease of use...
     // TODO: Would be nice to clean this up at some point
-    public static class HDShaderIDs
+    static class HDShaderIDs
     {
         public static readonly int _ZClip = Shader.PropertyToID("_ZClip");
 
@@ -199,6 +197,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugLightingMaterialValidateLowColor = Shader.PropertyToID("_DebugLightingMaterialValidateLowColor");
         public static readonly int _DebugLightingMaterialValidatePureMetalColor = Shader.PropertyToID("_DebugLightingMaterialValidatePureMetalColor");
         public static readonly int _DebugFullScreenMode = Shader.PropertyToID("_DebugFullScreenMode");
+        public static readonly int _DebugTransparencyOverdrawWeight = Shader.PropertyToID("_DebugTransparencyOverdrawWeight");
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
@@ -289,9 +288,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RTHandleScale = Shader.PropertyToID("_RTHandleScale");
         public static readonly int _RTHandleScaleHistory = Shader.PropertyToID("_RTHandleScaleHistory");
         public static readonly int _PrevViewProjMatrix = Shader.PropertyToID("_PrevViewProjMatrix");
+        public static readonly int _PrevInvViewProjMatrix = Shader.PropertyToID("_PrevInvViewProjMatrix");
         public static readonly int _FrustumPlanes = Shader.PropertyToID("_FrustumPlanes");
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
+
+        public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
+        public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
 
         public static readonly int _XRViewCount = Shader.PropertyToID("_XRViewCount");
         public static readonly int _XRViewConstants = Shader.PropertyToID("_XRViewConstants");
@@ -375,11 +378,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
-        public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_DepthPyramidTexture");
-        public static readonly int _ColorPyramidSize = Shader.PropertyToID("_ColorPyramidSize");
         public static readonly int _ColorPyramidScale = Shader.PropertyToID("_ColorPyramidScale");
         public static readonly int _ColorPyramidUvScaleAndLimitPrevFrame = Shader.PropertyToID("_ColorPyramidUvScaleAndLimitPrevFrame");
-        public static readonly int _DepthPyramidSize = Shader.PropertyToID("_DepthPyramidSize");
         public static readonly int _DepthPyramidScale = Shader.PropertyToID("_DepthPyramidScale");
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
@@ -398,6 +398,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
         public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
         public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
+        public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");
@@ -409,6 +410,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CameraMotionVectorsSize = Shader.PropertyToID("_CameraMotionVectorsSize");
         public static readonly int _CameraMotionVectorsScale = Shader.PropertyToID("_CameraMotionVectorsScale");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
+        public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
+        public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
+        public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
+        public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");
@@ -481,13 +486,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _EnableLightLayers              = Shader.PropertyToID("_EnableLightLayers");
         public static readonly int _OffScreenRendering             = Shader.PropertyToID("_OffScreenRendering");
         public static readonly int _OffScreenDownsampleFactor      = Shader.PropertyToID("_OffScreenDownsampleFactor");
-        public static readonly int _EnableSpecularLighting         = Shader.PropertyToID("_EnableSpecularLighting");
+        public static readonly int _ReplaceDiffuseForIndirect      = Shader.PropertyToID("_ReplaceDiffuseForIndirect");
+        public static readonly int _EnableSkyLighting               = Shader.PropertyToID("_EnableSkyLighting");        
 
         public static readonly int _GroundIrradianceTexture        = Shader.PropertyToID("_GroundIrradianceTexture");
         public static readonly int _GroundIrradianceTable          = Shader.PropertyToID("_GroundIrradianceTable");
         public static readonly int _GroundIrradianceTableOrder     = Shader.PropertyToID("_GroundIrradianceTableOrder");
-        public static readonly int _OpticalDepthTexture            = Shader.PropertyToID("_OpticalDepthTexture");
-        public static readonly int _OpticalDepthTable              = Shader.PropertyToID("_OpticalDepthTable");
         public static readonly int _AirSingleScatteringTexture     = Shader.PropertyToID("_AirSingleScatteringTexture");
         public static readonly int _AirSingleScatteringTable       = Shader.PropertyToID("_AirSingleScatteringTable");
         public static readonly int _AerosolSingleScatteringTexture = Shader.PropertyToID("_AerosolSingleScatteringTexture");
@@ -517,6 +521,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AerosolSeaLevelScattering      = Shader.PropertyToID("_AerosolSeaLevelScattering");
 
         public static readonly int _GroundAlbedo                   = Shader.PropertyToID("_GroundAlbedo");
+        public static readonly int _IntensityMultiplier            = Shader.PropertyToID("_IntensityMultiplier");
+
         public static readonly int _PlanetCenterPosition           = Shader.PropertyToID("_PlanetCenterPosition");
 
         public static readonly int _PlanetRotation                 = Shader.PropertyToID("_PlanetRotation");
@@ -530,6 +536,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _HasSpaceEmissionTexture        = Shader.PropertyToID("_HasSpaceEmissionTexture");
         public static readonly int _SpaceEmissionTexture           = Shader.PropertyToID("_SpaceEmissionTexture");
+
+        public static readonly int _RenderSunDisk                  = Shader.PropertyToID("_RenderSunDisk");
 
 #if ENABLE_RAYTRACING
         // Raytracing variables
@@ -555,10 +563,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Denoising
         public static readonly int _HistoryBuffer                   = Shader.PropertyToID("_HistoryBuffer");
+        public static readonly int _ValidationBuffer                = Shader.PropertyToID("_ValidationBuffer");
+        public static readonly int _ValidationBufferRW              = Shader.PropertyToID("_ValidationBufferRW");
+        public static readonly int _HistoryDepthTexture             = Shader.PropertyToID("_HistoryDepthTexture");
+        public static readonly int _HistoryNormalBufferTexture      = Shader.PropertyToID("_HistoryNormalBufferTexture");
         public static readonly int _RaytracingDenoiseRadius         = Shader.PropertyToID("_RaytracingDenoiseRadius");
         public static readonly int _DenoiserFilterRadius            = Shader.PropertyToID("_DenoiserFilterRadius");
+        public static readonly int _NormalHistoryCriterion          = Shader.PropertyToID("_NormalHistoryCriterion");
         public static readonly int _DenoiseInputTexture             = Shader.PropertyToID("_DenoiseInputTexture");
         public static readonly int _DenoiseOutputTextureRW          = Shader.PropertyToID("_DenoiseOutputTextureRW");
+        public static readonly int _HalfResolutionFilter            = Shader.PropertyToID("_HalfResolutionFilter");
+        public static readonly int _DenoisingHistorySlot            = Shader.PropertyToID("_DenoisingHistorySlot");
 
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
@@ -569,9 +584,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingReflectionMaxDistance = Shader.PropertyToID("_RaytracingReflectionMaxDistance");
         public static readonly int _RaytracingHitDistanceTexture    = Shader.PropertyToID("_RaytracingHitDistanceTexture");
         public static readonly int _RaytracingIntensityClamp        = Shader.PropertyToID("_RaytracingIntensityClamp");
+        public static readonly int _RaytracingPreExposition         = Shader.PropertyToID("_RaytracingPreExposition");
         public static readonly int _RaytracingReflectionMinSmoothness   = Shader.PropertyToID("_RaytracingReflectionMinSmoothness");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
-        public static readonly int _RaytracingReflectSky            = Shader.PropertyToID("_RaytracingReflectSky");
+        public static readonly int _RaytracingIncludeSky            = Shader.PropertyToID("_RaytracingIncludeSky");
 
         // Shadows
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
@@ -587,7 +603,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AreaShadowHistory               = Shader.PropertyToID("_AreaShadowHistory");
         public static readonly int _AreaShadowHistoryRW             = Shader.PropertyToID("_AreaShadowHistoryRW");
         public static readonly int _AnalyticProbBuffer              = Shader.PropertyToID("_AnalyticProbBuffer");
-        public static readonly int _AnalyticHistoryBuffer           = Shader.PropertyToID("_AnalyticHistoryBuffer");
+        public static readonly int _AnalyticHistoryBuffer           = Shader.PropertyToID("_AnalyticHistoryBuffer"); 
+        public static readonly int _RaytracingLightRadius           = Shader.PropertyToID("_RaytracingLightRadius");
 
         public static readonly int _RaytracedDirectionalShadowIntegration = Shader.PropertyToID("_RaytracedDirectionalShadowIntegration");
         public static readonly int _DirectionalLightAngle            = Shader.PropertyToID("_DirectionalLightAngle");
@@ -611,12 +628,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _RaytracingCameraNearPlane       = Shader.PropertyToID("_RaytracingCameraNearPlane");
 
         // Indirect diffuse
-        public static readonly int _RaytracedIndirectDiffuse        = Shader.PropertyToID("_RaytracedIndirectDiffuse");
-        public static readonly int _IndirectDiffuseTexture          = Shader.PropertyToID("_IndirectDiffuseTexture");
-        public static readonly int _IndirectDiffuseTextureRW        = Shader.PropertyToID("_IndirectDiffuseTextureRW");
-
+        public static readonly int _RaytracedIndirectDiffuse            = Shader.PropertyToID("_RaytracedIndirectDiffuse");
+        public static readonly int _IndirectDiffuseTexture              = Shader.PropertyToID("_IndirectDiffuseTexture");
+        public static readonly int _IndirectDiffuseTextureRW            = Shader.PropertyToID("_IndirectDiffuseTextureRW");
+        public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");
+        
         // Deferred Lighting
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
+        public static readonly int _RaytracingDiffuseRay            = Shader.PropertyToID("_RaytracingDiffuseRay");
 
         // Ray binning
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
@@ -751,7 +770,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _GrainParams                    = Shader.PropertyToID("_GrainParams");
         public static readonly int _GrainTextureParams             = Shader.PropertyToID("_GrainTextureParams");
         public static readonly int _BlueNoiseTexture               = Shader.PropertyToID("_BlueNoiseTexture");
+        public static readonly int _OwenScrambledRGTexture         = Shader.PropertyToID("_OwenScrambledRGTexture");
         public static readonly int _OwenScrambledTexture           = Shader.PropertyToID("_OwenScrambledTexture");
+        public static readonly int _ScramblingTileXSPP             = Shader.PropertyToID("_ScramblingTileXSPP");
+        public static readonly int _RankingTileXSPP                = Shader.PropertyToID("_RankingTileXSPP");
         public static readonly int _ScramblingTexture              = Shader.PropertyToID("_ScramblingTexture");
         public static readonly int _AfterPostProcessTexture        = Shader.PropertyToID("_AfterPostProcessTexture");
         public static readonly int _DitherParams                   = Shader.PropertyToID("_DitherParams");
@@ -791,7 +813,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     // Shared material property names
-    public static class HDMaterialProperties
+    static class HDMaterialProperties
     {
         // Stencil properties
         public const string kStencilRef = "_StencilRef";
@@ -805,7 +827,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
         public const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
         public const string kUseSplitLighting = "_RequireSplitLighting";
-        
+
         public const string kZWrite = "_ZWrite";
         public const string kTransparentCullMode = "_TransparentCullMode";
         public const string kZTestTransparent = "_ZTestTransparent";
@@ -820,7 +842,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kEnableSSR = "_ReceivesSSR";
 
         public const string kLayerCount = "_LayerCount";
-        
+
         public const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         public const string kZTestGBuffer = "_ZTestGBuffer";
         public const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
@@ -848,7 +870,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const string kUVDetail = "_UVDetail";
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
-    
+        public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
+
         public static readonly Color[] kLayerColors =
         {
             Color.white,

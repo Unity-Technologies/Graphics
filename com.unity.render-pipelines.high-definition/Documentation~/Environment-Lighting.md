@@ -13,7 +13,7 @@ The two key components for environment lighting are the:
 
 ## Visual Environment
 
-The Visual Environment is a Volume component that tells HDRP what type of [sky](HDRP-Features.html#SkyOverview.html) and [fog](HDRP-Features.html#FogOverview.html) you want to render for Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.html) documentation .
+The Visual Environment is a Volume component that tells HDRP what type of [sky](HDRP-Features.html#SkyOverview) and [fog](HDRP-Features.html#FogOverview) you want to render for Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.html) documentation .
 
 Your Unity Project’s [HDRP Asset](HDRP-Asset.html#SkyLighting) has the following global sky properties that affect all Visual Environments:
 
@@ -41,11 +41,13 @@ An example of where you would want to decouple the sky lighting from the visual 
 
 ## HDRP built-in sky types
 
-HDRP comes with three built-in [sky types](HDRP-Features.html#SkyOverview.html):
+HDRP comes with three built-in [sky types](HDRP-Features.html#SkyOverview):
 
 - [HDRI Sky](Override-HDRI-Sky.html)
 - [Gradient Sky](Override-Gradient-Sky.html)
-- [Procedural Sky](Override-Procedural-Sky.html)
+- [Physically Based Sky](Override-Physically-Based-Sky.html)
+
+HDRP also includes [Procedural Sky](Override-Procedural-Sky.html), which is now deprecated and is thus no longer built-in. For information on how to add Procedural Sky to your HDRP Project, see the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
 
 HDRP allows you to implement your own sky types that display a background and handle environment lighting. See the [Customizing HDRP](Creating-a-Custom-Sky.html) documentation for instructions on how to implement your own sky.
 

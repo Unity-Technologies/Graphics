@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System.Reflection;
 using System.Linq;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal struct OverridableFrameSettingsArea
     {
@@ -80,9 +80,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return area;
         }
 
-        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, Func<bool> customOverrideable = null)
+        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, Func<bool> customOverrideable = null, string labelOverride = null)
         {
             var matchIndex = fields.FindIndex(f => f.field == field);
+
+            if (matchIndex == -1)
+                throw new FrameSettingsNotFoundInGroupException("This FrameSettings' group do not contain this field. Be sure that the group parameter of the FrameSettingsFieldAttribute match this OverridableFrameSettingsArea groupIndex.");
+
             var match = fields[matchIndex];
             if (overrideable != null)
                 match.overrideable = overrideable;
@@ -94,6 +98,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 match.customSetter = customSetter;
             if (overridedDefaultValue != null)
                 match.overridedDefaultValue = overridedDefaultValue;
+            if (labelOverride != null)
+                match.label.text = labelOverride;
             fields[matchIndex] = match;
         }
 
@@ -318,5 +324,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUILayout.FlexibleSpace();
             }
         }
+    }
+
+    class FrameSettingsNotFoundInGroupException : Exception
+    {
+        public FrameSettingsNotFoundInGroupException(string message)
+            : base(message)
+        { }
     }
 }

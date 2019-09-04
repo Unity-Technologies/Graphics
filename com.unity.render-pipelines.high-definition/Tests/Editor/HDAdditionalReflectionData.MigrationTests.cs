@@ -1,10 +1,10 @@
 using NUnit.Framework;
-using UnityEditor.Experimental.Rendering.TestFramework;
-using UnityEngine.Rendering;
+using UnityEditor.Rendering.TestFramework;
+using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
+namespace UnityEngine.Rendering.HighDefinition.Tests
 {
-    public partial class HDAdditionalReflectionDataTests
+    partial class HDAdditionalReflectionDataTests
     {
         public class MigrateReflectionProbeFromVersion_ModeAndTextures
         {
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Tests
             }
 
             string GeneratePrefabYAML(LegacyProbeData legacyProbeData)
-                => $@"%YAML 1.1
+                => FormattableString.Invariant($@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3102262843427888416
 GameObject:
@@ -224,8 +224,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {{fileID: 11500000, guid: d0ef8dc2c2eabfa4e8cb77be57a837c0, type: 3}}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   m_ProxyVolume: {{fileID: 0}}
   m_InfiniteProjection: 1
   m_InfluenceVolume:
@@ -338,13 +338,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {{fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   isGlobal: 1
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {{fileID: 11400000, guid: cc8be05cdf24e1748a0d99d50a681853, type: 2}}";
+  sharedProfile: {{fileID: 11400000, guid: cc8be05cdf24e1748a0d99d50a681853, type: 2}}");
         }
 
         public class MigrateFromLegacyProbe
@@ -509,7 +509,7 @@ MonoBehaviour:
             }
 
             string GeneratePrefabYAML(LegacyProbeData legacyProbeData)
-                => $@"%YAML 1.1
+                => FormattableString.Invariant($@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &4579176910221717176
 GameObject:
@@ -575,7 +575,7 @@ ReflectionProbe:
   m_UseOcclusionCulling: {(legacyProbeData.useOcclusionCulling ? 1 : 0)}
   m_Importance: {legacyProbeData.importance}
   m_CustomBakedTexture: {{fileID: 0}}
-";
+");
         }
     }
 }

@@ -41,6 +41,7 @@ CBUFFER_START(cb0)
     float4 _BloomTint;
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
+    float4 _DebugFlags;
 CBUFFER_END
 
 #define DistCenter              _DistortionParams1.xy
@@ -72,6 +73,8 @@ CBUFFER_END
 #define DirtEnabled             _BloomParams.w
 #define DirtScale               _BloomDirtScaleOffset.xy
 #define DirtOffset              _BloomDirtScaleOffset.zw
+
+#define OutputLogEnabled        _DebugFlags.x
 
 float2 DistortUV(float2 uv)
 {
@@ -105,7 +108,7 @@ float2 DistortUV(float2 uv)
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
     float2 uvDistorted = DistortUV(uv);
@@ -187,9 +190,14 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     // Grading, tonemapping
-    // The branch is only used for frame settings - else grading is always enabled
+    // The branch is only used for frame settings & exr log export - else grading is always enabled
     UNITY_BRANCH
-    if (GradingEnabled)
+    if (OutputLogEnabled)
+    {
+        // Output in log space for debug & exr export (external grading)
+        color = saturate(LinearToLogC(color));
+    }
+    else if (GradingEnabled)
     {
         // Artist request to fine tune exposure in post without affecting bloom, dof etc
         color *= PostExposure;

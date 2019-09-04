@@ -124,35 +124,34 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     }
 #endif
 
-#if 1
-    if (light.interactsWithSky)
+#if SHADEROPTIONS_PRECOMPUTED_ATMOSPHERIC_ATTENUATION
+    // Precomputes atmospheric attenuation for the directional light on the CPU,
+    // which makes it independent from the fragment's position, which is faster but wrong.
+    // Basically, the code below runs on the CPU, using camera.positionWS, and modifies light.color.
+#else
+    // Use scalar or integer cores (more efficient).
+    bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+    if (interactsWithSky)
     {
         // TODO: should probably unify height attenuation somehow...
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        const float3 O = GetAbsolutePositionWS(posInput.positionWS) * 0.001 - _PlanetCenterPosition; // Convert m to km
+        float3 X = GetAbsolutePositionWS(posInput.positionWS) * 0.001; // Convert m to km
+        float3 C = _PlanetCenterPosition;
 
-        float3 planetN; float r; // These params correspond to the entry point
-        float tEntry = IntersectAtmosphere(O, -L, planetN, r);
+        float r        = distance(X, C);
+        float cosHoriz = ComputeCosineOfHorizonAngle(r);
+        float cosTheta = dot(X - C, L) * rcp(r); // Normalize
 
-        float planetNdotL  = dot(planetN, L);
-        float planetHeight = r - _PlanetaryRadius;
-        float cosHor       = GetCosineOfHorizonZenithAngle(planetHeight);
-
-        bool rayIntersectsAtmosphere = (tEntry >= 0);
-        bool lightAboveHorizon       = (planetNdotL > cosHor);
-
-        if (rayIntersectsAtmosphere)
+        if (cosTheta >= cosHoriz) // Above horizon
         {
-            if (lightAboveHorizon)
-            {
-                oDepth += SampleOpticalDepthTexture(planetNdotL, planetHeight, true);
-            }
-            else
-            {
-                // return 0; // Kill the light. This generates a warning, so can't early out. :-(
-                oDepth = FLT_INF;
-            }
+            oDepth += ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+        }
+        else
+        {
+            // return 0; // Kill the light. This generates a warning, so can't early out. :-(
+            oDepth = FLT_INF;
         }
     }
 #endif
@@ -389,6 +388,13 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    if(light.screenSpaceShadowIndex >= 0)
+    {
+        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+    }
+    else
+#endif
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);

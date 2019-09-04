@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     public struct Frustum
     {
@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering
     } // struct Frustum
 
     [GenerateHLSL]
-    public struct OrientedBBox
+    struct OrientedBBox
     {
         // 3 x float4 = 48 bytes.
         // TODO: pack the axes into 16-bit UNORM per channel, and consider a quaternionic representation.
@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering
         public float   extentZ;
 
         public Vector3 forward { get { return Vector3.Cross(up, right); } }
-        
+
         public OrientedBBox(Matrix4x4 trs)
         {
             Vector3 vecX = trs.GetColumn(0);
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering
         }
     } // struct OrientedBBox
 
-    public static class GeometryUtils
+    static class GeometryUtils
     {
         // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
         public static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)

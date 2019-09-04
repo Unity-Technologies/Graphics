@@ -1,12 +1,12 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(RecursiveRendering))]
-    public class RecursiveRenderingEditor : VolumeComponentEditor
+    class RecursiveRenderingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_MaxDepth;

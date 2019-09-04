@@ -180,11 +180,11 @@ real D_GGX(real NdotH, real roughness)
 // p. 84 (37/60)
 real G_MaskingSmithGGX(real NdotV, real roughness)
 {
-    // G1(V, H)    = HeavisideStep(VdotH) / (1 + Λ(V)).
-    // Λ(V)        = -0.5 + 0.5 * sqrt(1 + 1 / a²).
+    // G1(V, H)    = HeavisideStep(VdotH) / (1 + Lambda(V)).
+    // Lambda(V)        = -0.5 + 0.5 * sqrt(1 + 1 / a^2).
     // a           = 1 / (roughness * tan(theta)).
-    // 1 + Λ(V)    = 0.5 + 0.5 * sqrt(1 + roughness² * tan²(theta)).
-    // tan²(theta) = (1 - cos²(theta)) / cos²(theta) = 1 / cos²(theta) - 1.
+    // 1 + Lambda(V)    = 0.5 + 0.5 * sqrt(1 + roughness^2 * tan^2(theta)).
+    // tan^2(theta) = (1 - cos^2(theta)) / cos^2(theta) = 1 / cos^2(theta) - 1.
     // Assume that (VdotH > 0), e.i. (acos(LdotV) < Pi).
 
     return 1.0 / (0.5 + 0.5 * sqrt(1.0 + Sq(roughness) * (1.0 / Sq(NdotV) - 1.0)));

@@ -3,16 +3,16 @@ using System.IO;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     using UnityObject = UnityEngine.Object;
 
-    public class HDRenderPipelineMenuItems
+    class HDRenderPipelineMenuItems
     {
         // Function used only to check performance of data with and without tessellation
         //[MenuItem("Internal/HDRP/Test/Remove tessellation materials (not reversible)")]
@@ -70,38 +70,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("GameObject/Rendering/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Volume/Sky and Fog Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var sceneSettings = CoreEditorUtils.CreateGameObject(parent, "Scene Settings");
-            GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
-            Selection.activeObject = sceneSettings;
+            var settings = CoreEditorUtils.CreateGameObject(parent, "Sky and Fog Volume");
+            GameObjectUtility.SetParentAndAlign(settings, menuCommand.context as GameObject);
+            Undo.RegisterCreatedObjectUndo(settings, "Create " + settings.name);
+            Selection.activeObject = settings;
 
-            var profile = VolumeProfileFactory.CreateVolumeProfile(sceneSettings.scene, "Scene Settings");
-            VolumeProfileFactory.CreateVolumeComponent<HDShadowSettings>(profile, true, false);
+            var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
-            visualEnv.skyType.value = SkySettings.GetUniqueID<ProceduralSky>();
-            visualEnv.fogType.value = FogType.Exponential;
-            VolumeProfileFactory.CreateVolumeComponent<ProceduralSky>(profile, true, false);
-            VolumeProfileFactory.CreateVolumeComponent<ExponentialFog>(profile, true, true);
 
-            var volume = sceneSettings.AddComponent<Volume>();
+            visualEnv.skyType.value = SkySettings.GetUniqueID<PhysicallyBasedSky>();
+            visualEnv.fogType.value = FogType.Volumetric;
+            visualEnv.skyAmbientMode.overrideState = false;
+            VolumeProfileFactory.CreateVolumeComponent<PhysicallyBasedSky>(profile, false, false);
+            VolumeProfileFactory.CreateVolumeComponent<VolumetricFog>(profile, false, true);
+
+            var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
-
-            var staticLightingSky = sceneSettings.AddComponent<StaticLightingSky>();
-            staticLightingSky.profile = volume.sharedProfile;
-            staticLightingSky.staticLightingSkyUniqueID = SkySettings.GetUniqueID<ProceduralSky>();
         }
 
 #if ENABLE_RAYTRACING
-        [MenuItem("GameObject/Rendering/Raytracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/Ray Tracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateRaytracingEnvironmentGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Raytracing Environment");
+            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Ray Tracing Environment");
             raytracingEnvGameObject.AddComponent<HDRaytracingEnvironment>();
         }
 #endif
@@ -125,6 +122,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
+        
+        [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
+        static void MenuCreateCustomFullScreenPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Custom Renderers Pass")]
+        static void MenuCreateCustomRenderersPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Renderers CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Rendering/C# Custom Pass")]
+        static void MenuCreateCustomPassCSharpScript()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
+        }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
@@ -134,13 +152,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (var light in lights)
             {
                 // Do not add a component if there already is one.
-                if (light.GetComponent<HDAdditionalLightData>() == null)
-                    light.gameObject.AddComponent<HDAdditionalLightData>();
-
-                if (light.GetComponent<AdditionalShadowData>() == null)
+                if (!light.TryGetComponent<HDAdditionalLightData>(out _))
                 {
-                    AdditionalShadowData shadowData = light.gameObject.AddComponent<AdditionalShadowData>();
-                    HDAdditionalShadowData.InitDefaultHDAdditionalShadowData(shadowData);
+                    var hdLight = light.gameObject.AddComponent<HDAdditionalLightData>();
+                    HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
                 }
             }
         }
@@ -153,7 +168,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             foreach (var camera in cameras)
             {
                 // Do not add a component if there already is one.
-                if (camera.GetComponent<HDAdditionalCameraData>() == null)
+                if (!camera.TryGetComponent<HDAdditionalCameraData>(out _))
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
@@ -271,7 +286,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                 var h = Debug.unityLogger.logHandler;
                 Debug.unityLogger.logHandler = new UnityContextualLogHandler(mat);
-                HDEditorUtils.ResetMaterialKeywords(mat);
+                HDShaderUtils.ResetMaterialKeywords(mat);
                 Debug.unityLogger.logHandler = h;
             }
         }
@@ -293,7 +308,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 CoreEditorUtils.CheckOutFile(VCSEnabled, materials[i]);
 
-                if (HDEditorUtils.ResetMaterialKeywords(materials[i]))
+                if (HDShaderUtils.ResetMaterialKeywords(materials[i]))
                 {
                     anyMaterialDirty = true;
                 }

@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class HDEditorCLI
+    class HDEditorCLI
     {
         enum CommandLineOperation
         {
@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
                         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
-                        if (HDEditorUtils.ResetMaterialKeywords(mat))
+                        if (HDShaderUtils.ResetMaterialKeywords(mat))
                             Console.WriteLine("[HDEditorCLI][ResetMaterialKeywords] " + path);
                     }
                     break;

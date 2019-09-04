@@ -5,14 +5,14 @@
 #ifndef FABRIC_CS_HLSL
 #define FABRIC_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Fabric+MaterialFeatureFlags:  static fields
+// UnityEngine.Rendering.HighDefinition.Fabric+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL (1)
 #define MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING (2)
 #define MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION (4)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Fabric+SurfaceData:  static fields
+// UnityEngine.Rendering.HighDefinition.Fabric+SurfaceData:  static fields
 //
 #define DEBUGVIEW_FABRIC_SURFACEDATA_MATERIAL_FEATURES (1300)
 #define DEBUGVIEW_FABRIC_SURFACEDATA_BASE_COLOR (1301)
@@ -31,7 +31,7 @@
 #define DEBUGVIEW_FABRIC_SURFACEDATA_ANISOTROPY (1314)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Fabric+BSDFData:  static fields
+// UnityEngine.Rendering.HighDefinition.Fabric+BSDFData:  static fields
 //
 #define DEBUGVIEW_FABRIC_BSDFDATA_MATERIAL_FEATURES (1350)
 #define DEBUGVIEW_FABRIC_BSDFDATA_DIFFUSE_COLOR (1351)
@@ -54,7 +54,7 @@
 #define DEBUGVIEW_FABRIC_BSDFDATA_ROUGHNESS_B (1368)
 #define DEBUGVIEW_FABRIC_BSDFDATA_ANISOTROPY (1369)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Fabric+SurfaceData
+// Generated from UnityEngine.Rendering.HighDefinition.Fabric+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
@@ -73,7 +73,7 @@ struct SurfaceData
     float anisotropy;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Fabric+BSDFData
+// Generated from UnityEngine.Rendering.HighDefinition.Fabric+BSDFData
 // PackingRules = Exact
 struct BSDFData
 {

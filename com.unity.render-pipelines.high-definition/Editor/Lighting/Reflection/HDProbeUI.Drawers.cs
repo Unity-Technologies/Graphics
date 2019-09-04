@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditorInternal;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDProbeUI
     {
@@ -95,7 +97,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     k_ListContent[i] = listContent.ToArray();
                     k_ListModes[i] = listMode.ToArray();
                 }
-                
+
             }
 
             // Tool bars
@@ -161,7 +163,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     serialized.probeSettings.mode.intValue = (int)ProbeSettings.Mode.Realtime;
                 }
                 else
-                { 
+                {
 #endif
 
                 // Probe Mode
@@ -351,7 +353,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                     },
                                     GUILayout.ExpandWidth(true)))
                             {
-                                HDBakedReflectionSystem.BakeProbes(new HDProbe[] { serialized.target });
+                                HDBakedReflectionSystem.BakeProbes(serialized.serializedObject.targetObjects.OfType<HDProbe>().ToArray());
                                 GUIUtility.ExitGUI();
                             }
 
@@ -388,22 +390,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (!string.IsNullOrEmpty(assetPath))
                 {
-                    var target = HDProbeSystem.CreateRenderTargetForMode(
+                    var target = (RenderTexture)HDProbeSystem.CreateRenderTargetForMode(
                         probe, ProbeSettings.Mode.Custom
                     );
-                    HDProbeSystem.Render(
-                        probe, null, target,
-                        out HDProbe.RenderData renderData,
-                        forceFlipY: probe.type == ProbeSettings.ProbeType.ReflectionProbe
+
+
+                    HDBakedReflectionSystem.RenderAndWriteToFile(
+                        probe, assetPath, target, null,
+                        out var cameraSettings, out var cameraPositionSettings
                     );
-                    HDTextureUtilities.WriteTextureFileToDisk(target, assetPath);
                     AssetDatabase.ImportAsset(assetPath);
                     HDBakedReflectionSystem.ImportAssetAt(probe, assetPath);
                     CoreUtils.Destroy(target);
 
                     var assetTarget = AssetDatabase.LoadAssetAtPath<Texture>(assetPath);
                     probe.SetTexture(ProbeSettings.Mode.Custom, assetTarget);
-                    probe.SetRenderData(ProbeSettings.Mode.Custom, renderData);
+                    probe.SetRenderData(ProbeSettings.Mode.Custom, new HDProbe.RenderData(cameraSettings, cameraPositionSettings));
                     EditorUtility.SetDirty(probe);
                 }
             }

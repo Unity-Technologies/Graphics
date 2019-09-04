@@ -1,9 +1,8 @@
 using UnityEngine;
-using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class StandardsToHDLitMaterialUpgrader : MaterialUpgrader
+    class StandardsToHDLitMaterialUpgrader : MaterialUpgrader
     {
         static readonly string Standard = "Standard";
         static readonly string Standard_Spec = "Standard (Specular setup)";
@@ -219,7 +218,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             dstMaterial.SetColor("_EmissiveColor", hdrEmission);
 
-            HDEditorUtils.ResetMaterialKeywords(dstMaterial);
+            HDShaderUtils.ResetMaterialKeywords(dstMaterial);
         }
     }
 }

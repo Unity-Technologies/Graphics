@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public abstract partial class HDProbe : IVersionable<HDProbe.Version>
     {
@@ -11,7 +11,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ProbeSettings,
             SeparatePassThrough,
             UpgradeFrameSettingsToStruct,
-            AddFrameSettingSpecularLighting
+            AddFrameSettingSpecularLighting, // Not use anymore
+            AddReflectionFrameSetting,
         }
 
         protected static readonly MigrationDescription<Version, HDProbe> k_Migration = MigrationDescription.New(
@@ -61,9 +62,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     FrameSettings.MigrateFromClassVersion(ref data.m_ProbeSettings.camera.m_ObsoleteFrameSettings, ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings, ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettingsOverrideMask);
 #pragma warning restore 618
             }),
-            MigrationStep.New(Version.AddFrameSettingSpecularLighting, (HDProbe data) =>
+            MigrationStep.New(Version.AddReflectionFrameSetting, (HDProbe data) =>
             {
-                FrameSettings.MigrateToSpecularLighting(ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings);
+                FrameSettings.MigrateToNoReflectionSettings(ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings);
             })
         );
 
@@ -94,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField, FormerlySerializedAs("m_Mode"), Obsolete("For Data Migration")]
         protected ProbeSettings.Mode m_ObsoleteMode = ProbeSettings.Mode.Baked;
 
-        [SerializeField, FormerlySerializedAs("lightLayer"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("lightLayers"), Obsolete("For Data Migration")]
         LightLayerEnum m_ObsoleteLightLayers = LightLayerEnum.LightLayerDefault;
 
         [SerializeField, FormerlySerializedAs("m_CaptureSettings"), Obsolete("For Data Migration")]

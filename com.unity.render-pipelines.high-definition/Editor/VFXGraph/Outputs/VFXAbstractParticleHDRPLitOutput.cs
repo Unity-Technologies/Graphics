@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
         protected bool onlyAmbientLighting = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected UnityEngine.Experimental.Rendering.HDPipeline.DiffusionProfileSettings diffusionProfileAsset = null;
+        protected UnityEngine.Rendering.HighDefinition.DiffusionProfileSettings diffusionProfileAsset = null;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool multiplyThicknessWithAlpha = false;
@@ -88,6 +88,8 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableEnvLight = true;
+
+        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
 
         protected virtual bool allowTextures { get { return true; }}
 
@@ -153,6 +155,8 @@ namespace UnityEditor.VFX
 
         protected override bool needsExposureWeight { get { return (colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap; } }
 
+        protected override bool bypassExposure { get { return false; } }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -194,7 +198,6 @@ namespace UnityEditor.VFX
 
             yield return slotExpressions.First(o => o.name == "smoothness");
 
-            uint diffusionProfileHash;
             switch (materialType)
             {
                 case MaterialType.Standard:
@@ -208,10 +211,12 @@ namespace UnityEditor.VFX
 
                 case MaterialType.Translucent:
                 case MaterialType.SimpleLitTranslucent:
+                {
                     yield return slotExpressions.First(o => o.name == "thickness");
-                    diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
+                    uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
                     yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
                     break;
+                }
 
                 default: break;
             }
@@ -343,7 +348,7 @@ namespace UnityEditor.VFX
 
                 if (materialType != MaterialType.Translucent && materialType != MaterialType.SimpleLitTranslucent)
                 {
-                    yield return "diffusionProfileHash";
+                    yield return "diffusionProfileAsset";
                     yield return "multiplyThicknessWithAlpha";
                 }
 

@@ -14,6 +14,8 @@
 //#pragma #pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderBase.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
@@ -32,8 +34,8 @@
 
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
-uniform float4x4 g_mInvScrProjectionArr[2];
-uniform float4x4 g_mScrProjectionArr[2];
+uniform float4x4 g_mInvScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
+uniform float4x4 g_mScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
 uniform uint g_isOrthographic;
 uniform int _EnvLightIndexShift;
 uniform int _DecalIndexShift;
@@ -150,7 +152,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 [numthreads(NR_THREADS, 1, 1)]
 void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 tileIDX = u3GroupID.xy;
     uint t=threadID;
 
@@ -161,7 +163,6 @@ void LIGHTLISTGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : 
     uint iHeight = g_viDimensions.y;
     uint nrTilesX = (iWidth+15)/16;
     uint nrTilesY = (iHeight+15)/16;
-    uint nrTiles = nrTilesX * nrTilesY; // Precompute?
 
     // build tile scr boundary
     const uint uFltMax = 0x7f7fffff;  // FLT_MAX as a uint
@@ -403,6 +404,11 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 
 #ifdef FINE_PRUNING_ENABLED
+int GetCoarseLightIndex(int l, int iNrCoarseLights)
+{
+    return l < iNrCoarseLights ? GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, unity_StereoEyeIndex) : 0;
+}
+
 // initializes ldsNrLightsFinal with the number of accepted lights.
 // all accepted entries delivered in prunedList[].
 #if PIXEL_PER_THREAD == 4
@@ -422,7 +428,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     while(l<iNrCoarseLights)
     {
         // fetch light
-        int idxCoarse = l<iNrCoarseLights ? GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, unity_StereoEyeIndex) : 0;
+        int idxCoarse = GetCoarseLightIndex(l, iNrCoarseLights);
         uint uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
 
         // spot
@@ -453,7 +459,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
             }
 
             uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
-            ++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
+            ++l; idxCoarse = GetCoarseLightIndex(l, iNrCoarseLights);
             uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
         }
 
@@ -480,7 +486,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
             }
 
             uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
-            ++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
+            ++l; idxCoarse = GetCoarseLightIndex(l, iNrCoarseLights);
             uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
         }
 
@@ -507,7 +513,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
             }
 
             uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
-            ++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
+            ++l; idxCoarse = GetCoarseLightIndex(l, iNrCoarseLights);
             uLightVolume = l<iNrCoarseLights ? _LightVolumeData[idxCoarse].lightVolume : 0;
         }
 

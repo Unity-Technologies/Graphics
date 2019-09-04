@@ -3,71 +3,52 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditorInternal;
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     public class HDEditorUtils
     {
-        const string EditorStyleSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditor.uss";
-        const string EditorStyleLightSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditorLight.uss";
-        const string EditorStyleDarkSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditorDark.uss";
-
-        private static (StyleSheet, StyleSheet, StyleSheet) m_StyleSheets = (null, null, null);
-
-        static (StyleSheet, StyleSheet, StyleSheet) SpecificStyleSheets
-            => (m_StyleSheets.Item1) != null ? m_StyleSheets : (m_StyleSheets = (
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleSheetPath),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleLightSheetPath),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleDarkSheetPath)
-            ));
-
-        public static void AddStyleSheets(VisualElement element)
-        {
-            element.styleSheets.Add(SpecificStyleSheets.Item1);
-            element.styleSheets.Add(
-                EditorGUIUtility.isProSkin
-                ? SpecificStyleSheets.Item3
-                : SpecificStyleSheets.Item2
+        internal const string FormatingPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Formating";
+        internal const string QualitySettingsSheetPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/QualitySettings";
+        internal const string WizardSheetPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
+        
+        private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(string basePath)
+            => (
+                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
+                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Light.uss"),
+                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Dark.uss")
             );
+
+        internal static void AddStyleSheets(VisualElement element, string baseSkinPath)
+        {
+            (StyleSheet @base, StyleSheet personal, StyleSheet professional) = LoadStyleSheets(baseSkinPath);
+            element.styleSheets.Add(@base);
+            if (EditorGUIUtility.isProSkin)
+            {
+                if (professional != null && !professional.Equals(null))
+                    element.styleSheets.Add(professional);
+            }
+            else
+            {
+                if (personal != null && !personal.Equals(null))
+                    element.styleSheets.Add(personal);
+            }
         }
 
 
         static readonly Action<SerializedProperty, GUIContent> k_DefaultDrawer = (p, l) => EditorGUILayout.PropertyField(p, l);
 
-        delegate void MaterialResetter(Material material);
-        static Dictionary<string, MaterialResetter> k_MaterialResetters = new Dictionary<string, MaterialResetter>()
-        {
-            { "HDRP/LayeredLit",  LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/LayeredLitTessellation", LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/Lit", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/LitTessellation", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/Unlit", UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
-            { "HDRP/Decal", DecalUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/TerrainLit", TerrainLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/AxF", AxFGUI.SetupMaterialKeywordsAndPass }
-        };
 
-        static Dictionary<Type, MaterialResetter> k_ShaderGraphMaterialResetters = new Dictionary<Type, MaterialResetter>
-        {
-            { typeof(HDUnlitMasterNode), UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
-            { typeof(HDLitMasterNode), HDLitGUI.SetupMaterialKeywordsAndPass },
-            { typeof(FabricMasterNode), FabricGUI.SetupMaterialKeywordsAndPass },
-            { typeof(HairMasterNode), HairGUI.SetupMaterialKeywordsAndPass },
-            { typeof(StackLitMasterNode), StackLitGUI.SetupMaterialKeywordsAndPass },
-        };
 
-        public static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
-        {
-            return AssetDatabase.LoadAssetAtPath<T>(HDUtils.GetHDRenderPipelinePath() + relativePath);
-        }
+        internal static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
+            => AssetDatabase.LoadAssetAtPath<T>(HDUtils.GetHDRenderPipelinePath() + relativePath);
 
         /// <summary>
         /// Reset the dedicated Keyword and Pass regarding the shader kind.
@@ -78,60 +59,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// True: managed to do the operation.
         /// False: unknown shader used in material
         /// </returns>
+        [Obsolete("Use HDShaderUtils.ResetMaterialKeywords instead")]
         public static bool ResetMaterialKeywords(Material material)
-        {
-            MaterialResetter resetter = null;
-
-            // For shader graphs, we retrieve the master node type to get the materials resetter
-            if (material.shader.IsShaderGraph())
-            {
-                Type masterNodeType = null;
-                try
-                {
-                    // GraphUtil.GetOutputNodeType can throw if it's not able to parse the graph
-                    masterNodeType = GraphUtil.GetOutputNodeType(AssetDatabase.GetAssetPath(material.shader));
-                } catch {}
-
-                if (masterNodeType != null)
-                {
-                    k_ShaderGraphMaterialResetters.TryGetValue(masterNodeType, out resetter);
-                }
-            }
-            else
-            {
-                k_MaterialResetters.TryGetValue(material.shader.name, out resetter);
-            }
-
-            if (resetter != null)
-            {
-                CoreEditorUtils.RemoveMaterialKeywords(material);
-                // We need to reapply ToggleOff/Toggle keyword after reset via ApplyMaterialPropertyDrawers
-                MaterialEditor.ApplyMaterialPropertyDrawers(material);
-                resetter(material);
-                EditorUtility.SetDirty(material);
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>Gather all the shader preprocessors</summary>
-        /// <returns>The list of shader preprocessor</returns>
-        public static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
-        {
-            var baseType = typeof(BaseShaderPreprocessor);
-            var assembly = baseType.Assembly;
-
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes()
-                    .Where(t => t.IsSubclassOf(baseType))
-                    .Select(Activator.CreateInstance)
-                    .Cast<BaseShaderPreprocessor>()
-                ).ToList();
-
-            return types;
-        }
-
+            => HDShaderUtils.ResetMaterialKeywords(material);
+        
         static readonly GUIContent s_OverrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
         internal static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
             where TEnum : struct, IConvertible // restrict to ~enum
@@ -155,7 +86,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return rect;
         }
 
-        public static bool IsAssetPath(string path)
+        internal static bool IsAssetPath(string path)
         {
             var isPathRooted = Path.IsPathRooted(path);
             return isPathRooted && path.StartsWith(Application.dataPath)
@@ -163,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // Copy texture from cache
-        public static bool CopyFileWithRetryOnUnauthorizedAccess(string s, string path)
+        internal static bool CopyFileWithRetryOnUnauthorizedAccess(string s, string path)
         {
             UnauthorizedAccessException exception = null;
             for (var k = 0; k < 20; ++k)
@@ -278,7 +209,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// </summary>
         /// <param name="weightInByte">The weigth in byte</param>
         /// <returns>Human readable weight</returns>
-        public static string HumanizeWeight(long weightInByte)
+        internal static string HumanizeWeight(long weightInByte)
         {
             if (weightInByte < 500)
             {
@@ -304,7 +235,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// <summary>Provide a specific property drawer for LightLayer</summary>
         /// <param name="label">The desired label</param>
         /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        public static void LightLayerMaskPropertyDrawer(GUIContent label, SerializedProperty property)
+        internal static void LightLayerMaskPropertyDrawer(GUIContent label, SerializedProperty property)
         {
             var renderingLayerMask = property.intValue;
             int lightLayer;
@@ -328,7 +259,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         /// <summary>Provide a specific property drawer for LightLayer (without label)</summary>
         /// <param name="rect">The rect where to draw</param>
         /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        public static void LightLayerMaskPropertyDrawer(Rect rect, SerializedProperty property)
+        internal static void LightLayerMaskPropertyDrawer(Rect rect, SerializedProperty property)
         {
             var renderingLayerMask = property.intValue;
             int lightLayer;
@@ -350,7 +281,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
     }
 
-    public static partial class SerializedPropertyExtention
+    internal static partial class SerializedPropertyExtention
     {
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty

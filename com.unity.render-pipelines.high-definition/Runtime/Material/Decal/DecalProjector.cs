@@ -1,10 +1,9 @@
 using System;
 using UnityEditor;
-using UnityEngine;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
     [ExecuteAlways]
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
@@ -105,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
+        private Vector3 m_Offset = Vector3.zero;
         public Vector3 offset
         {
             get
@@ -165,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
         internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
-        public DecalSystem.DecalHandle Handle
+        internal DecalSystem.DecalHandle Handle
         {
             get
             {
@@ -176,7 +175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 this.m_Handle = value;
             }
         }
-        
+
         public void OnEnable()
         {
             if (m_Material == null)
@@ -194,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DecalSystem.instance.RemoveDecal(m_Handle);
                 m_Handle = null;
             }
-            
+
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
         }
@@ -226,7 +225,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
                     m_OldMaterial = m_Material;
 
-                    if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader.name)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                    if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
                     {
                         m_AffectsTransparency = false;
                     }

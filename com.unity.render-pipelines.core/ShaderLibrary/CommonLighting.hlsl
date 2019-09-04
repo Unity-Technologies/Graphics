@@ -292,7 +292,13 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
 // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
 real ComputeWrappedDiffuseLighting(real NdotL, real w)
 {
-    return saturate((NdotL + w) / ((1 + w) * (1 + w)));
+    return saturate((NdotL + w) / ((1.0 + w) * (1.0 + w)));
+}
+
+// Jimenez variant for eye
+real ComputeWrappedPowerDiffuseLighting(real NdotL, real w, real p)
+{
+    return pow(saturate((NdotL + w) / (1.0 + w)), p) * (p + 1) / (w * 2.0 + 2.0);
 }
 
 // Ref: The Technical Art of Uncharted 4 - Brinck and Maximov 2016

@@ -84,14 +84,14 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 
         float2 UV = saturate(normalVS.xy * 0.5f + 0.5f);
 
-        bool isPureMetal = any(bsdfData.fresnel0 > DEFAULT_SPECULAR_VALUE) && all(bsdfData.diffuseColor == 0);
-        if (isPureMetal)
+        float4 defaultColor = GetDiffuseOrDefaultColor(bsdfData, 1.0);
+
+        if (defaultColor.a == 1.0)
         {
             UV = saturate(R.xy * 0.5f + 0.5f);
         }
 
-        float3 colorToMix = isPureMetal ? bsdfData.fresnel0 : bsdfData.diffuseColor;
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? colorToMix * _MatcapViewScale : 1.0f);
+        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
     }
 
     // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
@@ -110,7 +110,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowValue      = 1;
     context.sampleReflection = 0;
 
-    // With XR single-pass instancing and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
+    // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
     ApplyCameraRelativeXR(posInput.positionWS);
     
@@ -355,6 +355,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 
+#if SHADEROPTIONS_AREA_LIGHTS
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
         uint lightCount, lightStart;
@@ -406,6 +407,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             }
         }
     }
+#endif
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting

@@ -5,7 +5,7 @@
 #ifndef SHADERPASS_CS_HLSL
 #define SHADERPASS_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.ShaderPass:  static fields
+// UnityEngine.Rendering.HighDefinition.ShaderPass:  static fields
 //
 #define SHADERPASS_GBUFFER (0)
 #define SHADERPASS_FORWARD (1)
@@ -27,7 +27,7 @@
 #define SHADERPASS_RAYTRACING_INDIRECT (17)
 #define SHADERPASS_RAYTRACING_VISIBILITY (18)
 #define SHADERPASS_RAYTRACING_FORWARD (19)
-#define SHADERPASS_RAYTRACING_GBUFFER (19)
+#define SHADERPASS_RAYTRACING_GBUFFER (20)
 
 
 #endif

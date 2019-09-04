@@ -145,20 +145,25 @@
     void UnitySetupInstanceID(uint inputInstanceID)
     {
         #ifdef UNITY_STEREO_INSTANCING_ENABLED
-            #if defined(SHADER_API_GLES3)
-                // We must calculate the stereo eye index differently for GLES3
-                // because otherwise,  the unity shader compiler will emit a bitfieldInsert function.
-                // bitfieldInsert requires support for glsl version 400 or later.  Therefore the
-                // generated glsl code will fail to compile on lower end devices.  By changing the
-                // way we calculate the stereo eye index,  we can help the shader compiler to avoid
-                // emitting the bitfieldInsert function and thereby increase the number of devices we
-                // can run stereo instancing on.
-                unity_StereoEyeIndex = round(fmod(inputInstanceID, 2.0));
-                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+            #if !defined(SHADEROPTIONS_XR_MAX_VIEWS) || SHADEROPTIONS_XR_MAX_VIEWS <= 2
+                #if defined(SHADER_API_GLES3)
+                    // We must calculate the stereo eye index differently for GLES3
+                    // because otherwise,  the unity shader compiler will emit a bitfieldInsert function.
+                    // bitfieldInsert requires support for glsl version 400 or later.  Therefore the
+                    // generated glsl code will fail to compile on lower end devices.  By changing the
+                    // way we calculate the stereo eye index,  we can help the shader compiler to avoid
+                    // emitting the bitfieldInsert function and thereby increase the number of devices we
+                    // can run stereo instancing on.
+                    unity_StereoEyeIndex = round(fmod(inputInstanceID, 2.0));
+                    unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+                #else
+                    // stereo eye index is automatically figured out from the instance ID
+                    unity_StereoEyeIndex = inputInstanceID & 0x01;
+                    unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+                #endif
             #else
-                // stereo eye index is automatically figured out from the instance ID
-                unity_StereoEyeIndex = inputInstanceID & 0x01;
-                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+                unity_StereoEyeIndex = inputInstanceID % _XRViewCount;
+                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID / _XRViewCount);
             #endif
         #else
             unity_InstanceID = inputInstanceID + unity_BaseInstanceID;
@@ -255,6 +260,9 @@
         #if defined(UNITY_USE_RENDERINGLAYER_ARRAY) && defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RenderingLayerArray)
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RenderingLayerArray).xxxx
+        #endif
+        #if defined(SHADER_GRAPH_GENERATED)
+                DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 

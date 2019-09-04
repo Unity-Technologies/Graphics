@@ -1,13 +1,13 @@
 using System;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipelineRayTracingResources : ScriptableObject
     {
 #if ENABLE_RAYTRACING
         // Reflection
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace")]
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
         public RayTracingShader reflectionRaytracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.compute")]
         public ComputeShader reflectionRaytracingCS;
@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]
         public ComputeShader shadowFilterCS;
 
-        // Primary visibility
+        // Recursive tracing
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
         public RayTracingShader forwardRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
@@ -35,18 +35,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader lightClusterDebugCS;
 
         // Indirect Diffuse
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIndirectDiffuse.raytrace")]
-        public RayTracingShader indirectDiffuseRaytracing;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuseAccumulation.compute")]
-        public ComputeShader indirectDiffuseAccumulation;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.raytrace")]
+        public RayTracingShader indirectDiffuseRaytracingRT;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.compute")]
+        public ComputeShader indirectDiffuseRaytracingCS;
 
         // Ambient Occlusion
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingAmbientOcclusion.raytrace")]
         public RayTracingShader aoRaytracing;
 
         // Denoising
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/TemporalFilter.compute")]
+        public ComputeShader temporalFilterCS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/SimpleDenoiser.compute")]
         public ComputeShader simpleDenoiserCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
+        public ComputeShader diffuseDenoiserCS;
 
         // Deferred Lighting
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingGBuffer.raytrace")]

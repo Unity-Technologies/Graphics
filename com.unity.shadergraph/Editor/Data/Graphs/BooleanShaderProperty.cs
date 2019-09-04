@@ -14,81 +14,39 @@ namespace UnityEditor.ShaderGraph
             displayName = "Boolean";
         }
 
-        public override PropertyType propertyType
-        {
-            get { return PropertyType.Boolean; }
-        }
-
-        public override Vector4 defaultValue
-        {
-            get { return new Vector4(); }
-        }
-
-        public override bool isBatchable
-        {
-            get { return true; }
-        }
-
-        public override bool isExposable
-        {
-            get { return true; }
-        }
-
-        [SerializeField]
-        bool m_Hidden = false;
-
-        public bool hidden
-        {
-            get { return m_Hidden; }
-            set { m_Hidden = value; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
-
+        public override PropertyType propertyType => PropertyType.Boolean;
+        
+        public override bool isBatchable => true;
+        public override bool isExposable => true;
+        public override bool isRenamable => true;
+        
         public override string GetPropertyBlockString()
         {
-            var result = new StringBuilder();
-            if (hidden)
-            {
-                result.Append("[HideInInspector] ");
-            }
-            result.Append("[ToggleUI] ");
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", Float) = ");
-            result.Append(value == true ? 1 : 0);
-            return result.ToString();
+            return $"{hideTagString}[ToggleUI]{referenceName}(\"{displayName}\", Float) = {(value == true ? 1 : 0)}";
         }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+        
+        public override AbstractMaterialNode ToConcreteNode()
         {
-            return string.Format("{0} {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
+            return new BooleanNode { value = new ToggleData(value) };
         }
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(PropertyType.Boolean)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 booleanValue = value
             };
         }
 
-        public override AbstractMaterialNode ToConcreteNode()
+        public override ShaderInput Copy()
         {
-            return new BooleanNode { value = new ToggleData(value) };
-        }
-
-        public override AbstractShaderProperty Copy()
-        {
-            var copied = new BooleanShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new BooleanShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
     }
 }

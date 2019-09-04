@@ -7,7 +7,6 @@ using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
-using System.Reflection;
 
 using UnityObject = UnityEngine.Object;
 
@@ -47,7 +46,7 @@ namespace UnityEditor.VFX
             AssetDatabase.SaveAssets();
         }
 
-        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", priority = 321)]
+        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", /* validate = */false, /*priority =*/ 321, /* internalMenu = */ true)]
         public static void ClearRuntime()
         {
             var vfxAssets = GetAllVisualEffectAssets();
@@ -62,7 +61,6 @@ namespace UnityEditor.VFX
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
 
                 //Now effective clear runtime data
-                vfxAsset.GetResource().shaderSources = new VFXShaderSourceDesc[] { }; //TODO: Should be done by ClearRuntimeData, remove this when it's fixed
                 vfxAsset.GetResource().ClearRuntimeData();
             }
             AssetDatabase.SaveAssets();
@@ -149,7 +147,8 @@ namespace UnityEditor.VFX
         // Please add increment reason for each version below
         // 1: Size refactor
         // 2: Change some SetAttribute to spaceable slot
-        public static readonly int CurrentVersion = 2;
+        // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
+        public static readonly int CurrentVersion = 3;
 
         string shaderNamePrefix = "Hidden/VFX";
         public string GetContextShaderName(VFXContext context)
@@ -227,45 +226,6 @@ namespace UnityEditor.VFX
             return !(model is VFXGraph); // Can hold any model except other VFXGraph
         }
 
-        //Temporary : Use reflection to access to StoreObjectsToByteArray (doesn't break previous behavior if editor isn't up to date)
-        //TODO : Clean this when major version is released
-        private static Func<ScriptableObject[], CompressionLevel, object> GetStoreObjectsFunction()
-        {
-            var advancedMethod = typeof(VFXMemorySerializer).GetMethod("StoreObjectsToByteArray", BindingFlags.Public | BindingFlags.Static);
-            if (advancedMethod != null)
-            {
-                return delegate(ScriptableObject[] objects, CompressionLevel level)
-                {
-                    return advancedMethod.Invoke(null, new object[] { objects, level }) as byte[];
-                };
-            }
-
-            return delegate(ScriptableObject[] objects, CompressionLevel level)
-            {
-                return VFXMemorySerializer.StoreObjects(objects) as object;
-            };
-        }
-
-        private static Func<object, bool, ScriptableObject[]> GetExtractObjectsFunction()
-        {
-            var advancedMethod = typeof(VFXMemorySerializer).GetMethod("ExtractObjects", BindingFlags.Public | BindingFlags.Static, null, new[] { typeof(byte[]), typeof(bool) }, null);
-            if (advancedMethod != null)
-            {
-                return delegate(object objects, bool asCopy)
-                {
-                    return advancedMethod.Invoke(null, new object[] { objects as byte[], asCopy }) as ScriptableObject[];
-                };
-            }
-
-            return delegate(object objects, bool asCopy)
-            {
-                return VFXMemorySerializer.ExtractObjects(objects as string, asCopy);
-            };
-        }
-
-        private static readonly Func<ScriptableObject[], CompressionLevel, object> k_fnStoreObjects = GetStoreObjectsFunction();
-        private static readonly Func<object, bool, ScriptableObject[]> k_fnExtractObjects = GetExtractObjectsFunction();
-
         public object Backup()
         {
             Profiler.BeginSample("VFXGraph.Backup");
@@ -274,7 +234,7 @@ namespace UnityEditor.VFX
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-            var result = k_fnStoreObjects(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
+            var result = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
 
             Profiler.EndSample();
 
@@ -284,7 +244,7 @@ namespace UnityEditor.VFX
         public void Restore(object str)
         {
             Profiler.BeginSample("VFXGraph.Restore");
-            var scriptableObject = k_fnExtractObjects(str, false);
+            var scriptableObject = VFXMemorySerializer.ExtractObjects(str as byte[], false);
 
             Profiler.BeginSample("VFXGraph.Restore SendUnknownChange");
             foreach (var model in scriptableObject.OfType<VFXModel>())
@@ -558,16 +518,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        void SubgraphDirty(VisualEffectObject subgraph,bool expressionsChanged)
+        void SubgraphDirty(VisualEffectObject subgraph)
         {
             if (m_SubgraphDependencies != null && m_SubgraphDependencies.Contains(subgraph))
             {
-                if (expressionsChanged)
-                {
-                    RecurseSubgraphRecreateCopy(this);
-                    compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
-                    m_ExpressionGraphDirty = false;
-                }
+                RecurseSubgraphRecreateCopy(this);
+                compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
+                m_ExpressionGraphDirty = false;
 
                 m_ExpressionValuesDirty = false;
             }
@@ -629,6 +586,7 @@ namespace UnityEditor.VFX
                 {
                     compiledData.UpdateValues();
                 }
+
                 if (considerGraphDirty)
                     m_ExpressionGraphDirty = false;
                 m_ExpressionValuesDirty = false;    
@@ -646,7 +604,7 @@ namespace UnityEditor.VFX
                     var obj = GetResource().visualEffectObject;
                     foreach (var graph in GetAllGraphs<VisualEffectAsset>())
                     {
-                        graph.SubgraphDirty(obj, m_ExpressionGraphDirty);
+                        graph.SubgraphDirty(obj);
                     }
                     m_DependentDirty = false;
                 }
@@ -665,7 +623,7 @@ namespace UnityEditor.VFX
         public int version { get { return m_GraphVersion; } }
 
         [SerializeField]
-        private int m_GraphVersion = 0;
+        private int m_GraphVersion = CurrentVersion;
 
         [NonSerialized]
         private bool m_GraphSanitized = false;

@@ -13,7 +13,6 @@ namespace UnityEditor.VFX
         {
             Additive,
             Alpha,
-            Masked,
             AlphaPremultiplied,
             Opaque,
         }
@@ -21,7 +20,25 @@ namespace UnityEditor.VFX
         [VFXSetting, Header("Render States")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked; } }
+        [VFXSetting,Tooltip("Use Pixel Clipping using an alpha threshold.")]
+        public bool useAlphaClipping = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool generateMotionVector = false;
+
+        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+
+        public virtual bool hasMotionVector
+        {
+            get
+            {
+                return subOutput.supportsMotionVector
+                    && implementsMotionVector
+                    && generateMotionVector;
+            }
+        }
+
+        public virtual bool implementsMotionVector { get { return false; } }
 
         protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
 
@@ -58,12 +75,54 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            if (m_SubOutputs == null)
-                m_SubOutputs = new List<VFXSRPSubOutput>();
+            InitSubOutputs(m_SubOutputs, false);
+            base.OnEnable();
+        }
 
+        public List<VFXSRPSubOutput> GetSubOutputs()
+        {
+            return m_SubOutputs;
+        }
+
+        public void InitSubOutputs(List<VFXSRPSubOutput> subOutputs, bool invalidate = true)
+        {
+            m_SubOutputs = subOutputs;
+            SanitizeSubOutputs();
             m_CurrentSubOutput = GetOrCreateSubOutput();
 
-            base.OnEnable();
+            if (invalidate)
+                Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        private void SanitizeSubOutputs()
+        {
+            if (m_SubOutputs == null)
+            {
+                m_SubOutputs = new List<VFXSRPSubOutput>();
+                return;
+            }
+
+            // TODO Uncommenting this code will removed SRP data that are unknown, this is probably not what we want
+            //int nbRemoved = 0;
+            //if ((nbRemoved = m_SubOutputs.RemoveAll(s => s == null)) > 0)
+            //    Debug.LogWarningFormat("Remove {0} SRP Sub Outputs that could not be deserialized from {1} of type {2}", nbRemoved, name, GetType());
+
+            var subOutputsTypes = new HashSet<Type>(); // TODO For some reason constructor that takes a capacity does not exist
+            for (int i = 0; i < m_SubOutputs.Count; ++i)
+            {
+                if (m_SubOutputs[i] == null)
+                    continue;
+
+                Type subOutputType = m_SubOutputs[i].GetType();
+                if (subOutputsTypes.Contains(subOutputType))
+                {
+                    Debug.LogWarningFormat("Duplicate SRP Sub Output of type {0} found in {1} of type {2}. It is removed", subOutputType, name, GetType());
+                    m_SubOutputs.RemoveAt(i);
+                    --i;
+                }
+                else
+                    subOutputsTypes.Add(subOutputType);
+            }
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly)
@@ -95,8 +154,38 @@ namespace UnityEditor.VFX
         protected virtual void WriteBlendMode(VFXShaderWriter writer)
         {
             var blendModeStr = subOutput.GetBlendModeStr();
-            if (!String.IsNullOrEmpty(blendModeStr))
+            if (!string.IsNullOrEmpty(blendModeStr))
                 writer.WriteLine(blendModeStr);
+            if (hasMotionVector && !isBlendModeOpaque)
+                writer.WriteLine("Blend 1 Off"); //Disable blending for velocity target in forward
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 3) // Fix Blend Modes and useAlphaClipping
+            {
+                int blendModeValue = (int)blendMode; 
+                switch(blendModeValue)
+                {
+                    case 0: // No change required for 0 and 1 (Additive and AlphaBlend)
+                    case 1:
+                        break;
+                    case 2: // Masked
+                        SetSettingValue("useAlphaClipping", true);
+                        SetSettingValue("blendMode",(int)BlendMode.Opaque);
+                        break;
+                    case 3: // Alpha Premultiplied
+                        SetSettingValue("blendMode", (int)BlendMode.AlphaPremultiplied);
+
+                        break;
+                    case 4: // Opaque
+                        SetSettingValue("blendMode", (int)BlendMode.Opaque);
+                        break;
+                    default: 
+                        break;
+                }
+            }
+            base.Sanitize(version);
         }
 
         [SerializeField]

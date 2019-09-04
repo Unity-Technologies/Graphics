@@ -29,7 +29,7 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (dispatchThreadId.x >= g_NumTiles)
         return;
 
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint featureFlags = g_TileFeatureFlags[dispatchThreadId.x + unity_StereoEyeIndex * g_NumTiles];
 
@@ -57,6 +57,6 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         // See LightDefinitions class in LightLoop.cs
         uint tileIndex = (unity_StereoEyeIndex << TILE_INDEX_SHIFT_EYE) | (tileY << TILE_INDEX_SHIFT_Y) | (tileX << TILE_INDEX_SHIFT_X);
-        g_TileList[variant * g_NumTiles + tileOffset] = tileIndex;
+        g_TileList[variant * g_NumTiles * _XRViewCount + tileOffset] = tileIndex;
     }
 }

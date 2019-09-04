@@ -1,14 +1,10 @@
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEditor.IMGUI.Controls;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShortcutManagement;
 using static UnityEditorInternal.EditMode;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(DecalProjector))]
     [CanEditMultipleObjects]
@@ -23,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_Size;
         SerializedProperty m_FadeFactor;
-        
+
         int layerMask => (target as Component).gameObject.layer;
         bool layerMaskHasMultipleValue
         {
@@ -41,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader.name);
+        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
@@ -49,10 +45,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 if (targets.Length < 2)
                     return false;
-                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjector).material.shader.name);
+                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjector).material.shader);
                 for (int index = 0; index < targets.Length; ++index)
                 {
-                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjector).material.shader.name) ^ show)
+                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjector).material.shader) ^ show)
                         return true;
                 }
                 return false;
@@ -101,11 +97,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         });
 
         static Editor s_Owner;
-                
+
         private void OnEnable()
         {
             s_Owner = this;
-            
+
             // Create an instance of the MaterialEditor
             UpdateMaterialEditor();
             foreach (var decalProjector in targets)
@@ -123,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_Size = serializedObject.FindProperty("m_Size");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
         }
-        
+
         private void OnDisable()
         {
             foreach (var decalProjector in targets)

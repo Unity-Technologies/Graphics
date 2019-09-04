@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
-using static UnityEngine.Experimental.Rendering.HDPipeline.HDMaterialProperties;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class ShaderGraphUIBlock : MaterialUIBlock
+    class ShaderGraphUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features
@@ -48,10 +48,59 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        MaterialProperty[]      oldProperties;
+
+		bool CheckPropertyChanged(MaterialProperty[] properties)
+		{
+			bool propertyChanged = false;
+
+			if (oldProperties != null)
+			{
+				// Check if shader was changed (new/deleted properties)
+				if (properties.Length != oldProperties.Length)
+				{
+					propertyChanged = true;
+				}
+				else
+				{
+					for (int i = 0; i < properties.Length; i++)
+					{
+						if (properties[i].type != oldProperties[i].type)
+							propertyChanged = true;
+						if (properties[i].displayName != oldProperties[i].displayName)
+							propertyChanged = true;
+						if (properties[i].flags != oldProperties[i].flags)
+							propertyChanged = true;
+						if (properties[i].name != oldProperties[i].name)
+							propertyChanged = true;
+						if (properties[i].floatValue != oldProperties[i].floatValue)
+							propertyChanged = true;
+						if (properties[i].vectorValue != oldProperties[i].vectorValue)
+							propertyChanged = true;
+						if (properties[i].colorValue != oldProperties[i].colorValue)
+							propertyChanged = true;
+						if (properties[i].textureValue != oldProperties[i].textureValue)
+							propertyChanged = true;
+					}
+				}
+			}
+
+			oldProperties = properties;
+
+			return propertyChanged;
+		}
+
         void DrawShaderGraphGUI()
         {
             // Filter out properties we don't want to draw:
             PropertiesDefaultGUI(properties);
+
+            // If we change a property in a shadergraph, we trigger a material keyword reset 
+            if (CheckPropertyChanged(properties))
+            {
+                foreach (var material in materials)
+                    HDShaderUtils.ResetMaterialKeywords(material);
+            }
 
             if (properties.Length > 0)
                 EditorGUILayout.Space();
@@ -79,7 +128,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
-            for (var i = 0; i < properties.Length - 2; i++)
+            for (var i = 0; i < properties.Length; i++)
             {
                 if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
                     continue;
@@ -99,6 +148,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
+        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
+        bool m_AddPrecomputedVelocity = false;
+
         void DrawMotionVectorToggle()
         {
             // I absolutely don't know what this is meant to do
@@ -117,6 +169,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
             EditorGUI.BeginChangeCheck();
             enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
+
+            // SG-ADDITIONALVELOCITY-NOTE:
+            // We would like to automatically enable the motion vector pass (handled on material UI side)
+            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
+            // a value in between shadergraph compilations would have no effect on a material, so we instead
+            // inform the motion vector UI via the existence of the property at all and query against that.
+            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
+            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
+            {
+                enabled |= hasPrecomputedVelocity;
+                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
+                GUI.changed = true;
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var material in materials)

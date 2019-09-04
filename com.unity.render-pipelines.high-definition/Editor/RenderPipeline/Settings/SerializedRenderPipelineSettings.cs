@@ -1,7 +1,7 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     class SerializedRenderPipelineSettings
     {
@@ -26,6 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty supportDitheringCrossFade;
+        public SerializedProperty supportTerrainHole;
         public SerializedProperty supportRayTracing;
         public SerializedProperty supportedRaytracingTier;
         public SerializedProperty supportDistortion;
@@ -40,6 +41,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedGlobalPostProcessSettings postProcessSettings;
         public SerializedDynamicResolutionSettings dynamicResolutionSettings;
         public SerializedLowResTransparencySettings lowresTransparentSettings;
+        public SerializedXRSettings xrSettings;
+        public SerializedPostProcessingQualitySettings postProcessQualitySettings;
 
         public SerializedRenderPipelineSettings(SerializedProperty root)
         {
@@ -61,6 +64,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
+            supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);            
             supportDistortion               = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface      = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
@@ -75,6 +79,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             postProcessSettings = new SerializedGlobalPostProcessSettings(root.Find((RenderPipelineSettings s) => s.postProcessSettings));
             dynamicResolutionSettings = new SerializedDynamicResolutionSettings(root.Find((RenderPipelineSettings s) => s.dynamicResolutionSettings));
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
+            xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
+            postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
         }
     }
 }

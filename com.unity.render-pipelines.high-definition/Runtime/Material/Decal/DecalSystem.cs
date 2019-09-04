@@ -3,11 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class DecalSystem
+    class DecalSystem
     {
         // Relies on the order shader passes are declared in Decal.shader and DecalSubshader.cs
         public enum MaterialDecalPass
@@ -44,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
         public static readonly string[] s_MaterialSGDecalPassNames = Enum.GetNames(typeof(MaterialSGDecalPass));
 
-        public class CullResult : IDisposable, IEnumerable<KeyValuePair<int, CullResult.Set>>
+        public class CullResult : IDisposable
         {
             public class Set : IDisposable
             {
@@ -77,6 +76,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             Dictionary<int, Set> m_Requests = new Dictionary<int, Set>();
+            public Dictionary<int, Set> requests => m_Requests;
 
             public Set this[int index]
             {
@@ -113,10 +113,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_Requests = null;
                 }
             }
-
-            public IEnumerator<KeyValuePair<int, Set>> GetEnumerator() => m_Requests.GetEnumerator();
-
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         public class CullRequest : IDisposable
@@ -348,11 +344,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private List<TextureScaleBias> m_TextureList = new List<TextureScaleBias>();
 
-        static public bool IsHDRenderPipelineDecal(string name)
+        static public bool IsHDRenderPipelineDecal(Shader shader)
         {
-            return name == "HDRP/Decal";
+            // Warning: accessing Shader.name generate 48B of garbage at each frame, we want to avoid that in the future
+            return shader.name == "HDRP/Decal";
         }
 
+        // Non alloc version of IsHDRenderPipelineDecal (Slower but does not generate garbage)
+        static public bool IsHDRenderPipelineDecal(Material material)
+        {
+            // Check if the material have the passes of the decal shader
+            foreach (var passName in s_MaterialDecalPassNames)
+            {
+                if (material.FindPass(passName) == -1)
+                    return false;
+            }
+
+            return true;
+        }
 
         private class DecalSet
         {
@@ -363,7 +372,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
-                m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material.shader.name);
+
+                m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);
 
                 if (m_IsHDRenderPipelineDecal)
                 {
@@ -618,7 +628,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 AssignCurrentBatches(ref decalToWorldBatch, ref normalToWorldBatch, batchCount);
 
-                // XRTODO: investigate if instancing is working with the following code
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(instance.CurrentCamera);
                 bool perChannelMask = instance.perChannelMask;
@@ -838,7 +847,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Array.Copy(value.resultIndices, m_ResultIndices, m_NumResults);
             }
         }
-		
+
 		void SetupMipStreamingSettings(Texture texture, bool allMips)
 		{
 			if (texture)
@@ -861,7 +870,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (material != null)
             {
-                if (IsHDRenderPipelineDecal(material.shader.name))
+                if (IsHDRenderPipelineDecal(material.shader))
                 {
                     SetupMipStreamingSettings(material.GetTexture("_BaseColorMap"), allMips);
                     SetupMipStreamingSettings(material.GetTexture("_NormalMap"), allMips);
@@ -873,7 +882,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material, int layerMask, float fadeFactor)
         {
             SetupMipStreamingSettings(material, true);
-				
+
             DecalSet decalSet = null;
             int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
@@ -1112,12 +1121,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void LoadCullResults(CullResult cullResult)
         {
-            foreach (var pair in cullResult)
+            using (var enumerator = cullResult.requests.GetEnumerator())
             {
-                if (!m_DecalSets.TryGetValue(pair.Key, out var decalSet))
-                    continue;
+                while (enumerator.MoveNext())
+                {
+                    if (!m_DecalSets.TryGetValue(enumerator.Current.Key, out var decalSet))
+                        continue;
 
-                decalSet.SetCullResult(pair.Value);
+                    decalSet.SetCullResult(cullResult.requests[enumerator.Current.Key]);
+                }
             }
         }
     }

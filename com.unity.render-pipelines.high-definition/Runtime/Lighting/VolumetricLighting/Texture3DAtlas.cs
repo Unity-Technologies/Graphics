@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class Texture3DAtlas 
+    class Texture3DAtlas
     {
         private List<Texture3D> m_textures = new List<Texture3D>();
 
@@ -38,14 +37,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return;
             }
-            
+
             if (tex.width != m_atlasSize || tex.height != m_atlasSize || tex.depth != m_atlasSize)
             {
                 Debug.LogError(String.Format("3D Texture Atlas: Added texture {4} size {0}x{1}x{2} does not match size of atlas {3}x{3}x{3}", tex.width, tex.height, tex.depth, m_atlasSize, tex.name));
                 return;
             }
 
-            if (tex.format != m_format) 
+            if (tex.format != m_format)
             {
                 Debug.LogError(String.Format("3D Texture Atlas: Added texture {2} format {0} does not match format of atlas {1}", tex.format, m_format, tex.name));
                 return;
@@ -58,10 +57,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RemoveTexture(Texture3D tex)
         {
-            if (m_textures.Contains(tex)) 
+            if (m_textures.Contains(tex))
             {
-                m_textures.Remove(tex); 
-                m_updateAtlas = true; 
+                m_textures.Remove(tex);
+                m_updateAtlas = true;
             }
         }
 
@@ -90,9 +89,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Color [] colorData = new Color[totalTextureSize];
                 m_atlas = new Texture3D(m_atlasSize, m_atlasSize, m_atlasSize * m_textures.Count, m_format, true);
-                
+
                 //Iterate through all the textures and append their texture data to the texture array
-                //Once CopyTexture works for 3D textures we can replace this with a series of copy texture calls 
+                //Once CopyTexture works for 3D textures we can replace this with a series of copy texture calls
                 for (int i = 0; i < m_textures.Count; i++)
                 {
                     Texture3D tex = m_textures[i];
