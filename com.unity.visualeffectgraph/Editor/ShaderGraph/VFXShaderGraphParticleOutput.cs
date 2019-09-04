@@ -107,6 +107,8 @@ namespace UnityEditor.VFX
                     yield return setting;
                 if (shaderGraph != null)
                     yield return "colorMappingMode";
+                if (!VFXViewPreference.displayExperimentalOperator)
+                    yield return "shaderGraph";
 
             }
         }
