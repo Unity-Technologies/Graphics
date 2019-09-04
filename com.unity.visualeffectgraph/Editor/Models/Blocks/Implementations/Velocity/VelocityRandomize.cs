@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Velocity")]
+    [VFXInfo(category = "Velocity", experimental = true)]
     class VelocityRandomize : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Random Direction"); } }

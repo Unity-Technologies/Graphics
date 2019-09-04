@@ -161,8 +161,10 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
 	float exposure = lerp(1.0f, GetCurrentExposureMultiplier(),input.VFX_VARYING_EXPOSUREWEIGHT);
+#elif VFX_BYPASS_EXPOSURE
+    float exposure = 1.0f;
 #else
-    float exposure = GetCurrentExposureMultiplier();
+	float exposure = GetCurrentExposureMultiplier();
 #endif
 	color.xyz *= exposure;
     return color;

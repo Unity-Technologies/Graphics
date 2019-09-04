@@ -839,30 +839,30 @@ VisualEffectResource:
       currentSumSpawnCount += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex
       * 0x1 + 0x0) << 2)));\n            if (id < currentSumSpawnCount)\n           
       {\n                break;\n            }\n        }\n        \n\n#endif\n       
-      float3 velocity = float3(0,0,0);\n        float lifetime = (float)1;\n       
-      float size = (float)0.1;\n        float age = (float)0;\n        float3 color
-      = float3(1,1,1);\n        float3 position = float3(0,0,0);\n        float alpha
-      = (float)1;\n        bool alive = (bool)true;\n        \n\n#if VFX_USE_PARTICLEID_CURRENT\n        
-      particleId = particleIndex;\n#endif\n#if VFX_USE_SEED_CURRENT\n        seed
-      = WangHash(particleIndex ^ systemSeed);\n#endif\n#if HAS_STRIPS\n\t\t\n\t\tstripIndex
-      = min(stripIndex, STRIP_COUNT);\n\t\t// TODO Change seed to be sure we're deterministic
-      on random with strip\n#else\n\t\tuint stripIndex = 0;\n#endif\n        \n       
-      {\n            SetAttribute_E629755( /*inout */velocity, float3(0,1,0));\n       
-      }\n        {\n            SetAttribute_F0142CB9( /*inout */lifetime, (float)16.67);\n       
-      }\n        AttributeFromCurve_45ABB90F( /*inout */size, age, lifetime, Size_c);\n       
-      SetAttribute_FDD06EC7( /*inout */color, Color_d);\n        SetAttribute_CAC29747(
-      /*inout */position, Position_e);\n        SetAttribute_CEEAF35C( /*inout */alpha,
-      Alpha_f);\n        \n\n\n\t\tuint index = particleIndex;\n#if !VFX_USE_ALIVE_CURRENT\n\t\tbool
-      alive = true;\n#endif\n        if (GetParticleIndex(index, alive, stripIndex))\n       
-      {\n            attributeBuffer.Store3((index * 0x4 + 0x0) << 2,asuint(velocity));\n           
-      attributeBuffer.Store((index * 0x1 + 0x500) << 2,asuint(lifetime));\n           
-      attributeBuffer.Store((index * 0x8 + 0x643) << 2,asuint(size));\n           
-      attributeBuffer.Store((index * 0x2 + 0x1040) << 2,asuint(age));\n           
-      attributeBuffer.Store3((index * 0x8 + 0x640) << 2,asuint(color));\n           
-      attributeBuffer.Store3((index * 0x4 + 0x12C0) << 2,asuint(position));\n           
-      attributeBuffer.Store((index * 0x8 + 0x644) << 2,asuint(alpha));\n           
-      attributeBuffer.Store((index * 0x2 + 0x1041) << 2,uint(alive));\n           
-      \n\n        }\n    }\n}\n"
+      float3 velocity = float3(0, 0, 0);\n        float lifetime = (float)1;\n       
+      float size = (float)0.100000001;\n        float age = (float)0;\n        float3
+      color = float3(1, 1, 1);\n        float3 position = float3(0, 0, 0);\n       
+      float alpha = (float)1;\n        bool alive = (bool)true;\n        \n\n#if
+      VFX_USE_PARTICLEID_CURRENT\n         particleId = particleIndex;\n#endif\n#if
+      VFX_USE_SEED_CURRENT\n        seed = WangHash(particleIndex ^ systemSeed);\n#endif\n#if
+      HAS_STRIPS\n\t\t\n\t\tstripIndex = min(stripIndex, STRIP_COUNT);\n\t\t// TODO
+      Change seed to be sure we're deterministic on random with strip\n#else\n\t\tuint
+      stripIndex = 0;\n#endif\n        \n        {\n            SetAttribute_E629755(
+      /*inout */velocity, float3(0, 1, 0));\n        }\n        {\n            SetAttribute_F0142CB9(
+      /*inout */lifetime, (float)16.6700001);\n        }\n        AttributeFromCurve_45ABB90F(
+      /*inout */size, age, lifetime, Size_c);\n        SetAttribute_FDD06EC7( /*inout
+      */color, Color_d);\n        SetAttribute_CAC29747( /*inout */position, Position_e);\n       
+      SetAttribute_CEEAF35C( /*inout */alpha, Alpha_f);\n        \n\n\n\t\tuint index
+      = particleIndex;\n#if !VFX_USE_ALIVE_CURRENT\n\t\tbool alive = true;\n#endif\n       
+      if (GetParticleIndex(index, alive, stripIndex))\n        {\n            attributeBuffer.Store3((index
+      * 0x4 + 0x0) << 2,asuint(velocity));\n            attributeBuffer.Store((index
+      * 0x1 + 0x500) << 2,asuint(lifetime));\n            attributeBuffer.Store((index
+      * 0x8 + 0x643) << 2,asuint(size));\n            attributeBuffer.Store((index
+      * 0x2 + 0x1040) << 2,asuint(age));\n            attributeBuffer.Store3((index
+      * 0x8 + 0x640) << 2,asuint(color));\n            attributeBuffer.Store3((index
+      * 0x4 + 0x12C0) << 2,asuint(position));\n            attributeBuffer.Store((index
+      * 0x8 + 0x644) << 2,asuint(alpha));\n            attributeBuffer.Store((index
+      * 0x2 + 0x1041) << 2,uint(alive));\n            \n\n        }\n    }\n}\n"
   - compute: 1
     name: '[System 1]Update Particle'
     source: "#pragma kernel CSMain\n#define NB_THREADS_PER_GROUP 64\n#define VFX_USE_VELOCITY_CURRENT
@@ -931,8 +931,9 @@ VisualEffectResource:
       VFX_USE_SCALEX_CURRENT 1\n\t\t#define VFX_USE_SCALEY_CURRENT 1\n\t\t#define
       VFX_USE_SCALEZ_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define
       IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW
-      1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t#define
-      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t   
+      1\n\t\t#define VFX_BYPASS_EXPOSURE 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t#define
+      VFX_PRIMITIVE_QUAD 1\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t#define VFX_LOCAL_SPACE 1\n\t\t#include
+      \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\t\t\n\n\t\tCBUFFER_START(parameters)\n\t\t   
       float gradient_b;\n\t\t    uint3 PADDING_0;\n\t\tCBUFFER_END\n\t\tTexture2D
       mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\t\n\n\t\t\n\t\t#define
       VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#if
@@ -1028,8 +1029,8 @@ VisualEffectResource:
       position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x12C0) << 2));\n\t\t\t\t\t\tfloat
       alpha = asfloat(attributeBuffer.Load((index * 0x8 + 0x644) << 2));\n\t\t\t\t\t\tbool
       alive = (attributeBuffer.Load((index * 0x2 + 0x1041) << 2));\n\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
+      axisX = float3(1, 0, 0);\n\t\t\t\t\t\tfloat3 axisY = float3(0, 1, 0);\n\t\t\t\t\t\tfloat3
+      axisZ = float3(0, 0, 1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\tfloat
       pivotX = (float)0;\n\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\tfloat
       pivotZ = (float)0;\n\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\tfloat
@@ -1042,8 +1043,8 @@ VisualEffectResource:
       color = asfloat(attributeBuffer.Load3((index * 0x8 + 0x640) << 2));\n\t\t\t\t\t\tfloat3
       position = asfloat(attributeBuffer.Load3((index * 0x4 + 0x12C0) << 2));\n\t\t\t\t\t\tfloat
       alpha = asfloat(attributeBuffer.Load((index * 0x8 + 0x644) << 2));\n\t\t\t\t\t\tfloat3
-      axisX = float3(1,0,0);\n\t\t\t\t\t\tfloat3 axisY = float3(0,1,0);\n\t\t\t\t\t\tfloat3
-      axisZ = float3(0,0,1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
+      axisX = float3(1, 0, 0);\n\t\t\t\t\t\tfloat3 axisY = float3(0, 1, 0);\n\t\t\t\t\t\tfloat3
+      axisZ = float3(0, 0, 1);\n\t\t\t\t\t\tfloat angleX = (float)0;\n\t\t\t\t\t\tfloat
       angleY = (float)0;\n\t\t\t\t\t\tfloat angleZ = (float)0;\n\t\t\t\t\t\tfloat
       pivotX = (float)0;\n\t\t\t\t\t\tfloat pivotY = (float)0;\n\t\t\t\t\t\tfloat
       pivotZ = (float)0;\n\t\t\t\t\t\tfloat scaleX = (float)1;\n\t\t\t\t\t\tfloat

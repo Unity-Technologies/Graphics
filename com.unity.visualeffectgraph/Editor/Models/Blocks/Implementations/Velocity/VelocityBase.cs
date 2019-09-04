@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Block
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
-        public override string name { get { return string.Format("{0} Velocity ({1})", VFXBlockUtility.GetNameString(composition), "{0}"); } }
+        public override string name { get { return string.Format("{0} Velocity from Direction & Speed ({1})", VFXBlockUtility.GetNameString(composition), "{0}"); } }
 
         protected abstract bool altersDirection { get; }
 

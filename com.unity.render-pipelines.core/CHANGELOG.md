@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `ResourceReloader` now works on non-public fields.
 - Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 
+
 ## [7.0.1] - 2019-07-25
 
 ### Fixed
