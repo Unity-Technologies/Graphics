@@ -19,8 +19,6 @@ Pass
         float pointSize : PSIZE;
 
 		UNITY_VERTEX_OUTPUT_STEREO
-		
-		float pointSize : PSIZE;
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
