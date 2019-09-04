@@ -343,7 +343,7 @@ namespace UnityEditor.VFX
                 if (!implementsMotionVector || !subOutput.supportsMotionVector)
                     yield return "generateMotionVector";
 
-                if (isBlendModeOpaque)
+                if (isBlendModeOpaque || !supportSoftParticles)
                 {
                     yield return "useSoftParticle";
                 }
