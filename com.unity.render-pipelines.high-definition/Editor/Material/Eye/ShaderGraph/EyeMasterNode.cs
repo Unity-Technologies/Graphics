@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class EyeMasterNode : MasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Position";
+        public const string PositionSlotDisplayName = "Vertex Position";
         public const int PositionSlotId = 0;
 
         public const string AlbedoSlotName = "Albedo";
@@ -75,6 +76,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int DepthOffsetSlotId = 17;
         public const string DepthOffsetSlotName = "DepthOffset";
 
+        public const string VertexNormalSlotName = "Vertex Normal";
+         public const int VertexNormalSlotID = 18;
+
+        public const string VertexTangentSlotName = "Vertex Tangent";
+        public const int VertexTangentSlotID = 19;
+
         public enum MaterialType
         {
             Eye,
@@ -95,6 +102,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             None = 0,
             Position = 1 << PositionSlotId,
+            VertexNormal = 1 << VertexNormalSlotID,
+            VertexTangent = 1 << VertexTangentSlotID,
             Albedo = 1 << AlbedoSlotId,
             SpecularOcclusion = 1 << SpecularOcclusionSlotId,
             Normal = 1 << NormalSlotId,
@@ -114,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DepthOffset = 1 << DepthOffsetSlotId,
         }
 
-        const SlotMask EyeSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.IrisNormal | SlotMask.Smoothness | SlotMask.IOR | SlotMask.Occlusion | SlotMask.Mask | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.BentNormal | SlotMask.BakedGI | SlotMask.DepthOffset;
+        const SlotMask EyeSlotMask = SlotMask.Position | SlotMask.VertexNormal | SlotMask.VertexTangent | SlotMask.Albedo | SlotMask.SpecularOcclusion | SlotMask.Normal | SlotMask.IrisNormal | SlotMask.Smoothness | SlotMask.IOR | SlotMask.Occlusion | SlotMask.Mask | SlotMask.DiffusionProfile | SlotMask.SubsurfaceMask | SlotMask.Emission | SlotMask.Alpha | SlotMask.AlphaClipThreshold | SlotMask.BentNormal | SlotMask.BakedGI | SlotMask.DepthOffset;
         const SlotMask EyeCinematicSlotMask = EyeSlotMask;
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -476,8 +485,22 @@ namespace UnityEditor.Rendering.HighDefinition
             // Position
             if (MaterialTypeUsesSlotMask(SlotMask.Position))
             {
-                AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
                 validSlots.Add(PositionSlotId);
+            }            
+
+            //Normal in Vertex
+            if (MaterialTypeUsesSlotMask(SlotMask.VertexNormal))
+            {
+                AddSlot(new NormalMaterialSlot(VertexNormalSlotID, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                validSlots.Add(VertexNormalSlotID);
+            }
+
+            //Tangent in Vertex
+            if (MaterialTypeUsesSlotMask(SlotMask.VertexTangent))
+            {
+                AddSlot(new TangentMaterialSlot(VertexTangentSlotID, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+                validSlots.Add(VertexTangentSlotID);
             }
 
             // Albedo
