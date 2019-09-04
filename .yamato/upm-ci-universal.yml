@@ -21,9 +21,10 @@ testplatforms:
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:
-  - name: Universal
+  - name: Universal_Main
     folder: UniversalGraphicsTest
-    packagename: com.unity.render-pipelines.universal
+  - name: Universal_Foundation
+    folder: UniversalGraphicsTest_GfxFoundation
 ---
 {% for project in projects %}
 {% for editor in editors %}
@@ -117,10 +118,12 @@ projects:
         - "**/test-results/**"
 {% endif %}
 {% endfor %}
+{% endfor %}    
+{% endfor %}
 
 
-All_{{ project.name }}:
-  name: All {{ project.name }} CI
+All_Universal:
+  name: All Universal CI
   agent:
     name: whatever
     type: Unity::VM
@@ -131,21 +134,22 @@ All_{{ project.name }}:
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
+  {% for project in projects %}
+  {% for editor in editors %}
   {% if platform.name == "OSX_OpenGLCore" %}
   
   {% if testplatform.name == "editmode" %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
+    - .yamato/upm-ci-universal.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endif %}
   
   {% elsif platform.name == "OSX" %}
   #skip
 
   {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}  
+    - .yamato/upm-ci-universal.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}  
   {% endif %}
     
   {% endfor %}
   {% endfor %}
-
-{% endfor %}    
-{% endfor %}
+  {% endfor %}
+  {% endfor %}
