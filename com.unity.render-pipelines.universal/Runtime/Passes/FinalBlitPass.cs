@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given color target to the current camera target
@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// the camera target. The pass takes the screen viewport into
     /// consideration.
     /// </summary>
-    internal class FinalBlitPass : ScriptableRenderPass
+    public class FinalBlitPass : ScriptableRenderPass
     {
         const string m_ProfilerTag = "Final Blit Pass";
         RenderTargetHandle m_Source;

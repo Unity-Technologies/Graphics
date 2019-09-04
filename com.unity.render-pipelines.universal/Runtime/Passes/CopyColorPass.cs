@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given color buffer to the given destination color buffer.
@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// so you can use it later in rendering. For example, you can copy
     /// the opaque texture to use it for distortion effects.
     /// </summary>
-    internal class CopyColorPass : ScriptableRenderPass
+    public class CopyColorPass : ScriptableRenderPass
     {
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;

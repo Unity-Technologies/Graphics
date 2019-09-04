@@ -1,9 +1,9 @@
 using NUnit.Framework;
 using UnityEditor;
-using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEditor.Rendering.Universal.Internal;
 using UnityEngine.TestTools;
 
 class EditorTests
