@@ -402,7 +402,7 @@ namespace UnityEditor.Rendering.LookDev
             VisualElement header = new VisualElement() { name = "inspector-header" };
             header.Add(new Image()
             {
-                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "LookDev_EnvironmentHDR", forceLowRes: true)
+                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "Environment", forceLowRes: true)
             });
             environmentName = new TextField();
             environmentName.isDelayed = true;
@@ -504,7 +504,7 @@ namespace UnityEditor.Rendering.LookDev
             };
             sunToBrightess.Add(new Image()
             {
-                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "LookDev_SunPosition", forceLowRes: true)
+                image = CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/LookDev/Icons/", "SunPosition", forceLowRes: true)
             });
             sunToBrightess.AddToClassList("sun-to-brightest-button");
             var vector2Input = sunPosition.Q(className: "unity-vector2-field__input");

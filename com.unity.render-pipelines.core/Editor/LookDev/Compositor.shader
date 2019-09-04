@@ -358,11 +358,19 @@ Shader "Hidden/LookDev/Compositor"
         // To create the lerp mask we render the scene with a white diffuse material and a single shadow casting directional light.
         // This will create a mask where the shadowed area is 0 and the lit area is 1 with a smooth NDotL transition in-between.
         // However, the DNotL will create an unwanted darkening of the scene (it's not actually part of the lighting equation)
-        // so we sqrt it in order to avoid too much darkening.
+        // so we sort it in order to avoid too much darkening.
         float3 color = tex2D(texNormal, texcoord).rgb;
-        float3 colorWithoutsun = tex2D(texWithoutSun, texcoord).rgb;
-        float3 shadowMask = sqrt(tex2D(texShadowMask, texcoord).rgb);
-        return lerp(colorWithoutsun * shadowColor.rgb * shadowMultiplier, color, saturate(shadowMask.r));
+        if (shadowMultiplier < 0.0)
+        {
+            // no need to composite as we do not want shadow in this case
+            return color;
+        }
+        else
+        {
+            float3 colorWithoutsun = tex2D(texWithoutSun, texcoord).rgb;
+            float3 shadowMask = sqrt(tex2D(texShadowMask, texcoord).rgb);
+            return lerp(colorWithoutsun * shadowColor.rgb * shadowMultiplier, color, saturate(shadowMask.r));
+        }
     }
 
     ENDCG

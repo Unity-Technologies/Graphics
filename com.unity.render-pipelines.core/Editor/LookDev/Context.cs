@@ -37,13 +37,15 @@ namespace UnityEditor.Rendering.LookDev
     }
 
     /// <summary>
-    /// Statis of the side panel of the LookDev window
+    /// Status of the side panel of the LookDev window
     /// </summary>
+    [Flags]
     public enum SidePanel
     {
-        None = -1,
-        Environment,
-        Debug
+        Environment = 1,
+        DebugView1 = 2,
+        DebugView2 = 4,
+        DebugViewBoth = 6,
     }
 
     /// <summary>
@@ -199,7 +201,7 @@ namespace UnityEditor.Rendering.LookDev
 
         [SerializeField]
         internal ComparisonGizmoState gizmoState = new ComparisonGizmoState();
-        
+
         internal bool isSimpleView => viewLayout == Layout.FullFirstView || viewLayout == Layout.FullSecondView;
         internal bool isMultiView => viewLayout == Layout.HorizontalSplit || viewLayout == Layout.VerticalSplit;
         internal bool isCombinedView => viewLayout == Layout.CustomSplit;
@@ -216,7 +218,6 @@ namespace UnityEditor.Rendering.LookDev
         public CameraState camera { get; private set; } = new CameraState();
         
         /// <summary>The currently viewed debugState</summary>
-        [field: SerializeField]
         public DebugContext debug { get; private set; } = new DebugContext();
 
         //Environment asset, sub-asset (under a library) or cubemap
@@ -385,9 +386,14 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class that will contain debug value used.
     /// </summary>
-    [System.Serializable]
     public class DebugContext
     {
+        /// <summary>Display shadows in view.</summary>
+        public bool shadow = true;
+
+        /// <summary>Debug mode displayed. -1 means none.</summary
+        public int viewMode = -1;
+
         ///// <summary>Display the debug grey balls</summary>
         //public bool greyBalls;
 
