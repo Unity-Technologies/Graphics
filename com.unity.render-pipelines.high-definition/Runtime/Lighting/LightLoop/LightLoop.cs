@@ -3366,7 +3366,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandle depthStencilBuffer, RTHandle stencilCopyBuffer, Material copyStencilMaterial)
         {
-#if (UNITY_SWITCH || UNITY_IPHONE)
+#if (UNITY_SWITCH || UNITY_IPHONE || UNITY_STANDALONE_OSX)
             // Faster on Switch.
             CoreUtils.SetRenderTarget(cmd, stencilCopyBuffer, depthStencilBuffer, ClearFlag.Color, Color.clear);
 
