@@ -51,7 +51,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             Varyings Vertex(Attributes input)
             {
-                float4 csPos = mul(UNITY_MATRIX_MVP, input.vertex);
+                float4 csPos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.vertex));
 
                 Varyings output;
                 output.positionCS = csPos;
@@ -108,7 +108,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             Varyings Vertex(Attributes input)
             {
-                float4 csPos = mul(UNITY_MATRIX_MVP, input.vertex);
+                float4 csPos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.vertex));
+                
 
                 Varyings output;
                 output.positionCS = csPos;

@@ -5,7 +5,7 @@ struct PointLightData
 {
     float3 WsPos;
     float Radius;
-    float3 Color;
+    half3 Color;
 };
 
 

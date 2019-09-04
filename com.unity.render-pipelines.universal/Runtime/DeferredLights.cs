@@ -3,8 +3,7 @@ using UnityEngine.Profiling;
 using Unity.Collections;
 
 // cleanup code
-// listMinDepth and maxDepth should be stored in a different uniform block?
-// Point lights stored as vec4
+// Stencil mesh for point lights is not regular enough.
 // RelLightIndices should be stored in ushort instead of uint.
 // TODO use Unity.Mathematics
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
@@ -489,8 +488,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 Profiler.BeginSample("k_TileBasedDeferredShading");
 
+                int sizeof_TileData = 16;
+                int sizeof_vec4_TileData = sizeof_TileData >> 4;
                 int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
-                int sizeof_vec4_PointLightData = sizeof_PointLightData / 16;
+                int sizeof_vec4_PointLightData = sizeof_PointLightData >> 4;
 
                 int tileXStride = m_TileSize;
                 int tileYStride = m_TileSize * m_TileXCount;
@@ -510,12 +511,8 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<ushort> visLightToRelLights = new NativeArray<ushort>(renderingData.lightData.visibleLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 BitArray usedLights = new BitArray(renderingData.lightData.visibleLights.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
-                NativeArray<Vector4UInt> tileDataBuffer = new NativeArray<Vector4UInt>(m_MaxTilesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-#if UNITY_SUPPORT_STRUCT_IN_CBUFFER
-                NativeArray<PointLightData> pointLightBuffer = new NativeArray<PointLightData>(m_MaxPointLightPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-#else
+                NativeArray<Vector4UInt> tileDataBuffer = new NativeArray<Vector4UInt>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 NativeArray<Vector4> pointLightBuffer = new NativeArray<Vector4>(m_MaxPointLightPerBatch * sizeof_vec4_PointLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-#endif
                 NativeArray<uint> relLightIndexBuffer = new NativeArray<uint>(m_MaxRelLightIndicesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 for (int j = 0; j < m_TileYCount; ++j)
@@ -544,8 +541,8 @@ namespace UnityEngine.Rendering.Universal
                                 tileDataBuffer = _tileDataBuffer,
                                 pointLightBuffer = _pointLightBuffer,
                                 relLightIndexBuffer = _relLightIndexBuffer,
-                                tileDataBufferSize = tileCount * 16, // sizeof(TileData)
-                                pointLightBufferSize = CalculatePointLightBufferSize(lightCount, m_MaxPointLightPerBatch, sizeof_PointLightData),
+                                tileDataBufferSize = tileCount * sizeof_TileData,
+                                pointLightBufferSize = lightCount * sizeof_PointLightData,
                                 relLightIndexBufferSize = Align(relLightIndices, 4) * 4,
                                 instanceOffset = instanceOffset,
                                 instanceCount = tileCount - instanceOffset
@@ -613,7 +610,7 @@ namespace UnityEngine.Rendering.Universal
                 int instanceCount = tileCount - instanceOffset;
                 if (instanceCount > 0)
                 {
-                    _tileDataBuffer.SetData(tileDataBuffer, 0, 0, m_MaxTilesPerBatch); // Must pass complete array (restriction for binding Unity Constant Buffers)
+                    _tileDataBuffer.SetData(tileDataBuffer, 0, 0, m_MaxTilesPerBatch * sizeof_vec4_TileData); // Must pass complete array (restriction for binding Unity Constant Buffers)
                     _pointLightBuffer.SetData(pointLightBuffer, 0, 0, m_MaxPointLightPerBatch * sizeof_vec4_PointLightData);
                     _relLightIndexBuffer.SetData(relLightIndexBuffer, 0, 0, m_MaxRelLightIndicesPerBatch);
 
@@ -622,8 +619,8 @@ namespace UnityEngine.Rendering.Universal
                         tileDataBuffer = _tileDataBuffer,
                         pointLightBuffer = _pointLightBuffer,
                         relLightIndexBuffer = _relLightIndexBuffer,
-                        tileDataBufferSize = tileCount * 16, // sizeof(TileData)
-                        pointLightBufferSize = CalculatePointLightBufferSize(lightCount, m_MaxPointLightPerBatch, sizeof_PointLightData),
+                        tileDataBufferSize = tileCount * sizeof_TileData,
+                        pointLightBufferSize = lightCount * sizeof_PointLightData,
                         relLightIndexBufferSize = Align(relLightIndices, 4) * 4,
                         instanceOffset = instanceOffset,
                         instanceCount = instanceCount
@@ -821,21 +818,12 @@ namespace UnityEngine.Rendering.Universal
             return trimCount;
         }
 
-#if UNITY_SUPPORT_STRUCT_IN_CBUFFER
-        void StorePointLightData(NativeArray<PointLightData> pointLightBuffer, int storeIndex, NativeArray<VisibleLight> visibleLights, int index)
-        {
-            pointLightBuffer[storeIndex].WsPos = visibleLights[index].light.transform.position;
-            pointLightBuffer[storeIndex].Radius = visibleLights[index].range;
-            pointLightBuffer[storeIndex].Color = visibleLights[index].light.color;
-        }
-#else
         void StorePointLightData(NativeArray<Vector4> pointLightBuffer, int storeIndex, NativeArray<VisibleLight> visibleLights, int index)
         {
             Vector3 wsPos = visibleLights[index].light.transform.position;
-            pointLightBuffer[                           0 + storeIndex] = new Vector4(wsPos.x, wsPos.y, wsPos.z, visibleLights[index].range);
-            pointLightBuffer[this.m_MaxPointLightPerBatch + storeIndex] = visibleLights[index].light.color;
+            pointLightBuffer[storeIndex * 2 + 0] = new Vector4(wsPos.x, wsPos.y, wsPos.z, visibleLights[index].range);
+            pointLightBuffer[storeIndex * 2 + 1] = visibleLights[index].light.color;
         }
-#endif
 
         void StoreTileData(NativeArray<Vector4UInt> tileDataBuffer, int storeIndex, uint tileID, ushort relLightOffset, uint listDepthRange, uint listBitMask)
         {
@@ -1046,15 +1034,6 @@ namespace UnityEngine.Rendering.Universal
         static uint PackTileID(uint i, uint j)
         {
             return i | (j << 16);
-        }
-
-        static int CalculatePointLightBufferSize(int lightCount, int maxLightCount, int sizeof_PointLightData)
-        {
-#if UNITY_SUPPORT_STRUCT_IN_CBUFFER
-            return lightCount * sizeof_PointLightData;
-#else
-            return maxLightCount * sizeof_PointLightData;
-#endif
         }
     }
 }

@@ -6,11 +6,11 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
     #define MAX_UNIFORM_BUFFER_SIZE (64 * 1024)
-    #define MAX_TILES_PER_PATCH (MAX_UNIFORM_BUFFER_SIZE / 16) // uint4
-    #define SIZEOF_VEC4_POINTLIGHT_DATA 2 // 2 float4
-    #define MAX_POINTLIGHT_PER_BATCH (MAX_UNIFORM_BUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHT_DATA))
+    #define SIZEOF_VEC4_TILEDATA 1 // uint4
+    #define SIZEOF_VEC4_POINTLIGHTDATA 2 // 2 float4
+    #define MAX_TILES_PER_PATCH (MAX_UNIFORM_BUFFER_SIZE / (16 * SIZEOF_VEC4_TILEDATA))
+    #define MAX_POINTLIGHT_PER_BATCH (MAX_UNIFORM_BUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHTDATA))
     #define MAX_REL_LIGHT_INDICES_PER_BATCH (MAX_UNIFORM_BUFFER_SIZE / 4) // Should be ushort!
-
     #define LIGHT_LIST_HEADER_SIZE 1
 
     ENDHLSL
@@ -38,7 +38,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             #pragma enable_cbuffer
 
             CBUFFER_START(UTileDataBuffer)
-            uint4 g_TileDataBuffer[MAX_TILES_PER_PATCH];
+            uint4 g_TileDataBuffer[MAX_TILES_PER_PATCH * SIZEOF_VEC4_TILEDATA];
             CBUFFER_END
 
             struct TileData
@@ -51,6 +51,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             TileData LoadTileData(int i)
             {
+                i *= SIZEOF_VEC4_TILEDATA;
                 TileData tileData;
                 tileData.tileID         = g_TileDataBuffer[i][0];
                 tileData.relLightOffset = g_TileDataBuffer[i][1];
@@ -135,15 +136,16 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             CBUFFER_START(UPointLightBuffer)
             // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
-            float4 g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH * SIZEOF_VEC4_POINTLIGHT_DATA];
+            float4 g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
             CBUFFER_END
 
             PointLightData LoadPointLightData(int relLightIndex)
             {
+                uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
                 PointLightData pl;
-                pl.WsPos = g_PointLightBuffer[relLightIndex].xyz;
-                pl.Radius = g_PointLightBuffer[relLightIndex].w;
-                pl.Color = g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH + relLightIndex].rgb;
+                pl.WsPos  = g_PointLightBuffer[i + 0].xyz;
+                pl.Radius = g_PointLightBuffer[i + 0].w;
+                pl.Color  = g_PointLightBuffer[i + 1].rgb; 
                 return pl;
             }
 
