@@ -67,12 +67,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 void Frag(PackedVaryingsToPS packedInput,
         #ifdef OUTPUT_SPLIT_LIGHTING
             out float4 outColor : SV_Target0,  // outSpecularLighting
-            out float4 outDiffuseLighting : EXTRA_BUFFER_TARGET,
+            out float4 outDiffuseLighting : SV_Target1,
             OUTPUT_SSSBUFFER(outSSSBuffer)
         #else
             out float4 outColor : SV_Target0
         #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-          , out float4 outMotionVec : EXTRA_BUFFER_TARGET
+          , out float4 outMotionVec : SV_Target1
         #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
