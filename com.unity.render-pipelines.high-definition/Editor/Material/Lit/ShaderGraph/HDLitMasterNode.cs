@@ -57,7 +57,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string BakedGISlotName = "Baked GI";
         public const string BakedBackGISlotName = "Baked Back GI";
         public const string DepthOffsetSlotName = "DepthOffset";
-        public const string VTFeedbackSlotName = "VTFeedback";
 
         public const int PositionSlotId = 0;
         public const int AlbedoSlotId = 1;
@@ -92,7 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int LightingSlotId = 30;
         public const int BackLightingSlotId = 31;
         public const int DepthOffsetSlotId = 32;
-        public const int VTFeedbackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         public enum MaterialType
         {
@@ -902,11 +900,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(DepthOffsetSlotId);
             }
-
-            var vtFeedbackSlot = new Vector4MaterialSlot(VTFeedbackSlotId, VTFeedbackSlotName, VTFeedbackSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
-            vtFeedbackSlot.hidden = true;
-            AddSlot(vtFeedbackSlot);
-            validSlots.Add(VTFeedbackSlotId);
 
             RemoveSlotsNameNotMatching(validSlots, true);
         }

@@ -81,10 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int DepthOffsetSlotId = 18;
         public const string DepthOffsetSlotName = "DepthOffset";
 
-        public const int VTFeedbackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
-        public const string VTFeedbackSlotName = "VTFeedback";
-
-
         public enum MaterialType
         {
             CottonWool,
@@ -640,11 +636,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(DepthOffsetSlotId);
             }
-
-            var vtFeedbackSlot = new Vector4MaterialSlot(VTFeedbackSlotId, VTFeedbackSlotName, VTFeedbackSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
-            vtFeedbackSlot.hidden = true;
-            AddSlot(vtFeedbackSlot);
-            validSlots.Add(VTFeedbackSlotId);
 
             RemoveSlotsNameNotMatching(validSlots, true);
         }

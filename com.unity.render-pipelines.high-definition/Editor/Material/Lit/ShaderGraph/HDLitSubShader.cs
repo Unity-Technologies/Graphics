@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.LightingSlotId,
                 HDLitMasterNode.BackLightingSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
-                HDLitMasterNode.VTFeedbackSlotId,
+                VirtualTexturingFeedback.OutputSlotID,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -524,7 +524,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.LightingSlotId,
                 HDLitMasterNode.BackLightingSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,
-                HDLitMasterNode.VTFeedbackSlotId,
+                VirtualTexturingFeedback.OutputSlotID,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -1060,14 +1060,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
 
-            var masterNode = (iMasterNode as HDLitMasterNode);
-
-            // Do all work on a copy of the graph
-            masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as HDLitMasterNode;
-
-            // Inject VT feedback into graph
-            TextureStackAggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
-
+            var masterNode = VirtualTexturingFeedback.AutoInject(iMasterNode) as HDLitMasterNode;
+            
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", false);
             subShader.AddShaderChunk("{", false);

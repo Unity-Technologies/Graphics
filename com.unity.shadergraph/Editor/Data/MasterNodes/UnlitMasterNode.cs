@@ -17,13 +17,11 @@ namespace UnityEditor.ShaderGraph
         public const string AlphaSlotName = "Alpha";
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
         public const string PositionName = "Position";
-        public const string FeedbackSlotName = "VTFeedback";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
         public const int PositionSlotId = 9;
-        public const int FeedBackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         [SerializeField]
         SurfaceType m_SurfaceType;
@@ -102,10 +100,6 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
 
-            var feedbackSlot = new Vector4MaterialSlot(FeedBackSlotId, FeedbackSlotName, FeedbackSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
-            feedbackSlot.hidden = true;
-            AddSlot(feedbackSlot);
-
             // clear out slot names that do not match the slots
             // we support
             RemoveSlotsNameNotMatching(
@@ -114,8 +108,7 @@ namespace UnityEditor.ShaderGraph
                 PositionSlotId,
                 ColorSlotId,
                 AlphaSlotId,
-                AlphaThresholdSlotId,
-                FeedBackSlotId
+                AlphaThresholdSlotId
             });
         }
 

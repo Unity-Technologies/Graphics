@@ -273,7 +273,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
-                FabricMasterNode.VTFeedbackSlotId,
+                VirtualTexturingFeedback.OutputSlotID,
             },
             VertexShaderSlots = new List<int>()
             {
@@ -650,13 +650,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
 
-            var masterNode = iMasterNode as FabricMasterNode;
-
-            masterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid) as FabricMasterNode;
-
-            // Inject VT feedback into graph
-            TextureStackAggregateFeedbackNode.AutoInjectFeedbackNode(masterNode);
-
+            var masterNode = VirtualTexturingFeedback.AutoInject(iMasterNode) as FabricMasterNode;
+            
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
