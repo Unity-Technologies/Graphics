@@ -516,3 +516,10 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 {
     return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex);
 }
+
+
+///////////
+// Noise //
+///////////
+
+#include "VFXNoise.hlsl"
