@@ -97,8 +97,7 @@ void RayGenGBuffer()
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
-    float distanceToCamera = length(posInput.positionWS);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
     // Decode the world space normal
     NormalData normalData;
@@ -134,6 +133,7 @@ void RayGenGBuffer()
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(_RaytracingDiffuseRay ? 1.0 : roughness);
+    float distanceToCamera = length(posInput.positionWS);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
     // Evaluate the ray visibility term and PDF
@@ -201,7 +201,7 @@ void RayGenGBufferBinned()
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
     // Decode the world space normal
