@@ -96,7 +96,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
-  m_LightingDataAsset: {fileID: 112000002, guid: 4737735183e88cf42b389f5bf1d0251a,
+    m_LightProbeSampleCountMultiplier: 4
+  m_LightingDataAsset: {fileID: 112000004, guid: c0c86cc2b6f554fd5900c7f47e32667f,
     type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
@@ -167,6 +168,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -276,6 +278,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -329,6 +332,8 @@ MonoBehaviour:
   pixelSize: 8
   testSettings: {fileID: 749245064}
   targetCamera: {fileID: 749245063}
+  forceTargetDimensions: {x: 200, y: 150}
+  overrideTestSettings: 0
   textMesh: {fileID: 157050144}
 --- !u!1 &213184775
 GameObject:
@@ -376,6 +381,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -454,6 +460,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -500,6 +507,53 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: -45.000004, y: 0, z: 0}
+--- !u!1 &492691234
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 492691236}
+  - component: {fileID: 492691235}
+  m_Layer: 0
+  m_Name: StaticLightingSky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &492691235
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492691234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Profile: {fileID: 0}
+  m_StaticLightingSkyUniqueID: 0
+  m_SkySettings: {fileID: 0}
+  m_SkySettingsFromProfile: {fileID: 0}
+--- !u!4 &492691236
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492691234}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 27
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &500156218
 GameObject:
   m_ObjectHideFlags: 0
@@ -546,6 +600,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -655,6 +710,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -708,6 +764,8 @@ MonoBehaviour:
   pixelSize: 8
   testSettings: {fileID: 749245064}
   targetCamera: {fileID: 749245063}
+  forceTargetDimensions: {x: 200, y: 150}
+  overrideTestSettings: 0
   textMesh: {fileID: 613492055}
 --- !u!1 &647703699
 GameObject:
@@ -755,6 +813,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -847,6 +906,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -939,6 +999,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1050,35 +1111,15 @@ PrefabInstance:
       propertyPath: field of view
       value: 10
       objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.TargetWidth
-      value: 400
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.TargetHeight
-      value: 400
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
-      value: 0.001
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: waitFrames
-      value: 10
-      objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
-      value: 69284264148765
+      value: 69456062840605
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Version
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -1270,6 +1311,26 @@ PrefabInstance:
       propertyPath: m_ObsoleteFrameSettings.lightLoopSettings.isFptlEnabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.TargetWidth
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.TargetHeight
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
+      value: 0.001
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: waitFrames
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 114110876577682668, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_SkySettings
@@ -1317,6 +1378,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9459100e7946cb84eb53a26a14473032, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &749245065 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7,
+    type: 3}
+  m_PrefabInstance: {fileID: 749245062}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &941293626
 GameObject:
   m_ObjectHideFlags: 0
@@ -1363,6 +1430,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1455,6 +1523,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -1533,6 +1602,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1625,6 +1695,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1734,6 +1805,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -1787,6 +1859,8 @@ MonoBehaviour:
   pixelSize: 8
   testSettings: {fileID: 749245064}
   targetCamera: {fileID: 749245063}
+  forceTargetDimensions: {x: 200, y: 150}
+  overrideTestSettings: 0
   textMesh: {fileID: 1431426001}
 --- !u!1 &1545289412
 GameObject:
@@ -1834,6 +1908,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1926,6 +2001,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2018,6 +2094,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2050,6 +2127,105 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1558119837}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1619906401
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 749245065}
+    m_Modifications:
+    - target: {fileID: 6004892619064504655, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_Name
+      value: BrokenTestText
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.02362194
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.02362194
+      objectReference: {fileID: 0}
+    - target: {fileID: 5489785850083597078, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.02362194
+      objectReference: {fileID: 0}
+    - target: {fileID: 198941061589059314, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: m_CharacterSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 710908310637035638, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: platformApis.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 710908310637035638, guid: adc7a3141c583ce49b9022be98bd5d96,
+        type: 3}
+      propertyPath: platformApis.Array.data[0].graphicsDeviceType
+      value: 16
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: adc7a3141c583ce49b9022be98bd5d96, type: 3}
 --- !u!1 &1689131023
 GameObject:
   m_ObjectHideFlags: 0
@@ -2113,6 +2289,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2166,6 +2343,8 @@ MonoBehaviour:
   pixelSize: 8
   testSettings: {fileID: 749245064}
   targetCamera: {fileID: 749245063}
+  forceTargetDimensions: {x: 200, y: 150}
+  overrideTestSettings: 0
   textMesh: {fileID: 1689131024}
 --- !u!1 &1749057127
 GameObject:
@@ -2244,6 +2423,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2283,6 +2463,8 @@ MonoBehaviour:
   pixelSize: 8
   testSettings: {fileID: 749245064}
   targetCamera: {fileID: 749245063}
+  forceTargetDimensions: {x: 200, y: 150}
+  overrideTestSettings: 0
   textMesh: {fileID: 1749057129}
 --- !u!1 &1792090651
 GameObject:
@@ -2347,6 +2529,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2400,6 +2583,8 @@ MonoBehaviour:
   pixelSize: 8
   testSettings: {fileID: 749245064}
   targetCamera: {fileID: 749245063}
+  forceTargetDimensions: {x: 200, y: 150}
+  overrideTestSettings: 0
   textMesh: {fileID: 1792090652}
 --- !u!1 &1902136125
 GameObject:
@@ -2433,6 +2618,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2525,6 +2711,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2603,6 +2790,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2695,6 +2883,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -2787,6 +2976,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -2865,6 +3055,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
