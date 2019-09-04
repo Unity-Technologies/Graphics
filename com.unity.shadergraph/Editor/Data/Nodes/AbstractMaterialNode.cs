@@ -290,7 +290,7 @@ namespace UnityEditor.ShaderGraph
 
             return inputSlot.GetDefaultValue(generationMode);
         }
- 
+        
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();

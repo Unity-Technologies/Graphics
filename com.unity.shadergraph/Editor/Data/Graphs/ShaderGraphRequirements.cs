@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
             bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
             bool requiresTime = nodes.Any(x => x.RequiresTime());
-			bool requiresPixelCoordinate = nodes.OfType<IMayRequireRequirePixelCoordinate>().Any(x => x.RequiresPixelCoordinate());
+            bool requiresPixelCoordinate = nodes.OfType<IMayRequireRequirePixelCoordinate>().Any(x => x.RequiresPixelCoordinate());
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
