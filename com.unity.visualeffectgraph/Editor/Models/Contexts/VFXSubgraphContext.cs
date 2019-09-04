@@ -53,14 +53,45 @@ namespace UnityEditor.VFX
                 if(m_SubChildren == null && m_Subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                 {
                     foreach (var slot in inputSlots)
-                    {
                         yield return new VFXPropertyWithValue(slot.property);
-                    }
                 }
 
-                foreach ( var param in GetParameters(t=> InputPredicate(t)))
-                    yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
+                if( m_Subgraph != null)
+                {
+                    foreach (var param in GetSortedInputParameters())
+                        yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
+                        
+                }
+                
             }
+        }
+
+
+        IEnumerable<VFXParameter> GetSortedInputParameters()
+        {
+            var resource = m_Subgraph.GetResource();
+            if (resource != null)
+            {
+                var graph = resource.GetOrCreateGraph();
+                if (graph != null)
+                {
+                    var UIInfos = graph.UIInfos;
+                    var categoriesOrder = UIInfos.categories;
+                    if (categoriesOrder == null)
+                        categoriesOrder = new List<VFXUI.CategoryInfo>();
+                    return GetParameters(t => InputPredicate(t)).OrderBy(t => categoriesOrder.FindIndex(u => u.name == t.category)).ThenBy(t => t.order);
+                }
+                else
+                {
+                    Debug.LogError("Can't find subgraph graph");
+                }
+            }
+            else
+            {
+                Debug.LogError("Cant't find subgraph resource");
+            }
+
+            return Enumerable.Empty<VFXParameter>();
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -253,22 +284,22 @@ namespace UnityEditor.VFX
         {
             if (m_SubChildren != null)
             {
-                HashSet<VFXData> datas = new HashSet<VFXData>();
+                HashSet<ScriptableObject> deps = new HashSet<ScriptableObject>();
                 foreach (var child in m_SubChildren)
                 {
                     if (child != null)
                     {
                         child.onInvalidateDelegate -= SubChildrenOnInvalidate;
-                        if (child is VFXContext)
-                        {
-                            datas.Add((child as VFXContext).GetData());
-                        }
+
+                        child.CollectDependencies(deps);
+
                         ScriptableObject.DestroyImmediate(child, true);
+
                     }
                 }
-                foreach (var data in datas)
+                foreach (var obj in deps)
                 {
-                    ScriptableObject.DestroyImmediate(data, true);
+                    ScriptableObject.DestroyImmediate(obj, true);
                 }
 
                 foreach (var kv in m_OriginalToCopy)
@@ -299,26 +330,12 @@ namespace UnityEditor.VFX
             var inputExpressions = new List<VFXExpression>();
 
             foreach (var slot in inputSlots)
-            {
-                var expression = slot.GetExpression();
-                if( expression == null)
-                {
-                    foreach( var subSlot in inputSlots.SelectMany(t=>t.GetExpressionSlots()))
-                    {
-                        inputExpressions.Add(subSlot.GetExpression());
-                    }
-                }
-                else
-                {
-                    inputExpressions.Add(expression);
-                }
-            }
+                foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
+                    inputExpressions.Add(subSlot.GetExpression());
 
-            VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)));
+            VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetSortedInputParameters());
             foreach (var slot in toInvalidate)
-            {
                 slot.InvalidateExpressionTree();
-            }
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -326,17 +343,13 @@ namespace UnityEditor.VFX
             if( cause == InvalidationCause.kSettingChanged || cause == InvalidationCause.kExpressionInvalidated)
             {
                 if( cause == InvalidationCause.kSettingChanged && (m_Subgraph != null || object.ReferenceEquals(m_Subgraph,null))) // do not recreate subchildren if the subgraph is not available but is not null
-                {
                     RecreateCopy();
-                }
 
                 base.OnInvalidate(model, cause);
                 PatchInputExpressions();
             }
             else
-            {
                 base.OnInvalidate(model, cause);
-            }
         }
 
         public VFXModel[] subChildren
@@ -352,9 +365,7 @@ namespace UnityEditor.VFX
                 return;
 
             if( m_Subgraph != null && m_SubChildren == null)
-            {
                 RecreateCopy();
-            }
 
             foreach (var child in m_SubChildren)
             {
