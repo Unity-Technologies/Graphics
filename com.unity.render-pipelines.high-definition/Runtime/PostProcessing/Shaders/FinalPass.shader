@@ -83,10 +83,14 @@ Shader "Hidden/HDRP/FinalPass"
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
+            // We don't support alpha compositing with dynamic resolution
+            float outAlpha = 1.0;
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             float3 outColor = UpscaledResult(positionNDC.xy);
             #else
-            float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
+            float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS);
+            float3 outColor = inputColor.rgb;
+            outAlpha = inputColor.a;
             #endif
 
             #if FXAA
@@ -137,7 +141,7 @@ Shader "Hidden/HDRP/FinalPass"
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
-            return float4(outColor, 1.0);
+            return float4(outColor, outAlpha);
         }
 
     ENDHLSL

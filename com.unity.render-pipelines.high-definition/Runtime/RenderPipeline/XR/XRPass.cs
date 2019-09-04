@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int multipassId    { get; private set; }
         internal int cullingPassId  { get; private set; }
+        internal int dstSliceIndex  { get; private set; }
 
         // Ability to specify where to render the pass
         internal RenderTargetIdentifier  renderTarget     { get; private set; }
@@ -89,13 +90,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
         internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
 
-        internal static XRPass Create(int multipassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null)
+        internal static XRPass Create(int multipassId, int cullingPassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
-            passInfo.cullingPassId = multipassId;
+            passInfo.cullingPassId = cullingPassId;
             passInfo.cullingParams = cullingParameters;
+            passInfo.dstSliceIndex = -1;
             passInfo.views.Clear();
 
             if (rt != null)
@@ -126,13 +128,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_XR_MODULE
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, int textureArraySlice, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.cullingParams = cullingParameters;
+            passInfo.dstSliceIndex = textureArraySlice;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
