@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.drawProbes, Styles.s_DrawProbesLabel); 
+            EditorGUILayout.PropertyField(serialized.drawProbes, Styles.s_DrawProbesLabel);
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.resolutionX, Styles.s_ResolutionXLabel);
@@ -61,9 +61,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.resolutionZ, Styles.s_ResolutionZLabel);
             if (EditorGUI.EndChangeCheck())
             {
-                serialized.resolutionX.intValue = Mathf.Clamp(serialized.resolutionX.intValue, 1, ProbeVolumeSystem.s_ProbeVolumeMaxResolutionSide);
-                serialized.resolutionY.intValue = Mathf.Clamp(serialized.resolutionY.intValue, 1, ProbeVolumeSystem.s_ProbeVolumeMaxResolutionSide);
-                serialized.resolutionZ.intValue = Mathf.Clamp(serialized.resolutionZ.intValue, 1, ProbeVolumeSystem.s_ProbeVolumeMaxResolutionSide);
+                ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, serialized.resolutionX.intValue);
+                serialized.resolutionX.intValue = Mathf.Clamp(serialized.resolutionX.intValue, 1, maxX);
+                serialized.resolutionY.intValue = Mathf.Clamp(serialized.resolutionY.intValue, 1, maxY);
+                serialized.resolutionZ.intValue = Mathf.Clamp(serialized.resolutionZ.intValue, 1, maxZ);
             }
         }
 

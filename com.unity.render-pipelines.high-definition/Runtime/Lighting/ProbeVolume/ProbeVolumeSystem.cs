@@ -84,12 +84,25 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
         static int s_ProbeVolumeAtlasBlitKernel = -1;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
-        public const int k_MaxProbeVolumeProbeCount = 1 << 19;
         public const int k_ProbeVolumeAtlasWidth = 1024;
         public const int k_ProbeVolumeAtlasHeight = 1024;
+
+        // TODO: Preallocating compute buffer for this worst case of a single probe volume that consumes the whole atlas is a memory hog.
+        // May want to look at dynamic resizing of compute buffer based on use, or more simply, slicing it up across multiple dispatches for massive volumes.
+        // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount bytes ~= 12.6 MB.
+        public const int k_MaxProbeVolumeProbeCount = k_ProbeVolumeAtlasWidth * k_ProbeVolumeAtlasHeight;
         RTHandle m_ProbeVolumeAtlasRTHandle;
         Texture2DAtlas probeVolumeAtlas = null; // TODO(Nicholas): it was marked as public, but Texture2DAtlas is not publicly accessible anymore.
-        public static int s_ProbeVolumeMaxResolutionSide = 1024;
+
+        // Note: These max resolution dimensions are implicitly defined from the way probe volumes are laid out in our 2D atlas.
+        // If this layout changes, these resolution contraints should be updated to reflect the actual contraint.
+        // Currently, the constraint is defined as: the maximum resolution that could possibly be allocated given the atlas size and only one probe volume resident.
+        public static void ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, int requestedX)
+        {
+            maxY = k_ProbeVolumeAtlasHeight;
+            maxX = k_ProbeVolumeAtlasWidth;
+            maxZ = k_ProbeVolumeAtlasWidth / Mathf.Min(maxX, requestedX);
+        }
 
         public void Build(HDRenderPipelineAsset asset)
         {
