@@ -153,7 +153,7 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 	UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Read buffers as early as possible.
-    float currDepth = GetDepthForCentral(dispatchThreadId.xy);
+    float currDepth = GetDepthForCentral(dispatchThreadId.xy + 0.5f);
     float3 positionVS = GetPositionVS(dispatchThreadId.xy, currDepth);
 #if HALF_RES
     float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, dispatchThreadId.xy * 2);

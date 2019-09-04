@@ -82,9 +82,9 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_RayTracing,        EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced reflections."));
 #endif
             // Shared Data
-            PropertyField(m_MinSmoothness,        EditorGUIUtility.TrTextContent("Min Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops."));
+            PropertyField(m_MinSmoothness,        EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops."));
             PropertyField(m_SmoothnessFadeStart,  EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start]."));
-            PropertyField(m_ReflectSky,           EditorGUIUtility.TrTextContent("Reflect sky", "When enabled, SSR handles sky reflection."));
+            PropertyField(m_ReflectSky,           EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection."));
             m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
             
             #if ENABLE_RAYTRACING
