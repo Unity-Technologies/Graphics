@@ -26,8 +26,6 @@ namespace UnityEngine.Rendering
 
         public RenderTargetIdentifier nameID { get { return m_NameID; } }
 
-        public bool enableMSAA {  get { return m_EnableMSAA; } }
-
         public string name { get { return m_Name; } }
 
         // Keep constructor private
