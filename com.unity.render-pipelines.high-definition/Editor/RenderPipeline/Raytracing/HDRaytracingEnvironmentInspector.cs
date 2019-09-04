@@ -33,9 +33,9 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             public static GUIContent shadowLayerMaskText = EditorGUIUtility.TrTextContent("Shadow Layer Mask");
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
-            // Primary visibility
-            public static readonly GUIContent primaryRaytracingSectionText = EditorGUIUtility.TrTextContent("Primary Visiblity Raytracing");
-            public static readonly GUIContent raytracedLayerMaskText = EditorGUIUtility.TrTextContent("Primary Visibility Layer Mask");
+            // Recursive Tracing
+            public static readonly GUIContent recursiveRayTracingSectionText = EditorGUIUtility.TrTextContent("Recursive Ray Tracing");
+            public static readonly GUIContent raytracedLayerMaskText = EditorGUIUtility.TrTextContent("Recursive Ray Tracing Layer Mask");
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Indirect Diffuse
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             Reflection = 1 << 2,
             LightCluster = 1 << 3,
             AreaShadow = 1 << 4,
-            PrimaryRaytracing = 1 << 5,
+            RecursiveRayTracing = 1 << 5,
             IndirectDiffuse = 1 << 6
         }
         static ExpandedState<Expandable, HDRaytracingEnvironment> k_ExpandedState;
@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         CED.FoldoutGroup(Styles.aoSectionText, Expandable.AmbientOcclusion, k_ExpandedState, AmbientOcclusionSubMenu),
                         CED.FoldoutGroup(Styles.reflSectionText, Expandable.Reflection, k_ExpandedState, ReflectionsSubMenu),
                         CED.FoldoutGroup(Styles.shadowSectionText, Expandable.AreaShadow, k_ExpandedState, AreaShadowSubMenu),
-                        CED.FoldoutGroup(Styles.primaryRaytracingSectionText, Expandable.PrimaryRaytracing, k_ExpandedState, RaytracingSubMenu),
+                        CED.FoldoutGroup(Styles.recursiveRayTracingSectionText, Expandable.RecursiveRayTracing, k_ExpandedState, RaytracingSubMenu),
                         CED.FoldoutGroup(Styles.indirectDiffuseSectionText, Expandable.IndirectDiffuse, k_ExpandedState, IndirectDiffuseSubMenu));
         }
         static void GenericSubMenu(SerializedHDRaytracingEnvironment rtEnv, Editor owner)
