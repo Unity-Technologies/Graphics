@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentDepthPrepass;
         public SerializedProperty supportTransparentDepthPostpass;
 
+
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
         public SerializedGlobalDecalSettings decalSettings;

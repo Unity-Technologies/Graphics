@@ -8,7 +8,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             materialEditor.PropertiesDefaultGUI(props);
-
             if (materialEditor.EmissionEnabledProperty())
             {
                 materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);

@@ -14,8 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Instancing          = 1 << 0,
             SpecularOcclusion   = 1 << 1,
             AdditionalVelocity  = 1 << 2,
-            All                 = ~0,
-            Unlit = Instancing,
+            All                 = ~0
         }
 
         public class Styles
@@ -23,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string header = "Advanced Options";
             public static GUIContent enableSpecularOcclusionText = new GUIContent("Specular Occlusion From Bent Normal", "Requires cosine weighted bent normal and cosine weighted ambient occlusion. Specular occlusion for Reflection Probe");
             public static GUIContent additionalVelocityChangeText = new GUIContent("Additional Velocity Changes", "Requires additional per vertex velocity info");
+
         }
 
         protected MaterialProperty enableSpecularOcclusion = null;
@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             enableSpecularOcclusion = FindProperty(kEnableSpecularOcclusion);
             additionalVelocityChange = FindProperty(kAdditionalVelocityChange);
+
         }
 
         public override void OnGUI()
@@ -65,8 +66,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if ( additionalVelocityChange != null)
                     materialEditor.ShaderProperty(additionalVelocityChange, Styles.additionalVelocityChangeText);
-        	}
-    	}
-	}
+        }
+    }
+}
 }
 

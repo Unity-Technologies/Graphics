@@ -11,7 +11,6 @@
 #define GBufferType3 float4
 #define GBufferType4 float4
 #define GBufferType5 float4
-#define GBufferType6 float4
 
 #ifdef LIGHT_LAYERS
 #define GBUFFERMATERIAL_LIGHT_LAYERS 1
