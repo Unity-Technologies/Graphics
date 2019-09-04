@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDUnlitMasterNode")]
     [Title("Master", "HDRP/Unlit")]
-    class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition
+    class HDUnlitMasterNode : MasterNode<IHDUnlitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -28,7 +28,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string DistortionSlotName = "Distortion";
         public const string DistortionBlurSlotName = "DistortionBlur";
         public const string PositionSlotName = "Position";
+        public const string PositionSlotDisplayName = "Vertex Position";
         public const string EmissionSlotName = "Emission";
+        public const string VertexNormalSlotName = "Vertex Normal";
+        public const string VertexTangentSlotName = "Vertex Tangent";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
@@ -37,6 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int DistortionSlotId = 10;
         public const int DistortionBlurSlotId = 11;
         public const int EmissionSlotId = 12;
+        public const int VertexNormalSlotId = 13;
+        public const int VertexTangentSlotId = 14;
 
         // Don't support Multiply
         public enum AlphaModeLit
@@ -309,8 +314,12 @@ namespace UnityEditor.Rendering.HighDefinition
             name = "Unlit Master";
 
             List<int> validSlots = new List<int>();
-            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(PositionSlotId);
+            AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexNormalSlotId);
+            AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexTangentSlotId);
             AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
             validSlots.Add(ColorSlotId);
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
@@ -351,6 +360,38 @@ namespace UnityEditor.Rendering.HighDefinition
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+        }
+
+         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetSlots(slots);
+
+            List<MaterialSlot> validSlots = new List<MaterialSlot>();
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
+                    continue;
+
+                validSlots.Add(slots[i]);
+            }
+            return validSlots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
+        }
+
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetSlots(slots);
+
+            List<MaterialSlot> validSlots = new List<MaterialSlot>();
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
+                    continue;
+
+                validSlots.Add(slots[i]);
+            }
+            return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
         }
 
         public override void ProcessPreviewMaterial(Material previewMaterial)

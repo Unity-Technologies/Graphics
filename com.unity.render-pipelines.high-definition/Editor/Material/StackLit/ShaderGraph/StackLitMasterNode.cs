@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Position";
+        public const string PositionSlotDisplayName = "Vertex Position";
 
         public const string BaseColorSlotName = "BaseColor";
 
@@ -83,6 +84,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public const string DepthOffsetSlotName = "DepthOffset";
 
+        public const string VertexNormalSlotName = "Vertex Normal";
+        public const string VertexTangentSlotName = "Vertex Tangent";
+
         public const int PositionSlotId = 0;
         public const int BaseColorSlotId = 1;
         public const int NormalSlotId = 2;
@@ -132,6 +136,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int IridescenceCoatFixupTIRClampSlotId = 41;
 
         public const int DepthOffsetSlotId = 42;
+
+        public const int VertexNormalSlotId = 44;
+        public const int VertexTangentSlotId = 45;
 
         // TODO: we would ideally need one value per lobe
         public const int SpecularOcclusionSlotId = 43; // for custom (external) SO replacing data based SO (which normally comes from some func of DataBasedSOMode(dataAO, optional bent normal))
@@ -980,8 +987,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             List<int> validSlots = new List<int>();
 
-            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(PositionSlotId);
+
+            AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexNormalSlotId);
+
+            AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexTangentSlotId);
 
             AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
             validSlots.Add(NormalSlotId);
