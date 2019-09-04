@@ -20,6 +20,8 @@ Pass
 		float3 posWS : TEXCOORD1;
 		#endif
 
+        float pointSize : PSIZE;
+
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
 	
