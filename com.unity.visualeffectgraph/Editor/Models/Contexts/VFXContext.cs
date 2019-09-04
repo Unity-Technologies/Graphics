@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
         InitAndUpdate = Init | Update,
         InitAndUpdateAndOutput = Init | Update | Output,
         UpdateAndOutput = Update | Output,
-        All = Init | Update | Output | Spawner | SpawnerGPU | Subgraph,
+        All = Init | Update | Output | Spawner | Subgraph,
     };
 
     [Flags]
