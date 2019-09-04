@@ -122,6 +122,27 @@ namespace UnityEditor.Rendering.HighDefinition
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
+        
+        [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
+        static void MenuCreateCustomFullScreenPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Custom Renderers Pass")]
+        static void MenuCreateCustomRenderersPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Renderers CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Rendering/C# Custom Pass")]
+        static void MenuCreateCustomPassCSharpScript()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
+        }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
