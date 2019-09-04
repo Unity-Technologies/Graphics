@@ -224,7 +224,9 @@ namespace UnityEngine.Rendering.HighDefinition
         protected void OnDisable()
         {
             ProbeVolumeManager.manager.DeRegisterVolume(this);
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(id, null);
+
+            if (id != -1)
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(id, null);
         }
 
         protected void Update()
@@ -241,6 +243,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void SetupPositions()
         {
+            if (!this.gameObject.activeInHierarchy)
+                return;
+
             if (id == -1)
             {
                 GetID();
