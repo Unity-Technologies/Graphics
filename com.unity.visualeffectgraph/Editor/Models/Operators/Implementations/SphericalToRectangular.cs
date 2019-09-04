@@ -9,12 +9,12 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The angular coordinate (Polar angle).")]
-            public float theta = 45.0f;
-            [Tooltip("The pitch coordinate (Azimuth angle).")]
-            public float phi = 45.0f;
             [Tooltip("The radial coordinate (Radius).")]
             public float distance = 1.0f;
+            [Tooltip("The angular coordinate (Polar angle) in radians.")]
+            public float theta = 45.0f;
+            [Tooltip("The pitch coordinate (Azimuth angle) in radians.")]
+            public float phi = 45.0f;
         }
 
         public class OutputProperties
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.SphericalToRectangular(VFXOperatorUtility.DegToRad(inputExpression[0]), VFXOperatorUtility.DegToRad(inputExpression[1]), inputExpression[2]) };
+            return new[] { VFXOperatorUtility.SphericalToRectangular(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }
     }
 }
