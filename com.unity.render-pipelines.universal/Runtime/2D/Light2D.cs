@@ -115,6 +115,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// <summary>
     /// Class <c>Light2D</c> is a 2D light which can be used with the 2D Renderer.
     /// </summary>
+    /// 
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D (Experimental)")]
     sealed public partial class Light2D : MonoBehaviour

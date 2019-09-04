@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
 - The tab now shows whether you are working in a Sub Graph or a Shader Graph file.
+- The Shader Graph importer now bakes the output node type name into a meta-data object.
 
 ### Fixed
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
