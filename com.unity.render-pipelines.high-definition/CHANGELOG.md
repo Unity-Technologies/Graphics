@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Raytracing ShaderGraph node for HDRP shaders
 - Custom passes volume component with 3 injection points: Before Rendering, Before Transparent and Before Post Process
 - Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
+- Support for XR SDK mirror view modes
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
