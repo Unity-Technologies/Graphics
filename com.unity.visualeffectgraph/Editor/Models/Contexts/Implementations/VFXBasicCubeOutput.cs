@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXBasicCubeOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Cube Output"; } }
+        public override string name { get { return "Output Particle Cube"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleBasicCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 
