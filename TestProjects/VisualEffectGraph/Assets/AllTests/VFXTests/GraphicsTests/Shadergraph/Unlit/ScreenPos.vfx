@@ -776,6 +776,7 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 63806e169d9e80746970e707e38f9073,
     type: 3}
+  shadergraphGUID: 63806e169d9e80746970e707e38f9073
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614570

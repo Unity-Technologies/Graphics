@@ -79,6 +79,7 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: bec141a11446880449f9c0ba0d75f50d,
     type: 3}
+  shadergraphGUID: bec141a11446880449f9c0ba0d75f50d
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114131763552434164
@@ -1271,6 +1272,7 @@ MonoBehaviour:
   useExposureWeight: 0
   shaderGraph: {fileID: -5475051401550479605, guid: bec141a11446880449f9c0ba0d75f50d,
     type: 3}
+  shadergraphGUID: bec141a11446880449f9c0ba0d75f50d
 --- !u!114 &8926484042661614557
 MonoBehaviour:
   m_ObjectHideFlags: 0
