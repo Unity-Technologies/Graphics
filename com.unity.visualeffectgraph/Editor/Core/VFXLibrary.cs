@@ -169,6 +169,12 @@ namespace UnityEditor.VFX
         public override Type SRPOutputDataType { get { return null; } }
     }
 
+    // This is just for retrocompatibility with LWRP
+    class VFXLWRPBinder : VFXUniversalBinder
+    {
+        public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
+    }
+
     // This is the default binder used if no SRP is used in the project
     class VFXLegacyBinder : VFXSRPBinder
     {

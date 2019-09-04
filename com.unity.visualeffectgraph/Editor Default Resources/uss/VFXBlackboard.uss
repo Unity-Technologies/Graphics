@@ -15,8 +15,7 @@
 
 .propertyrm VFXStringField.fieldContainer
 {
-    width: 240px;
-    flex-grow:0;
+    flex-grow:1;
     height: initial;
 }
 
