@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int multipassId    { get; private set; }
         internal int cullingPassId  { get; private set; }
+        internal int dstSliceIndex  { get; private set; }
 
         // Ability to specify where to render the pass
         internal RenderTargetIdentifier  renderTarget     { get; private set; }
@@ -96,6 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = cullingPassId;
             passInfo.cullingParams = cullingParameters;
+            passInfo.dstSliceIndex = -1;
             passInfo.views.Clear();
 
             if (rt != null)
@@ -126,13 +128,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_XR_MODULE
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, int textureArraySlice, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.cullingParams = cullingParameters;
+            passInfo.dstSliceIndex = textureArraySlice;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;

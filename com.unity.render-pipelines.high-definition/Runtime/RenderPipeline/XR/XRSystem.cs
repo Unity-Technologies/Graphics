@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (CanUseSinglePass(renderPass))
                 {
-                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
+                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, textureArraySlice: -1, cullingParams, occlusionMeshMaterial);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
-                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
+                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, textureArraySlice: renderParam.textureArraySlice, cullingParams, occlusionMeshMaterial);
                         xrPass.AddView(renderPass, renderParam);
 
                         AddPassToFrame(camera, xrPass);
@@ -285,18 +285,27 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RenderMirrorView(CommandBuffer cmd)
         {
 #if ENABLE_XR_MODULE
-            if (display == null)
+            if (display == null || !display.running)
                 return;
 
             using (new ProfilingSample(cmd, "XR Mirror View"))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
+            #if UNITY_2020_1_OR_NEWER
+                int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
+                if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
+            #else
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
+            #endif
                 {
                     if (blitDesc.nativeBlitAvailable)
                     {
+                    #if UNITY_2020_1_OR_NEWER
+                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates, mirrorBlitMode);
+                    #else
                         display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
+                    #endif
                     }
                     else
                     {
@@ -313,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mirrorViewMaterialProperty.SetInt(HDShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
-                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Triangles, 3, 1, mirrorViewMaterialProperty);
+                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
                         }
                     }
                 }
