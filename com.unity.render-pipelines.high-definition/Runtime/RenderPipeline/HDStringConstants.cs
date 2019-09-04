@@ -296,8 +296,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
 
+        // XR View Constants
         public static readonly int _XRViewCount = Shader.PropertyToID("_XRViewCount");
-        public static readonly int _XRViewConstants = Shader.PropertyToID("_XRViewConstants");
+        public static readonly int _XRViewMatrix = Shader.PropertyToID("_XRViewMatrix");
+        public static readonly int _XRInvViewMatrix = Shader.PropertyToID("_XRInvViewMatrix");
+        public static readonly int _XRProjMatrix = Shader.PropertyToID("_XRProjMatrix");
+        public static readonly int _XRInvProjMatrix = Shader.PropertyToID("_XRInvProjMatrix");
+        public static readonly int _XRViewProjMatrix = Shader.PropertyToID("_XRViewProjMatrix");
+        public static readonly int _XRInvViewProjMatrix = Shader.PropertyToID("_XRInvViewProjMatrix");
+        public static readonly int _XRNonJitteredViewProjMatrix = Shader.PropertyToID("_XRNonJitteredViewProjMatrix");
+        public static readonly int _XRPrevViewProjMatrix = Shader.PropertyToID("_XRPrevViewProjMatrix");
+        public static readonly int _XRPrevInvViewProjMatrix = Shader.PropertyToID("_XRPrevInvViewProjMatrix");
+        public static readonly int _XRPrevViewProjMatrixNoCameraTrans = Shader.PropertyToID("_XRPrevViewProjMatrixNoCameraTrans");
+        public static readonly int _XRPixelCoordToViewDirWS = Shader.PropertyToID("_XRPixelCoordToViewDirWS");
+        public static readonly int _XRWorldSpaceCameraPos = Shader.PropertyToID("_XRWorldSpaceCameraPos");
+        public static readonly int _XRWorldSpaceCameraPosViewOffset = Shader.PropertyToID("_XRWorldSpaceCameraPosViewOffset");
+        public static readonly int _XRPrevWorldSpaceCameraPos = Shader.PropertyToID("_XRPrevWorldSpaceCameraPos");
 
         public static readonly int _ColorTexture                   = Shader.PropertyToID("_ColorTexture");
         public static readonly int _DepthTexture                   = Shader.PropertyToID("_DepthTexture");
