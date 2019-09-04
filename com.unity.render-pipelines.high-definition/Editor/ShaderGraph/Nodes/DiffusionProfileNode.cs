@@ -42,7 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [NonSerialized]
         DiffusionProfileSettings    m_DiffusionProfileAsset;
 
-        [ObjectControl]
+        //Hide name to be consistent with Texture2DAsset node
+        [ObjectControl("")]
         public DiffusionProfileSettings diffusionProfile
         {
             get

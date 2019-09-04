@@ -128,35 +128,29 @@ namespace UnityEngine.Rendering
                 // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
                 // track of changes in an elegant way (which we'd need to implement a nice cache
                 // system for generated volume meshes).
-                var type = collider.GetType();
-
-                if (type == typeof(BoxCollider))
+                switch (collider)
                 {
-                    var c = (BoxCollider)collider;
-                    Gizmos.DrawCube(c.center, c.size);
-                    Gizmos.DrawWireCube(c.center, c.size + invScale * blendDistance * 2f);
-                }
-                else if (type == typeof(SphereCollider))
-                {
-                    var c = (SphereCollider)collider;
-                    Gizmos.DrawSphere(c.center, c.radius);
-                    Gizmos.DrawWireSphere(c.center, c.radius + invScale.x * blendDistance);
-                }
-                else if (type == typeof(MeshCollider))
-                {
-                    var c = (MeshCollider)collider;
+                    case BoxCollider c:
+                        Gizmos.DrawCube(c.center, c.size);
+                        break;
+                    case SphereCollider c:
+                        // For sphere the only scale that is used is the transform.x
+                        Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * scale.x);
+                        Gizmos.DrawSphere(c.center, c.radius);
+                        break;
+                    case MeshCollider c:
+                        // Only convex mesh m_Colliders are allowed
+                        if (!c.convex)
+                            c.convex = true;
 
-                    // Only convex mesh colliders are allowed
-                    if (!c.convex)
-                        c.convex = true;
-
-                    // Mesh pivot should be centered or this won't work
-                    Gizmos.DrawMesh(c.sharedMesh);
-                    Gizmos.DrawWireMesh(c.sharedMesh, Vector3.zero, Quaternion.identity, Vector3.one + invScale * blendDistance * 2f);
+                        // Mesh pivot should be centered or this won't work
+                        Gizmos.DrawMesh(c.sharedMesh);
+                        break;
+                    default:
+                        // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
+                        // other m_Colliders...
+                        break;
                 }
-
-                // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
-                // other colliders...
             }
 
             colliders.Clear();

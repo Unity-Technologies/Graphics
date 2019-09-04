@@ -28,7 +28,9 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         bool m_WizardPopupAtStart = false;
         [SerializeField]
-        string m_PackageVersionForMaterials = "";
+        string m_PackageVersionForMaterials = k_PackageFirstTimeVersionForMaterials;
+
+        internal const string k_PackageFirstTimeVersionForMaterials = "NeverSaved";
 
         public static GameObject defaultScenePrefab
         {

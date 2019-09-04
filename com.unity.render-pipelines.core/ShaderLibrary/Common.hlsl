@@ -861,6 +861,7 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
 // PositionInputs
 // ----------------------------------------------------------------------------
 
+// Note: if you modify this struct, be sure to update the CustomPassFullscreenShader.template
 struct PositionInputs
 {
     float3 positionWS;  // World space position (could be camera-relative)

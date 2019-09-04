@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         {
             if (m_ToClean != null)
                 CoreUtils.Destroy(m_ToClean);
-            FrameSettingsHistory.frameSettingsHistory.Clear();
+            FrameSettingsHistory.containers.Clear();
         }
 
         [Test]
@@ -120,6 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 {
                     tester.SetEnabled(field, fso.mask[(uint)field] ? fs.IsEnabled(field) : defaultFS.IsEnabled(field));
                 }
+                tester.lodBias = result.lodBias;
+                tester.lodBiasMode = result.lodBiasMode;
+                tester.maximumLODLevel = result.maximumLODLevel;
+                tester.maximumLODLevelMode = result.maximumLODLevelMode;
                 FrameSettings.Sanitize(ref tester, cam, supportedFeatures);
 
                 //test
@@ -179,29 +183,38 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 add.defaultFrameSettings = defaultFSType;
                 add.customRenderingSettings = true;
 
-                //gather data two different ways
-                FrameSettingsHistory.AggregateFrameSettings(ref result, cam, add, ref defaultFS, supportedFeatures);
-
+                //gather simulated
                 foreach (FrameSettingsField field in Enum.GetValues(typeof(FrameSettingsField)))
                 {
                     tester.SetEnabled(field, fso.mask[(uint)field] ? fs.IsEnabled(field) : defaultFS.IsEnabled(field));
                 }
-                FrameSettings.Sanitize(ref tester, cam, supportedFeatures);
 
                 //simulate debugmenu changes
                 for (int j = 0; j < 10; ++j)
                 {
                     FrameSettingsField field = RandomUtilities.RandomEnumValue<FrameSettingsField>((i + 0.5f) * (j + 0.3f));
-                    var fsh = FrameSettingsHistory.frameSettingsHistory[cam];
+                    var fshc = FrameSettingsHistory.containers.Where(c => c == add as IFrameSettingsHistoryContainer).First();
                     bool debugValue = RandomUtilities.RandomBool((i + 1) * j);
-                    fsh.debug.SetEnabled(field, debugValue);
-                    FrameSettingsHistory.frameSettingsHistory[cam] = fsh;
 
+                    //simulate on both
+                    fshc.frameSettingsHistory.debug.SetEnabled(field, debugValue);
                     tester.SetEnabled(field, debugValue);
                 }
 
+                FrameSettings.Sanitize(ref tester, cam, supportedFeatures);
+
+                //gather computed
+                FrameSettingsHistory.AggregateFrameSettings(ref result, cam, add, ref defaultFS, supportedFeatures);
+
+                //non bit non tested
+                tester.lodBias = result.lodBias;
+                tester.lodBiasMode = result.lodBiasMode;
+                tester.maximumLODLevel = result.maximumLODLevel;
+                tester.maximumLODLevelMode = result.maximumLODLevelMode;
+
                 //test
-                result = FrameSettingsHistory.frameSettingsHistory[cam].debug;
+                result = FrameSettingsHistory.containers.Where(c => c == add as IFrameSettingsHistoryContainer).First().frameSettingsHistory.debug;
+                Debug.Log($"different {result} {tester}");
                 Assert.AreEqual(result, tester);
 
                 Object.DestroyImmediate(go);

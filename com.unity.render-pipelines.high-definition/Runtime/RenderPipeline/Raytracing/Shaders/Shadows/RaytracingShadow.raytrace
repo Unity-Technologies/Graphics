@@ -73,7 +73,7 @@ void RayGenAreaShadows()
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
 
     // Decode the world space normal
     NormalData normalData;
@@ -297,7 +297,7 @@ void RayGenAreaShadowSingle()
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
@@ -360,7 +360,7 @@ void RayGenDirectionalShadowSingle()
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
@@ -415,7 +415,7 @@ void RayGenPointShadowSingle()
         _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_VISIBILITY] + 1;
 
     // Compute the world space position of the source pixel
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
