@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Mesh m_DebugProbeMesh = null;
         private List<Matrix4x4[]> m_ProbeMatricesList;
         private Hash128 m_ProbeMatricesInputHash = new Hash128();
+        public bool dataUpdated = false;
 
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
@@ -174,6 +175,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 SphericalHarmonicsL2 additionalProbe = nativeData[i];
                 res[i] = new Vector3(additionalProbe[0, 0], additionalProbe[1, 0], additionalProbe[2, 0]);
             }
+
+            dataUpdated = false;
 
             return res;
         }
@@ -208,6 +211,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        protected void OnBakeCompleted()
+        {
+            dataUpdated = true;
+        }
+
         protected void OnEnable()
         {
             ProbeVolumeManager.manager.RegisterVolume(this);
@@ -219,6 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProbeMatricesInputHash = new Hash128();
             SetupPositions();
 
+            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
         }
 
         protected void OnDisable()
@@ -227,6 +236,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (id != -1)
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(id, null);
+
+            UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
         }
 
         protected void Update()
@@ -246,10 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!this.gameObject.activeInHierarchy)
                 return;
 
-            if (id == -1)
-            {
-                GetID();
-            }
+            GetID();
 
             float debugProbeSize = 0.1f;
 

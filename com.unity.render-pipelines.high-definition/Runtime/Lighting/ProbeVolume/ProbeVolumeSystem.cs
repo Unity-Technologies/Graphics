@@ -239,15 +239,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Store volume resolution inside the atlas's key->bias dictionary.
             // If resolution has changed since upload, need to free previous allocation from atlas,
             // and attempt to allocate a new chunk from the atlas for the new resolution settings.
-            // Currently atlas allocator only handles spliting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
+            // Currently atlas allocator only handles splitting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
             bool isSlotAllocated = probeVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, ref volume.parameters.scaleBias, key, width, height);
-
-            // TODO: Add code to override this value once new probe data becomes available so we can force an update
-            isUploadNeeded = true;
 
             if (isSlotAllocated)
             {
-                if (isUploadNeeded)
+                if (isUploadNeeded || volume.dataUpdated)
                 {
                     Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
                     cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeResolution", new Vector3(
