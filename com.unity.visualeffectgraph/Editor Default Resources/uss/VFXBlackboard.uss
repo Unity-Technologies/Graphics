@@ -71,7 +71,7 @@ VFXBlackboardRow.hovered #pill #selection-border
 VFXBlackboardCategory #name-field
 {
     position:absolute;
-    left:16;
+    left:16px;
     right:0;
     top:0;
     bottom:0;
