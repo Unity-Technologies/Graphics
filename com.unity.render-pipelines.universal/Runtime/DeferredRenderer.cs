@@ -32,7 +32,8 @@ namespace UnityEngine.Rendering.Universal
 //            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
 //            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
             Material tileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
-            Material tilingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tilingPS);
+            Material tileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
+            Material stencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -42,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
-            m_DeferredLights = new DeferredLights(tileDepthInfoMaterial, tilingMaterial);
+            m_DeferredLights = new DeferredLights(tileDepthInfoMaterial, tileDeferredMaterial, stencilDeferredMaterial);
 
 
             // Note: Since all custom render passes inject first and we have stable sort,

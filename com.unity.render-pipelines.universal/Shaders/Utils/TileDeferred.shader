@@ -3,15 +3,15 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     HLSLINCLUDE
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
-    // TODO customize per platform.
     #define MAX_UNIFORM_BUFFER_SIZE (64 * 1024)
     #define MAX_TILES_PER_PATCH (MAX_UNIFORM_BUFFER_SIZE / 16) // uint4
     #define SIZEOF_VEC4_POINTLIGHT_DATA 2 // 2 float4
     #define MAX_POINTLIGHT_PER_BATCH (MAX_UNIFORM_BUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHT_DATA))
     #define MAX_REL_LIGHT_INDICES_PER_BATCH (MAX_UNIFORM_BUFFER_SIZE / 4) // Should be ushort!
 
-    #define TILE_HEADER_SIZE 1
+    #define LIGHT_LIST_HEADER_SIZE 1
 
     ENDHLSL
 
@@ -19,10 +19,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
 
-        // 0 - Deferred Point Light
+        // 0 - Tiled Deferred Point Light
         Pass
         {
-            Name "Deferred Point Light"
+            Name "Tiled Deferred Point Light"
 
             ZTest Always
             ZWrite Off
@@ -133,13 +133,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 return output;
             }
 
-            struct PointLightData
-            {
-                float3 WsPos;
-                float Radius;
-                float4 Color;
-            };
-
             CBUFFER_START(UPointLightBuffer)
             // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
             float4 g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH * SIZEOF_VEC4_POINTLIGHT_DATA];
@@ -150,7 +143,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 PointLightData pl;
                 pl.WsPos = g_PointLightBuffer[relLightIndex].xyz;
                 pl.Radius = g_PointLightBuffer[relLightIndex].w;
-                pl.Color = g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH + relLightIndex];
+                pl.Color = g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH + relLightIndex].rgb;
                 return pl;
             }
 
@@ -175,9 +168,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float d = g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
                 #endif
 
-                // View space depth (signed).
-//                float z = dot(g_unproject0, float4(0, 0, d, 1)) / dot(g_unproject1, float4(0, 0, d, 1));
-
                 // Temporary code to calculate fragment world space position.
                 float4 wsPos = mul(_InvCameraViewProj, float4(input.clipCoord, d * 2.0 - 1.0, 1.0));
                 wsPos.xyz *= 1.0 / wsPos.w;
@@ -186,7 +176,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
                 for (uint li = 0; li < lightCount; ++li)
                 {
-                    int offsetInList = input.relLightOffset + TILE_HEADER_SIZE + li;
+                    int offsetInList = input.relLightOffset + LIGHT_LIST_HEADER_SIZE + li;
                     uint relLightIndex = LoadRelLightIndex(offsetInList);
                     PointLightData light = LoadPointLightData(relLightIndex);
 

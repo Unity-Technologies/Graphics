@@ -49,8 +49,11 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/TileDepthInfo.shader")]
             public Shader tileDepthInfoPS;
 
-            [Reload("Shaders/Utils/Tiling.shader")]
-            public Shader tilingPS;
+            [Reload("Shaders/Utils/TileDeferred.shader")]
+            public Shader tileDeferredPS;
+
+            [Reload("Shaders/Utils/StencilDeferred.shader")]
+            public Shader stencilDeferredPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]
