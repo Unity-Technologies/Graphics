@@ -54,3 +54,7 @@ MonoBehaviour:
   m_PointLightVolumeShader: {fileID: 4800000, guid: c7d04ca57e5449d49ad9cee1c604bc26,
     type: 3}
   m_BlitShader: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
+  m_ShadowShader: {fileID: 0}
+  m_ShadowGroupShader: {fileID: 4800000, guid: d33b6d70b14697547ad0dc2d4debb009, type: 3}
+  m_RemoveSelfShadowShader: {fileID: 0}
+  m_PostProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}

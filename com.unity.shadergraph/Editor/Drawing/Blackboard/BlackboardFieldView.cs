@@ -88,6 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
                 m_ExposedToogle.value = input.generatePropertyBlock;
                 AddRow("Exposed", m_ExposedToogle, input.isExposable);
+				
             }
 
             if(!m_Graph.isSubGraph || input is ShaderKeyword)
