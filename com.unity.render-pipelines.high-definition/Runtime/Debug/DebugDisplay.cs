@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Raytracing
         LightCluster,
         IndirectDiffuse,
-        PrimaryVisibility,
+        RecursiveTracing,
         MaxLightingFullScreenDebug,
 
         // Rendering

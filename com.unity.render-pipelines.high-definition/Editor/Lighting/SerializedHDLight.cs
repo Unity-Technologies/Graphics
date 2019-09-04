@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty filterTracedShadow;
             public SerializedProperty filterSizeTraced;
             public SerializedProperty sunLightConeAngle;
+            public SerializedProperty lightShadowRadius;
 #endif
             public SerializedProperty evsmExponent;
             public SerializedProperty evsmLightLeakBias;
@@ -145,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     filterTracedShadow = o.Find("m_FilterTracedShadow"),
                     filterSizeTraced = o.Find("m_FilterSizeTraced"),
                     sunLightConeAngle = o.Find("m_SunLightConeAngle"),
+                    lightShadowRadius = o.Find("m_LightShadowRadius"),
 #endif
                     evsmExponent = o.Find("m_EvsmExponent"),
                     evsmVarianceBias = o.Find("m_EvsmVarianceBias"),

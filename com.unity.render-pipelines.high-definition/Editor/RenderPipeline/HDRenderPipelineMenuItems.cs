@@ -94,11 +94,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
 #if ENABLE_RAYTRACING
-        [MenuItem("GameObject/Rendering/Raytracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/Ray Tracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateRaytracingEnvironmentGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Raytracing Environment");
+            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Ray Tracing Environment");
             raytracingEnvGameObject.AddComponent<HDRaytracingEnvironment>();
         }
 #endif

@@ -845,6 +845,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SunLightConeAngle = Mathf.Clamp(value, 0.0f, 2.0f);
             }
         }
+
+        [SerializeField, FormerlySerializedAs("lightShadowRadius")]
+        float m_LightShadowRadius = 0.5f;
+        /// <summary>
+        /// Angular size of the sun in degree.
+        /// </summary>
+        public float lightShadowRadius
+        {
+            get => m_LightShadowRadius;
+            set
+            {
+                if (m_LightShadowRadius == value)
+                    return;
+
+                m_LightShadowRadius = Mathf.Max(value, 0.001f);
+            }
+        }
 #endif
 
         [Range(k_MinEvsmExponent, k_MaxEvsmExponent)]
@@ -1516,18 +1533,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
 #if ENABLE_RAYTRACING
-            // We render screen space shadows if we are a ray traced rectangle area light or a screen space directional light shadow
-            if ((m_UseRayTracedShadows && lightTypeExtent == LightTypeExtent.Rectangle)
-                || (useScreenSpaceShadows && legacyLight.type == LightType.Directional))
+            LightCategory lightCategory = LightCategory.Count;
+            GPULightType gpuLightType = GPULightType.Point;
+            LightVolumeType lightVolumeType = LightVolumeType.Count;
+            HDRenderPipeline.EvaluateGPULightType(legacyLight.type, lightTypeExtent, spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
+
+            // Flag the ray tracing only shadows
+            if (m_UseRayTracedShadows && (lightTypeExtent == LightTypeExtent.Rectangle || lightTypeExtent == LightTypeExtent.Punctual))
             {
                 m_WillRenderScreenSpaceShadow = true;
+                m_WillRenderRayTracedShadow = true;
             }
 
-            // We will evaluate a ray traced shadow if we a ray traced area shadow
-            if ((m_UseRayTracedShadows && lightTypeExtent == LightTypeExtent.Rectangle)
-                || (m_UseRayTracedShadows && legacyLight.type == LightType.Directional))
+            // Flag the directional shadow
+            if (useScreenSpaceShadows && gpuLightType == GPULightType.Directional)
             {
-                m_WillRenderRayTracedShadow = true;
+                m_WillRenderScreenSpaceShadow = true;
+                if (m_UseRayTracedShadows)
+                {
+                    m_WillRenderRayTracedShadow = true;
+                }
             }
 #endif
         }
