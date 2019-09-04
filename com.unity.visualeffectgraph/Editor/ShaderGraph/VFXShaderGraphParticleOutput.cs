@@ -10,10 +10,33 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
-    class VFXShaderGraphParticleOutput : VFXAbstractParticleOutput
+    class VFXShaderGraphParticleOutput : VFXAbstractParticleOutput, ISerializationCallbackReceiver
     {
-        [VFXSetting, SerializeField]
+        [SerializeField,VFXSetting]
         public ShaderGraphVfxAsset shaderGraph;
+
+        [SerializeField]
+        private string shadergraphGUID;
+
+        public void OnBeforeSerialize()
+        {
+            if (shaderGraph != null)
+                shadergraphGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shaderGraph));
+            else
+                shadergraphGUID = null;
+        }
+
+        public void OnAfterDeserialize()
+        {
+        }
+
+        new void OnEnable()
+        {
+            base.OnEnable();
+            if (!string.IsNullOrEmpty(shadergraphGUID))
+                shaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(AssetDatabase.GUIDToAssetPath(shadergraphGUID));
+        }
+
 
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
@@ -320,7 +343,7 @@ namespace UnityEditor.VFX
                 graphCodes.Clear();
         }
 
-public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
             {
