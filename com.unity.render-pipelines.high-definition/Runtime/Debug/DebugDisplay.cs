@@ -838,36 +838,36 @@ namespace UnityEngine.Rendering.HighDefinition
             return string.Format("({0:F6}, {1:F6}, {2:F6})", v.x, v.y, v.z);
         }
 
-        public static void RegisterCamera(Camera camera, HDAdditionalCameraData additionalData)
+        internal static void RegisterCamera(IFrameSettingsHistoryContainer container)
         {
-            string name = camera.name;
+            string name = container.panelName;
             if (s_CameraNames.FindIndex(x => x.text.Equals(name)) < 0)
             {
                 s_CameraNames.Add(new GUIContent(name));
                 needsRefreshingCameraFreezeList = true;
             }
 
-            if (!FrameSettingsHistory.IsRegistered(camera))
+            if (!FrameSettingsHistory.IsRegistered(container))
             {
-                var history = FrameSettingsHistory.RegisterDebug(camera, additionalData);
+                var history = FrameSettingsHistory.RegisterDebug(container);
                 DebugManager.instance.RegisterData(history);
             }
         }
 
-        public static void UnRegisterCamera(Camera camera, HDAdditionalCameraData additionalData)
+        internal static void UnRegisterCamera(IFrameSettingsHistoryContainer container)
         {
-            string name = camera.name;
-            int indexOfCamera = s_CameraNames.FindIndex(x => x.text.Equals(camera.name));
+            string name = container.panelName;
+            int indexOfCamera = s_CameraNames.FindIndex(x => x.text.Equals(name));
             if (indexOfCamera > 0)
             {
                 s_CameraNames.RemoveAt(indexOfCamera);
                 needsRefreshingCameraFreezeList = true;
             }
 
-            if (FrameSettingsHistory.IsRegistered(camera))
+            if (FrameSettingsHistory.IsRegistered(container))
             {
-                DebugManager.instance.UnregisterData(FrameSettingsHistory.GetPersistantDebugDataCopy(camera));
-                FrameSettingsHistory.UnRegisterDebug(camera);
+                DebugManager.instance.UnregisterData(container);
+                FrameSettingsHistory.UnRegisterDebug(container);
             }
         }
     }

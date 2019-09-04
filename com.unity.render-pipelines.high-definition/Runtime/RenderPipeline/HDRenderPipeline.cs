@@ -382,9 +382,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // another instance of HDRenderPipeline constructor is called.
 
             Camera firstSceneViewCamera = UnityEditor.SceneView.sceneViews.Count > 0 ? (UnityEditor.SceneView.sceneViews[0] as UnityEditor.SceneView).camera : null;
-            if (firstSceneViewCamera != null && !FrameSettingsHistory.isRegisteredSceneViewCamera(firstSceneViewCamera))
+            if (firstSceneViewCamera != null)
             {
-                var history = FrameSettingsHistory.RegisterDebug(firstSceneViewCamera, null);
+                var history = FrameSettingsHistory.RegisterDebug(null, true);
                 DebugManager.instance.RegisterData(history);
             }
 #endif
@@ -2286,7 +2286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             FrameSettings currentFrameSettings = new FrameSettings();
             // Compute the FrameSettings actually used to draw the frame
             // FrameSettingsHistory do the same while keeping all step of FrameSettings aggregation in memory for DebugMenu
-            if (m_FrameSettingsHistoryEnabled)
+            if (m_FrameSettingsHistoryEnabled && camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
                 FrameSettingsHistory.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset, m_DefaultAsset);
             else
                 FrameSettings.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset, m_DefaultAsset);
