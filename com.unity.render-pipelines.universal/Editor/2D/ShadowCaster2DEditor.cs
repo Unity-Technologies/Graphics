@@ -9,17 +9,17 @@ using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
-    [CustomEditor(typeof(LightReactor2D))]
+    [CustomEditor(typeof(ShadowCaster2D))]
     [CanEditMultipleObjects]
-    internal class LightReactor2DEditor : PathComponentEditor<ScriptablePath>
+    internal class ShadowCaster2DEditor : PathComponentEditor<ScriptablePath>
     {
-        [EditorTool("Edit Shadow Caster Shape", typeof(LightReactor2D))]
-        class LightReactor2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
+        [EditorTool("Edit Shadow Caster Shape", typeof(ShadowCaster2D))]
+        class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
 
         private static class Styles
         {
-            public static GUIContent shadowMode = EditorGUIUtility.TrTextContent("Use Renderer Silhouette", "Toggles the use of the renderer as part of shadow casting");
-            public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "Specifies if this renderer will cast shadows on itself");
+            public static GUIContent shadowMode = EditorGUIUtility.TrTextContent("Use Renderer Silhouette", "When this and Self Shadows are enabled, the Renderer's silhouette is considered part of the shadow. When this is enabled and Self Shadows disabled, the Renderer's silhouette is excluded from the shadow.");
+            public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "When enabled, the Renderer casts shadows on itself.");
             public static GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
         }
@@ -47,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public void ShadowCaster2DSceneGUI()
         {
-            LightReactor2D shadowCaster = target as LightReactor2D;
+            ShadowCaster2D shadowCaster = target as ShadowCaster2D;
 
             Transform t = shadowCaster.transform;
             Vector3[] shape = shadowCaster.shapePath;
@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel);
 
             if (m_CastsShadows.boolValue)
-                ShadowCaster2DInspectorGUI<LightReactor2DShadowCasterShapeTool>();
+                ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
 
             serializedObject.ApplyModifiedProperties();
         }

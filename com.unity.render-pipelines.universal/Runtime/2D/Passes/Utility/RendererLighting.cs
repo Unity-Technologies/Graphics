@@ -163,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         ShadowCasterGroup2D shadowCasterGroup = shadowCasterGroups[group];
 
-                        List<LightReactor2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
+                        List<ShadowCaster2D> shadowCasters = shadowCasterGroup.GetShadowCasters();
 
                         int shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
                         if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
@@ -178,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             // Draw the shadow casting group first, then draw the silhouttes..
                             for (int i = 0; i < shadowCasters.Count; i++)
                             {
-                                LightReactor2D shadowCaster = (LightReactor2D)shadowCasters[i];
+                                ShadowCaster2D shadowCaster = (ShadowCaster2D)shadowCasters[i];
 
                                 if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                 {
@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                             for (int i = 0; i < shadowCasters.Count; i++)
                             {
-                                LightReactor2D shadowCaster = (LightReactor2D)shadowCasters[i];
+                                ShadowCaster2D shadowCaster = (ShadowCaster2D)shadowCasters[i];
 
                                 if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                 {

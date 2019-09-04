@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for Material Quality in Shader Graph
 - Material Quality support selection in HDRP Asset
 - Renamed XR shader macro from UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX to UNITY_XR_ASSIGN_VIEW_INDEX
+- Raytracing ShaderGraph node for HDRP shaders
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix FrameSettings names and tooltips
 - Fixed error with XR SDK when the Editor is not in focus
 - Fixed errors with RenderGraph, XR SDK and occlusion mesh
+- Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 
 ### Changed
 - Update Wizard layout.
@@ -37,9 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced usage of ENABLE_VR in XRSystem.cs by version defines based on the presence of the built-in VR and XR modules
 - Added an update virtual function to the SkyRenderer class. This is called once per frame. This allows a given renderer to amortize heavy computation at the rate it chooses. Currently only the physically based sky implements this.
 - Removed mandatory XRPass argument in HDCamera.GetOrCreate()
-
-## Added
-- Raytracing ShaderGraph node for HDRP shaders
 
 ## [7.0.1] - 2019-07-25
 

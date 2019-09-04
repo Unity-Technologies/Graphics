@@ -352,7 +352,7 @@ namespace UnityEditor.Rendering
             return s_PointLightHandle.radius;
         }
 
-        static bool drawInnerConeAngle = false;
+        static bool drawInnerConeAngle = true;
 
         /// <summary>
         /// Draw a gizmo for a spot light.
@@ -431,7 +431,6 @@ namespace UnityEditor.Rendering
             }
 
             // Draw inner handles
-            // Commented until inner angle will bake
             float innerAngle = 0;
             const string innerLabel = "Inner Angle: ";
             if (light.innerSpotAngle > 0f && drawInnerConeAngle)
@@ -462,8 +461,7 @@ namespace UnityEditor.Rendering
             if (GUI.changed)
             {
                 light.spotAngle = outerAngle;
-                // Commented until inner cone angle bakes
-                //spotlight.innerSpotAngle = innerAngle;
+                light.innerSpotAngle = innerAngle;
                 light.range = Math.Max(range, 0.01f);
                 light.shadowNearPlane = Mathf.Clamp(nearPlaneRange, 0.1f, light.range);
             }

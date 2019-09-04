@@ -118,8 +118,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 .GetAllTypesDerivedFrom<BaseShaderPreprocessor>()
                 .Select(Activator.CreateInstance)
                 .Cast<BaseShaderPreprocessor>()
-		.OrderByDescending(spp => spp.Priority)
-		.ToList();
+                .OrderByDescending(spp => spp.Priority)
+                .ToList();
         
         internal static bool IsHDRPShader(Shader shader, bool upgradable = false)
         {
