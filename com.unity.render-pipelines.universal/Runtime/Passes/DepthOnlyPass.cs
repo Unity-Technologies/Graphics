@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Render all objects that have a 'DepthOnly' pass into the given depth buffer.
@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// You can use this pass to prime a depth buffer for subsequent rendering.
     /// Use it as a z-prepass, or use it to generate a depth buffer.
     /// </summary>
-    internal class DepthOnlyPass : ScriptableRenderPass
+    public class DepthOnlyPass : ScriptableRenderPass
     {
         int kDepthBufferBits = 32;
 

@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
 [CreateAssetMenu]
 public class CameraCallbackTests : ScriptableRendererFeature
