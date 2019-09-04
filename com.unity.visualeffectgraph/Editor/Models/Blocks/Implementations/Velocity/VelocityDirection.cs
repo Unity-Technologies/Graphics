@@ -5,10 +5,11 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Velocity")]
+    [VFXInfo(category = "Velocity", experimental = true)]
     class VelocityDirection : VelocityBase
     {
-        public override string name { get { return string.Format(base.name, "Direction"); } }
+        public override string name { get { return string.Format(base.name, "New Direction"); } }
+
         protected override bool altersDirection { get { return true; } }
 
         public class InputProperties
