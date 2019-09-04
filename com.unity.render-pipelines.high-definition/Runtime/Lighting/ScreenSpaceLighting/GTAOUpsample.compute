@@ -22,7 +22,7 @@ void AOUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
  
     // Gather half res samples + depths.
-    float2 uv = (dispatchThreadId.xy + 0.5) * _ScreenSize.zw;
+    float2 uv = (dispatchThreadId.xy + 0.5f) * _ScreenSize.zw;
     uint4 currDatas = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, _AOBufferSize.zw));
     float4 currAOs, currDepths;
     UnpackGatheredData(currDatas, currAOs, currDepths);
