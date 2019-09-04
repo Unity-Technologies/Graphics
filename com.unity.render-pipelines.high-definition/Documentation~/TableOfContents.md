@@ -58,8 +58,9 @@
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
     * [Unlit Shader](Unlit-Shader)
-  * Shader Graph master nodes
-    * [Creating and Editing Shader Graphs](Creating-and-Editing-HDRP-Shader-Graphs)
+  * Shader Graph Master Nodes
+    * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
+    * [Hair](Master-Node-Hair)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
