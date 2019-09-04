@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 for (int passIndex = 0; passIndex < 2; ++passIndex)
                 {
-                    var xrPass = XRPass.Create(passIndex, cullingParams);
+                    var xrPass = XRPass.Create(multipassId: passIndex, cullingPassId: 0, cullingParams);
                     xrPass.AddView(camera, (Camera.StereoscopicEye)passIndex);
 
                     AddPassToFrame(camera, xrPass);
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                var xrPass = XRPass.Create(multipassId: 0, cullingParams);
+                var xrPass = XRPass.Create(multipassId: 0, cullingPassId: 0, cullingParams);
 
                 for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
                 {
@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (layoutOverride == XRLayoutOverride.TestSinglePassOneEye)
             {
-                var xrPass = XRPass.Create(framePasses.Count, cullingParams, camera.targetTexture);
+                var xrPass = XRPass.Create(multipassId: framePasses.Count, cullingPassId: 0, cullingParams, camera.targetTexture);
 
                 // 2x single-pass
                 for (int i = 0; i < 2; ++i)
@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int tileX = 0; tileX < tileCountX; ++tileX)
                     {
-                        var xrPass = XRPass.Create(framePasses.Count, cullingParams, camera.targetTexture);
+                        var xrPass = XRPass.Create(multipassId: framePasses.Count, cullingPassId: 0, cullingParams, camera.targetTexture);
 
                         float spliRatioX1 = Mathf.Pow((tileX + 0.0f) / tileCountX, splitRatio);
                         float spliRatioX2 = Mathf.Pow((tileX + 1.0f) / tileCountX, splitRatio);

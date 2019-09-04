@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 - Fixed toggle volumetric lighting in the light UI
 - Fixed post-processing history reset handling rt-scale incorrectly
+- Fixed crash with terrain and XR multi-pass
 
 ### Changed
 - Update Wizard layout.
