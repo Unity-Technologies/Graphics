@@ -436,7 +436,7 @@ namespace UnityEditor.ShaderGraph
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
                 builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
-
+            
             if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }

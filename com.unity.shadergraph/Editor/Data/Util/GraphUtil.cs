@@ -1184,13 +1184,13 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateSurfaceInputTransferCode(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName, string variableName)
         {
             sb.AppendLine($"{structName} {variableName};");
-
+            
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb, $"{variableName}.{{0}} = IN.{{0}};");
             ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb, $"{variableName}.{{0}} = IN.{{0}};");
-
+            
             if (requirements.requiresVertexColor)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexColor} = IN.{ShaderGeneratorNames.VertexColor};");
 
@@ -1224,7 +1224,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         hlslName = $"{hlslName}_{slot.id}";
                     }
-
+                  
                     surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
 
                     if (activeFields != null)
@@ -1278,7 +1278,7 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     activeNode.CollectShaderProperties(shaderProperties, mode);
-                }
+                }                
 
                 functionRegistry.builder.currentNode = null;
                 surfaceDescriptionFunction.currentNode = null;
@@ -1386,7 +1386,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 functionRegistry.builder.currentNode = null;
-                builder.currentNode = null;
+                builder.currentNode = null; 
 
                 if(slots.Count != 0)
                 {
@@ -1394,7 +1394,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
                         var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        var slotValue = isSlotConnected ?
+                        var slotValue = isSlotConnected ? 
                             ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
                         builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                     }

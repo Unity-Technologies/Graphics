@@ -1061,7 +1061,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var masterNode = VirtualTexturingFeedback.AutoInject(iMasterNode) as HDLitMasterNode;
-            
+
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", false);
             subShader.AddShaderChunk("{", false);

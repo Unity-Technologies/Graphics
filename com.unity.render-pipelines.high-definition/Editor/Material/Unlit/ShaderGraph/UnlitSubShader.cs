@@ -391,9 +391,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // HDSubShaderUtilities.cs
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
-            
+
             var masterNode = VirtualTexturingFeedback.AutoInject(iMasterNode) as UnlitMasterNode;
-            
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);

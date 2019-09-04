@@ -651,7 +651,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var masterNode = VirtualTexturingFeedback.AutoInject(iMasterNode) as FabricMasterNode;
-            
+
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
