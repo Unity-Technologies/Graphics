@@ -23,6 +23,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // Override material
         public Material overrideMaterial = null;
         public int overrideMaterialPassIndex = 0;
+
+        Material m_DefaultOverrideMaterial;
+        Material defaultOverrideMaterial
+        {
+            get
+            {
+                if (m_DefaultOverrideMaterial == null)
+                {
+                    var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
+                    m_DefaultOverrideMaterial = CoreUtils.CreateEngineMaterial(res.shaders.defaultRendererCustomPass);
+                }
+
+                return m_DefaultOverrideMaterial;
+            }
+        }
         
         static List<ShaderTagId> m_HDRPShaderTags;
         static List<ShaderTagId> hdrpShaderTags
@@ -32,6 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_HDRPShaderTags == null)
                 {
                     m_HDRPShaderTags = new List<ShaderTagId>() {
+                        HDShaderPassNames.s_ForwardName,            // HD Lit shader
                         HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
                         HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
                     };
@@ -68,8 +84,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderQueueRange = GetRenderQueueRange(renderQueueType),
                 sortingCriteria = sortingCriteria,
                 excludeObjectMotionVectors = true,
-                overrideMaterial = overrideMaterial,
-                overrideMaterialPassIndex = overrideMaterialPassIndex,
+                overrideMaterial = (overrideMaterial != null) ? overrideMaterial : defaultOverrideMaterial,
+                overrideMaterialPassIndex = (overrideMaterial != null) ? overrideMaterialPassIndex : 0,
                 layerMask = layerMask,
             };
 
@@ -98,6 +114,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return HDRenderQueue.k_RenderQueue_All;
             }
+        }
+
+        protected override void Cleanup()
+        {
+            if (m_DefaultOverrideMaterial != null)
+                CoreUtils.Destroy(m_DefaultOverrideMaterial);
         }
     }
 }
