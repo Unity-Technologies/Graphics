@@ -48,6 +48,11 @@ Image.unity-list-view__item:selected
     border-color: #999999;
 }
 
+#debugToolbar
+{
+    border-color: #999999;
+}
+
 MultipleSourcePopupField > MultipleDifferentValue
 {
     background-color: #DFDFDF;
