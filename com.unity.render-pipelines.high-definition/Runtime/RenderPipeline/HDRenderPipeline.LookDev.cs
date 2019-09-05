@@ -50,8 +50,9 @@ namespace UnityEngine.Rendering.HighDefinition
             shadows.cascadeShadowSplitCount.Override(2);
 
             VisualEnvironment visualEnvironment = profile.Add<VisualEnvironment>();
+            visualEnvironment.skyType.Override((int)SkyType.HDRI);
             visualEnvironment.fogType.Override(FogType.None);
-
+            visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
             HDRISky sky = profile.Add<HDRISky>();
 
             SRI.SRPData = new LookDevDataForHDRP()
