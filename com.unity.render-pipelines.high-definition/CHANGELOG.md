@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed mandatory XRPass argument in HDCamera.GetOrCreate()
 - Restored the HDCamera parameter to the sky rendering builtin parameters.
 - Removed usage of StructuredBuffer for XR View Constants
+- Expose Direct Specular Lighting control in FrameSettings
 
 ## [7.0.1] - 2019-07-25
 
