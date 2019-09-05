@@ -79,8 +79,9 @@
             * [Vertex Color](Vertex-Color-Node)  
             * [View Direction](View-Direction-Node)
         * Gradient   
+            * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)  
-            * [Sample Gradient](Sample-Gradient-Node)  
+            * [Sample Gradient](Sample-Gradient-Node)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node)  
             * [Matrix 3x3](Matrix-3x3-Node)  
