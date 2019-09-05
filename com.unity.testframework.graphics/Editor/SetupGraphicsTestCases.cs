@@ -252,6 +252,7 @@ ReflectionProbe-*";
         {
             var client = TestRailGraphics.TestRailGraphics.ConnectToTestrail();
             //loop through tests and make a case for each one, if one doesnt already exist
+            // do a get_cases first?
             foreach (var scene in EditorBuildSettings.scenes)
             {
                 string caseTitle = scene.path.ToString();
