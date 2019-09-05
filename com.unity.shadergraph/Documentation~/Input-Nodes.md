@@ -37,10 +37,13 @@
 
 ## Gradient
 
-|[Gradient](Gradient-Node.md)|[Sample Gradient](Sample-Gradient-Node.md)|
+|[Blackbody](Blackbody-Node.md)|[Gradient](Gradient-Node.md)|
 |:--------:|:------:|
-|![Image](images/GradientNodeThumb.png)|![](images/SampleGradientNodeThumb.png)|
-| Defines a constant Gradient in the shader. | Samples a Gradient given the input of Time. |
+|![Image](images/BlackbodyNodeThumb.png)|![Image](images/GradientNodeThumb.png)|
+| Samples a radiation based gradient from temperature input (in Kelvin).  | Defines a constant Gradient in the shader. |
+|[Sample Gradient](Sample-Gradient-Node.md)|
+|![](images/SampleGradientNodeThumb.png)|
+| Samples a Gradient given the input of Time. |
 
 ## Matrix
 
