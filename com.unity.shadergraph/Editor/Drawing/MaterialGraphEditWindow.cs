@@ -14,6 +14,7 @@ using UnityEditor.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using UnityEditor.VersionControl;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -62,6 +63,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.saveRequested += UpdateAsset;
                     m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
                     m_GraphEditorView.showInProjectRequested += PingAsset;
+                    m_GraphEditorView.isCheckedOut += IsGraphAssetCheckedOut;
+                    m_GraphEditorView.checkOut += CheckoutAsset;
                     m_GraphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
                     m_FrameAllAfterLayout = true;
                     this.rootVisualElement.Add(graphEditorView);
@@ -241,6 +244,32 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
                 var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
                 EditorGUIUtility.PingObject(asset);
+            }
+        }
+
+        public bool IsGraphAssetCheckedOut()
+        {
+            if (selectedGuid != null)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                if (!AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible))
+                    return false;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public void CheckoutAsset()
+        {
+            if (selectedGuid != null)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                Task task = Provider.Checkout(asset, CheckoutMode.Both);
+                task.Wait();
             }
         }
 

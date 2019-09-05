@@ -11,6 +11,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
+using UnityEditor.VersionControl;
 
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -56,6 +57,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
         public Action saveRequested { get; set; }
+
+        public Func<bool> isCheckedOut { get; set; }
+
+        public Action checkOut { get; set; }
 
         public Action convertToSubgraphRequested
         {
@@ -161,6 +166,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                         foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                         {
                             node.Dirty(ModificationScope.Graph);
+                        }
+                    }
+
+                    if (isCheckedOut != null)
+                    {
+                        if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                        {
+                            if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                            {
+                                if (checkOut != null)
+                                    checkOut();
+                            }
+                        }
+                        else
+                        {
+                            EditorGUI.BeginDisabledGroup(true);
+                            GUILayout.Button("Check Out", EditorStyles.toolbarButton);
+                            EditorGUI.EndDisabledGroup();
                         }
                     }
 
