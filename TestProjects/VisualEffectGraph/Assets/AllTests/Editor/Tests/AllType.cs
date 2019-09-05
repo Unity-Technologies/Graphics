@@ -48,8 +48,8 @@ namespace UnityEditor.VFX.Block.Test
         }
 
         [VFXSetting]
-        public RotateMode mode;
+        public RotateMode mode = RotateMode.Quaternion;
         [VFXSetting]
-        public bool rotateTwice;
+        public bool rotateTwice = false;
     }
 }

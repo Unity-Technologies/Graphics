@@ -18,7 +18,7 @@ using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 

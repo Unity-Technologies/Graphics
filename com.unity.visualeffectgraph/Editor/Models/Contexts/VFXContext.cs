@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.VFX
 {
     [Flags]
-    public enum VFXContextType
+    enum VFXContextType
     {
         None = 0,
 
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
     };
 
     [Flags]
-    public enum VFXDataType
+    enum VFXDataType
     {
         None =          0,
         SpawnEvent =    1 << 0,

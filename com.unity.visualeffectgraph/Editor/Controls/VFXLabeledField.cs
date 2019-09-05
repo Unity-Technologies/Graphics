@@ -6,7 +6,7 @@ using System;
 namespace UnityEditor.VFX.UI
 {
     //Copied from mousefield dragger but add notifications needed for delayed fields
-    public class VFXFieldMouseDragger<T>
+    class VFXFieldMouseDragger<T>
     {
         Action m_OnDragFinished;
         public VFXFieldMouseDragger(IValueField<T> drivenField, Action onDragFinished = null)

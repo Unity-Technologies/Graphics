@@ -4,13 +4,14 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    public class VFXCustomSpawnerSample : VFXSpawnerCallbacks
+    class VFXCustomSpawnerTest : VFXSpawnerCallbacks
     {
+        static public float s_SpawnCount = 101.0f;
+        static public float s_LifeTime = 17.0f;
+
         public class InputProperties
         {
-            public float dummyX = 2;
-            public float dummyY = 1;
-            public Gradient dummyZ = new Gradient();
+            public float totalTime = 8;
         }
 
         public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
@@ -19,15 +20,9 @@ namespace UnityEditor.VFX
 
         public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            var a = vfxValues.GetGradient("dummyZ");
-            if (a != null)
-            {
-                state.spawnCount = 123.0f;
-            }
-            else
-            {
-                state.spawnCount = 456.0f;
-            }
+            state.spawnCount = s_SpawnCount;
+            state.totalTime = vfxValues.GetFloat("totalTime");
+            state.vfxEventAttribute.SetFloat("lifetime", s_LifeTime);
         }
 
         public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
