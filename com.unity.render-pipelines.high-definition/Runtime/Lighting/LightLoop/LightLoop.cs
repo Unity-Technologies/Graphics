@@ -478,10 +478,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void DisposeLightArraysPerFrame()
             {
-                m_LightVolumeData.Dispose();
-                m_Bounds.Dispose();
-                m_LightData.Dispose();
-                m_EnvLights.Dispose();
+                if(m_LightVolumeData.IsCreated)
+                    m_LightVolumeData.Dispose();
+                if(m_Bounds.IsCreated)
+                    m_Bounds.Dispose();
+                if(m_LightData.IsCreated)
+                    m_LightData.Dispose();
+                if(m_EnvLights.IsCreated)
+                    m_EnvLights.Dispose();
             }
 
             public void Clear()
@@ -3144,15 +3148,19 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateDataBuffers()
         {
             m_LightLoopLightData.directionalLightData.SetData(m_lightList.directionalLights);
-            m_LightLoopLightData.lightData.SetData(m_lightList.m_LightData);
-            m_LightLoopLightData.envLightData.SetData(m_lightList.m_EnvLights);
+            if(m_lightList.m_LightData.IsCreated)
+                m_LightLoopLightData.lightData.SetData(m_lightList.m_LightData);
+            if(m_lightList.m_EnvLights.IsCreated)
+                m_LightLoopLightData.envLightData.SetData(m_lightList.m_EnvLights);
             m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
 
             // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
             //            m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
             //            m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
-            m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.m_Bounds);
-            m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.m_LightVolumeData);
+            if(m_lightList.m_Bounds.IsCreated)
+                m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.m_Bounds);
+            if(m_lightList.m_LightVolumeData.IsCreated)
+                m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.m_LightVolumeData);
         }
 
         HDAdditionalLightData GetHDAdditionalLightData(Light light)

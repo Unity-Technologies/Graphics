@@ -8,6 +8,12 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        void SafeDispose<T>(NativeArray<T> arr) where T : struct
+        {
+            if(arr.IsCreated)
+                arr.Dispose();
+        }
+
         public struct LightDatasJob : IJobParallelFor
         {
             public struct BakedShadowMaskdata
@@ -772,8 +778,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DisposeRefProbeScratchData()
         {
-            m_RefProbesSortIndexRemapping.Dispose();
-            m_EnvIndex.Dispose();
+            SafeDispose(m_RefProbesSortIndexRemapping);
+            SafeDispose(m_EnvIndex);
         }
 
         void AllocatePunctualLightScratchData(int sortCount)
@@ -792,15 +798,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DisposePunctualLightAcratchData()
         {
-            m_VisibleLightRemapping.Dispose();
-            m_SortIndexRemapping.Dispose();
-            m_LightPositions.Dispose();
-            m_LightTypes.Dispose();
-            m_DistanceToCamera.Dispose(); 
-            m_LightDistanceFade.Dispose();
-            m_ShadowIndices.Dispose();
-            m_AdditionalLightData.Dispose();
-            m_BakedShadowMaskdatas.Dispose();
+            SafeDispose(m_VisibleLightRemapping);
+            SafeDispose(m_SortIndexRemapping);
+            SafeDispose(m_LightPositions);
+            SafeDispose(m_LightTypes);
+            SafeDispose(m_DistanceToCamera);
+            SafeDispose(m_LightDistanceFade);
+            SafeDispose(m_ShadowIndices);
+            SafeDispose(m_AdditionalLightData);
+            SafeDispose(m_BakedShadowMaskdatas);
         }
         
         void AllocateVolumeBoundsJobArrays(int lightCount, int numViews)
@@ -814,11 +820,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DisposeBoundsJobArrays()
         {
-            m_LightCategory.Dispose(); 
-            m_GpuLightType.Dispose(); 
-            m_LightVolumeType.Dispose(); 
-            m_LightDimensions.Dispose(); 
-            m_WorldToView.Dispose();
+            SafeDispose(m_LightCategory);
+            SafeDispose(m_GpuLightType);
+            SafeDispose(m_LightVolumeType);
+            SafeDispose(m_LightDimensions);
+            SafeDispose(m_WorldToView);
         }
 
         void AllocateProbeVolumeBoundsJobArrays(int probeCount)
@@ -830,9 +836,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DisposeProbeVolumeBoundsJobArrays()
         {
-            m_ProbeLightVolumeTypes.Dispose();
-            m_InfluenceExtents.Dispose();
-            m_InfluenceToWorld.Dispose();
+            SafeDispose(m_ProbeLightVolumeTypes);
+            SafeDispose(m_InfluenceExtents);
+            SafeDispose(m_InfluenceToWorld);
         }
 
         void AllocateDensityVolumeJobArrays(List<OrientedBBox> obb)
@@ -844,17 +850,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_Obb[i] = obb[i];
                 }
-                m_ObbAllocated = true;
             }
         }
 
         void DisposeDensityVolumeJobArrays()
         {
-            if(m_ObbAllocated)
-            {
-                m_ObbAllocated = false;
-                m_Obb.Dispose();
-            }
+            SafeDispose(m_Obb);
         }
 
         NativeArray<LightCategory> m_LightCategory;
@@ -882,7 +883,6 @@ namespace UnityEngine.Rendering.HighDefinition
         NativeArray<Matrix4x4> m_InfluenceToWorld;
 
         NativeArray<OrientedBBox> m_Obb;
-        bool m_ObbAllocated = false;
 
         LightVolumeBoundsJob m_LightVolumeBoundsJob;
         LightDatasJob m_LightDatasJob;
