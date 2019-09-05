@@ -837,16 +837,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void AllocateDensityVolumeJobArrays(List<OrientedBBox> obb)
         {
-            m_Obb = new NativeArray<OrientedBBox>(obb.Count, Allocator.TempJob);
-            for(int i = 0; i < obb.Count; i++)
+            if(obb != null)
             {
-                m_Obb[i] = obb[i];                
+                m_Obb = new NativeArray<OrientedBBox>(obb.Count, Allocator.TempJob);
+                for (int i = 0; i < obb.Count; i++)
+                {
+                    m_Obb[i] = obb[i];
+                }
+                m_ObbAllocated = true;
             }
         }
 
         void DisposeDensityVolumeJobArrays()
         {
-            m_Obb.Dispose();
+            if(m_ObbAllocated)
+            {
+                m_ObbAllocated = false;
+                m_Obb.Dispose();
+            }
         }
 
         NativeArray<LightCategory> m_LightCategory;
@@ -874,6 +882,7 @@ namespace UnityEngine.Rendering.HighDefinition
         NativeArray<Matrix4x4> m_InfluenceToWorld;
 
         NativeArray<OrientedBBox> m_Obb;
+        bool m_ObbAllocated = false;
 
         LightVolumeBoundsJob m_LightVolumeBoundsJob;
         LightDatasJob m_LightDatasJob;
