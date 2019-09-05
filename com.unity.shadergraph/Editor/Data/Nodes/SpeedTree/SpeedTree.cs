@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
 		Palm = 5
 	}
 
-	[Title("SpeedTree", "SpeedTree")]
+	[Title("SpeedTree", "SpeedTreeWind")]
 	class SpeedTreeNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireMeshUV, IGeneratesFunction
 	{
 		public const int OutputSlotId = 0;
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph
 
 		public SpeedTreeNode()
 		{
-			name = "SpeedTree";
+			name = "SpeedTreeWind";
 			UpdateNodeAfterDeserialization();
 		}
 

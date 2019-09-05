@@ -31,6 +31,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
+                // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
+                // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+                // This remove is required otherwise the code generate several time the define...
+                "#ifndef DEBUG_DISPLAY\n#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST\n#endif"
             },
             Includes = new List<string>()
             {
@@ -88,44 +92,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as SpeedTreeLitMasterNode;
                 HDSubShaderUtilities.SetStencilStateForGBuffer(ref pass);
 
-                // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
-                // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-                // This remove is required otherwise the code generate several time the define...
-                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST\n#endif");
-
-                if (masterNode.alphaTest.isOn)
-                {
-                    pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST\n#endif");
-                }
-
                 if (masterNode.billboard.isOn)
                 {
                     pass.ExtraDefines.Add("#define SPEEDTREE_BILLBOARD");
                     pass.ExtraDefines.Add("#define EFFECT_BILLBOARD");
                 }
 
-                if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree7)
-                {
-                    switch (masterNode.speedTreeGeomType)
-                    {
-                        case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_BRANCH_DETAIL");
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Branch:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Frond:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_FROND");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Leaf:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_LEAF");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Mesh:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_MESH");
-                            break;
-                    }
-                }
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
             }
         };
 
@@ -194,29 +167,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as SpeedTreeLitMasterNode;
 
-                if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree7)
-                {
-                    switch (masterNode.speedTreeGeomType)
-                    {
-                        case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_BRANCH_DETAIL");
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Branch:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Frond:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_FROND");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Leaf:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_LEAF");
-                            break;
-                        case SpeedTreeLitMasterNode.TreeGeomType.Mesh:
-                            pass.ExtraDefines.Add("#define GEOM_TYPE_MESH");
-                            break;
-                    }
-                }
-                else
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
+
+                if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree8)
                 {
                     pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.SubsurfaceMaskSlotId);
                     pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.ThicknessSlotId);
@@ -260,6 +213,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.PositionSlotId,
             },
             UseInPreview = false,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as SpeedTreeLitMasterNode;
+
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
+            }
         };
 
         Pass m_SceneSelectionPass = new Pass()
@@ -293,7 +253,14 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
             },
-            UseInPreview = false
+            UseInPreview = false,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as SpeedTreeLitMasterNode;
+
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
+            }
         };
 
         Pass m_PassDepthOnly = new Pass()
@@ -354,6 +321,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 pass.ExtraDefines.Add("#define ENABLE_WIND");
                 pass.ExtraDefines.Add("#define EFFECT_BACKSIDE_NORMALS");
                 pass.ExtraDefines.Add("#define SPEEDTREE_Y_UP");
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
             }
         };
 
@@ -411,6 +379,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 pass.ExtraDefines.Add("#define ENABLE_WIND");
                 pass.ExtraDefines.Add("#define EFFECT_BACKSIDE_NORMALS");
                 pass.ExtraDefines.Add("#define SPEEDTREE_Y_UP");
+
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
             }
         };
 
@@ -425,6 +395,13 @@ namespace UnityEditor.Rendering.HighDefinition
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
+            },
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
+                "#define ENABLE_WIND",
+                "#define EFFECT_BACKSIDE_NORMALS",
+                "#define SPEEDTREE_Y_UP",
             },
             StencilOverride = new List<string>()
             {
@@ -477,6 +454,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     pass.BlendOverride = "Blend One Zero, One Zero";
                     pass.BlendOpOverride = "BlendOp Add, Add";
                 }
+
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
             }
         };
 
@@ -514,6 +493,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.PositionSlotId
             },
             UseInPreview = true,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as SpeedTreeLitMasterNode;
+
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
+            }
         };
 
         Pass m_PassTransparentBackface = new Pass()
@@ -574,7 +560,10 @@ namespace UnityEditor.Rendering.HighDefinition
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
+                var masterNode = node as SpeedTreeLitMasterNode;
+
                 HDSubShaderUtilities.SetBlendModeForTransparentBackface(ref pass);
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
             }
         };
 
@@ -594,6 +583,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
+                // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+                // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+                "#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif"
             },
             Includes = new List<string>()
             {
@@ -650,22 +642,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDSubShaderUtilities.SetStencilStateForForward(ref pass);
                 HDSubShaderUtilities.SetBlendModeForForward(ref pass);
 
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
+
                 if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree8)
                 {
                     pass.ExtraDefines.Add("#ifdef GEOM_TYPE_LEAF\n#define _SURFACE_TYPE_TRANSPARENT\n#endif");
                     pass.ExtraDefines.Add("#ifndef _SURFACE_TYPE_TRANSPARENT\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
                 }
 
-                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
-
                 pass.ColorMaskOverride = "ColorMask [_ColorMaskTransparentVel] 1";
-                if (masterNode.alphaTest.isOn)
-                {
-                    // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-                    // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-                    pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
-                    pass.ZTestOverride = "ZTest Equal";
-                }
+                pass.ZTestOverride = "ZTest Equal";
             }
         };
 
@@ -702,6 +688,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.PositionSlotId
             },
             UseInPreview = true,
+
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as SpeedTreeLitMasterNode;
+
+                masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
+            }
         };
 
         /*
@@ -997,7 +990,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 // Add tags at the SubShader level
-                int queue = HDRenderQueue.ChangeType(masterNode.renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
+                int queue = HDRenderQueue.ChangeType(masterNode.renderingPass, masterNode.sortPriority, true);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
 
                 // generate the necessary shader passes
@@ -1006,8 +999,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 bool distortionActive = transparent && masterNode.distortion.isOn;
                 bool transparentBackfaceActive = transparent && masterNode.backThenFrontRendering.isOn;
-                bool transparentDepthPrepassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPrepass.isOn;
-                bool transparentDepthPostpassActive = transparent && masterNode.alphaTest.isOn && masterNode.alphaTestDepthPostpass.isOn;
+                bool transparentDepthPrepassActive = transparent && masterNode.alphaTestDepthPrepass.isOn;
+                bool transparentDepthPostpassActive = transparent && masterNode.alphaTestDepthPostpass.isOn;
 
                 GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
@@ -1044,7 +1037,7 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);
 
-            //subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""");
+            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.SpeedTreeLitGUI""");
 
             return subShader.GetShaderString(0);
         }
