@@ -253,18 +253,18 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.alphaTest.isOn;
-                    toggle.OnToggleChanged(ChangeAlphaTest);
-                });
-            });
+            //ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
+            //{
+//                row.Add(new Toggle(), (toggle) =>
+//                {
+//                    toggle.value = m_Node.alphaTest.isOn;
+//                    toggle.OnToggleChanged(ChangeAlphaTest);
+//                });
+//            });
 
-            if (m_Node.alphaTest.isOn)
-            {
-                ++indentLevel;
+//            if (m_Node.alphaTest.isOn)
+//            {
+//                ++indentLevel;
                 ps.Add(new PropertyRow(CreateLabel("Use Shadow Threshold", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
@@ -273,8 +273,8 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                         toggle.OnToggleChanged(ChangeAlphaTestShadow);
                     });
                 });
-                --indentLevel;
-            }
+//                --indentLevel;
+//            }
 
             ps.Add(new PropertyRow(CreateLabel("Material Type", indentLevel)), (row) =>
             {
@@ -574,6 +574,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.owner.owner.RegisterCompleteObjectUndo("Sort Priority Change");
         }
 
+        /*
         void ChangeAlphaTest(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Change");
@@ -581,6 +582,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             td.isOn = evt.newValue;
             m_Node.alphaTest = td;
         }
+        */
 
         void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
         {

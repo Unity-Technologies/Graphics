@@ -140,6 +140,19 @@ namespace UnityEditor.Rendering.HighDefinition
             Palm,
         }
 
+        public enum SpeedTree7CullMode
+        {
+            Off = 0,
+            Front,
+            Back,
+        }
+
+        public enum SpeedTree8TwoSided
+        {
+            Yes = 0,
+            No = 2,
+        }
+
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
         enum SlotMask
@@ -361,6 +374,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /*
         [SerializeField]
         bool m_AlphaTest;
 
@@ -376,6 +390,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Topological);
             }
         }
+        */
 
         [SerializeField]
         bool m_AlphaTestDepthPrepass;
@@ -1058,6 +1073,40 @@ namespace UnityEditor.Rendering.HighDefinition
             return materialType == SpeedTreeLitMasterNode.MaterialType.SubsurfaceScattering;
         }
 
+        public void AddBasicGeometryDefines(ref List<String> ExtraDefines)
+        {
+            ExtraDefines.Add("#pragma shader_feature_local EFFECT_BUMP");
+            if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
+            {
+                ExtraDefines.Add("#pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
+                ExtraDefines.Add("#define SPEEDTREE_V7");
+                switch (speedTreeGeomType)
+                {
+                    case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
+                        ExtraDefines.Add("#define GEOM_TYPE_BRANCH_DETAIL");
+                        ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Branch:
+                        ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Frond:
+                        ExtraDefines.Add("#define GEOM_TYPE_FROND");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Leaf:
+                        ExtraDefines.Add("#define GEOM_TYPE_LEAF");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Mesh:
+                        ExtraDefines.Add("#define GEOM_TYPE_MESH");
+                        break;
+                }
+            }
+            else
+            {
+                ExtraDefines.Add("#pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM");
+                ExtraDefines.Add("#define SPEEDTREE_V8");
+            }
+        }
+
         public override void ProcessPreviewMaterial(Material previewMaterial)
         {
             // Fixup the material settings:
@@ -1070,7 +1119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             previewMaterial.SetFloat(kTransparentCullMode, (int)transparentCullMode);
             previewMaterial.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
             // No sorting priority for shader graph preview
-            previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
+            previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: true);
 
             HDLitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
         }
@@ -1119,8 +1168,69 @@ namespace UnityEditor.Rendering.HighDefinition
                 zTest,
                 backThenFrontRendering.isOn
             );
-            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
+            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, true, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+
+            // This is not really a part of the existing shaders, but we are adding it
+            // for the sake of UI Options controllability
+            collector.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = "_SpeedTreeVersion",
+                floatType = FloatType.Enum,
+                value = (int)speedTreeAssetVersion,
+                enumType = EnumType.CSharpEnum,
+                cSharpEnumType = typeof(SpeedTreeVersion),
+                hidden = false,
+            });
+
+            if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
+            {
+                // In SpeedTree8, this is embedded in one of the UV channels
+                collector.AddShaderProperty(new Vector1ShaderProperty()
+                {
+                    overrideReferenceName = "_SpeedTreeGeom",
+                    floatType = FloatType.Enum,
+                    value = (int)speedTreeGeomType,
+                    enumType = EnumType.CSharpEnum,
+                    cSharpEnumType = typeof(TreeGeomType),
+                    hidden = false,
+                });
+            }
+
+            collector.AddShaderProperty(new Vector1ShaderProperty()
+            {
+                overrideReferenceName = "_WindQuality",
+                floatType = FloatType.Enum,
+                value = (int)windQuality,
+                enumType = EnumType.CSharpEnum,
+                cSharpEnumType = typeof(WindQuality),
+                hidden = false,
+            });
+
+            if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
+            {
+                collector.AddShaderProperty(new Vector1ShaderProperty()
+                {
+                    overrideReferenceName = "_Cull",
+                    floatType = FloatType.Enum,
+                    value = (int)SpeedTree7CullMode.Back,
+                    enumType = EnumType.CSharpEnum,
+                    cSharpEnumType = typeof(SpeedTree7CullMode),
+                    hidden = false,
+                });
+            }
+            else
+            {
+                collector.AddShaderProperty(new Vector1ShaderProperty()
+                {
+                    overrideReferenceName = "_TwoSided",
+                    floatType = FloatType.Enum,
+                    value = (int)SpeedTree8TwoSided.No,
+                    enumType = EnumType.CSharpEnum,
+                    cSharpEnumType = typeof(SpeedTree8TwoSided),
+                    hidden = false,
+                });
+            }
 
             base.CollectShaderProperties(collector, generationMode);
         }
