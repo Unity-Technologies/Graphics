@@ -284,7 +284,7 @@ namespace UnityEditor.VFX.UI
             m_Toolbar = new VisualElement();
             m_Toolbar.AddToClassList("toolbar");
 
-            
+
             Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
@@ -293,6 +293,18 @@ namespace UnityEditor.VFX.UI
             button.text = "Select Asset";
             button.AddToClassList("toolbarItem");
             m_Toolbar.Add(button);
+
+            var toggleAutoCompile = new ToolbarToggle();
+            toggleAutoCompile.text = "Auto";
+            toggleAutoCompile.style.unityTextAlign = TextAnchor.MiddleRight;
+            toggleAutoCompile.SetValueWithoutNotify(true);
+            toggleAutoCompile.RegisterCallback<ChangeEvent<bool>>(OnToggleCompile);
+            m_Toolbar.Add(toggleAutoCompile);
+
+            var compileButton = new ToolbarButton(OnCompile);
+            compileButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            compileButton.text = "Compile";
+            m_Toolbar.Add(compileButton);
 
             VisualElement spacer = new VisualElement();
             spacer.style.width = 10;
@@ -309,16 +321,24 @@ namespace UnityEditor.VFX.UI
             m_ToggleComponentBoard.AddToClassList("toolbarItem");
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
-            
+
             spacer = new VisualElement();
             spacer.style.width = 10;
             m_Toolbar.Add(spacer);
-            
+
             checkoutButton = new Button(() => { Checkout(); });
             checkoutButton.text = "Check Out";
             checkoutButton.visible = false;
             checkoutButton.AddToClassList("toolbarItem");
             m_Toolbar.Add(checkoutButton);
+
+            var showDebugMenu = new ToolbarMenu();
+            showDebugMenu.text = "Advanced";
+            showDebugMenu.menu.AppendAction("Runtime Mode (Forced)", OnRuntimeModeChanged, RuntimeModeStatus);
+            showDebugMenu.menu.AppendAction("Shader Validation (Forced)", OnShaderValidationChanged, ShaderValidationStatus);
+            showDebugMenu.menu.AppendSeparator();
+            showDebugMenu.menu.AppendAction("Refresh UI", OnRefreshUI, DropdownMenuAction.Status.Normal);
+            m_Toolbar.Add(showDebugMenu);
 
             spacer = new VisualElement();
             spacer.style.flexGrow = 1f;
@@ -367,19 +387,19 @@ namespace UnityEditor.VFX.UI
             Add(m_NoAssetLabel);
 
             m_Blackboard = new VFXBlackboard(this);
-            
-            
+
+
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
                 Add(m_Blackboard);
             toggleBlackboard.value = blackboardVisible;
-            
+
             /*
             bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
             if (componentBoardVisible)
                 ShowComponentBoard();
             toggleComponentBoard.value = componentBoardVisible;*/
-            
+
             Add(m_Toolbar);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
@@ -1231,7 +1251,7 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-                
+
                 foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);
@@ -1667,7 +1687,7 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(3, "To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
-            
+
         }
 
 
