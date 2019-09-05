@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.SceneManagement;
 using System.Reflection;
+using TestRailGraphics;
+using Gurock.TestRail;
 
 using UnityEditor;
 using EditorSceneManagement = UnityEditor.SceneManagement;
@@ -243,6 +245,18 @@ ReflectionProbe-*";
             UnityEngine.Object[] sceneAssets = Selection.GetFiltered(typeof(SceneAsset), SelectionMode.DeepAssets);
 
             return sceneAssets.Length != 0;
+        }
+
+        [MenuItem("Assets/Tests/Create TestRail cases")]
+        public static void CreateCases()
+        {
+            var client = TestRailGraphics.TestRailGraphics.ConnectToTestrail();
+            //loop through tests and make a case for each one, if one doesnt already exist
+            foreach (var scene in EditorBuildSettings.scenes)
+            {
+                string caseTitle = scene.path.ToString();
+                TestRailGraphics.TestRailGraphics.CreateCase(client, caseTitle, "94013");
+            }
         }
     }
 }

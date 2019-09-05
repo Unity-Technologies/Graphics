@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
+using TestRailGraphics;
 
 public class ShaderGraphGraphicsTests
 {
