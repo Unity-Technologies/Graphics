@@ -14,7 +14,7 @@ using UnityEditor.VFX.UI;
 using UnityObject = UnityEngine.Object;
 
 
-public class VFXExternalShaderProcessor : AssetPostprocessor
+class VFXExternalShaderProcessor : AssetPostprocessor
 {
     public const string k_ShaderDirectory = "Shaders";
     public const string k_ShaderExt = ".vfxshader";
@@ -144,7 +144,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
 
 [CustomEditor(typeof(VisualEffectAsset))]
 [CanEditMultipleObjects]
-public class VisualEffectAssetEditor : Editor
+class VisualEffectAssetEditor : Editor
 {
     [OnOpenAsset(1)]
     public static bool OnOpenVFX(int instanceID, int line)
