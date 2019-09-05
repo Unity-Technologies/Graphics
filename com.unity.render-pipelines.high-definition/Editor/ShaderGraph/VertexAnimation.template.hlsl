@@ -47,7 +47,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
     // copy graph output to the results
-    $VertexDescription.Position:    input.positionOS = vertexDescription.Position;
+    $VertexDescription.Position:      input.positionOS = vertexDescription.Position;
+    $VertexDescription.VertexNormal:  input.normalOS = vertexDescription.VertexNormal;
+    $VertexDescription.VertexTangent: input.tangentOS.xyz = vertexDescription.VertexTangent;
 
     return input;
 }
