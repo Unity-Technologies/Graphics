@@ -89,6 +89,10 @@ SAMPLER(sampler_CameraDepthTexture);
 // Color pyramid (width, height, lodcount, Unused)
 TEXTURE2D_X(_ColorPyramidTexture);
 
+// Custom pass buffer
+TEXTURE2D_X(_CustomDepthTexture);
+TEXTURE2D_X(_CustomColorTexture);
+
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -282,6 +286,26 @@ float3 LoadCameraColor(uint2 pixelCoords)
 float3 SampleCameraColor(float2 uv)
 {
     return SampleCameraColor(uv, 0);
+}
+
+float3 SampleCustomColor(float2 uv)
+{
+    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0).rgb;
+}
+
+float3 LoadCustomColor(uint2 pixelCoords)
+{
+    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0).rgb;
+}
+
+float LoadCustomDepth(uint2 pixelCoords)
+{
+    return LOAD_TEXTURE2D_X_LOD(_CustomDepthTexture, pixelCoords, 0).r;
+}
+
+float SampleCustomDepth(float2 uv)
+{
+    return LoadCustomDepth(uint2(uv * _ScreenSize.xy));
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

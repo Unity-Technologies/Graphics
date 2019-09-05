@@ -231,12 +231,14 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int lightIdx = 0; lightIdx < lightArray.hdLightArray.Count; ++lightIdx)
             {
                 HDAdditionalLightData currentLight = lightArray.hdLightArray[lightIdx];
-                Light light = currentLight.gameObject.GetComponent<Light>();
 
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to not add it if it is null for that invalid frame
-                if (currentLight != null && light.enabled)
+                if (currentLight != null)
                 {
+                    Light light = currentLight.gameObject.GetComponent<Light>();
+                    if (light == null || !light.enabled) continue;
+
                     float lightRange = light.range;
                     m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
                     m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
@@ -799,6 +801,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return envLightCount;
         }
 
+        void InvalidateCluster()
+        {
+            // Invalidate the cluster's bounds so that we never access the buffer
+            minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
+            maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
+            punctualLightCount = 0;
+            areaLightCount = 0;
+
+            // Make sure the buffer is at least of size 1
+            if (m_LightCluster.count != 1)
+            {
+                ResizeClusterBuffer(1);
+            }
+            return;
+        }
+
         public void EvaluateLightClusters(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // Grab the current ray-tracing environment, if no environment available stop right away
@@ -807,22 +825,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // If there is no lights to process or no environment not the shader is missing
             if (currentEnv == null || (rayTracingLights.hdLightArray.Count == 0 && rayTracingLights.reflectionProbeArray.Count == 0))
             {
-                // Invalidate the cluster's bounds so that we never access the buffer
-                minClusterPos.Set(float.MaxValue, float.MaxValue, float.MaxValue);
-                maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
-                punctualLightCount = 0;
-                areaLightCount = 0;
-
-                // Make sure the buffer is at least of size 1
-                if (m_LightCluster.count != 1)
-                {
-                    ResizeClusterBuffer(1);
-                }
+                InvalidateCluster();
                 return;
             }
 
             // Build the Light volumes
             BuildGPULightVolumes(rayTracingLights);
+
+            // If no valid light were found, invalidate the cluster and leave
+            if (totalLightCount == 0)
+            {
+                InvalidateCluster();
+                return;
+            }
 
             // Evaluate the volume of the cluster
             EvaluateClusterVolume(currentEnv, hdCamera);

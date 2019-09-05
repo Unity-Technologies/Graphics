@@ -399,6 +399,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/9x_Other/9005_AfterPostProcess.unity
     guid: 2bb5d28daf3968e40aad1ae3211c2e9d
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9007_CameraAlphaComposition.unity
+    guid: 9bdb6076c41f9d64099cfd338b8f4c8b
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9301_MotionVectorsOff-Forward-Dynamic.unity
     guid: 322dc5ea5f705a245acc44fd467164ef
   - enabled: 1
