@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.1] - 2019-XX-XX
+## [7.1.1] - 2019-09-05
 ### Upgrade Guide
 - The render pipeline now handles custom renderers differently. You must now set up renderers for the Camera on the Render Pipeline Asset.
 - Render Pipeline Assets upgrades automatically and either creates a default forward renderer in your project or links the existing custom one that you've assigned.
