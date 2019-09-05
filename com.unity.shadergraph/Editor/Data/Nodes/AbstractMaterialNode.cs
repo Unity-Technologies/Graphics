@@ -633,7 +633,7 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds, bool supressWarnings = false)
         {
-            var invalidSlots = m_Slots.Select(x => x.id).Except(slotIds);
+            var invalidSlots = m_Slots.Select(x => x.id).Except(slotIds).Where( x => x != VirtualTexturingFeedback.OutputSlotID);
 
             foreach (var invalidSlot in invalidSlots.ToArray())
             {

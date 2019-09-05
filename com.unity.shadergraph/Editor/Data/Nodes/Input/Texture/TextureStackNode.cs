@@ -425,7 +425,7 @@ namespace UnityEditor.ShaderGraph
         public const int AggregateInputFirstId = 1;
 
         public override bool hasPreview { get { return false; } }
-        
+
         public TextureStackAggregateFeedbackNode()
         {
             name = "Feedback Aggregate";
@@ -490,9 +490,9 @@ namespace UnityEditor.ShaderGraph
     static class VirtualTexturingFeedback
     {
         public const int OutputSlotID = 22021982;
-        
+
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output
-        public static IMasterNode AutoInject(IMasterNode iMasterNode) 
+        public static IMasterNode AutoInject(IMasterNode iMasterNode)
         {
             var masterNode = iMasterNode as AbstractMaterialNode;
             var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNodeBase>(masterNode);
@@ -500,11 +500,11 @@ namespace UnityEditor.ShaderGraph
             // Early out if there are no VT nodes in the graph
             if ( stackNodes.Count <= 0 )
             {
-                return null;
+                return iMasterNode;
             }
-            
+
             // Duplicate the Graph so we can modify it
-            var workingMasterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid);// as MasterNode<T>;
+            var workingMasterNode = masterNode.owner.ScratchCopy().GetNodeFromGuid(masterNode.guid);
 
             // inject VTFeedback output slot
             var vtFeedbackSlot = new Vector4MaterialSlot(OutputSlotID, "VTFeedback", "VTFeedback", SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
@@ -524,7 +524,7 @@ namespace UnityEditor.ShaderGraph
                 if (stackFeedbackOutputSlot == null)
                 {
                     Debug.LogWarning("Could not find the VT feedback output slot on the stack node.");
-                    return null;
+                    return iMasterNode;
                 }
 
                 // Create a new slot on the aggregate that is similar to the uv input slot
@@ -542,20 +542,20 @@ namespace UnityEditor.ShaderGraph
             if ( feedbackInputSlot == null )
             {
                 Debug.LogWarning("Could not find the VT feedback input slot on the master node.");
-                return null;
+                return iMasterNode;
             }
 
             var feedbackOutputSlot = feedbackNode.FindOutputSlot<ISlot>(TextureStackAggregateFeedbackNode.AggregateOutputId);
             if ( feedbackOutputSlot == null )
             {
                 Debug.LogWarning("Could not find the VT feedback output slot on the aggregate node.");
-                return null;
+                return iMasterNode;
             }
 
             workingMasterNode.owner.Connect(feedbackOutputSlot.slotReference, feedbackInputSlot.slotReference);
             workingMasterNode.owner.ClearChanges();
 
             return workingMasterNode as IMasterNode;
-        }   
+        }
     }
 }
