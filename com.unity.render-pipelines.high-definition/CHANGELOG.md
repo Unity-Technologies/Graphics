@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Restored the HDCamera parameter to the sky rendering builtin parameters.
 - Removed usage of StructuredBuffer for XR View Constants
 - Expose Direct Specular Lighting control in FrameSettings
+- Deprecated ExponentialFog and VolumetricFog volume components. Now there is only one exponential fog component (Fog) which can add Volumetric Fog as an option. Added a script in Edit -> Render Pipeline -> Upgrade Fog Volume Components.
 
 ## [7.0.1] - 2019-07-25
 
