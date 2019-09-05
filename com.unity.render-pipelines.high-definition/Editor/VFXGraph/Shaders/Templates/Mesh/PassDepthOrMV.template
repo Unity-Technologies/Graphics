@@ -116,7 +116,20 @@ void frag(ps_input i
 	
 	#ifdef WRITE_NORMAL_BUFFER
 		${VFXComputeNormalWS}
-		VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
+        #ifndef VFX_SHADERGRAPH
+            VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
+        #else
+           #if HAS_SHADERGRAPH_PARAM_NORMAL
+               float3 n =  OUTSG.Normal_8;
+               float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+               normalWS = mul(n,tbn);
+           #endif
+           SurfaceData surface = (SurfaceData)0;
+           
+           surface.normalWS = normalWS;
+           
+           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), i.VFX_VARYING_POSCS.xy, outNormalBuffer);
+        #endif
 	#endif
 
 	#if IS_MOTION_VECTORS_PASS
