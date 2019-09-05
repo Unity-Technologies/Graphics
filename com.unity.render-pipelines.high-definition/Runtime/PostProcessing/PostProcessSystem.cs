@@ -992,6 +992,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Pool.Recycle(fullresCoC);
                     fullresCoC = nextCoCTex;
                 }
+
+                m_HDInstance.PushFullScreenDebugTexture(camera, cmd, fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
             }
 
             using (new ProfilingSample(cmd, "Pre-Filter", CustomSamplerId.DepthOfFieldPrefilter.GetSampler()))
