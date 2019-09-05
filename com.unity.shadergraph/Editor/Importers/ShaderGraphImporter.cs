@@ -143,7 +143,6 @@ Shader ""Hidden/GraphErrorShader2""
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, GraphData graph)
         {
-            graph = null;
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
             try
@@ -166,6 +165,17 @@ Shader ""Hidden/GraphErrorShader2""
             }
 
             return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+        }
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
+        {
+            var textGraph = File.ReadAllText(path, Encoding.UTF8);
+            graph = JsonUtility.FromJson<GraphData>(textGraph);
+            graph.messageManager = new MessageManager();
+            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            return GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths, graph);
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)

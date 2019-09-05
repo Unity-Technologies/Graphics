@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
 using UnityEditor.Graphing;
+using System.Globalization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -83,7 +84,7 @@ namespace UnityEditor.ShaderGraph
         public void AppendLine(string formatString, params object[] args)
         {
             AppendIndentation();
-            m_StringBuilder.AppendFormat(formatString, args);
+            m_StringBuilder.AppendFormat(CultureInfo.InvariantCulture,formatString, args);
             AppendNewLine();
         }
 
