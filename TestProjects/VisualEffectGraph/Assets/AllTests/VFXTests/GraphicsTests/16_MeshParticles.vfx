@@ -1042,6 +1042,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &114193906970029236
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4042,6 +4044,8 @@ MonoBehaviour:
   indirectDraw: 1
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &114799116409686190
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4511,6 +4515,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &114849367105866056
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4745,6 +4751,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &114893539770069574
 MonoBehaviour:
   m_ObjectHideFlags: 1
