@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for XR SDK mirror view modes
 - HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage. 
 - Added override Ambient Occlusion option on debug windows
+- Added Custom Post Processes with 3 injection points: Before Transparent, Before Post Process and After Post Process
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation

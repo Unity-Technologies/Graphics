@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
@@ -248,6 +250,20 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
+        }
+
+        [MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority3)]
+        static void MenuCreateCSharpPostProcessVolume()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        static void MenuCreatePostProcessShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Shader.shader");
         }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]

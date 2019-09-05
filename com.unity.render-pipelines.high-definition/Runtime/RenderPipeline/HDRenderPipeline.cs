@@ -2045,6 +2045,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, m_CameraColorBuffer);
                 RenderCustomPass(renderContext, cmd, hdCamera, cullingResults, CustomPassInjectionPoint.BeforeTransparent);
 
+                m_PostProcessSystem.DoUserBeforeTransparent(cmd, hdCamera, m_CameraColorBuffer);
+
                 RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
 
 #if ENABLE_RAYTRACING
