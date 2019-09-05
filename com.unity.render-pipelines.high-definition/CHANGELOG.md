@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
 - Support for XR SDK mirror view modes
 - HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage. 
+- DepthOfFieldCoC option in the fullscreen debug modes.
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
