@@ -73,8 +73,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected ZTestMode zTestMode = ZTestMode.Default;
 
-        [VFXSetting, SerializeField, Tooltip("Determines how the color is handled at pixel shader"), Header("Particle Options")]
-        protected ColorMappingMode colorMappingMode;
+        [VFXSetting, SerializeField, Tooltip("Determines how the color is handled at pixel shader"), Header("Particle Options"), FormerlySerializedAs("colorMappingMode")]
+        protected ColorMappingMode colorMapping;
 
         [VFXSetting, SerializeField, Tooltip("Determines how the particle UV are handled"), FormerlySerializedAs("flipbookMode")]
         protected UVMode uvMode;
@@ -147,7 +147,7 @@ namespace UnityEditor.VFX
             if (exposeAlphaThreshold)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
-            if (colorMappingMode == ColorMappingMode.GradientMapped)
+            if (colorMapping == ColorMappingMode.GradientMapped)
             {
                 yield return slotExpressions.First(o => o.name == "gradient");
             }
@@ -214,7 +214,7 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if(colorMappingMode == ColorMappingMode.GradientMapped)
+                if(colorMapping == ColorMappingMode.GradientMapped)
                 {
                     foreach(var property in PropertiesFromType("InputPropertiesGradientMapped"))
                         yield return property;
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                switch(colorMappingMode)
+                switch(colorMapping)
                 {
                     case ColorMappingMode.Default:
                         yield return "VFX_COLORMAPPING_DEFAULT";
