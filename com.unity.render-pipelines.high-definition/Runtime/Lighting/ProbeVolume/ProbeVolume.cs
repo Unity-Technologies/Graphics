@@ -149,7 +149,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private Mesh m_DebugProbeMesh = null;
         private List<Matrix4x4[]> m_ProbeMatricesList;
         private Hash128 m_ProbeMatricesInputHash = new Hash128();
+
         public bool dataUpdated = false;
+
+        [SerializeField]
+        public Vector3[] data = null;
 
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
@@ -165,26 +169,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector3[] GetData()
         {
-            if (!this.gameObject.activeInHierarchy)
-                return null;
-
-            if (id == -1)
-                return null;
-
-            var res = new Vector3[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
-            
-            var nativeData = new NativeArray<SphericalHarmonicsL2>(res.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(id, nativeData);
-
-            for (int i = 0, iLen = res.Length; i < iLen; ++i)
-            {
-                SphericalHarmonicsL2 additionalProbe = nativeData[i];
-                res[i] = new Vector3(additionalProbe[0, 0], additionalProbe[1, 0], additionalProbe[2, 0]);
-            }
-
             dataUpdated = false;
-
-            return res;
+            return data;
         }
 
         protected void Awake()
@@ -219,6 +205,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnBakeCompleted()
         {
+            if (!this.gameObject.activeInHierarchy)
+                return;
+
+            if (id == -1)
+                return;
+
+            data = new Vector3[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
+
+            var nativeData = new NativeArray<SphericalHarmonicsL2>(data.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(id, nativeData);
+
+            for (int i = 0, iLen = data.Length; i < iLen; ++i)
+            {
+                SphericalHarmonicsL2 additionalProbe = nativeData[i];
+                data[i] = new Vector3(additionalProbe[0, 0], additionalProbe[1, 0], additionalProbe[2, 0]);
+            }
+
             dataUpdated = true;
         }
 
