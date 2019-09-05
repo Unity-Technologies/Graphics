@@ -33,9 +33,9 @@ namespace UnityEditor.Rendering.Universal
             // Quality
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
-            public static GUIContent renderScaleMode = EditorGUIUtility.TrTextContent("Scaling Mode", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
-            public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
-            public static GUIContent renderScaleResolution = EditorGUIUtility.TrTextContent("Equivelent Resolution", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
+            public static GUIContent renderScaleMode = EditorGUIUtility.TrTextContent("Scaling Mode", "Scales mode the camera render target uses to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
+            public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "The resolution multiplier to apply to the Native resolution.");
+            public static GUIContent renderScaleResolution = EditorGUIUtility.TrTextContent("Resolution", "The maximum resolution the camera can output.");
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");

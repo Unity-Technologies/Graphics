@@ -101,10 +101,9 @@ namespace UnityEngine.Rendering.Universal
     public enum ScaleResolution
     {
         Native,
-        _420p,
         _720p,
         _1080p,
-        _2440p
+        _1440p
     }
 
     public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
@@ -505,23 +504,20 @@ namespace UnityEngine.Rendering.Universal
             float res;
             switch (m_ScaleResolution)
             {
-                case ScaleResolution._420p:
-                    res = 420f;
-                    break;
                 case ScaleResolution._720p:
-                    res = 720f;
+                    res = 1280f;
                     break;
                 case ScaleResolution._1080p:
-                    res = 1080f;
+                    res = 1920f;
                     break;
-                case ScaleResolution._2440p:
-                    res = 2440f;
+                case ScaleResolution._1440p:
+                    res = 2560f;
                     break;
                 default:
-                    res = Display.main.renderingHeight;
+                    res = Display.main.renderingWidth;
                     break;
             }
-            return ValidateRenderScale(Mathf.Clamp01(res / Display.main.renderingHeight));
+            return ValidateRenderScale(Mathf.Clamp01(res / Display.main.renderingWidth));
         }
 
         public ScaleResolution renderScaleResolution
