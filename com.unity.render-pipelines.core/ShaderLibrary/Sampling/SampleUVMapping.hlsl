@@ -29,47 +29,6 @@ struct UVMapping
 #endif
 };
 
-
-real2 UVMappingTo2D(UVMapping mapping)
-{
-    if (mapping.mappingType == UV_MAPPING_TRIPLANAR)
-    {
-        real3 triplanarWeights = mapping.triplanarWeights;
-        real4 val = real4(0.0, 0.0, 0.0, 0.0);
-
-    // x -> mapping.uvZY  
-    // y -> mapping.uvXZ  
-    // z -> mapping.uvXY  
-
-        if (triplanarWeights.x > triplanarWeights.y)
-        {
-            if (triplanarWeights.x > triplanarWeights.z)
-            {
-                return mapping.uvZY;
-            }
-            else
-            {
-                return mapping.uvXY;
-            }
-        }
-        else
-        {
-            if (triplanarWeights.y > triplanarWeights.z)
-            {
-                return mapping.uvXZ;
-            }
-            else
-            {
-                return mapping.uvXY;
-            }
-        }
-    }
-    else // UV_MAPPING_UVSET / UV_MAPPING_PLANAR
-    {
-        return mapping.uv;
-    }
-}
-
 // Multiple includes of the file to handle all variations of textures sampling for regular, lod and bias
 
 // Regular sampling functions

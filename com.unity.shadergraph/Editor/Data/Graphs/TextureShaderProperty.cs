@@ -24,9 +24,12 @@ namespace UnityEditor.ShaderGraph
         
         public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
+        public string textureStack = null;
+        public string textureStackTagString => string.IsNullOrEmpty(textureStack) ? "" : "[TextureStack." + textureStack + "]";
+
         public override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{textureStackTagString}{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
         
         public override string GetPropertyDeclarationString(string delimiter = ";")

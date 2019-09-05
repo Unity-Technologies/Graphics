@@ -82,7 +82,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string SOFixupMaxAddedRoughnessSlotName = "SOConeFixupMaxAddedRoughness";
 
         public const string DepthOffsetSlotName = "DepthOffset";
-        public const string VTFeedbackSlotName = "VTFeedback";
 
         public const int PositionSlotId = 0;
         public const int BaseColorSlotId = 1;
@@ -136,8 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // TODO: we would ideally need one value per lobe
         public const int SpecularOcclusionSlotId = 43; // for custom (external) SO replacing data based SO (which normally comes from some func of DataBasedSOMode(dataAO, optional bent normal))
-
-        public const int VTFeedbackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         // In StackLit.hlsl engine side
         //public enum BaseParametrization
@@ -1171,11 +1168,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 AddSlot(new Vector1MaterialSlot(DepthOffsetSlotId, DepthOffsetSlotName, DepthOffsetSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
                 validSlots.Add(DepthOffsetSlotId);
             }
-
-            var vtFeedbackSlot = new Vector4MaterialSlot(VTFeedbackSlotId, VTFeedbackSlotName, VTFeedbackSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
-            vtFeedbackSlot.hidden = true;
-            AddSlot(vtFeedbackSlot);
-            validSlots.Add(VTFeedbackSlotId);
 
             RemoveSlotsNameNotMatching(validSlots, true);
         }

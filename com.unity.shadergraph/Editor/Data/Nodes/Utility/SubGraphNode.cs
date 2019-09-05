@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireFaceSign
         , IMayRequireCameraOpaqueTexture
         , IMayRequireDepthTexture
-		, IMayRequireRequirePixelCoordinate
+        , IMayRequireRequirePixelCoordinate
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies

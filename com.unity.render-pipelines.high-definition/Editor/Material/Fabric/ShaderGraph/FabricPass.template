@@ -194,7 +194,7 @@ $include("SharedCode.template.hlsl")
         $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask =            surfaceDescription.SubsurfaceMask;
         $SurfaceDescription.Thickness:                  surfaceData.thickness =                 surfaceDescription.Thickness;
         $SurfaceDescription.Anisotropy:                 surfaceData.anisotropy =                surfaceDescription.Anisotropy;
-
+        
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = 0;
 
@@ -310,7 +310,7 @@ $include("SharedCode.template.hlsl")
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
-
+        
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)

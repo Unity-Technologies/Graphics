@@ -319,23 +319,22 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
         public void EvaluateSettings()
         {
+#if REALTIME_RAYTRACING_SUPPORT
             // Grab the current set of defines and split them
             string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
             defineArray.Clear();
             defineArray.AddRange(currentDefineList.Split(';'));
 
+            // Update all the individual defines
             bool needUpdate = false;
-
-#if REALTIME_RAYTRACING_SUPPORT
-            // Update all the individual defines            
             needUpdate |= UpdateDefineList(currentPlatformRenderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
-           
-#endif
+
             // Only set if it changed
             if (needUpdate)
             {
                 UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
             }
+#endif
         }
 
         public bool AddDiffusionProfile(DiffusionProfileSettings profile)

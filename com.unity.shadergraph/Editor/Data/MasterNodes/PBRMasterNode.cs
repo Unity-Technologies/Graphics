@@ -23,7 +23,6 @@ namespace UnityEditor.ShaderGraph
         public const string AlphaSlotName = "Alpha";
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
         public const string PositionName = "Position";
-        public const string VTFeedbackSlotName = "VTFeedback";
 
         public const int AlbedoSlotId = 0;
         public const int NormalSlotId = 1;
@@ -35,7 +34,6 @@ namespace UnityEditor.ShaderGraph
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
         public const int PositionSlotId = 9;
-        public const int VTFeedbackSlotId = TextureStackAggregateFeedbackNode.MasterNodeFeedbackInputSlotID;
 
         public enum Model
         {
@@ -130,10 +128,6 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1f, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
 
-            var fbSlot = new Vector4MaterialSlot(VTFeedbackSlotId, VTFeedbackSlotName, VTFeedbackSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment);
-            fbSlot.hidden = true;
-            AddSlot(fbSlot);
-        
             // clear out slot names that do not match the slots
             // we support
             RemoveSlotsNameNotMatching(
@@ -147,8 +141,7 @@ namespace UnityEditor.ShaderGraph
                 SmoothnessSlotId,
                 OcclusionSlotId,
                 AlphaSlotId,
-                AlphaThresholdSlotId,
-                VTFeedbackSlotId,
+                AlphaThresholdSlotId
             }, true);
         }
 

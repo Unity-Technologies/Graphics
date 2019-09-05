@@ -513,12 +513,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #if GBUFFERMATERIAL_COUNT > 5
                         , out GBufferType5 outGBuffer5
 #endif
-#if GBUFFERMATERIAL_COUNT > 6
-                        , out GBufferType6 outGBuffer6
-#endif
-#if GBUFFERMATERIAL_COUNT > 7
-                        , out GBufferType7 outGBuffer7
-#endif
                         )
 {
     // RT0 - 8:8:8:8 sRGB
