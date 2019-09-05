@@ -219,7 +219,8 @@ namespace UnityEditor.VFX.Test
             branch.outputSlots[0].UnlinkAll();
             graph.RecompileIfNeeded(); //Back to a legal state
 
-            quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Masked);
+            quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Opaque);
+            quadOutput.SetSettingValue("useAlphaClipping", true);
             Assert.IsTrue(modulo.outputSlots[0].Link(quadOutput.inputSlots.First(o => o.name.Contains("alphaThreshold"))));
             graph.RecompileIfNeeded(); //Should also be legal (alphaTreshold relying on particleId)
 

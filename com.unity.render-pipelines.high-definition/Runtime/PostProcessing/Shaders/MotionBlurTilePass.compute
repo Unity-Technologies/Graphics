@@ -115,7 +115,7 @@ float3 ParallelReduction(uint gid, uint threadIdx, float2 motionVec)
 [numthreads(TILE_SIZE, TILE_SIZE,1)]
 void TILE_GEN_KERNEL_NAME(uint3 id : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID: SV_GroupID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(id.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(id.z);
     uint threadIdx = groupThreadId.y * TILE_SIZE + groupThreadId.x;
 
     float2 motionVec = LOAD_TEXTURE2D_X(_MotionVecAndDepth, id.xy).xy;
@@ -220,7 +220,7 @@ void DDA(int2 center, float2 lineToDraw, uint centerInfo)
 void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
 #ifndef SHADER_API_METAL
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchID.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchID.z);
     int2 id = dispatchID.xy;
     int2 maxCoords = int2(_TileTargetSize.xy - 1);
 
@@ -275,7 +275,7 @@ RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
 [numthreads(8, 8, 1)]
 void TILE_NEIGHBOURHOOD_KERNEL_NAME(uint3 dispatchID : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchID.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchID.z);
     int2 id = dispatchID.xy;
     int2 maxCoords = int2(_TileTargetSize.xy - 1);
 
@@ -321,7 +321,7 @@ RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
 [numthreads(8, 8, 1)]
 void TileMinMaxMerge(uint3 dispatchID : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchID.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchID.z);
 
 #ifdef SCATTERING
     int2 id = dispatchID.xy;

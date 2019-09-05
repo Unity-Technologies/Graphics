@@ -23,7 +23,7 @@ Next, create and set up a High Definition Render Pipeline Asset.
 
 3. Assign the High Definition Render Pipeline Asset to the __Scriptable Render Pipelines Settings__ field, at the top of the window. To do this, click the radio button and select the Asset from the list, or drag the Asset into the field. 
 
-After installing the HDRP package and assigning the HDRP Asset, your Scene will not render correctly (see screenshot below). This is because the Scene still uses the built-in Shaders. The following section shows you how to upgrade these built-in Shaders to an HDRP-compatible shader . 
+After installing the HDRP package and assigning the HDRP Asset, your Scene will not render correctly (see screenshot below). This is because the Scene still uses the built-in Shaders. The following section shows you how to upgrade these built-in Shaders to an HDRP-compatible Shader . 
 
 ![](Images/UpgradingToHDRP2.png)
 
@@ -150,35 +150,12 @@ Note how the lighting is different from the original screenshot, and from the or
 <a name="ManualConversion"></a>
 ## Converting Materials manually
 
-The HDRP Material converter automatically converts Legacy Standards and Unlit Materials to HDRP Lit and Unlit Materials respectively. This section describes the steps the converter takes, to help you convert custom Materials manually.
+The HDRP Material converter automatically converts Legacy Standard and Unlit Materials to HDRP Lit and Unlit Materials respectively. The process uses an overlay function to blend the color channels together, similar to the process you would use in image editing software, like Photoshop. This section describes the steps the converter takes, to help you convert custom Materials manually. 
 
 ### The mask map
 
-The Legacy Standard to Lit conversion process combines the different Material maps of the Legacy Standard into the separate RGBA channels of the mask map in the HDRP Lit Material.
-
-* Metallic goes in the Red channel
-
-* Occlusion goes in the Green channel
-
-* Detail Mask goes in the Blue channel 
-
-* Smoothness goes in the Alpha channel
-
- ![](Images/UpgradingToHDRP12.png)
+The Legacy Standard to Lit conversion process combines the different Material maps of the Legacy Standard Shader into the separate RGBA channels of the mask map in the HDRP [Lit Material](Lit-Shader.html). For information on which color channel each map goes in, see [mask map](Mask-Map-and-Detail-Map.html#MaskMap).
 
 ### The detail map
 
-The Legacy Standard to Lit conversion process combines the different detail maps of the Legacy Standard into the separate RGBA channels of the detail map in the HDRP Lit Material. It also adds a smoothness detail too.
-
-* Albedo is desaturated and goes in the Red channel
-
-* Normal Y goes in the Green channel
-
-* Smoothness goes in the Blue channel
-
-* Normal X goes in the Alpha channel
-
-![](Images/UpgradingToHDRP13.png)
-
-The process blends detail albedo and smoothness with the base values using an overlay function, similar to the process you would use in image editing software, like Photoshop.
-
+The Legacy Standard to Lit conversion process combines the different detail maps of the Legacy Standard Shader into the separate RGBA channels of the detail map in the HDRP [Lit Material](Lit-Shader.html). It also adds a smoothness detail too. For information on which color channel each map goes in, see [detail map](Mask-Map-and-Detail-Map.html#DetailMap).

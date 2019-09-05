@@ -9,8 +9,8 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-using VFXVector2Field = UnityEditor.VFX.UIElements.VFXVector2Field;
-using VFXVector4Field = UnityEditor.VFX.UIElements.VFXVector4Field;
+using VFXVector2Field = UnityEditor.VFX.UI.VFXVector2Field;
+using VFXVector4Field = UnityEditor.VFX.UI.VFXVector4Field;
 
 namespace UnityEditor.VFX.UI
 {

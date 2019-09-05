@@ -6,6 +6,69 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.1] - 2019-XX-XX
 
+### Added
+- Transparency Overdraw debug mode. Allows to visualize transparent objects draw calls as an "heat map".
+- Enabled single-pass instancing support for XR SDK with new API cmd.SetInstanceMultiplier()
+- XR settings are now available in the HDRP asset
+- Support for Material Quality in Shader Graph
+- Material Quality support selection in HDRP Asset
+- Renamed XR shader macro from UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX to UNITY_XR_ASSIGN_VIEW_INDEX
+- Raytracing ShaderGraph node for HDRP shaders
+- Custom passes volume component with 3 injection points: Before Rendering, Before Transparent and Before Post Process
+- Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
+- Support for XR SDK mirror view modes
+- HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage. 
+
+### Fixed
+- Fixed wizard infinite loop on cancellation
+- Fixed with compute shader error about too many threads in threadgroup on low GPU
+- Fixed invalid contact shadow shaders being created on metal
+- Fixed a bug where if Assembly.GetTypes throws an exception due to mis-versioned dlls, then no preprocessors are used in the shader stripper
+- Fixed typo in AXF decal property preventing to compile
+- Fixed reflection probe with XR single-pass and FPTL
+- Fixed force gizmo shown when selecting camera in hierarchy
+- Fixed issue with XR occlusion mesh and dynamic resolution
+- Fixed an issue where lighting compute buffers were re-created with the wrong size when resizing the window, causing tile artefacts at the top of the screen.
+- Fix FrameSettings names and tooltips
+- Fixed error with XR SDK when the Editor is not in focus
+- Fixed errors with RenderGraph, XR SDK and occlusion mesh
+- Fixed shadow routines compilation errors when "real" type is a typedef on "half".
+- Fixed toggle volumetric lighting in the light UI
+- Fixed post-processing history reset handling rt-scale incorrectly
+- Fixed crash with terrain and XR multi-pass
+
+### Changed
+- Update Wizard layout.
+- Remove almost all Garbage collection call within a frame.
+- Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
+- Call the End/Begin camera rendering callbacks for camera with customRender enabled
+- Changeg framesettings migration order of postprocess flags as a pr for reflection settings flags have been backported to 2019.2
+- Replaced usage of ENABLE_VR in XRSystem.cs by version defines based on the presence of the built-in VR and XR modules
+- Added an update virtual function to the SkyRenderer class. This is called once per frame. This allows a given renderer to amortize heavy computation at the rate it chooses. Currently only the physically based sky implements this.
+- Removed mandatory XRPass argument in HDCamera.GetOrCreate()
+- Restored the HDCamera parameter to the sky rendering builtin parameters.
+
+## [7.0.1] - 2019-07-25
+
+### Added
+- Added option in the config package to disable globally Area Lights and to select shadow quality settings for the deferred pipeline. 
+- When shader log stripping is enabled, shader stripper statistics will be written at `Temp/shader-strip.json`
+- Occlusion mesh support from XR SDK
+
+### Fixed
+- Fixed XR SDK mirror view blit, cleanup some XRTODO and removed XRDebug.cs
+- Fixed culling for volumetrics with XR single-pass rendering
+- Fix shadergraph material pass setup not called
+- Fixed documentation links in component's Inspector header bar
+- Cookies using the render texture output from a camera are now properly updated
+- Allow in ShaderGraph to enable pre/post pass when the alpha clip is disabled
+
+### Changed
+- RenderQueue for Opaque now start at Background instead of Geometry.
+- Clamp the area light size for scripting API when we change the light type
+- Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
+
+
 ## [7.0.0] - 2019-07-17
 
 ### Added
@@ -112,6 +175,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
 - Moved StaticLightingSky to LightingWindow
 - Removes the current "Scene Settings" and replace them with "Sky & Fog Settings" (with Physically Based Sky and Volumetric Fog).
+- Changed how cached shadow maps are placed inside the atlas to minimize re-rendering of them. 
 
 ## [6.7.0-preview] - 2019-05-16
 

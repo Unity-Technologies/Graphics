@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
@@ -230,8 +231,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
-            [Reload("Runtime/PostProcessing/Shaders/CopyTAAHistory.compute")]
-            public ComputeShader CopyTAAHistoryCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
@@ -274,6 +273,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D owenScrambled256Tex;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScrambleNoise.png")]
             public Texture2D scramblingTex;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile1SPP.png")]
+            public Texture2D rankingTile1SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile1SPP.png")]
+            public Texture2D scramblingTile1SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile8SPP.png")]
+            public Texture2D rankingTile8SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile8SPP.png")]
+            public Texture2D scramblingTile8SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/RankingTile256SPP.png")]
+            public Texture2D rankingTile256SPP;
+            [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
+            public Texture2D scramblingTile256SPP;
 
             // Post-processing
             [Reload(new[]

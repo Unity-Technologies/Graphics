@@ -6,40 +6,20 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponent
     {
-        [Tooltip("Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.")]
+        public BoolParameter rayTracing = new BoolParameter(false);
+
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
-
-        [Tooltip("Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction).")]
-        public ClampedIntParameter stepCount = new ClampedIntParameter(6, 2, 32);
-
-        [Tooltip("Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses.")]
-        public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
-
-        [Tooltip("The effect runs at full resolution. This increases quality, but also decreases performance significantly.")]
-        public BoolParameter fullResolution = new BoolParameter(false);
-
-        [Tooltip("This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions.")]
-        public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
-
-
-        [Tooltip("Controls how much the ambient light affects occlusion.")]
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
-        [Tooltip("Enable raytraced ambient occlusion.")]
-        public BoolParameter enableRaytracing = new BoolParameter(false);
+        public ClampedIntParameter stepCount = new ClampedIntParameter(6, 2, 32);
+        public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
+        public BoolParameter fullResolution = new BoolParameter(false);
+        public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
 
-        [Tooltip("Controls the length of ambient occlusion rays.")]
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
-
-        [Tooltip("Enable Filtering on the raytraced ambient occlusion.")]
-        public BoolParameter enableFilter = new BoolParameter(false);
-
-        [Tooltip("Controls the length of ambient occlusion rays.")]
-        public ClampedIntParameter numSamples = new ClampedIntParameter(4, 1, 64);
-
-        [Tooltip("Controls the length of ambient occlusion rays.")]
-        public ClampedIntParameter filterRadius = new ClampedIntParameter(16, 1, 32);
-
+        public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
+        public BoolParameter denoise = new BoolParameter(false);
+        public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
     }
 
     partial class AmbientOcclusionSystem
@@ -143,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if ENABLE_RAYTRACING
                 HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-                if (rtEnvironement != null && settings.enableRaytracing.value)
+                if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.rayTracing.value)
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
                 else
 #endif
@@ -394,9 +374,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
         {
-            // Grab current settings
-            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
             // TODO: All the push debug stuff should be centralized somewhere
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);

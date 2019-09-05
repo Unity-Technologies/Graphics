@@ -1,4 +1,5 @@
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -16,8 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int m_KernelFilter;
 
         // Intermediate buffer that stores the ambient occlusion pre-denoising
-        RTHandle m_IntermediateBuffer = null;
-        RTHandle m_ViewSpaceNormalBuffer = null;
+        RTHandle m_AOIntermediateBuffer0 = null;
+        RTHandle m_AOIntermediateBuffer1 = null;
 
         // String values
         const string m_RayGenShaderName = "RayGenAmbientOcclusion";
@@ -41,22 +42,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keep track of the shared rt manager
             m_SharedRTManager = sharedRTManager;
 
-            // Intermediate buffer that holds the pre-denoised texture
-            m_IntermediateBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IntermediateAOBuffer");
-
-            // Buffer that holds the uncompressed normal buffer
-            m_ViewSpaceNormalBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "ViewSpaceNormalBuffer");
+            m_AOIntermediateBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "AOIntermediateBuffer0");
+            m_AOIntermediateBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "AOIntermediateBuffer1");
         }
 
         public void Release()
         {
-            RTHandles.Release(m_ViewSpaceNormalBuffer);
-            RTHandles.Release(m_IntermediateBuffer);
+            RTHandles.Release(m_AOIntermediateBuffer1);
+            RTHandles.Release(m_AOIntermediateBuffer0);
         }
 
         static RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
-            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16_SFloat, dimension: TextureXR.dimension,
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
                                         name: string.Format("AmbientOcclusionHistoryBuffer{0}", frameIndex));
         }
@@ -72,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Let's check all the resources
             HDRaytracingEnvironment rtEnvironment = m_RaytracingManager.CurrentEnvironment();
-
+            BlueNoise blueNoise = m_RaytracingManager.GetBlueNoiseManager();
 
             // Check if the state is valid for evaluating ambient occlusion
             bool invalidState = rtEnvironment == null;
@@ -96,15 +94,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the acceleration structure for the pass
             cmd.SetRayTracingAccelerationStructure(aoShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
-            // Inject the ray-tracing sampling data
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledRGTexture, m_PipelineResources.textures.owenScrambledRGBATex);
-            cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_PipelineResources.textures.owenScrambled256Tex);
-            cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_PipelineResources.textures.scramblingTex);
-
             // Inject the ray generation data
             cmd.SetRayTracingFloatParams(aoShader, HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
             cmd.SetRayTracingFloatParams(aoShader, HDShaderIDs._RaytracingRayMaxLength, aoSettings.rayLength.value);
-            cmd.SetRayTracingIntParams(aoShader, HDShaderIDs._RaytracingNumSamples, aoSettings.numSamples.value);
+            cmd.SetRayTracingIntParams(aoShader, HDShaderIDs._RaytracingNumSamples, aoSettings.sampleCount.value);
 
             // Set the data for the ray generation
             cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -112,34 +105,40 @@ namespace UnityEngine.Rendering.HighDefinition
             int frameIndex = hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)frameCount % 8;
             cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
+            // Inject the ray-tracing sampling data
+            blueNoise.BindDitheredRNGData8SPP(cmd);
+            
             // Value used to scale the ao intensity
             cmd.SetRayTracingFloatParam(aoShader, HDShaderIDs._RaytracingAOIntensity, aoSettings.intensity.value);
 
             cmd.SetRayTracingIntParam(aoShader, HDShaderIDs._RayCountEnabled, m_RaytracingManager.rayCountManager.RayCountIsEnabled());
-            cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._RayCountTexture, m_RaytracingManager.rayCountManager.rayCountTexture);
+            cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._RayCountTexture, m_RaytracingManager.rayCountManager.GetRayCountTexture());
 
             // Set the output textures
-            cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._AmbientOcclusionTextureRW, m_IntermediateBuffer);
-            cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._RaytracingVSNormalTexture, m_ViewSpaceNormalBuffer);
+            cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._AmbientOcclusionTextureRW, m_AOIntermediateBuffer0);
 
             // Run the computation
             cmd.DispatchRays(aoShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
 
-            using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
+            using (new ProfilingSample(cmd, "Filter Ambient Occlusion", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
             {
-                if(aoSettings.enableFilter.value)
+                if(aoSettings.denoise.value)
                 {
                     // Grab the history buffer
                     RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion, AmbientOcclusionHistoryBufferAllocatorFunction, 1);
 
-                    // Apply the simple denoiser
-                    HDSimpleDenoiser simpleDenoiser = m_RaytracingManager.GetSimpleDenoiser();
-                    simpleDenoiser.DenoiseBuffer(cmd, hdCamera, m_IntermediateBuffer, ambientOcclusionHistory, outputTexture, aoSettings.filterRadius.value, singleChannel: true);
+                    // Apply the temporal denoiser
+                    HDTemporalFilter temporalFilter = m_RaytracingManager.GetTemporalFilter();
+                    temporalFilter.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer0, ambientOcclusionHistory, m_AOIntermediateBuffer1);
+
+                    // Apply the diffuse denoiser
+                    HDDiffuseDenoiser diffuseDenoiser = m_RaytracingManager.GetDiffuseDenoiser();
+                    diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer1, outputTexture, aoSettings.denoiserRadius.value);
                 }
                 else
                 {
-                    HDUtils.BlitCameraTexture(cmd, m_IntermediateBuffer, outputTexture);
+                    HDUtils.BlitCameraTexture(cmd, m_AOIntermediateBuffer0, outputTexture);
                 }
             }
 

@@ -12,21 +12,23 @@ struct RayCone
 struct RayIntersection
 {
 	// Origin of the current ray
-	float3  origin;
+	float3 origin;
 	// Direction of the current ray
-	float3  incidentDirection;
+	float3 incidentDirection;
 	// Distance of the intersection
-	float   t;
+	float t;
 	// Value that holds the color of the ray
-	float3  color;
+	float3 color;
 	// Cone representation of the ray
 	RayCone cone;
 	// The remaining available depth for the current Ray
-	uint    remainingDepth;
-	// Scrambling data
-	uint2 scramblingValue;
+	uint remainingDepth;
 	// Current sample index
 	uint sampleIndex;
+	// Ray counter (used for multibounce)
+	uint rayCount;
+	// Pixel coordinate from which the initial ray was launched
+	uint2 pixelCoord;
 };
 
 struct AttributeData

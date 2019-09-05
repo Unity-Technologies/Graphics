@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Draw  objects into the given color and depth target
@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// You can use this pass to render objects that have a material and/or shader
     /// with the pass names UniversalForward or SRPDefaultUnlit.
     /// </summary>
-    internal class DrawObjectsPass : ScriptableRenderPass
+    public class DrawObjectsPass : ScriptableRenderPass
     {
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;

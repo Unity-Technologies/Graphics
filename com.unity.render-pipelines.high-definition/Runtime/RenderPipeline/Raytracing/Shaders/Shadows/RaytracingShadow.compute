@@ -1,6 +1,7 @@
 #pragma kernel RaytracingAreaShadowPrepass
 #pragma kernel RaytracingAreaShadowNewSample
 #pragma kernel RaytracingDirectionalShadowSample
+#pragma kernel RaytracingPointShadowSample
 #pragma kernel ClearShadowTexture
 #pragma kernel OutputShadowTexture
 
@@ -30,6 +31,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalSphere.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
 
 #pragma only_renderers d3d11
@@ -73,7 +75,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
 
     // Let's now decode the BSDF data from the  gbuffer
     BSDFData bsdfData;
@@ -142,9 +144,6 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
         return;
     }
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Structure that holds all the output data from the MIS
     MISSamplingOuput misOutput;
     ZERO_INITIALIZE(MISSamplingOuput, misOutput);
@@ -153,7 +152,10 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples;
 
     // Generate the new sample (follwing values of the sequence)
-    misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+    float2 noiseValue;
+    misInput.noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    misInput.noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+
     // Pick the sampling technique
     EvaluateMISTechnique(misInput);
 
@@ -231,7 +233,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
 
     // Let's now decode the BSDF data from the  gbuffer
     BSDFData bsdfData;
@@ -284,15 +286,13 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     MISSamplingOuput misOutput;
     ZERO_INITIALIZE(MISSamplingOuput, misOutput);
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
     // Generate the new sample (follwing values of the sequence)
-    misInput.noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
-
+    misInput.noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    misInput.noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+    
     // Pick the sampling technique
     EvaluateMISTechnique(misInput);
 
@@ -362,9 +362,9 @@ void ClearShadowTexture(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
     _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 }
 
+// Angle of the directional light
 float _DirectionalLightAngle;
 
-// Prepass that evaluates the data required for the ray tracing
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -377,7 +377,7 @@ void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, u
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
 
     // Decode the world space normal
     NormalData normalData;
@@ -389,14 +389,13 @@ void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, u
     // Fetch the data of the area light
     DirectionalLightData lightData = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
 
     // Generate the new sample (follwing values of the sequence)
-    float2 noiseValue = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+    float2 noiseValue;
+    noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);
@@ -404,10 +403,74 @@ void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, u
     float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(_DirectionalLightAngle * 3.14 / 180.0));
 
     float3 wsDir = mul(localDir, localToWorld); 
+
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, 1.0f);
 }
 
+float _RaytracingLightRadius;
+
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void RaytracingPointShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Compute the position input structure
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord, normalData);
+
+    // Convert this to a world space position
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Fetch the data of the area light
+    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+
+    // Compute the current sample index
+    int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
+
+    // Generate the new sample (follwing values of the sequence)
+    float2 noiseValue;
+    noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+
+    float3 lightPosition = float3(0.0, 0.0, 0.0);
+    float samplePDF = 1.0;
+    if (_RaytracingLightRadius > 0.001)
+    {
+        SampleSphericalSphere(GetAbsolutePositionWS(lightData.positionRWS), _RaytracingLightRadius, noiseValue.x, noiseValue.y,
+        positionWS, normalData.normalWS, lightPosition, samplePDF);
+    }
+    else
+    {
+        lightPosition = GetAbsolutePositionWS(lightData.positionRWS);
+    }
+
+    // Compute the ray length and ray direction
+    float3 rayDirection = lightPosition - positionWS;
+    float rayLength = length(rayDirection);
+    rayDirection = rayDirection / rayLength;
+
+    // If this ray is under the surface, no need to shoot it
+    if (dot(normalData.normalWS, rayDirection) < 0.0)
+    {
+       samplePDF = 1.0; 
+    }
+    
+    // Output the direction to the target uav
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
+}
+
+// Slot in which a shadow texture should be copied
 int _RaytracingShadowSlot;
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -415,5 +478,5 @@ void OutputShadowTexture(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
 {
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _RaytracingShadowSlot)] = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x / (float) _RaytracingNumSamples;
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _RaytracingShadowSlot)] = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
 }

@@ -5,8 +5,8 @@
 struct AttributesPass
 {
     float3 previousPositionOS : TEXCOORD4; // Contain previous transform position (in case of skinning for example)
-#if defined (_ADDITIONAL_VELOCITY_CHANGE)
-    float3 alembicVelocity    : TEXCOORD5; // Additional Velocity changes (Alembic computes velocities on runtime side).
+#if defined (_ADD_PRECOMPUTED_VELOCITY)
+    float3 precomputedVelocity    : TEXCOORD5; // Add Precomputed Velocity (Alembic computes velocities on runtime side).
 #endif
 };
 
@@ -76,24 +76,6 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 #define VARYINGS_NEED_PASS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
-// Transforms normal from object to world space
-float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
-{
-#ifdef UNITY_ASSUME_UNIFORM_SCALING
-    return normalize(mul((float3x3)unity_MatrixPreviousM, normalOS));
-#else
-    // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (float3x3)unity_MatrixPreviousMI));
-#endif
-}
-
-// Transforms local position to camera relative world space
-float3 TransformPreviousObjectToWorld(float3 positionOS)
-{
-    float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
-    return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
-}
-
 void MotionVectorPositionZBias(VaryingsToPS input)
 {
 #if defined(UNITY_REVERSED_Z)
@@ -126,8 +108,8 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
-#if defined(_ADDITIONAL_VELOCITY_CHANGE)
-        effectivePositionOS -= inputPass.alembicVelocity; // <= this line
+#if defined(_ADD_PRECOMPUTED_VELOCITY)
+        effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
 
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
