@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
 - Fixed an issue where deleting a group and a property at the same time would cause an error.
+- Emission nodes no longer produce errors when you use them in Sub Graphs.
+- Exposure nodes no longer produce errors when you use them in Sub Graphs.
+- Unlit master nodes no longer define unnecessary properties in the Universal Render Pipeline.
+- Errors no longer occur when you convert a selection to a Sub Graph.
+- Color nodes now handle Gamma and Linear conversions correctly.
+- Sub Graph Output nodes now link to the correct documentation page.
 
 ## [7.0.1] - 2019-07-25
 ### Changed
