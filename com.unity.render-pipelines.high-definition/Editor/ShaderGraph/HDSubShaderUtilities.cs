@@ -1004,19 +1004,22 @@ namespace UnityEditor.Rendering.HighDefinition
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#define USE_CLUSTERED_LIGHTLIST",
-            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH",
+            HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
         {
             "#define WRITE_NORMAL_BUFFER",
-            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH",
+            HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
 
         public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
         {
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
-            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH",
+            HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
 
         public static void SetStencilStateForDepth(ref Pass pass)

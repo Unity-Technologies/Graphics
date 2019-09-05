@@ -263,6 +263,7 @@ Shader "HDRP/Unlit"
             Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
 
+
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
             ZWrite [_ZWrite]
             ZTest [_ZTestDepthEqualForOpaque]
