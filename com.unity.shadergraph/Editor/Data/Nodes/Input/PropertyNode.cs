@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
+
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.SamplerState:
-                    sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"SAMPLER({GetVariableNameForSlot(OutputSlotId)}) = {property.referenceName};");
                     break;
                 case PropertyType.Gradient:
                     if(generationMode == GenerationMode.Preview)

@@ -357,6 +357,14 @@ namespace UnityEditor.ShaderGraph
                                 tSlot.value = tProp.value;
                         }
                         break;
+                    case ConcreteSlotValueType.SamplerState:
+                        {
+                            var tSlot = slot as SamplerStateMaterialSlot;
+                            var tProp = prop as SamplerStateShaderProperty;
+                            if (tSlot != null && tProp != null)
+                                tSlot.value = tProp.value;
+                        }
+                        break;
                 }
                 
                 AddSlot(slot);

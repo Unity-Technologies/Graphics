@@ -69,13 +69,11 @@ namespace UnityEditor.ShaderGraph
         {
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), m_filter, m_wrap),
                 generatePropertyBlock = false,
-
                 value = new TextureSamplerState()
                 {
                     filter = m_filter,
-                    wrap =  m_wrap
+                    wrap = m_wrap
                 }
             });
         }

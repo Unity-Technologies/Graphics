@@ -30,6 +30,21 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(inheritedPrecision);
             }
 
+            // SamplerState properties are tricky:
+            // - Unity only allows declaring SamplerState variable name of either sampler_{textureName} ("texture sampler") or SamplerState_{filterMode}_{wrapMode} ("system sampler").
+            //   * That's why before the branch sg-texture-properties we have the referenceName of a SamplerStateShaderProperty set to the actual system sampler names.
+            // - But with the existance of SubGraph functions we'll need unique SamplerState variable name for the function inputs.
+            //   * That means if we have two SamplerState properties on the SubGraph blackboard of the same filterMode & wrapMode settings, it fails to compile because there are two
+            //     identical function parameter names.
+            // - So we'll have to use different names for each SamplerState property, which contradicts #1 (we could do special casing only for SubGraph function generation, but it needs
+            //   changes to PropertyNode code generation, doable but more hacky).
+            // - Instead, the branch sg-texture-properties changes the SamplerState property declaration to simply be:
+            //       #define SamplerState_{referenceName} SamplerState{system sampler name}
+            //   for all system sampler names (texture sampler names stay the same).
+            //   And at the end collect all unique system sampler names and generate:
+            //       SAMPLER(SamplerState{system sampler name});
+            var systemSamplerNames = new HashSet<string>();
+
             var cbDecls = new Dictionary<string, ShaderStringBuilder>();
             foreach (var prop in properties)
             {
@@ -52,14 +67,23 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 if (prop is GradientShaderProperty gradientProperty)
-                {
                     sb.AppendLine(gradientProperty.GetGraidentPropertyDeclarationString());
-                }
+                else if (prop is SamplerStateShaderProperty samplerProperty)
+                    sb.AppendLine(samplerProperty.GetSamplerPropertyDeclarationString(systemSamplerNames));
                 else
+                    sb.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, prop.referenceName)};");
+            }
+
+            if (systemSamplerNames.Count > 0)
+            {
+                var cbName = string.Empty;
+                if (!cbDecls.TryGetValue(cbName, out var sb))
                 {
-                    var referenceName = prop.referenceName;
-                    sb.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, referenceName)};");
+                    sb = new ShaderStringBuilder();
+                    cbDecls.Add(cbName, sb);
                 }
+
+                SamplerStateShaderProperty.GenerateSystemSamplerNames(sb, systemSamplerNames);
             }
 
             foreach (var kvp in cbDecls)
