@@ -319,13 +319,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (serialized.editorLightShape == LightShape.Directional)
             {
+                EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
+
                 lightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, lightData.interactsWithSky.boolValue);
 
                 using (new EditorGUI.DisabledScope(!lightData.interactsWithSky.boolValue))
                 {
                     EditorGUI.indentLevel++;
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
                     EditorGUILayout.PropertyField(lightData.distance, s_Styles.distance);
                     if (EditorGUI.EndChangeCheck())
                     {
