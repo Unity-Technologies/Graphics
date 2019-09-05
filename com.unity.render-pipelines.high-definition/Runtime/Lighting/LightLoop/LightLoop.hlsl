@@ -28,6 +28,15 @@ float ProbeVolumeComputeFadeFactor(
     return dstF * fade;
 }
 
+float3 SampleProbe(in float2 uv, in float3 normalWS, in TEXTURE2D(shR), in TEXTURE2D(shG), in TEXTURE2D(shB), in SAMPLER(samplerState))
+{
+    real4 shAr = SAMPLE_TEXTURE2D(shR, samplerState, uv.xy);
+    real4 shAg = SAMPLE_TEXTURE2D(shG, samplerState, uv.xy);
+    real4 shAb = SAMPLE_TEXTURE2D(shB, samplerState, uv.xy);
+
+    return SHEvalLinearL0L1(normalWS, shAr, shAg, shAb);
+}
+
 void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
@@ -560,6 +569,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                             float2 probeVolumeAtlasUV2DBack = probeVolumeTexel2DBack * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
                             float2 probeVolumeAtlasUV2DFront = probeVolumeTexel2DFront * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
 
+                            // TODO: Use SampleProbe with three textures encoding L1
                             sample = lerp(
                                 SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlas, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0).rgb,
                                 SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlas, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0).rgb,
