@@ -59,6 +59,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -75,6 +76,12 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     if (overrideNormal)
     {
         surfaceData.normalWS = tangentToWorld[2];
+    }
+
+    if (overrideAO)
+    {
+        float overrideAOValue = _DebugLightingAmbientOcclusion.y;
+        surfaceData.ambientOcclusion = overrideAOValue;
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
