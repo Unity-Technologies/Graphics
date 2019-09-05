@@ -87,6 +87,11 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
             public static readonly int _MainTexSize = Shader.PropertyToID("_MainTexSize");
             public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
+
+            public static readonly int _InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
+            public static readonly int g_unproject0 = Shader.PropertyToID("g_unproject0");
+            public static readonly int g_unproject1 = Shader.PropertyToID("g_unproject1");
+            public static readonly int g_DepthTex = Shader.PropertyToID("g_DepthTex");
         }
 
         enum ClipResult
@@ -111,7 +116,7 @@ namespace UnityEngine.Rendering.Universal
 #else
         const bool k_HasNativeQuadSupport = false;
 #endif
-        public bool useTiles = false;
+        public bool useTiles = true;
 
         int m_RenderWidth = 0;
         int m_RenderHeight = 0;
@@ -486,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
             int drawCallCount = 0;
 
             {
-                Profiler.BeginSample("k_TileBasedDeferredShading");
+                Profiler.BeginSample(k_TiledDeferredPass);
 
                 int sizeof_TileData = 16;
                 int sizeof_vec4_TileData = sizeof_TileData >> 4;
@@ -512,7 +517,7 @@ namespace UnityEngine.Rendering.Universal
                 BitArray usedLights = new BitArray(renderingData.lightData.visibleLights.Length, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
                 NativeArray<Vector4UInt> tileDataBuffer = new NativeArray<Vector4UInt>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                NativeArray<Vector4> pointLightBuffer = new NativeArray<Vector4>(m_MaxPointLightPerBatch * sizeof_vec4_PointLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<Vector4UInt> pointLightBuffer = new NativeArray<Vector4UInt>(m_MaxPointLightPerBatch * sizeof_vec4_PointLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 NativeArray<uint> relLightIndexBuffer = new NativeArray<uint>(m_MaxRelLightIndicesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 for (int j = 0; j < m_TileYCount; ++j)
@@ -654,15 +659,15 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
                 Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
                 Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
-                cmd.SetGlobalMatrix("_InvCameraViewProj", viewProjInv);
+                cmd.SetGlobalMatrix(ShaderConstants._InvCameraViewProj, viewProjInv);
 
                 Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));
                 Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
-                cmd.SetGlobalVector("g_unproject0", projScreenInv.GetRow(2));
-                cmd.SetGlobalVector("g_unproject1", projScreenInv.GetRow(3));
+                cmd.SetGlobalVector(ShaderConstants.g_unproject0, projScreenInv.GetRow(2));
+                cmd.SetGlobalVector(ShaderConstants.g_unproject1, projScreenInv.GetRow(3));
 
                 cmd.SetGlobalTexture(m_TileDepthRangeTexture.id, m_TileDepthRangeTexture.Identifier());
-                cmd.SetGlobalTexture("g_DepthTex", m_DepthTexture.Identifier());
+                cmd.SetGlobalTexture(ShaderConstants.g_DepthTex, m_DepthTexture.Identifier());
 
                 for (int i = 0; i < drawCallCount; ++i)
                 {
@@ -818,11 +823,17 @@ namespace UnityEngine.Rendering.Universal
             return trimCount;
         }
 
-        void StorePointLightData(NativeArray<Vector4> pointLightBuffer, int storeIndex, NativeArray<VisibleLight> visibleLights, int index)
+        void StorePointLightData(NativeArray<Vector4UInt> pointLightBuffer, int storeIndex, NativeArray<VisibleLight> visibleLights, int index)
         {
             Vector3 wsPos = visibleLights[index].light.transform.position;
-            pointLightBuffer[storeIndex * 2 + 0] = new Vector4(wsPos.x, wsPos.y, wsPos.z, visibleLights[index].range);
-            pointLightBuffer[storeIndex * 2 + 1] = visibleLights[index].light.color;
+            pointLightBuffer[storeIndex * 2 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range));
+
+            pointLightBuffer[storeIndex * 2 + 1] = new Vector4UInt(
+                Half2ToUInt(visibleLights[index].light.color.r, visibleLights[index].light.color.g),
+                Half2ToUInt(visibleLights[index].light.color.b, 0.0f),
+                0,
+                0
+            );
         }
 
         void StoreTileData(NativeArray<Vector4UInt> tileDataBuffer, int storeIndex, uint tileID, ushort relLightOffset, uint listDepthRange, uint listBitMask)
@@ -1034,6 +1045,21 @@ namespace UnityEngine.Rendering.Universal
         static uint PackTileID(uint i, uint j)
         {
             return i | (j << 16);
+        }
+
+        static uint FloatToUInt(float val)
+        {
+            // TODO different order for little-endian and big-endian platforms.
+            byte[] bytes = System.BitConverter.GetBytes(val);
+            return bytes[0] | (((uint)bytes[1]) << 8) | (((uint)bytes[2]) << 16) | (((uint)bytes[3]) << 24);
+            //return bytes[3] | (((uint)bytes[2]) << 8) | (((uint)bytes[1]) << 16) | (((uint)bytes[0]) << 24);
+        }
+
+        static uint Half2ToUInt(float x, float y)
+        {
+            uint hx = Mathf.FloatToHalf(x);
+            uint hy = Mathf.FloatToHalf(y);
+            return hx | (hy << 16);
         }
     }
 }

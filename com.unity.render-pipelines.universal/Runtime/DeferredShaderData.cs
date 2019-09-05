@@ -10,7 +10,16 @@ namespace UnityEngine.Rendering.Universal
         public uint y;
         public uint z;
         public uint w;
+
+        public Vector4UInt(uint _x, uint _y, uint _z, uint _w)
+        {
+            x = _x;
+            y = _y;
+            z = _z;
+            w = _w;
+        }
     };
+
 
     class DeferredShaderData : IDisposable
     {
@@ -88,8 +97,8 @@ namespace UnityEngine.Rendering.Universal
             return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
 #else
             int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
-            int float4Count = sizeof_PointLightData / 16;
-            return GetOrUpdateBuffer<Vector4>(m_PointLightBuffers, count * float4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
+            int vec4Count = sizeof_PointLightData / 16;
+            return GetOrUpdateBuffer<Vector4UInt>(m_PointLightBuffers, count * vec4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
 #endif
         }
 

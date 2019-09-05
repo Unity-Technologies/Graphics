@@ -83,7 +83,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                nointerpolation uint relLightOffset : TEXCOORD0;
+                nointerpolation int relLightOffset : TEXCOORD0;
                 noperspective float2 clipCoord : TEXCOORD1;
             };
 
@@ -136,16 +136,18 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             CBUFFER_START(UPointLightBuffer)
             // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
-            float4 g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
+            uint4 g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
             CBUFFER_END
 
             PointLightData LoadPointLightData(int relLightIndex)
             {
                 uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
                 PointLightData pl;
-                pl.WsPos  = g_PointLightBuffer[i + 0].xyz;
-                pl.Radius = g_PointLightBuffer[i + 0].w;
-                pl.Color  = g_PointLightBuffer[i + 1].rgb; 
+                pl.WsPos  = asfloat(g_PointLightBuffer[i + 0].xyz);
+                pl.Radius = asfloat(g_PointLightBuffer[i + 0].w);
+                pl.Color.r = f16tof32(g_PointLightBuffer[i + 1].r); 
+                pl.Color.g = f16tof32(g_PointLightBuffer[i + 1].r >> 16); 
+                pl.Color.b = f16tof32(g_PointLightBuffer[i + 1].g); 
                 return pl;
             }
 
@@ -162,7 +164,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
-                uint lightCount = LoadRelLightIndex(input.relLightOffset);
+                int lightCount = LoadRelLightIndex(input.relLightOffset);
 
                 #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
                 float d = 1.0 - g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
@@ -174,12 +176,14 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float4 wsPos = mul(_InvCameraViewProj, float4(input.clipCoord, d * 2.0 - 1.0, 1.0));
                 wsPos.xyz *= 1.0 / wsPos.w;
 
-                float3 color = 0.0.xxx;
+                half3 color = 0.0.xxx;
 
-                for (uint li = 0; li < lightCount; ++li)
+                // We always have at least 1 light by design. do...while allows the compiler to optimize for the first light case.
+                int li = 0;
+                do
                 {
                     int offsetInList = input.relLightOffset + LIGHT_LIST_HEADER_SIZE + li;
-                    uint relLightIndex = LoadRelLightIndex(offsetInList);
+                    int relLightIndex = LoadRelLightIndex(offsetInList);
                     PointLightData light = LoadPointLightData(relLightIndex);
 
                     // TODO calculate lighting.
@@ -188,6 +192,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
                     color += light.Color.rgb * att * 0.1;
                 }
+                while (++li < lightCount);
 
                 return half4(color, 0.0);
             }
