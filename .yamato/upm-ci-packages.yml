@@ -98,6 +98,7 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
     - unity-downloader-cli -u {{ editor.version }} -c editor --wait
     - {{ platform.copycmd }}
     {% if package.name == "Universal" %}
+    - upm-ci project pack --project-path TestProjects/UniversalPackageTest
     - upm-ci project test -u {{ platform.editorpath }} --project-path TestProjects/UniversalPackageTest
     {% else %}
     - upm-ci package test -u {{ platform.editorpath }} --package-path {{ package.packagename }}
