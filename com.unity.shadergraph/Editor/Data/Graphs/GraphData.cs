@@ -315,6 +315,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool didActiveOutputNodeChange { get; set; }
 
+        internal delegate void SaveGraphDelegate(Shader shader);
+        internal static SaveGraphDelegate onSaveGraph;
+
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();

@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddReflectionSettings,
             AddPostProcessFrameSettings,
             AddRayTracingFrameSettings,
+            AddFrameSettingDirectSpecularLighting,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -47,7 +48,13 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.AddRayTracingFrameSettings, (HDRenderPipelineAsset data) =>
             {
                 FrameSettings.MigrateToRayTracing(ref data.m_RenderingPathDefaultCameraFrameSettings);
-            })
+            }),
+            MigrationStep.New(Version.AddFrameSettingDirectSpecularLighting, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToDirectSpecularLighting(ref data.m_RenderingPathDefaultCameraFrameSettings);
+                FrameSettings.MigrateToNoDirectSpecularLighting(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
+                FrameSettings.MigrateToDirectSpecularLighting(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            })            
         );
 
         [SerializeField]

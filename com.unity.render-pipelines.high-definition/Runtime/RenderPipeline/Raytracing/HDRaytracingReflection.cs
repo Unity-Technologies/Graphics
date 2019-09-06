@@ -106,6 +106,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the number of bounces for reflections
             cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
+
+            // Set the data for the ray miss
+            cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
         }
 
         DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera, HDRaytracingEnvironment rtEnv)
@@ -223,9 +226,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Bind all the required data for ray tracing
                 BindRayTracedReflectionData(cmd, hdCamera, rtEnvironment, reflectionShaderRT, settings, lightClusterSettings);
-
-                // Set the data for the ray miss
-                cmd.SetRayTracingTextureParam(reflectionShaderRT, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
 
                 // Run the computation
                 if (settings.fullResolution.value)

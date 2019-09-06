@@ -1,4 +1,4 @@
-
+// FIXME: Should probably be renamed as we don't need rayIntersection as input anymore (neither do we need incidentDirection)
 void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, float3 incidentDirection, out FragInputs outFragInputs)
 {
 	outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);

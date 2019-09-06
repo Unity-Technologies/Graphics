@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PlanarProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, true);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, false);            
+            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, false);
         }
 
         internal static void MigrateToPostProcess(ref FrameSettings cameraFrameSettings)
@@ -394,6 +394,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.FilmGrain, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.Dithering, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, true);
+        }
+
+        internal static void MigrateToDirectSpecularLighting(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.DirectSpecularLighting, true);
+        }
+
+        internal static void MigrateToNoDirectSpecularLighting(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.DirectSpecularLighting, false);
         }
 
         internal static void MigrateToRayTracing(ref FrameSettings cameraFrameSettings)
