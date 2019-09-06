@@ -9,6 +9,7 @@ float                                   _RaytracingRayBias;
 float                                   _RaytracingRayMaxLength;
 int                                     _RaytracingNumSamples;
 int                                     _RaytracingSampleIndex;
+int                                     _RaytracingMinRecursion;
 int                                     _RaytracingMaxRecursion;
 float                                   _RaytracingIntensityClamp;
 float                                   _RaytracingReflectionMaxDistance;
