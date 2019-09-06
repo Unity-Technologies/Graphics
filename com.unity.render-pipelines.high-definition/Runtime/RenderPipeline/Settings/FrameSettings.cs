@@ -177,8 +177,6 @@ namespace UnityEngine.Rendering.HighDefinition
         MaximumLODLevel = 63,
 
         //lighting settings from 20 to 39
-        [FrameSettingsField(1, autoName: SkyLighting, customOrderInGroup: 0, tooltip: "When enabled, the Sky Ambient Light Probe affects diffuse lighting for Cameras that use these Frame Settings.")]
-        SkyLighting = 37,
         [FrameSettingsField(1, autoName: ShadowMaps, customOrderInGroup: 1, tooltip: "When enabled, Cameras using these Frame Settings render shadows.")]
         ShadowMaps = 20,
         [FrameSettingsField(1, autoName: ContactShadows, tooltip: "When enabled, Cameras using these Frame Settings render Contact Shadows.")]
@@ -209,10 +207,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProbe = 33,
         [FrameSettingsField(1, displayedName: "Planar Reflection Probe", customOrderInGroup: 36, tooltip: "When enabled, Cameras that use these Frame Settings calculate reflection from Planar Reflection Probes.")]
         PlanarProbe = 35,
-
-        // TODO: This should be something like "Metalic Indirect Diffuse Fallback". To be checked.
-        [FrameSettingsField(1, autoName: ReplaceDiffuseForIndirect, tooltip: "When enabled, Cameras that use these Frame Settings render Materials with base color as diffuse. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting.")]
+        [FrameSettingsField(1, displayedName: "Metallic Indirect Fallback", tooltip: "When enabled, Cameras that use these Frame Settings render Materials with base color as diffuse. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting.")]
         ReplaceDiffuseForIndirect = 36,
+        [FrameSettingsField(1, autoName: SkyLighting, tooltip: "When enabled, the Sky Ambient Light Probe affects diffuse lighting for Cameras that use these Frame Settings.")]
+        SkyLighting = 37,
+        [FrameSettingsField(1, autoName: DirectSpecularLighting, tooltip: "When enabled, Cameras that use these Frame Settings render Direct Specular lighting. This is a useful Frame Setting to use for baked Reflection Probes to remove view dependent lighting.")]
+        DirectSpecularLighting = 38,
 
         //async settings from 40 to 59
         [FrameSettingsField(2, displayedName: "Asynchronous Execution", tooltip: "When enabled, HDRP executes certain Compute Shader commands in parallel. This only has an effect if the target platform supports async compute.")]
@@ -242,7 +242,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeLightVariants = 124,
         [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile })]
         ComputeMaterialVariants = 125,
-        Reflection = 126, //set by engine, not for DebugMenu/Inspector
 
         //only 128 booleans saved. For more, change the BitArray used
     }
@@ -322,6 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.PlanarProbe,
                 (uint)FrameSettingsField.SkyLighting,
+                (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
             }),
             lodBias = 1,
@@ -371,6 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
                 // (uint)FrameSettingsField.EnableSkyLighting,
+                (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
         };
@@ -417,6 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
                 // (uint)FrameSettingsField.EnableSkyLighting,
+                // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
         };
@@ -461,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // followings are helper for engine.
         internal bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque];
-        internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.Reflection] ? 1f : 0f;
+        internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.DirectSpecularLighting] ? 1f : 0f;
 
         internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
         internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
@@ -499,9 +501,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool reflection = camera.cameraType == CameraType.Reflection;
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
-
-            // When rendering reflection probe we disable specular as it is view dependent
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
             switch (renderPipelineSettings.supportedLitShaderMode)
             {

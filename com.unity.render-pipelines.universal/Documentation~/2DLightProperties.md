@@ -1,4 +1,4 @@
-# 2D Lights Properties
+# 2D Lights properties
 
 ## Creating a Light
 
