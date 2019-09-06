@@ -219,7 +219,8 @@ namespace UnityEditor.ShaderGraph
                 else if (conversion.to == CoordinateSpace.Tangent)
                 {
                     requiresTangentTransform = true;
-                    transformString = string.Format("TransformWorldToTangent({0}, {1})", inputValue, targetTransformString);
+                    tangentTransformSpace = CoordinateSpace.World.ToString();
+                    transformString = string.Format("TransformWorldToTangent(GetCameraRelativePositionWS({0}), {1})", inputValue, targetTransformString);
                 }
                 else if (conversion.to == CoordinateSpace.View)
                 {
@@ -242,6 +243,7 @@ namespace UnityEditor.ShaderGraph
         bool RequiresWorldSpaceTangentTransform()
         {
             if (conversion.from == CoordinateSpace.View && conversion.to == CoordinateSpace.Tangent
+                || conversion.from == CoordinateSpace.AbsoluteWorld && conversion.to == CoordinateSpace.Tangent
                 || conversion.from == CoordinateSpace.Tangent)
                 return true;
             else
