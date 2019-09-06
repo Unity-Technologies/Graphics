@@ -3,7 +3,8 @@
 ## Description
 
 Samples a **Gradient** that simulates the effect of black body radiation. 
-The calculations in this node are based on data gathered by Mitchell Charity. More info can be found here: http://www.vendian.org/mncharity/dir3/blackbody/
+The calculations in this node are based on data gathered by Mitchell Charity.
+For more information, see [What color is a blackbody?](http://www.vendian.org/mncharity/dir3/blackbody/)
 
 ## Ports
 
