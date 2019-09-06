@@ -100,7 +100,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     rayIntersection.color = computeDirect ? builtinData.emissiveColor : 0.0;
 
     // Initialize our material
-    Material mtl = CreateMaterial(surfaceData, bsdfData, -WorldRayDirection());
+    Material mtl = CreateMaterial(bsdfData, -WorldRayDirection());
 
     if (IsBlack(mtl))
         return;
@@ -114,13 +114,13 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     MaterialResult mtlResult;
 
     RayDesc rayDescriptor;
-    rayDescriptor.Origin = position + surfaceData.normalWS * _RaytracingRayBias;
+    rayDescriptor.Origin = position + bsdfData.normalWS * _RaytracingRayBias;
     rayDescriptor.TMin = 0;
 
     RayIntersection nextRayIntersection;
 
     // Light sampling
-    if (computeDirect && SampleLights(lightList, inputSample, rayDescriptor.Origin, surfaceData.normalWS, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
+    if (computeDirect && SampleLights(lightList, inputSample, rayDescriptor.Origin, bsdfData.normalWS, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
     {
         EvaluateMaterial(mtl, rayDescriptor.Direction, mtlResult);
 

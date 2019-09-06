@@ -95,10 +95,8 @@ struct MaterialResult
 // FIXME: WIP, only partial support of Lit
 struct Material
 {
-    SurfaceData surfaceData;
     BSDFData    bsdfData;
     float3      V;
-
     float3x3    localToWorld;
     float       diffProb;
     float       specProb;
@@ -109,11 +107,11 @@ bool IsBlack(Material mtl)
     return mtl.diffProb + mtl.specProb < 0.001;
 }
 
-Material CreateMaterial(SurfaceData surfaceData, BSDFData bsdfData, float3 V)
+Material CreateMaterial(BSDFData bsdfData, float3 V)
 {
     Material mtl;
 
-    float  NdotV = dot(surfaceData.normalWS, V);
+    float  NdotV = dot(bsdfData.normalWS, V);
     float3 F = F_Schlick(bsdfData.fresnel0, NdotV);
 
     // If N.V < 0 (can happen with normal mapping) we want to avoid spec sampling
@@ -127,13 +125,12 @@ Material CreateMaterial(SurfaceData surfaceData, BSDFData bsdfData, float3 V)
         mtl.diffProb = 1.0 - mtl.specProb;
 
         // Keep these around, rather than passing them to all methods
-        mtl.surfaceData = surfaceData;
         mtl.bsdfData = bsdfData;
         mtl.V = V;
 
         // Compute a local frame from the normal
         // FIXME: compute tangent frame for anisotropy support
-        mtl.localToWorld = GetLocalFrame(surfaceData.normalWS);
+        mtl.localToWorld = GetLocalFrame(bsdfData.normalWS);
     }
 
     return mtl;
@@ -149,14 +146,14 @@ bool SampleMaterial(Material mtl, float2 inputSample, out float3 sampleDir, out 
         if (!SampleGGX(inputSample, mtl.localToWorld, mtl.V, mtl.bsdfData, sampleDir, result.specValue, result.specPdf))
             return false;
 
-        EvaluateLambert(mtl.surfaceData.normalWS, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
+        EvaluateLambert(mtl.bsdfData.normalWS, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
     }
     else
     {
         // Rescale the sample
         inputSample.x = (inputSample.x - mtl.specProb) / mtl.diffProb;
 
-        if (!SampleLambert(inputSample, mtl.surfaceData.normalWS, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
+        if (!SampleLambert(inputSample, mtl.bsdfData.normalWS, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
             return false;
 
         EvaluateGGX(mtl.localToWorld, mtl.V, sampleDir, mtl.bsdfData, result.specValue, result.specPdf);
@@ -170,7 +167,7 @@ bool SampleMaterial(Material mtl, float2 inputSample, out float3 sampleDir, out 
 
 void EvaluateMaterial(Material mtl, float3 sampleDir, out MaterialResult result)
 {
-    EvaluateLambert(mtl.surfaceData.normalWS, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
+    EvaluateLambert(mtl.bsdfData.normalWS, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
     EvaluateGGX(mtl.localToWorld, mtl.V, sampleDir, mtl.bsdfData, result.specValue, result.specPdf);
     result.diffPdf *= mtl.diffProb;
     result.specPdf *= mtl.specProb;
