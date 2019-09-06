@@ -72,7 +72,7 @@ namespace  UnityEditor.VFX.UI
             Add(m_DefaultCategory);
             m_DefaultCategory.headerVisible = false;
 
-            styleSheets.Add(Resources.Load<StyleSheet>("VFXBlackboard"));
+            styleSheets.Add(VFXView.LoadStyleSheet("VFXBlackboard"));
 
             RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);

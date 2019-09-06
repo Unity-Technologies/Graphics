@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/UI Dropdown Parameter Binder")]
+    [AddComponentMenu("VFX/Property Binders/UI Dropdown Binder")]
     [VFXBinder("UI/Dropdown")]
     class VFXUIDropdownBinder : VFXBinderBase
     {

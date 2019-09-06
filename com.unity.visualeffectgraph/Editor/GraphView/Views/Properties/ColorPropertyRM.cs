@@ -9,7 +9,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
-using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
+using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
 
 
 namespace UnityEditor.VFX.UI
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
             m_MainContainer = new VisualElement();
 
 #if USE_MY_COLOR_FIELD
-            m_ColorField = new UnityEditor.VFX.UIElements.VFXColorField(m_Label);
+            m_ColorField = new UnityEditor.VFX.UI.VFXColorField(m_Label);
             m_ColorField.OnValueChanged = OnValueChanged;
 #else
             m_ColorField = new LabeledField<UnityEditor.UIElements.ColorField, Color>(m_Label);
@@ -120,7 +120,7 @@ namespace UnityEditor.VFX.UI
         FloatField m_AFloatField;
 
 #if USE_MY_COLOR_FIELD
-        UnityEditor.VFX.UIElements.VFXColorField m_ColorField;
+        UnityEditor.VFX.UI.VFXColorField m_ColorField;
 #else
         LabeledField<UnityEditor.UIElements.ColorField, Color> m_ColorField;
 #endif

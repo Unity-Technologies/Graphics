@@ -151,7 +151,7 @@ namespace UnityEditor.VFX.UI
         public VFXComponentBoard(VFXView view)
         {
             m_View = view;
-            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard");
+            var tpl = VFXView.LoadUXML("VFXComponentBoard");
 
             tpl.CloneTree(contentContainer);
 
@@ -570,7 +570,7 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var added in eventNames.Except(m_Events.Keys).ToArray())
                 {
-                    var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard-event");
+                    var tpl = VFXView.LoadUXML("VFXComponentBoard-event");
 
                     tpl.CloneTree(m_EventsContainer);
 
@@ -631,9 +631,9 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
     }
-    public class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
+    class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
     {}
-    public class VFXComponentBoardEventUI : VisualElement
+    class VFXComponentBoardEventUI : VisualElement
     {
         public VFXComponentBoardEventUI()
         {

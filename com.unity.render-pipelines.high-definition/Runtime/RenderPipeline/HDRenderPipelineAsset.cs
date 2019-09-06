@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -12,6 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineAsset : RenderPipelineAsset
     {
 
@@ -148,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
-        internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
         [SerializeField]
         internal bool allowShaderVariantStripping = true;
@@ -156,6 +158,31 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool enableSRPBatcher = true;
         [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+
+        public MaterialQuality materialQualityLevels = (MaterialQuality)(-1);
+
+        [SerializeField]
+        private MaterialQuality m_CurrentMaterialQualityLevel = MaterialQuality.High;
+
+        public MaterialQuality currentMaterialQualityLevel
+        {
+            get
+            {
+                if ((m_CurrentMaterialQualityLevel & materialQualityLevels) != m_CurrentMaterialQualityLevel)
+                {
+                    // Current quality level is not supported,
+                    // Pick the highest one
+                    var highest = materialQualityLevels.GetHighestQuality();
+                    if (highest == 0)
+                        // If none are available, still pick the lowest one
+                        highest = MaterialQuality.Low;
+
+                    return highest;
+                }
+
+                return m_CurrentMaterialQualityLevel;
+            }
+        }
 
         [SerializeField]
         [Obsolete("Use diffusionProfileSettingsList instead")]
@@ -211,6 +238,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_RenderPipelineResources.shaders.defaultPS;
             }
         }
+
+        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
+        {
+            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
+        }
+
+        // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
+        [SerializeField]
+        internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
+        [SerializeField]
+        internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
+        [SerializeField]
+        internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
 
 #if UNITY_EDITOR
         public override Material defaultMaterial
@@ -318,22 +358,39 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
         public void EvaluateSettings()
         {
-#if REALTIME_RAYTRACING_SUPPORT
             // Grab the current set of defines and split them
             string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
             defineArray.Clear();
             defineArray.AddRange(currentDefineList.Split(';'));
 
+            // Is ray tracing supported for this project and this platform?
+            bool raytracingSupport = AggreateRayTracingSupport(currentPlatformRenderPipelineSettings);
+            
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(currentPlatformRenderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(raytracingSupport, "ENABLE_RAYTRACING");
 
             // Only set if it changed
             if (needUpdate)
             {
                 UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
             }
-#endif
+        }
+
+        public bool AddDiffusionProfile(DiffusionProfileSettings profile)
+        {
+            if (diffusionProfileSettingsList.Length < 15)
+            {
+                int index = diffusionProfileSettingsList.Length;
+                Array.Resize(ref diffusionProfileSettingsList, index + 1);
+                diffusionProfileSettingsList[index] = profile;
+                return true;
+            }
+            else
+            {
+                Debug.LogError("There are too many diffusion profile settings in your HDRP. Please remove one before adding a new one.");
+                return false;
+            }
         }
 #endif
     }

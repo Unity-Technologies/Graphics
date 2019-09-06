@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isBatchable => true;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-        
+        public override bool isGpuInstanceable => true;
         public string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
         public override string GetPropertyBlockString()
@@ -26,7 +26,10 @@ namespace UnityEditor.ShaderGraph
             return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
         }
 
-        public override string referenceNameBase => "Color";
+        public override string GetDefaultReferenceName()
+        {
+            return $"Color_{GuidEncoder.Encode(guid)}";
+        }
         
         [SerializeField]
         ColorMode m_ColorMode;

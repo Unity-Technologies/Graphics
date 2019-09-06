@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
@@ -443,9 +444,10 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             DecalMasterNode masterNode = iMasterNode as DecalMasterNode;
             if (masterNode == null)
@@ -454,19 +456,19 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if(masterNode.affectsAlbedo.isOn)
             {
-                activeFields.Add("Material.AffectsAlbedo");
+                baseActiveFields.Add("Material.AffectsAlbedo");
             }
             if (masterNode.affectsNormal.isOn)
             {
-                activeFields.Add("Material.AffectsNormal");
+                baseActiveFields.Add("Material.AffectsNormal");
             }
             if (masterNode.affectsEmission.isOn)
             {
-                activeFields.Add("Material.AffectsEmission");
+                baseActiveFields.Add("Material.AffectsEmission");
             }
             if (masterNode.affectsSmoothness.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn)
             {
-                activeFields.Add("Material.AffectsMaskMap");
+                baseActiveFields.Add("Material.AffectsMaskMap");
             }
 
             return activeFields;
@@ -479,10 +481,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(DecalMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(DecalMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(DecalMasterNode.VertexNormalSlotID) ||
+                    masterNode.IsSlotConnected(DecalMasterNode.VertexTangentSlotID) )
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

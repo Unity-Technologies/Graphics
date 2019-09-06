@@ -10,14 +10,14 @@ namespace UnityEditor.VFX
 {
     // TODO Move this
     // Must match enum in C++
-    public enum VFXCoordinateSpace
+    enum VFXCoordinateSpace
     {
         Local = 0,
         World = 1,
     }
 
     // TODO Move this
-    public interface ISpaceable
+    interface ISpaceable
     {
         VFXCoordinateSpace space { get; set; }
     }
