@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Fullscreen pass settings
         public Material         fullscreenPassMaterial;
+        public int              materialPassIndex;
 
         /// <summary>
         /// Execute the pass with the fullscreen setup
@@ -21,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (fullscreenPassMaterial != null)
             {
-                CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial);
+                CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: materialPassIndex);
             }
         }
     }
