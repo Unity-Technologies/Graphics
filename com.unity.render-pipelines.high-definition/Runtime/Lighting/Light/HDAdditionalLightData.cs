@@ -10,6 +10,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+
     // This enum extent the original LightType enum with new light type from HD
     public enum LightTypeExtent
     {
@@ -59,17 +60,6 @@ namespace UnityEngine.Rendering.HighDefinition
         EveryFrame = 0,
         OnEnable,
         OnDemand
-    }
-
-    /// <summary>
-    /// Shadow Resolution Tier
-    /// </summary>
-    public enum ShadowResolutionTier
-    {
-        Low = 0,
-        Medium,
-        High,
-        VeryHigh
     }
 
 
@@ -139,6 +129,19 @@ namespace UnityEngine.Rendering.HighDefinition
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour
     {
+        internal static class ScalableSettings
+        {
+            public static IntScalableSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionArea;
+            public static IntScalableSetting ShadowResolutionPunctual(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual;
+            public static IntScalableSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional;
+
+            public static BoolScalableSetting UseContactShadow(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.lightSettings.useContactShadow;
+        }
+
         /// <summary>
         /// The default intensity value for directional lights in Lux
         /// </summary>
@@ -1156,59 +1159,12 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region HDShadow Properties API (from AdditionalShadowData)
-
-        [SerializeField]
-        ShadowResolutionTier m_ShadowResolutionTier = ShadowResolutionTier.Medium;
-        /// <summary>
-        /// Get/Set the quality level for shadow map resoluton.
-        /// </summary>
-        public ShadowResolutionTier shadowResolutionTier
+        [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
-            get => m_ShadowResolutionTier;
-            set
-            {
-                if (m_ShadowResolutionTier == value)
-                    return;
-
-                m_ShadowResolutionTier = value;
-            }
-        }
-
-        [SerializeField]
-        bool m_UseShadowQualitySettings = false;
-        /// <summary>
-        /// Toggle the usage of quality settings to determine shadow resolution.
-        /// </summary>
-        public bool useShadowQualitySettings
-        {
-            get => m_UseShadowQualitySettings;
-            set
-            {
-                if (m_UseShadowQualitySettings == value)
-                    return;
-
-                m_UseShadowQualitySettings = value;
-            }
-        }
-
-
-        [SerializeField]
-        int m_CustomShadowResolution = k_DefaultShadowResolution;
-        /// <summary>
-        /// Get/Set the resolution of shadow maps in case quality settings are not used.
-        /// </summary>
-        /// <value></value>
-        public int customResolution
-        {
-            get => m_CustomShadowResolution;
-            set
-            {
-                if (m_CustomShadowResolution == value)
-                    return;
-
-                m_CustomShadowResolution = Mathf.Clamp(value, HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MaxShadowMapResolution);
-            }
-        }
+            @override = k_DefaultShadowResolution,
+            useOverride = true,
+        };
+        public IntScalableSettingValue shadowResolution => m_ShadowResolution;
 
         [Range(0.0f, 1.0f)]
         [SerializeField]
@@ -1264,21 +1220,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_ContactShadows = false;
-        /// <summary>
-        /// Toggle the contact shadows.
-        /// </summary>
-        public bool contactShadows
-        {
-            get => m_ContactShadows;
-            set
-            {
-                if (m_ContactShadows == value)
-                    return;
-
-                m_ContactShadows = value;
-            }
-        }
+        BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = true };
+        public BoolScalableSettingValue useContactShadow => m_UseContactShadow;
 
         [SerializeField]
         Color m_ShadowTint = Color.black;
@@ -1559,18 +1502,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
         {
-            bool customRes = !useShadowQualitySettings;
             switch (shadowMapType)
             {
                 case ShadowMapType.CascadedDirectional:
-                    return customRes ? Math.Min(customResolution, initParameters.maxDirectionalShadowMapResolution) : initParameters.directionalLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionDirectional), initParameters.maxDirectionalShadowMapResolution);
                 case ShadowMapType.PunctualAtlas:
-                    return customRes ? Math.Min(customResolution, initParameters.maxPunctualShadowMapResolution) : initParameters.punctualLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionPunctual), initParameters.maxPunctualShadowMapResolution);
                 case ShadowMapType.AreaLightAtlas:
-                    return customRes ? Math.Min(customResolution, initParameters.maxAreaShadowMapResolution) : initParameters.areaLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionArea), initParameters.maxAreaShadowMapResolution);
+                default:
+                    return 0;
             }
-
-            return 0;
         }
 
         internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
@@ -2027,11 +1969,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="data">Destination component</param>
         public void CopyTo(HDAdditionalLightData data)
         {
-#pragma warning disable 618
-            data.directionalIntensity = directionalIntensity;
-            data.punctualIntensity = punctualIntensity;
-            data.areaIntensity = areaIntensity;
-#pragma warning restore 618
             data.enableSpotReflector = enableSpotReflector;
             data.luxAtDistance = luxAtDistance;
             data.m_InnerSpotPercent = m_InnerSpotPercent;
@@ -2059,11 +1996,11 @@ namespace UnityEngine.Rendering.HighDefinition
             data.angularDiameter = angularDiameter;
             data.distance = distance;
 
-            data.customResolution = customResolution;
+            shadowResolution.CopyTo(data.shadowResolution);
             data.shadowDimmer = shadowDimmer;
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
-            data.contactShadows = contactShadows;
+            useContactShadow.CopyTo(data.useContactShadow);
             data.constantBias = constantBias;
             data.normalBias = normalBias;
             data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
@@ -2628,7 +2565,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow resolution.
         /// </summary>
         /// <param name="resolution">Must be between 16 and 16384</param>
-        public void SetShadowResolution(int resolution) => customResolution = resolution;
+        public void SetShadowResolution(int resolution) => shadowResolution.@override = resolution;
+
+        /// <summary>
+        /// Set the shadow resolution quality level.
+        /// </summary>
+        /// <param name="level">The quality level to use</param>
+        public void SetShadowResolutionLevel(ScalableSetting.Level level) => shadowResolution.level = level;
+
+        /// <summary>
+        /// Set whether the shadow resolution use the override value.
+        /// </summary>
+        /// <param name="@override">True to use the override value, false otherwise.</param>
+        public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
 
         /// <summary>
         /// Set the near plane of the shadow.
@@ -2680,12 +2629,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="distance"></param>
         public void SetShadowFadeDistance(float distance) => shadowFadeDistance = distance;
-
-        /// <summary>
-        /// Enable/Disable the contact shadows, the feature must be enable in the HDRP asset to work.
-        /// </summary>
-        /// <param name="enabled"></param>
-        public void EnableContactShadows(bool enabled) => contactShadows = enabled;
 
         /// <summary>
         /// Set the Shadow tint for the directional light.

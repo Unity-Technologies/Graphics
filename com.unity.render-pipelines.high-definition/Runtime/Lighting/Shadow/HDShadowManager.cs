@@ -121,41 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 
         [Serializable]
-        public struct HDShadowTierParams
-        {
-            public int lowQualityResolution;
-            public int mediumQualityResolution;
-            public int highQualityResolution;
-            public int veryHighQualityResolution;
-
-            public int GetResolution(ShadowResolutionTier tier)
-            {
-                switch (tier)
-                {
-                    case ShadowResolutionTier.Low:
-                        return lowQualityResolution;
-                    case ShadowResolutionTier.Medium:
-                        return mediumQualityResolution;
-                    case ShadowResolutionTier.High:
-                        return highQualityResolution;
-                    case ShadowResolutionTier.VeryHigh:
-                        return veryHighQualityResolution;
-                }
-                return mediumQualityResolution;
-            }
-            public static HDShadowTierParams GetDefault()
-            {
-                return new HDShadowTierParams()
-                {
-                    lowQualityResolution = 256,
-                    mediumQualityResolution = 512,
-                    highQualityResolution = 1024,
-                    veryHighQualityResolution = 2048
-                };
-            }
-        }
-
-        [Serializable]
         public struct HDShadowAtlasInitParams
         {
             public int shadowAtlasResolution;
@@ -180,12 +145,12 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            directionalLightsResolutionTiers    = HDShadowTierParams.GetDefault(),
-            punctualLightsResolutionTiers       = HDShadowTierParams.GetDefault(),
-            areaLightsResolutionTiers           = HDShadowTierParams.GetDefault(),
+            shadowResolutionDirectional         = new IntScalableSetting { low = 256, medium = 512, high = 1024 },
+            shadowResolutionArea                = new IntScalableSetting { low = 256, medium = 512, high = 1024 },
+            shadowResolutionPunctual            = new IntScalableSetting { low = 256, medium = 512, high = 1024 },
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
-            supportScreenSpaceShadows   = false,
-            maxScreenSpaceShadows       = 2,
+            supportScreenSpaceShadows           = false,
+            maxScreenSpaceShadows               = 2,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -205,9 +170,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         public HDShadowAtlasInitParams areaLightShadowAtlas;
 
-        public HDShadowTierParams directionalLightsResolutionTiers;
-        public HDShadowTierParams punctualLightsResolutionTiers;
-        public HDShadowTierParams areaLightsResolutionTiers;
+        public IntScalableSetting shadowResolutionDirectional;
+        public IntScalableSetting shadowResolutionPunctual;
+        public IntScalableSetting shadowResolutionArea;
 
         public int maxDirectionalShadowMapResolution;
         public int maxPunctualShadowMapResolution;
@@ -228,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int              lightID;
         public int              indexInLight = 0;
         public int              lastFrameActive = 0;
-        public bool             emptyRequest = false; 
+        public bool             emptyRequest = false;
         public bool             hasBeenStoredInCachedList = false;
 
         public HDShadowResolutionRequest ShallowCopy()
