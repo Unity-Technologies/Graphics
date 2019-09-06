@@ -314,7 +314,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int x = 0; x < parameters.resolutionX; ++x)
                     {
-                        Vector3 position = probeStartPosition + (probeSteps.x * x * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * obb.forward);
+                        // TODO: Investigate why the X-axis is flipped in the middle
+                        int xx = x;
+                        int halfX = parameters.resolutionX / 2;
+                        if (x < halfX)
+                            xx = x + halfX;
+                        else
+                            xx = x - halfX;
+
+                        Vector3 position = probeStartPosition + (probeSteps.x * xx * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * obb.forward);
                         positions[i] = position;
 
                         Matrix4x4 matrix = new Matrix4x4();
