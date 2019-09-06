@@ -1,4 +1,4 @@
-# Working with Shader Graph
+# 2D Renderer and Shader Graph
 
 ## Creating a Lit Shader
 
