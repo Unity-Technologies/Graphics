@@ -32,7 +32,9 @@ uint2 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution, float3 r
     // int width = resolution.x * resolution.z;
     // int height = resolution.y;
     // scaleBias: x,y is width and height (scale) z,w offset into atlas (bias)
-    uint atlasX = x + z * (uint)resolution.x;
+    // Handle Z "vertical" flip, as in source, index z == 0 is "top" and index z == resolution.z - 1 is "bottom"
+    // but in destination atlas, z coordinate min is "bottom", and z coordinate max is "top".
+    uint atlasX = x + (resolution.z - 1 - z) * (uint)resolution.x;
     uint atlasY = y;
 
     float atlasU = (float)atlasX + scaleBias.z * atlasResolutionAndInverse.x;

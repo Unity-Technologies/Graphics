@@ -17,9 +17,6 @@ float ProbeVolumeComputeFadeFactor(
     float rcpDistFadeLen,
     float endTimesRcpDistFadeLen)
 {
-    // We have to account for handedness.
-    samplePositionBoxNDC.z = 1 - samplePositionBoxNDC.z;
-
     float3 posF = Remap10(samplePositionBoxNDC, rcpPosFaceFade, rcpPosFaceFade);
     float3 negF = Remap01(samplePositionBoxNDC, rcpNegFaceFade, 0);
     float  dstF = Remap10(depthWS, rcpDistFadeLen, endTimesRcpDistFadeLen);
@@ -138,7 +135,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
     ApplyCameraRelativeXR(posInput.positionWS);
-    
+
     // Initialize the contactShadow and contactShadowFade fields
     InitContactShadow(posInput, context);
 
@@ -215,7 +212,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
             if (s_lightIdx == -1)
                 break;
-            
+
             LightData s_lightData = FetchLight(s_lightIdx);
 
             // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
@@ -513,7 +510,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     float weight = 0.0;
                     float3 sample = 0.0;
                     {
-                        float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.up, s_probeVolumeBounds.right));
+                        float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.right, s_probeVolumeBounds.up));
                         float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
 
                         float3 samplePositionBS = mul(obbFrame, posInput.positionWS - s_probeVolumeBounds.center);
@@ -542,12 +539,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                             float3 probeVolumeUVW = clamp(samplePositionBNDC.xyz, 0.5 * s_probeVolumeData.resolutionInverse, 1.0 - s_probeVolumeData.resolutionInverse * 0.5);
                             float3 probeVolumeTexel3D = probeVolumeUVW * s_probeVolumeData.resolution;
                             float2 probeVolumeTexel2DBack = float2(
-                                max(0.5, floor(probeVolumeTexel3D.z - 0.5) + 0.5) * s_probeVolumeData.resolution.x + probeVolumeTexel3D.x,
+                                max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + probeVolumeTexel3D.x,
                                 probeVolumeTexel3D.y
                             );
 
                             float2 probeVolumeTexel2DFront = float2(
-                                min(s_probeVolumeData.resolution.z - 0.5, floor(probeVolumeTexel3D.z - 0.5) + 1.5) * s_probeVolumeData.resolution.x + probeVolumeTexel3D.x,
+                                max(0.0, floor(probeVolumeTexel3D.z + 0.5)) * s_probeVolumeData.resolution.x + probeVolumeTexel3D.x,
                                 probeVolumeTexel3D.y
                             );
 
