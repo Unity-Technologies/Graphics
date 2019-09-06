@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
 - Fixed an issue where deleting a group and a property at the same time would cause an error.
+- Fixed the epsilon that the Hue Node uses to avoid NaN on platforms that support half precision.
 - Emission nodes no longer produce errors when you use them in Sub Graphs.
 - Exposure nodes no longer produce errors when you use them in Sub Graphs.
 - Unlit master nodes no longer define unnecessary properties in the Universal Render Pipeline.
