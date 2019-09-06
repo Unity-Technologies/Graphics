@@ -1,0 +1,80 @@
+/*=========================================================================================
+    
+    ReorderableListView
+
+==========================================================================================*/
+
+.unity-reorderable-list-view
+{
+    width: 100%;
+    flex-grow: 1;
+    /* background-color: rgb( 100, 100, 100 ); */
+    /* background-color: env(--theme-button-background-color);
+    background-image: env(--theme-image-toggle-bg); */
+}
+
+.unity-reorderable-list-view__list-view
+{
+    flex-direction: column;
+    width: auto;
+    flex-grow: 1;
+    background-color: #222;
+    min-width: 100px;
+    padding: 20px;
+}
+
+.unity-reorderable-list-view__item-sidebar
+{
+    align-self: center;
+    height: 100%;
+}
+
+.unity-reorderable-list-view__item-gripper
+{
+    width: 14px;
+    height: 10px;
+    background-image: url( "../../Icons/move.png" );
+    cursor: pan;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left : 10px;
+    margin-right: 10px;
+}
+
+.unity-reorderable-list-view__item-selection-marker
+{
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    width: 4px;
+}
+
+.unity-reorderable-list-view__item-content
+{
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    padding: 0px;
+    align-self: center;
+}
+
+.unity-list-view__item--selected .unity-reorderable-list-view__item-sidebar .unity-reorderable-list-view__item-selection-marker
+{
+    background-color: #00ffff;
+}
+
+.unity-reoderable-list-view__drop-marker
+{
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: rgb(218, 165, 32);
+}
+
+.unity-reoderable-list-view__drag-container
+{
+    padding: 2px;
+    border-color: #00ffff;
+    background-color: rgba(0, 255, 255, 125);
+}

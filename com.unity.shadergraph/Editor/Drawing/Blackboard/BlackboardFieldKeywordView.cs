@@ -16,10 +16,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardFieldKeywordView : BlackboardFieldView
     {
-        private ReorderableList m_ReorderableList;
-        private IMGUIContainer m_Container;
         private int m_SelectedIndex;
         private ShaderKeyword m_Keyword;
+        private VisualElement m_KeywordView;
+        private VisualElement m_ListHeader;
+        private ReorderableListView m_ReorderableListView;
+        private VisualElement m_ListFooter;
 
         public BlackboardFieldKeywordView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
             : base (blackboardField, graph, input)
@@ -100,134 +102,258 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
 
             // Entries
-            m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
-            AddRow("Entries", m_Container, keyword.isEditable);
+            CreateReorderableListView();
+            AddRow("Entries", m_KeywordView);
         }
 
-        private void OnGUIHandler()
+        /*========================================================================
+        
+            UI Code
+
+        ========================================================================*/
+
+        internal void CreateReorderableListView()
         {
-            if(m_ReorderableList == null)
+            m_KeywordView = new VisualElement();
+
+            // header setup
+
+            m_ListHeader = new VisualElement()
             {
-                RecreateList();
-                AddCallbacks();
-            }
-
-            m_ReorderableList.index = m_SelectedIndex;
-            m_ReorderableList.DoLayoutList();
-        }
-
-        internal void RecreateList()
-        {           
-            // Create reorderable list from entries
-            m_ReorderableList = new ReorderableList(m_Keyword.entries, typeof(KeywordEntry), true, true, true, true);
-        }
-
-        private void AddCallbacks() 
-        {
-            // Draw Header      
-            m_ReorderableList.drawHeaderCallback = (Rect rect) => 
-            {
-                int indent = 14;
-                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(displayRect, "Display Name");
-                var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(referenceRect, "Reference Suffix");
+                name = "ReorderableListView Header",
+                style = 
+                {
+                    flexDirection = FlexDirection.Row,
+                    backgroundColor = new Color( .15f, .15f, .15f )
+                }
             };
 
-            // Draw Element
-            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
+            m_ListHeader.Add( new Label( "Display Name" )
             {
-                KeywordEntry entry = ((KeywordEntry)m_ReorderableList.list[index]);
-                EditorGUI.BeginChangeCheck();
-                
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
-                var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
-
-                displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
-                referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName.ToUpper());
-                
-                if(EditorGUI.EndChangeCheck())
+                style = 
                 {
-                    m_Keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
-                    
+                    flexGrow = .5f
+                }
+            } );
+            
+            m_ListHeader.Add( new Label( "Reference Suffix" )
+            {
+                style = 
+                {
+                    flexGrow = .5f
+                }
+            } );
+            
+            // reorderable list view setup
+
+            m_ReorderableListView = new ReorderableListView();
+            m_ReorderableListView.itemsSource = m_Keyword.entries;
+            m_ReorderableListView.selectionType = SelectionType.Single;
+            m_ReorderableListView.onSelectionChanged += ( selection ) =>
+            {
+                if( selection == null || selection.Count == 0 )
+                {
+                    return;
+                }
+
+                m_SelectedIndex = m_Keyword.entries.IndexOf( ( KeywordEntry )selection[ selection.Count - 1 ] );
+            };
+            m_ReorderableListView.makeItem = () =>
+            {
+                var view = new VisualElement()
+                {
+                    name = "Shaderkeyword List Element",
+                    style =
+                    {
+                        flexDirection = FlexDirection.Row
+                    }
+                };
+                
+                var l1 = new ModifiableLabel( "" ) { name = "DisplayName", style = { flexGrow = .5f, alignSelf = Align.Center } };
+                var l2 = new ModifiableLabel( "" ) { name = "Reference Suffix", style = { flexGrow = .5f, alignSelf = Align.Center } };
+
+                view.Add( l1 );
+                view.Add( l2 );
+
+                // {
+                //     m_Keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);     
+                //     DirtyNodes();
+                //     Rebuild();
+                // }
+
+                return view;
+            };
+            m_ReorderableListView.bindItem = ( container, index ) =>
+            {
+                var l1 = container.Q< ModifiableLabel >( "DisplayName" );
+                l1.textField.RegisterValueChangedCallback( ( evt ) =>
+                {
+                    var referenceName = m_Keyword.entries[ index ].referenceName;
+                    m_Keyword.entries[ index ] = new KeywordEntry( index + 1, evt.newValue, referenceName );
+                } );
+                l1.textField.RegisterCallback< FocusOutEvent >( ( evt ) =>
+                {
                     DirtyNodes();
                     Rebuild();
-                }   
-            };
+                } );
 
-            // Element height
-            m_ReorderableList.elementHeightCallback = (int indexer) => 
+                var l2 = container.Q< ModifiableLabel >( "Reference Suffix" );
+                l2.textField.RegisterValueChangedCallback( ( evt ) =>
+                {
+                    var displayName = m_Keyword.entries[ index ].displayName;
+                    m_Keyword.entries[ index ] = new KeywordEntry( index + 1, displayName, evt.newValue );
+                } );
+                l2.textField.RegisterCallback< FocusOutEvent >( ( evt ) =>
+                {
+                    DirtyNodes();
+                    Rebuild();
+                } );
+
+                l1.text = m_Keyword.entries[ index ].displayName;
+                l2.text = m_Keyword.entries[ index ].referenceName;
+            };
+            m_ReorderableListView.onBeforeReorder += ( index, selection ) =>
             {
-                return m_ReorderableList.elementHeight;
+                graph.owner.RegisterCompleteObjectUndo("Remove Keyword Entry");
+            };
+            m_ReorderableListView.onReordered += ( index, selection ) =>
+            {
+                DirtyNodes();
+                Rebuild();
             };
 
-            // Can add
-            m_ReorderableList.onCanAddCallback = (ReorderableList list) => 
-            {  
-                return list.count < 8;
+            m_ReorderableListView.style.height = m_Keyword.entries.Count * m_ReorderableListView.itemHeight;
+
+            // footer setup
+            BuildFooter();
+
+            m_KeywordView.Add( m_ListHeader );
+            m_KeywordView.Add( m_ReorderableListView );
+            m_KeywordView.Add( m_ListFooter );
+        }
+
+        private void BuildFooter()
+        {
+            m_ListFooter = new VisualElement()
+            {
+                name = "ReorderableListView Footer",
+                style = 
+                {
+                    flexDirection = FlexDirection.RowReverse
+                }
             };
 
-            // Can remove
-            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) => 
-            {  
-                return list.count > 2;
+            var addButton = new VisualElement()
+            {
+                style =
+                {
+                    flexGrow = .5f,
+                    backgroundImage = Resources.Load< Texture2D >( "Icons/plus" ),
+                    width = 16,
+                    height = 16,
+                    marginLeft = 4f,
+                    marginTop = 4f,
+                    marginRight = 4f,
+                    marginBottom = 4f,
+                }
+            };
+            addButton.RegisterCallback< MouseDownEvent >(
+                ( evt ) =>
+                {
+                    if( m_Keyword.entries.Count >= 8 )
+                    {
+                        return;
+                    }
+
+                    graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
+
+                    var index = m_Keyword.entries.Count + 1;
+                    var displayName = GetDuplicateSafeDisplayName(index, "New");
+                    var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
+
+                    // Add new entry
+                    m_Keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
+
+                    // Update GUI
+                    Rebuild();
+                    graph.OnKeywordChanged();
+
+                    m_SelectedIndex = m_Keyword.entries.Count - 1;
+                    m_ReorderableListView.selectedIndex = m_SelectedIndex;
+                }
+            );
+
+            var removeButton = new VisualElement()
+            {
+                style =
+                {
+                    flexGrow = .5f,
+                    backgroundImage = Resources.Load< Texture2D >( "Icons/minus" ),
+                    width = 16,
+                    height = 16,
+                    marginLeft = 4f,
+                    marginTop = 4f,
+                    marginRight = 4f,
+                    marginBottom = 4f,
+                }
+            };
+            removeButton.RegisterCallback< MouseDownEvent >(
+                ( evt ) =>
+                {
+                    if( m_Keyword.entries.Count <= 2 )
+                    {
+                        return;
+                    }
+
+                    graph.owner.RegisterCompleteObjectUndo("Remove Keyword Entry");
+
+                    // Remove entry
+                    int offset = 0;
+                    var selectedIndices = m_ReorderableListView.selectedIndices;
+
+                    foreach( var index in selectedIndices )
+                    {
+                        m_Keyword.entries.RemoveAt( index - offset );
+                        offset++;
+                    }
+
+                    // Clamp value within new entry range
+                    int value = Mathf.Clamp(m_Keyword.value, 0, m_Keyword.entries.Count - 1);
+                    m_Keyword.value = value;
+
+                    Rebuild();
+                    graph.OnKeywordChanged();
+
+                    m_SelectedIndex = m_SelectedIndex - 1;
+
+                    if( m_Keyword.entries.Count > 0 && m_SelectedIndex < 0 )
+                    {
+                        m_SelectedIndex = 0;
+                    }
+
+                    m_ReorderableListView.selectedIndex = m_SelectedIndex;
+                }
+            );
+
+            var buttonContainer = new VisualElement()
+            {
+                style =
+                {
+                    marginRight = 20f,
+                    flexDirection = FlexDirection.Row,
+                    backgroundColor = m_ReorderableListView.style.backgroundColor
+                }
             };
 
-            // Add callback delegates
-            m_ReorderableList.onSelectCallback += SelectEntry;
-            m_ReorderableList.onAddCallback += AddEntry;
-            m_ReorderableList.onRemoveCallback += RemoveEntry;
-            m_ReorderableList.onReorderCallback += ReorderEntries;
-        }
-
-        private void SelectEntry(ReorderableList list)
-        {
-            m_SelectedIndex = list.index;
-        }
-
-        private void AddEntry(ReorderableList list)
-        {
-            graph.owner.RegisterCompleteObjectUndo("Add Keyword Entry");
-
-            var index = list.list.Count + 1;
-            var displayName = GetDuplicateSafeDisplayName(index, "New");
-            var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
-
-            // Add new entry
-            m_Keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
-
-            // Update GUI
-            Rebuild();
-            graph.OnKeywordChanged();
-            m_SelectedIndex = list.list.Count - 1;
-        }
-
-        private void RemoveEntry(ReorderableList list)
-        {
-            graph.owner.RegisterCompleteObjectUndo("Remove Keyword Entry");
-
-            // Remove entry
-            m_SelectedIndex = list.index;
-            var selectedEntry = (KeywordEntry)m_ReorderableList.list[list.index];
-            m_Keyword.entries.Remove(selectedEntry);
-
-            // Clamp value within new entry range
-            int value = Mathf.Clamp(m_Keyword.value, 0, m_Keyword.entries.Count - 1);
-            m_Keyword.value = value;
-
-            Rebuild();
-            graph.OnKeywordChanged();
-        }
-
-        private void ReorderEntries(ReorderableList list)
-        {
-            DirtyNodes();
+            buttonContainer.Add( addButton );
+            buttonContainer.Add( removeButton );
+            m_ListFooter.Add( buttonContainer );
         }
 
         public string GetDuplicateSafeDisplayName(int id, string name)
         {
             name = name.Trim();
-            var entryList = m_ReorderableList.list as List<KeywordEntry>;
+            var entryList = m_Keyword.entries;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
         }
 
@@ -235,7 +361,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             name = name.Trim();
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-            var entryList = m_ReorderableList.list as List<KeywordEntry>;
+            var entryList = m_Keyword.entries;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }
 

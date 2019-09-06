@@ -1,0 +1,14 @@
+<UXML xmlns:ui="UnityEngine.Experimental.UIElements" xmlns:ed="UnityEditor.Experimental.UIElements">
+
+    <ui:VisualElement name="container">
+        
+        <ui:VisualElement name="element-sidebar">
+            <ui:VisualElement name="selection-area" />
+            <ui:VisualElement name="move-handle-icon" />
+        </ui:VisualElement>
+
+        <!-- NODE CONTENT -->
+        <ui:VisualElement name="content" />
+
+    </ui:VisualElement>
+</UXML>
