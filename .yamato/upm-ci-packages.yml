@@ -49,7 +49,9 @@ packages:
     id: config
     packagename: com.unity.render-pipelines.high-definition-config
     dependencies:
+      - .yamato/upm-ci-packages.yml#pack_core
       - .yamato/upm-ci-packages.yml#pack_config
+    hascodependencies: 1
 platforms:
     - name: win
       agent:
