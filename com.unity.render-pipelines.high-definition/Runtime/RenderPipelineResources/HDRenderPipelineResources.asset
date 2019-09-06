@@ -98,6 +98,8 @@ MonoBehaviour:
       type: 3}
     preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba,
       type: 3}
+    defaultRendererCustomPass: {fileID: 4800000, guid: 18cb4caffc5f88c44bf4d8f1a7841e73,
+      type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
