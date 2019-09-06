@@ -25,24 +25,6 @@ struct MetaInput
     half3 SpecularColor;
 };
 
-struct Attributes
-{
-    float4 positionOS   : POSITION;
-    float3 normalOS     : NORMAL;
-    float2 uv0          : TEXCOORD0;
-    float2 uv1          : TEXCOORD1;
-    float2 uv2          : TEXCOORD2;
-#ifdef _TANGENT_TO_WORLD
-    float4 tangentOS     : TANGENT;
-#endif
-};
-
-struct Varyings
-{
-    float4 positionCS   : SV_POSITION;
-    float2 uv           : TEXCOORD0;
-};
-
 float4 MetaVertexPosition(float4 positionOS, float2 uv1, float2 uv2, float4 uv1ST, float4 uv2ST)
 {
     if (unity_MetaVertexControl.x)
