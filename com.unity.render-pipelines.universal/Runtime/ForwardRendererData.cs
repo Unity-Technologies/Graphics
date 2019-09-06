@@ -60,11 +60,8 @@ namespace UnityEngine.Rendering.Universal
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
+            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
 #endif
             return new ForwardRenderer(this);
         }
