@@ -88,7 +88,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);
             EditorGUILayout.PropertyField(m_SelfShadows, Styles.selfShadows);
 
-            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel);
+            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 
             if (m_CastsShadows.boolValue)
                 ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
