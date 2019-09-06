@@ -245,6 +245,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             void Draw_CustomPostProcess()
             {
+                var hdrpAsset = HDRenderPipeline.defaultAsset;
+                if (hdrpAsset == null)
+                    return;
+
                 m_BeforeTransparentCustomPostProcesses.DoLayoutList();
                 m_BeforePostProcessCustomPostProcesses.DoLayoutList();
                 m_AfterPostProcessCustomPostProcesses.DoLayoutList();
