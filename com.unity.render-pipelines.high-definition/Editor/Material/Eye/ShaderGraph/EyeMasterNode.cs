@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "HDRP/Eye (Experimental)")]
     class EyeMasterNode : MasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
-        public const string PositionSlotName = "Position";
+        public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
         public const int PositionSlotId = 0;
 

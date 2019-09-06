@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string AlphaClipThresholdDepthPrepassSlotName = "AlphaClipThresholdDepthPrepass";
         public const string AlphaClipThresholdDepthPostpassSlotName = "AlphaClipThresholdDepthPostpass";
         public const string AnisotropySlotName = "Anisotropy";
-        public const string PositionSlotName = "Position";        
+        public const string PositionSlotName = "Vertex Position";        
         public const string PositionSlotDisplayName = "Vertex Position";
         public const string VertexNormalSlotName = "Vertex Normal";
         public const string VertexTangentSlotName = "Vertex Tangent";

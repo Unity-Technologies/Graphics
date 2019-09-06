@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
         public const string DistortionSlotName = "Distortion";
         public const string DistortionBlurSlotName = "DistortionBlur";
-        public const string PositionSlotName = "Position";
+        public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
         public const string EmissionSlotName = "Emission";
         public const string VertexNormalSlotName = "Vertex Normal";
