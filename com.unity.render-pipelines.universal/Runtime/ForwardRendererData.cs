@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
         static void CreateForwardRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
-        
+
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
         }
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
-        [SerializeField] StencilStateData m_DefaultStencilState = null;
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
 
         protected override ScriptableRenderer Create()
         {

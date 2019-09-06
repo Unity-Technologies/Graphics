@@ -15,9 +15,13 @@
 
 .propertyrm VFXStringField.fieldContainer
 {
-    width: 240px;
-    flex-grow:0;
+    flex-grow:1;
     height: initial;
+}
+
+Label
+{
+    overflow:hidden;
 }
 
 VFXStringField.fieldContainer > TextField
@@ -66,7 +70,7 @@ VFXBlackboardRow.hovered #pill #selection-border
 VFXBlackboardCategory #name-field
 {
     position:absolute;
-    left:0;
+    left:16px;
     right:0;
     top:0;
     bottom:0;
@@ -75,6 +79,7 @@ VFXBlackboardCategory #name-field
 #expandButton {
     align-self: center;
     background-image: none;
+    background-color:rgba(0,0,0,0);
     border-left-width: 0;
     border-top-width: 0;
     border-right-width: 0;

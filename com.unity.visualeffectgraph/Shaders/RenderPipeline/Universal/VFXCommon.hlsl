@@ -8,6 +8,17 @@ float3 _LightDirection;
 
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
 
+float4 VFXTransformFinalColor(float4 color)
+{
+#ifdef DEBUG_DISPLAY
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    {
+        color = float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, color.a);
+    }
+#endif
+    return color;
+}
+
 void VFXEncodeMotionVector(float2 velocity, out float4 outBuffer)
 {
 	//TODO : LWRP doesn't support motion vector & TAA yet

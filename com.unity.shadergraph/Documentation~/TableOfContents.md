@@ -10,7 +10,7 @@
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
     * [Custom Function Node](Custom-Function-Node)
-* [Inside Shader Graph]  
+* Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
 	* [Sub Graph Asset](Sub-graph-Asset)
     * [Node](Node) 
@@ -18,7 +18,8 @@
         * [Custom Port Menu](Custom-Port-Menu)
         * [Edge](Edge)  
     * [Master Node](Master-Node)
-    * [Property Types](Property-Types)  
+    * [Property Types](Property-Types) 
+    * [Keywords](Keywords) 
     * [Data Types](Data-Types)
     * [Precision Types](Precision-Types)  
     * [Port Bindings](Port-Bindings)  
@@ -213,6 +214,7 @@
             * [Not](Not-Node)  
             * [Or](Or-Node)
         * [Custom Function](Custom-Function-Node)
+        * [Keyword](Keyword-Node)
         * [Preview](Preview-Node)  
         * [Sub Graph](Sub-graph-Node)            
     * [UV](UV-Nodes)

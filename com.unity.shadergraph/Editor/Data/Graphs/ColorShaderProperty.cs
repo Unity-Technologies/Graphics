@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         
         public override bool isExposable => true;
         public override bool isRenamable => true;
-        
+        public override bool isGpuInstanceable => true;
         public string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
         public override string GetPropertyBlockString()

@@ -12,7 +12,16 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         Precision m_Precision = Precision.Inherit;
-        
+
+        [SerializeField]
+        private bool m_GPUInstanced = false;
+
+        public bool gpuInstanced
+        {
+            get { return m_GPUInstanced; }
+            set { m_GPUInstanced = value; }
+        }
+
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
         public Precision precision
@@ -47,6 +56,7 @@ namespace UnityEditor.ShaderGraph
         
         public abstract AbstractMaterialNode ToConcreteNode();
         public abstract PreviewProperty GetPreviewMaterialProperty();
+        public virtual bool isGpuInstanceable => false;
     }
     
     [Serializable]

@@ -14,6 +14,7 @@ using UnityEditor.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using UnityEditor.VersionControl;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -34,6 +35,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
         bool m_FrameAllAfterLayout;
+
+        bool m_ProTheme;
 
         GraphEditorView m_GraphEditorView;
 
@@ -60,6 +63,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.saveRequested += UpdateAsset;
                     m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
                     m_GraphEditorView.showInProjectRequested += PingAsset;
+                    m_GraphEditorView.isCheckedOut += IsGraphAssetCheckedOut;
+                    m_GraphEditorView.checkOut += CheckoutAsset;
                     m_GraphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
                     m_FrameAllAfterLayout = true;
                     this.rootVisualElement.Add(graphEditorView);
@@ -109,6 +114,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 graphEditorView = null;
                 m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            }
+
+            if (EditorGUIUtility.isProSkin != m_ProTheme)
+            {
+                if (graphObject != null && graphObject.graph != null)
+                {
+                    Texture2D icon = GetThemeIcon(graphObject.graph);
+
+                    // This is adding the icon at the front of the tab
+                    titleContent = EditorGUIUtility.TrTextContentWithIcon(assetName, icon);
+                    m_ProTheme = EditorGUIUtility.isProSkin;
+                }
             }
 
             try
@@ -230,6 +247,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        public bool IsGraphAssetCheckedOut()
+        {
+            if (selectedGuid != null)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                if (!AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible))
+                    return false;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public void CheckoutAsset()
+        {
+            if (selectedGuid != null)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                Task task = Provider.Checkout(asset, CheckoutMode.Both);
+                task.Wait();
+            }
+        }
+
         public void UpdateAsset()
         {
             if (selectedGuid != null && graphObject != null)
@@ -239,6 +282,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
 
                 UpdateShaderGraphOnDisk(path);
+
+                if (GraphData.onSaveGraph != null)
+                {
+                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+                    GraphData.onSaveGraph(shader);
+                }
 
                 graphObject.isDirty = false;
             }
@@ -622,7 +671,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     assetName = asset.name.Split('/').Last()
                 };
 
-                titleContent = new GUIContent(asset.name.Split('/').Last());
+                Texture2D icon = GetThemeIcon(graphObject.graph);
+
+                // This is adding the icon at the front of the tab
+                titleContent = EditorGUIUtility.TrTextContentWithIcon(asset.name.Split('/').Last(), icon);
 
                 Repaint();
             }
@@ -633,6 +685,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject = null;
                 throw;
             }
+        }
+
+        Texture2D GetThemeIcon(GraphData graphdata)
+        {
+            string theme = EditorGUIUtility.isProSkin ? "_dark" : "_light";
+            Texture2D icon = Resources.Load<Texture2D>("Icons/sg_graph_icon_gray"+theme+"@16");
+            if (graphdata.isSubGraph)
+            {
+                icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray"+theme+"@16");
+            }
+
+            return icon;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
