@@ -82,6 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
         internal HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+
         internal float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
 #endif
 
@@ -412,6 +413,8 @@ namespace UnityEngine.Rendering.HighDefinition
             InitRayTracedIndirectDiffuse();
             InitRaytracingDeferred();
             InitRecursiveRenderer();
+            InitPathTracing();
+
             m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
 #endif
 
@@ -740,6 +743,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRayTracingDeferred();
             ReleaseRayTracedIndirectDiffuse();
             ReleaseRayTracedReflections();
+            ReleasePathTracing();
             m_RayTracingManager.Release();
 #endif
             m_DebugDisplaySettings.UnregisterDebug();
@@ -1835,11 +1839,16 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCameraMotionVectors(cullingResults, hdCamera, renderContext, cmd);
 
 #if ENABLE_RAYTRACING
+            // Update the light clusters that we need to update
+            m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
+
             bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
             if (validIndirectDiffuse)
             {
                 RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
             }
+
+            HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
 #endif
 
 #if UNITY_EDITOR
@@ -1853,6 +1862,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RenderDebugViewMaterial(cullingResults, hdCamera, renderContext, cmd);
             }
+#if ENABLE_RAYTRACING
+            else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
+                     rtEnv != null &&
+                     VolumeManager.instance.stack.GetComponent<PathTracing>().enable.value)
+            {
+                PathTracingRender(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
+            }
+#endif
             else
             {
                 if (!hdCamera.frameSettings.SSAORunsAsync())
@@ -1867,15 +1884,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 #if ENABLE_RAYTRACING
-                // Update the light clusters that we need to update
-                m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
-
                 // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
                 {
                     var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
                     var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-                    HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
                     if (rSettings.rayTracing.value && rtEnv != null)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
