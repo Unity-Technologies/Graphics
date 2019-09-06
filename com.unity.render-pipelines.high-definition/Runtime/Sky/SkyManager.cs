@@ -438,11 +438,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (volumetricLighting != null)
                     m_OpaqueAtmScatteringBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
 
-                // Color -> Intermediate.
-                HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 1 : 0);
-                // Intermediate -> Color.
-                // Note: Blit does not support MSAA (and is probably slower).
-                cmd.CopyTexture(intermediateBuffer, colorBuffer);
+                if (Fog.IsPBRFogEnabled(hdCamera))
+                {
+                    // Color -> Intermediate.
+                    HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 3 : 2);
+                    // Intermediate -> Color.
+                    // Note: Blit does not support MSAA (and is probably slower).
+                    cmd.CopyTexture(intermediateBuffer, colorBuffer);
+                }
+                else
+                {
+                    HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 1 : 0);
+                }
             }
         }
 

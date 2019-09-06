@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRP_Test_Def
   m_EditorClassIdentifier: 
-  m_Version: 7
+  m_Version: 8
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -156,7 +156,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 68356006215453
-      data2: 4539628424657829888
+      data2: 4539628424926265344
     lodBias: 1
     lodBiasMode: 0
     maximumLODLevel: 0
@@ -273,9 +273,30 @@ MonoBehaviour:
       enabled: 1
       checkerboardDepthBuffer: 1
       upsampleType: 1
+    xrSettings:
+      occlusionMesh: 1
+    postProcessQualitySettings:
+      NearBlurSampleCount: 030000000500000008000000
+      NearBlurMaxRadius:
+      - 2
+      - 4
+      - 7
+      FarBlurSampleCount: 04000000070000000e000000
+      FarBlurMaxRadius:
+      - 5
+      - 8
+      - 13
+      DoFResolution: 040000000200000001000000
+      DoFHighQualityFiltering: 000101
+      MotionBlurSampleCount: 04000000080000000c000000
+      BloomRes: 040000000200000002000000
+      BloomHighQualityFiltering: 000101
+      ChromaticAberrationMaxSamples: 03000000060000000c000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0
+  materialQualityLevels: -1
+  m_CurrentMaterialQualityLevel: 4
   diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
     type: 2}
   diffusionProfileSettingsList:
@@ -294,3 +315,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 86c1c808ebce1cc4992b9b0fd197a0b3, type: 2}
   - {fileID: 11400000, guid: 3506ae472b257f042af66a183fbaac6a, type: 2}
   - {fileID: 11400000, guid: 6be2047feaba36945b8fd12f29e3a7b5, type: 2}
+  beforeTransparentCustomPostProcesses:
+  - GreenPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  beforePostProcessCustomPostProcesses:
+  - RedPP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  afterPostProcessCustomPostProcesses:
+  - BluePP, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null

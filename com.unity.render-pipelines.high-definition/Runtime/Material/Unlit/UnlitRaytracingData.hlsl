@@ -21,7 +21,7 @@ bool GetSurfaceDataFromIntersection(FragInputs input, float3 V, PositionInputs p
 
     #if SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER
     builtinData.emissiveColor *= _IncludeIndirectLighting;
-    #elif SHADERPASS == SHADERPASS_RAYTRACING_FORWARD
+    #elif SHADERPASS == SHADERPASS_RAYTRACING_FORWARD || SHADERPASS == SHADERPASS_PATH_TRACING
     if(rayCone.spreadAngle < 0.0)
     {
         builtinData.emissiveColor *= _IncludeIndirectLighting;
