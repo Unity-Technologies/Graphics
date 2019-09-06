@@ -136,13 +136,10 @@ Material CreateMaterial(BSDFData bsdfData, float3 V)
     return mtl;
 }
 
-bool SampleMaterial(Material mtl, float2 inputSample, out float3 sampleDir, out MaterialResult result)
+bool SampleMaterial(Material mtl, float3 inputSample, out float3 sampleDir, out MaterialResult result)
 {
-    if (inputSample.x < mtl.specProb)
+    if (inputSample.z < mtl.specProb)
     {
-        // Rescale the sample
-        inputSample.x /= mtl.specProb;
-
         if (!SampleGGX(inputSample, mtl.localToWorld, mtl.V, mtl.bsdfData, sampleDir, result.specValue, result.specPdf))
             return false;
 
@@ -150,9 +147,6 @@ bool SampleMaterial(Material mtl, float2 inputSample, out float3 sampleDir, out 
     }
     else
     {
-        // Rescale the sample
-        inputSample.x = (inputSample.x - mtl.specProb) / mtl.diffProb;
-
         if (!SampleLambert(inputSample, mtl.bsdfData.normalWS, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
             return false;
 

@@ -86,9 +86,10 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     bsdfData.roughnessB = max(rayIntersection.maxRoughness, bsdfData.roughnessB);
 
     // Generate the new sample (following values of the sequence)
-    float2 inputSample = 0.0;
+    float3 inputSample = 0.0;
     inputSample.x = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth);
     inputSample.y = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 1);
+    inputSample.z = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 2);
 
     // Get current path throughput
     float3 pathThroughput = rayIntersection.color;
@@ -153,7 +154,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         float russianRouletteValue = Luminance(pathThroughput);
         float russianRouletteFactor = 1.0;
 
-        float rand = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 2);
+        float rand = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 3);
         if (RussianRouletteTest(russianRouletteValue, rand, russianRouletteFactor))
         {
             rayDescriptor.TMax = FLT_INF;

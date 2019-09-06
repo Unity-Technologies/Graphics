@@ -1,7 +1,10 @@
 // How many lights (at most) do we support at one given shading point
-#define MAX_LIGHT_COUNT 4
+// FIXME: hardcoded limit is evil
+#define MAX_LIGHT_COUNT 8
 
-// Supports rect area lights only for the moment
+#define LARGE_PDF 1000000.0
+
+// Only supports punctual and rect area lights at the moment
 struct LightList
 {
     uint count;
@@ -20,14 +23,14 @@ LightList CreateLightList(float3 position, BuiltinData builtinData)
     list.count = 0;
 
     // Grab active rect area lights
-    uint begin = 0, end = 0;
+    uint begin, end = 0;
 
     #ifdef USE_LIGHT_CLUSTER
     GetLightCountAndStartCluster(position, LIGHTCATEGORY_AREA, begin, end, list.cellIdx);
     #else
-    begin = _PunctualLightCountRT;
     end = _PunctualLightCountRT + _AreaLightCountRT;
     #endif
+    begin = 0;
 
     for (uint i = begin; i < end && list.count < MAX_LIGHT_COUNT; i++)
     {
@@ -37,7 +40,8 @@ LightList CreateLightList(float3 position, BuiltinData builtinData)
         LightData lightData = _LightDatasRT[i];
         #endif
 
-        if (lightData.lightType == GPULIGHTTYPE_RECTANGLE && IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+        if ((lightData.lightType == GPULIGHTTYPE_POINT || lightData.lightType == GPULIGHTTYPE_SPOT || lightData.lightType == GPULIGHTTYPE_RECTANGLE) &&
+            IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             list.idx[list.count++] = i;
     }
 
@@ -53,8 +57,14 @@ LightData GetLightData(LightList list, uint i)
     #endif
 }
 
+float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
+{
+    float4 distances = float4(dist, Sq(dist), 1.0 / dist, -dist * dot(outgoingDir, lightData.forward));
+    return lightData.color * PunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias, lightData.angleScale, lightData.angleOffset);
+}
+
 bool SampleLights(LightList lightList,
-                  float2 inputSample,
+                  float3 inputSample,
                   float3 position,
                   float3 normal,
               out float3 outgoingDir,
@@ -66,12 +76,8 @@ bool SampleLights(LightList lightList,
         return false;
 
     // Pick a light from the list
-    float scaledSample = inputSample.x * lightList.count;
-    uint idx = scaledSample;
+    uint idx = inputSample.z * lightList.count;
     LightData lightData = GetLightData(lightList, idx);
-
-    // Rescale the sample we used for further use
-    inputSample.x = scaledSample - idx;
 
     // Generate a point on the surface of the light
     float3 lightCenter = GetAbsolutePositionWS(lightData.positionRWS);
@@ -85,16 +91,24 @@ bool SampleLights(LightList lightList,
     if (dot(normal, outgoingDir) < 0.001)
         return false;
 
-    float cosTheta = -dot(outgoingDir, lightData.forward); // FIXME is forward normalized?
-    if (cosTheta < 0.001)
-        return false;
+    if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
+    {
+        float cosTheta = -dot(outgoingDir, lightData.forward);
+        if (cosTheta < 0.001)
+            return false;
 
-    float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
-    pdf = Sq(dist) / (lightArea * cosTheta * lightList.count);
+        float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
+        value = lightData.color;
+        pdf = Sq(dist) / (lightArea * cosTheta * lightList.count);
+    }
+    else // Punctual light
+    {
+        // LARGE_PDF represents 1 / area, where the area is infinitesimal
+        value = LARGE_PDF * GetPunctualEmission(lightData, outgoingDir, dist);
+        pdf = LARGE_PDF / lightList.count;
+    }
 
-    value = lightData.color;
-
-    return true;
+    return any(value);
 }
 
 void EvaluateLights(LightList lightList,
@@ -112,6 +126,10 @@ void EvaluateLights(LightList lightList,
     for (uint i = 0; i < lightList.count; i++)
     {
         LightData lightData = GetLightData(lightList, i);
+
+        // Punctual lights have a quasi-null probability of being hit here
+        if (lightData.lightType != GPULIGHTTYPE_RECTANGLE)
+            continue;
 
         float t = rayDescriptor.TMax;
         float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
