@@ -97,7 +97,11 @@ test_{{ package.id }}_{{ platform.name }}_{{ editor.version }}:
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - unity-downloader-cli -u {{ editor.version }} -c editor --wait
     - {{ platform.copycmd }}
+    {% if package.name == "Universal" %}
+    - upm-ci project test -u {{ platform.editorpath }} --project-path TestProjects/UniversalPackageTest
+    {% else %}
     - upm-ci package test -u {{ platform.editorpath }} --package-path {{ package.packagename }}
+    {% endif %}
     {% else %}
     - upm-ci package test -u {{ editor.version }} --package-path {{ package.packagename }}
     {% endif %}
