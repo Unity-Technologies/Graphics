@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL(needAccessors = false, omitStructDeclaration = true)]
+    [GenerateHLSL(needAccessors = false, omitStructDeclaration = true, generateCBuffer = true)]
     unsafe struct ShaderVariablesSubsurfaceScattering
     {
         // Use float4 to avoid any packing issue between compute and pixel shaders
@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _WorldScales[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4];        // X = meters per world unit; Y = world units per meter
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(float))]
-        public fixed uint _DiffusionProfileHashTable[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT]; // TODO: constant
+        public fixed float _DiffusionProfileHashTable[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT]; // TODO: constant
 
         // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
         // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.

@@ -73,6 +73,8 @@ namespace UnityEngine.Rendering.HighDefinition
     // TODO: Would be nice to clean this up at some point
     static class HDShaderIDs
     {
+        public static readonly int ShaderVariablesSubSurfaceScattering = Shader.PropertyToID("ShaderVariablesSubsurfaceScattering");
+
         public static readonly int _ZClip = Shader.PropertyToID("_ZClip");
 
         public static readonly int _HDShadowDatas = Shader.PropertyToID("_HDShadowDatas");
@@ -206,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CosTime             = Shader.PropertyToID("_CosTime");
         public static readonly int unity_DeltaTime      = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int _TimeParameters      = Shader.PropertyToID("_TimeParameters");
-        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");        
+        public static readonly int _LastTimeParameters  = Shader.PropertyToID("_LastTimeParameters");
 
         public static readonly int _EnvLightSkyEnabled = Shader.PropertyToID("_EnvLightSkyEnabled");
         public static readonly int _AmbientOcclusionParam = Shader.PropertyToID("_AmbientOcclusionParam");
@@ -481,7 +483,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OffScreenRendering             = Shader.PropertyToID("_OffScreenRendering");
         public static readonly int _OffScreenDownsampleFactor      = Shader.PropertyToID("_OffScreenDownsampleFactor");
         public static readonly int _ReplaceDiffuseForIndirect      = Shader.PropertyToID("_ReplaceDiffuseForIndirect");
-        public static readonly int _EnableSkyLighting               = Shader.PropertyToID("_EnableSkyLighting");        
+        public static readonly int _EnableSkyLighting               = Shader.PropertyToID("_EnableSkyLighting");
 
         public static readonly int _GroundIrradianceTexture        = Shader.PropertyToID("_GroundIrradianceTexture");
         public static readonly int _GroundIrradianceTable          = Shader.PropertyToID("_GroundIrradianceTable");
@@ -617,7 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _IndirectDiffuseTexture              = Shader.PropertyToID("_IndirectDiffuseTexture");
         public static readonly int _IndirectDiffuseTextureRW            = Shader.PropertyToID("_IndirectDiffuseTextureRW");
         public static readonly int _IndirectDiffuseHitPointTextureRW    = Shader.PropertyToID("_IndirectDiffuseHitPointTextureRW");
-        
+
         // Deferred Lighting
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
         public static readonly int _RaytracingDiffuseRay            = Shader.PropertyToID("_RaytracingDiffuseRay");
