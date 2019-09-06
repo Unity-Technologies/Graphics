@@ -165,7 +165,7 @@ real3 UnpackNormalRGB(real4 packedNormal, real scale = 1.0)
     real3 normal;
     normal.xyz = packedNormal.rgb * 2.0 - 1.0;
     normal.xy *= scale;
-    return normalize(normal);
+    return normal;
 }
 
 real3 UnpackNormalRGBNoScale(real4 packedNormal)

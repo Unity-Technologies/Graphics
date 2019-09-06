@@ -145,7 +145,14 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw), _NormalScale1);
     nrm += splatControl.b * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, uvSplat23.xy), _NormalScale2);
     nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
-    nrm.z += 1e-5f;     // avoid risk of NaN when normalizing.
+
+    // avoid risk of NaN when normalizing.
+#if HAS_HALF
+    nrm.z += 0.01h;     
+#else
+    nrm.z += 1e-5f;
+#endif
+
     mixedNormal = normalize(nrm.xyz);
 #endif
 }
