@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where selecting certain objects that use instancing materials would throw console warnings. [case 1127324](https://issuetracker.unity3d.com/issues/console-warning-is-being-spammed-when-having-lwrp-enabled-and-shader-with-gpu-instancing-present-in-the-scene)
 - Fixed a GUID conflict with LWRP. [case 1179895](https://issuetracker.unity3d.com/product/unity/issues/guid/1179895/)
 - Fixed an issue that caused the `Opaque Color` pass to never render at half or quarter resolution.
+- Fixed and issue where stencil state on a `ForwardRendererData` was reset each time rendering happened.
 
 ## [7.0.1] - 2019-07-25
 ### Changed
