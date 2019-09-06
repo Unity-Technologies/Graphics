@@ -38,6 +38,24 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    [Serializable]
+    [GenerateHLSL]
+    public struct SphericalHarmonicsL1
+    {
+        public Vector4 shAr;
+        public Vector4 shAg;
+        public Vector4 shAb;
+
+        public static SphericalHarmonicsL1 GetNeutralValues()
+        {
+            SphericalHarmonicsL1 sh;
+            sh.shAr = Vector4.zero;
+            sh.shAg = Vector4.zero;
+            sh.shAb = Vector4.zero;
+            return sh;
+        }
+    }
+
     public struct ProbeVolumeList
     {
         public List<OrientedBBox> bounds;
@@ -89,9 +107,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // TODO: Preallocating compute buffer for this worst case of a single probe volume that consumes the whole atlas is a memory hog.
         // May want to look at dynamic resizing of compute buffer based on use, or more simply, slicing it up across multiple dispatches for massive volumes.
-        // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount bytes ~= 12.6 MB.
+        // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount (12) bytes ~= 50.3 MB.
         public const int k_MaxProbeVolumeProbeCount = k_ProbeVolumeAtlasWidth * k_ProbeVolumeAtlasHeight;
-        RTHandle m_ProbeVolumeAtlasRTHandle;
+        RTHandle m_ProbeVolumeAtlasShArRTHandle;
+        RTHandle m_ProbeVolumeAtlasShAgRTHandle;
+        RTHandle m_ProbeVolumeAtlasShAbRTHandle;
         Texture2DAtlas probeVolumeAtlas = null; // TODO(Nicholas): it was marked as public, but Texture2DAtlas is not publicly accessible anymore.
 
         // Note: These max resolution dimensions are implicitly defined from the way probe volumes are laid out in our 2D atlas.
@@ -135,20 +155,36 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>();
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
+            s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(k_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(SphericalHarmonicsL1)));
 
-            // TODO: This will expand out to full SH coefficients set, not just a vector3 color.
-            s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(k_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(Vector3)));
-
-            m_ProbeVolumeAtlasRTHandle = RTHandles.Alloc(
+            m_ProbeVolumeAtlasShArRTHandle = RTHandles.Alloc(
                 width: k_ProbeVolumeAtlasWidth,
                 height: k_ProbeVolumeAtlasHeight,
                 dimension: TextureDimension.Tex2D,
                 colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
                 enableRandomWrite: true,
                 useMipMap: false,
-                name: "ProbeVolumeAtlas"
+                name: "ProbeVolumeAtlasShAr"
             );
-            probeVolumeAtlas = new Texture2DAtlas(k_ProbeVolumeAtlasWidth, k_ProbeVolumeAtlasHeight, m_ProbeVolumeAtlasRTHandle);
+            m_ProbeVolumeAtlasShAgRTHandle = RTHandles.Alloc(
+                width: k_ProbeVolumeAtlasWidth,
+                height: k_ProbeVolumeAtlasHeight,
+                dimension: TextureDimension.Tex2D,
+                colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
+                enableRandomWrite: true,
+                useMipMap: false,
+                name: "ProbeVolumeAtlasShAg"
+            );
+            m_ProbeVolumeAtlasShAbRTHandle = RTHandles.Alloc(
+                width: k_ProbeVolumeAtlasWidth,
+                height: k_ProbeVolumeAtlasHeight,
+                dimension: TextureDimension.Tex2D,
+                colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
+                enableRandomWrite: true,
+                useMipMap: false,
+                name: "ProbeVolumeAtlasShAb"
+            );
+            probeVolumeAtlas = new Texture2DAtlas(k_ProbeVolumeAtlasWidth, k_ProbeVolumeAtlasHeight, m_ProbeVolumeAtlasShArRTHandle);
         }
 
         // For the initial allocation, no suballocation happens (the texture is full size).
@@ -196,8 +232,14 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBuffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataBuffer);
 
-            if (m_ProbeVolumeAtlasRTHandle != null)
-                RTHandles.Release(m_ProbeVolumeAtlasRTHandle);
+            if (m_ProbeVolumeAtlasShArRTHandle != null)
+                RTHandles.Release(m_ProbeVolumeAtlasShArRTHandle);
+
+            if (m_ProbeVolumeAtlasShAgRTHandle != null)
+                RTHandles.Release(m_ProbeVolumeAtlasShAgRTHandle);
+
+            if (m_ProbeVolumeAtlasShAbRTHandle != null)
+                RTHandles.Release(m_ProbeVolumeAtlasShAbRTHandle);
 
             if (probeVolumeAtlas != null)
                 probeVolumeAtlas.Release();
@@ -224,12 +266,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBuffer);
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, m_VisibleProbeVolumeBounds.Count);
-            cmd.SetGlobalTexture("_ProbeVolumeAtlas", m_ProbeVolumeAtlasRTHandle);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlasShAr", m_ProbeVolumeAtlasShArRTHandle);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlasShAg", m_ProbeVolumeAtlasShAgRTHandle);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlasShAb", m_ProbeVolumeAtlasShAbRTHandle);
             cmd.SetGlobalVector("_ProbeVolumeAtlasResolutionAndInverse", new Vector4(
-                    m_ProbeVolumeAtlasRTHandle.rt.width,
-                    m_ProbeVolumeAtlasRTHandle.rt.height,
-                    1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.width,
-                    1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.height
+                    m_ProbeVolumeAtlasShArRTHandle.rt.width,
+                    m_ProbeVolumeAtlasShArRTHandle.rt.height,
+                    1.0f / (float)m_ProbeVolumeAtlasShArRTHandle.rt.width,
+                    1.0f / (float)m_ProbeVolumeAtlasShArRTHandle.rt.height
             ));
         }
 
@@ -279,10 +323,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         volume.parameters.scaleBias
                     );
                     cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasResolutionAndInverse", new Vector4(
-                        m_ProbeVolumeAtlasRTHandle.rt.width,
-                        m_ProbeVolumeAtlasRTHandle.rt.height,
-                        1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.width,
-                        1.0f / (float)m_ProbeVolumeAtlasRTHandle.rt.height
+                        m_ProbeVolumeAtlasShArRTHandle.rt.width,
+                        m_ProbeVolumeAtlasShArRTHandle.rt.height,
+                        1.0f / (float)m_ProbeVolumeAtlasShArRTHandle.rt.width,
+                        1.0f / (float)m_ProbeVolumeAtlasShArRTHandle.rt.height
                     ));
 
                     Debug.Log("data[0] = " + data[0]);
@@ -290,7 +334,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasReadBufferCount", size);
                     cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasReadBuffer", s_ProbeVolumeAtlasBlitDataBuffer);
-                    cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasWriteTexture", m_ProbeVolumeAtlasRTHandle);
+                    cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasWriteTextureShAr", m_ProbeVolumeAtlasShArRTHandle);
+                    cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasWriteTextureShAg", m_ProbeVolumeAtlasShAgRTHandle);
+                    cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasWriteTextureShAb", m_ProbeVolumeAtlasShAbRTHandle);
 
                     // TODO: Determine optimal batch size.
                     const int kBatchSize = 256;
@@ -439,12 +485,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!m_SupportProbeVolume) { return; }
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
-            float rWidth = 1.0f / m_ProbeVolumeAtlasRTHandle.rt.width;
-            float rHeight = 1.0f / m_ProbeVolumeAtlasRTHandle.rt.height;
-            Vector4 scaleBias = Vector4.Scale(new Vector4(rWidth, rHeight, rWidth, rHeight), new Vector4(m_ProbeVolumeAtlasRTHandle.rt.width, m_ProbeVolumeAtlasRTHandle.rt.height, 0, 0));
+            float rWidth = 1.0f / m_ProbeVolumeAtlasShArRTHandle.rt.width;
+            float rHeight = 1.0f / m_ProbeVolumeAtlasShArRTHandle.rt.height;
+            Vector4 scaleBias = Vector4.Scale(new Vector4(rWidth, rHeight, rWidth, rHeight), new Vector4(m_ProbeVolumeAtlasShArRTHandle.rt.width, m_ProbeVolumeAtlasShArRTHandle.rt.height, 0, 0));
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-            propertyBlock.SetTexture("_AtlasTexture", m_ProbeVolumeAtlasRTHandle.rt);
+            propertyBlock.SetTexture("_AtlasTextureShAr", m_ProbeVolumeAtlasShArRTHandle.rt);
+            propertyBlock.SetTexture("_AtlasTextureShAg", m_ProbeVolumeAtlasShAgRTHandle.rt);
+            propertyBlock.SetTexture("_AtlasTextureShAb", m_ProbeVolumeAtlasShAbRTHandle.rt);
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetVector("_ValidRange", validRange);
             cmd.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));

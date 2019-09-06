@@ -12,7 +12,9 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         float2  _ValidRange;
         // float   _RcpGlobalScaleFactor;
         SamplerState ltc_linear_clamp_sampler;
-        TEXTURE2D(_AtlasTexture);
+        TEXTURE2D(_AtlasTextureShAr);
+        TEXTURE2D(_AtlasTextureShAg);
+        TEXTURE2D(_AtlasTextureShAb);
 
         struct Attributes
         {
@@ -52,9 +54,11 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float3 value = saturate((SAMPLE_TEXTURE2D(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord).rgb - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAr = saturate((SAMPLE_TEXTURE2D(_AtlasTextureShAr, ltc_linear_clamp_sampler, input.texcoord) - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAg = saturate((SAMPLE_TEXTURE2D(_AtlasTextureShAg, ltc_linear_clamp_sampler, input.texcoord) - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAb = saturate((SAMPLE_TEXTURE2D(_AtlasTextureShAb, ltc_linear_clamp_sampler, input.texcoord) - _ValidRange.x) * _ValidRange.y);
 
-                return float4(value, 1);
+                return float4(valueShAr.x, valueShAg.x, valueShAb.x, 1);
             }
 
             ENDHLSL

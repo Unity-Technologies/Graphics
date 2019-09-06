@@ -508,7 +508,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                     // TODO: Implement per-probe user defined max weight.
                     float weight = 0.0;
-                    float3 sample = 0.0;
+                    float4 sampleShAr = 0.0;
+                    float4 sampleShAg = 0.0;
+                    float4 sampleShAb = 0.0;
                     {
                         float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.right, s_probeVolumeBounds.up));
                         float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
@@ -550,26 +552,30 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                             float2 probeVolumeAtlasUV2DBack = probeVolumeTexel2DBack * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
                             float2 probeVolumeAtlasUV2DFront = probeVolumeTexel2DFront * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
-
-                            // TODO: Use SampleProbe with three textures encoding L1
-                            sample = lerp(
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlas, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0).rgb,
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlas, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0).rgb,
-                                frac(probeVolumeTexel3D.z - 0.5)
+                            float lerpZ = frac(probeVolumeTexel3D.z - 0.5);
+                            sampleShAr = lerp(
+                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAr, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0),
+                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAr, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0),
+                                lerpZ
+                            );
+                            sampleShAg = lerp(
+                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAg, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0),
+                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAg, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0),
+                                lerpZ
+                            );
+                            sampleShAb = lerp(
+                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAb, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0),
+                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAb, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0),
+                                lerpZ
                             );
                         }
                     }
 
-                    // TODO: Fill in L1
-                    real4 shAr = real4(0, 0, 0, sample.r);
-                    real4 shAg = real4(0, 0, 0, sample.g);
-                    real4 shAb = real4(0, 0, 0, sample.b);
-
-                    float3 sampleColor = SHEvalLinearL0L1(bsdfData.normalWS, shAr, shAg, shAb);
+                    float3 sampleOutgoingRadiance = SHEvalLinearL0L1(bsdfData.normalWS, sampleShAr, sampleShAg, sampleShAb);
 
                     // TODO: Sample irradiance data from atlas and integrate against diffuse BRDF.
                     // probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * sample * weight;
-                    probeVolumeDiffuseLighting += sampleColor * weight * bsdfData.diffuseColor;
+                    probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight * bsdfData.diffuseColor;
                     probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
 
                 }

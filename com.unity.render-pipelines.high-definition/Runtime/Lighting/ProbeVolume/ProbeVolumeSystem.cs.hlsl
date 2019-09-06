@@ -59,4 +59,29 @@ float3 GetResolutionInverse(ProbeVolumeEngineData value)
     return value.resolutionInverse;
 }
 
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.SphericalHarmonicsL1
+// PackingRules = Exact
+struct SphericalHarmonicsL1
+{
+    float4 shAr;
+    float4 shAg;
+    float4 shAb;
+};
+
+//
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.SphericalHarmonicsL1
+//
+float4 GetShAr(SphericalHarmonicsL1 value)
+{
+    return value.shAr;
+}
+float4 GetShAg(SphericalHarmonicsL1 value)
+{
+    return value.shAg;
+}
+float4 GetShAb(SphericalHarmonicsL1 value)
+{
+    return value.shAb;
+}
+
 #endif

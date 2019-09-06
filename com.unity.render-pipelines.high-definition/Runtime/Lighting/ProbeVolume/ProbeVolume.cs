@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool dataUpdated = false;
 
         [SerializeField]
-        public Vector3[] data = null;
+        public SphericalHarmonicsL1[] data = null;
 
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return id;
         }
 
-        public Vector3[] GetData()
+        public SphericalHarmonicsL1[] GetData()
         {
             dataUpdated = false;
             return data;
@@ -211,16 +211,20 @@ namespace UnityEngine.Rendering.HighDefinition
             if (id == -1)
                 return;
 
-            data = new Vector3[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
+            data = new SphericalHarmonicsL1[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
 
             var nativeData = new NativeArray<SphericalHarmonicsL2>(data.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(id, nativeData);
 
+            // TODO: Remove this data copy.
             for (int i = 0, iLen = data.Length; i < iLen; ++i)
             {
-                SphericalHarmonicsL2 additionalProbe = nativeData[i];
-                data[i] = new Vector3(additionalProbe[0, 0], additionalProbe[1, 0], additionalProbe[2, 0]);
+                data[i].shAr = new Vector4(nativeData[i][0, 0], nativeData[i][0, 1], nativeData[i][0, 2], nativeData[i][0, 3]);
+                data[i].shAg = new Vector4(nativeData[i][1, 0], nativeData[i][1, 1], nativeData[i][1, 2], nativeData[i][1, 3]);
+                data[i].shAb = new Vector4(nativeData[i][2, 0], nativeData[i][2, 1], nativeData[i][2, 2], nativeData[i][2, 3]);
             }
+
+            nativeData.Dispose();
 
             dataUpdated = true;
         }
