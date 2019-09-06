@@ -3,31 +3,34 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class SerializedScalableSetting
+    public class SerializedShadowResolutionSetting
     {
-        public SerializedProperty low;
-        public SerializedProperty medium;
-        public SerializedProperty high;
+        public SerializedProperty values;
 
-        public SerializedScalableSetting(SerializedProperty property)
+        public SerializedShadowResolutionSetting(SerializedProperty property)
         {
-            low = property.FindPropertyRelative("m_Low");
-            medium = property.FindPropertyRelative("m_Medium");
-            high = property.FindPropertyRelative("m_High");
+            values = property.FindPropertyRelative("m_Values");
         }
     }
 
-    public static class SerializedScalableSettingUI
+    public static class SerializedShadowResolutionSettingUI
     {
-        private static readonly GUIContent k_ShortLow = new GUIContent("L", "Low");
-        private static readonly GUIContent k_ShortMed = new GUIContent("M", "Medium");
-        private static readonly GUIContent k_ShortHigh = new GUIContent("H", "High");
+        private static readonly GUIContent[] k_Shorts =
+        {
+            new GUIContent("L", "Low"),
+            new GUIContent("M", "Medium"),
+            new GUIContent("H", "High"),
+            new GUIContent("U", "Ultra"),
+        };
+        private static readonly GUIContent[] k_Full =
+        {
+            new GUIContent("Low", "Low"),
+            new GUIContent("Medium", "Medium"),
+            new GUIContent("High", "High"),
+            new GUIContent("Ultra", "Ultra"),
+        };
 
-        private static readonly GUIContent k_Low = new GUIContent("Low", "Low");
-        private static readonly GUIContent k_Med = new GUIContent("Medium", "Medium");
-        private static readonly GUIContent k_High = new GUIContent("High", "High");
-
-        public static void ValueGUI<T>(this SerializedScalableSetting self, GUIContent label)
+        public static void ValueGUI<T>(this SerializedShadowResolutionSetting self, GUIContent label)
         {
             var rect = GUILayoutUtility.GetRect(0, float.Epsilon, 0, EditorGUIUtility.singleLineHeight);
             // Magic Number !!
@@ -36,62 +39,53 @@ namespace UnityEditor.Rendering.HighDefinition
             // Magic Number !!
 
             var contentRect = EditorGUI.PrefixLabel(rect, label);
-            EditorGUI.showMixedValue = self.low.hasMultipleDifferentValues
-                                       || self.medium.hasMultipleDifferentValues
-                                       || self.high.hasMultipleDifferentValues;
+            EditorGUI.showMixedValue = self.values.hasMultipleDifferentValues;
+
+            var count = self.values.arraySize;
 
             if (typeof(T) == typeof(bool))
             {
-                GUIContent[] labels = {k_Low, k_Med, k_High};
-                bool[] values =
-                {
-                    self.low.boolValue,
-                    self.medium.boolValue,
-                    self.high.boolValue
-                };
+                var labels = new GUIContent[count];
+                Array.Copy(k_Full, labels, count);
+                var values = new bool[count];
+                for (var i = 0; i < count; ++i)
+                    values[i] = self.values.GetArrayElementAtIndex(i).boolValue;
                 EditorGUI.BeginChangeCheck();
                 MultiField(contentRect, labels, values);
                 if(EditorGUI.EndChangeCheck())
                 {
-                    self.low.boolValue = values[0];
-                    self.medium.boolValue = values[1];
-                    self.high.boolValue = values[2];
+                    for (var i = 0; i < count; ++i)
+                        self.values.GetArrayElementAtIndex(i).boolValue = values[i];
                 }
             }
             else if (typeof(T) == typeof(int))
             {
-                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh};
-                int[] values =
-                {
-                    self.low.intValue,
-                    self.medium.intValue,
-                    self.high.intValue
-                };
+                var labels = new GUIContent[count];
+                Array.Copy(k_Shorts, labels, count);
+                var values = new int[count];
+                for (var i = 0; i < count; ++i)
+                    values[i] = self.values.GetArrayElementAtIndex(i).intValue;
                 EditorGUI.BeginChangeCheck();
                 MultiField(contentRect, labels, values);
                 if(EditorGUI.EndChangeCheck())
                 {
-                    self.low.intValue = values[0];
-                    self.medium.intValue = values[1];
-                    self.high.intValue = values[2];
+                    for (var i = 0; i < count; ++i)
+                        self.values.GetArrayElementAtIndex(i).intValue = values[i];
                 }
             }
             else if (typeof(T) == typeof(float))
             {
-                GUIContent[] labels = {k_ShortLow, k_ShortMed, k_ShortHigh};
-                float[] values =
-                {
-                    self.low.floatValue,
-                    self.medium.floatValue,
-                    self.high.floatValue
-                };
+                var labels = new GUIContent[count];
+                Array.Copy(k_Shorts, labels, count);
+                var values = new float[count];
+                for (var i = 0; i < count; ++i)
+                    values[i] = self.values.GetArrayElementAtIndex(i).floatValue;
                 EditorGUI.BeginChangeCheck();
                 MultiField(contentRect, labels, values);
                 if(EditorGUI.EndChangeCheck())
                 {
-                    self.low.floatValue = values[0];
-                    self.medium.floatValue = values[1];
-                    self.high.floatValue = values[2];
+                    for (var i = 0; i < count; ++i)
+                        self.values.GetArrayElementAtIndex(i).floatValue = values[i];
                 }
             }
 

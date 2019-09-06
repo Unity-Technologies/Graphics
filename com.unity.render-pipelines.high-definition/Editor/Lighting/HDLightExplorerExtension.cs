@@ -278,8 +278,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     var shadowResolution = lightDataPairing[light].hdAdditionalLightData.shadowResolution;
                     EditorGUI.BeginChangeCheck();
-                    var (level, useOverride) = SerializedScalableSettingValueUI.LevelFieldGUI(r, GUIContent.none, shadowResolution.level,
-                        shadowResolution.useOverride);
+                    var (level, useOverride) = SerializedShadowResolutionSettingValueUI.LevelFieldGUI(r, shadowResolution.level, shadowResolution.useOverride);
                     if (EditorGUI.EndChangeCheck())
                     {
                         shadowResolution.level = level;

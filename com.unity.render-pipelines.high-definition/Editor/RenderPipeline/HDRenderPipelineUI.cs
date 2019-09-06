@@ -570,21 +570,21 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShowDoFLowQualitySection = EditorGUILayout.Foldout(m_ShowDoFLowQualitySection, k_LowQualityContent);
             if (m_ShowDoFLowQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Low;
+                int quality = (int)ScalableSetting.Level.Low;
                 DrawDepthOfFieldQualitySetting(serialized, quality);
             }
 
             m_ShowDoFMediumQualitySection = EditorGUILayout.Foldout(m_ShowDoFMediumQualitySection, k_MediumQualityContent);
             if (m_ShowDoFMediumQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                int quality = (int)ScalableSetting.Level.Medium;
                 DrawDepthOfFieldQualitySetting(serialized, quality);
             }
 
             m_ShowDoFHighQualitySection = EditorGUILayout.Foldout(m_ShowDoFHighQualitySection, k_HighQualityContent);
             if (m_ShowDoFHighQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.High;
+                int quality = (int)ScalableSetting.Level.High;
                 DrawDepthOfFieldQualitySetting(serialized, quality);
             }
         }
@@ -598,19 +598,19 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShowMotionBlurLowQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurLowQualitySection, k_LowQualityContent);
             if (m_ShowMotionBlurLowQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Low;
+                int quality = (int)ScalableSetting.Level.Low;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), k_SampleCountQuality);
             }
             m_ShowMotionBlurMediumQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurMediumQualitySection, k_MediumQualityContent);
             if (m_ShowMotionBlurMediumQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                int quality = (int)ScalableSetting.Level.Medium;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), k_SampleCountQuality);
             }
             m_ShowMotionBlurHighQualitySection = EditorGUILayout.Foldout(m_ShowMotionBlurHighQualitySection, k_HighQualityContent);
             if (m_ShowMotionBlurHighQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.High;
+                int quality = (int)ScalableSetting.Level.High;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.MotionBlurSampleCount.GetArrayElementAtIndex(quality), k_SampleCountQuality);
             }
         }
@@ -630,19 +630,19 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShowBloomLowQualitySection = EditorGUILayout.Foldout(m_ShowBloomLowQualitySection, k_LowQualityContent);
             if (m_ShowBloomLowQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Low;
+                int quality = (int)ScalableSetting.Level.Low;
                 DrawBloomQualitySetting(serialized, quality);
             }
             m_ShowBloomMediumQualitySection = EditorGUILayout.Foldout(m_ShowBloomMediumQualitySection, k_MediumQualityContent);
             if (m_ShowBloomMediumQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                int quality = (int)ScalableSetting.Level.Medium;
                 DrawBloomQualitySetting(serialized, quality);
             }
             m_ShowBloomHighQualitySection = EditorGUILayout.Foldout(m_ShowBloomHighQualitySection, k_HighQualityContent);
             if (m_ShowBloomHighQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.High;
+                int quality = (int)ScalableSetting.Level.High;
                 DrawBloomQualitySetting(serialized, quality);
             }
         }
@@ -656,19 +656,19 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShowChromaticAberrationLowQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationLowQualitySection, k_LowQualityContent);
             if (m_ShowChromaticAberrationLowQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Low;
+                int quality = (int)ScalableSetting.Level.Low;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
             }
             m_ShowChromaticAberrationMediumQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationMediumQualitySection, k_MediumQualityContent);
             if (m_ShowChromaticAberrationMediumQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.Medium;
+                int quality = (int)ScalableSetting.Level.Medium;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
             }
             m_ShowChromaticAberrationHighQualitySection = EditorGUILayout.Foldout(m_ShowChromaticAberrationHighQualitySection, k_HighQualityContent);
             if (m_ShowChromaticAberrationHighQualitySection)
             {
-                int quality = (int)VolumeQualitySettingsLevels.High;
+                int quality = (int)ScalableSetting.Level.High;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.ChromaticAbMaxSamples.GetArrayElementAtIndex(quality), k_MaxSamplesQuality);
             }
         }

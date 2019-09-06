@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_Version = value;
         }
 
+#pragma warning disable 0618, 0612
         [SerializeField]
         private Version m_Version = Version.ShadowResolution;
 
@@ -90,15 +91,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     t.shadowResolution.@override = t.m_ObsoleteCustomShadowResolution;
                     switch (t.m_ObsoleteShadowResolutionTier)
                     {
-                        case ShadowResolutionTier.Low: t.shadowResolution.level = ScalableSetting.Level.Low; break;
-                        case ShadowResolutionTier.Medium: t.shadowResolution.level = ScalableSetting.Level.Medium; break;
-                        case ShadowResolutionTier.High: t.shadowResolution.level = ScalableSetting.Level.High; break;
-                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = ScalableSetting.Level.High; break;
+                        case ShadowResolutionTier.Low: t.shadowResolution.level = 0; break;
+                        case ShadowResolutionTier.Medium: t.shadowResolution.level = 1; break;
+                        case ShadowResolutionTier.High: t.shadowResolution.level = 2; break;
+                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = 3; break;
                     }
                     t.shadowResolution.useOverride = !t.m_ObsoleteUseShadowQualitySettings;
                     t.useContactShadow.@override = t.m_ObsoleteContactShadows;
                 })
             );
+#pragma warning restore 0618, 0612
 
         void ISerializationCallbackReceiver.OnAfterDeserialize() {}
 
@@ -116,9 +118,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void Awake()
         {
             k_HDLightMigrationSteps.Migrate(this);
+#pragma warning disable 0618
             var shadow = GetComponent<AdditionalShadowData>();
             if (shadow != null)
                 CoreUtils.Destroy(shadow);
+#pragma warning restore 0618
         }
 
         #region Obsolete fields
