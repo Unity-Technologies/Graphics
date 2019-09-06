@@ -28,15 +28,6 @@ float ProbeVolumeComputeFadeFactor(
     return dstF * fade;
 }
 
-float3 SampleProbe(in float2 uv, in float3 normalWS, in TEXTURE2D(shR), in TEXTURE2D(shG), in TEXTURE2D(shB), in SAMPLER(samplerState))
-{
-    real4 shAr = SAMPLE_TEXTURE2D(shR, samplerState, uv.xy);
-    real4 shAg = SAMPLE_TEXTURE2D(shG, samplerState, uv.xy);
-    real4 shAb = SAMPLE_TEXTURE2D(shB, samplerState, uv.xy);
-
-    return SHEvalLinearL0L1(normalWS, shAr, shAg, shAb);
-}
-
 void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
@@ -578,9 +569,16 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         }
                     }
 
+                    // TODO: Fill in L1
+                    real4 shAr = real4(0, 0, 0, sample.r);
+                    real4 shAg = real4(0, 0, 0, sample.g);
+                    real4 shAb = real4(0, 0, 0, sample.b);
+
+                    float3 sampleColor = SHEvalLinearL0L1(bsdfData.normalWS, shAr, shAg, shAb);
+
                     // TODO: Sample irradiance data from atlas and integrate against diffuse BRDF.
                     // probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * sample * weight;
-                    probeVolumeDiffuseLighting += sample * weight * bsdfData.diffuseColor;
+                    probeVolumeDiffuseLighting += sampleColor * weight * bsdfData.diffuseColor;
                     probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
 
                 }
