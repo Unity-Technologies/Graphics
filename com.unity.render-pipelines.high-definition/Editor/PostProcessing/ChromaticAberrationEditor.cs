@@ -1,4 +1,5 @@
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -26,10 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_SpectralLUT);
             PropertyField(m_Intensity);
-            if(!UsesQualitySettings())
-            {
-                PropertyField(m_MaxSamples);
-            }
+            GUI.enabled = useCustomValue;
+            PropertyField(m_MaxSamples);
+            GUI.enabled = true;
         }
     }
 }

@@ -3,6 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+
     class SerializedHDRenderPipelineAsset
     {
         public SerializedObject serializedObject;
@@ -11,10 +12,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty currentMaterialQualityLevel;
         public SerializedProperty materialQualityLevels;
         public SerializedProperty renderPipelineRayTracingResources;
-        public SerializedProperty diffusionProfileSettingsList; 
+        public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
-        public SerializedProperty shaderVariantLogLevel; 
+        public SerializedProperty shaderVariantLogLevel;
         public SerializedRenderPipelineSettings renderPipelineSettings;
         public SerializedFrameSettings defaultFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;

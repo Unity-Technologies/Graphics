@@ -1031,9 +1031,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
 
-            // Set the quality level for this rendering
-            asset.currentMaterialQualityLevel.SetGlobalShaderKeywords();
-
             GetOrCreateDefaultVolume();
 
             BeginFrameRendering(renderContext, cameras);
@@ -1206,7 +1203,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         if (needCulling)
-                            skipRequest = !TryCull(camera, hdCamera, renderContext, cullingParameters, ref cullingResults);
+                            skipRequest = !TryCull(camera, hdCamera, renderContext, cullingParameters, m_Asset, ref cullingResults);
                     }
 
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)
@@ -1406,7 +1403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 out var cullingParameters
                             )
                             && TryCull(
-                                camera, hdCamera, renderContext, cullingParameters,
+                                camera, hdCamera, renderContext, cullingParameters, m_Asset,
                                 ref _cullingResults
                             )))
                         {
@@ -1652,6 +1649,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AOVRequestData aovRequest
         )
         {
+
             InitializeGlobalResources(renderContext);
 
             var hdCamera = renderRequest.hdCamera;
@@ -1660,6 +1658,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
+
+            if (hdCamera.frameSettings.materialQuality == (MaterialQuality)0)
+                // Set the quality level for this rendering (using current hdrp asset)
+                asset.currentMaterialQualityLevel.SetGlobalShaderKeywords();
+            else
+                // Set the quality level for this rendering (using frame setting value)
+                hdCamera.frameSettings.materialQuality.SetGlobalShaderKeywords();
 
             // Updates RTHandle
             hdCamera.BeginRender();
@@ -2400,6 +2405,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             ScriptableRenderContext renderContext,
             ScriptableCullingParameters cullingParams,
+            HDRenderPipelineAsset hdrp,
             ref HDCullingResults cullingResults
         )
         {
@@ -2417,14 +2423,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var initialMaximumLODLevel = QualitySettings.maximumLODLevel;
             try
             {
-                QualitySettings.lodBias = hdCamera.frameSettings.lodBiasMode.ComputeValue(
-                    QualitySettings.lodBias,
-                    hdCamera.frameSettings.lodBias
-                );
-                QualitySettings.maximumLODLevel = hdCamera.frameSettings.maximumLODLevelMode.ComputeValue(
-                    QualitySettings.maximumLODLevel,
-                    hdCamera.frameSettings.maximumLODLevel
-                );
+                QualitySettings.lodBias = hdCamera.frameSettings.GetResolvedLODBias(hdrp);
+                QualitySettings.maximumLODLevel = hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp);
 
             var includePlanarProbe = hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe);
 

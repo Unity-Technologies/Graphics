@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().NearBlurSampleCount[qualityLevel];
                 }
             }
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().NearBlurMaxRadius[qualityLevel];
                 }
             }
@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().FarBlurSampleCount[qualityLevel];
                 }
             }
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().FarBlurMaxRadius[qualityLevel];
                 }
             }
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().DoFHighQualityFiltering[qualityLevel];
                 }
             }
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().DoFResolution[qualityLevel];
                 }
             }

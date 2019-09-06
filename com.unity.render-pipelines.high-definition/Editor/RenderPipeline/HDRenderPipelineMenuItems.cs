@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Exponential or Volumetric Fog components to the new Fog component. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
 
-            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile");
+            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile", new string[]{ "Assets" });
 
             int profileCount = profilePathList.Length;
             int profileIndex = 0;
@@ -356,7 +356,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             try
             {
-                var scenes = AssetDatabase.FindAssets("t:Scene");
+                var scenes = AssetDatabase.FindAssets("t:Scene", new string[]{ "Assets" });
                 var scale = 1f / Mathf.Max(1, scenes.Length);
                 for (var i = 0; i < scenes.Length; ++i)
                 {
@@ -391,7 +391,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void ResetAllMaterialAssetsKeywords(float progressScale, float progressOffset)
         {
-            var matIds = AssetDatabase.FindAssets("t:Material");
+            var matIds = AssetDatabase.FindAssets("t:Material", new string[]{ "Assets" }); // do not include packages
 
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
