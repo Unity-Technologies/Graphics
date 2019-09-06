@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionVectors,
         NanTracker,
         ColorLog,
+        DepthOfFieldCoc,
         TransparencyOverdraw,
         MaxRenderingFullScreenDebug,
 
@@ -212,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsDebugDisplayRemovePostprocess()
         {
             // We want to keep post process when only the override more are enabled and none of the other
-            return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled() || (IsDebugFullScreenEnabled() && data.fullScreenDebugMode != FullScreenDebugMode.ColorLog);
+            return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 
         public bool IsDebugMaterialDisplayEnabled()

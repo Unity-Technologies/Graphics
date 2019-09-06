@@ -4,7 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.1] - 2019-XX-XX
+## [7.2.0] - 2019-XX-XX
+
+## [7.1.1] - 2019-09-05
 
 ### Added
 - Transparency Overdraw debug mode. Allows to visualize transparent objects draw calls as an "heat map".
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
 - Support for XR SDK mirror view modes
 - HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage. 
+- DepthOfFieldCoC option in the fullscreen debug modes.
 - Added override Ambient Occlusion option on debug windows
 - Added Custom Post Processes with 3 injection points: Before Transparent, Before Post Process and After Post Process
 

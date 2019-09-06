@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
     }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public class StringProviderAttribute : PropertyAttribute
+    class StringProviderAttribute : PropertyAttribute
     {
         public StringProviderAttribute(Type providerType)
         {
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
     }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public class PushButtonAttribute : PropertyAttribute
+    class PushButtonAttribute : PropertyAttribute
     {
         public PushButtonAttribute(Type pushButtonProvider, string buttonName)
         {

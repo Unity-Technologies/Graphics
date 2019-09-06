@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Collider))]
-    public class VFXMouseEventBinder : VFXEventBinderBase
+    class VFXMouseEventBinder : VFXEventBinderBase
     {
         public enum Activation
         {
