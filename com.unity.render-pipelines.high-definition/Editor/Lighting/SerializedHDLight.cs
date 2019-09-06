@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedScalableSettingValue contactShadows;
             public SerializedProperty shadowTint;
             public SerializedProperty shadowUpdateMode;
-            public SerializedScalableSettingValue shadowResolution;
+            public SerializedShadowResolutionSettingValue shadowResolution;
 
             // Bias control
             public SerializedProperty constantBias;
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow)),
                     shadowTint = o.Find("m_ShadowTint"),
                     shadowUpdateMode = o.Find("m_ShadowUpdateMode"),
-                    shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),
+                    shadowResolution = new SerializedShadowResolutionSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),
 
                     constantBias = o.Find("m_ConstantBias"),
                     normalBias = o.Find("m_NormalBias"),

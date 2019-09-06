@@ -1,4 +1,5 @@
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -69,8 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_FocusDistance);
 
-                if (advanced && !UsesQualitySettings())
+                if (advanced)
                 {
+                    GUI.enabled = useCustomValue;
                     EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
                     PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
                     PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
@@ -78,6 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
                     PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
                     PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                    GUI.enabled = true;
                 }
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
@@ -88,28 +91,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_NearFocusStart, EditorGUIUtility.TrTextContent("Start"));
                 PropertyField(m_NearFocusEnd, EditorGUIUtility.TrTextContent("End"));
 
-                if (advanced && !UsesQualitySettings())
+                if (advanced)
                 {
+                    GUI.enabled = useCustomValue;
                     PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
                     PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                    GUI.enabled = true;
                 }
 
                 EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
                 PropertyField(m_FarFocusStart, EditorGUIUtility.TrTextContent("Start"));
                 PropertyField(m_FarFocusEnd, EditorGUIUtility.TrTextContent("End"));
 
-                if (advanced && !UsesQualitySettings())
+                if (advanced)
                 {
+                    GUI.enabled = useCustomValue;
                     PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
                     PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+                    GUI.enabled = true;
                 }
             }
 
-            if (advanced && !UsesQualitySettings())
+            if (advanced)
             {
+                GUI.enabled = useCustomValue;
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
                 PropertyField(m_Resolution);
                 PropertyField(m_HighQualityFiltering);
+                GUI.enabled = true;
             }
         }
     }

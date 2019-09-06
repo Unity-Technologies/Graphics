@@ -145,12 +145,12 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            shadowResolutionDirectional         = new IntScalableSetting { low = 256, medium = 512, high = 1024 },
-            shadowResolutionArea                = new IntScalableSetting { low = 256, medium = 512, high = 1024 },
-            shadowResolutionPunctual            = new IntScalableSetting { low = 256, medium = 512, high = 1024 },
+            shadowResolutionDirectional         = new ShadowResolutionSetting(new []{ 256, 512, 1024, 2048 }),
+            shadowResolutionArea                = new ShadowResolutionSetting(new []{ 256, 512, 1024, 2048 }),
+            shadowResolutionPunctual            = new ShadowResolutionSetting(new []{ 256, 512, 1024, 2048 }),
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
-            supportScreenSpaceShadows           = false,
-            maxScreenSpaceShadows               = 2,
+            supportScreenSpaceShadows   = false,
+            maxScreenSpaceShadows       = 2,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -170,9 +170,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         public HDShadowAtlasInitParams areaLightShadowAtlas;
 
-        public IntScalableSetting shadowResolutionDirectional;
-        public IntScalableSetting shadowResolutionPunctual;
-        public IntScalableSetting shadowResolutionArea;
+        public ShadowResolutionSetting shadowResolutionDirectional;
+        public ShadowResolutionSetting shadowResolutionPunctual;
+        public ShadowResolutionSetting shadowResolutionArea;
 
         public int maxDirectionalShadowMapResolution;
         public int maxPunctualShadowMapResolution;
@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int              lightID;
         public int              indexInLight = 0;
         public int              lastFrameActive = 0;
-        public bool             emptyRequest = false;
+        public bool             emptyRequest = false; 
         public bool             hasBeenStoredInCachedList = false;
 
         public HDShadowResolutionRequest ShallowCopy()

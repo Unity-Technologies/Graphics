@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public static class ScalableSettings
         {
-            public static IntScalableSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
+            public static ShadowResolutionSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
             {
                 switch (shape)
                 {
@@ -633,16 +633,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        var defaultResolution = new SerializedScalableSettingValueUI.FromScalableSetting<int>(
+                        var defaultResolution = new SerializedShadowResolutionSettingValueUI.FromScalableSetting(
                             ScalableSettings.ShadowResolution(serialized.editorLightShape, hdrp),
                             hdrp
                         );
                         serialized.serializedLightData.shadowResolution.LevelAndIntGUILayout(s_Styles.shadowResolution, defaultResolution);
 
 
-                        if (change.changed)
+                            if (change.changed)
                             serialized.serializedLightData.shadowResolution.@override.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.shadowResolution.@override.intValue);
-                    }
+                        }
 
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
 
@@ -716,7 +716,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 #endif
-
+                
 #endif
             }
         }
@@ -859,7 +859,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
                     //m_BaseData.type.enumValueIndex = (int)LightType.Rectangle;
                     // In case of change, think to update InitDefaultHDAdditionalLightData()
-
+                    
                     serialized.settings.lightType.enumValueIndex = (int)LightType.Point;
                     serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     if (serialized.settings.isRealtime)

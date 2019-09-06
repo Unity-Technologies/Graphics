@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
@@ -122,6 +123,65 @@ namespace UnityEngine.Rendering.HighDefinition
         public float oldIntensity;
     }
 
+
+    [Serializable]
+    public class ShadowResolutionSettingValue
+    {
+        [SerializeField]
+        private int m_Override;
+        [SerializeField]
+        private bool m_UseOverride;
+        [SerializeField]
+        private int m_Level;
+
+        public int level
+        {
+            get => m_Level;
+            set => m_Level = value;
+        }
+
+        public bool useOverride
+        {
+            get => m_UseOverride;
+            set => m_UseOverride = value;
+        }
+
+        public int @override
+        {
+            get => m_Override;
+            set => m_Override = value;
+        }
+
+        public int Value(ShadowResolutionSetting source) => m_UseOverride ? m_Override : source[m_Level];
+
+        public void CopyTo(ShadowResolutionSettingValue target)
+        {
+            target.m_Override = m_Override;
+            target.m_UseOverride = m_UseOverride;
+            target.m_Level = m_Level;
+        }
+    }
+
+
+    [Serializable]
+    public class ShadowResolutionSetting: ISerializationCallbackReceiver
+    {
+        [SerializeField] private int[] m_Values;
+
+        public ShadowResolutionSetting(int[] values) => m_Values = values;
+
+        public int this[int index] => m_Values != null && index >= 0 && index < m_Values.Length  ? m_Values[index] : 0;
+
+        public void OnBeforeSerialize()
+        {
+            Array.Resize(ref m_Values, 4);
+        }
+
+        public void OnAfterDeserialize()
+        {
+        }
+    }
+
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
@@ -131,11 +191,11 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal static class ScalableSettings
         {
-            public static IntScalableSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
+            public static ShadowResolutionSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionArea;
-            public static IntScalableSetting ShadowResolutionPunctual(HDRenderPipelineAsset hdrp) =>
+            public static ShadowResolutionSetting ShadowResolutionPunctual(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual;
-            public static IntScalableSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
+            public static ShadowResolutionSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional;
 
             public static BoolScalableSetting UseContactShadow(HDRenderPipelineAsset hdrp) =>
@@ -1159,12 +1219,12 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region HDShadow Properties API (from AdditionalShadowData)
-        [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
+        [SerializeField] private ShadowResolutionSettingValue m_ShadowResolution = new ShadowResolutionSettingValue
         {
             @override = k_DefaultShadowResolution,
             useOverride = true,
         };
-        public IntScalableSettingValue shadowResolution => m_ShadowResolution;
+        public ShadowResolutionSettingValue shadowResolution => m_ShadowResolution;
 
         [Range(0.0f, 1.0f)]
         [SerializeField]
@@ -2571,7 +2631,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow resolution quality level.
         /// </summary>
         /// <param name="level">The quality level to use</param>
-        public void SetShadowResolutionLevel(ScalableSetting.Level level) => shadowResolution.level = level;
+        public void SetShadowResolutionLevel(int level) => shadowResolution.level = level;
 
         /// <summary>
         /// Set whether the shadow resolution use the override value.
