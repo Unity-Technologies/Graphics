@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var graphContext = new GraphContext(asset.inputStructName);
 
-                GraphUtil.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
+                SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
                 sb.AppendNewLine();
 
                 // Generate arguments... first INPUTS
