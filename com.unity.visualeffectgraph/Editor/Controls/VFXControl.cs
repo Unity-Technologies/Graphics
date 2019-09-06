@@ -6,13 +6,13 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.UI
 {
-    public static class VFXControlConstants
+    static class VFXControlConstants
     {
         public const string indeterminateText = "\u2014";
         public static readonly Color indeterminateTextColor = new Color(0.82f, 0.82f, 0.82f);
     }
 
-    public abstract class VFXControl<T> : VisualElement, INotifyValueChanged<T>
+    abstract class VFXControl<T> : VisualElement, INotifyValueChanged<T>
     {
         T m_Value;
         public T value
