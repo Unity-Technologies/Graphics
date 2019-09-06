@@ -1,14 +1,17 @@
 * [About Universal RP](index.md)
+
 * [Getting started](getting-started-with-universalrp.md)
   * [Creating a new Project](creating-a-new-project-with-universalrp.md)
   * [Upgrading your existing Project](installing-universalrp-into-an-existing-project.md)
   * [Configuring Universal RP for use](configuring-universalrp-for-use.md)
+  
 * [Inside Universal RP](inside-universalrp.md)
   * [The Universal RP Asset](universalrp-asset.md)
   * [Shader stripping](shader-stripping.md)
   * [Built-in/Universal RP comparison](universalrp-builtin-feature-comparison.md)
   * [Shading Models in Universal RP](shading-model.md)
   * [Rendering in Universal RP](rendering-in-universalrp.md)
+  
 * [Post-processing in Universal RP](integration-with-post-processing.md)
   * Effect List
     * [Channel Mixer](Post-Processing-Channel-Mixer.md)
@@ -21,6 +24,7 @@
     * [Shadows Midtones Highlights](Post-Processing-Shadows-Midtones-Hightlights.md)
     * [Split Toning](Post-Processing-Split-Toning.md)
     * [White Balance](Post-Processing-White-Balance.md)
+  
 * [Shaders in Universal RP](shaders-in-universalrp.md)
   * [Lit](lit-shader.md)
   * [Simple Lit](simple-lit-shader.md)
@@ -30,16 +34,23 @@
   * [Particles Simple Lit](particles-simple-lit-shader.md)
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders](upgrading-your-shaders.md)
+  
 * [2D in Universal RP](2d-index.md)
+  * [Introduction to Lights 2D](Lights-2D-intro.md)
   * [Requirements and setup](Setup.md)
   * [Preparing and upgrading](PrepShader.md)
   * [Normal map and mask Textures](SecondaryTextures.md)
-  * [2D Lights Properties](2DLightProperties.md)
-  * [Light Types](LightTypes.md)
+  * [Lights 2D properties](2DLightProperties.md)
+  
+    * [Light types](LightTypes.md)
   * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)
-    * [HDR Emulation Scale](HDREmulationScale.md)
+  
+    * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
-  * [2D Shadows](2DShadows.md)
-  * [2D with Shader Graph](ShaderGraph.md)
+  
+    * [2D Shadows](2DShadows.md)
+  * [2D Renderer and Shader Graph](ShaderGraph.md)
+  * [2D Pixel Perfect](2d-pixelperfect.md)
+    * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
+  
 * [Frequently asked questions (FAQ)](faq.md)
-
