@@ -37,6 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (isInitialized)
                 Cleanup();
+
+            isInitialized = false;
         }
 
         internal void SetupIfNeeded()
