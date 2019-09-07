@@ -757,7 +757,7 @@ namespace UnityEditor.ShaderGraph
                 var fieldName = predicate.GetString();
                 var nonwhitespace = SkipWhitespace(predicate.s, predicate.end + 1, endLine);
 
-                if (activeFields.permutationCount > 0)
+                if (!fieldName.StartsWith("features") && activeFields.permutationCount > 0)
                 {
                     var passedPermutations = activeFields.allPermutations.instances
                         .Where(i => i.Contains(fieldName))
