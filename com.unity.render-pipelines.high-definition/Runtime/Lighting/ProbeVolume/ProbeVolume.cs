@@ -219,9 +219,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Remove this data copy.
             for (int i = 0, iLen = data.Length; i < iLen; ++i)
             {
-                data[i].shAr = new Vector4(nativeData[i][0, 0], nativeData[i][0, 1], nativeData[i][0, 2], nativeData[i][0, 3]);
-                data[i].shAg = new Vector4(nativeData[i][1, 0], nativeData[i][1, 1], nativeData[i][1, 2], nativeData[i][1, 3]);
-                data[i].shAb = new Vector4(nativeData[i][2, 0], nativeData[i][2, 1], nativeData[i][2, 2], nativeData[i][2, 3]);
+                data[i].shAr = new Vector4(nativeData[i][0, 1], nativeData[i][0, 2], nativeData[i][0, 3], nativeData[i][0, 0]);
+                data[i].shAg = new Vector4(nativeData[i][1, 1], nativeData[i][1, 2], nativeData[i][1, 3], nativeData[i][1, 0]);
+                data[i].shAb = new Vector4(nativeData[i][2, 1], nativeData[i][2, 2], nativeData[i][2, 3], nativeData[i][2, 0]);
             }
 
             nativeData.Dispose();
