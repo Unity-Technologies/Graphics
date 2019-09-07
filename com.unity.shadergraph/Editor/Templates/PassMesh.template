@@ -28,6 +28,7 @@ Pass
 
     // Keywords
     $splice(PassKeywords)
+    $splice(GraphKeywords)
     
     // Defines
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
@@ -63,9 +64,6 @@ Pass
 
     // --------------------------------------------------
     // Graph
-
-    // Graph Keywords
-    $splice(GraphKeywords)
 
     // Graph Properties
     $splice(GraphProperties)

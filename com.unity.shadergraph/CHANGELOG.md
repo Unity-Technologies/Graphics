@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Errors no longer occur when you convert a selection to a Sub Graph.
 - Color nodes now handle Gamma and Linear conversions correctly.
 - Sub Graph Output nodes now link to the correct documentation page.
+- When you use Keywords, PBR and Unlit master nodes no longer produce errors.
 
 ## [7.0.1] - 2019-07-25
 ### Changed
