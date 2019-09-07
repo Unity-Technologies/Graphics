@@ -6,11 +6,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenu("Lighting/Probe Volume Global Illumination quality")]
     public class ProbeVolumeController : VolumeComponent
     {
-        // TODO: Expose any ProbeVolume camera volume settings here.
+        [Tooltip("Controls the distance in world space to bias along the surface normal to mitigate self-shadow artifacts.")]
+        public FloatParameter normalBiasWS = new FloatParameter(1.0f);
 
         ProbeVolumeController()
         {
-            displayName = "Probe Volume Global Illumination quality";
+            displayName = "Probe Volume Controller";
         }
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

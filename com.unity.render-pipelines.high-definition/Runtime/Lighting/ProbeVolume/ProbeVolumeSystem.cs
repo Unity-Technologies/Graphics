@@ -275,6 +275,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     1.0f / (float)m_ProbeVolumeAtlasShArRTHandle.rt.width,
                     1.0f / (float)m_ProbeVolumeAtlasShArRTHandle.rt.height
             ));
+
+            var settings = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
+            float normalBiasWS = (settings == null) ? 0.0f : settings.normalBiasWS.value;
+            cmd.SetGlobalFloat("_ProbeVolumeNormalBiasWS", normalBiasWS);
         }
 
         private static void PushGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
@@ -283,6 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBufferDefault);
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, 0);
             cmd.SetGlobalTexture("_ProbeVolumeAtlas", Texture2D.blackTexture);
+            cmd.SetGlobalFloat("_ProbeVolumeNormalBiasWS", 0.0f);
         }
 
         private bool EnsureProbeVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolume volume)

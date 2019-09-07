@@ -52,5 +52,6 @@
     TEXTURE2D(_ProbeVolumeAtlasShAg);
     TEXTURE2D(_ProbeVolumeAtlasShAb);
     float4 _ProbeVolumeAtlasResolutionAndInverse;
+    float _ProbeVolumeNormalBiasWS;
 
 #endif

@@ -515,7 +515,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.right, s_probeVolumeBounds.up));
                         float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
 
-                        float3 samplePositionBS = mul(obbFrame, posInput.positionWS - s_probeVolumeBounds.center);
+                        // TODO: Need to adjust tile / cluster culling code to handle this bias off the surface position.
+                        // One option is to conservatively dilate the volumes in the tile / cluster culling + assignment phase based on the normal bias.
+                        float3 samplePositionWS = bsdfData.normalWS * _ProbeVolumeNormalBiasWS + posInput.positionWS;
+                        float3 samplePositionBS = mul(obbFrame, samplePositionWS - s_probeVolumeBounds.center);
                         float3 samplePositionBCS = samplePositionBS * rcp(obbExtents);
 
                         // TODO: Verify if this early out is actually improving performance.
