@@ -21,6 +21,9 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         private StripTilingMode tilingMode = StripTilingMode.Stretch;
 
+        [VFXSetting, SerializeField]
+        private bool UseCustomZAxis = false;
+
         public class NormalBendingProperties
         {
             [Range(0, 1)]
@@ -83,6 +86,9 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+
+                if (UseCustomZAxis)
+                    yield return "VFX_STRIPS_ORIENT_CUSTOM";
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
             }
