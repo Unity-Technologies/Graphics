@@ -4,7 +4,7 @@ using UnityEditor.Experimental.AssetImporters;
 namespace UnityEditor.VFXToolbox
 {
     [CustomEditor(typeof(VectorFieldImporter))]
-    public class VectorFieldImporterEditor : ScriptedImporterEditor
+    class VectorFieldImporterEditor : ScriptedImporterEditor
     {
         SerializedProperty format;
         SerializedProperty wrapMode;

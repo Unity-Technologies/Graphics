@@ -45,7 +45,7 @@ HDRP enforces Forward rendering for the following types of Shaders:
 - AxF
 - StackLit
 - Unlit
-- Lit shader with a Transparent Surface Type
+- Lit Shader with a Transparent Surface Type
 
 If you set the **Lit Shader Mode** to **Deferred** in your HDRP Asset, HDRP uses deferred rendering to render all Materials that use an Opaque Lit Material.
 

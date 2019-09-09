@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 #if UNITY_EDITOR
@@ -10,6 +11,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+
     // This enum extent the original LightType enum with new light type from HD
     public enum LightTypeExtent
     {
@@ -59,17 +61,6 @@ namespace UnityEngine.Rendering.HighDefinition
         EveryFrame = 0,
         OnEnable,
         OnDemand
-    }
-
-    /// <summary>
-    /// Shadow Resolution Tier
-    /// </summary>
-    public enum ShadowResolutionTier
-    {
-        Low = 0,
-        Medium,
-        High,
-        VeryHigh
     }
 
 
@@ -132,6 +123,65 @@ namespace UnityEngine.Rendering.HighDefinition
         public float oldIntensity;
     }
 
+
+    [Serializable]
+    public class ShadowResolutionSettingValue
+    {
+        [SerializeField]
+        private int m_Override;
+        [SerializeField]
+        private bool m_UseOverride;
+        [SerializeField]
+        private int m_Level;
+
+        public int level
+        {
+            get => m_Level;
+            set => m_Level = value;
+        }
+
+        public bool useOverride
+        {
+            get => m_UseOverride;
+            set => m_UseOverride = value;
+        }
+
+        public int @override
+        {
+            get => m_Override;
+            set => m_Override = value;
+        }
+
+        public int Value(ShadowResolutionSetting source) => m_UseOverride ? m_Override : source[m_Level];
+
+        public void CopyTo(ShadowResolutionSettingValue target)
+        {
+            target.m_Override = m_Override;
+            target.m_UseOverride = m_UseOverride;
+            target.m_Level = m_Level;
+        }
+    }
+
+
+    [Serializable]
+    public class ShadowResolutionSetting: ISerializationCallbackReceiver
+    {
+        [SerializeField] private int[] m_Values;
+
+        public ShadowResolutionSetting(int[] values) => m_Values = values;
+
+        public int this[int index] => m_Values != null && index >= 0 && index < m_Values.Length  ? m_Values[index] : 0;
+
+        public void OnBeforeSerialize()
+        {
+            Array.Resize(ref m_Values, 4);
+        }
+
+        public void OnAfterDeserialize()
+        {
+        }
+    }
+
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Light-Component" + Documentation.endURL)]
@@ -139,6 +189,19 @@ namespace UnityEngine.Rendering.HighDefinition
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour
     {
+        internal static class ScalableSettings
+        {
+            public static ShadowResolutionSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionArea;
+            public static ShadowResolutionSetting ShadowResolutionPunctual(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual;
+            public static ShadowResolutionSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional;
+
+            public static BoolScalableSetting UseContactShadow(HDRenderPipelineAsset hdrp) =>
+                hdrp.currentPlatformRenderPipelineSettings.lightSettings.useContactShadow;
+        }
+
         /// <summary>
         /// The default intensity value for directional lights in Lux
         /// </summary>
@@ -312,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float volumetricDimmer
         {
-            get => m_VolumetricDimmer;
+            get => useVolumetric ? m_VolumetricDimmer : 0.0f;
             set
             {
                 if (m_VolumetricDimmer == value)
@@ -722,6 +785,41 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField, FormerlySerializedAs("angularDiameter")]
+        float m_AngularDiameter = 0;
+        /// <summary>
+        /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
+        /// Used to render the sun/moon disk.
+        /// </summary>
+        public float angularDiameter
+        {
+            get => m_AngularDiameter;
+            set
+            {
+                if (m_AngularDiameter == value)
+                    return;
+
+                m_AngularDiameter = value;
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("distance")]
+        float m_Distance = 150000000.0f; // Sun to Earth
+        /// <summary>
+        /// Distance from the camera to the emissive celestial body represented by the light.
+        /// </summary>
+        public float distance
+        {
+            get => m_Distance;
+            set
+            {
+                if (m_Distance == value)
+                    return;
+
+                m_Distance = value;
+            }
+        }
+
 #if ENABLE_RAYTRACING
         [SerializeField, FormerlySerializedAs("useRayTracedShadows")]
         bool m_UseRayTracedShadows = false;
@@ -808,6 +906,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_SunLightConeAngle = Mathf.Clamp(value, 0.0f, 2.0f);
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("lightShadowRadius")]
+        float m_LightShadowRadius = 0.5f;
+        /// <summary>
+        /// Angular size of the sun in degree.
+        /// </summary>
+        public float lightShadowRadius
+        {
+            get => m_LightShadowRadius;
+            set
+            {
+                if (m_LightShadowRadius == value)
+                    return;
+
+                m_LightShadowRadius = Mathf.Max(value, 0.001f);
             }
         }
 #endif
@@ -1104,59 +1219,12 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region HDShadow Properties API (from AdditionalShadowData)
-
-        [SerializeField]
-        ShadowResolutionTier m_ShadowResolutionTier = ShadowResolutionTier.Medium;
-        /// <summary>
-        /// Get/Set the quality level for shadow map resoluton.
-        /// </summary>
-        public ShadowResolutionTier shadowResolutionTier
+        [SerializeField] private ShadowResolutionSettingValue m_ShadowResolution = new ShadowResolutionSettingValue
         {
-            get => m_ShadowResolutionTier;
-            set
-            {
-                if (m_ShadowResolutionTier == value)
-                    return;
-
-                m_ShadowResolutionTier = value;
-            }
-        }
-
-        [SerializeField]
-        bool m_UseShadowQualitySettings = false;
-        /// <summary>
-        /// Toggle the usage of quality settings to determine shadow resolution.
-        /// </summary>
-        public bool useShadowQualitySettings
-        {
-            get => m_UseShadowQualitySettings;
-            set
-            {
-                if (m_UseShadowQualitySettings == value)
-                    return;
-
-                m_UseShadowQualitySettings = value;
-            }
-        }
-
-
-        [SerializeField]
-        int m_CustomShadowResolution = k_DefaultShadowResolution;
-        /// <summary>
-        /// Get/Set the resolution of shadow maps in case quality settings are not used.
-        /// </summary>
-        /// <value></value>
-        public int customResolution
-        {
-            get => m_CustomShadowResolution;
-            set
-            {
-                if (m_CustomShadowResolution == value)
-                    return;
-
-                m_CustomShadowResolution = Mathf.Clamp(value, HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MaxShadowMapResolution);
-            }
-        }
+            @override = k_DefaultShadowResolution,
+            useOverride = true,
+        };
+        public ShadowResolutionSettingValue shadowResolution => m_ShadowResolution;
 
         [Range(0.0f, 1.0f)]
         [SerializeField]
@@ -1184,7 +1252,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float volumetricShadowDimmer
         {
-            get => m_VolumetricShadowDimmer;
+            get => useVolumetric ? m_VolumetricShadowDimmer : 0.0f;
             set
             {
                 if (m_VolumetricShadowDimmer == value)
@@ -1212,21 +1280,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_ContactShadows = false;
-        /// <summary>
-        /// Toggle the contact shadows.
-        /// </summary>
-        public bool contactShadows
-        {
-            get => m_ContactShadows;
-            set
-            {
-                if (m_ContactShadows == value)
-                    return;
-
-                m_ContactShadows = value;
-            }
-        }
+        BoolScalableSettingValue m_UseContactShadow = new BoolScalableSettingValue { useOverride = true };
+        public BoolScalableSettingValue useContactShadow => m_UseContactShadow;
 
         [SerializeField]
         Color m_ShadowTint = Color.black;
@@ -1369,9 +1424,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Data for cached shadow maps.
         Vector2             m_CachedShadowResolution = new Vector2(0,0);
-        Rect[]              m_CachedShadowRect = new Rect[6];
         Vector3             m_CachedViewPos = new Vector3(0, 0, 0);
 
+        int[]               m_CachedResolutionRequestIndices = new int[6];
+        bool                m_CachedDataIsValid = true;
+        // This is useful to detect whether the atlas has been repacked since the light was last seen
+        int                 m_AtlasShapeID = 0;
 
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
@@ -1404,6 +1462,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        private void DisableCachedShadowSlot()
+        {
+            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                  (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+            if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
+            {
+                HDShadowManager.instance.MarkCachedShadowSlotsAsEmpty(shadowMapType, GetInstanceID());
+            }
+        }
+
+        void OnDestroy()
+        {
+            DisableCachedShadowSlot();
+        }
+
+        void OnDisable()
+        {
+            DisableCachedShadowSlot();
+        }
+
         int GetShadowRequestCount()
         {
             return (legacyLight.type == LightType.Point && lightTypeExtent == LightTypeExtent.Punctual) ? 6 : (legacyLight.type == LightType.Directional) ? m_ShadowSettings.cascadeShadowSplitCount.value : 1;
@@ -1428,12 +1507,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        internal bool ShadowIsUpdatedEveryFrame()
+        {
+            return shadowUpdateMode == ShadowUpdateMode.EveryFrame;
+        }
+
         internal void EvaluateShadowState(HDCamera hdCamera, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
         {
             Bounds bounds;
             float cameraDistance = Vector3.Distance(hdCamera.camera.transform.position, transform.position);
 
-            m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.Shadow);
+            m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.ShadowMaps);
 
             m_WillRenderShadowMap &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
@@ -1452,51 +1536,49 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
 #if ENABLE_RAYTRACING
-            // We render screen space shadows if we are a ray traced rectangle area light or a screen space directional light shadow
-            if ((m_UseRayTracedShadows && lightTypeExtent == LightTypeExtent.Rectangle)
-                || (useScreenSpaceShadows && legacyLight.type == LightType.Directional))
+            LightCategory lightCategory = LightCategory.Count;
+            GPULightType gpuLightType = GPULightType.Point;
+            LightVolumeType lightVolumeType = LightVolumeType.Count;
+            HDRenderPipeline.EvaluateGPULightType(legacyLight.type, lightTypeExtent, spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
+
+            // Flag the ray tracing only shadows
+            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point))
             {
                 m_WillRenderScreenSpaceShadow = true;
+                m_WillRenderRayTracedShadow = true;
             }
 
-            // We will evaluate a ray traced shadow if we a ray traced area shadow
-            if ((m_UseRayTracedShadows && lightTypeExtent == LightTypeExtent.Rectangle)
-                || (m_UseRayTracedShadows && legacyLight.type == LightType.Directional))
+            // Flag the directional shadow
+            if (useScreenSpaceShadows && gpuLightType == GPULightType.Directional)
             {
-                m_WillRenderRayTracedShadow = true;
+                m_WillRenderScreenSpaceShadow = true;
+                if (m_UseRayTracedShadows)
+                {
+                    m_WillRenderRayTracedShadow = true;
+                }
             }
 #endif
         }
 
         private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
         {
-            bool customRes = !useShadowQualitySettings;
             switch (shadowMapType)
             {
                 case ShadowMapType.CascadedDirectional:
-                    return customRes ? Math.Min(customResolution, initParameters.maxDirectionalShadowMapResolution) : initParameters.directionalLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionDirectional), initParameters.maxDirectionalShadowMapResolution);
                 case ShadowMapType.PunctualAtlas:
-                    return customRes ? Math.Min(customResolution, initParameters.maxPunctualShadowMapResolution) : initParameters.punctualLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionPunctual), initParameters.maxPunctualShadowMapResolution);
                 case ShadowMapType.AreaLightAtlas:
-                    return customRes ? Math.Min(customResolution, initParameters.maxAreaShadowMapResolution) : initParameters.areaLightsResolutionTiers.GetResolution(shadowResolutionTier);
+                    return Math.Min(m_ShadowResolution.Value(initParameters.shadowResolutionArea), initParameters.maxAreaShadowMapResolution);
+                default:
+                    return 0;
             }
-
-            return 0;
         }
 
         internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowInitParameters initParameters, Rect screenRect)
         {
             if (!m_WillRenderShadowMap)
                 return;
-
-            if (m_CachedShadowRect == null)
-            {
-                m_CachedShadowRect = new Rect[6];
-                for (int i = 0; i < 6; i++)
-                {
-                    m_CachedShadowRect[i] = new Rect(0, 0, 0, 0);
-                }
-            }
 
             // Create shadow requests array using the light type
             if (shadowRequests == null || m_ShadowRequestIndices == null)
@@ -1519,8 +1601,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 viewportSize = new Vector2(resolution, resolution);
 
             bool viewPortRescaling = false;
-            // Compute dynamic shadow resolution
 
+            // Compute dynamic shadow resolution
             viewPortRescaling |= (shadowMapType == ShadowMapType.PunctualAtlas && initParameters.punctualLightShadowAtlas.useDynamicViewportRescale);
             viewPortRescaling |= (shadowMapType == ShadowMapType.AreaLightAtlas && initParameters.areaLightShadowAtlas.useDynamicViewportRescale);
 
@@ -1553,8 +1635,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount();
+            bool needsCachedSlotsInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+
             for (int index = 0; index < count; index++)
-                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(viewportSize, shadowMapType);
+            {
+                m_ShadowRequestIndices[index] = shadowManager.ReserveShadowResolutions(needsCachedSlotsInAtlas ? new Vector2(resolution, resolution) : viewportSize, shadowMapType, GetInstanceID(), index, needsCachedSlotsInAtlas, out m_CachedResolutionRequestIndices[index]);
+            }
         }
 
         internal bool WillRenderShadowMap()
@@ -1646,17 +1732,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int count = GetShadowRequestCount();
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
-
+            bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
             for (int index = 0; index < count; index++)
             {
-                var shadowRequest = shadowRequests[index];
+                var         shadowRequest = shadowRequests[index];
 
-                Matrix4x4 invViewProjection = Matrix4x4.identity;
-                int shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2 viewportSize = manager.GetReservedResolution(shadowRequestIndex);
+                Matrix4x4   invViewProjection = Matrix4x4.identity;
+                int         shadowRequestIndex = m_ShadowRequestIndices[index];
 
+                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
 
-                shadowIsCached = shadowIsCached && (shadowRequest.atlasViewport == m_CachedShadowRect[index]);
+                bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+
+                bool shouldUseRequestFromCachedList = hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
+                bool cachedDataIsValid =  m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
+                HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
+
+                if (resolutionRequest == null)
+                    continue;
+
+                Vector2 viewportSize = resolutionRequest.resolution;
+
+                cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
+                shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1674,7 +1773,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     m_CachedViewPos = cameraPos;
-                    m_CachedShadowRect[index] = shadowRequest.atlasViewport;
                     shadowRequest.shouldUseCachedShadow = false;
                     m_ShadowMapRenderedSinceLastRequest = true;
 
@@ -1720,8 +1818,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
                 }
 
-
+                shadowRequest.atlasViewport = resolutionRequest.atlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest);
+                shadowRequest.shouldUseCachedShadow = shadowRequest.shouldUseCachedShadow && cachedDataIsValid;
+
+                m_CachedDataIsValid = manager.CachedDataIsValid(shadowMapType);
+                m_AtlasShapeID = manager.GetAtlasShapeID(shadowMapType);
 
                 // Store the first shadow request id to return it
                 if (firstShadowRequestIndex == -1)
@@ -1856,7 +1958,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (legacyLight.useColorTemperature == value)
                     return;
-                
+
                 legacyLight.useColorTemperature = value;
             }
         }
@@ -1927,11 +2029,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="data">Destination component</param>
         public void CopyTo(HDAdditionalLightData data)
         {
-#pragma warning disable 618
-            data.directionalIntensity = directionalIntensity;
-            data.punctualIntensity = punctualIntensity;
-            data.areaIntensity = areaIntensity;
-#pragma warning restore 618
             data.enableSpotReflector = enableSpotReflector;
             data.luxAtDistance = luxAtDistance;
             data.m_InnerSpotPercent = m_InnerSpotPercent;
@@ -1956,12 +2053,14 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
+            data.angularDiameter = angularDiameter;
+            data.distance = distance;
 
-            data.customResolution = customResolution;
+            shadowResolution.CopyTo(data.shadowResolution);
             data.shadowDimmer = shadowDimmer;
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
-            data.contactShadows = contactShadows;
+            useContactShadow.CopyTo(data.useContactShadow);
             data.constantBias = constantBias;
             data.normalBias = normalBias;
             data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
@@ -2010,7 +2109,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
             }
 
-            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknown reasons we recreate additional data on an existing line)
+            // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknown  reasons we recreate additional data on an existing line)
             if (light.type == LightType.Rectangle && lightData.lightTypeExtent == LightTypeExtent.Punctual)
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
@@ -2174,7 +2273,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightSize.z / transform.parent.lossyScale.z
                 );
             }
-
             legacyLight.transform.localScale = lossyToLocalScale;
 
             switch (lightTypeExtent)
@@ -2328,7 +2426,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             this.color = color;
         }
-        
+
         /// <summary>
         /// Toggle the usage of color temperature.
         /// </summary>
@@ -2527,7 +2625,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Set the shadow resolution.
         /// </summary>
         /// <param name="resolution">Must be between 16 and 16384</param>
-        public void SetShadowResolution(int resolution) => customResolution = resolution;
+        public void SetShadowResolution(int resolution) => shadowResolution.@override = resolution;
+
+        /// <summary>
+        /// Set the shadow resolution quality level.
+        /// </summary>
+        /// <param name="level">The quality level to use</param>
+        public void SetShadowResolutionLevel(int level) => shadowResolution.level = level;
+
+        /// <summary>
+        /// Set whether the shadow resolution use the override value.
+        /// </summary>
+        /// <param name="@override">True to use the override value, false otherwise.</param>
+        public void SetShadowResolutionOverride(bool useOverride) => shadowResolution.useOverride = useOverride;
 
         /// <summary>
         /// Set the near plane of the shadow.
@@ -2579,12 +2689,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="distance"></param>
         public void SetShadowFadeDistance(float distance) => shadowFadeDistance = distance;
-
-        /// <summary>
-        /// Enable/Disable the contact shadows, the feature must be enable in the HDRP asset to work.
-        /// </summary>
-        /// <param name="enabled"></param>
-        public void EnableContactShadows(bool enabled) => contactShadows = enabled;
 
         /// <summary>
         /// Set the Shadow tint for the directional light.

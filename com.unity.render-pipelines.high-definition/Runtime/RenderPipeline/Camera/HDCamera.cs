@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -13,7 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
     // not used during a frame.
     public class HDCamera
     {
-        [GenerateHLSL(PackingRules.Exact, false)]
         public struct ViewConstants
         {
             public Matrix4x4 viewMatrix;
@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // View-projection matrix from the previous frame (non-jittered)
             public Matrix4x4 prevViewProjMatrix;
+            public Matrix4x4 prevInvViewProjMatrix;
             public Matrix4x4 prevViewProjMatrixNoCameraTrans;
 
             // Utility matrix (used by sky) to map screen position to WS view direction
@@ -72,7 +73,22 @@ namespace UnityEngine.Rendering.HighDefinition
         XRPass m_XRPass;
         public XRPass xr { get { return m_XRPass; } }
         public ViewConstants[] xrViewConstants;
-        ComputeBuffer xrViewConstantsGpu;
+
+        // XR View Constants arrays (required due to limitations of API for StructuredBuffer)
+        Matrix4x4[] xrViewMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrInvViewMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrProjMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrInvProjMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrViewProjMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrInvViewProjMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrNonJitteredViewProjMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrPrevViewProjMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrPrevInvViewProjMatrix = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrPrevViewProjMatrixNoCameraTrans = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] xrPixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Vector4[] xrWorldSpaceCameraPos = new Vector4[ShaderConfig.s_XrMaxViews];
+        Vector4[] xrWorldSpaceCameraPosViewOffset = new Vector4[ShaderConfig.s_XrMaxViews];
+        Vector4[] xrPrevWorldSpaceCameraPos = new Vector4[ShaderConfig.s_XrMaxViews];
 
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
@@ -240,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
-            m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
 
             m_XRPass = xrPass;
             m_frameSettings = currentFrameSettings;
@@ -391,10 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Allocate or resize view constants buffers
             if (xrViewConstants == null || xrViewConstants.Length != viewCount)
             {
-                CoreUtils.SafeRelease(xrViewConstantsGpu);
-
                 xrViewConstants = new ViewConstants[viewCount];
-                xrViewConstantsGpu = new ComputeBuffer(viewCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ViewConstants)));
             }
 
             UpdateAllViewConstants(IsTAAEnabled(), true);
@@ -417,8 +430,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateViewConstants(ref mainViewConstants, proj, view, cameraPosition, jitterProjectionMatrix, updatePreviousFrameConstants);
 
-            // XR instancing support
-            if (xr.instancingEnabled)
+            // XR single-pass support
+            if (xr.singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
@@ -431,11 +444,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                // Compute shaders always use the XR instancing path due to the lack of multi-compile
+                // Compute shaders always use the XR single-pass path due to the lack of multi-compile
                 xrViewConstants[0] = mainViewConstants;
             }
-
-            xrViewConstantsGpu.SetData(xrViewConstants);
 
             // Update frustum and projection parameters
             {
@@ -498,6 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
                     viewConstants.prevViewProjMatrix = gpuVP;
+                    viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
                 }
                 else
                 {
@@ -523,6 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 cameraDisplacement = viewConstants.worldSpaceCameraPos - viewConstants.prevWorldSpaceCameraPos;
                 viewConstants.prevWorldSpaceCameraPos -= viewConstants.worldSpaceCameraPos; // Make it relative w.r.t. the curr cam pos
                 viewConstants.prevViewProjMatrix *= Matrix4x4.Translate(cameraDisplacement); // Now prevViewProjMatrix correctly transforms this frame's camera-relative positionWS
+                viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
             }
             else
             {
@@ -619,7 +632,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void GetPixelCoordToViewDirWS(Vector4 resolution, ref Matrix4x4[] transforms)
         {
-            if (xr.instancingEnabled)
+            if (xr.singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
@@ -723,12 +736,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Dispose()
         {
-            if (xrViewConstantsGpu != null)
-            {
-                xrViewConstantsGpu.Dispose();
-                xrViewConstantsGpu = null;
-            }
-
             if (m_HistoryRTSystem != null)
             {
                 m_HistoryRTSystem.Dispose();
@@ -749,14 +756,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
-        public static HDCamera GetOrCreate(Camera camera, XRPass xrPass)
+        public static HDCamera GetOrCreate(Camera camera, int xrMultipassId = 0)
         {
             HDCamera hdCamera;
 
-            if (!s_Cameras.TryGetValue((camera, xrPass.multipassId), out hdCamera))
-        {
+            if (!s_Cameras.TryGetValue((camera, xrMultipassId), out hdCamera))
+            {
                 hdCamera = new HDCamera(camera);
-                s_Cameras.Add((camera, xrPass.multipassId), hdCamera);
+                s_Cameras.Add((camera, xrMultipassId), hdCamera);
             }
 
             return hdCamera;
@@ -777,14 +784,17 @@ namespace UnityEngine.Rendering.HighDefinition
         // Look for any camera that hasn't been used in the last frame and remove them from the pool.
         public static void CleanUnused()
         {
-            foreach (var kvp in s_Cameras)
+
+            foreach (var key in s_Cameras.Keys)
             {
+                var camera = s_Cameras[key];
+
                 // Unfortunately, the scene view camera is always isActiveAndEnabled==false so we can't rely on this. For this reason we never release it (which should be fine in the editor)
-                if (kvp.Value.camera != null && kvp.Value.camera.cameraType == CameraType.SceneView)
+                if (camera.camera != null && camera.camera.cameraType == CameraType.SceneView)
                     continue;
 
-                if (kvp.Value.camera == null || !kvp.Value.camera.isActiveAndEnabled)
-                    s_Cleanup.Add(kvp.Key);
+                if (camera.camera == null || !camera.camera.isActiveAndEnabled)
+                    s_Cleanup.Add(key);
             }
 
             foreach (var cam in s_Cleanup)
@@ -811,6 +821,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix,         mainViewConstants.invViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, mainViewConstants.nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        mainViewConstants.prevViewProjMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._PrevInvViewProjMatrix,     mainViewConstants.prevInvViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._CameraViewProjMatrix,      mainViewConstants.viewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       mainViewConstants.worldSpaceCameraPos);
             cmd.SetGlobalVector(HDShaderIDs._PrevCamPosRWS,             mainViewConstants.prevWorldSpaceCameraPos);
@@ -843,9 +854,46 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetGlobalInt(HDShaderIDs._FrameCount,        frameCount);
 
-            // TODO: qualify this code with xrInstancingEnabled when compute shaders can use keywords
-            cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
-            cmd.SetGlobalBuffer(HDShaderIDs._XRViewConstants, xrViewConstantsGpu);
+            // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
+            if (true)
+            {
+                cmd.SetGlobalInt(HDShaderIDs._XRViewCount, viewCount);
+
+                // Convert AoS to SoA for GPU constant buffer until we can use StructuredBuffer via command buffer
+                for (int i = 0; i < viewCount; i++)
+                {
+                    xrViewMatrix[i] = xrViewConstants[i].viewMatrix;
+                    xrInvViewMatrix[i] = xrViewConstants[i].invViewMatrix;
+                    xrProjMatrix[i] = xrViewConstants[i].projMatrix;
+                    xrInvProjMatrix[i] = xrViewConstants[i].invProjMatrix;
+                    xrViewProjMatrix[i] = xrViewConstants[i].viewProjMatrix;
+                    xrInvViewProjMatrix[i] = xrViewConstants[i].invViewProjMatrix;
+                    xrNonJitteredViewProjMatrix[i] = xrViewConstants[i].nonJitteredViewProjMatrix;
+                    xrPrevViewProjMatrix[i] = xrViewConstants[i].prevViewProjMatrix;
+                    xrPrevInvViewProjMatrix[i] = xrViewConstants[i].prevInvViewProjMatrix;
+                    xrPrevViewProjMatrixNoCameraTrans[i] = xrViewConstants[i].prevViewProjMatrixNoCameraTrans;
+                    xrPixelCoordToViewDirWS[i] = xrViewConstants[i].pixelCoordToViewDirWS;
+                    xrWorldSpaceCameraPos[i] = xrViewConstants[i].worldSpaceCameraPos;
+                    xrWorldSpaceCameraPosViewOffset[i] = xrViewConstants[i].worldSpaceCameraPosViewOffset;
+                    xrPrevWorldSpaceCameraPos[i] = xrViewConstants[i].prevWorldSpaceCameraPos;
+                }
+
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRViewMatrix, xrViewMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRInvViewMatrix, xrInvViewMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRProjMatrix, xrProjMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRInvProjMatrix, xrInvProjMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRViewProjMatrix, xrViewProjMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRInvViewProjMatrix, xrInvViewProjMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRNonJitteredViewProjMatrix, xrNonJitteredViewProjMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRPrevViewProjMatrix, xrPrevViewProjMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRPrevInvViewProjMatrix, xrPrevInvViewProjMatrix);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRPrevViewProjMatrixNoCameraTrans, xrPrevViewProjMatrixNoCameraTrans);
+                cmd.SetGlobalMatrixArray(HDShaderIDs._XRPixelCoordToViewDirWS, xrPixelCoordToViewDirWS);
+                cmd.SetGlobalVectorArray(HDShaderIDs._XRWorldSpaceCameraPos, xrWorldSpaceCameraPos);
+                cmd.SetGlobalVectorArray(HDShaderIDs._XRWorldSpaceCameraPosViewOffset, xrWorldSpaceCameraPosViewOffset);
+                cmd.SetGlobalVectorArray(HDShaderIDs._XRPrevWorldSpaceCameraPos, xrPrevWorldSpaceCameraPos);
+            }
+            
         }
 
         public RTHandle GetPreviousFrameRT(int id)
@@ -892,7 +940,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HistoryRTSystem.ReleaseAll();
         }
 
-        public void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
+        internal void ExecuteCaptureActions(RTHandle input, CommandBuffer cmd)
         {
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
@@ -914,6 +962,50 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (m_RecorderCaptureActions.Reset(); m_RecorderCaptureActions.MoveNext();)
                 m_RecorderCaptureActions.Current(m_RecorderTempRT, cmd);
+        }
+
+        class ExecuteCaptureActionsPassData
+        {
+            public RenderGraphResource input;
+            public RenderGraphMutableResource tempTexture;
+            public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> recorderCaptureActions;
+            public Vector2 viewportScale;
+            public Material blitMaterial;
+        }
+
+        internal void ExecuteCaptureActions(RenderGraph renderGraph, RenderGraphResource input)
+        {
+            if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
+            {
+                var inputDesc = renderGraph.GetTextureDesc(input);
+                var rtHandleScale = renderGraph.rtHandleProperties.rtHandleScale;
+                passData.viewportScale = new Vector2(rtHandleScale.x, rtHandleScale.y);
+                passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
+                passData.recorderCaptureActions = m_RecorderCaptureActions;
+                passData.input = builder.ReadTexture(input);
+                // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
+                // Since recorder does not know about this, we need to send a texture of the right size.
+                passData.tempTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(actualWidth, actualHeight)
+                    { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" }));
+
+                builder.SetRenderFunc(
+                (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
+                {
+                    var tempRT = ctx.resources.GetTexture(data.tempTexture);
+                    var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+                    mpb.SetTexture(HDShaderIDs._BlitTexture, ctx.resources.GetTexture(data.input));
+                    mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
+                    mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+                    ctx.cmd.SetRenderTarget(tempRT);
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+
+                    for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
+                        data.recorderCaptureActions.Current(tempRT, ctx.cmd);
+                });
+            }
         }
     }
 }

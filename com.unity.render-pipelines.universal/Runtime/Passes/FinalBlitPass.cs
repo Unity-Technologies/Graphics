@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given color target to the current camera target
@@ -7,15 +7,13 @@ namespace UnityEngine.Rendering.Universal
     /// the camera target. The pass takes the screen viewport into
     /// consideration.
     /// </summary>
-    internal class FinalBlitPass : ScriptableRenderPass
+    public class FinalBlitPass : ScriptableRenderPass
     {
         const string m_ProfilerTag = "Final Blit Pass";
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
         TextureDimension m_TargetDimension;
-        bool m_ClearBlitTarget;
         bool m_IsMobileOrSwitch;
-        Rect m_PixelRect;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -28,15 +26,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
-        /// <param name="clearBlitTarget"></param>
-        /// <param name="pixelRect"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle, bool clearBlitTarget = false, Rect pixelRect = new Rect())
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             m_Source = colorHandle;
             m_TargetDimension = baseDescriptor.dimension;
-            m_ClearBlitTarget = clearBlitTarget;
             m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
-            m_PixelRect = pixelRect;
         }
 
         /// <inheritdoc/>
@@ -83,15 +77,15 @@ namespace UnityEngine.Rendering.Universal
                 SetRenderTarget(
                     cmd,
                     BuiltinRenderTextureType.CameraTarget,
-                    m_ClearBlitTarget ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load,
+                    RenderBufferLoadAction.Load,
                     RenderBufferStoreAction.Store,
-                    m_ClearBlitTarget ? ClearFlag.Color : ClearFlag.None,
+                    ClearFlag.None,
                     Color.black,
                     m_TargetDimension);
 
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(m_PixelRect != Rect.zero ? m_PixelRect : cameraData.camera.pixelRect);
+                cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }

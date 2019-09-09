@@ -33,9 +33,6 @@ void RaytracingIndirectDiffuseFullRes(uint2 groupThreadId : SV_GroupThreadID, ui
     uint2 currentCoord = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
     currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Clear the output color texture
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
 
@@ -47,7 +44,7 @@ void RaytracingIndirectDiffuseFullRes(uint2 groupThreadId : SV_GroupThreadID, ui
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -59,7 +56,9 @@ void RaytracingIndirectDiffuseFullRes(uint2 groupThreadId : SV_GroupThreadID, ui
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Generate the new sample (follwing values of the sequence)
-    float2 sample = GetRaytracingNoiseSampleRG(_RaytracingFrameIndex, scramblingValue);
+    float2 sample;
+    sample.x = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 0);
+    sample.y = GetBNDSequenceSample(currentCoord, _RaytracingFrameIndex, 1);
 
     // Importance sample with a cosine lobe
     float3 sampleDir = SampleHemisphereCosine(sample.x, sample.y, normalData.normalWS);

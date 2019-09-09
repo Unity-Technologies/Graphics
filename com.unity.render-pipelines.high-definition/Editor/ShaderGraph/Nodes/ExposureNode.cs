@@ -69,11 +69,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            string exposure = generationMode.IsPreview() ? "1.0" : exposureFunctions[exposureType];
-
-            sb.AppendLine("$precision {0} = {1};",
-                GetVariableNameForSlot(kExposureOutputSlotId),
-                exposure);
+            sb.AppendLine("#ifdef SHADERGRAPH_PREVIEW");
+            sb.AppendLine($"$precision {GetVariableNameForSlot(kExposureOutputSlotId)} = 1.0;");
+            sb.AppendLine("#else");
+            sb.AppendLine($"$precision {GetVariableNameForSlot(kExposureOutputSlotId)} = {exposureFunctions[exposureType]};");
+            sb.AppendLine("#endif");
         }
     }
 }

@@ -11,7 +11,7 @@ using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(9, Extension)]
+    [ScriptedImporter(10, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph
 
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.inputs = graph.properties.ToList();
+            asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
             
@@ -156,7 +157,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var graphContext = new GraphContext(asset.inputStructName);
 
-                GraphUtil.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
+                SubShaderGenerator.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
                 sb.AppendNewLine();
 
                 // Generate arguments... first INPUTS

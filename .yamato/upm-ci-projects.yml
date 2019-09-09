@@ -3,12 +3,16 @@ editors:
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
+  - name: Universal_Stereo
+    folder: UniversalGfxTestStereo
   - name: ShaderGraph
     folder: ShaderGraph
   - name: PostProcessing
     folder: PostProcessing
   - name: HDRP
     folder: HDRP_Tests
+  - name: HDRP_Standalone
+    folder: HDRP_RuntimeTests
   - name: VFXMain
     folder: VisualEffectGraph
   - name: VFX_LWRP

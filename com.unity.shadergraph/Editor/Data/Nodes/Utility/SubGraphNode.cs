@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph
 
             var inputVariableName = $"_{GetVariableNameForNode()}";
             
-            GraphUtil.GenerateSurfaceInputTransferCode(sb, asset.requirements, asset.inputStructName, inputVariableName);
+            SubShaderGenerator.GenerateSurfaceInputTransferCode(sb, asset.requirements, asset.inputStructName, inputVariableName);
 
             foreach (var outSlot in asset.outputs)
                 sb.AppendLine("{0} {1};", outSlot.concreteValueType.ToShaderString(asset.outputPrecision), GetVariableNameForSlot(outSlot.id));
@@ -453,6 +453,17 @@ namespace UnityEditor.ShaderGraph
             {
                 visitor.AddShaderProperty(property);
             }
+        }
+
+        public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
+        {
+            if (asset == null)
+                return;
+
+            foreach (var keyword in asset.keywords)
+            {
+                keywords.AddShaderKeyword(keyword as ShaderKeyword);
+            }    
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)

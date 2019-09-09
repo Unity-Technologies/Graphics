@@ -123,8 +123,8 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     // Now that splatControl has changed, we can compute the final weight and normalize
     weight = dot(splatControl, 1.0h);
 
-#if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_SWITCH) && defined(TERRAIN_SPLAT_ADDPASS)
-    clip(weight == 0.0h ? -1.0h : 1.0h);
+#ifdef TERRAIN_SPLAT_ADDPASS
+    clip(weight <= 0.005h ? -1.0h : 1.0h);
 #endif
 
 #ifndef _TERRAIN_BASEMAP_GEN
@@ -145,7 +145,14 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw), _NormalScale1);
     nrm += splatControl.b * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, uvSplat23.xy), _NormalScale2);
     nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
-    nrm.z += 1e-5f;     // avoid risk of NaN when normalizing.
+
+    // avoid risk of NaN when normalizing.
+#if HAS_HALF
+    nrm.z += 0.01h;     
+#else
+    nrm.z += 1e-5f;
+#endif
+
     mixedNormal = normalize(nrm.xyz);
 #endif
 }
@@ -284,7 +291,8 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     half4 masks[4];
     half4 hasMask = half4(_LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3);
-    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
+    float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
     masks[0] = 1.0h;
     masks[1] = 1.0h;
