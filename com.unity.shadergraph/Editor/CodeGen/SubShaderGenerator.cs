@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using Data.Util;
 
 namespace UnityEditor.ShaderGraph
@@ -385,8 +386,6 @@ namespace UnityEditor.ShaderGraph
             if (graph == null)
                 return;
 
-            GraphContext graphContext = new GraphContext(graphInputStructName);
-
             graph.CollectShaderProperties(shaderProperties, mode);
 
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
@@ -397,7 +396,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
                         shaderProperties, shaderKeywords,
-                        graph, graphContext, mode);
+                        graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
@@ -418,13 +417,12 @@ namespace UnityEditor.ShaderGraph
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GraphData graph,
-            GraphContext graphContext,
             GenerationMode mode)
         {
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;
-                functionNode.GenerateNodeFunction(functionRegistry, graphContext, mode);
+                functionNode.GenerateNodeFunction(functionRegistry, mode);
                 functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
             }
 
@@ -434,7 +432,7 @@ namespace UnityEditor.ShaderGraph
                     descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
 
                 descriptionFunction.currentNode = activeNode;
-                bodyNode.GenerateNodeCode(descriptionFunction, graphContext, mode);
+                bodyNode.GenerateNodeCode(descriptionFunction, mode);
                 descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
 
                 if(keywordPermutations != null)
@@ -532,8 +530,6 @@ namespace UnityEditor.ShaderGraph
             if (graph == null)
                 return;
 
-            GraphContext graphContext = new GraphContext(graphInputStructName);
-
             graph.CollectShaderProperties(shaderProperties, mode);
 
             builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
@@ -544,7 +540,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
                         shaderProperties, shaderKeywords,
-                        graph, graphContext, mode);
+                        graph, mode);
                 }
 
                 functionRegistry.builder.currentNode = null;
