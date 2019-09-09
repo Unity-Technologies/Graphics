@@ -203,6 +203,39 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        protected void OnEnable()
+        {
+            ProbeVolumeManager.manager.RegisterVolume(this);
+
+            m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+            m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
+
+#if UNITY_EDITOR
+            EnableBaking();
+#endif
+        }
+
+        protected void OnDisable()
+        {
+            ProbeVolumeManager.manager.DeRegisterVolume(this);
+#if UNITY_EDITOR
+            DisableBaking();
+#endif
+        }
+
+#if UNITY_EDITOR
+        protected void Update()
+        {
+            if (parameters.drawProbes)
+                DrawProbes();
+        }
+        
+        protected void OnValidate()
+        {
+            parameters.Constrain();
+            SetupPositions();
+        }
+
         protected void OnBakeCompleted()
         {
             if (!this.gameObject.activeInHierarchy)
@@ -229,39 +262,21 @@ namespace UnityEngine.Rendering.HighDefinition
             dataUpdated = true;
         }
 
-        protected void OnEnable()
+        public void DisableBaking()
         {
-            ProbeVolumeManager.manager.RegisterVolume(this);
-
-            m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-            m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
-
-            // Reset matrices hash to recreate all positions
-            m_DebugProbeInputHash = new Hash128();
-            SetupPositions();
-
-            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
-        }
-
-        protected void OnDisable()
-        {
-            ProbeVolumeManager.manager.DeRegisterVolume(this);
+            UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
 
             if (id != -1)
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(id, null);
-
-            UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
         }
 
-        protected void Update()
+        public void EnableBaking()
         {
-            if (parameters.drawProbes)
-                DrawProbes();
-        }
+            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
 
-        protected void OnValidate()
-        {
-            parameters.Constrain();
+            // Reset matrices hash to recreate all positions
+            m_DebugProbeInputHash = new Hash128();
+
             SetupPositions();
         }
 
@@ -413,5 +428,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
+#endif
 
 } // UnityEngine.Experimental.Rendering.HDPipeline

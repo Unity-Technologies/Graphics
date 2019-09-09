@@ -45,5 +45,36 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes.Remove(volume);
             volumesIsDirty = true;
         }
+
+#if UNITY_EDITOR
+        public void ReactivateProbes()
+        {
+            foreach (ProbeVolume v in volumes)
+            {
+                int id = v.GetID();
+                
+                v.EnableBaking();
+            }
+
+            UnityEditor.Lightmapping.bakeCompleted -= ReactivateProbes;
+        }
+
+        public static void BakeSingle(ProbeVolume probeVolume)
+        {
+            if (!probeVolume)
+                return;
+
+            foreach (ProbeVolume v in manager.volumes)
+            {
+                if (v == probeVolume)
+                    continue;
+
+                v.DisableBaking();
+            }
+
+            UnityEditor.Lightmapping.bakeCompleted += manager.ReactivateProbes;
+            UnityEditor.Lightmapping.BakeAsync();
+        }
     }
+#endif
 }

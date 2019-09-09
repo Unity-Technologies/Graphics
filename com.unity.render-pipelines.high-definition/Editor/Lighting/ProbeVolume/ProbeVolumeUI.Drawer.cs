@@ -30,8 +30,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 k_ExpandedState,
                 Drawer_AdvancedSwitch,
                 Drawer_VolumeContent
+                ),
+            CED.space,
+            CED.Group(
+                Drawer_BakeToolBar
                 )
             );
+
+        static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
+        {
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Bake"))
+            {
+                GameObject obj = UnityEditor.Selection.activeGameObject;
+
+                if (!obj)
+                    return;
+
+                ProbeVolume probeVolume = obj.GetComponent<ProbeVolume>();
+                ProbeVolumeManager.BakeSingle(probeVolume);
+            }
+            GUILayout.EndHorizontal();
+        }
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
         {

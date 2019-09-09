@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data == null || data.Length == 0)
                         return false;
 
-                    Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
+                    //Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
                     cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeResolution", new Vector3(
                         volume.parameters.resolutionX,
                         volume.parameters.resolutionY,
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)m_ProbeVolumeAtlasShArRTHandle.rt.height
                     ));
 
-                    Debug.Log("data[0] = " + data[0]);
+                    //Debug.Log("data[0] = " + data[0]);
                     Debug.Assert(data.Length == size, "Error: ProbeVolumeSystem: volume data length = " + data.Length + ", resolution size = " + size);
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasReadBufferCount", size);
