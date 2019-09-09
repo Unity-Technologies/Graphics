@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed post-processing history reset handling rt-scale incorrectly
 - Fixed crash with terrain and XR multi-pass
 - Fixed ShaderGraph material synchronization issues
+- Fixed a null reference exception when using an Emissive texture with Unlit shader (case 1181335)
 
 ### Changed
 - Update Wizard layout.
