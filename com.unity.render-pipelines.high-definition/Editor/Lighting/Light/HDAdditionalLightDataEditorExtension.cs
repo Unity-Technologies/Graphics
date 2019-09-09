@@ -38,36 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             hdLight.displayAreaLightEmissiveMesh = display;
-
-            hdLight.UpdateEmissiveMeshComponents();
-        }
-        
-        internal static void UpdateEmissiveMeshComponents(this HDAdditionalLightData hdLight)
-        {
-            MeshRenderer emissiveMeshRenderer = hdLight.GetComponent<MeshRenderer>();
-            MeshFilter emissiveMeshFilter = hdLight.GetComponent<MeshFilter>();
-
-            // If the display emissive mesh is disabled, skip to the next selected light
-            if (emissiveMeshFilter == null || emissiveMeshRenderer == null)
-                return;
-
-            // We only load the mesh and it's material here, because we can't do that inside HDAdditionalLightData (Editor assembly)
-            // Every other properties of the mesh is updated in HDAdditionalLightData to support timeline and editor records
-            switch (hdLight.lightTypeExtent)
-            {
-                case LightTypeExtent.Tube:
-                    emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
-                    break;
-                case LightTypeExtent.Rectangle:
-                default:
-                    emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
-                    break;
-            }
-            if (emissiveMeshRenderer.sharedMaterial == null)
-            {
-                emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
-            }
-            emissiveMeshRenderer.sharedMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
         }
     }
 }

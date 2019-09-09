@@ -117,7 +117,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public float oldSpotAngle;
         public Color oldLightColor;
-        public Vector3 oldLossyScale;
         public bool oldDisplayAreaLightEmissiveMesh;
         public float oldLightColorTemperature;
         public float oldIntensity;
@@ -1963,7 +1962,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO: we might be able to get rid to that
         [System.NonSerialized]
         bool m_Animated;
 
@@ -1973,6 +1971,41 @@ namespace UnityEngine.Rendering.HighDefinition
             // might be driven by this animator (using timeline or animations) so we force the LateUpdate
             // to sync the animated HDAdditionalLightData properties with the light component.
             m_Animated = GetComponent<Animator>() != null;
+        }
+
+        Material m_EmissiveMeshMaterial;
+        Material emissiveMeshMaterial
+        {
+            get
+            {
+                if (m_EmissiveMeshMaterial == null)
+                {
+                    m_EmissiveMeshMaterial = new Material(Shader.Find("HDRP/Unlit"));
+                    m_EmissiveMeshMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
+                    m_EmissiveMeshMaterial.name = gameObject.name;
+                }
+
+                return m_EmissiveMeshMaterial;
+            }
+            set => m_EmissiveMeshMaterial = value;
+        }
+
+        void Update()
+        {
+            var assetResources = HDRenderPipeline.defaultAsset.renderPipelineResources.assets;
+            if (displayAreaLightEmissiveMesh && IsAreaLight(lightTypeExtent))
+            {
+                Vector3 size = new Vector3(m_ShapeWidth, m_ShapeHeight, k_MinAreaWidth);
+                Mesh mesh = assetResources.lightQuadMesh;
+                if (lightTypeExtent == LightTypeExtent.Tube)
+                {
+                    mesh = assetResources.lightCylinderMesh;
+                    size.y = k_MinAreaWidth;
+                }
+ 
+                Matrix4x4 trs = Matrix4x4.TRS(transform.position, transform.rotation, size);
+                Graphics.DrawMesh(mesh, trs, emissiveMeshMaterial, 0);
+            }
         }
 
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
@@ -1987,13 +2020,11 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
 
             // Check if the intensity have been changed by the inspector or an animator
-            if (timelineWorkaround.oldLossyScale != transform.lossyScale
-                || intensity != timelineWorkaround.oldIntensity
+            if (intensity != timelineWorkaround.oldIntensity
                 || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 UpdateLightIntensity();
                 UpdateAreaLightEmissiveMesh();
-                timelineWorkaround.oldLossyScale = transform.lossyScale;
                 timelineWorkaround.oldIntensity = intensity;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
@@ -2006,13 +2037,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             if (legacyLight.color != timelineWorkaround.oldLightColor
-                || timelineWorkaround.oldLossyScale != transform.lossyScale
                 || displayAreaLightEmissiveMesh != timelineWorkaround.oldDisplayAreaLightEmissiveMesh
                 || legacyLight.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 UpdateAreaLightEmissiveMesh();
                 timelineWorkaround.oldLightColor = legacyLight.color;
-                timelineWorkaround.oldLossyScale = transform.lossyScale;
                 timelineWorkaround.oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
@@ -2215,91 +2244,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAreaLightEmissiveMesh()
         {
-            MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
-            MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
-
-            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && displayAreaLightEmissiveMesh;
-
-            // Ensure that the emissive mesh components are here
-            if (displayEmissiveMesh)
-            {
-                if (emissiveMeshRenderer == null)
-                    emissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
-                if (emissiveMeshFilter == null)
-                    emissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
-            }
-            else // Or remove them if the option is disabled
-            {
-                if (emissiveMeshRenderer != null)
-                    CoreUtils.Destroy(emissiveMeshRenderer);
-                if (emissiveMeshFilter != null)
-                    CoreUtils.Destroy(emissiveMeshFilter);
-
-                // We don't have anything to do left if the dislay emissive mesh option is disabled
-                return;
-            }
-
-            Vector3 lightSize;
-
-            // Update light area size from GameObject transform scale if the transform have changed
-            // else we update the light size from the shape fields
-            if (timelineWorkaround.oldLossyScale != transform.lossyScale)
-                lightSize = transform.lossyScale;
-            else
-                lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, transform.localScale.z);
+            Vector3 lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, k_MinAreaWidth);
 
             if (lightTypeExtent == LightTypeExtent.Tube)
                 lightSize.y = k_MinAreaWidth;
-            lightSize.z = k_MinAreaWidth;
 
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
-#if UNITY_EDITOR
+
             legacyLight.areaSize = lightSize;
-
-            // When we're inside the editor, and the scale of the transform will change
-            // then we must record it with inside the undo
-            if (legacyLight.transform.localScale != lightSize)
-            {
-                Undo.RecordObject(transform, "Light Scale changed");
-            }
-#endif
-
-            Vector3 lossyToLocalScale = lightSize;
-            if (transform.parent != null)
-            {
-                lossyToLocalScale = new Vector3(
-                    lightSize.x / transform.parent.lossyScale.x,
-                    lightSize.y / transform.parent.lossyScale.y,
-                    lightSize.z / transform.parent.lossyScale.z
-                );
-            }
-            legacyLight.transform.localScale = lossyToLocalScale;
-
-            switch (lightTypeExtent)
-            {
-                case LightTypeExtent.Rectangle:
-                    m_ShapeWidth = lightSize.x;
-                    m_ShapeHeight = lightSize.y;
-                    break;
-                case LightTypeExtent.Tube:
-                    m_ShapeWidth = lightSize.x;
-                    break;
-                default:
-                    break;
-            }
 
             // NOTE: When the user duplicates a light in the editor, the material is not duplicated and when changing the properties of one of them (source or duplication)
             // It either overrides both or is overriden. Given that when we duplicate an object the name changes, this approach works. When the name of the game object is then changed again
             // the material is not re-created until one of the light properties is changed again.
-            if (emissiveMeshRenderer.sharedMaterial == null || emissiveMeshRenderer.sharedMaterial.name != gameObject.name)
+            if (emissiveMeshMaterial.name != gameObject.name)
             {
-                emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
-                emissiveMeshRenderer.sharedMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
-                emissiveMeshRenderer.sharedMaterial.name = gameObject.name;
+                emissiveMeshMaterial = null; // this will automatically re-create the material when we access it
             }
 
             // Update Mesh emissive properties
-            emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
+            emissiveMeshMaterial.SetColor("_UnlitColor", Color.black);
 
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = legacyLight.color.linear * legacyLight.intensity;
@@ -2312,11 +2275,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             value *= lightDimmer;
 
-            emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
+            emissiveMeshMaterial.SetColor("_EmissiveColor", value);
 
             // Set the cookie (if there is one) and raise or remove the shader feature
-            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
+            emissiveMeshMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
+            CoreUtils.SetKeyword(emissiveMeshMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
         }
 
         void UpdateAreaLightBounds()
