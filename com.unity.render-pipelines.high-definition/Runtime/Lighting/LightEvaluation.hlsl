@@ -388,6 +388,13 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+    if(light.screenSpaceShadowIndex >= 0)
+    {
+        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+    }
+    else
+#endif
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);

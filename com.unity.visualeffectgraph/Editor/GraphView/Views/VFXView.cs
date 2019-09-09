@@ -13,12 +13,13 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
+using UnityEditor.VersionControl;
 
 using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 
@@ -53,6 +54,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
         }
 
+        public Button checkoutButton;
 
         void DisconnectController()
         {
@@ -294,7 +296,7 @@ namespace UnityEditor.VFX.UI
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
             if( ! EditorGUIUtility.isProSkin)
-            { 
+            {
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
             }
 
@@ -325,6 +327,16 @@ namespace UnityEditor.VFX.UI
             var selectAssetButton = new ToolbarButton(() => { SelectAsset(); });
             selectAssetButton.text = "Show in Project";
             m_Toolbar.Add(selectAssetButton);
+
+            spacer = new ToolbarSpacer();
+            spacer.style.width = 10;
+            m_Toolbar.Add(spacer);
+
+            checkoutButton = new ToolbarButton(() => { Checkout(); });
+            checkoutButton.text = "Check Out";
+            checkoutButton.visible = false;
+            checkoutButton.AddToClassList("toolbarItem");
+            m_Toolbar.Add(checkoutButton);
 
             var flexSpacer = new ToolbarSpacer();
             flexSpacer.style.flexGrow = 1f;
@@ -1248,7 +1260,7 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-                
+
                 foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);
@@ -1372,6 +1384,12 @@ namespace UnityEditor.VFX.UI
                 Selection.activeObject = controller.model.visualEffectObject;
                 EditorGUIUtility.PingObject(controller.model.visualEffectObject);
             }
+        }
+
+        void Checkout()
+        {
+            Task task = Provider.Checkout(controller.model.visualEffectObject, CheckoutMode.Both);
+            task.Wait();
         }
 
         void ElementAddedToGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
@@ -1702,10 +1720,10 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(3, "Convert To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
                 else if (selection.OfType<VFXBlockUI>().Any() && selection.OfType<VFXBlockUI>().Select(t => t.context).Distinct().Count() == 1)
                 {
-                    evt.menu.InsertAction(3, "To Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
+                    evt.menu.InsertAction(3, "Convert to Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
-            
+
         }
 
 

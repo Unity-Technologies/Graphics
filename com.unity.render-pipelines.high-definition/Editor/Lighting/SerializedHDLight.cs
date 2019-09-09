@@ -1,5 +1,6 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -48,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty filterTracedShadow;
             public SerializedProperty filterSizeTraced;
             public SerializedProperty sunLightConeAngle;
+            public SerializedProperty lightShadowRadius;
 #endif
             public SerializedProperty evsmExponent;
             public SerializedProperty evsmLightLeakBias;
@@ -73,12 +75,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedProperty shadowDimmer;
             public SerializedProperty volumetricShadowDimmer;
             public SerializedProperty shadowFadeDistance;
-            public SerializedProperty shadowResolutionTier;
-            public SerializedProperty useShadowQualitySettings;
-            public SerializedProperty customResolution;
-            public SerializedProperty contactShadows;
+            public SerializedScalableSettingValue contactShadows;
             public SerializedProperty shadowTint;
             public SerializedProperty shadowUpdateMode;
+            public SerializedShadowResolutionSettingValue shadowResolution;
 
             // Bias control
             public SerializedProperty constantBias;
@@ -145,6 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     filterTracedShadow = o.Find("m_FilterTracedShadow"),
                     filterSizeTraced = o.Find("m_FilterSizeTraced"),
                     sunLightConeAngle = o.Find("m_SunLightConeAngle"),
+                    lightShadowRadius = o.Find("m_LightShadowRadius"),
 #endif
                     evsmExponent = o.Find("m_EvsmExponent"),
                     evsmVarianceBias = o.Find("m_EvsmVarianceBias"),
@@ -171,12 +172,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     shadowDimmer = o.Find("m_ShadowDimmer"),
                     volumetricShadowDimmer = o.Find("m_VolumetricShadowDimmer"),
                     shadowFadeDistance = o.Find("m_ShadowFadeDistance"),
-                    useShadowQualitySettings = o.Find("m_UseShadowQualitySettings"),
-                    customResolution = o.Find("m_CustomShadowResolution"),
-                    shadowResolutionTier = o.Find("m_ShadowResolutionTier"),
-                    contactShadows = o.Find("m_ContactShadows"),
+                    contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow)),
                     shadowTint = o.Find("m_ShadowTint"),
                     shadowUpdateMode = o.Find("m_ShadowUpdateMode"),
+                    shadowResolution = new SerializedShadowResolutionSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),
 
                     constantBias = o.Find("m_ConstantBias"),
                     normalBias = o.Find("m_NormalBias"),
@@ -209,30 +208,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            var lightTypeExtent = (LightTypeExtent)serializedLightData.lightTypeExtent.enumValueIndex;
-            switch (lightTypeExtent)
+            editorLightShape = ResolveLightShape(
+                (LightTypeExtent) serializedLightData.lightTypeExtent.enumValueIndex,
+                (LightType)type.enumValueIndex
+            );
+        }
+
+        internal static LightShape ResolveLightShape(LightTypeExtent typeExtent, LightType type)
+        {
+            switch (typeExtent)
             {
                 case LightTypeExtent.Punctual:
-                    switch ((LightType)type.enumValueIndex)
+                    switch (type)
                     {
                         case LightType.Directional:
-                            editorLightShape = LightShape.Directional;
-                            break;
+                            return LightShape.Directional;
                         case LightType.Point:
-                            editorLightShape = LightShape.Point;
-                            break;
+                            return LightShape.Point;
                         case LightType.Spot:
-                            editorLightShape = LightShape.Spot;
-                            break;
+                            return LightShape.Spot;
                     }
                     break;
                 case LightTypeExtent.Rectangle:
-                    editorLightShape = LightShape.Rectangle;
-                    break;
+                    return LightShape.Rectangle;
                 case LightTypeExtent.Tube:
-                    editorLightShape = LightShape.Tube;
-                    break;
+                    return LightShape.Tube;
             }
+            throw new Exception("Unknown light type");
         }
     }
 }

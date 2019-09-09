@@ -78,7 +78,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                FabricMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = false,
         };
@@ -108,7 +110,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                FabricMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -158,7 +162,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             VertexShaderSlots = new List<int>()
             {
-                FabricMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
 
@@ -210,7 +216,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                FabricMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = false,
 
@@ -277,7 +285,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                FabricMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
 
@@ -346,7 +356,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -385,7 +397,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -431,7 +445,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -477,7 +493,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                FabricMasterNode.PositionSlotId,
+                FabricMasterNode.VertexNormalSlotId,
+                FabricMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -632,7 +650,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(FabricMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(FabricMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(FabricMasterNode.VertexNormalSlotId) ||
+                    masterNode.IsSlotConnected(FabricMasterNode.VertexNormalSlotId) )
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

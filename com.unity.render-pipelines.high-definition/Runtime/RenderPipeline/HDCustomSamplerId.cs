@@ -115,6 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        CustomPostProcessBeforePP,
+        CustomPostProcessAfterPP,
+        CustomPostProcessBeforeTransparent,
 
         Max
     }

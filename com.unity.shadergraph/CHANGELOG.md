@@ -4,14 +4,25 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.1] - 2019-XX-XX
+## [7.2.0] - 2019-XX-XX
+
+## [7.1.1] - 2019-09-05
 ### Added
 - You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
 - The tab now shows whether you are working in a Sub Graph or a Shader Graph file.
+- The Shader Graph importer now bakes the output node type name into a meta-data object.
 
 ### Fixed
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
 - Fixed an issue where deleting a group and a property at the same time would cause an error.
+- Fixed the epsilon that the Hue Node uses to avoid NaN on platforms that support half precision.
+- Emission nodes no longer produce errors when you use them in Sub Graphs.
+- Exposure nodes no longer produce errors when you use them in Sub Graphs.
+- Unlit master nodes no longer define unnecessary properties in the Universal Render Pipeline.
+- Errors no longer occur when you convert a selection to a Sub Graph.
+- Color nodes now handle Gamma and Linear conversions correctly.
+- Sub Graph Output nodes now link to the correct documentation page.
+- When you use Keywords, PBR and Unlit master nodes no longer produce errors.
 
 ## [7.0.1] - 2019-07-25
 ### Changed

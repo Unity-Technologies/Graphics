@@ -3,19 +3,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenu("Ray Tracing/Recursive Rendering")]
-    public sealed class RecursiveRendering : VolumeComponent
-    {
-        [Tooltip("Enable. Enables recursive rendering.")]
-        public BoolParameter enable = new BoolParameter(false);
-
-        [Tooltip("Max Depth. Defines the maximal recursion for rays.")]
-        public ClampedIntParameter maxDepth = new ClampedIntParameter(4, 1, 10);
-
-        [Tooltip("Ray Length. This defines the maximal travel distance of rays.")]
-        public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0f, 50f);
-    }
-
 #if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
@@ -181,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If this is the right debug mode and we have at least one light, write the first shadow to the de-noised texture
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingPrimaryDebug, m_DebugRaytracingTexture);
-            hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugRaytracingTexture, FullScreenDebugMode.PrimaryVisibility);
+            hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugRaytracingTexture, FullScreenDebugMode.RecursiveTracing);
 
             // Run the computation
             cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);

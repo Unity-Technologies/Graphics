@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 using UnityEditorInternal;
 using System.Collections.Generic;
 
-namespace UnityEditor.VFX.Utils
+namespace UnityEditor.Experimental.VFX.Utility
 {
     static class VFXEventTesterWindow
     {

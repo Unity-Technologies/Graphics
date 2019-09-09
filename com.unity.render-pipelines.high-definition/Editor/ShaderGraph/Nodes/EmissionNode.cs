@@ -100,15 +100,18 @@ namespace UnityEditor.Rendering.HighDefinition
             if (intensityUnit == EmissiveIntensityUnit.EV100)
                 intensityValue = "ConvertEvToLuminance(" + intensityValue + ")";
 
-            string inverseExposureMultiplier = (generationMode.IsPreview()) ? "1.0" : "GetInverseCurrentExposureMultiplier()";
+            sb.AppendLine("#ifdef SHADERGRAPH_PREVIEW");
+            sb.AppendLine($"$precision inverseExposureMultiplier = 1.0;");
+            sb.AppendLine("#else");
+            sb.AppendLine($"$precision inverseExposureMultiplier = GetInverseCurrentExposureMultiplier();");
+            sb.AppendLine("#endif");
 
-            sb.AppendLine(@"$precision3 {0} = {1}({2}.xyz, {3}, {4}, {5});",
+            sb.AppendLine(@"$precision3 {0} = {1}({2}.xyz, {3}, {4}, inverseExposureMultiplier);",
                 outputValue,
                 GetFunctionName(),
                 colorValue,
                 intensityValue,
-                exposureWeightValue,
-                inverseExposureMultiplier
+                exposureWeightValue
             );
         }
 

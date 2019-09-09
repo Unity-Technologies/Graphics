@@ -14,7 +14,7 @@ using UnityEditor.VFX.UI;
 using UnityObject = UnityEngine.Object;
 
 
-public class VFXExternalShaderProcessor : AssetPostprocessor
+class VFXExternalShaderProcessor : AssetPostprocessor
 {
     public const string k_ShaderDirectory = "Shaders";
     public const string k_ShaderExt = ".vfxshader";
@@ -144,7 +144,7 @@ public class VFXExternalShaderProcessor : AssetPostprocessor
 
 [CustomEditor(typeof(VisualEffectAsset))]
 [CanEditMultipleObjects]
-public class VisualEffectAssetEditor : Editor
+class VisualEffectAssetEditor : Editor
 {
     [OnOpenAsset(1)]
     public static bool OnOpenVFX(int instanceID, int line)
@@ -230,6 +230,7 @@ public class VisualEffectAssetEditor : Editor
             m_PreviewUtility.camera.allowHDR = true;
             m_PreviewUtility.camera.allowMSAA = false;
             m_PreviewUtility.camera.farClipPlane = 10000.0f;
+            m_PreviewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
             m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 1.0f);
             m_PreviewUtility.lights[0].intensity = 1.4f;
             m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
@@ -450,8 +451,7 @@ public class VisualEffectAssetEditor : Editor
     {
         resourceObject.Update();
 
-        bool enable = GUI.enabled; //Everything in external asset is disabled by default
-        GUI.enabled = true;
+        GUI.enabled = AssetDatabase.IsOpenForEdit(this.target, StatusQueryOptions.UseCachedIfPossible);
 
         EditorGUI.BeginChangeCheck();
         EditorGUI.showMixedValue = resourceUpdateModeProperty.hasMultipleDifferentValues;
@@ -503,7 +503,7 @@ public class VisualEffectAssetEditor : Editor
                     {
                         prewarmStepCount.intValue = currentStepCount = 1;
                     }
-                    
+
                     currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
                     prewarmDeltaTime.floatValue = currentDeltaTime;
                     prewarmStepCount.intValue = currentStepCount;

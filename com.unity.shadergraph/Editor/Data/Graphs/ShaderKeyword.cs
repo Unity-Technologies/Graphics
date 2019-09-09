@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -31,6 +32,15 @@ namespace UnityEditor.ShaderGraph
 
         public static ShaderKeyword Create(KeywordDescriptor descriptor)
         {
+            if(descriptor.entries != null)
+            {
+                for(int i = 0; i < descriptor.entries.Length; i++)
+                {
+                    if(descriptor.entries[i].id == -1)
+                        descriptor.entries[i].id = i + 1;
+                }
+            }
+
             return new ShaderKeyword()
             {
                 m_IsExposable = false,
@@ -41,7 +51,7 @@ namespace UnityEditor.ShaderGraph
                 keywordDefinition = descriptor.definition,
                 keywordScope = descriptor.scope,
                 value = descriptor.value,
-                entries = descriptor.entries
+                entries = descriptor.entries.ToList(),
             };
         }
 

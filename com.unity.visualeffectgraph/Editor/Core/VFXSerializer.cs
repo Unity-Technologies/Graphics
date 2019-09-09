@@ -12,7 +12,7 @@ using TangentMode = UnityEditor.AnimationUtility.TangentMode;
 namespace UnityEditor.VFX
 {
     [Serializable]
-    public class SerializableType : ISerializationCallbackReceiver
+    class SerializableType : ISerializationCallbackReceiver
     {
         public static implicit operator SerializableType(Type value)
         {
@@ -98,7 +98,7 @@ namespace UnityEditor.VFX
     }
 
     [Serializable]
-    public class VFXSerializableObject
+    class VFXSerializableObject
     {
         private VFXSerializableObject() {}
 
@@ -170,7 +170,7 @@ namespace UnityEditor.VFX
     }
 
 
-    public static class VFXSerializer
+    static class VFXSerializer
     {
         [System.Serializable]
         public struct TypedSerializedData

@@ -631,9 +631,9 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
     }
-    public class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
+    class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
     {}
-    public class VFXComponentBoardEventUI : VisualElement
+    class VFXComponentBoardEventUI : VisualElement
     {
         public VFXComponentBoardEventUI()
         {

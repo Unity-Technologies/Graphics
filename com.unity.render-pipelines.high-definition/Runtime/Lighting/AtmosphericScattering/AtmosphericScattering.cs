@@ -3,14 +3,9 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
+    // Deprecated, kept for migration
     public abstract class AtmosphericScattering : VolumeComponent
     {
-        // Fog Color
-        static readonly int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
-        static readonly int m_FogColorDensityParam = Shader.PropertyToID("_FogColorDensity");
-        static readonly int m_MipFogParam = Shader.PropertyToID("_MipFogParameters");
-
         // Fog Color
         public FogColorParameter     colorMode = new FogColorParameter(FogColorMode.SkyColor);
         [Tooltip("Specifies the constant color of the fog.")]
@@ -27,56 +22,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter     mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
 
         internal abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
-
-        internal void PushShaderParametersCommon(HDCamera hdCamera, CommandBuffer cmd, FogType type)
-        {
-            Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering));
-
-            int physicallyBasedSkyAtmosphereFlag = 0;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            Debug.Assert(visualEnvironment != null);
-
-            // The PBR sky contributes to atmospheric scattering.
-            physicallyBasedSkyAtmosphereFlag = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 128 : 0;
-
-            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, physicallyBasedSkyAtmosphereFlag | (int)type);
-            cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
-
-            // Fog Color
-            cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);
-            cmd.SetGlobalColor(m_FogColorDensityParam, new Color(color.value.r, color.value.g, color.value.b, density.value));
-            cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f));
-        }
     }
 
-    [GenerateHLSL]
-    public enum FogType // 7 bits max, 8th bit is for the PBR sky atmosphere flag
+    // Deprecated, kept for migration
+    public enum FogType
     {
-        None,
-        Linear,
-        Exponential,
-        Volumetric,
-    }
-
-    [GenerateHLSL]
-    public enum FogColorMode
-    {
-        ConstantColor,
-        SkyColor,
-    }
-
-    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class FogTypeParameter : VolumeParameter<FogType>
-    {
-        public FogTypeParameter(FogType value, bool overrideState = false)
-            : base(value, overrideState) {}
-    }
-
-    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public sealed class FogColorParameter : VolumeParameter<FogColorMode>
-    {
-        public FogColorParameter(FogColorMode value, bool overrideState = false)
-            : base(value, overrideState) {}
+        None = 0,
+        Exponential = 2,
+        Volumetric = 3,
     }
 }
