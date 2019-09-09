@@ -1,9 +1,9 @@
 ${VFXBegin:VFXVertexCommonProcess}
 #if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)
-o.VFX_VARYING_COLOR = color;
+o.VFX_VARYING_COLOR = attributes.color;
 #endif
 #if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) 
-o.VFX_VARYING_ALPHA = alpha;
+o.VFX_VARYING_ALPHA = attributes.alpha;
 #endif
 
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
@@ -16,7 +16,7 @@ ${VFXLoadParameter:{invSoftParticlesFadeDistance}}
 o.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE = invSoftParticlesFadeDistance;
 #endif
 
-#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD)
+#if USE_ALPHA_TEST && defined(VFX_VARYING_ALPHATHRESHOLD) && ! VFX_SHADERGRAPH
 ${VFXLoadParameter:{alphaThreshold}}
 o.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;
 #endif
@@ -35,15 +35,15 @@ o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}
-float3 size3 = float3(size,size,size);
+float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 #if VFX_USE_SCALEX_CURRENT
-size3.x *= scaleX;
+size3.x *= attributes.scaleX;
 #endif
 #if VFX_USE_SCALEY_CURRENT
-size3.y *= scaleY;
+size3.y *= attributes.scaleY;
 #endif
 #if VFX_USE_SCALEZ_CURRENT
-size3.z *= scaleZ;
+size3.z *= attributes.scaleZ;
 #endif
 ${VFXEnd}
 
@@ -51,7 +51,7 @@ ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #if USE_FLIPBOOK && defined(VFX_VARYING_UV)
 ${VFXLoadParameter:{flipBookSize}}
 ${VFXLoadParameter:{invFlipBookSize}}
-VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);
+VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, attributes.texIndex);
 o.VFX_VARYING_UV.xy = uvData.uvs.xy;
 #if USE_FLIPBOOK_INTERPOLATION && defined(VFX_VARYING_UV) && defined (VFX_VARYING_FRAMEBLEND)
 o.VFX_VARYING_UV.zw = uvData.uvs.zw;
@@ -78,17 +78,25 @@ if (index >= asuint(nbMax) - deadCount)
 	return o; // cull
 #endif
 
+Attributes attributes = (Attributes)0;
+SourceAttributes sourceAttributes = (SourceAttributes)0;
+
 #if VFX_HAS_INDIRECT_DRAW
 index = indirectBuffer[index];
 ${VFXLoadAttributes}
 #else
 ${VFXLoadAttributes:{alive}}
 #if !HAS_STRIPS
-if (!alive)
+if (!attributes.alive)
 	return o;
 #endif
 	
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+#endif
+
+// Initialize built-in needed attributes
+#if HAS_STRIPS
+InitStripAttributes(index, attributes, stripData);
 #endif
 ${VFXEnd}
 

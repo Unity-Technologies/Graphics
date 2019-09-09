@@ -16,7 +16,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    public static class VisualEffectControl
+    static class VisualEffectControl
     {
         public static void ControlStop(this VisualEffect effect)
         {
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
     }
 
 
-    public class VisualEffectEditor : Editor
+    class VisualEffectEditor : Editor
     {
         const string kGeneralFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.General";
         const string kRendererFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer";

@@ -777,6 +777,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 2
   useGeometryShader: 0
 --- !u!114 &8926484042661614624
@@ -1531,6 +1533,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 0
   useGeometryShader: 0
 --- !u!114 &8926484042661614732
