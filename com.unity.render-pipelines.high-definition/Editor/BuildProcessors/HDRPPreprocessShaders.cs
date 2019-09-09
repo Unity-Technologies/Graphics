@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -15,18 +16,38 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public CommonShaderPreprocessor() { }
 
-        protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
+        // Per shader snippet state
+        bool m_IsDecal3RTPass;
+        bool m_IsDecal4RTPass;
+        bool m_IsDecalPass;
+
+        public override void PrepareShaderStripping(Shader shader, ShaderSnippetData snippet)
         {
-            // Strip every useless shadow configs
-            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            // Identify when we compile a decal shader
+            m_IsDecal3RTPass = false;
+            m_IsDecal4RTPass = false;
+            m_IsDecalPass = false;
 
-            foreach (var shadowVariant in m_ShadowVariants)
+            if (snippet.passName != null && (snippet.passName.Contains("DBufferMesh") || snippet.passName.Contains("DBufferProjector")))
             {
-                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
-                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
-                        return true;
-            }
+                m_IsDecalPass = true;
 
+                // All decal pass name can be see in Decalsystem.s_MaterialDecalPassNames and Decalsystem.s_MaterialSGDecalPassNames
+                // All pass that have 3RT in named are use when perChannelMask is false. All 4RT are used when perChannelMask is true.
+                // There is one exception, it is DBufferProjector_S that is used for both 4RT and 3RT as mention in Decal.shader
+                // there is a multi-compile to handle this pass, so it will be correctly removed by testing m_Decals3RT or m_Decals4RT
+                if (snippet.passName != DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector_S])
+                {
+                    m_IsDecal3RTPass = snippet.passName.Contains("3RT");
+                    m_IsDecal4RTPass = !m_IsDecal3RTPass;
+                }
+
+                // Note that we can't strip Emissive pass of decal.shader as we don't have the information here if it is used or not...
+            }
+        }
+
+        public override bool ShouldStripShader(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet)
+        {
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
@@ -61,6 +82,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isTransparentPostpass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPostpass)
                 return true;
 
+            return false;
+        }
+
+        public override bool ShouldStripVariant(HDRenderPipelineAsset hdrpAsset, ShaderCompilerData inputData)
+        {
+            // Strip every useless shadow configs
+            var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            foreach (var shadowVariant in m_ShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+            }
+
             // If we are in a release build, don't compile debug display variant
             // Also don't compile it if not requested by the render pipeline settings
             if ((/*!Debug.isDebugBuild || */ !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
@@ -76,29 +112,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
                 return true;
 
-            // DECAL
-
-            // Identify when we compile a decal shader
-            bool isDecal3RTPass = false;
-            bool isDecal4RTPass = false;
-            bool isDecalPass = false;
-
-            if (snippet.passName.Contains("DBufferMesh") || snippet.passName.Contains("DBufferProjector"))
-            {
-                isDecalPass = true;
-
-                // All decal pass name can be see in Decalsystem.s_MaterialDecalPassNames and Decalsystem.s_MaterialSGDecalPassNames
-                // All pass that have 3RT in named are use when perChannelMask is false. All 4RT are used when perChannelMask is true.
-                // There is one exception, it is DBufferProjector_S that is used for both 4RT and 3RT as mention in Decal.shader
-                // there is a multi-compile to handle this pass, so it will be correctly removed by testing m_Decals3RT or m_Decals4RT
-                if (snippet.passName != DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector_S])
-                {
-                    isDecal3RTPass = snippet.passName.Contains("3RT");
-                    isDecal4RTPass = !isDecal3RTPass;
-                }
-
-                // Note that we can't strip Emissive pass of decal.shader as we don't have the information here if it is used or not...
-            }
 
             // If decal support, remove unused variant
             if (hdrpAsset.currentPlatformRenderPipelineSettings.supportDecals)
@@ -108,15 +121,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
 
                 // If decal but with 4RT remove 3RT variant and vice versa
-                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || isDecal3RTPass) && hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
+                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || m_IsDecal3RTPass) && hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
 
-                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) || isDecal4RTPass) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
+                if ((inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) || m_IsDecal4RTPass) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
             }
             else
             {
-                if (isDecalPass)
+                if (m_IsDecalPass)
                     return true;
 
                 // If no decal support, remove decal variant
@@ -237,47 +250,95 @@ namespace UnityEditor.Rendering.HighDefinition
                 if ( hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping) )
                     return;
 
-                var inputShaderVariantCount = inputData.Count;
-                for (int i = 0; i < inputShaderVariantCount; )
+                // Initialize preprocessor global data 
+                foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
                 {
-                    ShaderCompilerData input = inputData[i];
+                    shaderPreprocessor.PrepareShaderStripping(shader, snippet);
+                }
 
-                    // Remove the input by default, until we find a HDRP Asset in the list that needs it.
-                    bool removeInput = true;
+                // First try stripping the whole variant batch based on the Shader/Snippet info.
+                // Remove by default, until we find a HDRP Asset in the list that needs it.
+                bool stripAll = true;
 
-                    foreach (var hdAsset in hdPipelineAssets)
+                foreach (var hdAsset in hdPipelineAssets)
+                {
+                    var strippedByPreprocessor = false;
+
+                    // Note that all strippers cumulate each other, so be aware of any conflict here
+                    foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
                     {
-                        var strippedByPreprocessor = false;
-
-                        // Call list of strippers
-                        // Note that all strippers cumulate each other, so be aware of any conflict here
-                        foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
+                        if (shaderPreprocessor.ShouldStripShader(hdAsset, shader, snippet))
                         {
-                            if ( shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input) )
-                            {
-                                strippedByPreprocessor = true;
-                                break;
-                            }
-                        }
-
-                        if (!strippedByPreprocessor)
-                        {
-                            removeInput = false;
+                            strippedByPreprocessor = true;
                             break;
                         }
                     }
 
-                    if (removeInput)
-                        inputData[i] = inputData[--inputShaderVariantCount];
-                    else
-                        ++i;
+                    if (!strippedByPreprocessor)
+                    {
+                        stripAll = false;
+                        break;
+                    }
                 }
 
-                if(inputData is List<ShaderCompilerData> inputDataList)
-                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+                if (!stripAll)
+                {
+                    int inputShaderVariantCount = inputData.Count;
+
+                    for (int i = 0; i < inputShaderVariantCount; )
+                    {
+                        ShaderCompilerData input = inputData[i];
+
+                        // Remove the input by default, until we find a HDRP Asset in the list that needs it.
+                        bool removeVariant = true;
+
+                        foreach (var hdAsset in hdPipelineAssets)
+                        {
+                            // If there are material quality defines in this shader
+                            // and they don't match the material quality accepted by the hdrp asset
+                            var shaderMaterialLevel = input.shaderKeywordSet.GetMaterialQuality();
+
+                            if (shaderMaterialLevel != 0 && (hdAsset.materialQualityLevels & shaderMaterialLevel) == 0)
+                            {
+                                // then strip this variant
+                                continue;
+                            }
+
+                            var strippedByPreprocessor = false;
+
+                            // Note that all strippers cumulate each other, so be aware of any conflict here
+                            foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
+                            {
+                                if ( shaderPreprocessor.ShouldStripVariant(hdAsset, input) )
+                                {
+                                    strippedByPreprocessor = true;
+                                    break;
+                                }
+                            }
+
+                            if (!strippedByPreprocessor)
+                            {
+                                removeVariant = false;
+                                break;
+                            }
+                        }
+
+                        if (removeVariant)
+                            inputData[i] = inputData[--inputShaderVariantCount];
+                        else
+                            ++i;
+                    }
+
+                    if (inputData is List<ShaderCompilerData> inputDataList)
+                        inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+                    else
+                        for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
+                            inputData.RemoveAt(i);
+                }
                 else
-                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                        inputData.RemoveAt(i);
+                {
+                    inputData.Clear();
+                }
 
                 foreach (var hdAsset in hdPipelineAssets)
                 {

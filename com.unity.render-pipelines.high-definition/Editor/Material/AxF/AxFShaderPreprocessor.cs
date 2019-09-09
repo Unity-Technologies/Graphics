@@ -7,26 +7,41 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public AxFShaderPreprocessor() {}
 
-        protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
+        //bool m_IsForwardPass;
+        bool m_IsDepthOnlyPass;
+        bool m_IsMotionPass;
+        bool m_IsBuiltInLit;
+
+        public override void PrepareShaderStripping(Shader shader, ShaderSnippetData snippet)
+        {
+            //m_IsForwardPass = snippet.passName == "ForwardOnly";
+            m_IsDepthOnlyPass = snippet.passName == "DepthForwardOnly";
+            m_IsMotionPass = snippet.passName == "Motion Vectors";
+
+            // Using Contains to include the Tessellation variants
+            m_IsBuiltInLit = shader.name.Contains("HDRP/AxF");
+        }
+
+        public override bool ShouldStripShader(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet)
+        {
+            return false;
+        }
+
+        public override bool ShouldStripVariant(HDRenderPipelineAsset hdrpAsset, ShaderCompilerData inputData)
         {
             // Note: We know that all the rules of common stripper and Lit Stripper are apply, here we only need to do what is specific to AxF shader
 
-            // Using Contains to include the Tessellation variants
-            bool isBuiltInLit = shader.name.Contains("HDRP/AxF");
-
             // Apply following set of rules only to inspector version of shader
-            if (isBuiltInLit)
+            if (m_IsBuiltInLit)
             {
                 if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
                 {
                     // If transparent we don't need the depth only pass
-                    bool isDepthOnlyPass = snippet.passName == "DepthForwardOnly";
-                    if (isDepthOnlyPass)
+                    if (m_IsDepthOnlyPass)
                         return true;
 
                     // If transparent we don't need the motion vector pass
-                    bool isMotionPass = snippet.passName == "Motion Vectors";
-                    if (isMotionPass)
+                    if (m_IsMotionPass)
                         return true;
 
                     // If we are transparent we use cluster lighting and not tile lighting

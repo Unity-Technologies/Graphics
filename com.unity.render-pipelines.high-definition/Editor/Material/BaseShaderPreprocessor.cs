@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor.Rendering;
-using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -63,26 +61,13 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,
-            ShaderCompilerData inputData)
-        {
-            return IsMaterialQualityVariantStripped(hdrpAsset, inputData) || DoShadersStripper(hdrpAsset, shader, snippet, inputData);
-        }
+		// Prepare any per-shader data needed for variant stripping. For example pass name checks etc.
+        public abstract void PrepareShaderStripping(Shader shader, ShaderSnippetData snippet);
 
-        protected abstract bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData);
+        // Check if this shader snippet (specific pass/program type/shader) should be stripped as a whole.
+        public abstract bool ShouldStripShader(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet);
 
-        protected static bool IsMaterialQualityVariantStripped(HDRenderPipelineAsset hdrpAsset, ShaderCompilerData inputData)
-        {
-            var shaderMaterialLevel = inputData.shaderKeywordSet.GetMaterialQuality();
-            // if there are material quality defines in this shader
-            // and they don't match the material quality accepted by the hdrp asset
-            if (shaderMaterialLevel != 0 && (hdrpAsset.materialQualityLevels & shaderMaterialLevel) == 0)
-            {
-                // then strip this variant
-                return true;
-            }
-
-            return false;
-        }
+        // Check if this specific variant should be stripped.
+        public abstract bool ShouldStripVariant(HDRenderPipelineAsset hdrpAsset, ShaderCompilerData inputData);
     }
 }
