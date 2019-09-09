@@ -8,7 +8,7 @@
 struct NormalData
 {
     float3 normalWS;
-    float  perceptualRoughness;
+    float  perceptualRoughness;     
 };
 
 // SSSBuffer texture declaration

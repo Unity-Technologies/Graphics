@@ -44,6 +44,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 		public delegate void HDPassCallback(CommandBuffer cmd, HDCamera cam, RenderTexture depthBuffer);
 		public static HDPassCallback afterGBufferPass = null;
 
+        public delegate void HDRenderPassCallback(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd);
+		public static HDRenderPassCallback afterForwardPass = null;
+
         public RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
         readonly RenderPipelineMaterial m_DeferredMaterial;
@@ -1878,6 +1881,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderDeferredLighting(hdCamera, cmd);
 
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
+                        //SS3 ADD
+                //Render custom effects that don't need sorting with other transparent objects
+                if (afterForwardPass != null)
+                {
+                    afterForwardPass(cullingResults, hdCamera, renderContext, cmd);
+                }
+
 
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_SSSBufferManager.GetSSSBufferMSAA(0), m_SSSBufferManager.GetSSSBuffer(0));

@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class LitGUI : BaseLitGUI
+    public class LitGUI : BaseLitGUI
     {
         protected override uint defaultExpandedState { get { return (uint)(Expandable.Base | Expandable.Input | Expandable.VertexAnimation | Expandable.Detail | Expandable.Emissive | Expandable.Transparency | Expandable.Tesselation); } }
 
