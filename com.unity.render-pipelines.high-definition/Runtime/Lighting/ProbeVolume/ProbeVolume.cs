@@ -143,12 +143,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         int m_Version = (int)Version.First;
 
-
         // Debugging code
         private Material m_DebugMaterial = null;
-        private Mesh m_DebugProbeMesh = null;
-        private List<Matrix4x4[]> m_ProbeMatricesList;
-        private Hash128 m_ProbeMatricesInputHash = new Hash128();
+        private Mesh m_DebugMesh = null;
+        private List<Matrix4x4[]> m_DebugProbeMatricesList;
+        private List<Mesh> m_DebugProbePointMeshList;
+        private Hash128 m_DebugProbeInputHash = new Hash128();
 
         public bool dataUpdated = false;
 
@@ -233,11 +233,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeManager.manager.RegisterVolume(this);
 
-            m_DebugProbeMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+            m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
             m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
 
             // Reset matrices hash to recreate all positions
-            m_ProbeMatricesInputHash = new Hash128();
+            m_DebugProbeInputHash = new Hash128();
             SetupPositions();
 
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
@@ -284,9 +284,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.resolutionY.ToString() +
                         parameters.resolutionZ.ToString();
 
-            Hash128 probeMatricesInputHash = Hash128.Compute(inputsString);
+            Hash128 debugProbeInputHash = Hash128.Compute(inputsString);
 
-            if (m_ProbeMatricesInputHash == probeMatricesInputHash)
+            if (m_DebugProbeInputHash == debugProbeInputHash)
                 return;
 
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
@@ -301,17 +301,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 - obb.up      * (parameters.size.y - probeSteps.y) * 0.5f
                 - obb.forward * (parameters.size.z - probeSteps.z) * 0.5f;
 
-            int i = 0;
-
             Quaternion rotation = Quaternion.identity;
             Vector3 scale = new Vector3(debugProbeSize, debugProbeSize, debugProbeSize);
 
-            m_ProbeMatricesList = new List<Matrix4x4[]>();
+            // Debugging objects start here
+            int maxBatchSize = 1023;
+            int probesInCurrentBatch = System.Math.Min(maxBatchSize, probeCount);
+            int indexInCurrentBatch = 0;
 
-            int probesInCurrentBatch = System.Math.Min(1023, probeCount);
-            Matrix4x4[] probeMatrices = new Matrix4x4[probesInCurrentBatch];
-            int indexInBatch = 0;
-            int processedProbesCount = 0;
+            // Everything around cached matrices for the probe spheres
+            m_DebugProbeMatricesList = new List<Matrix4x4[]>();
+            Matrix4x4[] currentprobeMatrices = new Matrix4x4[probesInCurrentBatch];
+            int[] indices = new int[probesInCurrentBatch];
+            
+            // Everything around point meshes for non-selected ProbeVolumes
+            m_DebugProbePointMeshList = new List<Mesh>();
+            int[] currentProbeDebugIndices = new int[probesInCurrentBatch];
+            Vector3[] currentProbeDebugPositions = new Vector3[probesInCurrentBatch];
+
+            int processedProbes = 0;
+
             for (int z = 0; z < parameters.resolutionZ; ++z)
             {
                 for (int y = 0; y < parameters.resolutionY; ++y)
@@ -319,29 +328,46 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int x = 0; x < parameters.resolutionX; ++x)
                     {
                         Vector3 position = probeStartPosition + (probeSteps.x * x * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * obb.forward);
-                        positions[i] = position;
+                        positions[processedProbes] = position;
+
+                        currentProbeDebugIndices[indexInCurrentBatch] = indexInCurrentBatch;
+                        currentProbeDebugPositions[indexInCurrentBatch] = position;
 
                         Matrix4x4 matrix = new Matrix4x4();
                         matrix.SetTRS(position, rotation, scale);
-                        probeMatrices[indexInBatch] = matrix;
+                        currentprobeMatrices[indexInCurrentBatch] = matrix;
 
-                        indexInBatch++;
-                        processedProbesCount++;
-                        if (indexInBatch >= 1023)
+                        indexInCurrentBatch++;
+                        processedProbes++;
+
+                        int probesLeft = probeCount - processedProbes;
+                        
+                        if (indexInCurrentBatch >= 1023 || probesLeft == 0)
                         {
-                            m_ProbeMatricesList.Add(probeMatrices);
-                            int probesToGo = probeCount - processedProbesCount;
-                            probesInCurrentBatch = System.Math.Min(1023, probesToGo);
-                            probeMatrices = new Matrix4x4[probesInCurrentBatch];
-                            indexInBatch = 0;
-                        }
+                            Mesh currentProbeDebugMesh = new Mesh();
+                            currentProbeDebugMesh.SetVertices(currentProbeDebugPositions);
+                            currentProbeDebugMesh.SetIndices(currentProbeDebugIndices, MeshTopology.Points, 0);
 
-                        i++;
+                            m_DebugProbePointMeshList.Add(currentProbeDebugMesh);
+                            m_DebugProbeMatricesList.Add(currentprobeMatrices);
+
+                            // More sets follow, reallocate
+                            if (probesLeft > 0)
+                            {
+                                probesInCurrentBatch = System.Math.Min(maxBatchSize, probesLeft);
+
+                                currentProbeDebugPositions = new Vector3[probesInCurrentBatch];
+                                currentProbeDebugIndices = new int[probesInCurrentBatch];
+                                currentprobeMatrices = new Matrix4x4[probesInCurrentBatch];
+
+                                indexInCurrentBatch = 0;
+                            }
+                        }
                     }
                 }
             }
 
-            m_ProbeMatricesInputHash = probeMatricesInputHash;
+            m_DebugProbeInputHash = debugProbeInputHash;
 
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(id, positions);
         }
@@ -350,11 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             SetupPositions();
 
-            Mesh mesh = m_DebugProbeMesh;
-
-            if (!mesh)
-                return;
-
+            int layer = 0;
             int submeshIndex = 0;
 
             Material material = m_DebugMaterial;
@@ -364,17 +386,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
             material.enableInstancing = true;
 
-            MaterialPropertyBlock properties = null;
-            ShadowCastingMode castShadows = ShadowCastingMode.Off;
-            bool receiveShadows = false;
-            int layer = 0;
-            Camera camera = null;
-            LightProbeUsage lightProbeUsage = LightProbeUsage.Off;
-            LightProbeProxyVolume lightProbeProxyVolume = null;
-
-            foreach (Matrix4x4[] matrices in m_ProbeMatricesList)
+            if (UnityEditor.Selection.activeGameObject != this.gameObject)
             {
-                Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, camera, lightProbeUsage, lightProbeProxyVolume);
+                foreach (Mesh debugMesh in m_DebugProbePointMeshList)
+                    Graphics.DrawMesh(debugMesh, Matrix4x4.identity, material, layer);
+            }
+            else
+            {
+                Mesh mesh = m_DebugMesh;
+
+                if (!mesh)
+                    return;
+
+                MaterialPropertyBlock properties = null;
+                ShadowCastingMode castShadows = ShadowCastingMode.Off;
+                bool receiveShadows = false;
+                
+                Camera camera = null;
+                LightProbeUsage lightProbeUsage = LightProbeUsage.Off;
+                LightProbeProxyVolume lightProbeProxyVolume = null;
+
+                foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
+                {
+                    Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, camera, lightProbeUsage, lightProbeProxyVolume);
+                }
             }
         }
     }
