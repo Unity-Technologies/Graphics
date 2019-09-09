@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.2.0] - 2019-XX-XX
 
+### Fixed
+- Fixed emissive area light mesh non-uniform scale issues (1171739)
+
 ## [7.1.1] - 2019-09-05
 
 ### Added
