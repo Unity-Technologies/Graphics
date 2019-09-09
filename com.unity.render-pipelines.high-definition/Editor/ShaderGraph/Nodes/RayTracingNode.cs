@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -40,10 +41,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 definition = KeywordDefinition.Predefined,
                 scope = KeywordScope.Global,
                 value = 0,
-                entries = new List<KeywordEntry>()
+                entries = new KeywordEntry[]
                 {
-                    new KeywordEntry(1, "High", "HIGH"),
-                    new KeywordEntry(2, "Low", "LOW"),
+                    new KeywordEntry("High", "HIGH"),
+                    new KeywordEntry("Low", "LOW"),
                 },
             };
         }

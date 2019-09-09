@@ -55,7 +55,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = true,
 
@@ -144,7 +146,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = false
         };
@@ -173,7 +177,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -229,7 +235,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = true,
 
@@ -265,7 +273,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
 
@@ -321,7 +331,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -522,7 +534,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) ||
+                    masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

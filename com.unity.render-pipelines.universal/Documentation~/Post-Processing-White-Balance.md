@@ -7,11 +7,11 @@ The White Balance component applies a white balance effect that removes unrealis
 **White Balance** uses the [Volume](Volumes.html) framework, so to enable and modify **White Balance** properties, you must add a **White Balance** override to a [Volume](Volumes.html) in your Scene. To add **White Balance** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Post-processing** and click on **White Balance**. Universal RP now applies **White Balance** to any Camera this Volume affects.
+2. In the Inspector, navigate to **Add Override > Post-processing** and click on **White Balance**. URP now applies **White Balance** to any Camera this Volume affects.
 
 ## Properties
 
-![](Images/Post-processingWhiteBalance1.png)
+![](Images/Inspectors/WhiteBalance.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |

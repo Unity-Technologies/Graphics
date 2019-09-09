@@ -8,10 +8,10 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [AttributeUsage(AttributeTargets.Struct)]
-    public class VFXTypeAttribute : Attribute
+    class VFXTypeAttribute : Attribute
     {}
 
-    public enum SpaceableType
+    enum SpaceableType
     {
         None,
         Position,
@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Struct)]
-    public class VFXSpaceAttribute : PropertyAttribute
+    class VFXSpaceAttribute : PropertyAttribute
     {
         public readonly SpaceableType type;
         public VFXSpaceAttribute(SpaceableType type)
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    public class ShowAsColorAttribute : Attribute
+    class ShowAsColorAttribute : Attribute
     {}
 
     class CoordinateSpaceInfo

@@ -18,6 +18,11 @@ namespace UnityEngine.Rendering
         }
     }
 
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public sealed class VolumeComponentDeprecated : Attribute
+    {
+    }
+
     [Serializable]
     public class VolumeComponent : ScriptableObject
     {

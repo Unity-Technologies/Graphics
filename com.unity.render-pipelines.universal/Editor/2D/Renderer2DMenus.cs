@@ -44,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 PlaceGameObjectInFrontOfSceneView(go);
                 StageUtility.PlaceGameObjectInCurrentStage(go); // may change parent
+                go.transform.position = new Vector3(go.transform.position.x, go.transform.position.y, 0);
             }
 
             // Only at this point do we know the actual parent of the object and can modify its name accordingly.

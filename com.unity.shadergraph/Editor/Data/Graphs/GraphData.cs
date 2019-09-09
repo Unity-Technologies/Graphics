@@ -315,6 +315,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool didActiveOutputNodeChange { get; set; }
 
+        internal delegate void SaveGraphDelegate(Shader shader);
+        internal static SaveGraphDelegate onSaveGraph;
+
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
@@ -355,7 +358,9 @@ namespace UnityEditor.ShaderGraph
 
                 // If adding a Sub Graph node whose asset contains Keywords
                 // Need to restest Keywords against the variant limit
-                if(node is SubGraphNode subGraphNode && subGraphNode.asset.keywords.Count > 0)
+                if(node is SubGraphNode subGraphNode &&
+                    subGraphNode.asset != null && 
+                    subGraphNode.asset.keywords.Count > 0)
                 {
                     OnKeywordChangedNoValidate();
                 }
@@ -443,6 +448,12 @@ namespace UnityEditor.ShaderGraph
             {
                 groupItems.Remove(stickyNote);
             }
+        }
+
+        public void RemoveStickyNote(StickyNoteData stickyNote)
+        {
+            RemoveNoteNoValidate(stickyNote);
+            ValidateGraph();
         }
 
         public void SetGroup(IGroupItem node, GroupData group)

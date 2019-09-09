@@ -67,7 +67,15 @@ namespace UnityEngine.Rendering.HighDefinition
             postProcessQualitySettings = GlobalPostProcessingQualitySettings.@default,
             supportRayTracing = false,
             supportedRaytracingTier = RaytracingTier.Tier2,
+            lodBias = new FloatScalableSetting { low = 1, medium = 1, high = 1 },
+            maximumLODLevel = new IntScalableSetting(),
         };
+
+        [Serializable]
+        public struct LightSettings
+        {
+            public BoolScalableSetting useContactShadow;
+        }
 
         // Lighting
         public bool supportShadowMask;
@@ -112,5 +120,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
         public GlobalXRSettings xrSettings;
         public GlobalPostProcessingQualitySettings postProcessQualitySettings;
+
+        public LightSettings lightSettings;
+        public IntScalableSetting maximumLODLevel;
+        public FloatScalableSetting lodBias;
     }
 }

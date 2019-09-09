@@ -16,9 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
             LitTesselation,
             LayeredLit,
             LayeredLitTesselation,
-            StackLit,
             Unlit,
-            Fabric,
             Decal,
             TerrainLit,
             AxF,
@@ -41,9 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             "HDRP/LitTessellation",
             "HDRP/LayeredLit",
             "HDRP/LayeredLitTessellation",
-            "HDRP/StackLit",
             "HDRP/Unlit",
-            "HDRP/Fabric",
             "HDRP/Decal",
             "HDRP/TerrainLit",
             "HDRP/AxF",
@@ -88,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Reset the dedicated Keyword and Pass regarding the shader kind.
         /// Also re-init the drawers and set the material dirty for the engine.
         /// </summary>
-        /// <param name="material">The material that nees to be setup</param>
+        /// <param name="material">The material that needs to be setup</param>
         /// <returns>
         /// True: managed to do the operation.
         /// False: unknown shader used in material
@@ -96,7 +92,13 @@ namespace UnityEditor.Rendering.HighDefinition
         public static bool ResetMaterialKeywords(Material material)
         {
             MaterialResetter resetter;
-            k_MaterialResetters.TryGetValue(GetShaderEnumFromShader(material.shader), out resetter);
+
+            // If we send a non HDRP material we don't throw an exception, the return type already handles errors.
+            try {
+                k_MaterialResetters.TryGetValue(GetShaderEnumFromShader(material.shader), out resetter);
+            } catch {
+                return false;
+            }
 
             if (resetter != null)
             {

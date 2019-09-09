@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionVectors,
         NanTracker,
         ColorLog,
+        DepthOfFieldCoc,
         TransparencyOverdraw,
         MaxRenderingFullScreenDebug,
 
@@ -212,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsDebugDisplayRemovePostprocess()
         {
             // We want to keep post process when only the override more are enabled and none of the other
-            return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled() || (IsDebugFullScreenEnabled() && data.fullScreenDebugMode != FullScreenDebugMode.ColorLog);
+            return data.materialDebugSettings.IsDebugDisplayEnabled() || data.lightingDebugSettings.IsDebugDisplayRemovePostprocess() || data.mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 
         public bool IsDebugMaterialDisplayEnabled()
@@ -355,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
             return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
-                (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor) ||
+                (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog);
         }
@@ -638,6 +639,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     children =
                     {
                         new DebugUI.ColorField { displayName = "Specular Color", getter = () => data.lightingDebugSettings.overrideSpecularColorValue, setter = value => data.lightingDebugSettings.overrideSpecularColorValue = value, showAlpha = false, hdr = false }
+                    }
+                });
+            }
+
+            list.Add(new DebugUI.BoolField { displayName = "Override AmbientOcclusion", getter = () => data.lightingDebugSettings.overrideAmbientOcclusion, setter = value => data.lightingDebugSettings.overrideAmbientOcclusion = value, onValueChanged = RefreshLightingDebug });
+            if (data.lightingDebugSettings.overrideAmbientOcclusion)
+            {
+                list.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.FloatField { displayName = "AmbientOcclusion", getter = () => data.lightingDebugSettings.overrideAmbientOcclusionValue, setter = value => data.lightingDebugSettings.overrideAmbientOcclusionValue = value, min = () => 0f, max = () => 1f, incStep = 0.025f }
                     }
                 });
             }
