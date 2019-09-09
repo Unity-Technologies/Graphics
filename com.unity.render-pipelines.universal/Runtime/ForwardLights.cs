@@ -25,9 +25,14 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetupLightConstants = "Setup Light Constants";
         MixedLightingSetup m_MixedLightingSetup;
 
-        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+        // Holds light direction for directional lights or position for punctual lights.
+        // When w is set to 1.0, it means it's a punctual light.
+        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         Vector4 k_DefaultLightColor = Color.black;
-        Vector4 k_DefaultLightAttenuation = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+
+        // Default light attenuation is setup in a particular way that it causes
+        // directional lights to return 1.0 for both distance and angle attenuation
+        Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
 
@@ -104,12 +109,12 @@ namespace UnityEngine.Rendering.Universal
             if (lightData.lightType == LightType.Directional)
             {
                 Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
-                lightPos = new Vector4(dir.x, dir.y, dir.z, 1.0f);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
                 Vector4 pos = lightData.localToWorldMatrix.GetColumn(3);
-                lightPos = new Vector4(pos.x, pos.y, pos.z, 0.0f);
+                lightPos = new Vector4(pos.x, pos.y, pos.z, 1.0f);
             }
 
             // VisibleLight.finalColor already returns color in active color space

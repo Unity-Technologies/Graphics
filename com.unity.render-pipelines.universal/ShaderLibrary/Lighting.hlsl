@@ -136,7 +136,9 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half4 lightOcclusionProbeInfo = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
 
-    float3 lightVector = lightPositionWS.xyz - positionWS;
+    // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
+    // This way the following code will work for both directional and punctual lights.
+    float3 lightVector = lightPositionWS.xyz - positionWS * lightPositionWS.w;
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
@@ -144,7 +146,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 
     Light light;
     light.direction = lightDirection;
-    light.distanceAttenuation = (lightPositionWS.w <= 0.0 ? attenuation : 1.0);;
+    light.distanceAttenuation = attenuation;
     light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
     light.color = color;
 
