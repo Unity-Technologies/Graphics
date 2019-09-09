@@ -2,18 +2,18 @@
 
 Select the __Parametric Light__ type to use a n-sided polygon as the Light.  The following additional properties are available to the __Parametric__ Light type.
 
-![Parametric Light properties](images\image_16.png)
+![Parametric Light properties](images\LightType_Parametric.png)
 
 
 
-| Property          | Function                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| Radius            | Set the radius of the Light.                                 |
-| Sides             | Set the number of sides of the parametric shape.             |
-| Angle Offset      | Set the rotation of the parametric shape.                    |
-| Falloff           | Adjust the amount the blending from solid to transparent, starting from the center of the shape to its edges. |
-| Falloff Intensity | Adjusts the falloff curve of the Light.                      |
-| Falloff Offset    | Sets the offset for the outer falloff shape.                 |
+| Property              | Function                                                     |
+| --------------------- | ------------------------------------------------------------ |
+| __Radius__            | Set the radius of the Light.                                 |
+| __Sides__             | Set the number of sides of the parametric shape.             |
+| __Angle Offset__      | Set the rotation of the parametric shape.                    |
+| __Falloff__           | Adjust the amount the blending from solid to transparent, starting from the center of the shape to its edges. |
+| __Falloff Intensity__ | Adjusts the falloff curve of the Light.                      |
+| __Falloff Offset__    | Sets the offset for the outer falloff shape.                 |
 
 | ![Parametric Light editing mode](images\image_17.png) | ![Resulting Light effect](images\image_18.png) |
 | ----------------------------------------------------- | ---------------------------------------------- |
@@ -23,19 +23,19 @@ Select the __Parametric Light__ type to use a n-sided polygon as the Light.  The
 
 ## Freeform
 
+![Freeform Properties](images\LightType_Freeform.png)
+
 Select the __Freeform__ Light type to create a Light from an editable polygon with a spline editor. To begin editing your shape, select the Light and find the ![](images\image_20.png)button in its Inspector window. Select it to enable the shape editing mode.
 
 Add new control points by clicking the mouse along the inner polygon’s outline. Remove control points selecting the point and pressing the Delete key.
 
 The following additional properties are available to the __Freeform__ Light type.
 
-![Freeform Properties](images\image_19.png)
-
-| Property          | Function                                                     |
-| ----------------- | ------------------------------------------------------------ |
-| Falloff           | Adjust the amount the blending from solid to transparent, starting from the center of the shape to its edges. |
-| Falloff Intensity | Adjusts the falloff curve of the Light.                      |
-| Falloff Offset    | Sets the offset for the outer falloff shape.                 |
+| Property              | Function                                                     |
+| --------------------- | ------------------------------------------------------------ |
+| __Falloff__           | Adjust the amount the blending from solid to transparent, starting from the center of the shape to its edges. |
+| __Falloff Intensity__ | Adjusts the falloff curve of the Light.                      |
+| __Falloff Offset__    | Sets the offset for the outer falloff shape.                 |
 
 | ![Light Editing Mode](images\image_21.png) | ![Light Effect](images\image_22.png) |
 | ------------------------------------------ | ------------------------------------ |
@@ -47,11 +47,11 @@ The following additional properties are available to the __Freeform__ Light type
 
 Select the __Sprite__ Light type to create a Light based on a selected Sprite by assigning the selected Sprite to the additional Sprite property.
 
-![The Sprite property](images\image_23.png)
+![The Sprite property](images\LightType_Sprite.png)
 
-| Property | Function                             |
-| -------- | ------------------------------------ |
-| Sprite   | Select a Sprite as the Light source. |
+| Property   | Function                             |
+| ---------- | ------------------------------------ |
+| __Sprite__ | Select a Sprite as the Light source. |
 
 
 
@@ -65,18 +65,18 @@ Select the __Sprite__ Light type to create a Light based on a selected Sprite by
 
 Select the __Point__ Light type for great control over the angle and direction of the selected Light with the following additional properties.
 
-![Point Light properties](images\image_26.png)
+![Point Light properties](images\LightType_Point.png)
 
-| Property     | Function                                                     |
-| ------------ | ------------------------------------------------------------ |
-| Inner Radius | Set the inner radius here or with the gizmo. Light within the inner radius will be at maximum [intensity](2DLightProperties#Intensity). |
-| Outer Radius | Set the outer radius here or with the gizmo. Light intensity decreases to zero as it approaches the outer radius. |
-| Inner Angle  | Set the angle with this slider or with the gizmo. Any light within the inner angle will be at the intensity specified by inner and outer radius. |
-| Outer Angle  | Set the angle with this slider or with the gizmo. Light intensity decreases to zero as it approaches the outer angle. |
+| Property         | Function                                                     |
+| ---------------- | ------------------------------------------------------------ |
+| __Inner Radius__ | Set the inner radius here or with the gizmo. Light within the inner radius will be at maximum [intensity](2DLightProperties#Intensity). |
+| __Outer Radius__ | Set the outer radius here or with the gizmo. Light intensity decreases to zero as it approaches the outer radius. |
+| __Inner Angle__  | Set the angle with this slider or with the gizmo. Any light within the inner angle will be at the intensity specified by inner and outer radius. |
+| __Outer Angle__  | Set the angle with this slider or with the gizmo. Light intensity decreases to zero as it approaches the outer angle. |
 
 | ![Point Light editing Mode](images\image_27.png) | ![Resulting light effect](images\image_28.png) |
 | ------------------------------------------------ | ---------------------------------------------- |
-| Point Light in edit mode                         | Resulting Light effect                         |
+| Point Light in Edit mode                         | Resulting Light effect                         |
 
 ### Light Cookies
 

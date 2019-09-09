@@ -3,7 +3,7 @@
 
 // single-pass instancing is the default VR method for HDRP
 // multi-pass is working but not recommended due to lower performance
-// multi-view is not yet supported
+// single-pass multi-view is not yet supported
 // single-pass doule-wide is deprecated
 
 // Must be in sync with C# with property useTexArray in TextureXR.cs
@@ -13,7 +13,7 @@
 
 // Validate supported platforms
 #if defined(STEREO_INSTANCING_ON) && !defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED)
-    #error Single-pass stereo instancing is not supported on this platform (see UNITY_TEXTURE2D_X_ARRAY_SUPPORTED).
+    #error Single-pass instancing is not supported on this platform (see UNITY_TEXTURE2D_X_ARRAY_SUPPORTED).
 #endif
 
 #if defined(UNITY_SINGLE_PASS_STEREO)
@@ -25,7 +25,7 @@
     #define USE_TEXTURE2D_X_AS_ARRAY
 #endif
 
-// Early defines for single-pass stereo instancing
+// Early defines for single-pass instancing
 #if defined(STEREO_INSTANCING_ON) && defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED)
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
@@ -40,8 +40,8 @@
     #define USING_STEREO_MATRICES
 #endif
 
-// Helper macros to handle XR instancing with Texture2DArray
-// With single-pass stereo instancing, unity_StereoEyeIndex is used to select the eye in the current context.
+// Helper macros to handle XR single-pass with Texture2DArray
+// With single-pass instancing, unity_StereoEyeIndex is used to select the eye in the current context.
 // Otherwise, the index is statically set to 0
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
 
@@ -70,6 +70,8 @@
     #define GATHER_TEXTURE2D_X(textureName, samplerName, coord2)             GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, SLICE_ARRAY_INDEX)
     #define GATHER_RED_TEXTURE2D_X(textureName, samplerName, coord2)         GATHER_RED_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
     #define GATHER_GREEN_TEXTURE2D_X(textureName, samplerName, coord2)       GATHER_GREEN_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
+    #define GATHER_BLUE_TEXTURE2D_X(textureName, samplerName, coord2)        GATHER_BLUE_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
+    #define GATHER_ALPHA_TEXTURE2D_X(textureName, samplerName, coord2)       GATHER_ALPHA_TEXTURE2D(textureName, samplerName, float3(coord2, SLICE_ARRAY_INDEX))
 #else
     #define SLICE_ARRAY_INDEX                                                0
 
@@ -91,6 +93,8 @@
     #define GATHER_TEXTURE2D_X                                               GATHER_TEXTURE2D
     #define GATHER_RED_TEXTURE2D_X                                           GATHER_RED_TEXTURE2D
     #define GATHER_GREEN_TEXTURE2D_X                                         GATHER_GREEN_TEXTURE2D
+    #define GATHER_BLUE_TEXTURE2D_X                                          GATHER_BLUE_TEXTURE2D
+    #define GATHER_ALPHA_TEXTURE2D_X                                         GATHER_ALPHA_TEXTURE2D
 #endif
 
 // see Unity\Shaders\Includes\UnityShaderVariables.cginc for impl used by the C++ renderer
@@ -103,10 +107,13 @@
 // Helper macro to assign eye index during compute pass (usually from SV_DispatchThreadID)
 #if defined(SHADER_STAGE_COMPUTE)
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        #define UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(eyeIndex) unity_StereoEyeIndex = eyeIndex;
+        #define UNITY_XR_ASSIGN_VIEW_INDEX(eyeIndex) unity_StereoEyeIndex = eyeIndex;
     #else
-        #define UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(eyeIndex)
+        #define UNITY_XR_ASSIGN_VIEW_INDEX(eyeIndex)
     #endif
+
+    // Backward compatibility
+    #define UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX   UNITY_XR_ASSIGN_VIEW_INDEX
 #endif
 
 #endif // UNITY_TEXTUREXR_INCLUDED

@@ -1,6 +1,32 @@
 #ifndef UNITY_GEOMETRICTOOLS_INCLUDED
 #define UNITY_GEOMETRICTOOLS_INCLUDED
 
+//-----------------------------------------------------------------------------
+// Transform functions
+//-----------------------------------------------------------------------------
+
+// Rotate around a pivot point and an axis
+float3 Rotate(float3 pivot, float3 position, float3 rotationAxis, float angle)
+{
+    rotationAxis = normalize(rotationAxis);
+    float3 cpa = pivot + rotationAxis * dot(rotationAxis, position - pivot);
+    return cpa + ((position - cpa) * cos(angle) + cross(rotationAxis, (position - cpa)) * sin(angle));
+}
+
+float3x3 RotationFromAxisAngle(float3 A, float sinAngle, float cosAngle)
+{
+    float c = cosAngle;
+    float s = sinAngle;
+
+    return float3x3(A.x * A.x * (1 - c) + c,        A.x * A.y * (1 - c) - A.z * s,  A.x * A.z * (1 - c) + A.y * s,
+                    A.x * A.y * (1 - c) + A.z * s,  A.y * A.y * (1 - c) + c,        A.y * A.z * (1 - c) - A.x * s,
+                    A.x * A.z * (1 - c) - A.y * s,  A.y * A.z * (1 - c) + A.x * s,  A.z * A.z * (1 - c) + c);
+}
+
+//-----------------------------------------------------------------------------
+// Solver
+//-----------------------------------------------------------------------------
+
 // Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
 // Returns 'false' if there are no real roots, 'true' otherwise.
 // Numerically stable.

@@ -89,6 +89,7 @@ float2 InitRandom(float2 input)
 
     return r;
 }
+#endif // SHADER_API_GLES
 
 //From  Next Generation Post Processing in Call of Duty: Advanced Warfare [Jimenez 2014]
 // http://advances.realtimerendering.com/s2014/index.html
@@ -99,7 +100,5 @@ float InterleavedGradientNoise(float2 pixCoord, int frameCount)
     pixCoord += frameCount * frameMagicScale;
     return frac(magic.z * frac(dot(pixCoord, magic.xy)));
 }
-
-#endif // SHADER_API_GLES
 
 #endif // UNITY_RANDOM_INCLUDED

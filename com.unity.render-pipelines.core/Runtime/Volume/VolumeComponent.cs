@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
 
         public string displayName { get; protected set; } = "";
 
-        internal ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
+        public ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
 #pragma warning disable 414
         [SerializeField]
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
         {
             // Automatically grab all fields of type VolumeParameter for this instance
             parameters = this.GetType()
-                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic  | BindingFlags.Instance)
                 .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
                 .OrderBy(t => t.MetadataToken) // Guaranteed order
                 .Select(t => (VolumeParameter)t.GetValue(this))

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
         SerializableGuid m_Guid = new SerializableGuid();
 
         public Guid guid => m_Guid.guid;
-        
+
         [SerializeField]
         string m_Name;
 
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
                 if (string.IsNullOrEmpty(overrideReferenceName))
                 {
                     if (string.IsNullOrEmpty(m_DefaultReferenceName))
-                        m_DefaultReferenceName = $"{referenceNameBase}_{GuidEncoder.Encode(guid)}";
+                        m_DefaultReferenceName = GetDefaultReferenceName();
                     return m_DefaultReferenceName;
                 }
                 return overrideReferenceName;
@@ -44,7 +44,10 @@ namespace UnityEditor.ShaderGraph
         // This is required to handle Material data serialized with "_Color_GUID" reference names
         // m_DefaultReferenceName expects to match the material data and previously used PropertyType
         // ColorShaderProperty is the only case where PropertyType doesnt match ConcreteSlotValueType
-        public virtual string referenceNameBase => concreteShaderValueType.ToString();
+        public virtual string GetDefaultReferenceName()
+        {
+            return $"{concreteShaderValueType.ToString()}_{GuidEncoder.Encode(guid)}";
+        }
 
         [SerializeField]
         string m_OverrideReferenceName;

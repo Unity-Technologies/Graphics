@@ -94,11 +94,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
 #if ENABLE_RAYTRACING
-        [MenuItem("GameObject/Rendering/Raytracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/Ray Tracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateRaytracingEnvironmentGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Raytracing Environment");
+            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Ray Tracing Environment");
             raytracingEnvGameObject.AddComponent<HDRaytracingEnvironment>();
         }
 #endif
@@ -122,6 +122,27 @@ namespace UnityEditor.Rendering.HighDefinition
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
+        
+        [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
+        static void MenuCreateCustomFullScreenPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Custom Renderers Pass")]
+        static void MenuCreateCustomRenderersPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Renderers CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Rendering/C# Custom Pass")]
+        static void MenuCreateCustomPassCSharpScript()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
+        }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
@@ -131,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var light in lights)
             {
                 // Do not add a component if there already is one.
-                if (light.GetComponent<HDAdditionalLightData>() == null)
+                if (!light.TryGetComponent<HDAdditionalLightData>(out _))
                 {
                     var hdLight = light.gameObject.AddComponent<HDAdditionalLightData>();
                     HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
@@ -147,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var camera in cameras)
             {
                 // Do not add a component if there already is one.
-                if (camera.GetComponent<HDAdditionalCameraData>() == null)
+                if (!camera.TryGetComponent<HDAdditionalCameraData>(out _))
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
@@ -265,7 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                 var h = Debug.unityLogger.logHandler;
                 Debug.unityLogger.logHandler = new UnityContextualLogHandler(mat);
-                HDEditorUtils.ResetMaterialKeywords(mat);
+                HDShaderUtils.ResetMaterialKeywords(mat);
                 Debug.unityLogger.logHandler = h;
             }
         }
@@ -287,7 +308,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 CoreEditorUtils.CheckOutFile(VCSEnabled, materials[i]);
 
-                if (HDEditorUtils.ResetMaterialKeywords(materials[i]))
+                if (HDShaderUtils.ResetMaterialKeywords(materials[i]))
                 {
                     anyMaterialDirty = true;
                 }

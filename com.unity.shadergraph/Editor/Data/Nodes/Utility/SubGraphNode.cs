@@ -230,9 +230,9 @@ namespace UnityEditor.ShaderGraph
             UpdateSlots();
         }
         
-        public void Reload(HashSet<string> changedSubGraphs)
+        public void Reload(HashSet<string> changedFileDependencies)
         {
-            if (changedSubGraphs.Contains(asset.assetGuid) || asset.descendents.Any(changedSubGraphs.Contains))
+            if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
             {
                 m_SubGraph = null;
                 UpdateSlots();
@@ -453,6 +453,17 @@ namespace UnityEditor.ShaderGraph
             {
                 visitor.AddShaderProperty(property);
             }
+        }
+
+        public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
+        {
+            if (asset == null)
+                return;
+
+            foreach (var keyword in asset.keywords)
+            {
+                keywords.AddShaderKeyword(keyword as ShaderKeyword);
+            }    
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)

@@ -1,3 +1,6 @@
+#ifndef __MATERIALUTILITIES_HLSL__
+#define __MATERIALUTILITIES_HLSL__
+
 // Return camera relative probe volume world to object transformation
 float4x4 GetProbeVolumeWorldToObject()
 {
@@ -153,6 +156,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
         #if SHADERPASS == SHADERPASS_FORWARD
         builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz;
+        builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier();
         #endif
     }
     else
@@ -210,8 +214,17 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
     // color in case of lit deferred for example and avoid material to have to deal with it
     builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
     builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
-    ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
+
+#ifdef DEBUG_DISPLAY
+    // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
+    if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
+#endif
+        ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
+
 #endif
     ApplyDebugToBuiltinData(builtinData);
 }
+
+#endif //__MATERIALUTILITIES_HLSL__

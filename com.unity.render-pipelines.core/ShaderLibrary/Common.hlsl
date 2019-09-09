@@ -861,6 +861,7 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
 // PositionInputs
 // ----------------------------------------------------------------------------
 
+// Note: if you modify this struct, be sure to update the CustomPassFullscreenShader.template
 struct PositionInputs
 {
     float3 positionWS;  // World space position (could be camera-relative)
@@ -990,9 +991,9 @@ bool HasFlag(uint bitfield, uint flag)
 }
 
 // Normalize that account for vectors with zero length
-real3 SafeNormalize(real3 inVec)
+real3 SafeNormalize(float3 inVec)
 {
-    real dp3 = max(REAL_MIN, dot(inVec, inVec));
+    float dp3 = max(FLT_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 

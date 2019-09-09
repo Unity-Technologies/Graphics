@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph
 
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.inputs = graph.properties.ToList();
+            asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
             
@@ -229,7 +230,9 @@ namespace UnityEditor.ShaderGraph
         {
             if (!dependencyMap.ContainsKey(assetPath))
             {
-                MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
+                if(assetPath.EndsWith(Extension))
+                    MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
+                
                 var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
                 dependencies.Clear();
                 foreach (var dependencyPath in dependencyPaths)

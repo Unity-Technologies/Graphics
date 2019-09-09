@@ -2,7 +2,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/Input Touch Parameter Binder")]
+    [AddComponentMenu("VFX/Property Binders/Input Touch Binder")]
     [VFXBinder("Input/Touch")]
     class VFXInputTouchBinder : VFXBinderBase
     {
