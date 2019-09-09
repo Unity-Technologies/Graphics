@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    public class LoopAndDelay : VFXSpawnerCallbacks
+    class LoopAndDelay : VFXSpawnerCallbacks
     {
         public class InputProperties
         {

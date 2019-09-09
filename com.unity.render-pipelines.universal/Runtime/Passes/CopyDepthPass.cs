@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given depth buffer into the given destination depth buffer.
@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
     /// does not have MSAA enabled, the pass uses a Blit or a Copy Texture
     /// operation, depending on what the current platform supports.
     /// </summary>
-    internal class CopyDepthPass : ScriptableRenderPass
+    public class CopyDepthPass : ScriptableRenderPass
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }

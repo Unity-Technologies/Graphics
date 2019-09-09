@@ -562,6 +562,11 @@ float3 NLerp(float3 A, float3 B, float t)
     return normalize(lerp(A, B, t));
 }
 
+float Length2(float3 v)
+{
+    return dot(v, v);
+}
+
 real Pow4(real x)
 {
     return (x * x) * (x * x);
@@ -861,6 +866,7 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
 // PositionInputs
 // ----------------------------------------------------------------------------
 
+// Note: if you modify this struct, be sure to update the CustomPassFullscreenShader.template
 struct PositionInputs
 {
     float3 positionWS;  // World space position (could be camera-relative)

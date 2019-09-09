@@ -212,13 +212,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public bool UpdateEnvironment(SkyUpdateContext skyContext, Light sunLight, Vector3 worldSpaceCameraPos, bool updateRequired, bool updateAmbientProbe, int frameIndex, CommandBuffer cmd)
+        public bool UpdateEnvironment(HDCamera hdCamera, SkyUpdateContext skyContext, Light sunLight, Vector3 worldSpaceCameraPos, bool updateRequired, bool updateAmbientProbe, int frameIndex, CommandBuffer cmd)
         {
             bool result = false;
             if (skyContext.IsValid())
             {
                 skyContext.currentUpdateTime += Time.deltaTime;
 
+                m_BuiltinParameters.hdCamera            = hdCamera;
                 m_BuiltinParameters.commandBuffer       = cmd;
                 m_BuiltinParameters.sunLight            = sunLight;
                 m_BuiltinParameters.worldSpaceCameraPos = worldSpaceCameraPos;
@@ -311,6 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingSample(cmd, "Sky Pass"))
                 {
+                    m_BuiltinParameters.hdCamera                  = hdCamera;
                     m_BuiltinParameters.commandBuffer             = cmd;
                     m_BuiltinParameters.sunLight                  = sunLight;
                     m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;

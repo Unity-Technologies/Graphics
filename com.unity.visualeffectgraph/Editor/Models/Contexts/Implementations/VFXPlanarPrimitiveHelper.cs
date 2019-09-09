@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    public enum VFXPrimitiveType
+    enum VFXPrimitiveType
     {
         Triangle,
         Quad,

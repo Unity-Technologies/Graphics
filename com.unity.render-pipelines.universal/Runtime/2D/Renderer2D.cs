@@ -1,5 +1,6 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -11,9 +12,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
 
+        bool m_UseDepthStencilBuffer = true;
         RenderTargetHandle m_ColorTargetHandle;
         RenderTargetHandle m_AfterPostProcessColorHandle;
         RenderTargetHandle m_ColorGradingLutHandle;
+
+        Renderer2DData m_Renderer2DData;
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
@@ -23,8 +27,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
 
+            m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
+
             m_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
             m_ColorGradingLutHandle.Init("_InternalGradingLut");
+
+            m_Renderer2DData = data;
+        }
+
+        public Renderer2DData GetRenderer2DData()
+        {
+            return m_Renderer2DData;
         }
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -37,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
             bool useOffscreenColorTexture =
-                ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport;
+                ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport || !m_UseDepthStencilBuffer;
 
             // Pixel Perfect Camera may request a different RT size than camera VP size.
             // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
@@ -138,7 +151,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             colorTextureHandle.Init("_CameraColorTexture");
 
             var colorDescriptor = cameraTargetDescriptor;
-            colorDescriptor.depthBufferBits = 32;
+            colorDescriptor.depthBufferBits = m_UseDepthStencilBuffer ? 32 : 0;
 
             CommandBuffer cmd = CommandBufferPool.Get("Create Camera Textures");
             cmd.GetTemporaryRT(colorTextureHandle.id, colorDescriptor, filterMode);

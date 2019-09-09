@@ -79,7 +79,7 @@ void AreaShadowApplyTAA(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
 
     // Compute the world space coordinate of this pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, _InvViewProjMatrix, GetWorldToViewMatrix());
 
     // Get the cosest pixel
     float2 closest = GetClosestFragment(posInputs.positionSS);
@@ -305,7 +305,7 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (PLANE_WEIGHT > 0.0)
     {
-        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, _InvViewProjMatrix, GetWorldToViewMatrix());
         key.position = posInput.positionWS;
     }
 

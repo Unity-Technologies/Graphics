@@ -4,12 +4,12 @@
 
 __Blend Styles__ determine the way a particular Light interacts with Sprites in the Scene. All Lights in the Scene must pick from one of the available Blend Styles. The Universal RP 2D Asset can currently contain a total of four different Light Blend Styles, starting with the 'Default' Blend Style being available.
 
-| **Property**         | **Function**                                                 |
-| -------------------- | ------------------------------------------------------------ |
-| Name                 | The name that appears when choosing a Blend Style for a Light2D. |
-| Mask Texture Channel | Which mask channel to use when applying this Blend Style to a Sprite. |
-| Render Texture Scale | Scale for the internal render texture created for this Blend Style. |
-| Blend Mode           | What blending mode the Light2D uses when this Blend Style is selected. |
+| **Property**             | **Function**                                                 |
+| ------------------------ | ------------------------------------------------------------ |
+| __Name__                 | The name that appears when choosing a Blend Style for a Light2D. |
+| __Mask Texture Channel__ | Which mask channel to use when applying this Blend Style to a Sprite. |
+| __Render Texture Scale__ | Scale for the internal render texture created for this Blend Style. |
+| __Blend Mode__           | What blending mode the Light2D uses when this Blend Style is selected. |
 
 
 

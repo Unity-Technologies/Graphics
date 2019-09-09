@@ -168,7 +168,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
-                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_PRIMARY_VISIBILITY)
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RECURSIVE_TRACING)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
@@ -235,6 +235,19 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 {
                     float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
                     return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_OF_FIELD_COC)
+                {
+                    float coc = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy).x;
+
+                    float3 color = lerp(float3(1.0, 0.0, 0.0), float3(1.0, 1.0, 1.0), saturate(-coc));
+                    color = lerp(color, float3(1.0, 1.0, 1.0), saturate(coc));
+
+                    const float kPeakingThreshold = 0.01;
+                    if (abs(coc) <= kPeakingThreshold)
+                        color = lerp(float3(0.0, 0.0, 1.0), color, PositivePow(abs(coc) / kPeakingThreshold, 2.0));
+
+                    return float4(color, 1.0);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {

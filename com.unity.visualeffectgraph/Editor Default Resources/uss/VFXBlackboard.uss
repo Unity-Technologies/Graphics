@@ -15,8 +15,7 @@
 
 .propertyrm VFXStringField.fieldContainer
 {
-    width: 240px;
-    flex-grow:0;
+    flex-grow:1;
     height: initial;
 }
 
@@ -71,7 +70,7 @@ VFXBlackboardRow.hovered #pill #selection-border
 VFXBlackboardCategory #name-field
 {
     position:absolute;
-    left:16;
+    left:16px;
     right:0;
     top:0;
     bottom:0;

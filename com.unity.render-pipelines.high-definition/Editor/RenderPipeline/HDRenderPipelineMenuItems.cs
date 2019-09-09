@@ -1,8 +1,9 @@
 using System;
 using System.IO;
+using System.Reflection;
+using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
@@ -83,22 +84,129 @@ namespace UnityEditor.Rendering.HighDefinition
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
 
             visualEnv.skyType.value = SkySettings.GetUniqueID<PhysicallyBasedSky>();
-            visualEnv.fogType.value = FogType.Volumetric;
             visualEnv.skyAmbientMode.overrideState = false;
             VolumeProfileFactory.CreateVolumeComponent<PhysicallyBasedSky>(profile, false, false);
-            VolumeProfileFactory.CreateVolumeComponent<VolumetricFog>(profile, false, true);
+            var fog = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, true);
+            fog.enabled.Override(true);
+            fog.enableVolumetricFog.Override(true);
 
             var volume = settings.AddComponent<Volume>();
             volume.isGlobal = true;
             volume.sharedProfile = profile;
         }
 
+        [MenuItem("Edit/Render Pipeline/Upgrade Fog Volume Components", priority = CoreUtils.editMenuPriority2)]
+        static void UpgradeFogVolumeComponents(MenuCommand menuCommand)
+        {
+            void OverrideCommonParameters(AtmosphericScattering input, Fog output)
+            {
+                if (input.colorMode.overrideState)
+                    output.colorMode.Override(input.colorMode.value);
+                if (input.color.overrideState)
+                    output.color.Override(input.color.value);
+                if (input.maxFogDistance.overrideState)
+                    output.maxFogDistance.Override(input.maxFogDistance.value);
+                if (input.mipFogMaxMip.overrideState)
+                    output.mipFogMaxMip.Override(input.mipFogMaxMip.value);
+                if (input.mipFogNear.overrideState)
+                    output.mipFogNear.Override(input.mipFogNear.value);
+                if (input.mipFogFar.overrideState)
+                    output.mipFogFar.Override(input.mipFogFar.value);
+            }
+
+            Fog CreateFogComponentIfNeeded(VolumeProfile profile)
+            {
+                Fog fogComponent = null;
+                if (!profile.TryGet(out fogComponent))
+                {
+                    fogComponent = VolumeProfileFactory.CreateVolumeComponent<Fog>(profile, false, false);
+                }
+
+                return fogComponent;
+            }
+
+            if (!EditorUtility.DisplayDialog(DialogText.title, "This will upgrade all Volume Profiles containing Exponential or Volumetric Fog components to the new Fog component. " + DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
+                return;
+
+            var profilePathList = AssetDatabase.FindAssets("t:VolumeProfile", new string[]{ "Assets" });
+
+            int profileCount = profilePathList.Length;
+            int profileIndex = 0;
+            foreach (string guid in profilePathList)
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                profileIndex++;
+                if (EditorUtility.DisplayCancelableProgressBar("Upgrade Fog Volume Components", string.Format("({0} of {1}) {2}", profileIndex, profileCount, assetPath), (float)profileIndex / (float)profileCount))
+                    break;
+
+                VolumeProfile profile = AssetDatabase.LoadAssetAtPath(assetPath, typeof(VolumeProfile)) as VolumeProfile;
+
+                if (profile.TryGet<VisualEnvironment>(out var visualEnv))
+                {
+                    if (visualEnv.fogType.value == FogType.Exponential)
+                    {
+                        if (profile.TryGet<ExponentialFog>(out var expFog))
+                        {
+                            var fog = CreateFogComponentIfNeeded(profile);
+                            fog.enabled.Override(true);
+                            // We only migrate distance because the height parameters are not compatible.
+                            if (expFog.fogDistance.overrideState)
+                                fog.meanFreePath.Override(expFog.fogDistance.value);
+
+                            OverrideCommonParameters(expFog, fog);
+                            EditorUtility.SetDirty(profile);
+                        }
+                    }
+
+                    if (visualEnv.fogType.value == FogType.Volumetric)
+                    {
+                        if (profile.TryGet<VolumetricFog>(out var volFog))
+                        {
+                            var fog = CreateFogComponentIfNeeded(profile);
+                            fog.enabled.Override(true);
+                            fog.enableVolumetricFog.Override(true);
+                            if (volFog.meanFreePath.overrideState)
+                                fog.meanFreePath.Override(volFog.meanFreePath.value);
+                            if (volFog.albedo.overrideState)
+                                fog.albedo.Override(volFog.albedo.value);
+                            if (volFog.baseHeight.overrideState)
+                                fog.baseHeight.Override(volFog.baseHeight.value);
+                            if (volFog.maximumHeight.overrideState)
+                                fog.maximumHeight.Override(volFog.maximumHeight.value);
+                            if (volFog.anisotropy.overrideState)
+                                fog.anisotropy.Override(volFog.anisotropy.value);
+                            if (volFog.globalLightProbeDimmer.overrideState)
+                                fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
+
+                            OverrideCommonParameters(volFog, fog);
+                            EditorUtility.SetDirty(profile);
+                        }
+                    }
+                }
+
+                if (profile.TryGet<VolumetricLightingController>(out var volController))
+                {
+                    var fog = CreateFogComponentIfNeeded(profile);
+                    if (volController.depthExtent.overrideState)
+                        fog.depthExtent.Override(volController.depthExtent.value);
+                    if (volController.sliceDistributionUniformity.overrideState)
+                        fog.sliceDistributionUniformity.Override(volController.sliceDistributionUniformity.value);
+
+                    EditorUtility.SetDirty(profile);
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            EditorUtility.ClearProgressBar();
+        }
+
 #if ENABLE_RAYTRACING
-        [MenuItem("GameObject/Rendering/Raytracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/Ray Tracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateRaytracingEnvironmentGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Raytracing Environment");
+            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Ray Tracing Environment");
             raytracingEnvGameObject.AddComponent<HDRaytracingEnvironment>();
         }
 #endif
@@ -121,6 +229,41 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
+        static void MenuCreateCustomFullScreenPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Custom Renderers Pass")]
+        static void MenuCreateCustomRenderersPassShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Renderers CustomPass.shader");
+        }
+
+        [MenuItem("Assets/Create/Rendering/C# Custom Pass")]
+        static void MenuCreateCustomPassCSharpScript()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
+        }
+
+        [MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority3)]
+        static void MenuCreateCSharpPostProcessVolume()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        static void MenuCreatePostProcessShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Shader.shader");
         }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
@@ -213,7 +356,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             try
             {
-                var scenes = AssetDatabase.FindAssets("t:Scene");
+                var scenes = AssetDatabase.FindAssets("t:Scene", new string[]{ "Assets" });
                 var scale = 1f / Mathf.Max(1, scenes.Length);
                 for (var i = 0; i < scenes.Length; ++i)
                 {
@@ -248,7 +391,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void ResetAllMaterialAssetsKeywords(float progressScale, float progressOffset)
         {
-            var matIds = AssetDatabase.FindAssets("t:Material");
+            var matIds = AssetDatabase.FindAssets("t:Material", new string[]{ "Assets" }); // do not include packages
 
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 

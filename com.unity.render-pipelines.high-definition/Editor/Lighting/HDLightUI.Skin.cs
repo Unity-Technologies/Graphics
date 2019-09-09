@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, Color and Intensity of the Area Light.");
             public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
-            public readonly GUIContent interactsWithSky = new GUIContent("Interacts with the sky", "Check this option to make the light and the Physically Based sky affect one another.");
+            public readonly GUIContent interactsWithSky = new GUIContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");
             public readonly GUIContent angularDiameter = new GUIContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk.");
             public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera to the emissive celestial body represented by the light. Primarily used for sorting.");
 
@@ -108,7 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent numRayTracingSamples = new GUIContent("Sample Count", "This defines the number of samples that will be used to evaluate this shadow.");
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
-            public readonly GUIContent sunLightConeAngle = new GUIContent("Sun angle", "This defines the size of the sun in the sky.");
+            public readonly GUIContent sunLightConeAngle = new GUIContent("Sun Angle", "This defines the size of the sun in the sky.");
+            public readonly GUIContent lightShadowRadius = new GUIContent("Radius", "This defines the radius of the light for evaluating ray traced shadows.");
 #endif
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");

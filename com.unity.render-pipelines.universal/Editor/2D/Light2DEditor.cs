@@ -73,9 +73,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
             public static GUIContent generalLightOverlapMode = EditorGUIUtility.TrTextContent("Alpha Blend on Overlap", "Use alpha blending instead of additive blending when this light overlaps others");
             public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
-            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Shadow Intensity", "Specify the shadow's darkness");
-            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Volume Intensity", "Specify the shadow volume's darkness");
+            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Shadow Intensity", "Controls the shadow's darkness.");
+            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Volume Intensity", "Controls the shadow volume's darkness.");
             public static GUIContent generalSortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers.");
+            public static GUIContent generalLightNoLightEnabled = EditorGUIUtility.TrTextContentWithIcon("No valid blend styles are enabled.", MessageType.Error);
 
             public static GUIContent pointLightQuality = EditorGUIUtility.TrTextContent("Quality", "Use accurate if there are noticeable visual issues");
             public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
@@ -85,7 +86,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent pointLightZDistance = EditorGUIUtility.TrTextContent("Distance", "Specify the Z Distance of the light");
             public static GUIContent pointLightCookie = EditorGUIUtility.TrTextContent("Cookie", "Specify a sprite as the cookie for the light");
 
-            public static GUIContent shapeLightNoLightDefined = EditorGUIUtility.TrTextContentWithIcon("No valid Shape Light type is defined.", MessageType.Error);
+
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
@@ -93,7 +94,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent shapeLightAngleOffset = EditorGUIUtility.TrTextContent("Angle Offset", "Adjust the rotation of the object");
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in graphics settings", MessageType.Warning);
-            public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset", MessageType.Warning);
+            public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera", MessageType.Warning);
         }
 
         const float     k_GlobalLightGizmoSize      = 1.2f;
@@ -223,8 +224,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_AnyBlendStyleEnabled = false;
             var blendStyleIndices = new List<int>();
             var blendStyleNames = new List<string>();
-            var pipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-            var rendererData = pipelineAsset != null ? pipelineAsset.scriptableRendererData as Renderer2DData : null;
+
+            var rendererData = Light2DEditorUtility.GetRenderer2DData();
             if (rendererData != null)
             {
                 for (int i = 0; i < rendererData.lightBlendStyles.Length; ++i)
@@ -306,9 +307,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void OnShapeLight(Light2D.LightType lightType, SerializedObject serializedObject)
         {
-            if (!m_AnyBlendStyleEnabled)
-                EditorGUILayout.HelpBox(Styles.shapeLightNoLightDefined);
-
             if (lightType == Light2D.LightType.Sprite)
             {
                 EditorGUILayout.PropertyField(m_ShapeLightSprite, Styles.shapeLightSprite);
@@ -577,11 +575,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (asset != null)
             {
-                Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData;
-                //if (assetData == null)
-                //    assetData = Renderer2DData.s_Renderer2DDataInstance;
-
-                if (assetData == null)
+                if (!Light2DEditorUtility.IsUsing2DRenderer())
                 {
                     EditorGUILayout.HelpBox(Styles.asset2DUnassignedWarning);
                     return;
@@ -621,7 +615,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
 
-            EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
+            if (!m_AnyBlendStyleEnabled)
+                EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
+            else
+                EditorGUILayout.IntPopup(m_BlendStyleIndex, m_BlendStyleNames, m_BlendStyleIndices, Styles.generalBlendStyle);
+
             EditorGUILayout.PropertyField(m_LightColor, Styles.generalLightColor);
 
             EditorGUI.BeginChangeCheck();
@@ -650,7 +648,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
             }
 
-            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel);
+            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
 
             if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
             {

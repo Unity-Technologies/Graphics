@@ -4,7 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.0] - 2019-XX-XX
+## [7.2.0] - 2019-XX-XX
+
+## [7.1.1] - 2019-09-05
 ### Added
 - Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
 - Navigation commands for subgraph.
@@ -25,6 +27,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - toolbar toggle appearing light with light skin.
 - multiselection of gradient in visual effect graph
 - clipped "reseed" in visual effect editor
+- Unlit outputs are no longer pre-exposed by default in HDRP
+- Augmented generated HLSL floatN precision [Case 1177730] (https://issuetracker.unity3d.com/issues/vfx-graph-7x7-flipbook-particles-flash-and-dont-animate-correctly-in-play-mode-or-in-edit-mode-with-vfx-graph-closed)
+- Spherical coordinates to Rectangular (Cartesians) coordinates node input: angles are now expressed in radians
+- Turbulence noise updated: noise type and frequency can be specified [Case  1141282] (https://issuetracker.unity3d.com/issues/vfx-particles-flicker-when-blend-mode-is-set-to-alpha-turbulence-block-is-enabled-and-there-is-more-than-50000-particles)
 
 ## [7.0.1] - 2019-07-25
 ### Added

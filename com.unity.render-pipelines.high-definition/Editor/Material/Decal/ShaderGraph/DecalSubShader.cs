@@ -484,7 +484,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(DecalMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(DecalMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(DecalMasterNode.VertexNormalSlotID) ||
+                    masterNode.IsSlotConnected(DecalMasterNode.VertexTangentSlotID) )
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

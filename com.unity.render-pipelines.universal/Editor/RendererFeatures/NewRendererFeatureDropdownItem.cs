@@ -1,3 +1,5 @@
+using UnityEditor.Rendering.Universal.Internal;
+
 namespace UnityEditor.Rendering.Universal
 {
     internal static class NewRendererFeatureDropdownItem

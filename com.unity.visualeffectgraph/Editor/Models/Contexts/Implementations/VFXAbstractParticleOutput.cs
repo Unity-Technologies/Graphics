@@ -97,6 +97,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useExposureWeight = false;
 
+        protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
+
         // IVFXSubRenderer interface
         public virtual bool hasShadowCasting { get { return castShadows; } }
 
@@ -320,8 +322,13 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (hasExposure && useExposureWeight)
-                    yield return "USE_EXPOSURE_WEIGHT";
+                if (hasExposure)
+                {
+                    if (useExposureWeight)
+                        yield return "USE_EXPOSURE_WEIGHT";
+                    else if (bypassExposure)
+                        yield return "VFX_BYPASS_EXPOSURE";
+                }
 
                 if (NeedsDeadListCount() && GetData().IsAttributeStored(VFXAttribute.Alive)) //Actually, there are still corner cases, e.g.: particles spawning immortal particles through GPU Event
                     yield return "USE_DEAD_LIST_COUNT";

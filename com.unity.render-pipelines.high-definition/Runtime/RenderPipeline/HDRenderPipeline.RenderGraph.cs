@@ -726,7 +726,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, data.debugDisplaySettings, m_FrameCount, context.cmd);
 
-                    if ((data.visualEnvironment.fogType.value != FogType.None) || (data.visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased))
+                    if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                     {
                         var pixelCoordToViewDirWS = data.hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                         data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, destination, inputVolumetric, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));

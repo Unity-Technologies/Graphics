@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -20,11 +21,11 @@ namespace UnityEditor.ShaderGraph
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Global,
                 value = 0,
-                entries = new List<KeywordEntry>()
+                entries = new KeywordEntry[]
                 {
-                    new KeywordEntry(1, "High", "HIGH"),
-                    new KeywordEntry(2, "Medium", "MEDIUM"),
-                    new KeywordEntry(3, "Low", "LOW"),
+                    new KeywordEntry("High", "HIGH"),
+                    new KeywordEntry("Medium", "MEDIUM"),
+                    new KeywordEntry("Low", "LOW"),
                 },
             };
         }
@@ -61,6 +62,25 @@ namespace UnityEditor.ShaderGraph
                     return "shader_feature";
                 default:
                     return string.Empty;
+            }
+        }
+
+        public static string ToDeclarationString(this KeywordDescriptor keyword)
+        {
+            // Get definition type using scope
+            string scopeString = keyword.scope == KeywordScope.Local ? "_local" : string.Empty;
+            string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}";
+
+            switch(keyword.type)
+            {
+                case KeywordType.Boolean:
+                    return $"#pragma {definitionString} _ {keyword.referenceName}";
+                case KeywordType.Enum:
+                    var enumEntryDefinitions = keyword.entries.Select(x => $"{keyword.referenceName}_{x.referenceName}");
+                    string enumEntriesString = string.Join(" ", enumEntryDefinitions);
+                    return $"#pragma {definitionString} {enumEntriesString}";
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
