@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added CinemachineUniversalPixelPerfect, a Cinemachine Virtual Camera Extension that solves some compatibility issues between Cinemachine and Pixel Perfect Camera.
 - Added an option that disables the depth/stencil buffer for the 2D Renderer.
 - Added manipulation handles for the inner cone angle for spot lights.
+- Added documentation for the built-in post-processing solution and Volumes framework (and removed incorrect mention of the PPv2 package). 
 
 ### Changed
 - Increased visible lights limit for the forward renderer. It now supports 256 visible lights except in mobile platforms. Mobile platforms support 32 visible lights.
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The renderer override on the Camera is now an enum that maps to the list of `ScriptableRendererData` on the Render Pipeline Asset.
 - Pixel Perfect Camera now allows rendering to a render texture.
 - Light2D GameObjects that you've created now have a default position with z equal to 0.
+- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.  
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
