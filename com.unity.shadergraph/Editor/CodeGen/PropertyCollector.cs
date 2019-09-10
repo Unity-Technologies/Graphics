@@ -13,12 +13,15 @@ namespace UnityEditor.ShaderGraph
         }
 
         public readonly List<AbstractShaderProperty> properties = new List<AbstractShaderProperty>();
+        public bool HasDotsInstancingProps { get; private set; }
 
-        public void AddShaderProperty(AbstractShaderProperty chunk)
+        public void AddShaderProperty(AbstractShaderProperty property)
         {
-            if (properties.Any(x => x.referenceName == chunk.referenceName))
+            if (properties.Any(x => x.referenceName == property.referenceName))
                 return;
-            properties.Add(chunk);
+            if (property.gpuInstanced)
+                HasDotsInstancingProps = true;
+            properties.Add(property);
         }
 
         private const string s_UnityPerMaterialCbName = "UnityPerMaterial";
@@ -40,12 +43,10 @@ namespace UnityEditor.ShaderGraph
             return cbName;
         }
 
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision, ShaderStringBuilder dotsInstancingVars)
         {
             foreach (var prop in properties)
-            {
                 prop.ValidateConcretePrecision(inheritedPrecision);
-            }
 
             var cbProps = new Dictionary<string, List<AbstractShaderProperty>>();
             foreach (var prop in properties)
@@ -58,9 +59,6 @@ namespace UnityEditor.ShaderGraph
                 }
                 vars.Add(prop);
             }
-
-            foreach (var kvp in cbProps)
-                kvp.Value.Sort((p1, p2) => p1.gpuInstanced.CompareTo(p2.gpuInstanced));
 
             // SamplerState properties are tricky:
             // - Unity only allows declaring SamplerState variable name of either sampler_{textureName} ("texture sampler") or SamplerState_{filterMode}_{wrapMode} ("system sampler").
@@ -76,6 +74,16 @@ namespace UnityEditor.ShaderGraph
             //   And at the end collect all unique system sampler names and generate:
             //       SAMPLER(SamplerState{system sampler name});
             var systemSamplerNames = new HashSet<string>();
+
+            List<AbstractShaderProperty> instancedProps = null;
+            if (HasDotsInstancingProps && dotsInstancingVars != null)
+            {
+                builder.AppendLine("#ifdef UNITY_INSTANCING_ENABLED");
+                builder.AppendLine("    #define UNITY_DOTS_INSTANCING_ENABLED");
+                builder.AppendLine("#endif");
+                instancedProps = new List<AbstractShaderProperty>();
+            }
+
             foreach (var kvp in cbProps)
             {
                 var cbName = kvp.Key;
@@ -85,21 +93,28 @@ namespace UnityEditor.ShaderGraph
                     builder.IncreaseIndent();
                 }
 
-                bool gpuInstancedBlock = false;
+                bool insideGpuInstancedBlock = false;
 
+                // Use OrderBy for stable sort
+                var props = kvp.Value.OrderBy(p => p.gpuInstanced);
                 foreach (var prop in kvp.Value)
                 {
-                    if (!gpuInstancedBlock && prop.gpuInstanced)
+                    if (instancedProps != null)
                     {
-                        gpuInstancedBlock = true;
-                        builder.AppendLine("#ifndef UNITY_DOTS_INSTANCING_ENABLED");
-                        builder.IncreaseIndent();
-                    }
-                    else if (gpuInstancedBlock && !prop.gpuInstanced)
-                    {
-                        gpuInstancedBlock = false;
-                        builder.AppendLine("#endif");
-                        builder.DecreaseIndent();
+                        if (!insideGpuInstancedBlock && prop.gpuInstanced)
+                        {
+                            insideGpuInstancedBlock = true;
+                            builder.AppendLine("#ifndef UNITY_DOTS_INSTANCING_ENABLED");
+                            builder.IncreaseIndent();
+                        }
+                        else if (insideGpuInstancedBlock && !prop.gpuInstanced)
+                        {
+                            insideGpuInstancedBlock = false;
+                            builder.DecreaseIndent();
+                            builder.AppendLine("#endif");
+                        }
+                        if (prop.gpuInstanced)
+                            instancedProps.Add(prop);
                     }
 
                     if (prop is GradientShaderProperty gradientProperty)
@@ -110,10 +125,10 @@ namespace UnityEditor.ShaderGraph
                         builder.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, prop.referenceName)};");
                 }
 
-                if (gpuInstancedBlock)
+                if (insideGpuInstancedBlock)
                 {
-                    builder.AppendLine("#endif");
                     builder.DecreaseIndent();
+                    builder.AppendLine("#endif");
                 }
 
                 if (systemSamplerNames.Count > 0)
@@ -130,52 +145,24 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             builder.AppendNewLine();
-        }
 
-        public int GetDotsInstancingPropertiesCount(GenerationMode mode)
-        {
-            var batchAll = mode == GenerationMode.Preview;
-            return properties.Where(n => (batchAll || (n.generatePropertyBlock && n.propertyType.IsBatchable())) && n.gpuInstanced).Count();
-        }
-
-        public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
-        {
-            var builder = new ShaderStringBuilder();
-            var batchAll = mode == GenerationMode.Preview;
-
-            int instancedCount = GetDotsInstancingPropertiesCount(mode);
-
-            if (instancedCount > 0)
+            if (instancedProps != null && instancedProps.Count > 0)
             {
-                builder.AppendLine("#if defined(UNITY_DOTS_INSTANCING_ENABLED)");
-                builder.AppendLine("#define SHADER_GRAPH_GENERATED");
-                builder.Append("#define DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS\t");
+                dotsInstancingVars.AppendLine("#define DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
+                dotsInstancingVars.IncreaseIndent();
+                builder.AppendLine("#ifdef UNITY_DOTS_INSTANCING_ENABLED");
+                builder.IncreaseIndent();
 
-                int count = 0;
-                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.propertyType.IsBatchable())))
+                for (int i = 0; i < instancedProps.Count; ++i)
                 {
-                    if (prop.gpuInstanced)
-                    {
-                        string varName = $"{prop.referenceName}_Array";
-                        string sType = prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
-                        builder.Append("UNITY_DEFINE_INSTANCED_PROP({0}, {1})", sType, varName);
-                        if (count < instancedCount - 1)
-                            builder.Append("\\");
-                        builder.AppendLine("");
-                        count++;
-                    }
+                    var prop = instancedProps[i];
+                    dotsInstancingVars.AppendLine($"UNITY_DEFINE_INSTANCED_PROP({prop.concreteShaderValueType.ToShaderString(prop.concretePrecision)}, {prop.referenceName}_Array){(i != instancedProps.Count - 1 ? " \\" : string.Empty)}");
+                    builder.AppendLine($"#define {prop.referenceName} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {prop.referenceName}_Array)");
                 }
-                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.propertyType.IsBatchable())))
-                {
-                    if (prop.gpuInstanced)
-                    {
-                        string varName = $"{prop.referenceName}_Array";
-                        builder.AppendLine("#define {0} UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, {1})", prop.referenceName, varName);
-                    }
-                }
+                dotsInstancingVars.DecreaseIndent();
+                builder.DecreaseIndent();
+                builder.AppendLine("#endif");
             }
-            builder.AppendLine("#endif");
-            return builder.ToString();
         }
 
         public List<TextureInfo> GetConfiguredTexutres()

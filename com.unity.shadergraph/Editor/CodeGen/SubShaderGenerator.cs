@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
@@ -213,7 +213,7 @@ namespace UnityEditor.ShaderGraph
             // -------------------------------------
             // Property uniforms
 
-            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, graph.concretePrecision);
+            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, graph.concretePrecision, null);
 
             // -------------------------------------
             // Generate Input structure for Vertex shader

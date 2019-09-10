@@ -24,8 +24,7 @@ Pass
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
 
-    #pragma multi_compile_instancing
-    #pragma instancing_options renderinglayer
+    $splice(InstancingOptions)
 
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -72,6 +71,13 @@ Pass
     // Defines
     //-------------------------------------------------------------------------------------
     $splice(Defines)
+
+    //-------------------------------------------------------------------------------------
+    // Dots Instancing vars - has to be defined before including UnityInstancing.hlsl
+    //                        because we want to inject them into PerDraw0 buffer by
+    //                        defining DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS
+    //-------------------------------------------------------------------------------------
+    $splice(DotsInstancedVars)
 
     // this translates the new dependency tracker into the old preprocessor definitions for the existing HDRP shader code
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL

@@ -733,23 +733,12 @@ namespace UnityEditor.Rendering.HighDefinition
             HDSubShaderUtilities.BuildRenderStatesFromPass(pass, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.baseInstance);
-            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
-
-            if (instancedCount > 0)
-            {
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("// Dots Instancing vars");
-                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
-                dotsInstancingCode.AppendLine("");
-
-                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
-            }
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
 
             // Get property declarations
-            sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision);
+            sharedProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, masterNode.owner.concretePrecision, dotsInstancingCode);
 
             // propagate active field requirements using dependencies
             foreach (var instance in activeFields.all.instances)
@@ -775,25 +764,15 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderGenerator instancingOptions = new ShaderGenerator();
             {
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
-                if (instancedCount > 0)
+                if (sharedProperties.HasDotsInstancingProps)
+                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe nolodfade");
+                else if (pass.ExtraInstancingOptions != null)
                 {
-                    instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
-                    instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
-                    instancingOptions.AddShaderChunk("#endif");
-                    instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
-                    instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
-                    instancingOptions.AddShaderChunk("#endif");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
-                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
+                    foreach (var instancingOption in pass.ExtraInstancingOptions)
+                        instancingOptions.AddShaderChunk(instancingOption);
                 }
                 else
-                {
-                    if (pass.ExtraInstancingOptions != null)
-                    {
-                        foreach (var instancingOption in pass.ExtraInstancingOptions)
-                            instancingOptions.AddShaderChunk(instancingOption);
-                    }
-                }
+                    instancingOptions.AddShaderChunk("#pragma instancing_options renderinglayer");
             }
 
             ShaderGenerator defines = new ShaderGenerator();
