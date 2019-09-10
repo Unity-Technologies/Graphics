@@ -15,12 +15,12 @@ namespace UnityEditor.Rendering.HighDefinition
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
             ^ SurfaceOptionUIBlock.Features.AlphaCutoff
             ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering
-            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass
-            ^ SurfaceOptionUIBlock.Features.Surface;
-        
+            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass;
+
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
+            new SpeedTreeLitOptionsUIBlock(MaterialUIBlock.Expandable.Base),
             new ShaderGraphUIBlock(MaterialUIBlock.Expandable.ShaderGraph),
         };
 
@@ -51,6 +51,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
             }
 
+            if (material.HasProperty("_SpeedTreeGeom"))
+            {
+                SpeedTreeLitMasterNode.TreeGeomType v = (SpeedTreeLitMasterNode.TreeGeomType)material.GetInt("_SpeedTreeGeom");
+                // Initially assume that we're not the default type.
+                material.DisableKeyword("GEOM_TYPE_BRANCH");
+
+                switch (v)
+                {
+                    case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
+                        material.EnableKeyword("GEOM_TYPE_BRANCH_DETAIL");
+                        material.EnableKeyword("GEOM_TYPE_BRANCH");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Branch:
+                        material.EnableKeyword("GEOM_TYPE_BRANCH");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Frond:
+                        material.EnableKeyword("GEOM_TYPE_FROND");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Leaf:
+                        material.EnableKeyword("GEOM_TYPE_LEAF");
+                        break;
+                    case SpeedTreeLitMasterNode.TreeGeomType.Mesh:
+                        material.EnableKeyword("GEOM_TYPE_MESH");
+                        break;
+                }
+            }
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
