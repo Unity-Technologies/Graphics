@@ -1,0 +1,6 @@
+{
+	"displayName":"Surface Gradient Sample Framework",
+	"interactiveImport": "false",
+	"description":"A collection of shaders and subgraphs showcasing a small framework to support surface gradient normal blending in Shader Graph.",
+	"createSeparatePackage": true
+}

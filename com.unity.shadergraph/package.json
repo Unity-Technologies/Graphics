@@ -13,6 +13,11 @@
 			"displayName":"Procedural Patterns",
 			"description":"This collection of assets showcase various procedural techniques possible with Shader Graph. Use them in your project or edit them to create other procedural pattens. Patterns: Bacteria, Brick, Dots, Grid, Herringbone, Hex Lattice, Houndstooth, Smooth Wave, Spiral, Stripes, Truchet, Whirl, Zig Zag",
 			"path" : "Samples~/ProceduralPatterns"
+        },
+        {
+			"displayName":"Surface Gradient Sample Framework",
+			"description":"A collection of shaders and subgraphs showcasing a small framework to support surface gradient normal blending in Shader Graph.",
+			"path" : "Samples~/SurfaceGradient"
 		}
 	]
 }
