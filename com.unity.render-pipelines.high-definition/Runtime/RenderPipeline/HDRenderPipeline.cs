@@ -1847,13 +1847,30 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the light clusters that we need to update
             m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
 
+            HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
+
+            // We only request the light cluster if we are gonna use it for debug mode
+            if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
+                var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
+                if (rSettings.rayTracing.value && rtEnv != null)
+                {
+                    HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
+                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
+                }
+                else if (rrSettings.enable.value && rtEnv != null)
+                {
+                    HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
+                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
+                }
+            }
+
             bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
             if (validIndirectDiffuse)
             {
                 RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
             }
-
-            HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
 #endif
 
 #if UNITY_EDITOR
@@ -1887,25 +1904,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     CoreUtils.SetRenderTarget(cmd, m_ContactShadowBuffer, ClearFlag.Color, Color.clear);
                 }
-
-#if ENABLE_RAYTRACING
-                // We only request the light cluster if we are gonna use it for debug mode
-                if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
-                {
-                    var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-                    var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-                    if (rSettings.rayTracing.value && rtEnv != null)
-                    {
-                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
-                    }
-                    else if (rrSettings.enable.value && rtEnv != null)
-                    {
-                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
-                    }
-                }
-#endif
 
                 hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
 
