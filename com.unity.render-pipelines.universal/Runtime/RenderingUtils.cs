@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_EDITOR")]
         internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
         {
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
