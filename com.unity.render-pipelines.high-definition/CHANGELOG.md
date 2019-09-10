@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light supported units caching (1182266)
 - Fixed emissive area light mesh non-uniform scale issues (1171739)
 - Fixed Hair and PBR shader graphs double sided modes
+- Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
 
 ## [7.1.1] - 2019-09-05
 
