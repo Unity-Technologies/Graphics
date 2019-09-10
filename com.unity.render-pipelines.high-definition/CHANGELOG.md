@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.2.0] - 2019-XX-XX
 
+### Fixed
+- Fix/workaround a probable graphics driver bug in the GTAO shader.
+
 ## [7.1.1] - 2019-09-05
 
 ### Added
