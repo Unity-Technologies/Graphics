@@ -88,6 +88,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         const int k_RenderPassBlockCount = 3;
+        const string k_ExecuteRendererTag = "Execute Renderer";
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
@@ -180,9 +181,11 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            Profiling.Profiler.BeginSample(k_ExecuteRendererTag);
             Camera camera = renderingData.cameraData.camera;
-            SetCameraRenderState(context, ref renderingData.cameraData);
 
+            Profiling.Profiler.BeginSample("Prepare Rendering");
+            SetCameraRenderState(context, ref renderingData.cameraData);
             SortStable(m_ActiveRenderPassQueue);
 
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
@@ -209,12 +212,14 @@ namespace UnityEngine.Rendering.Universal
             blockEventLimits.Dispose();
 
             SetupLights(context, ref renderingData);
+            Profiling.Profiler.EndSample();
 
+            Profiling.Profiler.BeginSample("Execute Render Passes");
             // Before Render Block. This render blocks always execute in mono rendering.
             // Camera is not setup. Lights are not setup.
             // Used to render input textures like shadowmaps.
-            ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
-
+            ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData, true);
+            
             /// Configure shader variables and other unity properties that are required for rendering.
             /// * Setup Camera RenderTarget and Viewport
             /// * VR Camera Setup and SINGLE_PASS_STEREO props
@@ -243,20 +248,22 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             // In this block main rendering executes.
-            ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
+            ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData, true);
 
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
             ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
-
+            
             if (stereoEnabled)
                 EndXRRendering(context, camera);
-
+            
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+            Profiling.Profiler.EndSample();
 
             InternalFinishRendering(context);
             blockRanges.Dispose();
+            Profiling.Profiler.EndSample();
         }
 
         /// <summary>

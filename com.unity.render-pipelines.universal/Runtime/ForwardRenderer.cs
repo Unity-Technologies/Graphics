@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
     {
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
+        const string k_RendererSetupTag = "Setup Renderer";
 
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
@@ -95,6 +96,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            Profiling.Profiler.BeginSample(k_RendererSetupTag);
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -284,6 +286,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_SceneViewDepthCopyPass);
             }
 #endif
+            Profiling.Profiler.EndSample();
         }
 
         /// <inheritdoc />
