@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Color nodes now handle Gamma and Linear conversions correctly.
 - Sub Graph Output nodes now link to the correct documentation page.
 - When you use Keywords, PBR and Unlit master nodes no longer produce errors.
+- PBR master nodes now calculate Global Illumination (GI) correctly.
+- PBR master nodes now apply surface normals.
+- PBR master nodes now apply fog.
 
 ## [7.0.1] - 2019-07-25
 ### Changed

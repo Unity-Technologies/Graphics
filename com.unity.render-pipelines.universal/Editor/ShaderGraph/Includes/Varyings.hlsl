@@ -68,7 +68,7 @@ Varyings BuildVaryings(Attributes input)
         output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
     #endif
 #elif defined(SHADERPASS_META)
-    output.positionCS = MetaVertexPosition(float4(input.positionOS, 0), input.uv1, input.uv1, unity_LightmapST, unity_DynamicLightmapST);
+    output.positionCS = MetaVertexPosition(float4(input.positionOS, 0), input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
 #else
     output.positionCS = TransformWorldToHClip(positionWS);
 #endif
@@ -102,7 +102,7 @@ Varyings BuildVaryings(Attributes input)
     output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
 #endif
 
-#if defined(VARYINGS_NEED_LIGHTMAP_OR_SH)
+#if defined(SHADERPASS_FORWARD)
     OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(normalWS, output.sh);
 #endif
