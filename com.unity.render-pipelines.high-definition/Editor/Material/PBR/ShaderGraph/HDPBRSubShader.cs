@@ -63,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as PBRMasterNode;
                 GetStencilStateForGBuffer(true, false, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
 
                 // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
                 // Don't do it with debug display mode as it is possible there is no depth prepass in this case
@@ -146,7 +147,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PBRMasterNode.PositionSlotId
             },
-            UseInPreview = false
+            UseInPreview = false,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as PBRMasterNode;
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
+            }
         };
 
         Pass m_SceneSelectionPass = new Pass()
@@ -237,6 +243,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as PBRMasterNode;
                 GetStencilStateForDepthOrMV(false, true, false, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
             }
         };
 
@@ -273,6 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as PBRMasterNode;
                 GetStencilStateForDepthOrMV(false, true, true, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
             }
         };
 
@@ -329,6 +337,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as PBRMasterNode;
 
                 GetBlendMode(masterNode.surfaceType, masterNode.alphaMode, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
 
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
