@@ -2119,7 +2119,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render gizmos that should be affected by post processes
                 if (showGizmos)
                 {
-                    Gizmos.exposure = m_PostProcessSystem.GetExposureTexture(hdCamera).rt;
+                    if(m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+                    { 
+                        Gizmos.exposure = Texture2D.blackTexture;
+                    }
+                    else
+                    {
+                        Gizmos.exposure = m_PostProcessSystem.GetExposureTexture(hdCamera).rt;
+                    }
+
                     RenderGizmos(cmd, camera, renderContext, GizmoSubset.PreImageEffects);
                 }
 #endif
