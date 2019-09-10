@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SSSDefaultDiffusionProfile = defaultResources.assets.defaultDiffusionProfile;
 
-            m_SSSConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<ShaderVariablesSubsurfaceScattering>(), ComputeBufferType.Constant, ComputeBufferMode.Dynamic);
+            m_SSSConstantBuffer = new ComputeBuffer(1, UnsafeUtility.SizeOf<ShaderVariablesSubsurfaceScattering>(), ComputeBufferType.Constant);
         }
 
         void CleanupSubsurfaceScattering()
@@ -237,7 +237,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < 4; ++j)
                         m_SSSShaderVars._WorldScales[i * 4 + j] = m_SSSWorldScales[i][j];
                 for (int i = 0; i < m_SSSDiffusionProfileHashes.Length; ++i)
-                    m_SSSShaderVars._DiffusionProfileHashTable[i] = (uint)m_SSSDiffusionProfileHashes[i];
+                {
+                    m_SSSShaderVars._DiffusionProfileHashTable[i * 4 + 0] = m_SSSDiffusionProfileHashes[i];
+                    m_SSSShaderVars._DiffusionProfileHashTable[i * 4 + 1] = 0.0f;
+                    m_SSSShaderVars._DiffusionProfileHashTable[i * 4 + 2] = 0.0f;
+                    m_SSSShaderVars._DiffusionProfileHashTable[i * 4 + 3] = 0.0f;
+                }
             }
         }
 

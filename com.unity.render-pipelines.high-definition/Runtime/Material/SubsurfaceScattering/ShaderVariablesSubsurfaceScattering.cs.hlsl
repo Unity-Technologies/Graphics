@@ -12,10 +12,10 @@ cbuffer ShaderVariablesSubsurfaceScattering
     float4 _ShapeParams[16];
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScales[16];
-    float _DiffusionProfileHashTable[16];
+    float4 _DiffusionProfileHashTable[16];
     uint _EnableSubsurfaceScattering;
-    float _TexturingModeFlags;
-    float _TransmissionFlags;
+    uint _TexturingModeFlags;
+    uint _TransmissionFlags;
     uint _DiffusionProfileCount;
 };
 
