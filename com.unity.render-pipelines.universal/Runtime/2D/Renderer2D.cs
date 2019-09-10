@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (postProcessEnabled)
             {
-                m_ColorGradingLutPass.Setup(m_ColorGradingLutHandle);
+                m_ColorGradingLutPass.Setup(m_ColorGradingLutHandle, ref renderingData);
                 EnqueuePass(m_ColorGradingLutPass);
 
                 // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,

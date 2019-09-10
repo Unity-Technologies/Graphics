@@ -9,6 +9,15 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class ColorGradingLutPass : ScriptableRenderPass
     {
+        struct LutSettings
+        {
+            public bool isHDR;
+            public int width;
+            public int height;
+            public GraphicsFormat textureFormat;
+            public Material material;
+        };
+
         const string m_ProfilerTag = "Color Grading LUT";
 
         readonly Material m_LutBuilderLdr;
@@ -17,6 +26,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly GraphicsFormat m_LdrLutFormat;
 
         RenderTargetHandle m_InternalLut;
+        LutSettings m_LutSettings;
 
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
@@ -52,13 +62,26 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LdrLutFormat = GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public void Setup(in RenderTargetHandle internalLut)
+        public void Setup(in RenderTargetHandle internalLut, ref RenderingData renderingData)
         {
+            ref var postProcessingData = ref renderingData.postProcessingData;
             m_InternalLut = internalLut;
+
+            // Prepare texture & material
+            m_LutSettings = new LutSettings();
+            m_LutSettings.isHDR = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
+            m_LutSettings.height = postProcessingData.lutSize;
+            m_LutSettings.width = m_LutSettings.height * m_LutSettings.height;
+            m_LutSettings.textureFormat = m_LutSettings.isHDR ? m_HdrLutFormat : m_LdrLutFormat;
+            m_LutSettings.material = m_LutSettings.isHDR ? m_LutBuilderHdr : m_LutBuilderLdr;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+            var desc = new RenderTextureDescriptor(m_LutSettings.width, m_LutSettings.height, m_LutSettings.textureFormat, 0);
+            desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
+
+            cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
             ConfigureTarget(m_InternalLut.Identifier(), BuiltinRenderTextureType.None);
             
             // This allows to do RenderBufferLoadAction.DontCare in mobile and avoid clear on other platforms.
@@ -81,18 +104,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var m_SplitToning               = stack.GetComponent<SplitToning>();
             var m_Tonemapping               = stack.GetComponent<Tonemapping>();
             var m_WhiteBalance              = stack.GetComponent<WhiteBalance>();
-
-            ref var postProcessingData = ref renderingData.postProcessingData;
-            bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
-
-            // Prepare texture & material
-            int lutHeight = postProcessingData.lutSize;
-            int lutWidth = lutHeight * lutHeight;
-            var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
-            var material = hdr ? m_LutBuilderHdr : m_LutBuilderLdr;
-            var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
-            desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
-            cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
 
             // Prepare data
             var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
@@ -126,9 +137,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_SplitToning.balance.value
             );
 
+            int lutWidth = m_LutSettings.width;
+            int lutHeight = m_LutSettings.height;
             var lutParameters = new Vector4(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f));
 
             // Fill in constants
+            ref Material material = ref m_LutSettings.material;
             material.SetVector(ShaderConstants._Lut_Params, lutParameters);
             material.SetVector(ShaderConstants._ColorBalance, lmsColorBalance);
             material.SetVector(ShaderConstants._ColorFilter, m_ColorAdjustments.colorFilter.value.linear);
@@ -159,7 +173,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetTexture(ShaderConstants._CurveSatVsSat, m_Curves.satVsSat.value.GetTexture());
 
             // Tonemapping (baked into the lut for HDR)
-            if (hdr)
+            if (m_LutSettings.isHDR)
             {
                 material.shaderKeywords = null;
 
