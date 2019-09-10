@@ -66,11 +66,13 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine($"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, systemSamplerName)};");
         }
 
-        // Clears out overrideReferenceName because previously they are set to the system sampler name which could be common between several different
-        // sampler state properties, but we want them to be separate for subgraph function inputs. See PropertyCollector.cs.
         void UnityEngine.ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            overrideReferenceName = null;
+            // Clears out overrideReferenceName because previously they are set to the system sampler name which could be common between several different
+            // sampler state properties, but we want them to be separate for subgraph function inputs. See PropertyCollector.cs.
+            // Only do this if the property is user created, because SubGraph creates hidden SamplerState properties to pair with texture inputs.
+            if (!hidden)
+                overrideReferenceName = null;
         }
 
         void UnityEngine.ISerializationCallbackReceiver.OnBeforeSerialize()
