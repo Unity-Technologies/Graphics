@@ -1076,10 +1076,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public void AddBasicGeometryDefines(ref List<String> ExtraDefines)
         {
             ExtraDefines.Add("#pragma shader_feature_local EFFECT_BUMP");
+            ExtraDefines.Add("#define _ALPHATEST_ON");
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
             {
                 ExtraDefines.Add("#pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
                 ExtraDefines.Add("#define SPEEDTREE_V7");
+                /*
                 switch (speedTreeGeomType)
                 {
                     case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
@@ -1099,6 +1101,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         ExtraDefines.Add("#define GEOM_TYPE_MESH");
                         break;
                 }
+                */
             }
             else
             {
@@ -1171,18 +1174,6 @@ namespace UnityEditor.Rendering.HighDefinition
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, true, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
 
-            // This is not really a part of the existing shaders, but we are adding it
-            // for the sake of UI Options controllability
-            collector.AddShaderProperty(new Vector1ShaderProperty()
-            {
-                overrideReferenceName = "_SpeedTreeVersion",
-                floatType = FloatType.Enum,
-                value = (int)speedTreeAssetVersion,
-                enumType = EnumType.CSharpEnum,
-                cSharpEnumType = typeof(SpeedTreeVersion),
-                hidden = false,
-            });
-
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
             {
                 // In SpeedTree8, this is embedded in one of the UV channels
@@ -1190,9 +1181,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     overrideReferenceName = "_SpeedTreeGeom",
                     floatType = FloatType.Enum,
-                    value = (int)speedTreeGeomType,
-                    enumType = EnumType.CSharpEnum,
-                    cSharpEnumType = typeof(TreeGeomType),
+                    value = (float)TreeGeomType.Branch,
+                    enumType = EnumType.KeywordEnum,
+                    enumNames = { "Branch" , "BranchDetail", "Frond", "Leaf", "Mesh" },
                     hidden = false,
                 });
             }
@@ -1201,9 +1192,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 overrideReferenceName = "_WindQuality",
                 floatType = FloatType.Enum,
-                value = (int)windQuality,
-                enumType = EnumType.CSharpEnum,
-                cSharpEnumType = typeof(WindQuality),
+                value = (int)WindQuality.Best,
+                enumNames = { "None", "Fastest", "Fast", "Better", "Best", "Palm" },
+                enumValues = { (int)WindQuality.None, (int)WindQuality.Fastest, (int)WindQuality.Fast, (int)WindQuality.Better, (int)WindQuality.Best, (int)WindQuality.Palm},
+                enumType = EnumType.KeywordEnum,
                 hidden = false,
             });
 
@@ -1213,9 +1205,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     overrideReferenceName = "_Cull",
                     floatType = FloatType.Enum,
-                    value = (int)SpeedTree7CullMode.Back,
-                    enumType = EnumType.CSharpEnum,
-                    cSharpEnumType = typeof(SpeedTree7CullMode),
+                    enumNames = { "Off", "Front", "Back" },
+                    enumValues = { (int)SpeedTree7CullMode.Off, (int)SpeedTree7CullMode.Front, (int)SpeedTree7CullMode.Back },
+                    value = (float)SpeedTree7CullMode.Back,
                     hidden = false,
                 });
             }
@@ -1225,9 +1217,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     overrideReferenceName = "_TwoSided",
                     floatType = FloatType.Enum,
-                    value = (int)SpeedTree8TwoSided.No,
-                    enumType = EnumType.CSharpEnum,
-                    cSharpEnumType = typeof(SpeedTree8TwoSided),
+                    enumNames = { "Yes", "No" },
+                    enumValues = { (int)SpeedTree8TwoSided.Yes, (int)SpeedTree8TwoSided.No },
+                    value = (float)SpeedTree8TwoSided.No,
                     hidden = false,
                 });
             }

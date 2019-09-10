@@ -81,7 +81,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Computing the hue variation amount
                     s.AppendLine("$precision4x4 objToWorld = UNITY_MATRIX_M;");
-                    s.AppendLine("$precision hueVariationAmount = frac(objToWorld[0].w + objToWorld[1].w + objToWorld[2].w);");
+                    s.AppendLine("$precision3 objWorldPos = $precision3(objToWorld[0].w, objToWorld[1].w, objToWorld[2].w);");
+                    s.AppendLine("#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)");
+                    s.AppendLine("objWorldPos += _WorldSpaceCameraPos;");
+                    s.AppendLine("#endif");
+                    s.AppendLine("$precision hueVariationAmount = frac(dot(objWorldPos, 1));");
                     s.AppendLine("hueVariationAmount += frac(ObjPos.x + ObjNorm.y + ObjNorm.x) * 0.5 - 0.3;");
                     s.AppendLine("hueVariationAmount = saturate(hueVariationAmount * HueColor.a);");
 

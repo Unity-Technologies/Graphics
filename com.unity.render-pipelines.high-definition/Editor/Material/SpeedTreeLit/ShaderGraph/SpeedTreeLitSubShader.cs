@@ -911,6 +911,25 @@ namespace UnityEditor.Rendering.HighDefinition
             return renderPipelineAsset is HDRenderPipelineAsset;
         }
 
+        private static List<string> GetInstancingOptionsFromMasterNode(AbstractMaterialNode iMasterNode)
+        {
+            List<string> instancingOption = new List<string>();
+
+            SpeedTreeLitMasterNode masterNode = iMasterNode as SpeedTreeLitMasterNode;
+
+            if (masterNode.dotsInstancing.isOn)
+            {
+                instancingOption.Add("#pragma instancing_options nolightprobe");
+                instancingOption.Add("#pragma instancing_options nolodfade");
+            }
+            else
+            {
+                instancingOption.Add("#pragma instancing_options renderinglayer");
+            }
+
+            return instancingOption;
+        }
+
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             HashSet<string> activeFields = new HashSet<string>();
@@ -921,9 +940,215 @@ namespace UnityEditor.Rendering.HighDefinition
                 return activeFields;
             }
 
-            // TODO
+            if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
+            {
+                activeFields.Add("DoubleSided");
+                if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
+                {                                                   // we need to be able to build interpolators using multiple input structs
+                                                                    // also: should only require isFrontFace if Normals are required...
+                    if (masterNode.doubleSidedMode == DoubleSidedMode.FlippedNormals)
+                    {
+                        activeFields.Add("DoubleSided.Flip");
+                    }
+                    else if (masterNode.doubleSidedMode == DoubleSidedMode.MirroredNormals)
+                    {
+                        activeFields.Add("DoubleSided.Mirror");
+                    }
+                    // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
+                    activeFields.Add("FragInputs.isFrontFace");
+                }
+            }
+
+            switch (masterNode.materialType)
+            {
+                case SpeedTreeLitMasterNode.MaterialType.Anisotropy:
+                    activeFields.Add("Material.Anisotropy");
+                    break;
+                case SpeedTreeLitMasterNode.MaterialType.Iridescence:
+                    activeFields.Add("Material.Iridescence");
+                    break;
+                case SpeedTreeLitMasterNode.MaterialType.SpecularColor:
+                    activeFields.Add("Material.SpecularColor");
+                    break;
+                case SpeedTreeLitMasterNode.MaterialType.Standard:
+                    activeFields.Add("Material.Standard");
+                    break;
+                case SpeedTreeLitMasterNode.MaterialType.SubsurfaceScattering:
+                    {
+                        if (masterNode.surfaceType != SurfaceType.Transparent)
+                        {
+                            activeFields.Add("Material.SubsurfaceScattering");
+                        }
+                        if (masterNode.sssTransmission.isOn)
+                        {
+                            activeFields.Add("Material.Transmission");
+                        }
+                    }
+                    break;
+                case SpeedTreeLitMasterNode.MaterialType.Translucent:
+                    {
+                        activeFields.Add("Material.Translucent");
+                        activeFields.Add("Material.Transmission");
+                    }
+                    break;
+                default:
+                    UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
+                    break;
+            }
+
+            // Alpha test is always on.
+            int AlphaCount = 0;
+            // If alpha test shadow is enable, we use it, otherwise we use the regular test
+            if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdShadowSlotId) && masterNode.alphaTestShadow.isOn)
+            {
+                activeFields.Add("AlphaTestShadow");
+                ++AlphaCount;
+            }
+            else if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdSlotId))
+            {
+                activeFields.Add("AlphaTest");
+                ++AlphaCount;
+            }
+
+            if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdDepthPrepassSlotId))
+            {
+                activeFields.Add("AlphaTestPrepass");
+                ++AlphaCount;
+            }
+            if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdDepthPostpassSlotId))
+            {
+                activeFields.Add("AlphaTestPostpass");
+                ++AlphaCount;
+            }
+            UnityEngine.Debug.Assert(AlphaCount == 1, "Alpha test value not set correctly");
+
+
+            if (masterNode.surfaceType != SurfaceType.Opaque)
+            {
+                if (masterNode.transparencyFog.isOn)
+                {
+                    activeFields.Add("AlphaFog");
+                }
+
+                if (masterNode.transparentWritesMotionVec.isOn)
+                {
+                    activeFields.Add("TransparentWritesMotionVec");
+                }
+
+                if (masterNode.blendPreserveSpecular.isOn)
+                {
+                    activeFields.Add("BlendMode.PreserveSpecular");
+                }
+            }
+
+            if (!masterNode.receiveDecals.isOn)
+            {
+                activeFields.Add("DisableDecals");
+            }
+
+            if (!masterNode.receiveSSR.isOn)
+            {
+                activeFields.Add("DisableSSR");
+            }
+
+            if (masterNode.addVelocityChange.isOn)
+            {
+                activeFields.Add("AdditionalVelocityChange");
+            }
+
+            if (masterNode.specularAA.isOn && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.SpecularAAThresholdSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
+            {
+                activeFields.Add("Specular.AA");
+            }
+
+            if (masterNode.energyConservingSpecular.isOn)
+            {
+                activeFields.Add("Specular.EnergyConserving");
+            }
+
+            if (masterNode.HasRefraction())
+            {
+                activeFields.Add("Refraction");
+                switch (masterNode.refractionModel)
+                {
+                    case ScreenSpaceRefraction.RefractionModel.Box:
+                        activeFields.Add("RefractionBox");
+                        break;
+
+                    case ScreenSpaceRefraction.RefractionModel.Sphere:
+                        activeFields.Add("RefractionSphere");
+                        break;
+
+                    default:
+                        UnityEngine.Debug.LogError("Unknown refraction model: " + masterNode.refractionModel);
+                        break;
+                }
+            }
+
+            if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.BentNormalSlotId))
+            {
+                activeFields.Add("BentNormal");
+            }
+
+            if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.TangentSlotId))
+            {
+                activeFields.Add("Tangent");
+            }
+
+            switch (masterNode.specularOcclusionMode)
+            {
+                case SpecularOcclusionMode.Off:
+                    break;
+                case SpecularOcclusionMode.FromAO:
+                    activeFields.Add("SpecularOcclusionFromAO");
+                    break;
+                case SpecularOcclusionMode.FromAOAndBentNormal:
+                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
+                    break;
+                case SpecularOcclusionMode.Custom:
+                    activeFields.Add("SpecularOcclusionCustom");
+                    break;
+
+                default:
+                    break;
+            }
+
+            if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AmbientOcclusionSlotId))
+            {
+                var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(SpeedTreeLitMasterNode.AmbientOcclusionSlotId);
+
+                bool connected = masterNode.IsSlotConnected(SpeedTreeLitMasterNode.AmbientOcclusionSlotId);
+                if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
+                {
+                    activeFields.Add("AmbientOcclusion");
+                }
+            }
+
+            if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.CoatMaskSlotId))
+            {
+                var coatMaskSlot = masterNode.FindSlot<Vector1MaterialSlot>(SpeedTreeLitMasterNode.CoatMaskSlotId);
+
+                bool connected = masterNode.IsSlotConnected(SpeedTreeLitMasterNode.CoatMaskSlotId);
+                if (connected || coatMaskSlot.value > 0.0f)
+                {
+                    activeFields.Add("CoatMask");
+                }
+            }
+
+            if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.LightingSlotId))
+            {
+                activeFields.Add("LightingGI");
+            }
+            if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.LightingSlotId))
+            {
+                activeFields.Add("BackLightingGI");
+            }
+
+            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.DepthOffsetSlotId))
+                activeFields.Add("DepthOffset");
 
             return activeFields;
+
         }
 
         private static bool GenerateShaderPassLit(SpeedTreeLitMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
@@ -935,7 +1160,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // apply master node options to active fields
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
-                //pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
+                pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
 
                 // use standard shader pass generation
                 bool vertexActive = masterNode.IsSlotConnected(SpeedTreeLitMasterNode.PositionSlotId);
