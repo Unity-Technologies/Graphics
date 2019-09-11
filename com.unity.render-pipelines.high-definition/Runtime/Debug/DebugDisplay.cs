@@ -21,10 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPyramid,
         FinalColorPyramid,
 
-        // Raytracing
+        // Raytracing Only
         LightCluster,
-        IndirectDiffuse,
-        RecursiveTracing,
+        RayTracedGlobalIllumination,
+        RecursiveRayTracing,
         MaxLightingFullScreenDebug,
 
         // Rendering

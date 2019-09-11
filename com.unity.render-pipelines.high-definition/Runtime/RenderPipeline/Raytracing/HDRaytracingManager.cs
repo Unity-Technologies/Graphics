@@ -465,6 +465,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Create the acceleration structure
                 subScene.accelerationStructure = new Experimental.Rendering.RayTracingAccelerationStructure();
 
+                // We need to define the maximal number of meshes for our geometries
+                int maxNumSubMeshes = 1;
+
                 // First of all let's process all the LOD groups
                 LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
                 for (var i = 0; i < lodGroupArray.Length; i++)
@@ -488,8 +491,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                 // Is this object in one of the allowed layers ?
                                 if ((objectLayerValue & subScene.mask.value) != 0)
                                 {
+                                    Renderer currentRenderer = currentLOD.renderers[rendererIdx];
+
                                     // Add this fella to the renderer list
-                                    subScene.targetRenderers.Add(currentLOD.renderers[rendererIdx]);
+                                    subScene.targetRenderers.Add(currentRenderer);
+
+                                    // Also, we need to contribute to the maximal number of sub-meshes
+                                    MeshFilter currentFilter = currentRenderer.GetComponent<MeshFilter>();
+                                    if (currentFilter != null && currentFilter.sharedMesh != null)
+                                    {
+                                        maxNumSubMeshes = Mathf.Max(maxNumSubMeshes, currentFilter.sharedMesh.subMeshCount);
+                                    }
                                 }
                             }
                         }
@@ -505,7 +517,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                int maxNumSubMeshes = 1;
 
                 // Grab all the renderers from the scene
                 var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
