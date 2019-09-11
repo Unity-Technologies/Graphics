@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    //[VFXInfo] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
+    [VFXInfo(experimental = true)]
     class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {
         protected VFXLitQuadStripOutput() : base(true) { } // strips

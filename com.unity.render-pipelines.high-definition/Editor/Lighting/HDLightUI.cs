@@ -10,6 +10,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static partial class HDLightUI
     {
+        public static class ScalableSettings
+        {
+            public static ShadowResolutionSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
+            {
+                switch (shape)
+                {
+                    case LightShape.Spot: return HDAdditionalLightData.ScalableSettings.ShadowResolutionPunctual(hdrp);
+                    case LightShape.Point: return HDAdditionalLightData.ScalableSettings.ShadowResolutionPunctual(hdrp);
+                    case LightShape.Rectangle: return HDAdditionalLightData.ScalableSettings.ShadowResolutionArea(hdrp);
+                    case LightShape.Tube: return HDAdditionalLightData.ScalableSettings.ShadowResolutionArea(hdrp);
+                    case LightShape.Directional: return HDAdditionalLightData.ScalableSettings.ShadowResolutionDirectional(hdrp);
+                    default: throw new ArgumentOutOfRangeException(nameof(shape));
+                }
+            }
+        }
+
         // LightType + LightTypeExtent combined
         internal enum LightShape
         {
@@ -46,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
         enum Advanceable
         {
             General = 1 << 0,
-            //Shape = 1 << 1, //not used anymore
+            Shape = 1 << 1,
             Emission = 1 << 2,
             Shadow = 1 << 3,
         }
@@ -97,7 +113,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
+                CED.AdvancedFoldoutGroup(s_Styles.generalHeader, Expandable.Shape, k_ExpandedState,
+                    (serialized, owner) => GetAdvanced(Advanceable.Shape, serialized, owner),
+                    (serialized, owner) => SwitchAdvanced(Advanceable.Shape, serialized, owner),
+                    DrawShapeContent,
+                    DrawShapeAdvancedContent
+                    ),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
                     (serialized, owner) => GetAdvanced(Advanceable.Emission, serialized, owner),
                     (serialized, owner) => SwitchAdvanced(Advanceable.Emission, serialized, owner),
@@ -189,20 +210,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     // If we're not in decoupled mode for light layers, we sync light with shadow layers:
                     if (lightData.linkLightLayers.boolValue && change.changed)
                         SyncLightAndShadowLayers(serialized, owner);
-                }
-            }
-
-            if (serialized.editorLightShape == LightShape.Directional)
-            {
-                lightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, lightData.interactsWithSky.boolValue);
-
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
-                EditorGUILayout.PropertyField(lightData.distance,        s_Styles.distance);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    lightData.angularDiameter.floatValue = Mathf.Max(0, lightData.angularDiameter.floatValue);
-                    lightData.distance.floatValue        = Mathf.Max(0, lightData.distance.floatValue);
                 }
             }
         }
@@ -319,6 +326,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.serializedLightData.shapeRadius.floatValue = Mathf.Max(serialized.serializedLightData.shapeRadius.floatValue, 0.0f);
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)owner.target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
+            }
+        }
+
+        static void DrawShapeAdvancedContent(SerializedHDLight serialized, Editor owner)
+        {
+            var lightData = serialized.serializedLightData;
+
+            if (serialized.editorLightShape == LightShape.Directional)
+            {
+                EditorGUILayout.PropertyField(lightData.angularDiameter, s_Styles.angularDiameter);
+
+                lightData.interactsWithSky.boolValue = EditorGUILayout.Toggle(s_Styles.interactsWithSky, lightData.interactsWithSky.boolValue);
+
+                using (new EditorGUI.DisabledScope(!lightData.interactsWithSky.boolValue))
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(lightData.distance, s_Styles.distance);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightData.angularDiameter.floatValue = Mathf.Max(0, lightData.angularDiameter.floatValue);
+                        lightData.distance.floatValue = Mathf.Max(0, lightData.distance.floatValue);
+                    }
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 
@@ -582,6 +614,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
         {
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+
             bool oldShadowEnabled = serialized.settings.shadowsType.enumValueIndex != 0;
             bool newShadowsEnabled = EditorGUILayout.Toggle(s_Styles.enableShadowMap, oldShadowEnabled);
             if (oldShadowEnabled ^ newShadowsEnabled)
@@ -597,20 +631,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.PropertyField(serialized.serializedLightData.shadowUpdateMode, s_Styles.shadowUpdateMode);
                     }
 
-                    EditorGUILayout.PropertyField(serialized.serializedLightData.useShadowQualitySettings, s_Styles.useShadowQualityResolution);
-
-                    if (serialized.serializedLightData.useShadowQualitySettings.boolValue)
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.shadowResolutionTier, s_Styles.shadowResolution);
-
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        if (!serialized.serializedLightData.useShadowQualitySettings.boolValue)
-                        {
-                            EditorGUILayout.DelayedIntField(serialized.serializedLightData.customResolution, s_Styles.shadowResolution);
+                        var defaultResolution = new SerializedShadowResolutionSettingValueUI.FromScalableSetting(
+                            ScalableSettings.ShadowResolution(serialized.editorLightShape, hdrp),
+                            hdrp
+                        );
+                        serialized.serializedLightData.shadowResolution.LevelAndIntGUILayout(s_Styles.shadowResolution, defaultResolution);
+
+
                             if (change.changed)
-                                serialized.serializedLightData.customResolution.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.customResolution.intValue);
+                            serialized.serializedLightData.shadowResolution.@override.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.shadowResolution.@override.intValue);
                         }
-                    }
 
                     EditorGUILayout.Slider(serialized.serializedLightData.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
 
@@ -766,7 +798,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.serializedLightData.contactShadows, s_Styles.contactShadows);
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            SerializedScalableSettingValueUI.LevelAndToggleGUILayout(
+                serialized.serializedLightData.contactShadows,
+                s_Styles.contactShadows,
+                new SerializedScalableSettingValueUI.FromScalableSetting<bool>(
+                    HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
+                    hdrp
+                )
+            );
         }
 
         static void DrawBakedShadowsContent(SerializedHDLight serialized, Editor owner)

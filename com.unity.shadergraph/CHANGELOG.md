@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [7.2.0] - 2019-XX-XX
+### Added
+- Added samples for Procedural Patterns to the package.
+- You can now use the right-click context menu to delete Sticky Notes.
 
 ## [7.1.1] - 2019-09-05
 ### Added
@@ -15,6 +18,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
 - Fixed an issue where deleting a group and a property at the same time would cause an error.
+- Fixed the epsilon that the Hue Node uses to avoid NaN on platforms that support half precision.
+- Emission nodes no longer produce errors when you use them in Sub Graphs.
+- Exposure nodes no longer produce errors when you use them in Sub Graphs.
+- Unlit master nodes no longer define unnecessary properties in the Universal Render Pipeline.
+- Errors no longer occur when you convert a selection to a Sub Graph.
+- Color nodes now handle Gamma and Linear conversions correctly.
+- Sub Graph Output nodes now link to the correct documentation page.
+- When you use Keywords, PBR and Unlit master nodes no longer produce errors.
+- PBR master nodes now calculate Global Illumination (GI) correctly.
+- PBR master nodes now apply surface normals.
+- PBR master nodes now apply fog.
 
 ## [7.0.1] - 2019-07-25
 ### Changed

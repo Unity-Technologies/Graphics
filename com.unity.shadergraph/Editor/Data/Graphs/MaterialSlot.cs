@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor.Graphing;
-
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph

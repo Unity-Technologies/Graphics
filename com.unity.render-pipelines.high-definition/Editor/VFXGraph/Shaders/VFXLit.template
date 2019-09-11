@@ -1,5 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXLit.hlsl"
 
+#ifndef VFX_SHADERGRAPH
+
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, out BSDFData bsdfData, out PreLightData preLightData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, uint2 tileIndex)
 {	
 	#if HDRP_MATERIAL_TYPE_TRANSLUCENT
@@ -24,7 +26,7 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
     preLightData.coatIblR = 0;
     preLightData.coatIblF = 0;
     
-	builtinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);
+	builtinData = VFXGetBuiltinData(i,posInput,surfaceData,uvData,alpha);
 }
 
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
@@ -34,6 +36,9 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	preLightData.diffuseFGD = 1.0f;
 	VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));
 }
+
+#endif
+
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXLitPixelOutput.hlsl"
 

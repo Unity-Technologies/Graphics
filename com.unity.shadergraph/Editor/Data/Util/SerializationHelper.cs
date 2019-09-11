@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -105,7 +107,9 @@ namespace UnityEditor.Graphing
             T instance;
             try
             {
-                instance = Activator.CreateInstance(type, constructorArgs) as T;
+                var culture = CultureInfo.CurrentCulture;
+                var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                instance = Activator.CreateInstance(type, flags, null, constructorArgs, culture) as T;
             }
             catch (Exception e)
             {

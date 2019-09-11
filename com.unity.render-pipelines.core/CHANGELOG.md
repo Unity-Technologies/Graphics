@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Replaced usage of ENABLE_VR in XRGraphics.cs by a version define (ENABLE_VR_MODULE) based on the presence of the built-in VR module
 - `ResourceReloader` now works on non-public fields.
+- Removed `normalize` from `UnpackNormalRGB` to match `UnpackNormalAG`.
 - Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 - Removed debug menu in non development build.
 
