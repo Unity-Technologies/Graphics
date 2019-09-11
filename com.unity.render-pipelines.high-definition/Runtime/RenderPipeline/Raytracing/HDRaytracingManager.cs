@@ -576,7 +576,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // For every sub-mesh/sub-material let's build the right flags
                             int numSubMeshes = currentRenderer.sharedMaterials.Length;
 
-                            uint instanceFlag = 0xff;
+                            // We need to build the instance flag for this renderer
+                            uint instanceFlag = 0x00;
+
+                            // Incorporate the shadow casting flag
+                            instanceFlag |= ((currentRenderer.shadowCastingMode == ShadowCastingMode.On) ? (uint)(1 << 2) : 0x00);
+
                             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                             {
                                 Material currentMaterial = currentRenderer.sharedMaterials[meshIdx];
@@ -593,7 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
 
                                     // Propagate the right mask
-                                    instanceFlag = materialIsTransparent ? (uint)0xf0 : (uint)0x0f;
+                                    instanceFlag |= materialIsTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
 
                                     // Is the material alpha tested?
                                     subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
