@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string defaultFunctionBody => k_DefaultFunctionBody;
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetOutputSlots<MaterialSlot>(slots);
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine(call);
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             if(!IsValidFunction())
                 return;
