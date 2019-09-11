@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void SetupIfNeeded()
         {
-            //if (!isInitialized)
+            if (!isInitialized)
             {
                 Setup();
                 isInitialized = true;
