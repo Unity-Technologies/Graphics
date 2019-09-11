@@ -13,6 +13,6 @@
 			"displayName":"Procedural Patterns",
 			"description":"This collection of assets showcase various procedural techniques possible with Shader Graph. Use them in your project or edit them to create other procedural pattens. Patterns: Bacteria, Brick, Dots, Grid, Herringbone, Hex Lattice, Houndstooth, Smooth Wave, Spiral, Stripes, Truchet, Whirl, Zig Zag",
 			"path" : "Samples~/ProceduralPatterns"
-		}
+    }
 	]
 }
