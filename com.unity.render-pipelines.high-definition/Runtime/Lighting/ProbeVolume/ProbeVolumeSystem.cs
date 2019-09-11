@@ -286,7 +286,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBufferDefault);
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, 0);
-            cmd.SetGlobalTexture("_ProbeVolumeAtlas", Texture2D.blackTexture);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlasShAr", Texture2D.blackTexture);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlasShAg", Texture2D.blackTexture);
+            cmd.SetGlobalTexture("_ProbeVolumeAtlasShAb", Texture2D.blackTexture);
             cmd.SetGlobalFloat("_ProbeVolumeNormalBiasWS", 0.0f);
         }
 
