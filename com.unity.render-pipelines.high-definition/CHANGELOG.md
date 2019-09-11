@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
 - Fix a potential NaN source with iridescence (case 1183216)
 - Fixed issue of spotlight breaking when minimizing the cone angle via the gizmo (case 1178279)
+- Fixed issue that caused decals not to modify the roughness in the normal buffer, causing SSR to not behave correctly (case 1178336)
 
 ## [7.1.1] - 2019-09-05
 
