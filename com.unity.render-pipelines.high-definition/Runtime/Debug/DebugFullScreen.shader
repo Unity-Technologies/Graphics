@@ -163,12 +163,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
-                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_INDIRECT_DIFFUSE)
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RAY_TRACED_GLOBAL_ILLUMINATION)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
-                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RECURSIVE_TRACING)
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RECURSIVE_RAY_TRACING)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;

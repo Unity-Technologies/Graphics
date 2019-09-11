@@ -39,8 +39,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // Indirect Diffuse
-            public static readonly GUIContent indirectDiffuseSectionText = EditorGUIUtility.TrTextContent("Indirect Diffuse Raytracing");
-            public static readonly GUIContent indirectDiffuseLayerMaskText = EditorGUIUtility.TrTextContent("Indirect Diffuse Layer Mask");
+            public static readonly GUIContent indirectDiffuseSectionText = EditorGUIUtility.TrTextContent("Ray-traced Global Illumination");
+            public static readonly GUIContent indirectDiffuseLayerMaskText = EditorGUIUtility.TrTextContent("Global Illumination Layer Mask");
         }
 
         SerializedHDRaytracingEnvironment m_SerializedHDRaytracingEnvironment;

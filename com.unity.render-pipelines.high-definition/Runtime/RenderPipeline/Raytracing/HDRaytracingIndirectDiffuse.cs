@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(indirectDiffuseCS, indirectDiffuseKernel, numTilesX, numTilesY, 1);
             }
 
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_IDIntermediateBuffer0, FullScreenDebugMode.IndirectDiffuse);
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_IDIntermediateBuffer0, FullScreenDebugMode.RayTracedGlobalIllumination);
         }
 
         DeferredLightingRTParameters PrepareIndirectDiffuseDeferredLightingRTParameters(HDCamera hdCamera, HDRaytracingEnvironment rtEnv)
