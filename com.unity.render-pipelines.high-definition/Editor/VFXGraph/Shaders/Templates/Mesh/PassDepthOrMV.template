@@ -7,6 +7,18 @@ struct ps_input
 {		
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD0;	
+    #if VFX_SHADERGRAPH_HAS_UV1
+    float4 uv1 : COLOR2;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV2
+    float4 uv2 : COLOR3;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_UV3
+    float4 uv3 : COLOR4;
+    #endif
+    #if VFX_SHADERGRAPH_HAS_COLOR
+    float4 vertexColor : COLOR1;
+    #endif
 	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
 	// x: alpha threshold
 	// y: frame blending factor
@@ -21,7 +33,7 @@ struct ps_input
 	#endif
 	#ifdef WRITE_NORMAL_BUFFER
 	float4 normal : TEXCOORD4; // normal scale is stored in w
-	#if HDRP_USE_NORMAL_MAP
+	#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 	float4 tangent : TEXCOORD5;
 	#endif
 	#endif
@@ -30,6 +42,7 @@ struct ps_input
 	float4 cPosPrevious : TEXCOORD6;
 	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
+    ${VFXAdditionalInterpolantsDeclaration}
 	
 	UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -50,7 +63,7 @@ struct ps_input
 #ifdef WRITE_NORMAL_BUFFER
 #define VFX_VARYING_NORMAL normal.xyz
 #define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
-#if HDRP_USE_NORMAL_MAP
+#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 #define VFX_VARYING_TANGENT tangent
 #define VFX_VARYING_NORMALSCALE normal.w
 #endif
@@ -64,6 +77,8 @@ ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
 #define SHADERPASS SHADERPASS_DEPTH_ONLY
 ${VFXIncludeRP("VFXLit.template")}
 			
+${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	
 #pragma fragment frag
 void frag(ps_input i
 #if USE_DOUBLE_SIDED
@@ -86,16 +101,35 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	#ifdef VFX_SHADERGRAPH
+        ${VFXAdditionalInterpolantsPreparation}
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
 	
+        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    #else
 	float alpha = VFXGetFragmentColor(i).a;
 	#if HDRP_USE_BASE_COLOR_MAP_ALPHA
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
 	#endif
+    #endif
 	VFXClipFragmentColor(alpha,i);
 	
 	#ifdef WRITE_NORMAL_BUFFER
 		${VFXComputeNormalWS}
-		VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
+        #ifndef VFX_SHADERGRAPH
+            VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
+        #else
+           #if HAS_SHADERGRAPH_PARAM_NORMAL
+               float3 n =  OUTSG.Normal_8;
+               float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+               normalWS = mul(n,tbn);
+           #endif
+           SurfaceData surface = (SurfaceData)0;
+           
+           surface.normalWS = normalWS;
+           
+           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), i.VFX_VARYING_POSCS.xy, outNormalBuffer);
+        #endif
 	#endif
 
 	#if IS_MOTION_VECTORS_PASS
