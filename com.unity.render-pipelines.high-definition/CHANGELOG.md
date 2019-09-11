@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed crash with terrain and XR multi-pass
 - Fixed ShaderGraph material synchronization issues
 - Fixed a null reference exception when using an Emissive texture with Unlit shader (case 1181335)
+- Fixed an issue where area lights and point lights where not counted separately with regards to max lights on screen (case 1183196)
 
 ### Changed
 - Update Wizard layout.
