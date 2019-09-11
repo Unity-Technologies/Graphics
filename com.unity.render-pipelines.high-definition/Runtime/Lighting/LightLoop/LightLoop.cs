@@ -2032,27 +2032,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape, 
                                                                 ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
-                        bool typeIsFull = false;
-                        if (lightCategory == LightCategory.Punctual)
-                        {
-                            if (gpuLightType == GPULightType.Directional)
-                            {
-                                typeIsFull = (directionalLightcount >= m_MaxDirectionalLightsOnScreen);
-                            }
-                            else
-                            {
-                                typeIsFull = (punctualLightcount >= m_MaxPunctualLightsOnScreen);
-                            }
-                        }
-                        else
-                        {
-                            typeIsFull = (areaLightCount >= m_MaxAreaLightsOnScreen);
-                        }
-
-                        // If no slot is left for the target light type, we continue
-                        if (typeIsFull)
-                            continue;
-
                         if (hasDebugLightFilter
                             && !debugLightFilter.IsEnabledFor(gpuLightType, additionalData.spotLightShape))
                             continue;
@@ -2097,6 +2076,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var light = cullResults.visibleLights[lightIndex];
                         var lightComponent = light.light;
+
+                        switch(lightCategory)
+                        {
+                            case LightCategory.Punctual:
+                                if (punctualLightcount >= m_MaxPunctualLightsOnScreen)
+                                    continue;
+                                break;
+                            case LightCategory.Area:
+                                if (areaLightCount >= m_MaxAreaLightsOnScreen)
+                                    continue;
+                                break;
+                            default:
+                                break;
+                        }
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
 
