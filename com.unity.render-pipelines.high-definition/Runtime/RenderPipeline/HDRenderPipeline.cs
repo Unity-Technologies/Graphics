@@ -10,6 +10,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class HDRenderPipeline : UnityEngine.Rendering.RenderPipeline
     {
+        internal static HDRenderPipelineAsset defaultAsset
+            => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
+
         public const string k_ShaderTagName = "HDRenderPipeline";
         const string k_OldQualityShadowKey = "HDRP:oldQualityShadows";
 
@@ -1899,6 +1902,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueEmissive);
 
                 RenderSky(hdCamera, cmd);
+
+			    m_PostProcessSystem.DoUserBeforeTransparent(cmd, hdCamera, m_CameraColorBuffer);
 
                 RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
 

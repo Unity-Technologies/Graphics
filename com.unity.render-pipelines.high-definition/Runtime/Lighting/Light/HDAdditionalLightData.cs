@@ -361,14 +361,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int                 firstShadowRequestIndex = -1;
             Vector3             cameraPos = hdCamera.camera.transform.position;
             shadowRequestCount = 0;
-
+          //
             int count = GetShadowRequestCount();
             for (int index = 0; index < count; index++)
             {
                 var         shadowRequest = shadowRequests[index];
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
-                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex, shadowRequest.shadowMapType);
+                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+                Vector2     viewportSize = manager.GetReservedResolution(shadowRequestIndex, shadowMapType);
 
                 if (shadowRequestIndex == -1)
                     continue;
