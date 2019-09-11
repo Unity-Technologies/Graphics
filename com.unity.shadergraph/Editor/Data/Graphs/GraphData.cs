@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph
@@ -782,7 +783,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (string.IsNullOrEmpty(newName))
                 return;
-            
+
             string name = newName.Trim();
             if (string.IsNullOrEmpty(name))
                 return;

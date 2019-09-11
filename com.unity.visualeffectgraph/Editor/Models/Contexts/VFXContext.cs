@@ -131,6 +131,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> additionalDataHeaders        { get { return GetData().additionalHeaders; } }
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
+        public virtual IEnumerable<string> fragmentParameters           { get { return Enumerable.Empty<string>(); } }
 
         public virtual bool CanBeCompiled()
         {
@@ -165,6 +166,9 @@ namespace UnityEditor.VFX
                     Invalidate(InvalidationCause.kExpressionGraphChanged);
             }
         }
+
+        public virtual bool SetupCompilation() { return true; }
+        public virtual void EndCompilation() {}
 
 
         public void RefreshInputFlowSlots()
@@ -328,9 +332,8 @@ namespace UnityEditor.VFX
 
             if (notify)
             {
-                // TODO Might need a specific event ?
-                from.Invalidate(InvalidationCause.kStructureChanged);
-                to.Invalidate(InvalidationCause.kStructureChanged);
+                from.Invalidate(InvalidationCause.kConnectionChanged);
+                to.Invalidate(InvalidationCause.kConnectionChanged);
             }
         }
 
@@ -339,14 +342,13 @@ namespace UnityEditor.VFX
             if (from.GetData() == to.GetData() && from.GetData() != null)
                 to.SetDefaultData(false);
 
-            from.m_OutputFlowSlot[fromIndex].link.RemoveAll(o => o.context == to && o.slotIndex == toIndex);
-            to.m_InputFlowSlot[toIndex].link.RemoveAll(o => o.context == from && o.slotIndex == fromIndex);
+            int count = from.m_OutputFlowSlot[fromIndex].link.RemoveAll(o => o.context == to && o.slotIndex == toIndex);
+            count += to.m_InputFlowSlot[toIndex].link.RemoveAll(o => o.context == from && o.slotIndex == fromIndex);
 
-            // TODO Might need a specific event ?
-            if (notify)
+            if (count > 0 && notify)
             {
-                from.Invalidate(InvalidationCause.kStructureChanged);
-                to.Invalidate(InvalidationCause.kStructureChanged);
+                from.Invalidate(InvalidationCause.kConnectionChanged);
+                to.Invalidate(InvalidationCause.kConnectionChanged);
             }
         }
 

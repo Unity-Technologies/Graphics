@@ -15,5 +15,11 @@ namespace UnityEditor.ShaderGraph
         {
             GraphUtil.CreateNewGraph(new PBRMasterNode());
         }
+
+        [MenuItem("Assets/Create/Shader/VFX Shader Graph", false, 208)]
+        public static void CreateVfxShaderGraph()
+        {
+            GraphUtil.CreateNewGraph(new VfxMasterNode());
+        }
     }
 }

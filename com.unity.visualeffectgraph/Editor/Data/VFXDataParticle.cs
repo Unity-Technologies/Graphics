@@ -201,7 +201,7 @@ namespace UnityEditor.VFX
             ParticleStrip
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
         protected DataType dataType = DataType.Particle;
         [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")]
         protected uint capacity = 128;
@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
         [VFXSetting, Delayed, SerializeField]
         protected uint particlePerStripCount = 16;
 
-        protected bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
+        public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
 
         protected override void OnSettingModified(VFXSetting setting)
         {
@@ -240,6 +240,9 @@ namespace UnityEditor.VFX
                 foreach (var s in base.filteredOutSettings)
                     yield return s;
 
+                if (!VFXViewPreference.displayExperimentalOperator) // TODO Name is bad!
+                    yield return "dataType";
+
                 if (hasStrip)
                 {
                     yield return "capacity";
@@ -260,7 +263,6 @@ namespace UnityEditor.VFX
                 {
                     yield return "#define STRIP_COUNT " + stripCapacity + "u";
                     yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount + "u";
-                    yield return "#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl\"";
                 }
             }
         }
@@ -336,7 +338,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_layoutAttributeCurrent.GetBufferDesc(capacity);
+                return m_layoutAttributeCurrent.GetBufferDesc(alignedCapacity);
             }
         }
 
@@ -525,8 +527,7 @@ namespace UnityEditor.VFX
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
-            Dictionary<VFXData, int> attributeBuffer,
-            Dictionary<VFXData, int> eventBuffer,
+            VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             bool hasKill = IsAttributeStored(VFXAttribute.Alive);
@@ -537,7 +538,7 @@ namespace UnityEditor.VFX
             var systemBufferMappings = new List<VFXMapping>();
             var systemValueMappings = new List<VFXMapping>();
 
-            var attributeBufferIndex = attributeBuffer[this];
+            var attributeBufferIndex = dependentBuffers.attributeBuffers[this];
 
             int attributeSourceBufferIndex = -1;
             int eventGPUFrom = -1;
@@ -550,13 +551,12 @@ namespace UnityEditor.VFX
                 {
                     throw new InvalidOperationException("Unexpected multiple input dependency for GPU event");
                 }
-                attributeSourceBufferIndex = attributeBuffer[m_DependenciesIn.FirstOrDefault()];
-                eventGPUFrom = eventBuffer[this];
+                attributeSourceBufferIndex = dependentBuffers.attributeBuffers[m_DependenciesIn.FirstOrDefault()];
+                eventGPUFrom = dependentBuffers.eventBuffers[this];
             }
 
             if (attributeBufferIndex != -1)
             {
-                outBufferDescs.Add(m_layoutAttributeCurrent.GetBufferDesc(alignedCapacity));
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
@@ -603,9 +603,8 @@ namespace UnityEditor.VFX
                 systemValueMappings.Add(new VFXMapping("stripCount", (int)stripCapacity));
                 systemValueMappings.Add(new VFXMapping("particlePerStripCount", (int)particlePerStripCount));
 
-                stripDataIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 4, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("stripData", stripDataIndex));
+                stripDataIndex = dependentBuffers.stripBuffers[this];
+                systemBufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
             }
 
             var initContext = m_Contexts.FirstOrDefault(o => o.contextType == VFXContextType.Init);
@@ -705,7 +704,14 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
 
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
-                    bufferMappings.Add(new VFXMapping("stripData", stripDataIndex));
+                    bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
+
+                bool hasAttachedStrip = IsAttributeStored(VFXAttribute.StripAlive);
+                if (hasAttachedStrip)
+                {
+                    var stripData = dependenciesOut.First(d => ((VFXDataParticle)d).hasStrip); // TODO Handle several strip attached
+                    bufferMappings.Add(new VFXMapping("attachedStripDataBuffer", dependentBuffers.stripBuffers[stripData]));
+                }
 
                 if (indirectBufferIndex != -1 &&
                     (context.contextType == VFXContextType.Update ||
@@ -726,7 +732,7 @@ namespace UnityEditor.VFX
 
                 var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
                     .Where(c => c.CanBeCompiled())
-                    .Select(o => eventBuffer[o.GetData()])
+                    .Select(o => dependentBuffers.eventBuffers[o.GetData()])
                     .ToArray();
                 for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)
                 {
