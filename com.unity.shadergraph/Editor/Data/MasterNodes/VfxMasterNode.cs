@@ -106,10 +106,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(usedSlots);
         }
 
-        public override void ProcessPreviewMaterial(Material previewMaterial)
-        {
-        }
-
         class SettingsView : VisualElement
         {
             readonly VfxMasterNode m_Node;
@@ -169,19 +165,9 @@ namespace UnityEditor.ShaderGraph
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
         }
 
-        public override string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public override bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return true;
-        }
-
-        public override int GetPreviewPassIndex()
-        {
-            return 0;
         }
     }
 }

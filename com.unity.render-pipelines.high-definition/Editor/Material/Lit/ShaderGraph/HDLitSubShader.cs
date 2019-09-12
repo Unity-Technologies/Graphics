@@ -7,7 +7,7 @@ using Data.Util;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitSubShader")]
-    class HDLitSubShader : IHDLitSubShader
+    class HDLitSubShader : ISubShader
     {
         internal static string DefineRaytracingKeyword(RayTracingNode.RaytracingVariant variant)
             => $"#define {RayTracingNode.RaytracingVariantKeyword(variant)}";
@@ -843,7 +843,6 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             UseInPreview = false
         };
-        public int GetPreviewPassIndex() { return 0; }
 
         private static List<string> GetInstancingOptionsFromMasterNode(AbstractMaterialNode iMasterNode)
         {
@@ -1227,6 +1226,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is HDRenderPipelineAsset;
+        }
+
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is HDLitMasterNode;
         }
     }
 }

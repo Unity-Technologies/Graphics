@@ -543,7 +543,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             List<PropertyCollector.TextureInfo> configuredTextures;
-            shaderData.shaderString = masterNode.GetShader(GenerationMode.Preview, shaderData.node.name, out configuredTextures);
+            shaderData.shaderString = GenerationUtils.GetShaderForNode(shaderData?.node, GenerationMode.Preview, shaderData.node.name, out configuredTextures);
 
             if (string.IsNullOrEmpty(shaderData.shaderString))
             {

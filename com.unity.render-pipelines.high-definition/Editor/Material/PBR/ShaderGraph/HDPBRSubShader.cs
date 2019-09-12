@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDPBRSubShader")]
     [FormerName("UnityEditor.ShaderGraph.HDPBRSubShader")]
-    class HDPBRSubShader : IPBRSubShader
+    class HDPBRSubShader : ISubShader
     {
         Pass m_PassGBuffer = new Pass()
         {
@@ -458,8 +458,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public int GetPreviewPassIndex() { return 0; }
-
         private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             var activeFields = new ActiveFields();
@@ -613,6 +611,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is HDRenderPipelineAsset;
+        }
+
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is PBRMasterNode;
         }
     }
 }

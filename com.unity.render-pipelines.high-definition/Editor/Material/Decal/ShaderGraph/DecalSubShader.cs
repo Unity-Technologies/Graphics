@@ -8,7 +8,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalSubShader")]
-    class DecalSubShader : IDecalSubShader
+    class DecalSubShader : ISubShader
     {
         // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
         // and DecalSet.InitializeMaterialValues()
@@ -429,8 +429,6 @@ namespace UnityEditor.Rendering.HighDefinition
             UseInPreview = true,
         };
 
-        public int GetPreviewPassIndex() { return 0; }
-
         private static string[] m_ColorMasks = new string[8]
         {
             "ColorMask 0 2 ColorMask 0 3",     // nothing
@@ -556,6 +554,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is HDRenderPipelineAsset;
+        }
+
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is DecalMasterNode;
         }
     }
 }

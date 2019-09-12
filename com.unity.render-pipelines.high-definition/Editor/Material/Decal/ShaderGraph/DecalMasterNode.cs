@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Serializable]
     [Title("Master", "HDRP/Decal")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalMasterNode")]
-    class DecalMasterNode : MasterNode<IDecalSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class DecalMasterNode : MasterNode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";

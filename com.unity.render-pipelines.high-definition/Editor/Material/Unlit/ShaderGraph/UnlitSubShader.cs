@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.UnlitSubShader")]
-    class UnlitSubShader : IUnlitSubShader
+    class UnlitSubShader : ISubShader
     {
         Pass m_PassMETA = new Pass()
         {
@@ -249,8 +249,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         };
 
-        public int GetPreviewPassIndex() { return 0; }
-
         // For Unlit we keep the hardcoded stencils as the shader does not have properties to setup the stencil
         public static void GetStencilStateForForwardUnlit(ref Pass pass)
         {
@@ -445,6 +443,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is HDRenderPipelineAsset;
+        }
+
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is UnlitMasterNode;
         }
     }
 }

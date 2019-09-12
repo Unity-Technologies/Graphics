@@ -359,10 +359,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         string ConvertToShader(GenerationMode mode)
         {
             List<PropertyCollector.TextureInfo> textureInfo;
-            if (node is IMasterNode masterNode)
-                return masterNode.GetShader(mode, node.name, out textureInfo);
-
-            return node.owner.GetShader(node, mode, node.name).shader;
+            return GenerationUtils.GetShaderForNode(node, mode, node.name, out textureInfo);
         }
 
         void AddDefaultSettings()

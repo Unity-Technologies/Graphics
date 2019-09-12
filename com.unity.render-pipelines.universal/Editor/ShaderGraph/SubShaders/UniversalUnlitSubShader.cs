@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
     [FormerName("UnityEditor.Rendering.LWRP.LightWeightUnlitSubShader")]
     [FormerName("UnityEngine.Rendering.LWRP.LightWeightUnlitSubShader")]
-    class UniversalUnlitSubShader : IUnlitSubShader
+    class UniversalUnlitSubShader : ISubShader
     {
 #region Passes
         ShaderPass m_UnlitPass = new ShaderPass
@@ -203,8 +203,6 @@ namespace UnityEditor.Rendering.Universal
         };
 #endregion
 
-        public int GetPreviewPassIndex() { return 0; }
-
         private static ActiveFields GetActiveFieldsFromMasterNode(UnlitMasterNode masterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
@@ -300,6 +298,9 @@ namespace UnityEditor.Rendering.Universal
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
 
-        public UniversalUnlitSubShader() { }
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is UnlitMasterNode;
+        }
     }
 }

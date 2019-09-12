@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 {
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.LightWeightSpriteLitSubShader")]
-    class UniversalSpriteLitSubShader : ISpriteLitSubShader
+    class UniversalSpriteLitSubShader : ISubShader
     {
 #region Passes
         ShaderPass m_LitPass = new ShaderPass
@@ -216,8 +216,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         };
 #endregion
 
-        public int GetPreviewPassIndex() { return 0; }
-
         private static ActiveFields GetActiveFieldsFromMasterNode(SpriteLitMasterNode masterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
@@ -288,6 +286,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
 
-        public UniversalSpriteLitSubShader () { }
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is SpriteLitMasterNode;
+        }
     }
 }

@@ -7,7 +7,7 @@ using Data.Util;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.FabricSubShader")]
-    class FabricSubShader : IFabricSubShader
+    class FabricSubShader : ISubShader
     {
         Pass m_PassMETA = new Pass()
         {
@@ -500,8 +500,6 @@ namespace UnityEditor.Rendering.HighDefinition
             UseInPreview = false
         };
 
-        public int GetPreviewPassIndex() { return 0; }
-
         private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
             var activeFields = new ActiveFields();
@@ -730,6 +728,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is HDRenderPipelineAsset;
+        }
+
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is FabricMasterNode;
         }
     }
 }

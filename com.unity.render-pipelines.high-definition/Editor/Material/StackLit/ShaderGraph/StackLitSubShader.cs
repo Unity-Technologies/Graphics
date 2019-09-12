@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitSubShader")]
-    class StackLitSubShader : IStackLitSubShader
+    class StackLitSubShader : ISubShader
     {
         Pass m_PassMETA = new Pass()
         {
@@ -433,8 +433,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         };
-
-        public int GetPreviewPassIndex() { return 0; }
 
         private static void AddPixelShaderSlotsForWriteNormalBufferPasses(StackLitMasterNode masterNode, ref Pass pass)
         {
@@ -933,6 +931,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is HDRenderPipelineAsset;
+        }
+
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is StackLitMasterNode;
         }
     }
 }

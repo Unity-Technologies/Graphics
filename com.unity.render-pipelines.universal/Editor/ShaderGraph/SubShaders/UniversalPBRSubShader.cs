@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.Universal
     [FormerName("UnityEditor.Experimental.Rendering.LightweightPipeline.LightWeightPBRSubShader")]
     [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
     [FormerName("UnityEditor.Rendering.LWRP.LightWeightPBRSubShader")]
-    class UniversalPBRSubShader : IPBRSubShader
+    class UniversalPBRSubShader : ISubShader
     {
 #region Passes
         ShaderPass m_ForwardPass = new ShaderPass
@@ -389,8 +389,6 @@ namespace UnityEditor.Rendering.Universal
         };
 #endregion
 
-        public int GetPreviewPassIndex() { return 0; }
-
         ActiveFields GetActiveFieldsFromMasterNode(PBRMasterNode masterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
@@ -495,6 +493,9 @@ namespace UnityEditor.Rendering.Universal
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
 
-        public UniversalPBRSubShader() { }
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is PBRMasterNode;
+        }
     }
 }

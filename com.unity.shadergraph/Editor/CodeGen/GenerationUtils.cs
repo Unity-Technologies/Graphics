@@ -641,5 +641,50 @@ namespace UnityEditor.ShaderGraph
 
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
         }
+
+        public static string GetShaderForNode(AbstractMaterialNode node, GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
+        {
+            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
+
+            var shaderProperties = new PropertyCollector();
+            var shaderKeywords = new KeywordCollector();
+            if (node.owner != null)
+            {
+                node.owner.CollectShaderProperties(shaderProperties, mode);
+                node.owner.CollectShaderKeywords(shaderKeywords, mode);
+            }
+
+            if(node.owner.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            {
+                node.owner.AddValidationError(node.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                
+                configuredTextures = shaderProperties.GetConfiguredTexutres();
+                return ShaderGraphImporter.k_ErrorShader;
+            }
+
+            foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+                activeNode.CollectShaderProperties(shaderProperties, mode);
+
+            var finalShader = new ShaderStringBuilder();
+            finalShader.AppendLine(@"Shader ""{0}""", outputName);
+            using (finalShader.BlockScope())
+            {
+                SubShaderGenerator.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords, mode);
+                
+                if(node is IMasterNode masterNode)
+                {
+                    foreach (var subShader in node.owner.subShaders)
+                    {
+                        if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                            finalShader.AppendLines(subShader.GetSubshader(masterNode, mode, sourceAssetDependencyPaths));
+                    }
+                }
+
+                finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");
+            }
+            configuredTextures = shaderProperties.GetConfiguredTexutres();
+            return finalShader.ToString();
+        }
     }
 }

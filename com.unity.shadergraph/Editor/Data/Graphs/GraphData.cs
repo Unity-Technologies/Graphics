@@ -283,6 +283,7 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = value;
                     m_OutputNode = null;
                     didActiveOutputNodeChange = true;
+                    UpdateSubShaders();
                 }
             }
         }
@@ -313,6 +314,11 @@ namespace UnityEditor.ShaderGraph
                 return m_OutputNode;
             }
         }
+
+        [NonSerialized]
+        List<ISubShader> m_SubShaders = new List<ISubShader>();
+
+        public List<ISubShader> subShaders => m_SubShaders;
 
         public bool didActiveOutputNodeChange { get; set; }
 
@@ -1336,12 +1342,42 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
+            UpdateSubShaders();
+
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+        }
+
+        void UpdateSubShaders()
+        {
+            subShaders.Clear();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isValid = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ISubShader).IsAssignableFrom(type);          
+                    if (isValid && !subShaders.Any(s => s.GetType() == type))
+                    {
+                        try
+                        {
+                            var subShader = (ISubShader)Activator.CreateInstance(type);
+                            var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                            if(subShader.IsMasterNodeCompatible(masterNode))
+                            {
+                                m_SubShaders.Add(subShader);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogException(e);
+                        }
+                    }
+                }
+            }
         }
     }
 

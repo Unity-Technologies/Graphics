@@ -149,7 +149,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                shaderString = ((IMasterNode)graph.outputNode).GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
+                shaderString = GenerationUtils.GetShaderForNode(graph.outputNode, GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
 
                 if (graph.messageManager.nodeMessagesChanged)
                 {

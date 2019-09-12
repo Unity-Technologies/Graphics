@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 {
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.LightWeightSpriteUnlitSubShader")]
-    class UniversalSpriteUnlitSubShader : ISpriteUnlitSubShader
+    class UniversalSpriteUnlitSubShader : ISubShader
     {
 #region Passes
         ShaderPass m_UnlitPass = new ShaderPass
@@ -77,8 +77,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             scope = KeywordScope.Global,
         };
 #endregion
-
-        public int GetPreviewPassIndex() { return 0; }
 
         private static ActiveFields GetActiveFieldsFromMasterNode(SpriteUnlitMasterNode masterNode, ShaderPass pass)
         {
@@ -148,6 +146,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }
 
-        public UniversalSpriteUnlitSubShader() { }
+        public bool IsMasterNodeCompatible(IMasterNode masterNode)
+        {
+            return masterNode is SpriteUnlitMasterNode;
+        }
     }
 }
