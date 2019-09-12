@@ -81,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var hdLightData in m_AdditionalLightDatas)
             {
                 hdLightData.UpdateAreaLightEmissiveMesh();
+                hdLightData.UpdateEmissiveMeshComponents();
             }
 
             m_SerializedHDLight.needUpdateAreaLightEmissiveMeshComponents = false;
