@@ -28,11 +28,11 @@ namespace UnityEditor.ShaderGraph
 
     internal class SearchNodeItem : SearcherItem
     {
-        public NodeEntry UserData;
+        public NodeEntry NodeGUID;
 
-        public SearchNodeItem(string name, NodeEntry userData, string help = " ", List<SearchNodeItem> children = null) : base(name)
+        public SearchNodeItem(string name, NodeEntry nodeGUID, string help = " ", List<SearchNodeItem> children = null) : base(name)
         {
-            UserData = userData;
+            NodeGUID = nodeGUID;
             
         }
 

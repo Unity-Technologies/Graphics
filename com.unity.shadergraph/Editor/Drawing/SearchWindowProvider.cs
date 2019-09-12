@@ -258,10 +258,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
-            if(entry == null || (entry as SearchNodeItem).UserData.node == null)
+            if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
                 return false;
            
-            var nodeEntry = (entry as SearchNodeItem).UserData;
+            var nodeEntry = (entry as SearchNodeItem).NodeGUID;
             var node = nodeEntry.node;
 
             var drawState = node.drawState;
