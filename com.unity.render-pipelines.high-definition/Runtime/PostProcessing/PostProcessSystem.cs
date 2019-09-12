@@ -62,6 +62,14 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
+        // CMAA2 data
+        ComputeBuffer m_CMAA2ShapeCandidates;
+        ComputeBuffer m_CMAA2BlendLocationList;
+        ComputeBuffer m_CMAA2BlendItemList;
+        ComputeBuffer m_CMAA2ControlBuffer;
+        ComputeBuffer m_CMAA2DispatchBuffer;
+        readonly Dictionary<int, int[]> m_CMAA2Kernels;
+
         // Prefetched components (updated on every frame)
         Exposure m_Exposure;
         DepthOfField m_DepthOfField;
@@ -189,6 +197,22 @@ namespace UnityEngine.Rendering.HighDefinition
             Graphics.Blit(tex, m_EmptyExposureTexture);
             CoreUtils.Destroy(tex);
 
+            // Pre-fetch CMAA2 kernel variants
+            m_CMAA2Kernels = new Dictionary<int, int[]>();
+            var cmaa2cs = defaultResources.shaders.CMAA2CS;
+
+            foreach (var q in Enum.GetValues(typeof(HDAdditionalCameraData.CMAA2QualityLevel)))
+            {
+                var qstr = q.ToString().ToUpperInvariant();
+                m_CMAA2Kernels.Add((int)q, new []
+                {
+                    cmaa2cs.FindKernel("EdgesColor2x2CS_" + qstr),
+                    cmaa2cs.FindKernel("ProcessCandidatesCS_" + qstr),
+                    cmaa2cs.FindKernel("DeferredColorApply2x2CS_" + qstr),
+                    cmaa2cs.FindKernel("ComputeDispatchArgsCS_" + qstr)
+                });
+            }
+
             // Initialize our target pool to ease RT management
             m_Pool = new TargetPool();
 
@@ -227,6 +251,11 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
             CoreUtils.SafeRelease(m_NearBokehTileList);
             CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_CMAA2ShapeCandidates);
+            CoreUtils.SafeRelease(m_CMAA2BlendLocationList);
+            CoreUtils.SafeRelease(m_CMAA2BlendItemList);
+            CoreUtils.SafeRelease(m_CMAA2ControlBuffer);
+            CoreUtils.SafeRelease(m_CMAA2DispatchBuffer);
 
             m_EmptyExposureTexture      = null;
             m_TempTexture1024           = null;
@@ -241,6 +270,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
+            m_CMAA2ShapeCandidates      = null;
+            m_CMAA2BlendLocationList    = null;
+            m_CMAA2BlendItemList        = null;
+            m_CMAA2ControlBuffer        = null;
+            m_CMAA2DispatchBuffer       = null;
 
             // Cleanup Custom Post Process
             if (HDRenderPipeline.defaultAsset != null)
@@ -431,6 +465,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
                                 DoSMAA(cmd, camera, source, destination, depthBuffer);
                                 PoolSource(ref source, destination);
+                            }
+                        }
+                        else if (camera.antialiasing == AntialiasingMode.ConservativeMorphologicalAntialiasing2)
+                        {
+                            using (new ProfilingSample(cmd, "CMAA2", CustomSamplerId.CMAA2.GetSampler()))
+                            {
+                                // Internal ping-pong done in the CMAA pass, no need for a destination here
+                                DoCMAA2(cmd, camera, source);
                             }
                         }
                     }
@@ -832,6 +874,109 @@ namespace UnityEngine.Rendering.HighDefinition
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing)
                 ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing, Allocator, 2);
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing);
+        }
+
+        #endregion
+
+        #region CMAA2
+
+        void DoCMAA2(CommandBuffer cmd, HDCamera camera, RTHandle source)
+        {
+            var computeShader = m_Resources.shaders.CMAA2CS;
+
+            var kernels = m_CMAA2Kernels[(int)camera.CMAA2Quality];
+            int edgeDetectionKernel = kernels[0];
+            int processCandidateKernel = kernels[1];
+            int deferredColorApplyKernel = kernels[2];
+            int computeDispatchArgsKernel = kernels[3];
+
+            var inputKernelSize = new uint[3];
+            computeShader.GetKernelThreadGroupSizes(edgeDetectionKernel, out inputKernelSize[0], out inputKernelSize[1], out inputKernelSize[2]);
+
+            // TODO: support CMAA2 with MSAA?
+            int textureSampleCount = 1;
+
+            // If the size is not big enough edges will start to be ignored,
+            // on an average scene at ULTRA preset only 1/4 of below is used, but we leave 4x margin for extreme cases like full screen dense foliage
+            int requiredCandidatePixels = camera.actualWidth * camera.actualHeight / 4 * textureSampleCount;
+            int requiredDeferredColorApplyBuffer = camera.actualWidth * camera.actualHeight / 2 * textureSampleCount;
+            int requiredListHeadsPixels = (camera.actualWidth * camera.actualHeight + 3) / 6;
+
+            ValidateComputeBuffer(ref m_CMAA2ShapeCandidates, requiredCandidatePixels, sizeof(uint));
+            ValidateComputeBuffer(ref m_CMAA2BlendLocationList, requiredListHeadsPixels, sizeof(uint));
+            ValidateComputeBuffer(ref m_CMAA2BlendItemList, requiredDeferredColorApplyBuffer, sizeof(uint) * 2);
+
+            ValidateComputeBuffer(ref m_CMAA2ControlBuffer, 16, sizeof(uint), ComputeBufferType.Raw);
+            m_CMAA2ControlBuffer.SetData(new uint[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+
+            ValidateComputeBuffer(ref m_CMAA2DispatchBuffer, 4, sizeof(uint), ComputeBufferType.IndirectArguments);
+            m_CMAA2DispatchBuffer.SetData(new uint[] { 0, 0, 0, 0 });
+
+            var edgesResScale = (textureSampleCount == 1 ? new Vector2(0.5f, 1f) : Vector2.one);
+            var blendItemListScale = new Vector2(0.5f, 0.5f);
+
+            var edgeTex = m_Pool.Get(edgesResScale, GraphicsFormat.R8_UInt);
+            var blendItemListTex = m_Pool.Get(blendItemListScale, GraphicsFormat.R32_UInt);
+
+            cmd.SetComputeTextureParam(computeShader, edgeDetectionKernel, HDShaderIDs._CMAA2InputColor, source);
+            cmd.SetComputeTextureParam(computeShader, edgeDetectionKernel, HDShaderIDs._CMAA2Edges, edgeTex);
+            cmd.SetComputeTextureParam(computeShader, edgeDetectionKernel, HDShaderIDs._CMAA2BlendItemListHeads, blendItemListTex);
+
+            cmd.SetComputeBufferParam(computeShader, edgeDetectionKernel, HDShaderIDs._CMAA2ShapeCandidates, m_CMAA2ShapeCandidates);
+            cmd.SetComputeBufferParam(computeShader, edgeDetectionKernel, HDShaderIDs._CMAA2BlendLocationList, m_CMAA2BlendLocationList);
+            cmd.SetComputeBufferParam(computeShader, edgeDetectionKernel, HDShaderIDs._CMAA2BlendItemList, m_CMAA2BlendItemList);
+            cmd.SetComputeBufferParam(computeShader, edgeDetectionKernel, HDShaderIDs._CMAA2ControlBuffer, m_CMAA2ControlBuffer);
+
+            int outputKernelSizeX = (int)inputKernelSize[0] - 2;
+            int outputKernelSizeY = (int)inputKernelSize[1] - 2;
+            int threadGroupCountX = (camera.actualWidth + outputKernelSizeX * 2 - 1) / (outputKernelSizeX * 2);
+            int threadGroupCountY = (camera.actualHeight + outputKernelSizeY * 2 - 1) / (outputKernelSizeY * 2);
+
+            cmd.DispatchCompute(computeShader, edgeDetectionKernel, threadGroupCountX, threadGroupCountY, 1);
+
+            // Set up for the first DispatchIndirect
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2ShapeCandidates, m_CMAA2ShapeCandidates);
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2BlendLocationList, m_CMAA2BlendLocationList);
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2ControlBuffer, m_CMAA2ControlBuffer);
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2IndirectDispatchArgs, m_CMAA2DispatchBuffer);
+
+            cmd.DispatchCompute(computeShader, computeDispatchArgsKernel, 2, 1, 1);
+
+            // Process shape candidates DispatchIndirect
+            cmd.SetComputeTextureParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2InputColor, source);
+            cmd.SetComputeTextureParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2BlendItemListHeads, blendItemListTex);
+            cmd.SetComputeTextureParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2Edges, edgeTex);
+
+            cmd.SetComputeBufferParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2ShapeCandidates, m_CMAA2ShapeCandidates);
+            cmd.SetComputeBufferParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2BlendLocationList, m_CMAA2BlendLocationList);
+            cmd.SetComputeBufferParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2BlendItemList, m_CMAA2BlendItemList);
+            cmd.SetComputeBufferParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2ControlBuffer, m_CMAA2ControlBuffer);
+            cmd.SetComputeBufferParam(computeShader, processCandidateKernel, HDShaderIDs._CMAA2IndirectDispatchArgs, m_CMAA2DispatchBuffer);
+
+            cmd.DispatchCompute(computeShader, processCandidateKernel, m_CMAA2DispatchBuffer, 0);
+
+            // Set up for the second DispatchIndirect
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2ShapeCandidates, m_CMAA2ShapeCandidates);
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2BlendLocationList, m_CMAA2BlendLocationList);
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2ControlBuffer, m_CMAA2ControlBuffer);
+            cmd.SetComputeBufferParam(computeShader, computeDispatchArgsKernel, HDShaderIDs._CMAA2IndirectDispatchArgs, m_CMAA2DispatchBuffer);
+
+            cmd.DispatchCompute(computeShader, computeDispatchArgsKernel, 1, 2, 1);
+
+            // Resolve & apply blended colors
+            cmd.SetComputeTextureParam(computeShader, deferredColorApplyKernel, HDShaderIDs._CMAA2OutputColor, source);
+            cmd.SetComputeTextureParam(computeShader, deferredColorApplyKernel, HDShaderIDs._CMAA2BlendItemListHeads, blendItemListTex);
+
+            cmd.SetComputeBufferParam(computeShader, deferredColorApplyKernel, HDShaderIDs._CMAA2BlendLocationList, m_CMAA2BlendLocationList);
+            cmd.SetComputeBufferParam(computeShader, deferredColorApplyKernel, HDShaderIDs._CMAA2BlendItemList, m_CMAA2BlendItemList);
+            cmd.SetComputeBufferParam(computeShader, deferredColorApplyKernel, HDShaderIDs._CMAA2ControlBuffer, m_CMAA2ControlBuffer);
+            cmd.SetComputeBufferParam(computeShader, deferredColorApplyKernel, HDShaderIDs._CMAA2IndirectDispatchArgs, m_CMAA2DispatchBuffer);
+
+            cmd.DispatchCompute(computeShader, deferredColorApplyKernel, m_CMAA2DispatchBuffer, 0);
+
+            // Cleanup
+            m_Pool.Recycle(edgeTex);
+            m_Pool.Recycle(blendItemListTex);
         }
 
         #endregion

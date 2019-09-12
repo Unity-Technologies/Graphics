@@ -115,7 +115,8 @@ namespace UnityEngine.Rendering.HighDefinition
             None,
             FastApproximateAntialiasing,
             TemporalAntialiasing,
-            SubpixelMorphologicalAntiAliasing
+            SubpixelMorphologicalAntiAliasing,
+            ConservativeMorphologicalAntialiasing2
         }
 
         public enum SMAAQualityLevel
@@ -125,6 +126,13 @@ namespace UnityEngine.Rendering.HighDefinition
             High
         }
 
+        public enum CMAA2QualityLevel
+        {
+            Low,
+            Medium,
+            High,
+            Ultra
+        }
 
         public ClearColorMode clearColorMode = ClearColorMode.Sky;
         [ColorUsage(true, true)]
@@ -139,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public AntialiasingMode antialiasing = AntialiasingMode.None;
         public SMAAQualityLevel SMAAQuality = SMAAQualityLevel.High;
+        public CMAA2QualityLevel CMAA2Quality = CMAA2QualityLevel.High;
         public bool dithering = false;
         public bool stopNaNs = false;
 

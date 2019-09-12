@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
         public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
-
+        public HDAdditionalCameraData.CMAA2QualityLevel CMAA2Quality { get; private set; } = HDAdditionalCameraData.CMAA2QualityLevel.Medium;
 
         public bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -376,6 +376,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     if(antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
                         SMAAQuality = m_AdditionalCameraData.SMAAQuality;
+                    }
+                    else if (antialiasing == AntialiasingMode.ConservativeMorphologicalAntialiasing2)
+                    {
+                        CMAA2Quality = m_AdditionalCameraData.CMAA2Quality;
                     }
                 }
                 else

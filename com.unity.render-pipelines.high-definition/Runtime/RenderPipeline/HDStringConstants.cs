@@ -812,6 +812,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SMAABlendTex                   = Shader.PropertyToID("_BlendTex");
         public static readonly int _SMAARTMetrics                  = Shader.PropertyToID("_SMAARTMetrics");
 
+        public static readonly int _CMAA2InputColor                = Shader.PropertyToID("g_inoutColorReadonly");
+        public static readonly int _CMAA2InputLuma                 = Shader.PropertyToID("g_inLumaReadonly");
+        public static readonly int _CMAA2OutputColor               = Shader.PropertyToID("g_inoutColorWriteonly");
+        public static readonly int _CMAA2Edges                     = Shader.PropertyToID("g_workingEdges");
+        public static readonly int _CMAA2ShapeCandidates           = Shader.PropertyToID("g_workingShapeCandidates");
+        public static readonly int _CMAA2BlendLocationList         = Shader.PropertyToID("g_workingDeferredBlendLocationList");
+        public static readonly int _CMAA2BlendItemList             = Shader.PropertyToID("g_workingDeferredBlendItemList");
+        public static readonly int _CMAA2BlendItemListHeads        = Shader.PropertyToID("g_workingDeferredBlendItemListHeads");
+        public static readonly int _CMAA2ControlBuffer             = Shader.PropertyToID("g_workingControlBuffer");
+        public static readonly int _CMAA2IndirectDispatchArgs      = Shader.PropertyToID("g_indirectDispatchArgs");
+
         public static readonly int _LowResDepthTexture             = Shader.PropertyToID("_LowResDepthTexture");
         public static readonly int _LowResTransparent              = Shader.PropertyToID("_LowResTransparent");
 
