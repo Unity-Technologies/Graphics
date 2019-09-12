@@ -587,7 +587,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return EditorUtility.IsPersistent(obj) && (
                 obj is Texture2D ||
                 obj is Cubemap ||
-                obj is SubGraphAsset asset && !asset.descendents.Contains(graph.assetGuid) ||
+                obj is SubGraphAsset asset && !asset.descendents.Contains(graph.assetGuid)  && asset.assetGuid != graph.assetGuid ||
                 obj is Texture2DArray ||
                 obj is Texture3D);
         }
