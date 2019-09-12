@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: 2019.3/staging
 packages:
   - name: Core
     id: core
