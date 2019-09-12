@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
 
                         // Find lights that are not in the batch yet.
                         int trimmedLightCount = TrimLights(trimmedLights, m_Tiles, tileOffset + m_TileHeader, tileLightCount, usedLights);
-                        Assertions.Assert.IsTrue(trimmedLightCount <= maxLightPerTile, "too many lights overlaps a tile: max allowed is " + maxLightPerTile);
+                        Assertions.Assert.IsTrue(trimmedLightCount <= maxLightPerTile, "too many lights overlaps a tile");
 
                         // Find if one of the GPU buffers is reaching max capacity.
                         // In that case, the draw call must be flushed and new GPU buffer(s) be allocated.
@@ -719,13 +719,13 @@ namespace UnityEngine.Rendering.Universal
                     if (vl.light.type == LightType.Point)
                     {
                         Vector3 wsPos = vl.light.transform.position;
-                        float radius = vl.light.range * 1.10f; // TODO adjust more accurately
+                        float adjRadius = vl.light.range * 1.06067f; // adjust for approximate sphere geometry
 
                         Matrix4x4 sphereMatrix = new Matrix4x4(
-                            new Vector4( radius,    0.0f,    0.0f, 0.0f),
-                            new Vector4(   0.0f,  radius,    0.0f, 0.0f),
-                            new Vector4(   0.0f,    0.0f,  radius, 0.0f),
-                            new Vector4(wsPos.x, wsPos.y, wsPos.z, 1.0f)
+                            new Vector4(adjRadius,      0.0f,      0.0f, 0.0f),
+                            new Vector4(     0.0f, adjRadius,      0.0f, 0.0f),
+                            new Vector4(     0.0f,      0.0f, adjRadius, 0.0f),
+                            new Vector4(  wsPos.x,   wsPos.y,   wsPos.z, 1.0f)
                         );
 
                         cmd.SetGlobalVector("_LightWsPos", wsPos);
@@ -844,73 +844,70 @@ namespace UnityEngine.Rendering.Universal
 
         Mesh CreateSphereMesh()
         {
-            Vector3[] vertices = new Vector3[4]
-            {
-                Vector3.Normalize(new Vector3(-1.0f,-0.577f,-0.408f)),
-                Vector3.Normalize(new Vector3( 1.0f,-0.577f,-0.408f)),
-                Vector3.Normalize(new Vector3( 0.0f, 1.154f,-0.408f)),
-                Vector3.Normalize(new Vector3(0.0f,    0.0f, 1.224f))
+            Vector3 [] spherePos = {
+                new Vector3(0.000000f, -1.000000f, 0.000000f), new Vector3(1.000000f, 0.000000f, 0.000000f),
+                new Vector3(0.000000f, 1.000000f, 0.000000f), new Vector3(-1.000000f, 0.000000f, 0.000000f),
+                new Vector3(0.000000f, 0.000000f, 1.000000f), new Vector3(0.000000f, 0.000000f, -1.000000f),
+                new Vector3(0.707107f, -0.707107f, 0.000000f), new Vector3(0.707107f, 0.000000f, 0.707107f),
+                new Vector3(0.000000f, -0.707107f, 0.707107f), new Vector3(0.707107f, 0.707107f, 0.000000f),
+                new Vector3(0.000000f, 0.707107f, 0.707107f), new Vector3(-0.707107f, 0.707107f, 0.000000f),
+                new Vector3(-0.707107f, 0.000000f, 0.707107f), new Vector3(-0.707107f, -0.707107f, 0.000000f),
+                new Vector3(0.000000f, -0.707107f, -0.707107f), new Vector3(0.707107f, 0.000000f, -0.707107f),
+                new Vector3(0.000000f, 0.707107f, -0.707107f), new Vector3(-0.707107f, 0.000000f, -0.707107f),
+                new Vector3(0.816497f, -0.408248f, 0.408248f), new Vector3(0.408248f, -0.408248f, 0.816497f),
+                new Vector3(0.408248f, -0.816497f, 0.408248f), new Vector3(0.408248f, 0.816497f, 0.408248f),
+                new Vector3(0.408248f, 0.408248f, 0.816497f), new Vector3(0.816497f, 0.408248f, 0.408248f),
+                new Vector3(-0.816497f, 0.408248f, 0.408248f), new Vector3(-0.408248f, 0.408248f, 0.816497f),
+                new Vector3(-0.408248f, 0.816497f, 0.408248f), new Vector3(-0.408248f, -0.816497f, 0.408248f),
+                new Vector3(-0.408248f, -0.408248f, 0.816497f), new Vector3(-0.816497f, -0.408248f, 0.408248f),
+                new Vector3(0.408248f, -0.816497f, -0.408248f), new Vector3(0.408248f, -0.408248f, -0.816497f),
+                new Vector3(0.816497f, -0.408248f, -0.408248f), new Vector3(0.816497f, 0.408248f, -0.408248f),
+                new Vector3(0.408248f, 0.408248f, -0.816497f), new Vector3(0.408248f, 0.816497f, -0.408248f),
+                new Vector3(-0.408248f, 0.816497f, -0.408248f), new Vector3(-0.408248f, 0.408248f, -0.816497f),
+                new Vector3(-0.816497f, 0.408248f, -0.408248f), new Vector3(-0.816497f, -0.408248f, -0.408248f),
+                new Vector3(-0.408248f, -0.408248f, -0.816497f), new Vector3(-0.408248f, -0.816497f, -0.408248f),
+                new Vector3(0.382683f, -0.923880f, 0.000000f), new Vector3(0.000000f, -0.923880f, 0.382683f),
+                new Vector3(0.923880f, 0.000000f, 0.382683f), new Vector3(0.923880f, -0.382683f, 0.000000f),
+                new Vector3(0.000000f, -0.382683f, 0.923880f), new Vector3(0.382683f, 0.000000f, 0.923880f),
+                new Vector3(0.923880f, 0.382683f, 0.000000f), new Vector3(0.000000f, 0.923880f, 0.382683f),
+                new Vector3(0.382683f, 0.923880f, 0.000000f), new Vector3(0.000000f, 0.382683f, 0.923880f),
+                new Vector3(-0.382683f, 0.923880f, 0.000000f), new Vector3(-0.923880f, 0.000000f, 0.382683f),
+                new Vector3(-0.923880f, 0.382683f, 0.000000f), new Vector3(-0.382683f, 0.000000f, 0.923880f),
+                new Vector3(-0.923880f, -0.382683f, 0.000000f), new Vector3(-0.382683f, -0.923880f, 0.000000f),
+                new Vector3(0.923880f, 0.000000f, -0.382683f), new Vector3(0.000000f, -0.923880f, -0.382683f),
+                new Vector3(0.382683f, 0.000000f, -0.923880f), new Vector3(0.000000f, -0.382683f, -0.923880f),
+                new Vector3(0.000000f, 0.923880f, -0.382683f), new Vector3(0.000000f, 0.382683f, -0.923880f),
+                new Vector3(-0.923880f, 0.000000f, -0.382683f), new Vector3(-0.382683f, 0.000000f, -0.923880f),
             };
 
-           int[] indices = new int[3 * 4]
-            {
-                0, 1, 3,
-                1, 2, 3,
-                2, 0, 3,
-                2, 1, 0
+            int [] sphereIndices = {
+                18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+                36, 37, 38, 39, 40, 41, 42, 20, 43, 44, 18, 45, 46, 19, 47, 48, 23, 44,
+                49, 21, 50, 47, 22, 51, 52, 26, 49, 53, 24, 54, 51, 25, 55, 56, 29, 53,
+                43, 27, 57, 55, 28, 46, 45, 32, 58, 59, 30, 42, 60, 31, 61, 50, 35, 62,
+                58, 33, 48, 63, 34, 60, 54, 38, 64, 62, 36, 52, 65, 37, 63, 57, 41, 59,
+                64, 39, 56, 61, 40, 65, 6, 18, 20, 7, 19, 18, 8, 20, 19, 9, 21, 23,
+                10, 22, 21, 7, 23, 22, 11, 24, 26, 12, 25, 24, 10, 26, 25, 13, 27, 29,
+                8, 28, 27, 12, 29, 28, 6, 30, 32, 14, 31, 30, 15, 32, 31, 9, 33, 35,
+                15, 34, 33, 16, 35, 34, 11, 36, 38, 16, 37, 36, 17, 38, 37, 13, 39, 41,
+                17, 40, 39, 14, 41, 40, 0, 42, 43, 6, 20, 42, 8, 43, 20, 1, 44, 45,
+                7, 18, 44, 6, 45, 18, 4, 46, 47, 8, 19, 46, 7, 47, 19, 1, 48, 44,
+                9, 23, 48, 7, 44, 23, 2, 49, 50, 10, 21, 49, 9, 50, 21, 4, 47, 51,
+                7, 22, 47, 10, 51, 22, 2, 52, 49, 11, 26, 52, 10, 49, 26, 3, 53, 54,
+                12, 24, 53, 11, 54, 24, 4, 51, 55, 10, 25, 51, 12, 55, 25, 3, 56, 53,
+                13, 29, 56, 12, 53, 29, 0, 43, 57, 8, 27, 43, 13, 57, 27, 4, 55, 46,
+                12, 28, 55, 8, 46, 28, 1, 45, 58, 6, 32, 45, 15, 58, 32, 0, 59, 42,
+                14, 30, 59, 6, 42, 30, 5, 60, 61, 15, 31, 60, 14, 61, 31, 2, 50, 62,
+                9, 35, 50, 16, 62, 35, 1, 58, 48, 15, 33, 58, 9, 48, 33, 5, 63, 60,
+                16, 34, 63, 15, 60, 34, 3, 54, 64, 11, 38, 54, 17, 64, 38, 2, 62, 52,
+                16, 36, 62, 11, 52, 36, 5, 65, 63, 17, 37, 65, 16, 63, 37, 0, 57, 59,
+                13, 41, 57, 14, 59, 41, 3, 64, 56, 17, 39, 64, 13, 56, 39, 5, 61, 65,
+                14, 40, 61, 17, 65, 40
             };
-
-            int subdivCount = 3;
-            for (int subdivIndex = 0; subdivIndex < subdivCount; ++subdivIndex)
-            {
-                int vertexCount = vertices.Length;
-                int indexCount = indices.Length;
-                int triCount = indexCount / 3;
-
-                Vector3[] vertices2 = new Vector3[vertexCount + triCount*3];
-                int[] indices2 = new int[triCount * 3 * 4];
-                for (int i = 0; i < vertexCount; ++i)
-                    vertices2[i] = vertices[i];
-                for (int i = 0; i < indexCount; ++i)
-                    indices2[i] = indices[i];
-                vertices = vertices2;
-                indices = indices2;
-
-                for (int t = 0; t < triCount; ++t)
-                {
-                    int i0 = indices[t * 3 + 0];
-                    int i1 = indices[t * 3 + 1];
-                    int i2 = indices[t * 3 + 2];
-                    int i3 = vertexCount++;
-                    int i4 = vertexCount++;
-                    int i5 = vertexCount++;
-
-                    vertices[i3] = Vector3.Normalize(vertices[i0] + vertices[i1]);
-                    vertices[i4] = Vector3.Normalize(vertices[i1] + vertices[i2]);
-                    vertices[i5] = Vector3.Normalize(vertices[i2] + vertices[i0]);
-
-                    indices[t * 3 + 0] = i3;
-                    indices[t * 3 + 1] = i4;
-                    indices[t * 3 + 2] = i5;
-
-                    indices[indexCount++] = i0;
-                    indices[indexCount++] = i3;
-                    indices[indexCount++] = i5;
-
-                    indices[indexCount++] = i1;
-                    indices[indexCount++] = i4;
-                    indices[indexCount++] = i3;
-
-                    indices[indexCount++] = i2;
-                    indices[indexCount++] = i5;
-                    indices[indexCount++] = i4;
-                }
-            }
-
             Mesh mesh = new Mesh();
             mesh.indexFormat = IndexFormat.UInt16;
-            mesh.vertices = vertices;
-            mesh.triangles = indices;
+            mesh.vertices = spherePos;
+            mesh.triangles = sphereIndices;
 
             return mesh;
         }
