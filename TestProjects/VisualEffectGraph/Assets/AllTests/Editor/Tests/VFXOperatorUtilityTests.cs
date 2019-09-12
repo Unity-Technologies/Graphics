@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -525,7 +525,7 @@ namespace UnityEditor.VFX.Test
             var value_phi = new VFXValue<float>(phi);
             var value_distance = new VFXValue<float>(distance);
 
-            var expressionA = VFXOperatorUtility.SphericalToRectangular(value_theta, value_phi, value_distance);
+            var expressionA = VFXOperatorUtility.SphericalToRectangular(value_distance, value_theta, value_phi);
             var expressionB = VFXOperatorUtility.RectangularToSpherical(expressionA);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
@@ -535,9 +535,9 @@ namespace UnityEditor.VFX.Test
             var resultExpressionB2 = context.Compile(expressionB[2]);
 
             Assert.AreEqual(rectangular, resultExpressionA.Get<Vector3>());
-            Assert.AreEqual(theta, resultExpressionB0.Get<float>(), 0.001f);
-            Assert.AreEqual(phi, resultExpressionB1.Get<float>(), 0.001f);
-            Assert.AreEqual(distance, resultExpressionB2.Get<float>(), 0.001f);
+            Assert.AreEqual(distance, resultExpressionB0.Get<float>(), 0.001f);
+            Assert.AreEqual(theta, resultExpressionB1.Get<float>(), 0.001f);
+            Assert.AreEqual(phi, resultExpressionB2.Get<float>(), 0.001f);
         }
 
         [Test]

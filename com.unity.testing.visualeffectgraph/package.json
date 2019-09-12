@@ -3,7 +3,7 @@
     "displayName": "Visual Effect Graphic Tests",
     "version": "7.1.1",
     "unity": "2019.3",
-    "unityRelease": "0a10",
+    "unityRelease": "0a12",
     "description": "This package contains common graphics tests from several scriptable renderpipeline",
     "dependencies": {
         "com.unity.visualeffectgraph": "7.1.1",

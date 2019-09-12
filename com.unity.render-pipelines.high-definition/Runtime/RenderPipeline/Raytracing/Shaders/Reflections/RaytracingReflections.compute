@@ -34,11 +34,8 @@ void RaytracingReflectionsHalfRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
     uint2 halfResCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
     halfResCoord.x = halfResCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(halfResCoord.x, halfResCoord.y);
-
     // Pick which subpixel we will be launching our effects from
-    float subPixelSample = GetRaytracingNoiseSample(_RaytracingFrameIndex, 3, scramblingValue.x);
+    float subPixelSample = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 3);
     int subPixel =  clamp((int)(subPixelSample * 4.0), 0, 3);
     uint2 shift = HalfResIndexToCoordinateShift[subPixel];
 
@@ -56,7 +53,7 @@ void RaytracingReflectionsHalfRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
         return;
 
     // Convert this to a world space position 
-    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
+    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -82,7 +79,10 @@ void RaytracingReflectionsHalfRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
 
     int globalSampleIndex = _RaytracingFrameIndex;
 
-    float2 sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+    // Generate the new sample (follwing values of the sequence)
+    float2 sample;
+    sample.x = GetBNDSequenceSample(halfResCoord, globalSampleIndex, 0);
+    sample.y = GetBNDSequenceSample(halfResCoord, globalSampleIndex, 1);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -97,7 +97,8 @@ void RaytracingReflectionsHalfRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
         if (dot(sampleDir, normalData.normalWS) >= 0.00f)
             break;
 
-        sample = GetRaytracingNoiseSampleRG(globalSampleIndex + i, scramblingValue);
+        sample.x = GetBNDSequenceSample(halfResCoord, globalSampleIndex + i, 0);
+        sample.y = GetBNDSequenceSample(halfResCoord, globalSampleIndex + i, 1);
         SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
 
@@ -119,9 +120,6 @@ void RaytracingReflectionsFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
     uint2 currentCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
     currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
-    // Get the scramblingValue of this pixel
-    uint2 scramblingValue = ScramblingValue(currentCoord.x, currentCoord.y);
-
     // Clear the output color texture
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
 
@@ -133,7 +131,7 @@ void RaytracingReflectionsFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, _ViewMatrix, 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -157,9 +155,11 @@ void RaytracingReflectionsFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
-    int globalSampleIndex = _RaytracingFrameIndex;
     // Generate the new sample (follwing values of the sequence)
-    float2 sample = GetRaytracingNoiseSampleRG(globalSampleIndex, scramblingValue);
+    int globalSampleIndex = _RaytracingFrameIndex;
+    float2 sample;
+    sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
@@ -174,7 +174,8 @@ void RaytracingReflectionsFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
         if (dot(sampleDir, normalData.normalWS) >= 0.00f)
             break;
 
-        sample = GetRaytracingNoiseSampleRG(globalSampleIndex + i, scramblingValue);
+        sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex + i, 0);
+        sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex + i, 1);
         SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -550,37 +551,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdPipeline == null)
                 return;
 
-            using (var scope = new EditorGUI.ChangeCheckScope())
-            {
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    // We can't cache these fields because of several edge cases like undo/redo or pressing escape in the object picker
-                    string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset[m_LayerIndex].vectorValue);
-                    DiffusionProfileSettings diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
-
-                    // is it okay to do this every frame ?
-                    using (var changeScope = new EditorGUI.ChangeCheckScope())
-                    {
-                        diffusionProfile = (DiffusionProfileSettings)EditorGUILayout.ObjectField(Styles.diffusionProfileText, diffusionProfile, typeof(DiffusionProfileSettings), false);
-                        if (changeScope.changed)
-                        {
-                            Vector4 newGuid = Vector4.zero;
-                            float    hash = 0;
-
-                            if (diffusionProfile != null)
-                            {
-                                guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(diffusionProfile));
-                                newGuid = HDUtils.ConvertGUIDToVector4(guid);
-                                hash = HDShadowUtils.Asfloat(diffusionProfile.profile.hash);
-                            }
-
-                            // encode back GUID and it's hash
-                            diffusionProfileAsset[m_LayerIndex].vectorValue = newGuid;
-                            diffusionProfileHash[m_LayerIndex].floatValue = hash;
-                        }
-                    }
-                }
-            }
+            DiffusionProfileMaterialUI.OnGUI(diffusionProfileAsset[m_LayerIndex], diffusionProfileHash[m_LayerIndex]);
 
             // TODO: does not work with multi-selection
             if ((int)materialID.floatValue == (int)MaterialId.LitSSS && materials[0].GetSurfaceType() != SurfaceType.Transparent)

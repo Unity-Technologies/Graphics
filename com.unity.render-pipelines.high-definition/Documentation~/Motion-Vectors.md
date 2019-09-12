@@ -11,7 +11,7 @@ To use motion vectors in HDRP, you must enable them:
 1. In your Unity Project’s [HDRP Asset](HDRP-Asset.html)
 2. In your [Frame Settings](Frame-Settings.html)
 
-In the Inspector for your HDRP Asset, navigate to the **Rendering** section and enable the **Motion Vectors** checkbox. You can then either enable motion vectors for all Cameras or on an individual, per-Camera level. To enable motion vectors for all Cameras, navigate to **Default Frame Settings For > Rendering** and enable the **Motion Vectors** checkbox. This enables Camera motion vectors. Now you can also enable the **Object Motion Vectors** checkbox. If you enable this checkbox, HDRP calculates object motion vectors. If you keep this checkbox disabled, HDRP only calculates Camera motion vectors.
+In the Inspector for your HDRP Asset, navigate to the **Rendering** section and enable the **Motion Vectors** checkbox. You can then either enable motion vectors for all Cameras or on an individual, per-Camera level. To enable motion vectors for all Cameras, navigate to **Default Frame Settings For > Rendering** and enable the **Motion Vectors** checkbox. This enables Camera motion vectors. Now you can also enable the **Object Motion Vectors** checkbox. If you do this, HDRP calculates object motion vectors. If you keep this checkbox disabled, HDRP only calculates Camera motion vectors.
 
 HDRP calculates motion vectors in two stages:
 

@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
         static void CreateForwardRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
-        
+
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
         }
@@ -59,6 +59,8 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
+            m_DefaultStencilState = new StencilStateData();
+
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
@@ -87,8 +89,12 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
 #if UNITY_EDITOR
-            ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+            try
+            {
+                ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+                ResourceReloader.ReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+            }
+            catch {}
 #endif
         }
     }

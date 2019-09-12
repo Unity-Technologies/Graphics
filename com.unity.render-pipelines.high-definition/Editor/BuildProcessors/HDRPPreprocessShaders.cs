@@ -11,9 +11,11 @@ namespace UnityEditor.Rendering.HighDefinition
     // The common shader stripper function
     class CommonShaderPreprocessor : BaseShaderPreprocessor
     {
+        public override int Priority => 100;
+
         public CommonShaderPreprocessor() { }
 
-        public override bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
+        protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
             // Strip every useless shadow configs
             var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
@@ -40,23 +42,22 @@ namespace UnityEditor.Rendering.HighDefinition
             // Here we can't strip based on opaque or transparent but we will strip based on HDRP Asset configuration.
 
             bool isMotionPass = snippet.passName == "MotionVectors";
-            bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
-            bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
-            bool isTransparentBackface = snippet.passName == "TransparentBackface";
-            bool isDistortionPass = snippet.passName == "DistortionVectors";
-
             if (isMotionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMotionVectors)
                 return true;
 
+            bool isDistortionPass = snippet.passName == "DistortionVectors";
             if (isDistortionPass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDistortion)
                 return true;
 
+            bool isTransparentBackface = snippet.passName == "TransparentBackface";
             if (isTransparentBackface && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentBackface)
                 return true;
 
+            bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
             if (isTransparentPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPrepass)
                 return true;
 
+            bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
             if (isTransparentPostpass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPostpass)
                 return true;
 
@@ -142,13 +143,13 @@ namespace UnityEditor.Rendering.HighDefinition
             if (ShaderBuildPreprocessor.hdrpAssets == null || ShaderBuildPreprocessor.hdrpAssets.Count == 0)
                 return;
 
-            shaderProcessorsList = HDEditorUtils.GetBaseShaderPreprocessorList();
+            shaderProcessorsList = HDShaderUtils.GetBaseShaderPreprocessorList();
         }
 
         void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, ShaderVariantLogLevel logLevel, uint prevVariantsCount, uint currVariantsCount)
         {
             if (logLevel == ShaderVariantLogLevel.AllShaders ||
-                (logLevel == ShaderVariantLogLevel.OnlyHDRPShaders && HDEditorUtils.IsHDRPShader(shader)))
+                (logLevel == ShaderVariantLogLevel.OnlyHDRPShaders && HDShaderUtils.IsHDRPShader(shader)))
             {
                 float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
                 float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
@@ -162,67 +163,130 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        struct ExportShaderStrip: System.IDisposable
+        {
+            bool m_ExportLog;
+            string m_OutFile;
+            Shader m_Shader;
+            ShaderSnippetData m_Snippet;
+            IList<ShaderCompilerData> m_InputData;
+            HDRPreprocessShaders m_PreProcess;
+
+            public ExportShaderStrip(
+                bool exportLog,
+                string outFile,
+                Shader shader,
+                ShaderSnippetData snippet,
+                IList<ShaderCompilerData> inputData,
+                HDRPreprocessShaders preProcess
+            )
+            {
+                m_ExportLog = exportLog;
+                m_OutFile = outFile;
+                m_Shader = shader;
+                m_Snippet = snippet;
+                m_InputData = inputData;
+                m_PreProcess = preProcess;
+
+                if (m_ExportLog)
+                {
+                    System.IO.File.AppendAllText(
+                        m_OutFile,
+                        $"{{ \"shader\": \"{m_Shader.name}\", \"pass\": \"{m_Snippet.passName}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantIn\": {m_InputData.Count} }}\r\n"
+                    );
+                }
+            }
+
+            public void Dispose()
+            {
+                if (m_ExportLog)
+                {
+                    try
+                     {
+                        System.IO.File.AppendAllText(
+                            m_OutFile,
+                            $"{{ \"shader\": \"{m_Shader?.name}\", \"pass\": \"{m_Snippet.passName ?? string.Empty}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
+                        );
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                }
+            }
+        }
 
         public int callbackOrder { get { return 0; } }
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
-            // TODO: Grab correct configuration/quality asset.
-            var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+            var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
+                && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
-            if (hdPipelineAssets.Count == 0)
-                return;
-
-            uint preStrippingCount = (uint)inputData.Count;
-
-            // Test if striping is enabled in any of the found HDRP assets.
-            if ( hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping) )
-                return;
-
-            int inputShaderVariantCount = inputData.Count;
-
-            for (int i = 0; i < inputData.Count; ++i)
+            using (new ExportShaderStrip(exportLog, "Temp/shader-strip.json", shader, snippet, inputData, this))
             {
-                ShaderCompilerData input = inputData[i];
 
-                // Remove the input by default, until we find a HDRP Asset in the list that needs it.
-                bool removeInput = true;
+                // TODO: Grab correct configuration/quality asset.
+                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
 
-                foreach (var hdAsset in hdPipelineAssets)
+                if (hdPipelineAssets.Count == 0)
+                    return;
+
+                uint preStrippingCount = (uint)inputData.Count;
+
+                // Test if striping is enabled in any of the found HDRP assets.
+                if ( hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping) )
+                    return;
+
+                var inputShaderVariantCount = inputData.Count;
+                for (int i = 0; i < inputShaderVariantCount; )
                 {
-                    var stripedByPreprocessor = false;
+                    ShaderCompilerData input = inputData[i];
 
-                    // Call list of strippers
-                    // Note that all strippers cumulate each other, so be aware of any conflict here
-                    foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
+                    // Remove the input by default, until we find a HDRP Asset in the list that needs it.
+                    bool removeInput = true;
+
+                    foreach (var hdAsset in hdPipelineAssets)
                     {
-                        if ( shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input) )
+                        var strippedByPreprocessor = false;
+
+                        // Call list of strippers
+                        // Note that all strippers cumulate each other, so be aware of any conflict here
+                        foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
                         {
-                            stripedByPreprocessor = true;
+                            if ( shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input) )
+                            {
+                                strippedByPreprocessor = true;
+                                break;
+                            }
+                        }
+
+                        if (!strippedByPreprocessor)
+                        {
+                            removeInput = false;
                             break;
                         }
                     }
 
-                    if (!stripedByPreprocessor)
+                    if (removeInput)
+                        inputData[i] = inputData[--inputShaderVariantCount];
+                    else
+                        ++i;
+                }
+
+                if(inputData is List<ShaderCompilerData> inputDataList)
+                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+                else
+                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
+                        inputData.RemoveAt(i);
+
+                foreach (var hdAsset in hdPipelineAssets)
+                {
+                    if (hdAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
                     {
-                        removeInput = false;
-                        break;
+                        m_TotalVariantsInputCount += preStrippingCount;
+                        m_TotalVariantsOutputCount += (uint)inputData.Count;
+                        LogShaderVariants(shader, snippet, hdAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
                     }
-                }
-
-                if (removeInput)
-                {
-                    inputData.RemoveAt(i);
-                    i--;
-                }
-            }
-
-            foreach (var hdAsset in hdPipelineAssets)
-            {
-                if (hdAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
-                {
-                    m_TotalVariantsInputCount += preStrippingCount;
-                    m_TotalVariantsOutputCount += (uint)inputData.Count;
-                    LogShaderVariants(shader, snippet, hdAsset.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
                 }
             }
         }

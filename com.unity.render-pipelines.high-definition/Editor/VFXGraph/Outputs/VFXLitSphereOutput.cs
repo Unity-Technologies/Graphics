@@ -59,6 +59,7 @@ namespace UnityEditor.VFX
 
                 yield return "cullMode";
                 yield return "blendMode";
+                yield return "useAlphaClipping";
                 yield return "doubleSided";
             }
         }
