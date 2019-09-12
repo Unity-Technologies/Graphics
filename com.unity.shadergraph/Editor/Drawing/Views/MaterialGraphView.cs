@@ -539,6 +539,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If deleting a Sub Graph node whose asset contains Keywords test variant limit
             foreach(SubGraphNode subGraphNode in nodesToDelete.OfType<SubGraphNode>())
             {
+                if (subGraphNode.asset == null)
+                {
+                    continue;
+                }
                 if(subGraphNode.asset.keywords.Count > 0)
                 {
                     keywordsDirty = true;
