@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.2.0] - 2019-XX-XX
 
 ### Fixed
+- Fixed alpha blending in custom post process
+
+### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
 - Fixed light supported units caching (1182266)
 - Fixed Hair and PBR shader graphs double sided modes
