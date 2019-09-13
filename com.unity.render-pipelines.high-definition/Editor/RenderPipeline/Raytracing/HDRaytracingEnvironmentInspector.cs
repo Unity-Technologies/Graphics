@@ -80,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                hdPipeline.m_RayTracingManager.UpdateEnvironmentSubScenes();
+                hdPipeline.UpdateRayTracingSubScenes();
             }
         }
 
