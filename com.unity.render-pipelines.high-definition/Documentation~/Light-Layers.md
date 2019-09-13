@@ -22,7 +22,7 @@ To override the Frame Settings for Cameras and set Light Layers on an individual
 After you enable Light Layers, you can then use them to decouple Meshes from certain Lights in your Scene. To do this:
 
 1. Click on a Light in the Hierarchy or the Scene view to view it in the Inspector.
-2. Expose the [advanced properties](Advanced-Properties.html) in the **General** section to expose the **Light Layer** property.
+2. Expose [more options](More-Options.html) in the **General** section to expose the **Light Layer** property.
 3. Use the **Light Layer** property drop-down to select which Light Layers this Light affects.
 4. Click on a Mesh Renderer in the Hierarchy or the Scene view to view it in the Inspector.
 5. Use the **Rendering Layer Mask** drop-down to select which Light Layers affect this Mesh Renderer. When you enable Light Layers, a Light only affects a Mesh Renderer if they both use a matching Light Layer.
