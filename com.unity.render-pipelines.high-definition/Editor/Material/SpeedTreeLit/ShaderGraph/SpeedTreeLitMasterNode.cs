@@ -1081,27 +1081,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ExtraDefines.Add("#pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
                 ExtraDefines.Add("#define SPEEDTREE_V7");
-                /*
-                switch (speedTreeGeomType)
-                {
-                    case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
-                        ExtraDefines.Add("#define GEOM_TYPE_BRANCH_DETAIL");
-                        ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
-                        break;
-                    case SpeedTreeLitMasterNode.TreeGeomType.Branch:
-                        ExtraDefines.Add("#define GEOM_TYPE_BRANCH");
-                        break;
-                    case SpeedTreeLitMasterNode.TreeGeomType.Frond:
-                        ExtraDefines.Add("#define GEOM_TYPE_FROND");
-                        break;
-                    case SpeedTreeLitMasterNode.TreeGeomType.Leaf:
-                        ExtraDefines.Add("#define GEOM_TYPE_LEAF");
-                        break;
-                    case SpeedTreeLitMasterNode.TreeGeomType.Mesh:
-                        ExtraDefines.Add("#define GEOM_TYPE_MESH");
-                        break;
-                }
-                */
+                ExtraDefines.Add("#define WIND_QUALITY_NONE    0");
+                ExtraDefines.Add("#define WIND_QUALITY_FASTEST 1");
+                ExtraDefines.Add("#define WIND_QUALITY_FAST    2");
+                ExtraDefines.Add("#define WIND_QUALITY_BETTER  3");
+                ExtraDefines.Add("#define WIND_QUALITY_BEST    4");
+                ExtraDefines.Add("#define WIND_QUALITY_PALM    5");
             }
             else
             {
@@ -1184,7 +1169,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     value = (float)TreeGeomType.Branch,
                     enumType = EnumType.KeywordEnum,
                     enumNames = { "Branch" , "BranchDetail", "Frond", "Leaf", "Mesh" },
-                    hidden = false,
+                    hidden = true,
                 });
             }
 
@@ -1196,7 +1181,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumNames = { "None", "Fastest", "Fast", "Better", "Best", "Palm" },
                 enumValues = { (int)WindQuality.None, (int)WindQuality.Fastest, (int)WindQuality.Fast, (int)WindQuality.Better, (int)WindQuality.Best, (int)WindQuality.Palm},
                 enumType = EnumType.KeywordEnum,
-                hidden = false,
+                hidden = true,
             });
 
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
@@ -1208,7 +1193,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     enumNames = { "Off", "Front", "Back" },
                     enumValues = { (int)SpeedTree7CullMode.Off, (int)SpeedTree7CullMode.Front, (int)SpeedTree7CullMode.Back },
                     value = (float)SpeedTree7CullMode.Back,
-                    hidden = false,
+                    hidden = true,
                 });
             }
             else
@@ -1220,7 +1205,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     enumNames = { "Yes", "No" },
                     enumValues = { (int)SpeedTree8TwoSided.Yes, (int)SpeedTree8TwoSided.No },
                     value = (float)SpeedTree8TwoSided.No,
-                    hidden = false,
+                    hidden = true,
                 });
             }
 
