@@ -394,7 +394,25 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("LOD Crossfading", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.lodFadeCrossFade.isOn;
+                    toggle.OnToggleChanged(ChangeLODCrossfade);
+                });
+            });
 
+            ps.Add(new PropertyRow(CreateLabel("LOD Percentage Fade", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.lodFadePercentage.isOn;
+                    toggle.OnToggleChanged(ChangeLODPercentageFade);
+                });
+            });
+
+            /*
             if (m_Node.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree7)
             {
                 ps.Add(new PropertyRow(CreateLabel("Tree Geom Type", indentLevel)), (row) =>
@@ -415,6 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     e.RegisterValueChangedCallback(ChangeWindQuality);
                 });
             });
+            */
 
             Add(ps);
         }
@@ -759,6 +778,23 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.speedTreeAssetVersion = (SpeedTreeLitMasterNode.SpeedTreeVersion)evt.newValue;
         }
 
+        void ChangeLODCrossfade(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("LOD Crossfade Change");
+            ToggleData td = m_Node.lodFadeCrossFade;
+            td.isOn = evt.newValue;
+            m_Node.lodFadeCrossFade = td;
+        }
+
+        void ChangeLODPercentageFade(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("LOD Percentage Fade Change");
+            ToggleData td = m_Node.lodFadePercentage;
+            td.isOn = evt.newValue;
+            m_Node.lodFadePercentage = td;
+        }
+
+        /*
         void ChangeWindQuality(ChangeEvent<Enum> evt)
         {
             if (Equals(m_Node.windQuality, evt.newValue))
@@ -776,5 +812,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
            m_Node.owner.owner.RegisterCompleteObjectUndo("Tree Geom Type");
             m_Node.speedTreeGeomType = (SpeedTreeLitMasterNode.TreeGeomType)evt.newValue;
         }
+        */
     }
 }
