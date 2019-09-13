@@ -77,6 +77,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         break;
                 }
             }
+
+            if (material.HasProperty("_WindEnable"))
+            {
+                int windOn = material.GetInt("_WindEnable");
+                if (windOn != 0)
+                    material.EnableKeyword("ENABLE_WIND");
+            }
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);

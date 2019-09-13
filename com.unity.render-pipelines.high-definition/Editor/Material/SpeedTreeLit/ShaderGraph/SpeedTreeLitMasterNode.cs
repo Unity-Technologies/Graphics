@@ -799,7 +799,37 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_LODFadeCrossFade;
 
+        public ToggleData lodFadeCrossFade
+        {
+            get { return new ToggleData(m_LODFadeCrossFade); }
+            set 
+            {
+                if (m_LODFadeCrossFade == value.isOn)
+                    return;
+                m_LODFadeCrossFade = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_LODFadePercentage;
+
+        public ToggleData lodFadePercentage
+        {
+            get { return new ToggleData(m_LODFadePercentage); }
+            set
+            {
+                if (m_LODFadePercentage == value.isOn)
+                    return;
+                m_LODFadePercentage = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        /*
         [SerializeField]
         TreeGeomType m_TreeGeomType;
 
@@ -831,6 +861,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Graph);
             }
         }
+        */
+        [SerializeField]
 
         public SpeedTreeLitMasterNode()
         {
@@ -1184,9 +1216,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     value = (float)TreeGeomType.Branch,
                     enumType = EnumType.KeywordEnum,
                     enumNames = { "Branch" , "BranchDetail", "Frond", "Leaf", "Mesh" },
-                    hidden = false,
+                    hidden = true,
                 });
             }
+
+            collector.AddShaderProperty(new BooleanShaderProperty()
+            {
+                overrideReferenceName = "_WindEnabled",
+                value = true,
+                hidden = true,
+            });
 
             collector.AddShaderProperty(new Vector1ShaderProperty()
             {
@@ -1196,7 +1235,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enumNames = { "None", "Fastest", "Fast", "Better", "Best", "Palm" },
                 enumValues = { (int)WindQuality.None, (int)WindQuality.Fastest, (int)WindQuality.Fast, (int)WindQuality.Better, (int)WindQuality.Best, (int)WindQuality.Palm},
                 enumType = EnumType.KeywordEnum,
-                hidden = false,
+                hidden = true,
             });
 
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
@@ -1208,7 +1247,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     enumNames = { "Off", "Front", "Back" },
                     enumValues = { (int)SpeedTree7CullMode.Off, (int)SpeedTree7CullMode.Front, (int)SpeedTree7CullMode.Back },
                     value = (float)SpeedTree7CullMode.Back,
-                    hidden = false,
+                    hidden = true,
                 });
             }
             else
@@ -1220,7 +1259,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     enumNames = { "Yes", "No" },
                     enumValues = { (int)SpeedTree8TwoSided.Yes, (int)SpeedTree8TwoSided.No },
                     value = (float)SpeedTree8TwoSided.No,
-                    hidden = false,
+                    hidden = true,
                 });
             }
 
