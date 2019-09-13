@@ -143,4 +143,22 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/PositionDepthOperator.unity
     guid: 5c9aadab8d20ed14b827e43d12fc0b7c
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/ParticleRibbonLit.unity
+    guid: c931df4a44bfe6442a638434ebfa4b83
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/ParticleStripUnlit.unity
+    guid: 7f721cad21da2c24aacb73377ebec462
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/ShadergraphUnlit.unity
+    guid: 02fa6d4e7132ea3409ec38fe85c1dc50
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Lit/ShadergraphLit.unity
+    guid: 44dfb01e7c5915a4ca6396f344dbc22b
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Unlit/ShadergraphShadow.unity
+    guid: b5fab92e71d9dd747b87a111d703bd95
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Lit/ShadergraphShadowLit.unity
+    guid: 2dbb17953af83c24bacf6b650bd0e432
   m_configObjects: {}

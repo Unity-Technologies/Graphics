@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using Color = UnityEditor.ShaderGraph.ColorNode.Color;
 

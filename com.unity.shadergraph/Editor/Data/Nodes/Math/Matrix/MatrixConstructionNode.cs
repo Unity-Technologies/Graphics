@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new int[] { InputSlotM0Id, InputSlotM1Id, InputSlotM2Id, InputSlotM3Id, Output4x4SlotId, Output3x3SlotId, Output2x2SlotId });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var inputM0Value = GetSlotValue(InputSlotM0Id, generationMode);
             var inputM1Value = GetSlotValue(InputSlotM1Id, generationMode);
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
                 GetVariableNameForSlot(Output2x2SlotId));
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {

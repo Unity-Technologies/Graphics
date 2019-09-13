@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
+
 
 namespace UnityEditor.ShaderGraph
 {
