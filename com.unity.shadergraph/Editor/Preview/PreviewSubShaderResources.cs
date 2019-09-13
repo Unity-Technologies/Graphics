@@ -63,6 +63,8 @@ namespace UnityEditor.ShaderGraph
             Vector3 bitangentWS;
             [Optional]
             Vector4 screenPosition;
+            [Semantic("FRONT_FACE_SEMANTIC")][SystemGenerated][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")]
+            bool cullFace;
         };
 
         internal struct VertexDescriptionInputs
@@ -137,6 +139,7 @@ namespace UnityEditor.ShaderGraph
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
             [Optional] Vector3 TimeParameters;
+            [Optional] float FaceSign;
         };
 
         public static List<Dependency[]> s_Dependencies = new List<Dependency[]>()
@@ -225,6 +228,7 @@ namespace UnityEditor.ShaderGraph
                 new Dependency("SurfaceDescriptionInputs.uv2",                       "Varyings.texCoord2"),
                 new Dependency("SurfaceDescriptionInputs.uv3",                       "Varyings.texCoord3"),
                 new Dependency("SurfaceDescriptionInputs.VertexColor",               "Varyings.color"),
+                new Dependency("SurfaceDescriptionInputs.FaceSign",                  "Varyings.cullFace"),
             },
         };
     };
