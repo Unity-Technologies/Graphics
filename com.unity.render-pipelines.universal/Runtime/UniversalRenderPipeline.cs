@@ -201,12 +201,12 @@ namespace UnityEngine.Rendering.Universal
             string tag = k_RenderCameraTag;
 #endif
             CommandBuffer cmd = CommandBufferPool.Get(tag);
-            using (new ProfilingSample(cmd, tag))
+            using (new ProfilingSample(cmd, tag)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear();
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
-                context.ExecuteCommandBuffer(cmd);
+                context.ExecuteCommandBuffer(cmd); // Send all the commands enqueued so far in the CommandBuffer cmd, to the ScriptableRenderContext context
                 cmd.Clear();
 
 #if UNITY_EDITOR
@@ -221,11 +221,11 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.Setup(context, ref renderingData);
                 renderer.Execute(context, ref renderingData);
-            }
+            } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
-            context.ExecuteCommandBuffer(cmd);
+            context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
-            context.Submit();
+            context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
         }
 
         static void SetSupportedRenderingFeatures()
