@@ -91,6 +91,10 @@ namespace UnityEngine.Rendering.Universal
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
+
+        // Camera targets are the working targets for the camera ; i.e intermediates texture written by a renderer before the final blit
+        // Renderer has to set them calling ConfigureCameraTarget()
+        // m_CameraColorTarget is also the default target used for render passes that do not use RenderPass.Configure()
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
         bool m_FirstCameraRenderPassExecuted = false;
@@ -100,6 +104,7 @@ namespace UnityEngine.Rendering.Universal
         const string k_ReleaseResourcesTag = "Release Resources";
 
         static RenderTargetIdentifier m_ActiveColorAttachment;
+        // m_ActiveColorAttachment is the currently bound color attachment. It's similar to the built-in RenderTexture.active https://docs.unity3d.com/ScriptReference/RenderTexture-active.html
         static RenderTargetIdentifier m_ActiveDepthAttachment;
         static bool m_InsideStereoRenderBlock;
 

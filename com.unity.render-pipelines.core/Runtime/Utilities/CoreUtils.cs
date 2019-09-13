@@ -175,6 +175,7 @@ namespace UnityEngine.Rendering
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
+        // Multi render targets
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
             SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
