@@ -710,7 +710,7 @@ namespace UnityEngine.Rendering.Universal
                 Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
                 cmd.SetGlobalMatrix("_InvCameraViewProj", viewProjInv);
 
-                cmd.SetGlobalTexture("g_DepthTex", m_DepthTexture.Identifier());
+                cmd.SetGlobalTexture("g_DepthTex", m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
