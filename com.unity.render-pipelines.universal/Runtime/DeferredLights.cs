@@ -161,6 +161,8 @@ namespace UnityEngine.Rendering.Universal
         internal RenderTargetHandle m_LightingTexture;
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle m_DepthTexture;
+        //
+        internal RenderTargetHandle m_DepthCopyTexture;
         // Per-tile depth range texture.
         internal RenderTargetHandle m_TileDepthRangeTexture;
 
@@ -215,11 +217,12 @@ namespace UnityEngine.Rendering.Universal
             prePointLights.Dispose();
         }
 
-        public void Setup(RenderTargetHandle tileDepthRangeTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
+        public void Setup(RenderTargetHandle depthCopyTexture, RenderTargetHandle tileDepthRangeTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
         {
+            m_DepthCopyTexture = depthCopyTexture;
+            m_TileDepthRangeTexture = tileDepthRangeTexture;
             m_LightingTexture = lightingTexture;
             m_DepthTexture = depthTexture;
-            m_TileDepthRangeTexture = tileDepthRangeTexture;
         }
 
         public void FrameCleanup(CommandBuffer cmd)
@@ -667,7 +670,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVector(ShaderConstants.g_unproject1, projScreenInv.GetRow(3));
 
                 cmd.SetGlobalTexture(m_TileDepthRangeTexture.id, m_TileDepthRangeTexture.Identifier());
-                cmd.SetGlobalTexture(ShaderConstants.g_DepthTex, m_DepthTexture.Identifier());
+                cmd.SetGlobalTexture(ShaderConstants.g_DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
                 for (int i = 0; i < drawCallCount; ++i)
                 {

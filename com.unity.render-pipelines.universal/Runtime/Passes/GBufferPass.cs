@@ -67,7 +67,8 @@ namespace UnityEngine.Rendering.Universal
             }
             ConfigureTarget(colorAttachments, m_DepthBufferAttachment.Identifier());
 
-            ConfigureClear(ClearFlag.All, Color.white);
+            // TODO: if depth-prepass is enabled, do not clear depth here!
+            ConfigureClear(ClearFlag.Depth, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext scriptableRenderContext, ref RenderingData renderingData)
