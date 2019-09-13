@@ -799,7 +799,37 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_LODFadeCrossFade;
 
+        public ToggleData lodFadeCrossFade
+        {
+            get { return new ToggleData(m_LODFadeCrossFade); }
+            set 
+            {
+                if (m_LODFadeCrossFade == value.isOn)
+                    return;
+                m_LODFadeCrossFade = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_LODFadePercentage;
+
+        public ToggleData lodFadePercentage
+        {
+            get { return new ToggleData(m_LODFadePercentage); }
+            set
+            {
+                if (m_LODFadePercentage == value.isOn)
+                    return;
+                m_LODFadePercentage = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        /*
         [SerializeField]
         TreeGeomType m_TreeGeomType;
 
@@ -831,6 +861,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Graph);
             }
         }
+        */
+        [SerializeField]
 
         public SpeedTreeLitMasterNode()
         {
@@ -1077,6 +1109,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             ExtraDefines.Add("#pragma shader_feature_local EFFECT_BUMP");
             ExtraDefines.Add("#define _ALPHATEST_ON");
+            ExtraDefines.Add("#define ENABLE_WIND");
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
             {
                 ExtraDefines.Add("#pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
@@ -1092,6 +1125,20 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ExtraDefines.Add("#pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM");
                 ExtraDefines.Add("#define SPEEDTREE_V8");
+                ExtraDefines.Add("#define GEOM_TYPE_BRANCH 0");
+                ExtraDefines.Add("#define GEOM_TYPE_FROND 1");
+                ExtraDefines.Add("#define GEOM_TYPE_LEAF 2");
+                ExtraDefines.Add("#define GEOM_TYPE_FACINGLEAF 3");
+            }
+
+            if (lodFadeCrossFade.isOn)
+            {
+                ExtraDefines.Add("#define LOD_FADE_CROSSFADE");
+            }
+
+            if (lodFadePercentage.isOn)
+            {
+                ExtraDefines.Add("#define LOD_FADE_PERCENTAGE");
             }
         }
 
@@ -1172,6 +1219,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     hidden = true,
                 });
             }
+
+            collector.AddShaderProperty(new BooleanShaderProperty()
+            {
+                overrideReferenceName = "_WindEnabled",
+                value = true,
+                hidden = true,
+            });
 
             collector.AddShaderProperty(new Vector1ShaderProperty()
             {

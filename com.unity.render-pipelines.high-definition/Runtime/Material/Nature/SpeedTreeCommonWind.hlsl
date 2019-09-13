@@ -3,15 +3,16 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTreeWind.hlsl"
 
-void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float lodValue, float geometryType, out float3 finalPosition, out float3 finalNormal, out float2 finalUV)
+void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float geometryType, out float3 finalPosition, out float3 finalNormal, out float2 finalUV)
 {
     finalPosition = vertex.xyz;
     finalNormal = normal.xyz;
     finalUV = texcoord0.xy;     // Billboard UVs might overwrite this.
+
 #ifdef SPEEDTREE_V7
+
 #ifdef ENABLE_WIND
-    //half windQuality = _WindQuality * _WindEnabled;
-    half windQuality = _WindQuality;
+    half windQuality = _WindQuality * _WindEnabled;
 
     float3 rotatedWindVector, rotatedBranchAnchor;
     if (windQuality <= WIND_QUALITY_NONE)
@@ -27,11 +28,11 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     }
 #endif
 
-#if defined(GEOM_TYPE_BRANCH) || defined(GEOM_TYPE_FROND)
+#if defined(GEOM_TYPE_BRANCH) || defined (GEOM_TYPE_BRANCH_DETAIL) ||defined(GEOM_TYPE_FROND)
 
     // smooth LOD
 #ifdef LOD_FADE_PERCENTAGE
-    finalPosition = lerp(finalPosition, texcoord1.xyz, lodValue);
+    finalPosition = lerp(finalPosition, texcoord1.xyz, unity_LODFade.x);
 #endif
 
     // frond wind, if needed
@@ -49,7 +50,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     if (isFacingLeaf)
     {
 #ifdef LOD_FADE_PERCENTAGE
-        finalPosition *= lerp(1.0, texcoord1.w, lodValue);
+        finalPosition *= lerp(1.0, texcoord1.w, unity_LODFade.x);
 #endif
         // face camera-facing leaf to camera
         float offsetLen = length(finalPosition);
@@ -62,7 +63,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     {
 #ifdef LOD_FADE_PERCENTAGE
         float3 lodPosition = float3(texcoord1.w, texcoord3.x, texcoord3.y);
-        finalPosition = lerp(finalPosition, lodPosition, lodValue);
+        finalPosition = lerp(finalPosition, lodPosition, unity_LODFade.x);
 #endif
     }
 
@@ -98,12 +99,11 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     }
 #endif
 
-    //vertex.xyz = finalPosition;
 #else // if it's SPEEDTREE_V8
-
+    
     // smooth LOD
 #if defined(LOD_FADE_PERCENTAGE) && !defined(EFFECT_BILLBOARD)
-    finalPosition.xyz = lerp(finalPosition.xyz, texcoord2.xyz, lodValue);
+    finalPosition.xyz = lerp(finalPosition.xyz, texcoord2.xyz, unity_LODFade.x);
 #endif
 
     // wind
@@ -211,6 +211,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
         finalPosition.xyz = float3(0, 0, 0);
     }
 
+    // TODO -- add output alpha
     //input.color = float4(1, 1, 1, clamp(viewDot, 0, 1));
 
     // adjust lighting on billboards to prevent seams between the different faces
@@ -226,9 +227,9 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
 //    }
 
     finalNormal = normalize(finalNormal);
-#endif
+#endif // defined(EFFECT_BILLBOARD)
 
-#endif
+#endif // IS SPEEDTREE_V8
 }
 
 #endif

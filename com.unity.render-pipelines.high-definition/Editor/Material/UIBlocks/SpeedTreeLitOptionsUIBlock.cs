@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             //public static GUIContent versionText = new GUIContent("SpeedTree Asset Version", "Version of SpeedTree used to create the asset targeted");
             public static GUIContent typeText = new GUIContent("Geometry Type", "Which type of tree geometry component is the part being shaded");
+            public static GUIContent enableWindText = new GUIContent("Enable Wind", "Whether you want the wind effect to be on or not");
             public static GUIContent windQualityText = new GUIContent("Wind Quality", "Detail level of the wind effect");
             public static GUIContent twoSidedText = new GUIContent("Two Sided", "Whether geometry should be two-sided or not");
             public static GUIContent cullingModeText = new GUIContent("Cull", "No culling, Front facing, or Back facing");
@@ -29,6 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty geomType = null;
         const string kGeomType = "_SpeedTreeGeom";
 
+        MaterialProperty windEnable = null;
+        const string kWindEnable = "_WindEnabled";
         MaterialProperty windQuality = null;
         const string kWindQuality = "_WindQuality";
         MaterialProperty twoSidedEnable = null;
@@ -45,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             //assetVersion = FindProperty(kAssetVersion);
             geomType = FindProperty(kGeomType);
+            windEnable = FindProperty(kWindEnable);
             windQuality = FindProperty(kWindQuality);
             twoSidedEnable = FindProperty(kTwoSidedEnable);
             cullMode = FindProperty(kCullMode);
@@ -56,8 +60,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (geomType != null)
                 materialEditor.ShaderProperty(geomType, Styles.typeText);
 
-            if (windQuality != null)
+            if (windEnable != null && windQuality != null)
+            {
+                materialEditor.ShaderProperty(windEnable, Styles.enableWindText);
                 materialEditor.ShaderProperty(windQuality, Styles.windQualityText);
+            }
 
             if (twoSidedEnable != null)
                 materialEditor.ShaderProperty(twoSidedEnable, Styles.twoSidedText);
