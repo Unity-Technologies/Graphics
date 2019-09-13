@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lit transparent refraction with XR single-pass rendering
 - Removed extra jitter for TemporalAA in VR
 - Fixed ShaderGraph time in main preview
+- Fixed issue on some UI elements in HDRP asset not expanding when clicking the arrow (case 1178369)
 
 ## [7.1.1] - 2019-09-05
 
