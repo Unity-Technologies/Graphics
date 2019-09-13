@@ -17,16 +17,12 @@
   * Volume Overrides List
     * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
-    * Fog
-      * [Exponential Fog](Override-Exponential-Fog)
-      * [Linear Fog](Override-Linear-Fog)
-      * [Volumetric Fog](Override-Volumetric-Fog)
+    * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
-      * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
@@ -71,7 +67,6 @@
     * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
-  * [Static Lighting Sky](Static-Lighting-Sky)
   * [Atmospheric Scattering](Atmospheric-Scattering)
   * [Density Volume](Density-Volume)
   * [Light Layers](Light-Layers)
