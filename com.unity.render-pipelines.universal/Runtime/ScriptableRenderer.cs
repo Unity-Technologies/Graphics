@@ -378,7 +378,7 @@ namespace UnityEngine.Rendering.Universal
 
             if(IsMRT(renderPass.colorAttachment))
             {
-                SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment);
+                SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
             }
             else
             {
@@ -502,12 +502,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachment, RenderTargetIdentifier depthAttachment)
+        static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachment = colorAttachment;
             m_ActiveDepthAttachment = depthAttachment;
 
-            CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment);
+            CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, clearFlag, clearColor);
         }
 
         [Conditional("UNITY_EDITOR")]
