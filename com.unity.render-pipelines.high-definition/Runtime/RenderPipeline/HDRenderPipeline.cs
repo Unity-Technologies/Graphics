@@ -81,7 +81,27 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_FrameSettingsHistoryEnabled = false;
 
 #if ENABLE_RAYTRACING
-        internal HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+        HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
+
+        public void RegisterEnvironment(HDRaytracingEnvironment targetEnvironment)
+        {
+            m_RayTracingManager.RegisterEnvironment(targetEnvironment);
+        }
+
+        public void UnregisterEnvironment(HDRaytracingEnvironment targetEnvironment)
+        {
+            m_RayTracingManager.UnregisterEnvironment(targetEnvironment);
+        }
+
+        public void SetRayTracingSceneDirty()
+        {
+            m_RayTracingManager.SetDirty();
+        }
+
+        public void UpdateRayTracingSubScenes()
+        {
+            m_RayTracingManager.UpdateEnvironmentSubScenes();
+        }
 
         internal float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
 #endif

@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                hdPipeline.m_RayTracingManager.SetDirty();
+                hdPipeline.SetRayTracingSceneDirty();
             }
         }
 #endif
@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // This function finds which subscenes are going to be used for the camera and computes their light clusters
+        // This function finds which sub-scenes are going to be used for the camera and computes their light clusters
         public void UpdateCameraData(CommandBuffer cmd, HDCamera hdCamera)
         {
             // Set all the acceleration structures that are currently allocated to not updated
