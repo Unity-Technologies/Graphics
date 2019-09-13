@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
+- You can now save your graph as a new Asset.
 
 ## [7.1.1] - 2019-09-05
 ### Added
