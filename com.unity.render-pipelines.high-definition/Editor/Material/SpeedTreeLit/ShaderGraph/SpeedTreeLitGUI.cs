@@ -78,6 +78,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            if (material.HasProperty("_WindEnabled"))
+            {
+                int windOn = material.GetInt("_WindEnabled");
+                if (windOn == 0)
+                    material.DisableKeyword("ENABLE_WIND");
+            }
+
             if (material.HasProperty("_WindQuality") && material.IsKeywordEnabled("SPEEDTREE_V8"))
             {
                 SpeedTreeLitMasterNode.WindQuality q = (SpeedTreeLitMasterNode.WindQuality)material.GetInt("_WindQuality");

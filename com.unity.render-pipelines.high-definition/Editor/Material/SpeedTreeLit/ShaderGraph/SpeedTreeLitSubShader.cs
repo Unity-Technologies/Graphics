@@ -28,7 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
                 "#pragma multi_compile _ LIGHT_LAYERS",
                 "#pragma multi_compile _ LOD_FADE_CROSSFADE",
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                 // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -126,7 +125,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ExtraDefines = new List<string>()
             {
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
@@ -196,7 +194,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
@@ -235,7 +232,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
@@ -318,7 +314,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as SpeedTreeLitMasterNode;
                 HDSubShaderUtilities.SetStencilStateForDepth(ref pass);
 
-                pass.ExtraDefines.Add("#define ENABLE_WIND");
                 pass.ExtraDefines.Add("#define EFFECT_BACKSIDE_NORMALS");
                 pass.ExtraDefines.Add("#define SPEEDTREE_Y_UP");
                 masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
@@ -376,7 +371,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as SpeedTreeLitMasterNode;
                 HDSubShaderUtilities.SetStencilStateForMotionVector(ref pass);
 
-                pass.ExtraDefines.Add("#define ENABLE_WIND");
                 pass.ExtraDefines.Add("#define EFFECT_BACKSIDE_NORMALS");
                 pass.ExtraDefines.Add("#define SPEEDTREE_Y_UP");
 
@@ -399,7 +393,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
@@ -473,7 +466,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_PREPASS",
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
@@ -580,7 +572,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // ExtraDefines are set when the pass is generated
             ExtraDefines = new List<string>()
             {
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                 // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
@@ -669,7 +660,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
-                "#define ENABLE_WIND",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },

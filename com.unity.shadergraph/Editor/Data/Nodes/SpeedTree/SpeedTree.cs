@@ -29,8 +29,6 @@ namespace UnityEditor.ShaderGraph
 
         public const int WindQualitySlotId = 3;
         private const string kWindQualitySlotName = "Wind Quality";
-        public const int LODlevelSlotId = 4;
-        public const string kLODlevelSlotName = "LOD Level";
 
         //public const int BillboardInputSlotId = 2;
         //private const string kBillboardInputSlotName = "Billboard";
@@ -68,11 +66,10 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector2MaterialSlot(OutUVSlotId, kOutUVSlotName, kOutUVSlotName, SlotType.Output, Vector3.zero));
 
             AddSlot(new Vector1MaterialSlot(WindQualitySlotId, kWindQualitySlotName, kWindQualitySlotName, SlotType.Input, 0));
-            AddSlot(new Vector1MaterialSlot(LODlevelSlotId, kLODlevelSlotName, kLODlevelSlotName, SlotType.Input, 0));
             //AddSlot(new BooleanMaterialSlot(BillboardInputSlotId, kBillboardInputSlotName, kBillboardInputSlotName, SlotType.Input, false));
 
             //RemoveSlotsNameNotMatching(new[] { OutputSlotId, WindQualitySlotId, BillboardInputSlotId });
-            RemoveSlotsNameNotMatching(new[] { OutPosSlotId, OutNormSlotId, OutUVSlotId, WindQualitySlotId, LODlevelSlotId });
+            RemoveSlotsNameNotMatching(new[] { OutPosSlotId, OutNormSlotId, OutUVSlotId, WindQualitySlotId });
         }
 
 		public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
@@ -108,7 +105,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutPosSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutPosSlotId));
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutNormSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutNormSlotId));
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutUVSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutUVSlotId));
-            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, (int){7}, {8}, {9}, {10}, {11});",
+            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, (int){7}, {8}, {9}, {10});",
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Position),
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal),
                             ShaderGeneratorNames.VertexColor,
@@ -117,7 +114,6 @@ namespace UnityEditor.ShaderGraph
                             UVChannel.UV2.GetUVName(),
                             UVChannel.UV3.GetUVName(),
                             windQuality,
-                            GetSlotValue(LODlevelSlotId, generationMode),
                             GetVariableNameForSlot(OutPosSlotId),
                             GetVariableNameForSlot(OutNormSlotId),
                             GetVariableNameForSlot(OutUVSlotId));

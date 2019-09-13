@@ -394,25 +394,21 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-
-            if (m_Node.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree7)
+            ps.Add(new PropertyRow(CreateLabel("LOD Crossfading", indentLevel)), (row) =>
             {
-                ps.Add(new PropertyRow(CreateLabel("Tree Geom Type", indentLevel)), (row) =>
+                row.Add(new Toggle(), (toggle) =>
                 {
-                    row.Add(new EnumField(SpeedTreeLitMasterNode.TreeGeomType.Branch), (e) =>
-                    {
-                        e.value = m_Node.speedTreeGeomType;
-                        e.RegisterValueChangedCallback(ChangeTreeGeomType);
-                    });
+                    toggle.value = m_Node.lodFadeCrossFade.isOn;
+                    toggle.OnToggleChanged(ChangeLODCrossfade);
                 });
-            }
+            });
 
-            ps.Add(new PropertyRow(CreateLabel("Wind Quality", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("LOD Percentage Fade", indentLevel)), (row) =>
             {
-                row.Add(new EnumField(SpeedTreeLitMasterNode.WindQuality.Best), (e) =>
+                row.Add(new Toggle(), (toggle) =>
                 {
-                    e.value = m_Node.windQuality;
-                    e.RegisterValueChangedCallback(ChangeWindQuality);
+                    toggle.value = m_Node.lodFadePercentage.isOn;
+                    toggle.OnToggleChanged(ChangeLODPercentageFade);
                 });
             });
 
@@ -759,22 +755,20 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.speedTreeAssetVersion = (SpeedTreeLitMasterNode.SpeedTreeVersion)evt.newValue;
         }
 
-        void ChangeWindQuality(ChangeEvent<Enum> evt)
+        void ChangeLODCrossfade(ChangeEvent<bool> evt)
         {
-            if (Equals(m_Node.windQuality, evt.newValue))
-                return;
-
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Wind Quality");
-            m_Node.windQuality = (SpeedTreeLitMasterNode.WindQuality)evt.newValue;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("LOD Crossfade Change");
+            ToggleData td = m_Node.lodFadeCrossFade;
+            td.isOn = evt.newValue;
+            m_Node.lodFadeCrossFade = td;
         }
 
-        void ChangeTreeGeomType(ChangeEvent<Enum> evt)
+        void ChangeLODPercentageFade(ChangeEvent<bool> evt)
         {
-            if (Equals(m_Node.speedTreeGeomType, evt.newValue))
-                return;
-
-           m_Node.owner.owner.RegisterCompleteObjectUndo("Tree Geom Type");
-            m_Node.speedTreeGeomType = (SpeedTreeLitMasterNode.TreeGeomType)evt.newValue;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("LOD Percentage Fade Change");
+            ToggleData td = m_Node.lodFadePercentage;
+            td.isOn = evt.newValue;
+            m_Node.lodFadePercentage = td;
         }
     }
 }
