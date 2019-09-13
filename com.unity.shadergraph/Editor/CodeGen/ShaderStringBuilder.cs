@@ -232,18 +232,6 @@ namespace UnityEditor.ShaderGraph
             return m_StringBuilder.ToString();
         }
 
-        public string ToString(out ShaderSourceMap sourceMap)
-        {
-            m_CurrentMapping.count = m_StringBuilder.Length - m_CurrentMapping.startIndex;
-            if (m_CurrentMapping.count > 0)
-                m_Mappings.Add(m_CurrentMapping);
-            var source = m_StringBuilder.ToString();
-            sourceMap = new ShaderSourceMap(source, m_Mappings);
-            m_Mappings.RemoveAt(m_Mappings.Count - 1);
-            m_CurrentMapping.count = 0;
-            return source;
-        }
-
         public string ToString(int startIndex, int length)
         {
             return m_StringBuilder.ToString(startIndex, length);
