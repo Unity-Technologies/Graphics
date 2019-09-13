@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the Directional Light, at ground level, in lux.");
             public readonly GUIContent punctualIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the Light in lumen.");
             public readonly GUIContent areaIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
-            public readonly GUIContent lightIntensity = new GUIContent("Intensity", "");
+            public readonly GUIContent lightIntensity = new GUIContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");
 
             public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Controls the roughness of the Material and is useful when the specular highlight is either too small or too sharp. Very low cost way of faking spherical area lighting.");
             public readonly GUIContent lightRadius = new GUIContent("Emission Radius", "Sets the softness of the core of the Punctual Light to create fill lighting.");
@@ -87,20 +87,20 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
-            public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Sets the frequency of update for the shadow map.");
-            public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "If selected, the custom spot angle will be used for shadow map rendering.");
-            public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Custom angle used for shadow map rendering.");
+            public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
+            public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "When enabled, this Spot Light uses the custom angle for shadow map rendering.");
+            public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");
 
             // Bias control
-            public readonly GUIContent constantScale = new GUIContent("Constant Depth Bias");
+            public readonly GUIContent constantScale = new GUIContent("Constant Depth Bias", "Controls the bias that HDRP adds to the distance in this Light's shadow map.");
 
-            public readonly GUIContent normalBias = new GUIContent("Normal Bias");
+            public readonly GUIContent normalBias = new GUIContent("Normal Bias", "Controls the bias this Light applies along the normal of surfaces it illuminates.");
 
             // Shadow filter settings
-            public readonly GUIContent shadowSoftness = new GUIContent("Shadow Softness", "Size of the penumbra.");
-            public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Sample count HDRP uses to determine the size of the blocker.");
-            public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count");
-            public readonly GUIContent minFilterSize = new GUIContent("Minimal size of the filter");
+            public readonly GUIContent shadowSoftness = new GUIContent("Shadow Softness", "Controls the size of the penumbra. Higher values mimic a larger emission radius while lower values mimic a punctual light.");
+            public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Controls the number of samples that HDRP uses to determine the size of the blocker.");
+            public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count", "Controls the number of samples that HDRP uses to blur shadows.");
+            public readonly GUIContent minFilterSize = new GUIContent("Minimum Size of the Filter", "Controls the minimum size of the shadow’s blur effect regardless of the distance between the pixel and the shadow caster.");
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
 #if ENABLE_RAYTRACING
@@ -122,11 +122,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent maxDepthBias = new GUIContent("Max Depth Bias");
 
             // Layers
-            public readonly GUIContent linkLightAndShadowLayersText = new GUIContent("Link Light Layer", "When enabled, the Light Layer property specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property in the General section to specify the light layers for lighting and the Light Layer property in the Shadows section to specify the light layers for shadows.");
-            public readonly GUIContent shadowLayerMaskText = new GUIContent("Light Layer");
+            public readonly GUIContent linkLightAndShadowLayersText = new GUIContent("Link Light Layer", "When enabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property below to specify the light layers for shadows seperately to lighting.");
+            public readonly GUIContent shadowLayerMaskText = new GUIContent("Light Layer", "Specifies the light layer to use for shadows.");
 
             // Settings
-            public readonly GUIContent enableShadowMap = new GUIContent("Enable");
+            public readonly GUIContent enableShadowMap = new GUIContent("Enable", "When enabled, this Light casts shadows.");
 
             public Styles()
             {

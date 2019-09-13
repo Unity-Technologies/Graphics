@@ -152,11 +152,37 @@ These settings adjust the size of the shadow mask. Smaller values causes Unity t
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
 | **Shadow Mask**                  | Enable the checkbox to make HDRP support [Shadowmask](https://docs.unity3d.com/Manual/LightMode-Mixed-Shadowmask.html) in your Unity Project. |
-| **Resolution**                   | Use the drop-down to select the resolution of shadow atlas.  |
-| **16-bit**                       | Enable the checkbox to force HDRP to use 16-bit shadow maps. |
-| **Dynamic Rescale**              | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
 | **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.html) override. |
 | **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. Shadow quality only works for Cameras that use [forward rendering](Forward-And-Deferred-Rendering.html). **Deferred** mode uses Medium.<br />To edit this property, select **Both** or **Forward Only** from the **Lit Shader Mode** drop-down. For information on each filtering quality preset, see the [Filtering Qualities table](#FilteringQualities). |
+| **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
+| - **Maximum**                    | Set the maximum number of screen space shadows that HDRP can handle. |
+
+<a name="ShadowMapSettings"></a>
+
+The following sections allow you to customize the shadow atlases and individual shadow resolution tiers for each type of Light in HDRP. Shadow resolution tiers are useful because, instead of defining the shadow resolution for each individual Light as a number, you can assign a numbered resolution to a named shadow resolution tier then use the named tier instead of rewriting the number. For example, instead of setting the resolution of each Light to 512, you could say that **Medium** resolution shadows have a resolution of 512 and then set the shadow quality of each Light to be **Medium**. This way, you can more easily have consistent shadow quality across your HDRP Project.
+
+The three sections here are:
+
+- **Directional Light Shadows**
+- **Punctual Light Shadows**
+- **Area Light Shadows**
+
+They all share the same properties, except **Directional Light Shadows** which does not include **Resolution** or **Dynamic Rescale**.
+
+| **Property**        | **Description**                                              |
+| ------------------- | ------------------------------------------------------------ |
+| ***Light Atlas***   |                                                              |
+| **Resolution**      | Use the drop-down to select the resolution of the shadow atlas. |
+| **Precision**       | Use the drop-down to select the precision of the shadow map. This sets the bit depth of each pixel of the shadow map. **16 bit** is faster and uses less memory at the expense of precision. |
+| **Dynamic Rescale** | Enable the checkbox to allow HDRP to rescale the shadow atlas if all the shadows on the screen don’t currently fit onto it. |
+
+| ***Shadow Resolution Tiers*** |                                                              |
+| ----------------------------- | ------------------------------------------------------------ |
+| **L**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Low** use this resolution for their shadows. |
+| **M**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Medium** use this resolution for their shadows. |
+| **H**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **High** use this resolution for their shadows. |
+| **U**                         | Set the resolution of shadows set to this quality. Light's with their **Resolution** set to **Ultra** use this resolution for their shadows. |
+| **Maximum Shadow Resolution** | Set the maximum resolution of any shadow map of this Light type. If you set any shadow resolution to a value higher than this, HDRP clamps it to this value. |
 
 <a name="FilteringQualities"></a>
 
@@ -167,9 +193,8 @@ These settings adjust the size of the shadow mask. Smaller values causes Unity t
 | **Low**               | &#8226; **Point/Spot Lights**: Percentage Closer Filtering (PCF) 3x3 (4 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps).<br />&#8226; **Area Lights**: EVSM. |
 | **Medium**            | &#8226; **Point/Spot Lights**: PCF 5x5 (9 taps).<br />&#8226; **Directional Lights**: PCF Tent 5x5 (9 taps).<br />&#8226; **Area Lights**: EVSM. |
 | **High**              | &#8226;**Point/Spot/Directional Lights**: Percentage Closer Soft Shadow (PCSS). You can change the sample count to decrease the quality of these shadows. This decreases the resource intensity of this algorithm. To change the sample count for shadows cast by that Light, set the **Filter Sample Count** in the Inspector of each Light component.<br />&#8226; **Area Lights**: EVSM. |
-| **Very High**         | &#8226; **Point/Spot**: Use **High** for their **Filtering Quality**.<br />&#8226; **Directional Lights**: Improve Moment Shadows.<br />&#8226; **Area Lights**: EVSM. |
 
-The PCF algorithm applies a fixed size blur. PCSS and Improved Moment Shadows algorithms apply a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow, that is also more resource intensive to compute.
+The PCF algorithm applies a fixed size blur. PCSS applies a different blur size depending on the distance between the shadowed pixel and the shadow caster. This results in a more realistic shadow, that is also more resource intensive to compute.
 
 ### Light Loop
 
