@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             SetCameraRenderState(context, ref renderingData.cameraData);
 
-            SortStable(m_ActiveRenderPassQueue);
+            SortStable(m_ActiveRenderPassQueue); // Sort in growing order of ScriptableRenderPass.renderPassEvent values
 
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
             // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
@@ -201,9 +201,11 @@ namespace UnityEngine.Rendering.Universal
             blockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
 
             NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
+            // Fill blockRanges with indices of the RenderPasses stored in m_ActiveRenderPassQueue
             FillBlockRanges(blockEventLimits, blockRanges);
             blockEventLimits.Dispose();
 
+            // Setup uniform variables and shader keywords defined in Lighting.hlsl (Lighting.hlsl is included by Lit.shader via LitForwardPass.hlsl)
             SetupLights(context, ref renderingData);
 
             // Before Render Block. This render blocks always execute in mono rendering.
@@ -221,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
             /// * Setup global time properties (_Time, _SinTime, _CosTime)
             bool stereoEnabled = renderingData.cameraData.isStereoEnabled;
             context.SetupCameraProperties(camera, stereoEnabled);
-            
+
             // Override time values from when `SetupCameraProperties` were called.
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
