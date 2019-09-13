@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     {
         const string kDebugSymbol = "SHADERGRAPH_DEBUG";
 
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, ShaderPass pass, GenerationMode mode, 
+        public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ShaderPass pass, GenerationMode mode, 
             ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths,
             List<Dependency[]> dependencies, string resourceClassName, string assemblyName)
         {
@@ -35,12 +35,12 @@ namespace UnityEditor.ShaderGraph
             // Initiailize Collectors
             var propertyCollector = new PropertyCollector();
             var keywordCollector = new KeywordCollector();
-            masterNode.owner.CollectShaderKeywords(keywordCollector, mode);
+            outputNode.owner.CollectShaderKeywords(keywordCollector, mode);
 
             // Get upstream nodes from ShaderPass port mask
             List<AbstractMaterialNode> vertexNodes;
             List<AbstractMaterialNode> pixelNodes;
-            GetUpstreamNodesForShaderPass(masterNode, pass, out vertexNodes, out pixelNodes);
+            GetUpstreamNodesForShaderPass(outputNode, pass, out vertexNodes, out pixelNodes);
 
             // Track permutation indices for all nodes
             List<int>[] vertexNodePermutations = new List<int>[vertexNodes.Count];
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
 
             // Get active fields from upstream Node requirements
             ShaderGraphRequirementsPerKeyword graphRequirements;
-            GetActiveFieldsAndPermutationsForNodes(masterNode, pass, keywordCollector, vertexNodes, pixelNodes,
+            GetActiveFieldsAndPermutationsForNodes(outputNode, pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
 
             // GET CUSTOM ACTIVE FIELDS HERE!
@@ -58,8 +58,21 @@ namespace UnityEditor.ShaderGraph
             AddRequiredFields(pass.requiredVaryings, activeFields.baseInstance);
 
             // Get Port references from ShaderPass
-            var pixelSlots = FindMaterialSlotsOnNode(pass.pixelPorts, masterNode);
-            var vertexSlots = FindMaterialSlotsOnNode(pass.vertexPorts, masterNode);                     
+            List<MaterialSlot> pixelSlots;
+            List<MaterialSlot> vertexSlots;
+            if(outputNode is IMasterNode || outputNode is SubGraphOutputNode)
+            {
+                pixelSlots = FindMaterialSlotsOnNode(pass.pixelPorts, outputNode);
+                vertexSlots = FindMaterialSlotsOnNode(pass.vertexPorts, outputNode);
+            }
+            else
+            {
+                pixelSlots = new List<MaterialSlot>()
+                {
+                    new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero) { owner = outputNode },
+                };
+                vertexSlots = new List<MaterialSlot>();
+            }
 
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
@@ -177,13 +190,13 @@ namespace UnityEditor.ShaderGraph
 
                 // Build vertex graph functions from ShaderPass vertex port mask
                 SubShaderGenerator.GenerateVertexDescriptionFunction(
-                    masterNode.owner as GraphData,
+                    outputNode.owner as GraphData,
                     vertexGraphFunctionBuilder,
                     functionRegistry,
                     propertyCollector,
                     keywordCollector,
                     mode,
-                    masterNode,
+                    outputNode,
                     vertexNodes,
                     vertexNodePermutations,
                     vertexSlots,
@@ -226,8 +239,8 @@ namespace UnityEditor.ShaderGraph
             SubShaderGenerator.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 pixelNodePermutations,
-                masterNode,
-                masterNode.owner as GraphData,
+                outputNode,
+                outputNode.owner as GraphData,
                 pixelGraphFunctionBuilder,
                 functionRegistry,
                 propertyCollector,
@@ -277,7 +290,7 @@ namespace UnityEditor.ShaderGraph
 
             using (var propertyBuilder = new ShaderStringBuilder())
             {
-                propertyCollector.GetPropertiesDeclaration(propertyBuilder, mode, masterNode.owner.concretePrecision);
+                propertyCollector.GetPropertiesDeclaration(propertyBuilder, mode, outputNode.owner.concretePrecision);
                 if(propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlack());
@@ -397,17 +410,17 @@ namespace UnityEditor.ShaderGraph
             return Type.GetType(assemblyQualifiedTypeName);
         }
 
-        static void GetUpstreamNodesForShaderPass(AbstractMaterialNode masterNode, ShaderPass pass, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
+        static void GetUpstreamNodesForShaderPass(AbstractMaterialNode outputNode, ShaderPass pass, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
         {
             // Traverse Graph Data
             vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts);
+            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts);
 
             pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts);
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts);
         }
 
-        static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode masterNode, ShaderPass pass, 
+        static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode outputNode, ShaderPass pass, 
             KeywordCollector keywordCollector,  List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
             List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
             ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
@@ -425,8 +438,8 @@ namespace UnityEditor.ShaderGraph
                     // Get active nodes for this permutation
                     var localVertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
                     var localPixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
-                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
 
                     // Track each vertex node in this permutation
                     foreach(AbstractMaterialNode vertexNode in localVertexNodes)
@@ -595,16 +608,16 @@ namespace UnityEditor.ShaderGraph
 
         static List<MaterialSlot> FindMaterialSlotsOnNode(IEnumerable<int> slots, AbstractMaterialNode node)
         {
+            if (slots == null)
+                return null;
+
             var activeSlots = new List<MaterialSlot>();
-            if (slots != null)
+            foreach (var id in slots)
             {
-                foreach (var id in slots)
+                MaterialSlot slot = node.FindSlot<MaterialSlot>(id);
+                if (slot != null)
                 {
-                    MaterialSlot slot = node.FindSlot<MaterialSlot>(id);
-                    if (slot != null)
-                    {
-                        activeSlots.Add(slot);
-                    }
+                    activeSlots.Add(slot);
                 }
             }
             return activeSlots;
@@ -677,8 +690,13 @@ namespace UnityEditor.ShaderGraph
                     foreach (var subShader in node.owner.subShaders)
                     {
                         if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
-                            finalShader.AppendLines(subShader.GetSubshader(masterNode, mode, sourceAssetDependencyPaths));
+                            finalShader.AppendLines(subShader.GetSubshader(node, mode, sourceAssetDependencyPaths));
                     }
+                }
+                else
+                {
+                    PreviewSubShader previewSubShader = new PreviewSubShader();
+                    finalShader.AppendLines(previewSubShader.GetSubshader(node, mode, sourceAssetDependencyPaths));
                 }
 
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");

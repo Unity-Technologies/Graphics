@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph
 {
     interface ISubShader
     {
-        string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null);
+        string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null);
         bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset);
         bool IsMasterNodeCompatible(IMasterNode masterNode);
     }

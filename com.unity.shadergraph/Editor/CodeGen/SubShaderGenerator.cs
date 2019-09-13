@@ -31,261 +31,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void GenerateApplicationVertexInputs(ShaderGraphRequirements graphRequirements, ShaderStringBuilder vertexInputs)
-        {
-            vertexInputs.AppendLine("struct GraphVertexInput");
-            using (vertexInputs.BlockSemicolonScope())
-            {
-                vertexInputs.AppendLine("float4 vertex : POSITION;");
-                if(graphRequirements.requiresNormal != NeededCoordinateSpace.None || graphRequirements.requiresBitangent != NeededCoordinateSpace.None)
-                    vertexInputs.AppendLine("float3 normal : NORMAL;");
-                if(graphRequirements.requiresTangent != NeededCoordinateSpace.None || graphRequirements.requiresBitangent != NeededCoordinateSpace.None)
-                    vertexInputs.AppendLine("float4 tangent : TANGENT;");
-                if (graphRequirements.requiresVertexColor)
-                {
-                    vertexInputs.AppendLine("float4 color : COLOR;");
-                }
-                foreach (var channel in graphRequirements.requiresMeshUVs.Distinct())
-                    vertexInputs.AppendLine("float4 texcoord{0} : TEXCOORD{0};", (int)channel);
-                vertexInputs.AppendLine("UNITY_VERTEX_INPUT_INSTANCE_ID");
-            }
-        }
-
-        public static GenerationResults GetShader(this GraphData graph, AbstractMaterialNode node, GenerationMode mode, string name)
-        {
-            // ----------------------------------------------------- //
-            //                         SETUP                         //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // String builders
-
-            var finalShader = new ShaderStringBuilder();
-            var results = new GenerationResults();
-
-            var shaderProperties = new PropertyCollector();
-            var shaderKeywords = new KeywordCollector();
-            var shaderPropertyUniforms = new ShaderStringBuilder();
-            var shaderKeywordDeclarations = new ShaderStringBuilder();
-            var shaderKeywordPermutations = new ShaderStringBuilder(1);
-
-            var functionBuilder = new ShaderStringBuilder();
-            var functionRegistry = new FunctionRegistry(functionBuilder);
-
-            var vertexDescriptionFunction = new ShaderStringBuilder(0);
-
-            var surfaceDescriptionInputStruct = new ShaderStringBuilder(0);
-            var surfaceDescriptionStruct = new ShaderStringBuilder(0);
-            var surfaceDescriptionFunction = new ShaderStringBuilder(0);
-
-            var vertexInputs = new ShaderStringBuilder(0);
-
-            graph.CollectShaderKeywords(shaderKeywords, mode);
-
-            if(graph.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
-            {
-                graph.AddValidationError(node.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
-
-                results.configuredTextures = shaderProperties.GetConfiguredTexutres();
-                results.shader = string.Empty;
-                return results;
-            }
-
-            // -------------------------------------
-            // Get Slot and Node lists
-
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
-
-            var slots = new List<MaterialSlot>();
-            if (node is IMasterNode || node is SubGraphOutputNode)
-                slots.AddRange(node.GetInputSlots<MaterialSlot>());
-            else
-            {
-                var outputSlots = node.GetOutputSlots<MaterialSlot>().ToList();
-                if (outputSlots.Count > 0)
-                    slots.Add(outputSlots[0]);
-            }
-
-            // -------------------------------------
-            // Get Requirements
-
-            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
-
-            // ----------------------------------------------------- //
-            //                         KEYWORDS                      //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Get keyword permutations
-
-            graph.CollectShaderKeywords(shaderKeywords, mode);
-
-            // Track permutation indicies for all nodes and requirements
-            List<int>[] keywordPermutationsPerNode = new List<int>[activeNodeList.Count];
-
-            // -------------------------------------
-            // Evaluate all permutations
-
-            for(int i = 0; i < shaderKeywords.permutations.Count; i++)
-            {
-                // Get active nodes for this permutation
-                var localNodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(localNodes, node, keywordPermutation: shaderKeywords.permutations[i]);
-
-                // Track each pixel node in this permutation
-                foreach(AbstractMaterialNode pixelNode in localNodes)
-                {
-                    int nodeIndex = activeNodeList.IndexOf(pixelNode);
-
-                    if(keywordPermutationsPerNode[nodeIndex] == null)
-                        keywordPermutationsPerNode[nodeIndex] = new List<int>();
-                    keywordPermutationsPerNode[nodeIndex].Add(i);
-                }
-
-                // Get active requirements for this permutation
-                var localSurfaceRequirements = ShaderGraphRequirements.FromNodes(localNodes, ShaderStageCapability.Fragment, false);
-                var localPixelRequirements = ShaderGraphRequirements.FromNodes(localNodes, ShaderStageCapability.Fragment);
-            }
-
-
-            // ----------------------------------------------------- //
-            //                START VERTEX DESCRIPTION               //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Generate Vertex Description function
-
-            vertexDescriptionFunction.AppendLine("GraphVertexInput PopulateVertexData(GraphVertexInput v)");
-            using (vertexDescriptionFunction.BlockScope())
-            {
-                vertexDescriptionFunction.AppendLine("return v;");
-            }
-
-            // ----------------------------------------------------- //
-            //               START SURFACE DESCRIPTION               //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Generate Input structure for Surface Description function
-            // Surface Description Input requirements are needed to exclude intermediate translation spaces
-
-            GenerateSurfaceInputStruct(surfaceDescriptionInputStruct, requirements, "SurfaceDescriptionInputs");
-
-            results.previewMode = PreviewMode.Preview2D;
-            foreach (var pNode in activeNodeList)
-            {
-                if (pNode.previewMode == PreviewMode.Preview3D)
-                {
-                    results.previewMode = PreviewMode.Preview3D;
-                    break;
-                }
-            }
-
-            // -------------------------------------
-            // Generate Output structure for Surface Description function
-
-            GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, useIdsInNames: !(node is IMasterNode));
-
-            // -------------------------------------
-            // Generate Surface Description function
-
-            GenerateSurfaceDescriptionFunction(
-                activeNodeList,
-                keywordPermutationsPerNode,
-                node,
-                graph,
-                surfaceDescriptionFunction,
-                functionRegistry,
-                shaderProperties,
-                shaderKeywords,
-                mode,
-                outputIdProperty: results.outputIdProperty);
-
-            // ----------------------------------------------------- //
-            //           GENERATE VERTEX > PIXEL PIPELINE            //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Keyword declarations
-
-            shaderKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
-
-            // -------------------------------------
-            // Property uniforms
-
-            shaderProperties.GetPropertiesDeclaration(shaderPropertyUniforms, mode, graph.concretePrecision);
-
-            // -------------------------------------
-            // Generate Input structure for Vertex shader
-
-            GenerateApplicationVertexInputs(requirements, vertexInputs);
-
-            // ----------------------------------------------------- //
-            //                      FINALIZE                         //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Build final shader
-
-            finalShader.AppendLine(@"Shader ""{0}""", name);
-            using (finalShader.BlockScope())
-            {
-                SubShaderGenerator.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords, mode);
-                finalShader.AppendNewLine();
-
-                finalShader.AppendLine(@"HLSLINCLUDE");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
-                finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl""");
-
-                finalShader.AppendLines(shaderKeywordDeclarations.ToString());
-                finalShader.AppendLine(@"#define SHADERGRAPH_PREVIEW 1");
-                finalShader.AppendNewLine();
-
-                finalShader.AppendLines(shaderKeywordPermutations.ToString());
-
-                finalShader.AppendLines(shaderPropertyUniforms.ToString());
-                finalShader.AppendNewLine();
-
-                finalShader.AppendLines(surfaceDescriptionInputStruct.ToString());
-                finalShader.AppendNewLine();
-
-                finalShader.Concat(functionBuilder);
-                finalShader.AppendNewLine();
-
-                finalShader.AppendLines(surfaceDescriptionStruct.ToString());
-                finalShader.AppendNewLine();
-                finalShader.AppendLines(surfaceDescriptionFunction.ToString());
-                finalShader.AppendNewLine();
-
-                finalShader.AppendLines(vertexInputs.ToString());
-                finalShader.AppendNewLine();
-                finalShader.AppendLines(vertexDescriptionFunction.ToString());
-                finalShader.AppendNewLine();
-
-                finalShader.AppendLine(@"ENDHLSL");
-
-                finalShader.AppendLines(ShaderGenerator.GetPreviewSubShader(node, requirements));
-                ListPool<AbstractMaterialNode>.Release(activeNodeList);
-            }
-
-            // -------------------------------------
-            // Finalize
-
-            results.configuredTextures = shaderProperties.GetConfiguredTexutres();
-            ShaderSourceMap sourceMap;
-            results.shader = finalShader.ToString(out sourceMap);
-            results.sourceMap = sourceMap;
-            return results;
-        }
-
         public static void GenerateSurfaceInputStruct(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName)
         {
             sb.AppendLine($"struct {structName}");
@@ -349,19 +94,22 @@ namespace UnityEditor.ShaderGraph
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
             {
-                foreach (var slot in slots)
+                if(slots != null)
                 {
-                    string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                    if (useIdsInNames)
+                    foreach (var slot in slots)
                     {
-                        hlslName = $"{hlslName}_{slot.id}";
-                    }
+                        string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                        if (useIdsInNames)
+                        {
+                            hlslName = $"{hlslName}_{slot.id}";
+                        }
 
-                    surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
 
-                    if (activeFields != null)
-                    {
-                        activeFields.AddAll(structName + "." + hlslName);
+                        if (activeFields != null)
+                        {
+                            activeFields.AddAll(structName + "." + hlslName);
+                        }
                     }
                 }
             }
@@ -486,9 +234,8 @@ namespace UnityEditor.ShaderGraph
                 var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (slot != null)
                 {
-                    var hlslSafeName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
-                    surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                        hlslSafeName, rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision));
+                    var slotValue = rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision);
+                    surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite({slotValue})) ? {ShaderGenerator.AdaptNodeOutputForPreview(rootNode, slot.id)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
                 }
             }
         }
@@ -560,11 +307,6 @@ namespace UnityEditor.ShaderGraph
 
                 builder.AppendLine("return description;");
             }
-        }
-
-        public static GenerationResults GetPreviewShader(this GraphData graph, AbstractMaterialNode node)
-        {
-            return graph.GetShader(node, GenerationMode.Preview, String.Format("hidden/preview/{0}", node.GetVariableNameForNode()));
         }
     }
 }

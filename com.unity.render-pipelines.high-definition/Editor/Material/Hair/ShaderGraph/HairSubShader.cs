@@ -639,7 +639,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -649,7 +649,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
 
-            var masterNode = iMasterNode as HairMasterNode;
+            var masterNode = outputNode as HairMasterNode;
 
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);

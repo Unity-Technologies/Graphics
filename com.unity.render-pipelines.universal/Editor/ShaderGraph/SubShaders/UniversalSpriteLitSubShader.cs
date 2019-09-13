@@ -250,7 +250,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
         }
 
-        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -259,7 +259,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
 
             // Master Node data
-            var litMasterNode = masterNode as SpriteLitMasterNode;
+            var litMasterNode = outputNode as SpriteLitMasterNode;
             var subShader = new ShaderGenerator();
 
             subShader.AddShaderChunk("SubShader", true);

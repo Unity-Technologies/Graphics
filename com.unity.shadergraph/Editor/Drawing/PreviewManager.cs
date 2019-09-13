@@ -441,8 +441,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode))
                     continue;
 
-                var results = m_Graph.GetPreviewShader(node);
-
                 var renderData = GetRenderData(node.tempId);
                 if (renderData == null)
                 {
@@ -450,9 +448,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 ShaderUtil.ClearCachedData(renderData.shaderData.shader);
                 
-                BeginCompile(renderData, results.shader);
-                //get the preview mode from generated results
-                renderData.previewMode = results.previewMode;
+                // Get shader code and compile
+                List<PropertyCollector.TextureInfo> textureInfo;
+                var shader = GenerationUtils.GetShaderForNode(node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}", out textureInfo);
+                BeginCompile(renderData, shader);
+
+                // Calculate the PreviewMode from upstream nodes
+                // If any upstream node is 3D that trickles downstream
+                List<AbstractMaterialNode> upstreamNodes = new List<AbstractMaterialNode>();
+                NodeUtils.DepthFirstCollectNodesFromNode(upstreamNodes, node, NodeUtils.IncludeSelf.Include);
+                renderData.previewMode = PreviewMode.Preview2D;
+                foreach (var pNode in upstreamNodes)
+                {
+                    if (pNode.previewMode == PreviewMode.Preview3D)
+                    {
+                        renderData.previewMode = PreviewMode.Preview3D;
+                        break;
+                    }
+                }
             }
 
             ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;

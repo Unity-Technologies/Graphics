@@ -563,7 +563,7 @@ namespace UnityEditor.Rendering.HighDefinition
             generator.AddShaderChunk(builder.ToString());
         }
 
-        public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -573,7 +573,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
 
-            var masterNode = iMasterNode as PBRMasterNode;
+            var masterNode = outputNode as PBRMasterNode;
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);

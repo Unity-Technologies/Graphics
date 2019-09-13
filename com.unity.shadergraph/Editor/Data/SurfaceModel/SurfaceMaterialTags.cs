@@ -49,7 +49,8 @@ namespace UnityEditor.ShaderGraph
             builder.AppendLine("Tags");
             using (builder.BlockScope())
             {
-                builder.AppendLine("\"RenderPipeline\"=\"{0}\"", pipeline);
+                if(!string.IsNullOrEmpty(pipeline))
+                    builder.AppendLine("\"RenderPipeline\"=\"{0}\"", pipeline);
                 builder.AppendLine("\"RenderType\"=\"{0}\"", renderType);
 
                 string seperator = renderQueueOffset >= 0 ? "+" : "";
