@@ -12,7 +12,7 @@ using UnityEditorInternal;
 namespace UnityEditor.Experimental.VFX.Utility
 {
     [CustomEditor(typeof(VFXPropertyBinder))]
-    public class VFXPropertyBinderEditor : Editor
+    class VFXPropertyBinderEditor : Editor
     {
         ReorderableList m_List;
         SerializedProperty m_Elements;

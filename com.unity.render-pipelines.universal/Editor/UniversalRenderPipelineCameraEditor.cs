@@ -291,7 +291,7 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorGUILayout.PropertyField(settings.targetTexture);
 
-            if (!settings.targetTexture.hasMultipleDifferentValues)
+            if (!settings.targetTexture.hasMultipleDifferentValues && m_UniversalRenderPipeline != null)
             {
                 var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
                 int pipelineSamplesCount = m_UniversalRenderPipeline.msaaSampleCount;
@@ -355,15 +355,23 @@ namespace UnityEditor.Rendering.Universal
             hasChanged |= DrawLayerMask(m_AdditionalCameraDataVolumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
             hasChanged |= DrawObjectField(m_AdditionalCameraDataVolumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
 
-            hasChanged |= DrawBasicIntPopup(m_AdditionalCameraDataRendererProp, ref selectedRendererOption, Styles.rendererType, UniversalRenderPipeline.asset.rendererDisplayList,
-                UniversalRenderPipeline.asset.rendererIndexList);
-            if (!UniversalRenderPipeline.asset.ValidateRendererDataList())
+            if (m_UniversalRenderPipeline != null)
             {
-                EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
+                hasChanged |= DrawBasicIntPopup(m_AdditionalCameraDataRendererProp, ref selectedRendererOption,
+                    Styles.rendererType, m_UniversalRenderPipeline.rendererDisplayList,
+                    m_UniversalRenderPipeline.rendererIndexList);
+                if (!m_UniversalRenderPipeline.ValidateRendererDataList())
+                {
+                    EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
+                }
+                else if (!m_UniversalRenderPipeline.ValidateRendererData(selectedRendererOption))
+                {
+                    EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
+                }
             }
-            else if (!UniversalRenderPipeline.asset.ValidateRendererData(selectedRendererOption))
+            else
             {
-                EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
+                EditorGUILayout.HelpBox("Universal RP asset not assigned, assign one in the Graphics Settings.", MessageType.Error);
             }
 
             // TODO: Fix this for lw/postfx
@@ -402,7 +410,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalCameraDataSO == null)
                 {
-                    m_AdditionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+                    m_AdditionalCameraData = Undo.AddComponent<UniversalAdditionalCameraData>(camera.gameObject);
                     init(m_AdditionalCameraData);
                 }
 
@@ -452,13 +460,16 @@ namespace UnityEditor.Rendering.Universal
         bool DrawObjectField<T>(SerializedProperty prop, ref T value, GUIContent style)
             where T : UnityEngine.Object
         {
+            var defaultVal = value;
             bool hasChanged = false;
             var controlRect = BeginProperty(prop, style);
 
             EditorGUI.BeginChangeCheck();
             value = (T)EditorGUI.ObjectField(controlRect, style, value, typeof(T), true);
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && !Equals(defaultVal, value))
+            {
                 hasChanged = true;
+            }
 
             EndProperty();
             return hasChanged;
@@ -467,13 +478,16 @@ namespace UnityEditor.Rendering.Universal
         bool DrawIntPopup<T>(SerializedProperty prop, ref T value, GUIContent style, GUIContent[] optionNames, int[] optionValues)
             where T : Enum
         {
+            var defaultVal = value;
             bool hasChanged = false;
             var controlRect = BeginProperty(prop, style);
 
             EditorGUI.BeginChangeCheck();
             value = (T)(object)EditorGUI.IntPopup(controlRect, style, (int)(object)value, optionNames, optionValues);
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() && !Equals(defaultVal, value))
+            {
                 hasChanged = true;
+            }
 
             EndProperty();
             return hasChanged;

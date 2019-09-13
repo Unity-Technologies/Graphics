@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given color buffer to the given destination color buffer.
@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// so you can use it later in rendering. For example, you can copy
     /// the opaque texture to use it for distortion effects.
     /// </summary>
-    internal class CopyColorPass : ScriptableRenderPass
+    public class CopyColorPass : ScriptableRenderPass
     {
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
@@ -47,6 +47,17 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor descriptor = cameraTextureDescripor;
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
+            if (m_DownsamplingMethod == Downsampling._2xBilinear)
+            {
+                descriptor.width /= 2;
+                descriptor.height /= 2;
+            }
+            else if (m_DownsamplingMethod == Downsampling._4xBox || m_DownsamplingMethod == Downsampling._4xBilinear)
+            {
+                descriptor.width /= 4;
+                descriptor.height /= 4;
+            }
+
             cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
         }
 

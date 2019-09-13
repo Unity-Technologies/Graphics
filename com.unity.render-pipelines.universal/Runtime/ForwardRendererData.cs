@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
-        [SerializeField] StencilStateData m_DefaultStencilState = null;
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
 
         protected override ScriptableRenderer Create()
         {

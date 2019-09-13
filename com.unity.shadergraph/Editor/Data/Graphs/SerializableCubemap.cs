@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class SerializableCubemap : ISerializationCallbackReceiver
+    public sealed class SerializableCubemap : ISerializationCallbackReceiver
     {
         [SerializeField]
         string m_SerializedCubemap;

@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Operator
         {
             VFXExpression[] output = new VFXExpression[]
             {
-                VFXBuiltInExpression.TotalTime + (VFXBuiltInExpression.DeltaTime * VFXOperatorUtility.FixedRandom(0xc43388e9, true)),
+                VFXBuiltInExpression.TotalTime + (VFXBuiltInExpression.DeltaTime * VFXOperatorUtility.FixedRandom(0xc43388e9, VFXSeedMode.PerParticle)),
             };
             return output;
         }

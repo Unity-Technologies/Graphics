@@ -4,7 +4,6 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
 #endif
-using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
@@ -103,6 +102,10 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
+        /// <summary>
+        /// Returns the current render pipeline asset for the current quality setting.
+        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
+        /// </summary>
         public static UniversalRenderPipelineAsset asset
         {
             get
@@ -153,7 +156,6 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
-
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
         }
@@ -170,8 +172,10 @@ namespace UnityEngine.Rendering.Universal
             foreach (Camera camera in cameras)
             {
                 BeginCameraRendering(renderContext, camera);
-
-                VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                VFX.VFXManager.PrepareCamera(camera);
+#endif
                 RenderSingleCamera(renderContext, camera);
 
                 EndCameraRendering(renderContext, camera);
@@ -200,11 +204,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-#if UNITY_EDITOR
-            string tag = camera.name;
-#else
-            string tag = k_RenderCameraTag;
-#endif
+            string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name: k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
             using (new ProfilingSample(cmd, tag))
             {
@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
             SceneViewDrawMode.SetupDrawMode();
 #endif
         }
-		
+
 		static bool PlatformNeedsToKillAlpha()
 		{
 			return Application.platform == RuntimePlatform.IPhonePlayer ||
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.Universal
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
-            
+
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
 
@@ -290,8 +290,10 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
-            cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
-            
+            cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
+            cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ?
+                cameraData.maxShadowDistance : 0.0f;
+
             if (additionalCameraData != null)
             {
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
@@ -585,39 +587,8 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
 
-        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
-        {
-            LightDataGI lightData = new LightDataGI();
 
-            for (int i = 0; i < requests.Length; i++)
-            {
-                Light light = requests[i];
-                switch (light.type)
-                {
-                    case LightType.Directional:
-                        DirectionalLight directionalLight = new DirectionalLight();
-                        LightmapperUtils.Extract(light, ref directionalLight); lightData.Init(ref directionalLight);
-                        break;
-                    case LightType.Point:
-                        PointLight pointLight = new PointLight();
-                        LightmapperUtils.Extract(light, ref pointLight); lightData.Init(ref pointLight);
-                        break;
-                    case LightType.Spot:
-                        SpotLight spotLight = new SpotLight();
-                        LightmapperUtils.Extract(light, ref spotLight); lightData.Init(ref spotLight);
-                        break;
-                    case LightType.Area:
-                        RectangleLight rectangleLight = new RectangleLight();
-                        LightmapperUtils.Extract(light, ref rectangleLight); lightData.Init(ref rectangleLight);
-                        break;
-                    default:
-                        lightData.InitNoBake(light.GetInstanceID());
-                        break;
-                }
 
-                lightData.falloff = FalloffType.InverseSquared;
-                lightsOutput[i] = lightData;
-            }
-        };
+
     }
 }

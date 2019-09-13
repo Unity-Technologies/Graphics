@@ -14,12 +14,12 @@ namespace UnityEditor.VFX.Operator
         }
         public class OutputProperties
         {
+            [Tooltip("The radial coordinate (Radius).")]
+            public float distance = 1.0f;
             [Angle, Tooltip("The angular coordinate (Polar angle).")]
             public float theta = Mathf.PI / 2;
             [Angle, Tooltip("The pitch coordinate (Azimuth angle).")]
             public float phi = Mathf.PI / 2;
-            [Tooltip("The radial coordinate (Radius).")]
-            public float distance = 1.0f;
         }
         override public string name { get { return "Rectangular to Spherical"; } }
 

@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 SceneView view = SceneView.lastActiveSceneView;
                 if (!view)
                     view = sceneViews[0] as SceneView;
+
                 if (view)
                     view.MoveToView(go.transform);
             }
@@ -43,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 PlaceGameObjectInFrontOfSceneView(go);
                 StageUtility.PlaceGameObjectInCurrentStage(go); // may change parent
+                go.transform.position = new Vector3(go.transform.position.x, go.transform.position.y, 0);
             }
 
             // Only at this point do we know the actual parent of the object and can modify its name accordingly.
@@ -71,16 +73,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         static bool CreateLightValidation()
         {
-            UniversalRenderPipeline pipeline = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
-            if (pipeline != null)
-            {
-                UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
-                Renderer2DData assetData = asset.scriptableRendererData as Renderer2DData;
-                if (assetData != null)
-                    return true;
-            }
-
-            return false;
+            return Light2DEditorUtility.IsUsing2DRenderer();
         }
 
         [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", false, -100)]

@@ -28,6 +28,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
+            float _TransparencyOverdrawMaxPixelCost;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -167,7 +168,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
                 }
-                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_PRIMARY_VISIBILITY)
+                if( _FullScreenDebugMode == FULLSCREENDEBUGMODE_RECURSIVE_TRACING)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
                     return color;
@@ -235,6 +236,19 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
                     return color;
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_OF_FIELD_COC)
+                {
+                    float coc = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy).x;
+
+                    float3 color = lerp(float3(1.0, 0.0, 0.0), float3(1.0, 1.0, 1.0), saturate(-coc));
+                    color = lerp(color, float3(1.0, 1.0, 1.0), saturate(coc));
+
+                    const float kPeakingThreshold = 0.01;
+                    if (abs(coc) <= kPeakingThreshold)
+                        color = lerp(float3(0.0, 0.0, 1.0), color, PositivePow(abs(coc) / kPeakingThreshold, 2.0));
+
+                    return float4(color, 1.0);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
                     uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, input.texcoord * _ScreenSize.xy).r;
@@ -272,6 +286,16 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     return float4(linearDepth.xxx, 1.0);
+                }
+                
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+                {
+                    float4 color = (float4)0;
+    
+                    float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
+                    if ((pixelCost > 0.001))
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));// 
+                    return color;
                 }
 
                 return float4(0.0, 0.0, 0.0, 0.0);

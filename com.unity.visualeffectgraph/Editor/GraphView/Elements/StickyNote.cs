@@ -151,7 +151,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    public class ResizableElement : VisualElement
+    class ResizableElement : VisualElement
     {
         public ResizableElement() : this("Resizable")
         {

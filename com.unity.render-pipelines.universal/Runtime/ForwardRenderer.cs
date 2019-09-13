@@ -1,6 +1,13 @@
+using UnityEngine.Rendering.Universal.Internal;
+
 namespace UnityEngine.Rendering.Universal
 {
-    internal class ForwardRenderer : ScriptableRenderer
+    /// <summary>
+    /// Default renderer for Universal RP.
+    /// This renderer is supported on all Universal RP supported platforms.
+    /// It uses a classic forward rendering strategy with per-object light culling.
+    /// </summary>
+    public sealed class ForwardRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
@@ -85,6 +92,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights = new ForwardLights();
         }
 
+        /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
@@ -220,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
                 // perform post with src / dest the same
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, requiresFinalPostProcessPass);
                     EnqueuePass(m_PostProcessPass);
                 }
 
@@ -251,14 +259,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (requiresFinalPostProcessPass)
                     {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, true);
                         EnqueuePass(m_PostProcessPass);
                         m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
                         EnqueuePass(m_FinalPostProcessPass);
                     }
                     else
                     {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false);
                         EnqueuePass(m_PostProcessPass);
                     }
                 }
@@ -278,11 +286,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_ForwardLights.Setup(context, ref renderingData);
         }
 
+        /// <inheritdoc />
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
@@ -294,9 +304,14 @@ namespace UnityEngine.Rendering.Universal
             //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             // }
 
-            cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
+            // If shadow is disabled, disable shadow caster culling
+            if (Mathf.Approximately(cameraData.maxShadowDistance, 0.0f))
+                cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+
+            cullingParameters.shadowDistance = cameraData.maxShadowDistance;
         }
 
+        /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)

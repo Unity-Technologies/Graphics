@@ -21,14 +21,14 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	#if HAS_STRIPS
 	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 1;
-	uint stripIndex = id / vertexPerStripCount;
-	uint currentIndex = (id % vertexPerStripCount + 1) >> 1; // relative index of particle
+	const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
+	uint relativeIndex = (id % vertexPerStripCount + 1) >> 1; // relative index of particle in strip
 	
-	uint maxEdgeIndex = currentIndex - (id & 1) + 1;
-	if (maxEdgeIndex >= STRIP_DATA(STRIP_NEXT_INDEX))
+	uint maxEdgeIndex = relativeIndex - (id & 1) + 1;
+	if (maxEdgeIndex >= stripData.nextIndex)
 		return o;
 	
-	uint index = PARTICLE_PER_STRIP_COUNT * stripIndex + (currentIndex + STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT; // wrapped index of particle	
+	uint index = GetParticleIndex(relativeIndex, stripData);
 	#else
 	uint index = id >> 1;
 	#endif
@@ -37,23 +37,30 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXProcessBlocks}
 			
 	#if HAS_STRIPS
-	float3 vPos = position;
+	float3 vPos = attributes.position;
 	#else
 		
-	if (!alive)
+	if (!attributes.alive)
 		return o;	
 	
 	#if TARGET_FROM_ATTRIBUTES
 	${VFXLoadSize}
-	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
+	float4x4 elementToVFX = GetElementToVFXMatrix(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		size3,
+		attributes.position);
 
-	position = mul(elementToVFX,float4(0,0,0,1)).xyz;
+	attributes.position = mul(elementToVFX,float4(0,0,0,1)).xyz;
 	
 	${VFXLoadParameter:{targetOffset}}
-	targetPosition = mul(elementToVFX,float4(targetOffset,1)).xyz;
+	attributes.targetPosition = mul(elementToVFX,float4(targetOffset,1)).xyz;
 	#endif
 		
-	float3 vPos = id & 1 ? targetPosition : position;
+	float3 vPos = id & 1 ? attributes.targetPosition : attributes.position;
 	#endif
 	
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);

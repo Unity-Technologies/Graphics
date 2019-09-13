@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace Data.Util
 {

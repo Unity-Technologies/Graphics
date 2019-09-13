@@ -9,8 +9,10 @@ using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
+using UnityEditor.VersionControl;
 
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -57,6 +59,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action saveRequested { get; set; }
 
+        public Func<bool> isCheckedOut { get; set; }
+
+        public Action checkOut { get; set; }
+
         public Action convertToSubgraphRequested
         {
             get { return m_GraphView.onConvertToSubgraphClick; }
@@ -92,6 +98,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
+            m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
+            m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
+            m_GraphViewElementsRemovedFromGroup = OnElementsRemovedFromGroup;
+
             m_Graph = graph;
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
@@ -160,6 +170,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
+                    if (isCheckedOut != null)
+                    {
+                        if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                        {
+                            if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                            {
+                                if (checkOut != null)
+                                    checkOut();
+                            }
+                        }
+                        else
+                        {
+                            EditorGUI.BeginDisabledGroup(true);
+                            GUILayout.Button("Check Out", EditorStyles.toolbarButton);
+                            EditorGUI.EndDisabledGroup();
+                        }
+                    }
+
                     GUILayout.FlexibleSpace();
 
                     EditorGUI.BeginChangeCheck();
@@ -197,9 +225,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
-                m_GraphView.groupTitleChanged = OnGroupTitleChanged;
-                m_GraphView.elementsAddedToGroup = OnElementsAddedToGroup;
-                m_GraphView.elementsRemovedFromGroup = OnElementsRemovedFromGroup;
+                RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
                 m_BlackboardProvider = new BlackboardProvider(graph);
@@ -212,6 +238,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
                 RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
+                if (m_Graph.isSubGraph)
+                {
+                    m_GraphView.AddToClassList("subgraph");
+                }
             }
 
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
@@ -241,6 +271,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        Action<Group, string> m_GraphViewGroupTitleChanged;
+        Action<Group, IEnumerable<GraphElement>> m_GraphViewElementsAddedToGroup;
+        Action<Group, IEnumerable<GraphElement>> m_GraphViewElementsRemovedFromGroup;
+
+        void RegisterGraphViewCallbacks()
+        {
+            m_GraphView.groupTitleChanged = m_GraphViewGroupTitleChanged;
+            m_GraphView.elementsAddedToGroup = m_GraphViewElementsAddedToGroup;
+            m_GraphView.elementsRemovedFromGroup = m_GraphViewElementsRemovedFromGroup;
+        }
+
+        void UnregisterGraphViewCallbacks()
+        {
+            m_GraphView.groupTitleChanged = null;
+            m_GraphView.elementsAddedToGroup = null;
+            m_GraphView.elementsRemovedFromGroup = null;
         }
 
         void CreateMasterPreview()
@@ -473,6 +521,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
+            UnregisterGraphViewCallbacks();
+
             if(previewManager.HandleGraphChanges())
             {
                 var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
@@ -625,7 +675,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     materialNodeView.OnModified(ModificationScope.Topological);
                 }
-
             }
 
             UpdateEdgeColors(nodesToUpdate);
@@ -645,6 +694,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             UpdateBadges();
+
+            RegisterGraphViewCallbacks();
         }
 
         void UpdateBadges()

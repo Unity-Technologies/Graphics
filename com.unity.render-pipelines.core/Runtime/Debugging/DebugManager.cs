@@ -95,6 +95,9 @@ namespace UnityEngine.Rendering
 
         DebugManager()
         {
+            if (!Debug.isDebugBuild)
+                return;
+
             RegisterInputs();
             RegisterActions();
         }
@@ -185,15 +188,30 @@ namespace UnityEngine.Rendering
         }
 
         // TODO: Optimally we should use a query path here instead of a display name
-        public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false, int groupIndex = 0)
+        public DebugUI.Panel GetPanel(string displayName, bool createIfNull = false, int groupIndex = 0, bool overrideIfExist = false)
         {
+            DebugUI.Panel p = null;
+
             foreach (var panel in m_Panels)
             {
                 if (panel.displayName == displayName)
-                    return panel;
+                {
+                    p = panel;
+                    break;
+                }
             }
 
-            DebugUI.Panel p = null;
+            if (p != null)
+            {
+                if (overrideIfExist)
+                {
+                    p.onSetDirty -= OnPanelDirty;
+                    RemovePanel(p);
+                    p = null;
+                }
+                else
+                    return p;
+            }
 
             if (createIfNull)
             {

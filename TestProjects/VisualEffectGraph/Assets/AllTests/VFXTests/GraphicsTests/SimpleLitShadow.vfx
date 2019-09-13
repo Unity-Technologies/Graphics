@@ -268,7 +268,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1347,6 +1347,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615120}
@@ -1361,6 +1362,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -1789,6 +1792,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615121}
@@ -1803,6 +1807,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -3482,6 +3488,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615122}
@@ -3496,6 +3503,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -3716,6 +3725,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615123}
@@ -3730,6 +3740,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -4738,6 +4750,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615124}
@@ -4752,6 +4765,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -4972,6 +4987,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615125}
@@ -4986,6 +5002,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -5994,6 +6012,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615126}
@@ -6008,6 +6027,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -6228,6 +6249,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615127}
@@ -6242,6 +6264,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -7250,6 +7274,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615128}
@@ -7264,6 +7289,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -7484,6 +7511,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615129}
@@ -7498,6 +7526,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -8506,6 +8536,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615130}
@@ -8520,6 +8551,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 4
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
@@ -8740,6 +8773,7 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615131}
@@ -8754,6 +8788,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   materialType: 3
   onlyAmbientLighting: 0
   diffusionProfileAsset: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
