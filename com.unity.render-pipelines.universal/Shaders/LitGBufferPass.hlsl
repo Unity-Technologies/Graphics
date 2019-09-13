@@ -2,8 +2,9 @@
 #define UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
-// keep this file in sync with LitGBufferPass.hlsl
+// keep this file in sync with LitForwardPass.hlsl
 
 struct Attributes
 {
@@ -19,10 +20,9 @@ struct Varyings
 {
     float2 uv                       : TEXCOORD0;
     DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-
-#ifdef _ADDITIONAL_LIGHTS
-    float3 positionWS               : TEXCOORD2;
-#endif
+//#ifdef _ADDITIONAL_LIGHTS
+//    float3 positionWS               : TEXCOORD2;
+//#endif
 
 #ifdef _NORMALMAP
     float4 normalWS                 : TEXCOORD3;    // xyz: normal, w: viewDir.x
@@ -35,9 +35,9 @@ struct Varyings
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
-#ifdef _MAIN_LIGHT_SHADOWS
-    float4 shadowCoord              : TEXCOORD7;
-#endif
+//#ifdef _MAIN_LIGHT_SHADOWS
+//    float4 shadowCoord              : TEXCOORD7;
+//#endif
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -48,9 +48,9 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 {
     inputData = (InputData)0;
 
-#ifdef _ADDITIONAL_LIGHTS
-    inputData.positionWS = input.positionWS;
-#endif
+//#ifdef _ADDITIONAL_LIGHTS
+//    inputData.positionWS = input.positionWS;
+//#endif
 
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
@@ -65,11 +65,11 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-    inputData.shadowCoord = input.shadowCoord;
-#else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
+//#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+//    inputData.shadowCoord = input.shadowCoord;
+//#else
+//    inputData.shadowCoord = float4(0, 0, 0, 0);
+//#endif
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -80,7 +80,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 ///////////////////////////////////////////////////////////////////////////////
 
 // Used in Standard (Physically Based) shader
-Varyings LitPassVertex(Attributes input)
+Varyings LitGBufferPassVertex(Attributes input)
 {
     Varyings output = (Varyings)0;
 
@@ -110,21 +110,29 @@ Varyings LitPassVertex(Attributes input)
 
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#ifdef _ADDITIONAL_LIGHTS
-    output.positionWS = vertexInput.positionWS;
-#endif
+//#ifdef _ADDITIONAL_LIGHTS
+//    output.positionWS = vertexInput.positionWS;
+//#endif
 
-#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-    output.shadowCoord = GetShadowCoord(vertexInput);
-#endif
+//#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+//    output.shadowCoord = GetShadowCoord(vertexInput);
+//#endif
 
     output.positionCS = vertexInput.positionCS;
 
     return output;
 }
 
+struct FragmentOutput
+{
+    half4 GBuffer0 : SV_Target0;
+    half4 GBuffer1 : SV_Target1;
+    half4 GBuffer2 : SV_Target2;
+    half4 GBuffer3 : SV_Target3;
+};
+
 // Used in Standard (Physically Based) shader
-half4 LitPassFragment(Varyings input) : SV_Target
+FragmentOutput LitGBufferPassFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -135,10 +143,26 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
+    //half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    return color;
+    // forward
+    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+    FragmentOutput output;
+
+    // albedo albedo albedo alpha
+    output.GBuffer0 = half4(surfaceData.albedo, surfaceData.alpha);
+
+    // specular specular specular metallic
+    output.GBuffer1 = half4(surfaceData.specular, surfaceData.metallic);
+
+    // normal normal normal smoothness
+    output.GBuffer2 = half4(surfaceData.normalTS, surfaceData.smoothness);
+       
+    // emission emission emission occlusion
+    output.GBuffer3 = half4(surfaceData.emission, surfaceData.occlusion);
+
+    return output;
 }
 
 #endif

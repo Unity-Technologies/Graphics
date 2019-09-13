@@ -157,6 +157,55 @@ Shader "Universal Render Pipeline/Lit"
 
         Pass
         {
+            // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Universal Render Pipeline
+            Name "GBuffer"
+            Tags{"LightMode" = "UniversalGBuffer"}
+
+            ZWrite[_ZWrite]
+            ZTest LEqual
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature _OCCLUSIONMAP
+
+            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature _ENVIRONMENTREFLECTIONS_OFF
+            #pragma shader_feature _SPECULAR_SETUP
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #pragma vertex LitGBufferPassVertex
+            #pragma fragment LitGBufferPassFragment
+
+            #include "LitInput.hlsl"
+            #include "LitGBufferPass.hlsl"
+            ENDHLSL
+        }
+        
+        Pass
+        {
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 

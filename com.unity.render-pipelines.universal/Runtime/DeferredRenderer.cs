@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_TileDepthRangeTexture;
 
         DeferredPass m_DeferredPass;
+        GBufferPass m_GBufferPass;
         StencilState m_DefaultStencilState;
 
         DeferredLights m_DeferredLights;
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.AfterRenderingPrePasses, m_DeferredLights);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             //            m_DeferredPass = new DeferredPass();
+            m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingShadows, RenderQueueRange.opaque);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingSkybox, RenderQueueRange.opaque, m_DeferredLights);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
 
@@ -71,46 +73,29 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            /*
-            // Depth prepass is generated in the following cases:
-            // - We resolve shadows in screen space
-            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
-            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
-                (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
-
-            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
-            // we have a proper fix.
-            if (renderingData.cameraData.isStereoEnabled && renderingData.cameraData.requiresDepthTexture)
-                requiresDepthPrepass = true;
-            */
-
-            // Temporary always need depth-prepass for testing (we don't have gbuffer pass yet).
-            bool requiresDepthPrepass = true;
-
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
                                       || rendererFeatures.Count != 0;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
-            bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            bool createDepthTexture = renderingData.cameraData.requiresDepthTexture;
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
             bool intermediateRenderTexture = createColorTexture || createDepthTexture;
-            
+
             if (intermediateRenderTexture)
                 CreateCameraRenderTarget(context, ref renderingData.cameraData);
-            
+
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             // if rendering to intermediate render texture we don't have to create msaa backbuffer
             int backbufferMsaaSamples = (intermediateRenderTexture) ? 1 : cameraTargetDescriptor.msaaSamples;
-            
+
             if (Camera.main == camera && camera.cameraType == CameraType.Game && camera.targetTexture == null)
                 SetupBackbufferFormat(backbufferMsaaSamples, renderingData.cameraData.isStereoEnabled);
-            
+
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
@@ -124,14 +109,11 @@ namespace UnityEngine.Rendering.Universal
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
+            m_GBufferPass.Setup(ref renderingData, m_DepthTexture);
+            EnqueuePass(m_GBufferPass);
+
             // GBuffer pass, all needed RTs are passed here.
             m_DeferredLights.Setup(m_TileDepthRangeTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
-
-            if (requiresDepthPrepass)
-            {
-                m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
-                EnqueuePass(m_DepthPrepass);
-            }
 
             EnqueuePass(m_TileDepthRangePass);
 
@@ -149,6 +131,10 @@ namespace UnityEngine.Rendering.Universal
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {
                 m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
+
+                // Comment out this debug line to visualize GBuffer
+                //m_FinalBlitPass.Setup(cameraTargetDescriptor, m_GBufferPass.m_GBuffer2_BindingPoint);
+
                 EnqueuePass(m_FinalBlitPass);
             }
         }
@@ -234,7 +220,7 @@ namespace UnityEngine.Rendering.Universal
             QualitySettings.antiAliasing = msaaSamples;
 #endif
         }
-        
+
         bool RequiresIntermediateColorTexture(ref RenderingData renderingData, RenderTextureDescriptor baseDescriptor)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
