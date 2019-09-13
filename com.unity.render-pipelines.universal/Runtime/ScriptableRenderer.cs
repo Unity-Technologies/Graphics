@@ -103,15 +103,15 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
-        static RenderTargetIdentifier m_ActiveColorAttachment;
         // m_ActiveColorAttachment is the currently bound color attachment. It's similar to the built-in RenderTexture.active https://docs.unity3d.com/ScriptReference/RenderTexture-active.html
+        static RenderTargetIdentifier[] m_ActiveColorAttachment;
         static RenderTargetIdentifier m_ActiveDepthAttachment;
         static bool m_InsideStereoRenderBlock;
 
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
-            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveColorAttachment = new RenderTargetIdentifier[]{colorAttachment };
             m_ActiveDepthAttachment = depthAttachment;
         }
 
@@ -332,7 +332,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
             m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
 
-            m_ActiveColorAttachment = BuiltinRenderTextureType.CameraTarget;
+            m_ActiveColorAttachment = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
             m_FirstCameraRenderPassExecuted = false;
@@ -354,45 +354,63 @@ namespace UnityEngine.Rendering.Universal
                 context.Submit();
         }
 
+        static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            uint nonNullColorBuffers = 0;
+            foreach(var identifier in colorBuffers)
+            {
+                if (identifier != 0)
+                    ++nonNullColorBuffers;
+            }
+            return nonNullColorBuffers > 1;
+        }
+
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
-            RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
-            RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
-            ref CameraData cameraData = ref renderingData.cameraData;
-
-            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-            // which might be backbuffer or the framebuffer render textures.
-            if (!renderPass.overrideCameraTarget)
+            if(IsMRT(renderPass.colorAttachment))
             {
-                passColorAttachment = m_CameraColorTarget;
-                passDepthAttachment = m_CameraDepthTarget;
+                SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment);
             }
-
-            if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+            else
             {
-                m_FirstCameraRenderPassExecuted = true;
+                RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment[0];
+                RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
+                ref CameraData cameraData = ref renderingData.cameraData;
 
-                Camera camera = cameraData.camera;
-                ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-                SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
-                    CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                if (cameraData.isStereoEnabled)
+                // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
+                // which might be backbuffer or the framebuffer render textures.
+                if (!renderPass.overrideCameraTarget)
                 {
-                    context.StartMultiEye(cameraData.camera);
-                    XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                    passColorAttachment = m_CameraColorTarget;
+                    passDepthAttachment = m_CameraDepthTarget;
                 }
-            }
 
-            // Only setup render target if current render pass attachments are different from the active ones
-            else if (passColorAttachment != m_ActiveColorAttachment || passDepthAttachment != m_ActiveDepthAttachment)
-                SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+                if (passColorAttachment == m_CameraColorTarget && !m_FirstCameraRenderPassExecuted)
+                {
+                    m_FirstCameraRenderPassExecuted = true;
+
+                    Camera camera = cameraData.camera;
+                    ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+                    SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
+                        CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    if (cameraData.isStereoEnabled)
+                    {
+                        context.StartMultiEye(cameraData.camera);
+                        XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                    }
+                }
+
+                // Only setup render target if current render pass attachments are different from the active ones
+                else if (passColorAttachment != m_ActiveColorAttachment[0] || passDepthAttachment != m_ActiveDepthAttachment)
+                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -415,7 +433,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveColorAttachment = new RenderTargetIdentifier[]{colorAttachment};
             m_ActiveDepthAttachment = depthAttachment;
 
             RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
@@ -470,6 +488,14 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                         depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
+        }
+
+        static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachment, RenderTargetIdentifier depthAttachment)
+        {
+            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveDepthAttachment = depthAttachment;
+
+            CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment);
         }
 
         [Conditional("UNITY_EDITOR")]
