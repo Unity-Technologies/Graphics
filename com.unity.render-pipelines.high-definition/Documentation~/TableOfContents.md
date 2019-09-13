@@ -5,7 +5,7 @@
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
-  * [Exposing Advanced Properties](Advanced-Properties)
+  * [Exposing More Options](More-Options)
   * [VR in HDRP](VR-in-HDRP)
 * Upgrading HDRP between Unity Versions
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
