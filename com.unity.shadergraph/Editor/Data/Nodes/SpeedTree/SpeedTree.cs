@@ -5,9 +5,6 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
-
-
-
 namespace UnityEditor.ShaderGraph
 {
 	enum SpeedTreeWindQuality
@@ -21,35 +18,42 @@ namespace UnityEditor.ShaderGraph
 	}
 
 	[Title("SpeedTree", "SpeedTreeWind")]
-	class SpeedTreeNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireMeshUV, IGeneratesFunction
+	class SpeedTreeNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireVertexColor, IMayRequireMeshUV, IGeneratesFunction
 	{
-		public const int OutputSlotId = 0;
-		private const string kOutputSlotName = "Out";
+		public const int OutPosSlotId = 0;
+		private const string kOutPosSlotName = "OutPosition";
+        public const int OutNormSlotId = 1;
+        private const string kOutNormSlotName = "OutNormal";
+        public const int OutUVSlotId = 2;
+        private const string kOutUVSlotName = "OutUV0";
 
-		public const int WindQualitySlotId = 1;
-		private const string kWindQualitySlotName = "Wind Override";
-		public const int BillboardInputSlotId = 2;
-		private const string kBillboardInputSlotName = "Billboard";
+        public const int WindQualitySlotId = 3;
+        private const string kWindQualitySlotName = "Wind Quality";
+        public const int LODlevelSlotId = 4;
+        public const string kLODlevelSlotName = "LOD Level";
+
+        //public const int BillboardInputSlotId = 2;
+        //private const string kBillboardInputSlotName = "Billboard";
 
 
-		[SerializeField]
-		private SpeedTreeWindQuality m_WindQuality = SpeedTreeWindQuality.Best;
+    [SerializeField]
+    private SpeedTreeWindQuality m_WindQuality = SpeedTreeWindQuality.Best;
 
-		[EnumControl("Wind Quality")]
-		public SpeedTreeWindQuality windQuality
-		{
-			get { return m_WindQuality; }
-			set
-			{
-				if (m_WindQuality == value)
-					return;
+    [EnumControl("Default Wind Quality")]
+    public SpeedTreeWindQuality windQuality
+    {
+        get { return m_WindQuality; }
+        set
+        {
+            if (m_WindQuality == value)
+                return;
 
-				m_WindQuality = value;
-				Dirty(ModificationScope.Node);
-			}
-		}
+            m_WindQuality = value;
+            Dirty(ModificationScope.Node);
+        }
+    }
 
-		public override bool hasPreview { get { return false; } }
+        public override bool hasPreview { get { return false; } }
 
 		public SpeedTreeNode()
 		{
@@ -59,16 +63,21 @@ namespace UnityEditor.ShaderGraph
 
 		public override void UpdateNodeAfterDeserialization()
 		{
-			AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+			AddSlot(new Vector3MaterialSlot(OutPosSlotId, kOutPosSlotName, kOutPosSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector3MaterialSlot(OutNormSlotId, kOutNormSlotName, kOutNormSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector2MaterialSlot(OutUVSlotId, kOutUVSlotName, kOutUVSlotName, SlotType.Output, Vector3.zero));
 
-			AddSlot(new Vector1MaterialSlot(WindQualitySlotId, kWindQualitySlotName, kWindQualitySlotName, SlotType.Input, 0));
-			AddSlot(new BooleanMaterialSlot(BillboardInputSlotId, kBillboardInputSlotName, kBillboardInputSlotName, SlotType.Input, false));
+            AddSlot(new Vector1MaterialSlot(WindQualitySlotId, kWindQualitySlotName, kWindQualitySlotName, SlotType.Input, 0));
+            AddSlot(new Vector1MaterialSlot(LODlevelSlotId, kLODlevelSlotName, kLODlevelSlotName, SlotType.Input, 0));
+            //AddSlot(new BooleanMaterialSlot(BillboardInputSlotId, kBillboardInputSlotName, kBillboardInputSlotName, SlotType.Input, false));
 
-			RemoveSlotsNameNotMatching(new[] { OutputSlotId, WindQualitySlotId, BillboardInputSlotId });
-		}
+            //RemoveSlotsNameNotMatching(new[] { OutputSlotId, WindQualitySlotId, BillboardInputSlotId });
+            RemoveSlotsNameNotMatching(new[] { OutPosSlotId, OutNormSlotId, OutUVSlotId, WindQualitySlotId, LODlevelSlotId });
+        }
 
 		public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
 		{
+            /*
 			string windQuality = ((int)m_WindQuality).ToString();
 			var windSlot = FindSlot<MaterialSlot>(WindQualitySlotId);
 			if ((windSlot != null) && owner.GetEdges(windSlot.slotReference).Any())
@@ -88,7 +97,31 @@ namespace UnityEditor.ShaderGraph
 											UVChannel.UV3.GetUVName(),
 											windQuality,
 											billboard);
-		}
+                                            */
+            string windQuality = ((int)m_WindQuality).ToString();
+            var windSlot = FindSlot<MaterialSlot>(WindQualitySlotId);
+            if ((windSlot != null) && owner.GetEdges(windSlot.slotReference).Any())
+            {
+                windQuality = GetSlotValue(WindQualitySlotId, generationMode);
+            }
+
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutPosSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutPosSlotId));
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutNormSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutNormSlotId));
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutUVSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutUVSlotId));
+            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, (int){7}, {8}, {9}, {10}, {11});",
+                            CoordinateSpace.Object.ToVariableName(InterpolatorType.Position),
+                            CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal),
+                            ShaderGeneratorNames.VertexColor,
+                            UVChannel.UV0.GetUVName(),
+                            UVChannel.UV1.GetUVName(),
+                            UVChannel.UV2.GetUVName(),
+                            UVChannel.UV3.GetUVName(),
+                            windQuality,
+                            GetSlotValue(LODlevelSlotId, generationMode),
+                            GetVariableNameForSlot(OutPosSlotId),
+                            GetVariableNameForSlot(OutNormSlotId),
+                            GetVariableNameForSlot(OutUVSlotId));
+        }
 
 		public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
 		{
@@ -100,6 +133,11 @@ namespace UnityEditor.ShaderGraph
 			return CoordinateSpace.Object.ToNeededCoordinateSpace();
 		}
 
+        public bool RequiresVertexColor(ShaderStageCapability stageCapability)
+        {
+            return true;
+        }
+
 		public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
 		{
 			return true;
@@ -107,8 +145,9 @@ namespace UnityEditor.ShaderGraph
 
 		public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
 		{
-			// inject SpeedTree wind code at global scope
-			registry.ProvideFunction("SpeedTreeWind", sb => { sb.AppendLines("#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/SpeedTree.hlsl\""); });
+            // inject SpeedTree wind code at global scope
+            //registry.ProvideFunction("SpeedTreeWind", sb => { sb.AppendLines("#include \"Packages/com.unity.shadergraph/ShaderGraphLibrary/SpeedTree.hlsl\""); });
+            registry.ProvideFunction("ApplyWindTransformation", sb => { sb.AppendLines("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTreeCommonWind.hlsl\""); });
 		}
 
 	}

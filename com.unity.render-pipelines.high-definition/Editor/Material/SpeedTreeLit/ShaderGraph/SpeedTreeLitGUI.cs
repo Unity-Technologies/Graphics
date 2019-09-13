@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
                         material.EnableKeyword("GEOM_TYPE_BRANCH_DETAIL");
-                        material.EnableKeyword("GEOM_TYPE_BRANCH");
+                        //material.EnableKeyword("GEOM_TYPE_BRANCH");
                         break;
                     case SpeedTreeLitMasterNode.TreeGeomType.Branch:
                         material.EnableKeyword("GEOM_TYPE_BRANCH");
@@ -76,6 +76,40 @@ namespace UnityEditor.Rendering.HighDefinition
                         material.EnableKeyword("GEOM_TYPE_MESH");
                         break;
                 }
+            }
+
+            if (material.HasProperty("_WindQuality") && material.IsKeywordEnabled("SPEEDTREE_V8"))
+            {
+                SpeedTreeLitMasterNode.WindQuality q = (SpeedTreeLitMasterNode.WindQuality)material.GetInt("_WindQuality");
+
+                switch (q)
+                {
+                    case SpeedTreeLitMasterNode.WindQuality.None:
+                        material.EnableKeyword("_WINDQUALITY_NONE");
+                        break;
+                    case SpeedTreeLitMasterNode.WindQuality.Fastest:
+                        material.EnableKeyword("_WINDQUALITY_FASTEST");
+                        break;
+                    case SpeedTreeLitMasterNode.WindQuality.Fast:
+                        material.EnableKeyword("_WINDQUALITY_FAST");
+                        break;
+                    case SpeedTreeLitMasterNode.WindQuality.Better:
+                        material.EnableKeyword("_WINDQUALITY_BETTER");
+                        break;
+                    case SpeedTreeLitMasterNode.WindQuality.Best:
+                        material.EnableKeyword("_WINDQUALITY_BEST");
+                        break;
+                    case SpeedTreeLitMasterNode.WindQuality.Palm:
+                        material.EnableKeyword("_WINDQUALITY_PALM");
+                        break;
+                }
+            }
+
+            if (material.HasProperty("_Billboard"))
+            {
+                int b = material.GetInt("_Billboard");
+                if (b != 0)
+                    material.EnableKeyword("EFFECT_BILLBOARD");
             }
         }
 
