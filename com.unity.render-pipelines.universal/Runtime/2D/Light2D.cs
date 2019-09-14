@@ -166,6 +166,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
+        SortingLayer[] m_SortingLayers;
 
         [Range(0,1)]
         [SerializeField] float m_ShadowIntensity    = 0.0f;
@@ -290,10 +291,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int largestIndex = -1;
             int largestLayer = 0;
 
-            // TODO: SortingLayer.layers allocates the memory for the returned array.
-            // An alternative to this is to keep m_ApplyToSortingLayers sorted by using SortingLayer.GetLayerValueFromID in the comparer.
-            SortingLayer[] layers = SortingLayer.layers;
-            for(int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+            SortingLayer[] layers;
+            if (Application.isPlaying)
+            {
+                if (m_SortingLayers == null)
+                    m_SortingLayers = SortingLayer.layers;
+
+                layers = m_SortingLayers;
+            }
+            else
+                layers = SortingLayer.layers;
+
+
+            for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
             {
                 for(int layer = layers.Length - 1; layer >= largestLayer; --layer)
                 {
@@ -519,7 +529,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
 
 #if UNITY_EDITOR
-            rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
+            //rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
 #endif
             if(rebuildMesh && m_LightType != LightType.Global)
                 UpdateMesh();
