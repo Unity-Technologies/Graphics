@@ -3,16 +3,17 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTreeWind.hlsl"
 
-void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float geometryType, out float3 finalPosition, out float3 finalNormal, out float2 finalUV)
+void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float2 finalUV, out float finalAlpha)
 {
     finalPosition = vertex.xyz;
     finalNormal = normal.xyz;
     finalUV = texcoord0.xy;     // Billboard UVs might overwrite this.
+    finalAlpha = 1.0;
 
 #ifdef SPEEDTREE_V7
 
 #ifdef ENABLE_WIND
-    half windQuality = _WindQuality * _WindEnabled;
+    half windQuality = ((windOverride >= 0) ? windOverride : _WindQuality) * _WindEnabled;
 
     float3 rotatedWindVector, rotatedBranchAnchor;
     if (windQuality <= WIND_QUALITY_NONE)
@@ -23,12 +24,12 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     else
     {
         // compute rotated wind parameters
-        rotatedWindVector = normalize(mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M));
-        rotatedBranchAnchor = normalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)UNITY_MATRIX_M)) * _ST_WindBranchAnchor.w;
+        rotatedWindVector = SafeNormalize(mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M));
+        rotatedBranchAnchor = SafeNormalize(mul(_ST_WindBranchAnchor.xyz, (float3x3)UNITY_MATRIX_M)) * _ST_WindBranchAnchor.w;
     }
 #endif
 
-#if defined(GEOM_TYPE_BRANCH) || defined (GEOM_TYPE_BRANCH_DETAIL) ||defined(GEOM_TYPE_FROND)
+#if defined(GEOM_TYPE_BRANCH) || defined (GEOM_TYPE_BRANCH_DETAIL) || defined(GEOM_TYPE_FROND)
 
     // smooth LOD
 #ifdef LOD_FADE_PERCENTAGE
@@ -57,7 +58,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
         float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
         //finalPosition = mul(finalPosition.xyz, (float3x3)UNITY_MATRIX_IT_MV); // inv(MV) * finalPosition
         finalPosition = mul(mtx_ITMV, float4(finalPosition.xyz, 0)).xyz;
-        finalPosition = normalize(finalPosition) * offsetLen; // make sure the offset vector is still scaled
+        finalPosition = SafeNormalize(finalPosition) * offsetLen; // make sure the offset vector is still scaled
     }
     else
     {
@@ -83,6 +84,10 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
 
 #ifdef ENABLE_WIND
     float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
+
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    treePos += _WorldSpaceCameraPos;
+#endif
 
 #ifndef GEOM_TYPE_MESH
     if (windQuality >= WIND_QUALITY_BETTER)
@@ -110,7 +115,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
 #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
     if (_WindEnabled > 0)
     {
-        float3 rotatedWindVector = normalize(mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M));
+        float3 rotatedWindVector = SafeNormalize(mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M));
         float windLength = length(rotatedWindVector);
         if (windLength < 1e-5)
         {
@@ -124,7 +129,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
 
 #ifndef EFFECT_BILLBOARD
         // geometry type
-        geometryType = (int)(texcoord3.w + 0.25);
+        float geometryType = (int)(texcoord3.w + 0.25);
         bool leafTwo = false;
         if (geometryType > GEOM_TYPE_FACINGLEAF)
         {
@@ -195,6 +200,10 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
 
 #if defined(EFFECT_BILLBOARD)
     float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
+
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    treePos += _WorldSpaceCameraPos;
+#endif
     // crossfade faces
     bool topDown = (texcoord0.z > 0.5);
     float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
@@ -212,7 +221,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     }
 
     // TODO -- add output alpha
-    //input.color = float4(1, 1, 1, clamp(viewDot, 0, 1));
+    finalAlpha = clamp(viewDot, 0, 1);
 
     // adjust lighting on billboards to prevent seams between the different faces
 //    if (topDown)
