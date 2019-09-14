@@ -265,8 +265,9 @@ float3 GlobalWind(float3 vPos, float3 vInstancePos, bool bPreserveShape, float3 
     float fOsc = vOscillations.x + (vOscillations.y * vOscillations.y);
     float fMoveAmount = _ST_WindGlobal.y * fOsc;
 
-    // move a minimum amount based on direction adherence
-    fMoveAmount += _ST_WindBranchAdherences.x / _ST_WindGlobal.z;
+    // move a minimum amount based on direction adherence (assuming we have values)
+    if (_ST_WindGlobal.z > 1e-5)
+        fMoveAmount += _ST_WindBranchAdherences.x / _ST_WindGlobal.z;
 
     // adjust based on how high up the tree this vertex is
     fMoveAmount *= fAdjust;
@@ -510,7 +511,7 @@ float3 LeafTumble(float3 vPos,
 #else
     vAxis.y += fDot;
 #endif
-    vAxis = normalize(vAxis);
+    vAxis = SafeNormalize(vAxis);
 
     float fAngle = acos(fDot);
 
@@ -531,7 +532,7 @@ float3 LeafTumble(float3 vPos,
     vDirection = mul_float3x3_float3(matTumble, vDirection);
     vOriginPos = mul_float3x3_float3(matTumble, vOriginPos);
 
-    vOriginPos = normalize(vOriginPos) * fLength;
+    vOriginPos = SafeNormalize(vOriginPos) * fLength;
 
     return (vOriginPos + vAnchor);
 }
