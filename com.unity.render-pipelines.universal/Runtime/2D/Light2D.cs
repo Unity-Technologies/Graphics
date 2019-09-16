@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
-        SortingLayer[] m_SortingLayers;
+        
 
         [Range(0,1)]
         [SerializeField] float m_ShadowIntensity    = 0.0f;
@@ -234,6 +234,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
         internal int lightCullingIndex => m_LightCullingIndex;
+        static SortingLayer[] s_SortingLayers;
 
 #if UNITY_EDITOR
         public static string s_IconsPath = "Packages/com.unity.render-pipelines.universal/Editor/2D/Resources/SceneViewIcons/";
@@ -244,6 +245,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public static string s_GlobalLightIconPath = s_IconsPath + "GlobalLight.png";
         public static string[] s_LightIconPaths = new string[] { s_ParametricLightIconPath, s_FreeformLightIconPath, s_SpriteLightIconPath, s_PointLightIconPath, s_GlobalLightIconPath };
 #endif
+        
 
         internal static void SetupCulling(ScriptableRenderContext context, Camera camera)
         {
@@ -294,10 +296,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             SortingLayer[] layers;
             if (Application.isPlaying)
             {
-                if (m_SortingLayers == null)
-                    m_SortingLayers = SortingLayer.layers;
+                if (s_SortingLayers == null)
+                    s_SortingLayers = SortingLayer.layers;
 
-                layers = m_SortingLayers;
+                layers = s_SortingLayers;
             }
             else
                 layers = SortingLayer.layers;
@@ -529,7 +531,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
 
 #if UNITY_EDITOR
-            //rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
+            rebuildMesh |= LightUtility.CheckForChange(LightUtility.GetShapePathHash(m_ShapePath), ref m_PreviousShapePathHash);
 #endif
             if(rebuildMesh && m_LightType != LightType.Global)
                 UpdateMesh();
