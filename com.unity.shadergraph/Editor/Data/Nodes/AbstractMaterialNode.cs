@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : ISerializationCallbackReceiver, IGroupItem
+    [JsonObject(MemberSerialization.OptIn)]
+    abstract class AbstractMaterialNode : ISerializationCallbackReceiver, IGroupItem, IPersistent
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<IEdge> s_TempEdges = new List<IEdge>();
@@ -116,7 +119,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Precision m_Precision = Precision.Inherit;
 
-        public Precision precision 
+        public Precision precision
         {
             get => m_Precision;
             set => m_Precision = value;
@@ -290,7 +293,7 @@ namespace UnityEditor.ShaderGraph
 
             return inputSlot.GetDefaultValue(generationMode);
         }
-        
+
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();

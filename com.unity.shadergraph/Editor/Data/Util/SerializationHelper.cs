@@ -79,11 +79,18 @@ namespace UnityEditor.Graphing
             };
         }
 
-        static TypeSerializationInfo DoTypeRemap(TypeSerializationInfo info, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper)
+        public static TypeSerializationInfo DoTypeRemap(TypeSerializationInfo info, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper)
         {
-            TypeSerializationInfo foundInfo;
-            if (remapper.TryGetValue(info, out foundInfo))
-                return foundInfo;
+            info.fullName = info.fullName.Replace("UnityEngine.MaterialGraph", "UnityEditor.ShaderGraph");
+            info.fullName = info.fullName.Replace("UnityEngine.Graphing", "UnityEditor.Graphing");
+
+            if (remapper != null)
+            {
+                TypeSerializationInfo foundInfo;
+                if (remapper.TryGetValue(info, out foundInfo))
+                    return foundInfo;
+            }
+
             return info;
         }
 
@@ -93,10 +100,7 @@ namespace UnityEditor.Graphing
                 throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
             TypeSerializationInfo info = item.typeInfo;
-            info.fullName = info.fullName.Replace("UnityEngine.MaterialGraph", "UnityEditor.ShaderGraph");
-            info.fullName = info.fullName.Replace("UnityEngine.Graphing", "UnityEditor.Graphing");
-            if (remapper != null)
-                info = DoTypeRemap(info, remapper);
+            info = DoTypeRemap(info, remapper);
 
             var type = GetTypeFromSerializedString(info);
             if (type == null)

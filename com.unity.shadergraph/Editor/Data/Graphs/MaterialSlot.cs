@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEditor.Graphing;
 
@@ -10,6 +11,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [JsonObject(MemberSerialization.OptIn)]
     abstract class MaterialSlot : ISlot
     {
         const string k_NotInit =  "Not Initilaized";

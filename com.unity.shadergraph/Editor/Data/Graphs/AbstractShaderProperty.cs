@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -66,12 +67,12 @@ namespace UnityEditor.ShaderGraph
         {
             return GetPropertyDeclarationString(string.Empty);
         }
-        
+
         public abstract AbstractMaterialNode ToConcreteNode();
         public abstract PreviewProperty GetPreviewMaterialProperty();
         public virtual bool isGpuInstanceable => false;
     }
-    
+
     [Serializable]
     abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
