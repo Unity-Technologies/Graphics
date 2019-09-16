@@ -680,6 +680,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
+            // For iOS, force Metal as it is the only thing that makes sense for HDRP
+            if (activeBuildTarget == UnityEditor.BuildTarget.iOS)
+            {
+                unsupportedGraphicDevice = GraphicsDeviceType.Null;
+                GraphicsDeviceType[] metalOnlyType = new GraphicsDeviceType[1];
+                metalOnlyType[0] = GraphicsDeviceType.Metal;
+                UnityEditor.PlayerSettings.SetGraphicsAPIs(activeBuildTarget, metalOnlyType);
+                return true;
+            }
             // If the build target matches the operating system of the editor
             if (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget))
             {
@@ -700,15 +709,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else // if the build target does not match the editor OS, then we have to check using the graphic api list
             {
-                // For iOS, force Metal as it is the only thing that makes sense for HDRP
-                if (activeBuildTarget == UnityEditor.BuildTarget.iOS)
-                {
-                    unsupportedGraphicDevice = GraphicsDeviceType.Null;
-                    GraphicsDeviceType[] metalOnlyType = new GraphicsDeviceType[1];
-                    metalOnlyType[0] = GraphicsDeviceType.Metal;
-                    UnityEditor.PlayerSettings.SetGraphicsAPIs(activeBuildTarget, metalOnlyType);
-                    return true;
-                }
                 return HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice);
             }
 
