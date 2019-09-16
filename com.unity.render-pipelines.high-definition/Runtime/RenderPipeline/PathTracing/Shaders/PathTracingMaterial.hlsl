@@ -99,8 +99,8 @@ bool SampleBurley(float2 inputSample,
     if (pdf < 0.001)
         return false;
 
-    float NdotV = dot(normal, incomingDir);
-    float LdotV = dot(outgoingDir, incomingDir);
+    float NdotV = saturate(dot(normal, incomingDir));
+    float LdotV = saturate(dot(outgoingDir, incomingDir));
     value = bsdfData.diffuseColor * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness) * pdf;
 
     return true;
@@ -114,11 +114,40 @@ void EvaluateBurley(float3 normal,
                 out float pdf)
 {
     float NdotL = dot(normal, outgoingDir);
-    float NdotV = dot(normal, incomingDir);
-    float LdotV = dot(outgoingDir, incomingDir);
+    float NdotV = saturate(dot(normal, incomingDir));
+    float LdotV = saturate(dot(outgoingDir, incomingDir));
 
     pdf = NdotL * INV_PI;
     value = bsdfData.diffuseColor * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness) * pdf;
+}
+
+bool SampleDiffuse(float2 inputSample,
+                   float3 normal,
+                   float3 incomingDir,
+                   BSDFData bsdfData,
+               out float3 outgoingDir,
+               out float3 value,
+               out float pdf )
+{
+#ifdef USE_DIFFUSE_LAMBERT_BRDF
+    return SampleLambert(inputSample, normal, bsdfData, outgoingDir, value, pdf);
+#else
+    return SampleBurley(inputSample, normal, incomingDir, bsdfData, outgoingDir, value, pdf);
+#endif
+}
+
+void EvaluateDiffuse(float3 normal,
+                     float3 incomingDir,
+                     float3 outgoingDir,
+                     BSDFData bsdfData,
+                 out float3 value,
+                 out float pdf)
+{
+#ifdef USE_DIFFUSE_LAMBERT_BRDF
+    EvaluateLambert(normal, outgoingDir, bsdfData, value, pdf);
+#else
+    EvaluateBurley(normal, incomingDir, outgoingDir, bsdfData, value, pdf);
+#endif
 }
 
 struct MaterialResult
@@ -180,11 +209,11 @@ bool SampleMaterial(Material mtl, float3 inputSample, out float3 sampleDir, out 
         if (!SampleGGX(inputSample, mtl.localToWorld, mtl.V, mtl.bsdfData, sampleDir, result.specValue, result.specPdf))
             return false;
 
-        EvaluateBurley(mtl.bsdfData.normalWS, mtl.V, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
+        EvaluateDiffuse(mtl.bsdfData.normalWS, mtl.V, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
     }
     else
     {
-        if (!SampleBurley(inputSample, mtl.bsdfData.normalWS, mtl.V, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
+        if (!SampleDiffuse(inputSample, mtl.bsdfData.normalWS, mtl.V, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
             return false;
 
         EvaluateGGX(mtl.localToWorld, mtl.V, sampleDir, mtl.bsdfData, result.specValue, result.specPdf);
@@ -198,7 +227,7 @@ bool SampleMaterial(Material mtl, float3 inputSample, out float3 sampleDir, out 
 
 void EvaluateMaterial(Material mtl, float3 sampleDir, out MaterialResult result)
 {
-    EvaluateLambert(mtl.bsdfData.normalWS, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
+    EvaluateDiffuse(mtl.bsdfData.normalWS, mtl.V, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
     EvaluateGGX(mtl.localToWorld, mtl.V, sampleDir, mtl.bsdfData, result.specValue, result.specPdf);
     result.diffPdf *= mtl.diffProb;
     result.specPdf *= mtl.specProb;
