@@ -193,7 +193,7 @@ namespace UnityEditor.VFX.UI
             public CurveContent(VFXUIDebug debugUI, int maxPoints, long timeBetweenDraw = 33)
             {
                 m_DebugUI = debugUI;
-                m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemStat"));
+                m_CurveMat = new Material(Shader.Find("Hidden/VFX/SystemInfo"));
                 m_BarMat = new Material(Shader.Find("Hidden/VFX/TimeBar"));
                 m_ClippingMatrixId = Shader.PropertyToID("_ClipMatrix");
                 m_MaxPoints = maxPoints;
@@ -220,7 +220,7 @@ namespace UnityEditor.VFX.UI
                     m_TimeBarsOffsets.Clear();
                     for (int i = 0; i < m_DebugUI.m_GpuSystems.Count(); ++i)
                     {
-                        var toggle = m_DebugUI.m_SystemStats[m_DebugUI.m_GpuSystems[i]][1] as Toggle;
+                        var toggle = m_DebugUI.m_SystemInfos[m_DebugUI.m_GpuSystems[i]][1] as Toggle;
                         var switchableCurve = new SwitchableCurve(m_DebugUI.m_GpuSystems[i], m_MaxPoints, toggle);
                         m_VFXCurves.Add(switchableCurve);
                     }
@@ -288,18 +288,18 @@ namespace UnityEditor.VFX.UI
                 {
                     case Modes.Efficiency:
                         {
-                            var stat = m_DebugUI.m_VFX.GetParticleSystemStat(switchableCurve.id);
+                            var stat = m_DebugUI.m_VFX.GetParticleSystemInfo(switchableCurve.id);
                             float efficiency = (float)stat.alive / (float)stat.capacity;
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
                             switchableCurve.curve.AddPoint(efficiency);
-                            m_DebugUI.UpdateSystemStatEntry(switchableCurve.id, stat);
+                            m_DebugUI.UpdateSystemInfoEntry(switchableCurve.id, stat);
 
                         }
                         break;
                     case Modes.Alive:
                         {
-                            var stat = m_DebugUI.m_VFX.GetParticleSystemStat(switchableCurve.id);
+                            var stat = m_DebugUI.m_VFX.GetParticleSystemInfo(switchableCurve.id);
                             float maxAlive = (float)data;
 
                             var superior2 = 1u << (int)Mathf.CeilToInt(Mathf.Log(maxAlive, 2.0f));
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX.UI
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
                             switchableCurve.curve.AddPoint(stat.alive);
-                            m_DebugUI.UpdateSystemStatEntry(switchableCurve.id, stat);
+                            m_DebugUI.UpdateSystemInfoEntry(switchableCurve.id, stat);
 
                         }
                         break;
@@ -326,14 +326,14 @@ namespace UnityEditor.VFX.UI
 
                 MarkDirtyRepaint();
 
-                // drawing matrix
+                // draw matrix
                 var debugRect = m_DebugUI.m_DebugDrawingBox.worldBound;
                 var clippedDebugRect = k_BoxWorldclip(m_DebugUI.m_DebugDrawingBox);
                 var windowRect = panel.InternalGetGUIView().position;
                 var trans = new Vector4(debugRect.x / windowRect.width, (windowRect.height - (debugRect.y + debugRect.height)) / windowRect.height, 0, 0);
                 var scale = new Vector3(debugRect.width / windowRect.width, debugRect.height / windowRect.height, 0);
 
-                // clipping matrix
+                // clip matrix
                 var clippedScale = new Vector3(windowRect.width / clippedDebugRect.width, windowRect.height / clippedDebugRect.height, 0);
                 var clippedTrans = new Vector3(-clippedDebugRect.x / clippedDebugRect.width, ((clippedDebugRect.y + clippedDebugRect.height) - windowRect.height) / clippedDebugRect.height);
                 var baseChange = Matrix4x4.TRS(clippedTrans, Quaternion.identity, clippedScale);
@@ -425,7 +425,7 @@ namespace UnityEditor.VFX.UI
         VFXComponentBoard m_ComponentBoard;
         VisualElement m_DebugContainer;
         Button m_DebugButton;
-        VisualElement m_SystemStatsContainer;
+        VisualElement m_SystemInfosContainer;
         Box m_DebugDrawingBox;
         CurveContent m_Curves;
 
@@ -436,7 +436,7 @@ namespace UnityEditor.VFX.UI
         // [3] alive
         // [4] max alive (Button)
         // [5] efficiency
-        Dictionary<int, VisualElement[]> m_SystemStats;
+        Dictionary<int, VisualElement[]> m_SystemInfos;
 
         // TextElement[] layout:
         // [0] bottom value
@@ -498,11 +498,11 @@ namespace UnityEditor.VFX.UI
             {
                 case Modes.Efficiency:
                     RegisterParticleSystems();
-                    InitSystemStatArray();
+                    InitSystemInfoArray();
                     break;
                 case Modes.Alive:
                     RegisterParticleSystems();
-                    InitSystemStatArray();
+                    InitSystemInfoArray();
                     break;
                 default:
                     break;
@@ -544,10 +544,10 @@ namespace UnityEditor.VFX.UI
             switch (e)
             {
                 case Events.VFXReset:
-                    InitSystemStatArray();
+                    InitSystemInfoArray();
                     break;
                 case Events.VFXStop:
-                    InitSystemStatArray();
+                    InitSystemInfoArray();
                     break;
                 default:
                     break;
@@ -564,17 +564,17 @@ namespace UnityEditor.VFX.UI
 
         void RegisterParticleSystems()
         {
-            if (m_SystemStats != null)
+            if (m_SystemInfos != null)
             {
-                foreach (var systemStat in m_SystemStats.Values)
+                foreach (var SystemInfo in m_SystemInfos.Values)
                 {
-                    systemStat[0].Clear();
-                    m_SystemStatsContainer.Remove(systemStat[0]);
+                    SystemInfo[0].Clear();
+                    m_SystemInfosContainer.Remove(SystemInfo[0]);
                 }
-                m_SystemStats.Clear();
+                m_SystemInfos.Clear();
             }
             else
-                m_SystemStats = new Dictionary<int, VisualElement[]>();
+                m_SystemInfos = new Dictionary<int, VisualElement[]>();
 
             if (m_VFX != null)
             {
@@ -586,7 +586,7 @@ namespace UnityEditor.VFX.UI
                 {
                     int id = Shader.PropertyToID(name);
                     m_GpuSystems.Add(id);
-                    AddSystemStatEntry(name, id, GetColor(i));
+                    AddSystemInfoEntry(name, id, GetColor(i));
 
                     ++i;
                 }
@@ -597,9 +597,9 @@ namespace UnityEditor.VFX.UI
 
         void ToggleAll(ChangeEvent<bool> evt)
         {
-            foreach (var systemStat in m_SystemStats.Values)
+            foreach (var SystemInfo in m_SystemInfos.Values)
             {
-                var toggle = systemStat[1] as Toggle;
+                var toggle = SystemInfo[1] as Toggle;
                 if (toggle != null)
                     toggle.value = evt.newValue;
             }
@@ -621,13 +621,13 @@ namespace UnityEditor.VFX.UI
             m_DebugDrawingBox = SetDebugDrawingBox();
             var settingsBox = SetSettingsBox();
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
-            var title = SetSystemStatsTitle();
-            m_SystemStatsContainer = SetSystemStatsContainer();
+            var title = SetSystemInfosTitle();
+            m_SystemInfosContainer = SetSystemInfosContainer();
 
             m_DebugContainer.Add(settingsBox);
             m_DebugContainer.Add(plotArea);
             m_DebugContainer.Add(title);
-            m_DebugContainer.Add(m_SystemStatsContainer);
+            m_DebugContainer.Add(m_SystemInfosContainer);
 
             // recover debug data
             RegisterParticleSystems();
@@ -645,13 +645,13 @@ namespace UnityEditor.VFX.UI
             m_DebugDrawingBox = SetDebugDrawingBox();
             var settingsBox = SetSettingsBox();
             var plotArea = SetPlotArea(m_DebugDrawingBox, Yaxis);
-            var title = SetSystemStatsTitle();
-            m_SystemStatsContainer = SetSystemStatsContainer();
+            var title = SetSystemInfosTitle();
+            m_SystemInfosContainer = SetSystemInfosContainer();
 
             m_DebugContainer.Add(settingsBox);
             m_DebugContainer.Add(plotArea);
             m_DebugContainer.Add(title);
-            m_DebugContainer.Add(m_SystemStatsContainer);
+            m_DebugContainer.Add(m_SystemInfosContainer);
 
             // recover debug data
             RegisterParticleSystems();
@@ -755,54 +755,54 @@ namespace UnityEditor.VFX.UI
             return plotArea;
         }
 
-        VisualElement SetSystemStatsContainer()
+        VisualElement SetSystemInfosContainer()
         {
             var scrollerContainer = new ScrollView();
             scrollerContainer.name = "debug-system-stat-container";
             return scrollerContainer;
         }
 
-        VisualElement SetSystemStatsTitle()
+        VisualElement SetSystemInfosTitle()
         {
             var toggleAll = new Toggle();
             toggleAll.value = true;
             toggleAll.RegisterValueChangedCallback(ToggleAll);
 
-            var systemStatName = new TextElement();
-            systemStatName.name = "debug-system-stat-title-name";
-            systemStatName.text = "Particle System";
-            systemStatName.tooltip = "Click on a name to focus the corresponding particle system";
+            var SystemInfoName = new TextElement();
+            SystemInfoName.name = "debug-system-stat-title-name";
+            SystemInfoName.text = "Particle System";
+            SystemInfoName.tooltip = "Click on a name to focus the corresponding particle system";
 
-            var systemStatAlive = new TextElement();
-            systemStatAlive.name = "debug-system-stat-title";
-            systemStatAlive.text = "Alive";
+            var SystemInfoAlive = new TextElement();
+            SystemInfoAlive.name = "debug-system-stat-title";
+            SystemInfoAlive.text = "Alive";
 
-            var systemStatMaxAlive = new TextElement();
-            systemStatMaxAlive.name = "debug-system-stat-title";
-            systemStatMaxAlive.text = "Max Alive";
-            systemStatMaxAlive.tooltip = "Click on a value to set the capacity of a particle system";
+            var SystemInfoMaxAlive = new TextElement();
+            SystemInfoMaxAlive.name = "debug-system-stat-title";
+            SystemInfoMaxAlive.text = "Max Alive";
+            SystemInfoMaxAlive.tooltip = "Click on a value to set the capacity of a particle system";
 
-            var systemStatEfficiency = new TextElement();
-            systemStatEfficiency.name = "debug-system-stat-title";
-            systemStatEfficiency.text = "Efficiency";
+            var SystemInfoEfficiency = new TextElement();
+            SystemInfoEfficiency.name = "debug-system-stat-title";
+            SystemInfoEfficiency.text = "Efficiency";
 
             var titleContainer = new VisualElement();
             titleContainer.name = "debug-system-stat-entry-container";
 
             titleContainer.Add(toggleAll);
-            titleContainer.Add(systemStatName);
-            titleContainer.Add(systemStatAlive);
-            titleContainer.Add(systemStatMaxAlive);
-            titleContainer.Add(systemStatEfficiency);
+            titleContainer.Add(SystemInfoName);
+            titleContainer.Add(SystemInfoAlive);
+            titleContainer.Add(SystemInfoMaxAlive);
+            titleContainer.Add(SystemInfoEfficiency);
 
             return titleContainer;
         }
 
-        void AddSystemStatEntry(string systemName, int id, Color color)
+        void AddSystemInfoEntry(string systemName, int id, Color color)
         {
             var statContainer = new VisualElement();
             statContainer.name = "debug-system-stat-entry-container";
-            m_SystemStatsContainer.Add(statContainer);
+            m_SystemInfosContainer.Add(statContainer);
 
             var toggle = new Toggle();
             toggle.value = true;
@@ -841,7 +841,7 @@ namespace UnityEditor.VFX.UI
             stats[4] = maxAlive;
             stats[5] = efficiency;
 
-            m_SystemStats[id] = stats;
+            m_SystemInfos[id] = stats;
         }
 
         Action FocusParticleSystem(string systemName)
@@ -892,9 +892,9 @@ namespace UnityEditor.VFX.UI
             return (e) => { };
         }
 
-        void UpdateSystemStatEntry(int systemId, VFXSystemStat stat)
+        void UpdateSystemInfoEntry(int systemId, VFXSystemInfo stat)
         {
-            var statUI = m_SystemStats[systemId];// [0] is title bar
+            var statUI = m_SystemInfos[systemId];// [0] is title bar
             if (statUI[3] is TextElement alive)
                 alive.text = stat.alive.ToString();
             if (statUI[4] is Button maxAlive)
@@ -912,10 +912,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void InitSystemStatArray()
+        void InitSystemInfoArray()
         {
-            if (m_SystemStats != null)
-                foreach (var statUI in m_SystemStats.Values)
+            if (m_SystemInfos != null)
+                foreach (var statUI in m_SystemInfos.Values)
                 {
                     if (statUI[3] is TextElement alive)
                         alive.text = " - ";
@@ -935,8 +935,8 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard = null;
             m_Curves = null;
 
-            if (m_SystemStatsContainer != null)
-                m_SystemStatsContainer.Clear();
+            if (m_SystemInfosContainer != null)
+                m_SystemInfosContainer.Clear();
 
             m_YaxisElts = null;
 
@@ -944,9 +944,9 @@ namespace UnityEditor.VFX.UI
                 m_DebugContainer.Clear();
 
 
-            m_SystemStats = null;
+            m_SystemInfos = null;
             m_DebugDrawingBox = null;
-            m_SystemStatsContainer = null;
+            m_SystemInfosContainer = null;
             m_DebugContainer = null;
         }
     }

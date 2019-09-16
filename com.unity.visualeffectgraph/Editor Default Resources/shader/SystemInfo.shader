@@ -1,4 +1,4 @@
-Shader "Hidden/VFX/SystemStat"
+Shader "Hidden/VFX/SystemInfo"
 {
     Properties
     {
