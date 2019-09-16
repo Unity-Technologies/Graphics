@@ -29,7 +29,7 @@ ByteAddressBuffer deadListCount;
 #endif
 
 #if HAS_STRIPS
-Buffer<uint> stripData;
+Buffer<uint> stripDataBuffer;
 #endif
 
 #if WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS

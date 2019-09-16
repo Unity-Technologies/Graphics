@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph
@@ -450,6 +451,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void RemoveStickyNote(StickyNoteData stickyNote)
+        {
+            RemoveNoteNoValidate(stickyNote);
+            ValidateGraph();
+        }
+
         public void SetGroup(IGroupItem node, GroupData group)
         {
             var groupChange = new ParentGroupChange()
@@ -776,7 +783,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (string.IsNullOrEmpty(newName))
                 return;
-            
+
             string name = newName.Trim();
             if (string.IsNullOrEmpty(name))
                 return;
@@ -1258,9 +1265,14 @@ namespace UnityEditor.ShaderGraph
 
         public void OnBeforeSerialize()
         {
-            m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
+            var nodes = GetNodes<AbstractMaterialNode>().ToList();
+            nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
+            m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
