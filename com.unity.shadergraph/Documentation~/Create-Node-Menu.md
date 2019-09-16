@@ -4,11 +4,11 @@
 
 The **Create Node Menu** is how to create [Nodes](Node.md) in **Shader Graph**. To open the **Create Node Menu** either right click on the workspace in the [Shader Graph Window](Shader-Graph-Window.md) and select **Create Node** or press spacebar.
 
-At the top of the **Create Node Menu** is a search bar. You can search for a node by typing any part of its name in the search field.
+At the top of the **Create Node Menu** is a search bar. You can search for a node by typing any part of its name in the search field. The search box will give you autocomplete options, and you can press tab to accept the predicted text. Matching text will be highlighted in yellow.
 
-All [Nodes](Node.md) that are available in **Shader Graph** are listed in the **Create Node Menu** categorised by their function. Any user created [Sub-graphs](Sub-graph.md) are also available in the **Create Node Menu** under **Sub-graph Assets**.
+All [Nodes](Node.md) that are available in **Shader Graph** are listed in the **Create Node Menu** categorised by their function. Any user created [Sub-graphs](Sub-graph.md) are also available in the **Create Node Menu** under **Sub-graph Assets** or in any custom category that you define in the Sub-graph asset. 
 
-Selecting a [Node](Node.md) in the **Create Node Menu** will add it to the workspace.
+Double-clicking a [Node](Node.md) in the **Create Node Menu** will add it to the workspace.
 
 ### Contextual Create Node Menu
 
