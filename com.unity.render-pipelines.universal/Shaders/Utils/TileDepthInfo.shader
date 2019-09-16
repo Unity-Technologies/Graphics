@@ -40,7 +40,6 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
             struct Varyings
             {
                 float4 positionCS   : SV_POSITION;
-                float2 uv           : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -51,7 +50,6 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                output.uv = input.uv;
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 return output;
             }
@@ -61,16 +59,18 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                float2 baseUv = (uint2(input.positionCS.xy) * 16) * _MainTexSize.zw;
+                int2 baseTexel = int2(input.positionCS.xy) * int2(16, 16);
 
                 float minDepth =  1.0;
                 float maxDepth = -1.0;
                 [unroll] for (int j = 0; j < 16; ++j)
                 [unroll] for (int i = 0; i < 16; ++i)
                 {
-                    float2 uv = baseUv + float2(i, j) * _MainTexSize.zw;
-                    uv.y = 1.0 - uv.y; // TODO: Find why the input texture is inverted!
-                    float d = SAMPLE_DEPTH_TEXTURE(_MainTex, sampler_MainTex, uv).r;
+                    int2 tx = baseTexel + int2(i, j);
+                    // TODO fixme: Depth buffer is inverted
+                    tx.y = _MainTexSize.y - tx.y;
+                    tx = min(tx, int2(_MainTexSize.xy) - 1);
+                    float d = _MainTex.Load(int3(tx, 0)).x;
                     minDepth = min(minDepth, d);
                     maxDepth = max(maxDepth, d);
                 }

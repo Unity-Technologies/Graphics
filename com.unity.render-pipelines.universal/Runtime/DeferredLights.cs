@@ -244,12 +244,9 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthRange);
             RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
             RenderTargetIdentifier tileDepthRangeSurface = m_TileDepthRangeTexture.Identifier();
-            // Adjusted source texture dimensions.
-            int sourceAdjWidth = m_TileXCount * m_TilePixelWidth;
-            int sourceAdjHeight = m_TileYCount * m_TilePixelWidth;
 
             cmd.SetGlobalTexture(ShaderConstants._MainTex, depthSurface);
-            cmd.SetGlobalVector(ShaderConstants._MainTexSize, new Vector4(sourceAdjWidth, sourceAdjHeight, 1.0f / sourceAdjWidth, 1.0f / sourceAdjHeight));
+            cmd.SetGlobalVector(ShaderConstants._MainTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
             cmd.Blit(depthSurface, tileDepthRangeSurface, m_TileDepthInfoMaterial, 0);
 
             context.ExecuteCommandBuffer(cmd);
