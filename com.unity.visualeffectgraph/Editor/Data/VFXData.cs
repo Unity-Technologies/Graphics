@@ -113,8 +113,9 @@ namespace UnityEditor.VFX
         {
             base.Invalidate(model, cause);
 
-            foreach (VFXContext owner in owners)
-                owner.Invalidate(model, cause);
+            if (cause == InvalidationCause.kSettingChanged) // As data settings are supposed to be implicitely context settings at the same time, throw an invalidate for each contexts
+                foreach (VFXContext owner in owners)
+                    owner.Invalidate(owner, cause);
         }
 
         public override void Sanitize(int version)
@@ -142,8 +143,7 @@ namespace UnityEditor.VFX
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
-            Dictionary<VFXData, int> attributeBuffer,
-            Dictionary<VFXData, int> eventBuffer,
+            VFXDependentBuffersData dependentBuffers,
             Dictionary<VFXContext, List<VFXContextLink>[]> effectiveFlowInputLinks)
         {
             // Empty implementation by default
@@ -177,6 +177,7 @@ namespace UnityEditor.VFX
         public bool IsAttributeUsed(VFXAttribute attrib, VFXContext context)            { return GetAttributeMode(attrib, context) != VFXAttributeMode.None; }
 
         public bool IsCurrentAttributeUsed(VFXAttribute attrib)                         { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadWrite) != 0; }
+        public bool IsCurrentAttributeUsed(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadWrite) != 0; }
 
         public bool IsSourceAttributeUsed(VFXAttribute attrib)                          { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadSource) != 0; }
         public bool IsSourceAttributeUsed(VFXAttribute attrib, VFXContext context)      { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadSource) != 0; }
