@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
         public static bool kUseCBufferForLightData = true;
         public static bool kUseCBufferForLightList = false;
 #else
-        public static bool kUseCBufferForTileList = true;
+        public static bool kUseCBufferForTileList = false;
         public static bool kUseCBufferForLightData = true;
         public static bool kUseCBufferForLightList = false;
 #endif
