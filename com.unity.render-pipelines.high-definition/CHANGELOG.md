@@ -4,7 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.2.0] - 2019-XX-XX
+## [8.0.0] - 2019-XX-XX
+
+### Fixed
+- Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
+
+### Fixed
+- Fixed alpha blending in custom post process
+
+### Fixed
+- Fix/workaround a probable graphics driver bug in the GTAO shader.
+- Fixed light supported units caching (1182266)
+- Fixed Hair and PBR shader graphs double sided modes
+- Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
+- Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
+- Fix a potential NaN source with iridescence (case 1183216)
+- Fixed issue of spotlight breaking when minimizing the cone angle via the gizmo (case 1178279)
+- Fixed issue that caused decals not to modify the roughness in the normal buffer, causing SSR to not behave correctly (case 1178336)
+- Fixed lit transparent refraction with XR single-pass rendering
+- Removed extra jitter for TemporalAA in VR
+- Fixed ShaderGraph time in main preview
+- Fixed issue on some UI elements in HDRP asset not expanding when clicking the arrow (case 1178369)
 
 ## [7.1.1] - 2019-09-05
 
@@ -43,6 +63,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed post-processing history reset handling rt-scale incorrectly
 - Fixed crash with terrain and XR multi-pass
 - Fixed ShaderGraph material synchronization issues
+- Fixed a null reference exception when using an Emissive texture with Unlit shader (case 1181335)
+- Fixed an issue where area lights and point lights where not counted separately with regards to max lights on screen (case 1183196)
 
 ### Changed
 - Update Wizard layout.

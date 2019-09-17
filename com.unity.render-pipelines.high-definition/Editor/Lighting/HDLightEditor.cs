@@ -51,10 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             hdLightData.UpdateAreaLightEmissiveMesh();
                 }
             };
-
-            // If the light is disabled in the editor we force the light upgrade from his inspector
-            foreach (var additionalLightData in m_AdditionalLightDatas)
-                additionalLightData.UpgradeLight();
         }
 
         public override void OnInspectorGUI()
