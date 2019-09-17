@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -121,6 +122,38 @@ namespace UnityEditor.Graphing
 
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
+        }
+
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, MaterialSlot slot)
+        {
+            var node = slot.owner;
+            var graph = node.owner;
+            foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
+            {
+                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                if (outputNode != null)
+                {
+                    CollectNodeSet(nodeSet, outputNode);
+                }
+            }
+        }
+
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, AbstractMaterialNode node)
+        {
+            if (!nodeSet.Add(node))
+            {
+                return;
+            }
+
+            using (var slotsHandle = ListPool<MaterialSlot>.GetDisposable())
+            {
+                var slots = slotsHandle.value;
+                node.GetInputSlots(slots);
+                foreach (var slot in slots)
+                {
+                    CollectNodeSet(nodeSet, slot);
+                }
+            }
         }
 
         public static void CollectNodesNodeFeedsInto(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include)

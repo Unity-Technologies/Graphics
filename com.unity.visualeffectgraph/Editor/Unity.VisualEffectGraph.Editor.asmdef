@@ -3,7 +3,8 @@
     "references": [
         "Unity.VisualEffectGraph.Runtime",
         "Unity.Timeline",
-        "Unity.RenderPipelines.HighDefinition.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.ShaderGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -35,5 +36,6 @@
             "expression": "1.0.0",
             "define": "VFX_HAS_UNIVERSAL"
         }
-    ]
+    ],
+    "noEngineReferences": false
 }

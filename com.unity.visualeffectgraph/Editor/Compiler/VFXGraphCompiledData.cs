@@ -29,6 +29,13 @@ namespace UnityEditor.VFX
         Runtime,
     }
 
+    class VFXDependentBuffersData
+    {
+        public Dictionary<VFXData, int> attributeBuffers = new Dictionary<VFXData, int>();
+        public Dictionary<VFXData, int> stripBuffers = new Dictionary<VFXData, int>();
+        public Dictionary<VFXData, int> eventBuffers = new Dictionary<VFXData, int>();
+    }
+
     class VFXGraphCompiledData
     {
         public VFXGraphCompiledData(VFXGraph graph)
@@ -617,13 +624,16 @@ namespace UnityEditor.VFX
                     {
                         var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData);
 
-                        outGeneratedCodeData.Add(new GeneratedCodeData()
+                        if(generatedContent!= null)
                         {
-                            context = context,
-                            computeShader = context.codeGeneratorCompute,
-                            compilMode = compilationMode,
-                            content = generatedContent
-                        });
+                            outGeneratedCodeData.Add(new GeneratedCodeData()
+                            {
+                                context = context,
+                                computeShader = context.codeGeneratorCompute,
+                                compilMode = compilationMode,
+                                content = generatedContent
+                            });
+                        }
                     }
                 }
             }
@@ -670,8 +680,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void FillDependentBuffer(IEnumerable<VFXData> compilableData, List<VFXGPUBufferDesc> bufferDescs, Dictionary<VFXData, int> attributeBufferDictionnary, Dictionary<VFXData, int> eventGpuBufferDictionnary)
+        public void FillDependentBuffer(
+            IEnumerable<VFXData> compilableData,
+            List<VFXGPUBufferDesc> bufferDescs,
+            VFXDependentBuffersData buffers)
         {
+            // TODO This should be in VFXDataParticle
             foreach (var data in compilableData.OfType<VFXDataParticle>())
             {
                 int attributeBufferIndex = -1;
@@ -680,7 +694,16 @@ namespace UnityEditor.VFX
                     attributeBufferIndex = bufferDescs.Count;
                     bufferDescs.Add(data.attributeBufferDesc);
                 }
-                attributeBufferDictionnary.Add(data, attributeBufferIndex);
+                buffers.attributeBuffers.Add(data, attributeBufferIndex);
+
+                int stripBufferIndex = -1;
+                if (data.hasStrip)
+                {
+                    stripBufferIndex = bufferDescs.Count;
+                    uint stripCapacity = (uint)data.GetSettingValue("stripCapacity");
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = stripCapacity * 4, stride = 4 });
+                }
+                buffers.stripBuffers.Add(data, stripBufferIndex);
             }
 
             //Prepare GPU event buffer
@@ -693,7 +716,7 @@ namespace UnityEditor.VFX
                     eventBufferIndex = bufferDescs.Count;
                     bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Append, size = capacity, stride = 4 });
                 }
-                eventGpuBufferDictionnary.Add(data, eventBufferIndex);
+                buffers.eventBuffers.Add(data, eventBufferIndex);
             }
         }
 
@@ -907,9 +930,8 @@ namespace UnityEditor.VFX
                 var eventDescs = new List<VFXEventDesc>();
                 FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts,ref subgraphInfos);
 
-                var attributeBufferDictionnary = new Dictionary<VFXData, int>();
-                var eventGpuBufferDictionnary = new Dictionary<VFXData, int>();
-                FillDependentBuffer(compilableData, bufferDescs, attributeBufferDictionnary, eventGpuBufferDictionnary);
+                var dependentBuffersData = new VFXDependentBuffersData();
+                FillDependentBuffer(compilableData, bufferDescs, dependentBuffersData);
 
                 var contextSpawnToBufferIndex = contextSpawnToSpawnInfo.Select(o => new { o.Key, o.Value.bufferIndex }).ToDictionary(o => o.Key, o => o.bufferIndex);
                 foreach (var data in compilableData)
@@ -920,8 +942,7 @@ namespace UnityEditor.VFX
                         m_ExpressionGraph,
                         contextToCompiledData,
                         contextSpawnToBufferIndex,
-                        attributeBufferDictionnary,
-                        eventGpuBufferDictionnary,
+                        dependentBuffersData,
                         subgraphInfos.contextEffectiveInputLinks);
                 }
 
