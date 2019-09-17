@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using Data.Util;
@@ -639,7 +640,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -700,16 +701,6 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HairGUI""");
 
             return subShader.GetShaderString(0);
-        }
-
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            return renderPipelineAsset is HDRenderPipelineAsset;
-        }
-
-        public bool IsMasterNodeCompatible(IMasterNode masterNode)
-        {
-            return masterNode is HairMasterNode;
         }
     }
 }

@@ -8,6 +8,7 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 

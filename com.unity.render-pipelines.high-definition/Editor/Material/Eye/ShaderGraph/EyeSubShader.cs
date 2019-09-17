@@ -3,6 +3,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using Data.Util;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -458,7 +459,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -501,16 +502,6 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.EyeGUI""");
 
             return subShader.GetShaderString(0);
-        }
-
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            return renderPipelineAsset is HDRenderPipelineAsset;
-        }
-
-        public bool IsMasterNodeCompatible(IMasterNode masterNode)
-        {
-            return masterNode is EyeMasterNode;
         }
     }
 }

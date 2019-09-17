@@ -283,7 +283,7 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveOutputNodeGuid = value;
                     m_OutputNode = null;
                     didActiveOutputNodeChange = true;
-                    UpdateSubShaders();
+                    UpdateTargets();
                 }
             }
         }
@@ -316,9 +316,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
-        List<ISubShader> m_SubShaders = new List<ISubShader>();
+        List<ITarget> m_Targets = new List<ITarget>();
 
-        public List<ISubShader> subShaders => m_SubShaders;
+        public List<ITarget> targets => m_Targets;
 
         public bool didActiveOutputNodeChange { get; set; }
 
@@ -1342,7 +1342,7 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
-            UpdateSubShaders();
+            UpdateTargets();
 
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
@@ -1352,23 +1352,24 @@ namespace UnityEditor.ShaderGraph
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
         }
 
-        void UpdateSubShaders()
+        void UpdateTargets()
         {
-            subShaders.Clear();
+            targets.Clear();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypesOrNothing())
                 {
-                    var isValid = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ISubShader).IsAssignableFrom(type);          
-                    if (isValid && !subShaders.Any(s => s.GetType() == type))
+                    var isValid = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
+                    if (isValid && !targets.Any(s => s.GetType() == type))
                     {
                         try
                         {
-                            var subShader = (ISubShader)Activator.CreateInstance(type);
+                            var target = (ITarget)Activator.CreateInstance(type);
                             var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                            if(subShader.IsMasterNodeCompatible(masterNode))
+                            ISubShader subShader;
+                            if(target.TryGetSubShader(masterNode, out subShader))
                             {
-                                m_SubShaders.Add(subShader);
+                                m_Targets.Add(target);
                             }
                         }
                         catch (Exception e)

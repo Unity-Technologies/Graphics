@@ -112,7 +112,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
         }
 
-        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -139,16 +139,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             subShader.AddShaderChunk("}", true);
 
             return subShader.GetShaderString(0);
-        }
-
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            return renderPipelineAsset is UniversalRenderPipelineAsset;
-        }
-
-        public bool IsMasterNodeCompatible(IMasterNode masterNode)
-        {
-            return masterNode is SpriteUnlitMasterNode;
         }
     }
 }

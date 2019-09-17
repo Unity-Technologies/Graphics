@@ -164,10 +164,5 @@ namespace UnityEditor.ShaderGraph
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
         }
-
-        public override bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            return true;
-        }
     }
 }

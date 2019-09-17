@@ -6,6 +6,7 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -15,16 +16,6 @@ namespace UnityEditor.ShaderGraph
         public override bool allowedInSubGraph
         {
             get { return false; }
-        }
-
-        public virtual bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            foreach (var subShader in owner.subShaders)
-            {
-                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
-                    return true;
-            }
-            return false;
         }
 
         public VisualElement CreateSettingsElement()

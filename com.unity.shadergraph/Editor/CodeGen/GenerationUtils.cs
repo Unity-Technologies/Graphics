@@ -687,16 +687,21 @@ namespace UnityEditor.ShaderGraph
                 
                 if(node is IMasterNode masterNode)
                 {
-                    foreach (var subShader in node.owner.subShaders)
+                    foreach (var target in node.owner.targets)
                     {
-                        if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
-                            finalShader.AppendLines(subShader.GetSubshader(node, mode, sourceAssetDependencyPaths));
+                        ISubShader subShader;
+                        if(target.TryGetSubShader(masterNode, out subShader))
+                        {
+                            if (mode != GenerationMode.Preview || target.Validate(GraphicsSettings.renderPipelineAsset))
+                                finalShader.AppendLines(subShader.GetSubshader(node, target, mode, sourceAssetDependencyPaths));
+                        }
                     }
                 }
                 else
                 {
-                    PreviewSubShader previewSubShader = new PreviewSubShader();
-                    finalShader.AppendLines(previewSubShader.GetSubshader(node, mode, sourceAssetDependencyPaths));
+                    PreviewSubShader subShader = new PreviewSubShader();
+                    PreviewTarget target = new PreviewTarget();
+                    finalShader.AppendLines(subShader.GetSubshader(node, target, mode, sourceAssetDependencyPaths));
                 }
 
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");

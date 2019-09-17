@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -563,7 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition
             generator.AddShaderChunk(builder.ToString());
         }
 
-        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -606,16 +607,6 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDPBRLitGUI""");
 
             return subShader.GetShaderString(0);
-        }
-
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            return renderPipelineAsset is HDRenderPipelineAsset;
-        }
-
-        public bool IsMasterNodeCompatible(IMasterNode masterNode)
-        {
-            return masterNode is PBRMasterNode;
         }
     }
 }

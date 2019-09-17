@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
             return activeFields;
         }
 
-        public string GetSubshader(AbstractMaterialNode outputNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             var subShader = new ShaderStringBuilder();
 
@@ -63,16 +63,6 @@ namespace UnityEditor.ShaderGraph
             }
 
             return subShader.ToString();
-        }
-        
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
-        {
-            return false;
-        }
-
-        public bool IsMasterNodeCompatible(IMasterNode masterNode)
-        {
-            return false;
         }
     }
 }

@@ -2,11 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     interface IMasterNode
     {
-        bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset);
         void ProcessPreviewMaterial(Material material);
     }
 }
