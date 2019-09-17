@@ -5,7 +5,7 @@ platforms:
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
-  - name: OSX
+  - name: OSX_Metal
     type: Unity::metal::macmini
     image: slough-ops/macos-10.14-xcode
     flavor: m1.mac
@@ -23,14 +23,18 @@ testplatforms:
 projects:
   - name: VFX_LWRP
     folder: VisualEffectGraph_LWRP
-    packagename: com.unity.visualeffectgraph
+win_apis:
+  - name: DX11
+    cmd: -force-d3d11
+  - name: Vulkan
+    cmd: -force-vulkan
 ---
 {% for project in projects %}
 {% for editor in editors %}
 
 {% for testplatform in testplatforms %}
 {{ project.name }}_OSX_OpenGLCore_{{ testplatform.name }}_{{ editor.version }}:
-  name : Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
+  name : Build and Test {{ project.name }} on OSX_OpenGLCore_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     type: Unity::VM::osx
     image: buildfarm/mac:stable
@@ -42,7 +46,7 @@ projects:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published
     
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results  --timeout=1200
+    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
     {% else %}
     - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
     {% endif %}
@@ -54,8 +58,9 @@ projects:
 
 
 {% for testplatform in testplatforms %}
-{{ project.name }}_Windows64_{{ testplatform.name }}_{{ editor.version }}:
-  name : Test {{ project.name }} on Windows64_{{ testplatform.name }} on version {{ editor.version }}
+{% for win_api in win_apis %}
+{{ project.name }}_Windows64_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}:
+  name : Build and Test {{ project.name }} on Windows64_{{ testplatform.name }}_{{ win_api.name }} on version {{ editor.version }}
   agent:
     {% if testplatform.name == "editmode" %}
     type: Unity::VM
@@ -71,14 +76,15 @@ projects:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published    
 
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200"
+    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200"
     {% else %}
-    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
+    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
     {% endif %}
   artifacts:
     logs:
       paths:
-        - "**/test-results/**"    
+        - "**/test-results/**"
+{% endfor %}    
 {% endfor %}
 
 
@@ -86,8 +92,8 @@ projects:
 {% if testplatform.name == "editmode" %}
 #skip because we don't need a GPU to run editmode tests
 {% else %}
-{{ project.name }}_OSX_{{ testplatform.name }}_{{ editor.version }}:
-  name : Test {{ project.name }} on OSX_{{ testplatform.name }} on version {{ editor.version }}
+{{ project.name }}_OSX_Metal_{{ testplatform.name }}_{{ editor.version }}:
+  name : Build and Test {{ project.name }} on OSX_Metal_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     type: Unity::metal::macmini
     image: slough-ops/macos-10.14-xcode
@@ -101,7 +107,7 @@ projects:
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli -u {{ editor.version }} -c editor --wait --published'
     {% if testplatform.name == "Standalone" %}
     - |
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results  --timeout=1200'
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200'
     {% else %}
     - |
       ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results'
@@ -137,8 +143,19 @@ All_{{ project.name }}:
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endif %}
   
-  {% elsif platform.name == "OSX" %}
+  {% elsif platform.name == "OSX_Metal"  and testplatform.name == "editmode" %}
+  
+  {% elsif platform.name == "OSX_Metal" %}
   #skip
+  
+  {% elsif platform.name == "Windows64" %}
+  {% for win_api in win_apis %}
+  {% if win_api.name == "Vulkan" %}
+  #skip
+  {% else %}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}
+  {% endif %}
+  {% endfor %}
 
   {% else %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}  
