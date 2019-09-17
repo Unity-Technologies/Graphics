@@ -6,6 +6,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
@@ -18,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalMasterNode")]
     class DecalMasterNode : MasterNode<IDecalSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
-        public const string PositionSlotName = "Position";
+        public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
         public const int PositionSlotId = 0;
 
