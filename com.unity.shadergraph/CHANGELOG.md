@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PBR master nodes now calculate Global Illumination (GI) correctly.
 - PBR master nodes now apply surface normals.
 - PBR master nodes now apply fog.
+- The Editor now displays correct errors for missing or deleted Sub Graph Assets.
+- You can no longer drag and drop recursive nodes onto Sub Graph Assets.
 
 ## [7.0.1] - 2019-07-25
 ### Changed
