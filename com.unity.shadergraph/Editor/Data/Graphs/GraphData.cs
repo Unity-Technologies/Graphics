@@ -202,9 +202,9 @@ namespace UnityEditor.ShaderGraph
         #region Edge data
 
         [NonSerialized]
-        List<IEdge> m_Edges = new List<IEdge>();
+        List<Edge> m_Edges = new List<Edge>();
 
-        public IEnumerable<IEdge> edges
+        public IEnumerable<Edge> edges
         {
             get { return m_Edges; }
         }
@@ -641,7 +641,7 @@ namespace UnityEditor.ShaderGraph
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
-            m_Edges.Remove(e);
+            m_Edges.Remove(e as Edge);
 
             List<IEdge> inputNodeEdges;
             if (m_NodeEdges.TryGetValue(e.inputSlot.nodeGuid, out inputNodeEdges))
@@ -1269,7 +1269,7 @@ namespace UnityEditor.ShaderGraph
             nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
             m_Edges.Sort();
-            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
             m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
             m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
@@ -1310,7 +1310,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+            m_Edges = SerializationHelper.Deserialize<Edge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableEdges = null;
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
