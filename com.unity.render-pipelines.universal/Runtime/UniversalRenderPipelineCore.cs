@@ -95,12 +95,21 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 planeTop;
     }
 
+    // Actual tile data passed to the deferred shaders.
+    public struct TileData
+    {
+        public uint tileID;         // 2x 16 bits
+        public uint relLightOffset; // 16 bits is enough
+        public uint listDepthRange; // 2x halfs
+        public uint listBitMask;    // 32 bits
+    }
+
     // Actual point light data passed to the deferred shaders.
     public struct PointLightData
     {
-        public Vector3 WsPos;
-        public float Radius;
-        public Vector4 Color;
+        public Vector3 wsPos;
+        public float radius;
+        public Vector4 color;
     }
 
     public struct PostProcessingData

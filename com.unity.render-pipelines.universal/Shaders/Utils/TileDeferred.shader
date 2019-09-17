@@ -5,13 +5,20 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
-    #define MAX_UNIFORM_BUFFER_SIZE (64 * 1024)
+    #define PREFERRED_CBUFFER_SIZE (64 * 1024)
     #define SIZEOF_VEC4_TILEDATA 1 // uint4
     #define SIZEOF_VEC4_POINTLIGHTDATA 2 // 2 float4
-    #define MAX_TILES_PER_PATCH (MAX_UNIFORM_BUFFER_SIZE / (16 * SIZEOF_VEC4_TILEDATA))
-    #define MAX_POINTLIGHT_PER_BATCH (MAX_UNIFORM_BUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHTDATA))
-    #define MAX_REL_LIGHT_INDICES_PER_BATCH (MAX_UNIFORM_BUFFER_SIZE / 4) // Should be ushort!
+    #define MAX_TILES_PER_CBUFFER_PATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_TILEDATA))
+    #define MAX_POINTLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHTDATA))
+    #define MAX_REL_LIGHT_INDICES_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort!
     #define LIGHT_LIST_HEADER_SIZE 1
+
+    // Keep in sync with kUseCBufferForTileData.
+    #define USE_CBUFFER_FOR_TILELIST 0
+    // Keep in sync with kUseCBufferForLightData.
+    #define USE_CBUFFER_FOR_LIGHTDATA 1
+    // Keep in sync with kUseCBufferForLightList.
+    #define USE_CBUFFER_FOR_LIGHTLIST 0
 
     ENDHLSL
 
@@ -34,12 +41,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             #pragma vertex Vertex
             #pragma fragment PointLightShading
-//            #pragma enable_d3d11_debug_symbols
-            #pragma enable_cbuffer
-
-            CBUFFER_START(UTileDataBuffer)
-            uint4 g_TileDataBuffer[MAX_TILES_PER_PATCH * SIZEOF_VEC4_TILEDATA];
-            CBUFFER_END
+            //#pragma enable_d3d11_debug_symbols
 
             struct TileData
             {
@@ -49,16 +51,28 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 uint listBitMask;    // 32 bits
             };
 
-            TileData LoadTileData(int i)
-            {
-                i *= SIZEOF_VEC4_TILEDATA;
-                TileData tileData;
-                tileData.tileID         = g_TileDataBuffer[i][0];
-                tileData.relLightOffset = g_TileDataBuffer[i][1];
-                tileData.listDepthRange = g_TileDataBuffer[i][2];
-                tileData.listBitMask    = g_TileDataBuffer[i][3];
-                return tileData;
-            }
+            #if USE_CBUFFER_FOR_TILELIST
+                CBUFFER_START(UTileList)
+                uint4 g_TileList[MAX_TILES_PER_CBUFFER_PATCH * SIZEOF_VEC4_TILEDATA];
+                CBUFFER_END
+
+                TileData LoadTileData(int i)
+                {
+                    i *= SIZEOF_VEC4_TILEDATA;
+                    TileData tileData;
+                    tileData.tileID         = g_TileList[i][0];
+                    tileData.relLightOffset = g_TileList[i][1];
+                    tileData.listDepthRange = g_TileList[i][2];
+                    tileData.listBitMask    = g_TileList[i][3];
+                    return tileData;
+                }
+
+            #else
+                StructuredBuffer<TileData> g_TileList;
+
+                TileData LoadTileData(int i) { return g_TileList[i]; }
+
+            #endif
 
             // Keep in sync with PackTileID().
             uint2 UnpackTileID(uint tileID)
@@ -134,33 +148,47 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 return output;
             }
 
-            CBUFFER_START(UPointLightBuffer)
-            // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
-            uint4 g_PointLightBuffer[MAX_POINTLIGHT_PER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
-            CBUFFER_END
+            #if USE_CBUFFER_FOR_LIGHTDATA
+                CBUFFER_START(UPointLightBuffer)
+                // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
+                uint4 g_PointLightBuffer[MAX_POINTLIGHT_PER_CBUFFER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
+                CBUFFER_END
 
-            PointLightData LoadPointLightData(int relLightIndex)
-            {
-                uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
-                PointLightData pl;
-                pl.WsPos  = asfloat(g_PointLightBuffer[i + 0].xyz);
-                pl.Radius = asfloat(g_PointLightBuffer[i + 0].w);
-                pl.Color.r = f16tof32(g_PointLightBuffer[i + 1].r); 
-                pl.Color.g = f16tof32(g_PointLightBuffer[i + 1].r >> 16); 
-                pl.Color.b = f16tof32(g_PointLightBuffer[i + 1].g); 
-                return pl;
-            }
+                PointLightData LoadPointLightData(int relLightIndex)
+                {
+                    uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
+                    PointLightData pl;
+                    pl.wsPos  = asfloat(g_PointLightBuffer[i + 0].xyz);
+                    pl.radius = asfloat(g_PointLightBuffer[i + 0].w);
+                    pl.color.rgb = asfloat(g_PointLightBuffer[i + 1].rgb);
+                    return pl;
+                }
 
-            CBUFFER_START(URelLightIndexBuffer)
-            uint4 g_RelLightIndexBuffer[MAX_REL_LIGHT_INDICES_PER_BATCH/4];
-            CBUFFER_END
+            #else
+                StructuredBuffer<PointLightData> g_PointLightBuffer;
 
-            uint LoadRelLightIndex(int i)
-            {
-                return g_RelLightIndexBuffer[i >> 2][i & 3];
-            }
+                PointLightData LoadPointLightData(int relLightIndex) { return g_PointLightBuffer[relLightIndex]; }
+
+            #endif
+
+            #if USE_CBUFFER_FOR_LIGHTLIST
+                CBUFFER_START(URelLightList)
+                uint4 g_RelLightList[MAX_REL_LIGHT_INDICES_PER_CBUFFER_BATCH/4];
+                CBUFFER_END
+
+                uint LoadRelLightIndex(uint i) { return g_RelLightList[i >> 2][i & 3]; }
+
+            #else
+                StructuredBuffer<uint> g_RelLightList;
+
+                uint LoadRelLightIndex(uint i) { return g_RelLightList[i]; }
+
+            #endif
 
             Texture2D g_DepthTex;
+            Texture2D _GBuffer0;
+            Texture2D _GBuffer1;
+            Texture2D _GBuffer2;
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
@@ -171,6 +199,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 #else
                 float d = g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
                 #endif
+                float4 albedoOcc = _GBuffer0.Load(int3(input.positionCS.xy, 0));
+                float4 normalRoughness = _GBuffer1.Load(int3(input.positionCS.xy, 0));
+                float4 spec = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
                 // Temporary code to calculate fragment world space position.
                 float4 wsPos = mul(_InvCameraViewProj, float4(input.clipCoord, d * 2.0 - 1.0, 1.0));
@@ -178,21 +209,18 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
                 half3 color = 0.0.xxx;
 
-                // We always have at least 1 light by design. do...while allows the compiler to optimize for the first light case.
-                int li = 0;
-                do
+                [loop] for (int li = 0; li < lightCount; ++li)
                 {
-                    int offsetInList = input.relLightOffset + LIGHT_LIST_HEADER_SIZE + li;
-                    int relLightIndex = LoadRelLightIndex(offsetInList);
+                    uint offsetInList = input.relLightOffset + LIGHT_LIST_HEADER_SIZE + li;
+                    uint relLightIndex = LoadRelLightIndex(offsetInList);
                     PointLightData light = LoadPointLightData(relLightIndex);
 
                     // TODO calculate lighting.
-                    float3 L = light.WsPos - wsPos.xyz;
-                    half att = dot(L, L) < light.Radius*light.Radius ? 1.0 : 0.0;
+                    float3 L = light.wsPos - wsPos.xyz;
+                    half att = dot(L, L) < light.radius*light.radius ? 1.0 : 0.0;
 
-                    color += light.Color.rgb * att * 0.1;
+                    color += light.color.rgb * att * 0.1; // + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
                 }
-                while (++li < lightCount);
 
                 return half4(color, 0.0);
             }

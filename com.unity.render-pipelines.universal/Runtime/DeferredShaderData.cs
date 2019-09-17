@@ -28,16 +28,16 @@ namespace UnityEngine.Rendering.Universal
         /// Precomputed tiles.
         NativeArray<PreTile> m_PreTiles;
         // Store tileData for drawing instanced tiles.
-        ComputeBuffer[,] m_TileDataBuffers = null;
+        ComputeBuffer[,] m_TileLists = null;
         // Store point lights data for a draw call.
         ComputeBuffer[,] m_PointLightBuffers = null;
-        // Store lists of lights. Each tile has a list of lights, which start address is given by m_TileRelLightBuffer.
+        // Store lists of lights. Each tile has a list of lights, which start address is given by m_TileList.
         // The data stored is a relative light index, which is an index into m_PointLightBuffer. 
-        ComputeBuffer[,] m_RelLightIndexBuffers = null;
+        ComputeBuffer[,] m_RelLightLists = null;
 
-        int m_TileDataBuffer_UsedCount = 0;
+        int m_TileList_UsedCount = 0;
         int m_PointLightBuffer_UsedCount = 0;
-        int m_RelLightIndexBuffer_UsedCount = 0;
+        int m_RelLightList_UsedCount = 0;
 
         int m_FrameLatency = 4;
         int m_FrameIndex = 0;
@@ -45,13 +45,13 @@ namespace UnityEngine.Rendering.Universal
         DeferredShaderData()
         {
             // TODO: make it a vector
-            m_TileDataBuffers = new ComputeBuffer[m_FrameLatency, 32]; 
+            m_TileLists = new ComputeBuffer[m_FrameLatency, 32]; 
             m_PointLightBuffers = new ComputeBuffer[m_FrameLatency,32];
-            m_RelLightIndexBuffers = new ComputeBuffer[m_FrameLatency,32];
+            m_RelLightLists = new ComputeBuffer[m_FrameLatency,32];
 
-            m_TileDataBuffer_UsedCount = 0;
+            m_TileList_UsedCount = 0;
             m_PointLightBuffer_UsedCount = 0;
-            m_RelLightIndexBuffer_UsedCount = 0;
+            m_RelLightList_UsedCount = 0;
         }
 
         internal static DeferredShaderData instance
@@ -68,16 +68,16 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             DisposeNativeArray(ref m_PreTiles);
-            DisposeBuffers(m_TileDataBuffers);
+            DisposeBuffers(m_TileLists);
             DisposeBuffers(m_PointLightBuffers);
-            DisposeBuffers(m_RelLightIndexBuffers);
+            DisposeBuffers(m_RelLightLists);
         }
 
         internal void ResetBuffers()
         {
-            m_TileDataBuffer_UsedCount = 0;
+            m_TileList_UsedCount = 0;
             m_PointLightBuffer_UsedCount = 0;
-            m_RelLightIndexBuffer_UsedCount = 0;
+            m_RelLightList_UsedCount = 0;
             m_FrameIndex = (m_FrameIndex + 1) % m_FrameLatency;
         }
 
@@ -86,25 +86,32 @@ namespace UnityEngine.Rendering.Universal
             return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, count);
         }
 
-        internal ComputeBuffer ReserveTileDataBuffer(int count)
+        internal ComputeBuffer ReserveTileList(int count)
         {
-            return GetOrUpdateBuffer<Vector4UInt>(m_TileDataBuffers, count, ComputeBufferType.Constant, m_TileDataBuffer_UsedCount++);
+            if (DeferredConfig.kUseCBufferForTileList)
+                return GetOrUpdateBuffer<Vector4UInt>(m_TileLists, count, ComputeBufferType.Constant, m_TileList_UsedCount++);
+            else
+                return GetOrUpdateBuffer<TileData>(m_TileLists, count, ComputeBufferType.Structured, m_TileList_UsedCount++);
         }
 
         internal ComputeBuffer ReservePointLightBuffer(int count)
         {
-#if UNITY_SUPPORT_STRUCT_IN_CBUFFER
-            return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
-#else
-            int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
-            int vec4Count = sizeof_PointLightData / 16;
-            return GetOrUpdateBuffer<Vector4UInt>(m_PointLightBuffers, count * vec4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
-#endif
+            if (DeferredConfig.kUseCBufferForLightData)
+            {
+                int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
+                int vec4Count = sizeof_PointLightData / 16;
+                return GetOrUpdateBuffer<Vector4UInt>(m_PointLightBuffers, count * vec4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
+            }
+            else
+                return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, count, ComputeBufferType.Structured, m_PointLightBuffer_UsedCount++);
         }
 
-        internal ComputeBuffer ReserveRelLightIndexBuffer(int count)
+        internal ComputeBuffer ReserveRelLightList(int count)
         {
-            return GetOrUpdateBuffer<Vector4UInt>(m_RelLightIndexBuffers, (count + 3) / 4, ComputeBufferType.Constant, m_RelLightIndexBuffer_UsedCount++);
+            if (DeferredConfig.kUseCBufferForLightList)
+                return GetOrUpdateBuffer<Vector4UInt>(m_RelLightLists, (count + 3) / 4, ComputeBufferType.Constant, m_RelLightList_UsedCount++);
+            else
+                return GetOrUpdateBuffer<uint>(m_RelLightLists, count, ComputeBufferType.Structured, m_RelLightList_UsedCount++);
         }
 
         NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T> nativeArray, int count) where T : struct

@@ -117,6 +117,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             Texture2D g_DepthTex;
+            Texture2D _GBuffer0;
+            Texture2D _GBuffer1;
+            Texture2D _GBuffer2;
+
             float3 _LightWsPos;
             float _LightRadius;
             float3 _LightColor;
@@ -124,9 +128,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             half4 PointLightShading(Varyings input) : SV_Target
             {
                 PointLightData light;
-                light.WsPos = _LightWsPos;
-                light.Radius= _LightRadius;
-                light.Color = _LightColor;
+                light.wsPos = _LightWsPos;
+                light.radius = _LightRadius;
+                light.color = float4(_LightColor, 0.0);
 
                 float2 clipCoord = input.positionCS.xy * _ScreenSize.zw * 2.0 - 1.0;
 
@@ -135,6 +139,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 #else
                 float d = g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
                 #endif
+                float4 albedoOcc = _GBuffer0.Load(int3(input.positionCS.xy, 0));
+                float4 normalRoughness = _GBuffer1.Load(int3(input.positionCS.xy, 0));
+                float4 spec = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
                 // Temporary code to calculate fragment world space position.
                 float4 wsPos = mul(_InvCameraViewProj, float4(clipCoord, d * 2.0 - 1.0, 1.0));
@@ -143,10 +150,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 float3 color = 0.0.xxx;
 
                 // TODO calculate lighting.
-                float3 L = light.WsPos - wsPos.xyz;
-                half att = dot(L, L) < light.Radius*light.Radius ? 1.0 : 0.0;
+                float3 L = light.wsPos - wsPos.xyz;
+                half att = dot(L, L) < light.radius*light.radius ? 1.0 : 0.0;
 
-                color += light.Color.rgb * att * 0.1;
+                color += light.color.rgb * att * 0.1; // + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
 
                 return half4(color, 0.0);
             }
