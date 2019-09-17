@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.
-            if (GraphicsSettings.renderPipelineAsset == this)
+            if (GraphicsSettings.currentRenderPipeline == this)
                 base.OnValidate();
         }
 

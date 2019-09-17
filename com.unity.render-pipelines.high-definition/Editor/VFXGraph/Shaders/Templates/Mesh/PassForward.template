@@ -26,8 +26,20 @@ Pass
 		#else
 		float2 uv : TEXCOORD1;	
 		#endif
+        #if VFX_SHADERGRAPH_HAS_UV1
+        float4 uv1 : COLOR2;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV2
+        float4 uv2 : COLOR3;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_UV3
+        float4 uv3 : COLOR4;
+        #endif
+        #if VFX_SHADERGRAPH_HAS_COLOR
+        float4 vertexColor : COLOR1;
+        #endif
 		float3 normal : TEXCOORD2;
-		#if USE_NORMAL_MAP
+		#if USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 		float4 tangent : TEXCOORD3;
 		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
@@ -49,6 +61,8 @@ Pass
 		#endif
 
 		float3 posWS : TEXCOORD8;
+        
+        ${VFXAdditionalInterpolantsDeclaration}
 		
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -68,7 +82,7 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_NORMAL normal
-#if USE_NORMAL_MAP
+#if USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
 #define VFX_VARYING_TANGENT tangent
 #endif
 #define VFX_VARYING_POSWS posWS
@@ -86,6 +100,8 @@ ${VFXEnd}
 	#define SHADERPASS SHADERPASS_FORWARD
 	${VFXIncludeRP("VFXLit.template")}	
 		
+    ${SHADERGRAPH_PIXEL_CODE_FORWARD}
+
 	#pragma fragment frag
 	void frag(ps_input i
 	, out float4 outColor : SV_Target0
@@ -100,7 +116,17 @@ ${VFXEnd}
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
 		${VFXComputeNormalWS}
-		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
+        
+        #ifdef VFX_SHADERGRAPH
+            ${VFXAdditionalInterpolantsPreparation}
+            ${SHADERGRAPH_PIXEL_CALL_FORWARD}
+            
+            ${VFXIncludeRP("VFXSGSurfaceData.template")}
+            
+            outColor = VFXGetPixelOutputForwardShaderGraph(surface, builtin,i);
+        #else
+            outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
+        #endif
 		
 		#if WRITE_MOTION_VECTOR_IN_FORWARD
 				${VFXComputeOutputMotionVector}

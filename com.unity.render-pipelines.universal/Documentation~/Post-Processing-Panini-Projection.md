@@ -9,11 +9,11 @@ For more information about panini projection, see PanoTools’ wiki documentatio
 **Panini Projection** uses the [Volume](Volumes.html) framework, so to enable and modify **Panini Projection** properties, you must add a **Panini Projection** override to a [Volume](Volumes.html) in your Scene. To add **Panini Projection** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Panini Projection**. Universal RP now applies **Panini Projection** to any Camera this Volume affects.
+2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Panini Projection**. URP now applies **Panini Projection** to any Camera this Volume affects.
 
 ## Properties
 
-![](Images/Post-processingPaniniProjection1.png)
+![](Images/Inspectors/PaniniProjection.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |

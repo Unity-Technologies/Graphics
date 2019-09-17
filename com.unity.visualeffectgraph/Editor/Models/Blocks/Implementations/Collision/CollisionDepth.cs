@@ -92,7 +92,7 @@ float2 aProjPos = abs(projPos.xy);
 if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 {
     float2 uv = projPos.xy * 0.5f + 0.5f;
-    float depth = LoadTexture(Camera_depthBuffer,int3(uv*Camera_pixelDimensions, 0)).r;
+    float depth = LoadTexture(Camera_depthBuffer,int4(uv*Camera_pixelDimensions, 0, 0)).r;
     #if UNITY_REVERSED_Z
     depth = 1.0f - depth; // reversed z
     #endif
@@ -118,8 +118,8 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
         int2 depthPos10 = clamp(int2((projPos10 * 0.5f + 0.5f) * Camera_pixelDimensions), 0, Camera_pixelDimensions - 1);
         int2 depthPos01 = clamp(int2((projPos01 * 0.5f + 0.5f) * Camera_pixelDimensions), 0, Camera_pixelDimensions - 1);
 
-        float depth10 = LoadTexture(Camera_depthBuffer, int3(depthPos10, 0)).r;
-        float depth01 = LoadTexture(Camera_depthBuffer, int3(depthPos01, 0)).r;
+        float depth10 = LoadTexture(Camera_depthBuffer, int4(depthPos10, 0, 0)).r;
+        float depth01 = LoadTexture(Camera_depthBuffer, int4(depthPos01, 0, 0)).r;
 
         #if UNITY_REVERSED_Z
         depth10 = 1.0f - depth10;

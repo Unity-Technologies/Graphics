@@ -121,7 +121,9 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
    float4 fog = (float4)0;
    fog.rgb = unity_FogColor.rgb;
-   fog.a = ComputeFogFactor(posCS.z * posCS.w); //TODO Move this to vertex stage to fit with LWRP result
+
+   float fogFactor = ComputeFogFactor(posCS.z * posCS.w);
+   fog.a = ComputeFogIntensity(fogFactor);
 
 #if VFX_BLENDMODE_ALPHA || IS_OPAQUE_PARTICLE
    color.rgb = lerp(fog.rgb, color.rgb, fog.a);
