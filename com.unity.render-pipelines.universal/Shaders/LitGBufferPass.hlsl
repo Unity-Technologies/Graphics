@@ -150,17 +150,12 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     FragmentOutput output;
 
-    // albedo albedo albedo alpha
-    output.GBuffer0 = half4(surfaceData.albedo, surfaceData.alpha);
+    half3 remappedNormalWS = inputData.normalWS.xyz * 0.5f + 0.5f;
 
-    // specular specular specular metallic
-    output.GBuffer1 = half4(surfaceData.specular, surfaceData.metallic);
-
-    // normal normal normal smoothness
-    output.GBuffer2 = half4(surfaceData.normalTS, surfaceData.smoothness);
-       
-    // emission emission emission occlusion
-    output.GBuffer3 = half4(surfaceData.emission, surfaceData.occlusion);
+    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo    albedo    albedo    occlusion    (sRGB rendertarget)
+    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.smoothness);  // specular  specular  specular  smoothness   (sRGB rendertarget)
+    output.GBuffer2 = half4(remappedNormalWS.xyz, surfaceData.alpha);           // normal    normal    normal    alpha
+    output.GBuffer3 = half4(surfaceData.emission.rgb, surfaceData.metallic);    // emission  emission  emission  metallic
 
     return output;
 }
