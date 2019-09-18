@@ -13,71 +13,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.LightWeightSpriteUnlitSubShader")]
     class UniversalSpriteUnlitSubShader : ISubShader
     {
-#region Passes
-        ShaderPass m_UnlitPass = new ShaderPass
-        {
-            // Definition
-            referenceName = "SHADERPASS_SPRITEUNLIT",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl",
-            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            useInPreview = true,
-
-            // Port mask
-            vertexPorts = new List<int>()
-            {
-                SpriteUnlitMasterNode.PositionSlotId,
-                SpriteUnlitMasterNode.VertNormalSlotId,
-                SpriteUnlitMasterNode.VertTangentSlotId
-            },
-            pixelPorts = new List<int>
-            {
-                SpriteUnlitMasterNode.ColorSlotId,
-            },
-
-            // Required fields
-            requiredAttributes = new List<string>()
-            {
-                "Attributes.color",
-                "Attributes.uv0",
-            },
-            requiredVaryings = new List<string>()
-            {
-                "Varyings.color",
-                "Varyings.texCoord0",
-            },
-            
-            // Pass setup
-            includes = new List<string>()
-            {
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-            },
-            pragmas = new List<string>()
-            {
-                "prefer_hlslcc gles",
-                "exclude_renderers d3d11_9x",
-                "target 2.0",
-            },
-            keywords = new KeywordDescriptor[]
-            {
-                s_ETCExternalAlphaKeyword,
-            },
-        };
-#endregion
-
-#region Keywords
-        static KeywordDescriptor s_ETCExternalAlphaKeyword = new KeywordDescriptor()
-        {
-            displayName = "ETC External Alpha",
-            referenceName = "ETC1_EXTERNAL_ALPHA",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-#endregion
-
         private static ActiveFields GetActiveFieldsFromMasterNode(SpriteUnlitMasterNode masterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
@@ -122,6 +57,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             // Master Node data
             var unlitMasterNode = outputNode as SpriteUnlitMasterNode;
+            var universalMeshTarget = target as UniversalMeshTarget;
             var subShader = new ShaderGenerator();
 
             subShader.AddShaderChunk("SubShader", true);
@@ -133,7 +69,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
 
-                GenerateShaderPass(unlitMasterNode, target, m_UnlitPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(unlitMasterNode, target, UniversalMeshTarget.Passes.SpriteUnlit, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
