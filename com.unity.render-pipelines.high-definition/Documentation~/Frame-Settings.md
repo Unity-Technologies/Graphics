@@ -1,10 +1,10 @@
 # Frame Settings
 
-Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default Frame Settings for each of these three individually from within a [HDRP Asset](HDRP-Asset.html). Open a HDRP Asset in the Inspector and navigate to the Default Frame Settings For section.
+Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default Frame Settings for each of these three individually from within the [HDRP Default Settings](Default-Settings-Window.html) tab (menu: **Edit > Project Settings > HDRP Default Settings**).
 
 ![](Images/FrameSettings1.png)
 
-Default Frame Settings For is not just the title of the section, it also corresponds to the drop-down menu, to its right, that allows you to select which component to change the default Frame Settings for. Before you change any Frame Settings, select a component from the drop-down menu. The options are Camera, Baked or Custom Reflection, and Realtime Reflection. After you select a component, you can change the default settings HDRP uses to render a frame using that component. To make Cameras and Reflection Probes use their respective default Frame Settings, disable the **Custom Frame Settings** checkbox under the **General** settings of Cameras or under **Capture Settings** of Reflection Probes.
+**Default Frame Settings For** is not just the title of the section, it also corresponds to the drop-down menu, to its right, that allows you to select which component to change the default Frame Settings for. Before you change any Frame Settings, select a component from the drop-down menu. The options are Camera, Baked or Custom Reflection, and Realtime Reflection. After you select a component, you can change the default settings HDRP uses to render a frame using that component. To make Cameras and Reflection Probes use their respective default Frame Settings, disable the **Custom Frame Settings** checkbox under the **General** settings of Cameras or under **Capture Settings** of Reflection Probes.
 
 You can override the default Frame Settings on a per component basis. Enable the **Custom Frame Settings** checkbox to set specific Frame Settings for individual Cameras and Reflection Probes.This exposes the Frame Settings Override which gives you access to the same settings as in default Frame Settings within the HDRP Asset. Edit the settings within the Frame Settings Override to create a Frame Settings profile for an individual component.
 
