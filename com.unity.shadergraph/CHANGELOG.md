@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
+- Shader Graph no longer references the `NUnit` package.
 
 ## [7.1.1] - 2019-09-05
 ### Added
