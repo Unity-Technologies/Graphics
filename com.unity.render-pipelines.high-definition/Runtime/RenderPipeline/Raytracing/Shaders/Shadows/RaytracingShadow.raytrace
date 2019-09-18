@@ -208,7 +208,7 @@ void RayGenAreaShadows()
         rayIntersection.incidentDirection = rayDescriptor.Direction;
 
         // Evaluate the ray visibility term and PDF
-        TraceRay(_RaytracingAccelerationStructure, rayFlag, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, rayFlag, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Evaluate the lighting
         CBSDF cbsdf = EvaluateBSDF(viewWS, misOutput.dir, preLightData, bsdfData);
@@ -326,7 +326,7 @@ void RayGenAreaShadowSingle()
     rayIntersection.incidentDirection = rayDescriptor.Direction;
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
     _RaytracedAreaShadowIntegration[currentPixelCoord] = float2(rayIntersection.color.x * currentSample.x + previousValue.x, currentSample.y + previousValue.y);
@@ -383,7 +383,7 @@ void RayGenDirectionalShadowSingle()
     rayIntersection.color = float3(0.0, 0.0, 0.0);
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
     _RaytracedDirectionalShadowIntegration[currentPixelCoord] = previousValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
@@ -446,7 +446,7 @@ void RayGenPointShadowSingle()
     rayIntersection.incidentDirection = rayDescriptor.Direction;
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
     float previousValue = _RaytracedDirectionalShadowIntegration[currentPixelCoord];

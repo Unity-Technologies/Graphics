@@ -13,6 +13,9 @@
 #pragma kernel AreaShadowDenoiseFirstPass   AREA_SHADOW_DENOISE=AreaShadowDenoiseFirstPass
 #pragma kernel AreaShadowDenoiseSecondPass  AREA_SHADOW_DENOISE=AreaShadowDenoiseSecondPass  FINAL_PASS
 
+// No denoising
+#pragma kernel AreaShadowNoDenoise
+
 // Debug
 #pragma kernel WriteShadowTextureDebug
 
@@ -448,4 +451,12 @@ void WriteShadowTextureDebug(uint2 groupThreadId : SV_GroupThreadID, uint2 group
     // Store the intermediate result
     float shadowValue = _ScreenSpaceShadowsTextureRW[uint3(centerCoord, _RaytracingShadowSlot)];
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(shadowValue, shadowValue, shadowValue, 1.0);
+}
+
+[numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
+void AreaShadowNoDenoise(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _RaytracingShadowSlot)] = _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y > 0.0 ? _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].x / _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y : 0.0;
 }

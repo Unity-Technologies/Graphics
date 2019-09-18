@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Update the light clusters that we need to update
                 m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
 
-                // We only request the light cluster if we are gonna use it for debug mode
                 if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
                 {
                     var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
@@ -58,12 +57,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (rSettings.rayTracing.value && rtEnv != null)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+                        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                     }
                     else if (rrSettings.enable.value && rtEnv != null)
                     {
                         HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+                        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                     }
                 }
 #endif
