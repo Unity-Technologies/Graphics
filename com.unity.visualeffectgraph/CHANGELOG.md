@@ -6,8 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.0.0] - 2019-XX-XX
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
 
