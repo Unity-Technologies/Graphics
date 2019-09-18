@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Internal
         // Setup
         public IEnumerable<string> pragmas;
         public IEnumerable<string> includes;
+        public IEnumerable<string> defines;
         public IEnumerable<KeywordDescriptor> keywords;
 
         // Port mask
