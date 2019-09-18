@@ -273,11 +273,6 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
 
-            // Disables postprocessing in mobile VR. It's not stable on mobile yet.
-            // TODO: enable postfx for stereo rendering
-            if (cameraData.isStereoEnabled && Application.isMobilePlatform)
-                cameraData.postProcessEnabled = false;
-
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
                 Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
@@ -334,6 +329,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+
+            // Disables postprocessing in mobile VR. It's not stable on mobile yet. Also disables it
+            // if the XR mode isn't single-pass instanced as we don't support other modes yet.
+            // TODO: enable postfx for stereo rendering
+            // TODO: enable postfx for single pass (non-instanced)
+            if (cameraData.isStereoEnabled && (Application.isMobilePlatform || XRGraphics.stereoRenderingMode != XRGraphics.StereoRenderingMode.SinglePassInstanced))
+                cameraData.postProcessEnabled = false;
 
             cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
 
