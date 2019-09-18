@@ -2086,7 +2086,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
             m_VTBufferManager.Resolve(cmd, hdCamera.actualWidth, hdCamera.actualHeight);
-            Experimental.VirtualTexturing.UpdateSystem();
+            VirtualTexturing.UpdateSystem();
 #endif
 
                 // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.

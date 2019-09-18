@@ -10,7 +10,7 @@ namespace  UnityEngine.Rendering.HighDefinition
         RTHandle opaqueHandle = null;
         Vector2 m_scale = new Vector2(1.0f / (float)Scale, 1.0f / (float)Scale);
 
-        Experimental.VirtualTextureResolver m_Resolver = new Experimental.VirtualTextureResolver();
+        VirtualTextureResolver m_Resolver = new VirtualTextureResolver();
 
         public void CreateBuffers()
         {
