@@ -139,7 +139,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
     builtinData.opacity = alpha;
 
-#if SHADEROPTIONS_RAYTRACING && SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT
+#if SHADEROPTIONS_RAYTRACING && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
     if (_RaytracedIndirectDiffuse == 1)
     {
         #if SHADERPASS == SHADERPASS_GBUFFER
