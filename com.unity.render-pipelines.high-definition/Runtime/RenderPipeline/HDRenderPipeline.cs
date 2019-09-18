@@ -297,7 +297,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
 
-
+#if UNITY_EDITOR
+        bool m_ResourcesInitialized = false;
+#endif
+        
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset defaultAsset)
         {
             m_Asset = asset;
@@ -320,6 +323,19 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Asset.EvaluateSettings();
 
             UpgradeResourcesIfNeeded();
+            
+            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
+            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
+            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
+            if (HDRenderPipeline.defaultAsset.renderPipelineResources == null
+                || HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null
+#if ENABLE_RAYTRACING
+                || HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources == null
+#endif
+                )
+                return;
+            else
+                m_ResourcesInitialized = true;
 
             ValidateResources();
 #endif
@@ -660,9 +676,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!SystemInfo.supportsComputeShaders)
                 return false;
-
-            Debug.Assert(defaultResources != null);
-            if (!defaultResources.shaders.defaultPS.isSupported)
+            
+            if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
                 return false;
 
 #if UNITY_EDITOR
@@ -754,6 +769,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ValidAPI)
                 return;
 
+#if UNITY_EDITOR
+            if (!m_ResourcesInitialized)
+                return;
+#endif
+            
             base.Dispose(disposing);
 
             ReleaseScreenSpaceShadows();
@@ -1048,6 +1068,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
+#if UNITY_EDITOR
+            if (!m_ResourcesInitialized)
+                return;
+#endif
+
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
 
