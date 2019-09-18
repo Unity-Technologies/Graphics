@@ -145,7 +145,7 @@ ToolbarRadio
 
 /* spacing between categories */
 
-#NewScene
+#NewDXRScene
 {
     margin-bottom: 15px;
 }
