@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -1212,6 +1213,52 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly string zWriteOn = "ZWrite On";
         public static readonly string zWriteOff = "ZWrite Off";
         public static readonly string ZWriteDefault = "ZWrite [_ZWrite]";
+
+        public static void GetBlendMode(ShaderGraph.SurfaceType surfaceType, AlphaMode alphaMode, ref ShaderPass pass)
+        {
+            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
+            {
+                pass.BlendOverride = "Blend One Zero, One Zero";
+            }
+            else
+            {
+                switch (alphaMode)
+                {
+                    case AlphaMode.Alpha:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                    case AlphaMode.Additive:
+                        pass.BlendOverride = "Blend One One, One One";
+                        break;
+                    case AlphaMode.Premultiply:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                    // This isn't supported in HDRP.
+                    case AlphaMode.Multiply:
+                    default:
+                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
+                        break;
+                }
+            }
+        }
+
+        public static void GetCullMode(bool doubleSided, ref ShaderPass pass)
+        {
+            if (doubleSided)
+                pass.CullOverride = "Cull Off";
+        }
+
+        public static void GetZWrite(ShaderGraph.SurfaceType surfaceType, ref ShaderPass pass)
+        {
+            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
+            {
+                pass.ZWriteOverride = "ZWrite On";
+            }
+            else
+            {
+                pass.ZWriteOverride = "ZWrite Off";
+            }
+        }
 
         public static void SetBlendModeForTransparentBackface(ref Pass pass) => SetBlendModeForForward(ref pass);
         public static void SetBlendModeForForward(ref Pass pass)

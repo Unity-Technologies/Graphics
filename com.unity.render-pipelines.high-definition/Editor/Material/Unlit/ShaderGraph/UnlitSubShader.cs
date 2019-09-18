@@ -13,53 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.UnlitSubShader")]
     class UnlitSubShader : ISubShader
     {
-        public static void GetBlendMode(ShaderGraph.SurfaceType surfaceType, AlphaMode alphaMode, ref ShaderPass pass)
-        {
-            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
-            {
-                pass.BlendOverride = "Blend One Zero, One Zero";
-            }
-            else
-            {
-                switch (alphaMode)
-                {
-                    case AlphaMode.Alpha:
-                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
-                        break;
-                    case AlphaMode.Additive:
-                        pass.BlendOverride = "Blend One One, One One";
-                        break;
-                    case AlphaMode.Premultiply:
-                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
-                        break;
-                    // This isn't supported in HDRP.
-                    case AlphaMode.Multiply:
-                    default:
-                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
-                        break;
-                }
-            }
-        }
-
-        public static void GetCullMode(bool doubleSided, ref ShaderPass pass)
-        {
-            if (doubleSided)
-                pass.CullOverride = "Cull Off";
-        }
-
-        public static void GetZWrite(ShaderGraph.SurfaceType surfaceType, ref ShaderPass pass)
-        {
-            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
-            {
-                pass.ZWriteOverride = "ZWrite On";
-            }
-            else
-            {
-                pass.ZWriteOverride = "ZWrite Off";
-            }
-        }
-
-        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, ShaderPass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(IMasterNode iMasterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
             var baseActiveFields = activeFields.baseInstance;
@@ -118,27 +72,27 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if(pass.Equals(HDRPMeshTarget.Passes.UnlitShadowCaster))
             {
-                GetCullMode(masterNode.twoSided.isOn, ref pass);
+                HDSubShaderUtilities.GetCullMode(masterNode.twoSided.isOn, ref pass);
             }
             else if(pass.Equals(HDRPMeshTarget.Passes.UnlitSceneSelection))
             {
-                GetCullMode(masterNode.twoSided.isOn, ref pass);
-                GetZWrite(masterNode.surfaceType, ref pass);
+                HDSubShaderUtilities.GetCullMode(masterNode.twoSided.isOn, ref pass);
+                HDSubShaderUtilities.GetZWrite(masterNode.surfaceType, ref pass);
             }
             else if(pass.Equals(HDRPMeshTarget.Passes.UnlitDepthForwardOnly))
             {
-                GetCullMode(masterNode.twoSided.isOn, ref pass);
-                GetZWrite(masterNode.surfaceType, ref pass);
+                HDSubShaderUtilities.GetCullMode(masterNode.twoSided.isOn, ref pass);
+                HDSubShaderUtilities.GetZWrite(masterNode.surfaceType, ref pass);
             }
             else if(pass.Equals(HDRPMeshTarget.Passes.UnlitMotionVectors))
             {
-                GetCullMode(masterNode.twoSided.isOn, ref pass);
+                HDSubShaderUtilities.GetCullMode(masterNode.twoSided.isOn, ref pass);
             }
             else if(pass.Equals(HDRPMeshTarget.Passes.UnlitForwardOnly))
             {
-                GetBlendMode(masterNode.surfaceType, masterNode.alphaMode, ref pass);
-                GetCullMode(masterNode.twoSided.isOn, ref pass);
-                GetZWrite(masterNode.surfaceType, ref pass);
+                HDSubShaderUtilities.GetBlendMode(masterNode.surfaceType, masterNode.alphaMode, ref pass);
+                HDSubShaderUtilities.GetCullMode(masterNode.twoSided.isOn, ref pass);
+                HDSubShaderUtilities.GetZWrite(masterNode.surfaceType, ref pass);
             }
 
             // apply master node options to active fields
