@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.10.0] - 2019-XX-XX
 ### Fixed
+- [XR] Add Android/Oculus Go support for Postprocessing v2 using single-pass double-wide stereo mode (multiview is still disabled for postprocessing).
+
+## [6.10.0] - 2019-XX-XX
+### Fixed
 - Fixed fp16 overflow in Switch in specular calculation
 - Fixed shader compilation errors for Android XR projects.
 - Fixed garbage collection spikes caused by LWRP allocating heap memory every frame.
