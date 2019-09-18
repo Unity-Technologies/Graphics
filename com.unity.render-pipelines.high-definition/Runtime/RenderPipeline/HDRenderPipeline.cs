@@ -297,7 +297,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // custom-begin:
-        ComputeBuffer dissolveOccludersCylindersBufferFallback = null;
+        public ComputeBuffer computeBufferFallback = null;
         // custom-end
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
@@ -552,7 +552,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // custom-begin:
-            dissolveOccludersCylindersBufferFallback = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DissolveOccludersData.DissolveOccludersCylinder)));
+            computeBufferFallback = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DissolveOccludersData.DissolveOccludersCylinder)));
             // custom-end
         }
 
@@ -586,7 +586,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
 
             // custom-begin:
-            dissolveOccludersCylindersBufferFallback.Release();
+            computeBufferFallback.Release();
             // custom-end
         }
 
@@ -920,7 +920,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Initialize dissolve occluders to zero count and allow callbacks to override.
                 cmd.SetGlobalInt(HDShaderIDs._DissolveOccludersCylindersCount, 0);
-                cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, dissolveOccludersCylindersBufferFallback);
+                cmd.SetGlobalBuffer(HDShaderIDs._DissolveOccludersCylinders, computeBufferFallback);
 
                 if (OnPushGlobalParameters != null)
                     OnPushGlobalParameters(hdCamera, cmd);
@@ -1881,7 +1881,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
 
                         VolumeVoxelizationPass(hdCamera, asyncCmd, m_FrameCount, densityVolumes);
-                        VolumeVoxelizationBlurPass(hdCamera, asyncCmd);
                     }, !haveAsyncTaskWithShadows);
 
                     haveAsyncTaskWithShadows = true;
@@ -2003,7 +2002,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Perform the voxelization step which fills the density 3D texture.
                     // custom-begin:
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount, densityVolumes);
-                    VolumeVoxelizationBlurPass(hdCamera, cmd);
                     // custom-end
                 }
 

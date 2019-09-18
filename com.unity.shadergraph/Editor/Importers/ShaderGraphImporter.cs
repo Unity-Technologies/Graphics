@@ -10,7 +10,9 @@ using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.ShaderGraph
 {
-    [ScriptedImporter(29, Extension, 3)]
+    // custom-begin: increased by one from 29, watch out when merging with new SRP branches
+    [ScriptedImporter(30, Extension, 3)]
+    // custom-end
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";

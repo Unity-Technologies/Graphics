@@ -67,8 +67,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public ComputeShader volumeVoxelizationCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLighting.compute")]
             public ComputeShader volumetricLightingCS;
-            [Reload("Runtime/Lighting/VolumetricLighting/VolumeVoxelizationBlur.compute")]
-            public ComputeShader volumeVoxelizationBlurCS;
 
             [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
             public Shader deferredTilePS;
