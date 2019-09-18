@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
+- Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
 
 ### Fixed
 - Fixed alpha blending in custom post process
