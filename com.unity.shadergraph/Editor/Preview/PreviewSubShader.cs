@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph
 
                 // use standard shader pass generation
                 ShaderGenerator result = new ShaderGenerator();
-                ShaderGraph.GenerationUtils.GenerateShaderPass(outputNode, m_PreviewPass, mode, activeFields, result, sourceAssetDependencyPaths,
+                ShaderGraph.GenerationUtils.GenerateShaderPass(outputNode, target, m_PreviewPass, mode, activeFields, result, sourceAssetDependencyPaths,
                     PreviewSubShaderResources.s_Dependencies, PreviewSubShaderResources.s_ResourceClassName, PreviewSubShaderResources.s_AssemblyName); 
                 subShader.AppendLines(result.GetShaderString(0));
             }
