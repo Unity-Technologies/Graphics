@@ -236,8 +236,9 @@ namespace UnityEngine.Rendering.LWRP
 #endif
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 
-            // Disables postprocessing in mobile VR. It's stable on mobile yet.
-            if (cameraData.isStereoEnabled && Application.isMobilePlatform)
+            // On Android, Postprocessing v2 works with single-pass double-wide mode and is disabled for multiview
+            var xrDesc = UnityEngine.XR.XRSettings.eyeTextureDesc;
+            if (cameraData.isStereoEnabled && Application.isMobilePlatform && Application.platform == RuntimePlatform.Android && xrDesc.dimension == TextureDimension.Tex2DArray)
                 cameraData.postProcessEnabled = false;
 
             Rect cameraRect = camera.rect;
