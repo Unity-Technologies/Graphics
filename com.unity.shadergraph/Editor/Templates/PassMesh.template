@@ -11,6 +11,7 @@ Pass
     $splice(Culling)
     $splice(ZTest)
     $splice(ZWrite)
+    $splice(Stencil)
     $splice(ColorMask)
 
     HLSLPROGRAM
@@ -58,7 +59,6 @@ Pass
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.cullFace:                 #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:              #define FEATURES_GRAPH_VERTEX
-    $features.preview:                  #define SHADERGRAPH_PREVIEW 1
     $splice(GraphDefines)
 
     // Includes
@@ -69,6 +69,7 @@ Pass
 
     // Graph Properties
     $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
