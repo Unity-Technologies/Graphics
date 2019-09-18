@@ -28,6 +28,7 @@ The version number for this package has increased due to a version update of a r
 - Fix crash when upgrading version of HDRP
 - Fixed rendering issues with material previews
 - Fixed NPE when using light module in Shuriken particle systems (1173348).
+- Refresh cached shadow on editor changes
 
 ## [7.1.1] - 2019-09-05
 
