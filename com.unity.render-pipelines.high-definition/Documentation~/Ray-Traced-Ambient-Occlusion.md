@@ -49,6 +49,8 @@ All Cameras can now process screen space ambient occlusion unless they use custo
 
 ## Properties
 
+![](Images/RayTracedAmbientOcclusion3.png)
+
 | Property                     | Description                                                  |
 | ---------------------------- | ------------------------------------------------------------ |
 | **Ray Tracing**              | Makes HDRP use ray tracing to evaluate ambient occlusion. Enable this to expose properties that you can use to adjust the quality of ray traced ambient occlusion. |
