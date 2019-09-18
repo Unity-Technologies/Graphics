@@ -297,6 +297,48 @@ namespace UnityEditor.ShaderGraph
             }
 
             // --------------------------------------------------
+            // Dots Instanced Graph Properties
+
+            int instancedPropCount = propertyCollector.GetDotsInstancingPropertiesCount(mode);
+            using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
+            {
+                if (instancedPropCount > 0)
+                    dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(mode));
+                else
+                    dotsInstancedPropertyBuilder.AppendLine("// DotsInstancedProperties: <None>");
+                spliceCommands.Add("DotsInstancedProperties", dotsInstancedPropertyBuilder.ToCodeBlack());
+            }
+
+            // --------------------------------------------------
+            // Dots Instancing Options
+
+            using (var dotsInstancingOptionsBuilder = new ShaderStringBuilder())
+            {
+                if (instancedPropCount > 0)
+                {
+                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
+                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
+                    dotsInstancingOptionsBuilder.AppendLine("#endif");
+                    dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
+                    dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_DOTS_INSTANCING_ENABLED");
+                    dotsInstancingOptionsBuilder.AppendLine("#endif");
+                    dotsInstancingOptionsBuilder.AppendLine("#pragma instancing_options nolightprobe");
+                    dotsInstancingOptionsBuilder.AppendLine("#pragma instancing_options nolodfade");
+                }
+                else
+                {
+                    if (pass.defaultDotsInstancingOptions != null)
+                    {
+                        foreach (var instancingOption in pass.defaultDotsInstancingOptions)
+                            dotsInstancingOptionsBuilder.AppendLine(instancingOption);
+                    }
+                }
+                if(dotsInstancingOptionsBuilder.length == 0)
+                    dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
+                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlack());
+            }
+
+            // --------------------------------------------------
             // Graph Defines
 
             using (var graphDefines = new ShaderStringBuilder())
@@ -358,10 +400,14 @@ namespace UnityEditor.ShaderGraph
             // This must be defined after all graph code
             using (var mainBuilder = new ShaderStringBuilder())
             {
-                mainBuilder.AppendLine($"#include \"{pass.varyingsInclude}\"");
-                mainBuilder.AppendLine($"#include \"{pass.passInclude}\"");
+                if(!string.IsNullOrEmpty(pass.varyingsInclude))
+                    mainBuilder.AppendLine($"#include \"{pass.varyingsInclude}\"");
+                if(!string.IsNullOrEmpty(pass.passInclude))
+                    mainBuilder.AppendLine($"#include \"{pass.passInclude}\"");
 
                 // Add to splice commands
+                if(mainBuilder.length == 0)
+                    mainBuilder.AppendLine("// MainInclude: <None>");
                 spliceCommands.Add("MainInclude", mainBuilder.ToCodeBlack());
             }
 
@@ -391,19 +437,30 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Finalize
 
-            // Get Template
-            string templateLocation = GetTemplatePath("PassMesh.template");
+            // Pass Template
+            string passTemplatePath;
+            if(!string.IsNullOrEmpty(pass.passTemplatePath))
+                passTemplatePath = pass.passTemplatePath;
+            else
+                passTemplatePath = target.passTemplatePath;
 
-            if (!File.Exists(templateLocation))
+            // Shared Templates
+            string sharedTemplateDirectory;
+            if(!string.IsNullOrEmpty(pass.sharedTemplateDirectory))
+                sharedTemplateDirectory = pass.sharedTemplateDirectory;
+            else
+                sharedTemplateDirectory = target.sharedTemplateDirectory;
+
+            if (!File.Exists(passTemplatePath))
                 return false;
             
             // Get Template preprocessor
             string templatePath = "Packages/com.unity.shadergraph/Editor/Templates";
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands, 
-                isDebug, templatePath, sourceAssetDependencyPaths, assemblyName, resourceClassName);
+                isDebug, sharedTemplateDirectory, sourceAssetDependencyPaths, assemblyName, resourceClassName);
             
             // Process Template
-            templatePreprocessor.ProcessTemplateFile(templateLocation);
+            templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
             return true;
         }
@@ -649,7 +706,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static string GetTemplatePath(string templateName)
+        public static string GetDefaultTemplatePath(string templateName)
         {
             var basePath = "Packages/com.unity.shadergraph/Editor/Templates/";
             string templatePath = Path.Combine(basePath, templateName);
@@ -658,6 +715,11 @@ namespace UnityEditor.ShaderGraph
                 return templatePath;
 
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+        }
+
+        public static string GetDefaultSharedTemplateDirectory()
+        {
+            return "Packages/com.unity.shadergraph/Editor/Templates";
         }
 
         public static string GetShaderForNode(AbstractMaterialNode node, GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)

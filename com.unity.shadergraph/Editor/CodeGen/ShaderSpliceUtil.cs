@@ -916,6 +916,9 @@ namespace UnityEditor.ShaderGraph
                 string field = fieldsToPropagate.Dequeue();
                 if (activeFields.Contains(field))           // this should always be true
                 {
+                    if(dependsList == null)
+                        return;
+                        
                     // find all dependencies of field that are not already active
                     foreach (Dependency[] dependArray in dependsList)
                     {
