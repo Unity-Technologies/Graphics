@@ -49,7 +49,7 @@ The HDRP Shaders allow you to use the following features:
 
   - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
   - Iridescence, for surfaces that appear to change color as you view them from different angles, like soap bubbles or insect wings.
-  - Metallic, for surfaces that appear smooth, reflective, and have specular highlights.
+  - Metallic, for surfaces only lit by specular lighting and take the base color input for specular color. For example, aluminum, copper, and steel.
   - Specular Color, for surfaces that you want to have a colored specular highlight.
   - Subsurface Scattering, for translucent surfaces that simulate light interaction and scattering, like skin or plant leaves.
   - Translucent, for surfaces that simulate light interaction, but do not blur light that transmits through the Material.

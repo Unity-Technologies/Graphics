@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend LWRP renderer.
+    /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRenderPass
     {
