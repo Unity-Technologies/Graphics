@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed alpha blending in custom post process
+- Fixed the modification of the _AlphaCutoff property in the material UI when exposed with a ShaderGraph parameter.
 
 ### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
