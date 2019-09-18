@@ -7,14 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [8.0.0] - 2019-XX-XX
 
 ### Fixed
-- Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
-- Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
-
-### Fixed
-- Fixed alpha blending in custom post process
-- Fixed the modification of the _AlphaCutoff property in the material UI when exposed with a ShaderGraph parameter.
-
-### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
 - Fixed light supported units caching (1182266)
 - Fixed Hair and PBR shader graphs double sided modes
@@ -27,6 +19,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed extra jitter for TemporalAA in VR
 - Fixed ShaderGraph time in main preview
 - Fixed issue on some UI elements in HDRP asset not expanding when clicking the arrow (case 1178369)
+- Fixed alpha blending in custom post process
+- Fixed the modification of the _AlphaCutoff property in the material UI when exposed with a ShaderGraph parameter.
+- Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
+- Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
+- Fix crash when upgrading version of HDRP
 
 ## [7.1.1] - 2019-09-05
 
