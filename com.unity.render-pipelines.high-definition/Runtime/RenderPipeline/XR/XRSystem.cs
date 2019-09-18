@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera == null)
                     continue;
 
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 // Read XR SDK or legacy settings
                 bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
 
