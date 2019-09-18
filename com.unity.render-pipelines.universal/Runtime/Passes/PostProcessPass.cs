@@ -585,7 +585,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var material = m_Materials.cameraMotionBlur;
 
-            // This is needed because Blit will reset viewproj matrices to identity and LW currently
+            // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
             // relies on SetupCameraProperties instead of handling its own matrices.
             // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
             var proj = camera.nonJitteredProjectionMatrix;

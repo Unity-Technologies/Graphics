@@ -2,7 +2,7 @@
 
 The Bloom effect creates fringes of light extending from the borders of bright areas in an image. This creates the illusion of an extremely bright light overwhelming the Camera.
 
-Bloom in the High Definition Render Pipeline (HDRP) uses physically-based lighting. This means that you must use correct physical values for lighting and Materials for it to work correctly. For information on the light units that HDRP uses, see the [Physical Light Units documentation](Physical-Light-Units.html).
+Bloom in the High Definition Render Pipeline (HDRP) is energy-conserving. This means that you must use correct physical values for lighting and Materials for it to work correctly. For information on the light units that HDRP uses, see the [Physical Light Units documentation](Physical-Light-Units.html).
 
 The Bloom effect also has a **Lens Dirt** feature, which you can use to apply a full-screen layer of smudges or dust to diffract the Bloom effect.
 
