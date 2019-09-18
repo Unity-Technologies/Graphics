@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
-- Fixed light supported units caching (1182266)
 - Fixed Hair and PBR shader graphs double sided modes
 - Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
 - Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
