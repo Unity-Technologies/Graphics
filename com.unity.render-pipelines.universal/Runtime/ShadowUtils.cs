@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
             else if (shadowLight.lightType == LightType.Spot)
             {
                 // For perspective projections, shadow texel size varies with depth
-                // It will only work well if done in receiver side in the pixel shader. Currently LWRP
+                // It will only work well if done in receiver side in the pixel shader. Currently UniversalRP
                 // do bias on caster side in vertex shader. When we add shader quality tiers we can properly
                 // handle this. For now, as a poor approximation we do a constant bias and compute the size of
                 // the frustum as if it was orthogonal considering the size at mid point between near and far planes.
