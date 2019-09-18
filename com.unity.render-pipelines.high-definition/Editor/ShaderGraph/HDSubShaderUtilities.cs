@@ -1,3 +1,5 @@
+#define STRIP_UNUSED_VARIANTS
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -835,6 +837,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static List<string> s_ExtraDefinesForwardOpaque = new List<string>()
         {
             "#pragma multi_compile _ DEBUG_DISPLAY",
+            #if !STRIP_UNUSED_VARIANTS            
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
             "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -842,11 +845,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
             "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+            #else
+                "#define SHADOW_HIGH",
+                "#pragma multi_compile DECALS_OFF DECALS_3RT",
+                "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
+            #endif
         };
 
         public static List<string> s_ExtraDefinesForwardTransparent = new List<string>()
         {
             "#pragma multi_compile _ DEBUG_DISPLAY",
+            #if !STRIP_UNUSED_VARIANTS            
             "#pragma multi_compile _ LIGHTMAP_ON",
             "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
             "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
@@ -854,18 +863,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#define USE_CLUSTERED_LIGHTLIST",
             "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH"
+            #else
+                "#define SHADOW_HIGH",
+                "#pragma multi_compile DECALS_OFF DECALS_3RT",
+                "#define USE_CLUSTERED_LIGHTLIST",
+            #endif
         };
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
         {
             "#define WRITE_NORMAL_BUFFER",
+            #if !STRIP_UNUSED_VARIANTS
             "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+            #endif
         };
 
         public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
         {
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
+            #if !STRIP_UNUSED_VARIANTS
             "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+            #endif
         };
 
         public static void SetStencilStateForDepth(ref Pass pass)

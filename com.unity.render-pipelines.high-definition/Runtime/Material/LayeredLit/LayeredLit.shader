@@ -375,8 +375,11 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
-    #pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    // custom-begin:                
+    //#pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
+    #pragma shader_feature_local _ _PIXEL_DISPLACEMENT
+    // #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    // custom-end
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
 
@@ -433,6 +436,7 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma shader_feature_local _DISABLE_DECALS
+
     #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
@@ -448,7 +452,9 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
 
     // enable dithering LOD crossfade
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
+    // custom-begin:                    
+    //#pragma multi_compile _ LOD_FADE_CROSSFADE
+    // custom-end
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
@@ -560,12 +566,16 @@ Shader "HDRP/LayeredLit"
             HLSLPROGRAM
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // custom-begin:            
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            //#pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
-            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            //#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT
+            // custom-end
+            
             #pragma multi_compile _ LIGHT_LAYERS
 
         #ifndef DEBUG_DISPLAY
@@ -636,8 +646,10 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
-            
+            // custom-begin:
+            //#pragma multi_compile _ WRITE_MSAA_DEPTH
+            // custom-end
+
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
@@ -704,7 +716,10 @@ Shader "HDRP/LayeredLit"
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
+            
+            // custom-begin:
+            //#pragma multi_compile _ WRITE_MSAA_DEPTH
+            // custom-end
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -746,15 +761,19 @@ Shader "HDRP/LayeredLit"
             HLSLPROGRAM
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // custom-begin:            
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            //#pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
-            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
-            
+            //#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile DECALS_OFF DECALS_3RT
+
             // Supported shadow modes per light type
-            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH    
+            //#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #define SHADOW_HIGH
+            // custom-end
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 

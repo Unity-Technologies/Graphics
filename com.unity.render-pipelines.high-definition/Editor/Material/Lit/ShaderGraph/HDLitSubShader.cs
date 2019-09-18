@@ -1,3 +1,5 @@
+#define STRIP_UNUSED_VARIANTS
+
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -20,11 +22,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile _ DEBUG_DISPLAY",
+                #if !STRIP_UNUSED_VARIANTS               
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#pragma multi_compile _ SHADOWS_SHADOWMASK",
                 "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
+                #else
+                    "#pragma multi_compile DECALS_OFF DECALS_3RT",
+                #endif
                 "#pragma multi_compile _ LIGHT_LAYERS",
             },
             Includes = new List<string>()
@@ -590,10 +596,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderPassName = "SHADERPASS_RAYTRACING_INDIRECT",
             ExtraDefines = new List<string>()
             {
+#if !STRIP_UNUSED_VARIANTS
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#pragma multi_compile _ DIFFUSE_LIGHTING_ONLY",
+#endif
                 "#define SHADOW_LOW",
                 "#define SKIP_RASTERIZED_SHADOWS",
             },
@@ -689,9 +697,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderPassName = "SHADERPASS_RAYTRACING_FORWARD",
             ExtraDefines = new List<string>()
             {
+#if !STRIP_UNUSED_VARIANTS
                 "#pragma multi_compile _ LIGHTMAP_ON",
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+#endif
                 "#define SHADOW_LOW",
                 "#define SKIP_RASTERIZED_SHADOWS",
             },
@@ -744,7 +754,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.dotsInstancing.isOn)
             {
                 instancingOption.Add("#pragma instancing_options nolightprobe");
+                #if !STRIP_UNUSED_VARIANTS                
                 instancingOption.Add("#pragma instancing_options nolodfade");
+                #endif
             }
             else
             {
