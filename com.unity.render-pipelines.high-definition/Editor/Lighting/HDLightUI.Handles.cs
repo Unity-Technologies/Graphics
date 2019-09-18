@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                         if (EditorGUI.EndChangeCheck())
                                         {
                                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
-                                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
+                                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / Mathf.Max(0.1f, outterAngleInnerAngleRange.x);
                                             light.spotAngle = outterAngleInnerAngleRange.x;
                                             light.range = outterAngleInnerAngleRange.z;
                                         }

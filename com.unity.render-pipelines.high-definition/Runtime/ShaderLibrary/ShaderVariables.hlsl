@@ -303,14 +303,14 @@ float3 SampleCameraColor(float2 uv)
     return SampleCameraColor(uv, 0);
 }
 
-float3 SampleCustomColor(float2 uv)
+float4 SampleCustomColor(float2 uv)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0);
 }
 
-float3 LoadCustomColor(uint2 pixelCoords)
+float4 LoadCustomColor(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0).rgb;
+    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0);
 }
 
 float LoadCustomDepth(uint2 pixelCoords)

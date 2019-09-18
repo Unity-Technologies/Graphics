@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();
 
-            if (material.HasProperty("_EMISSIVE_COLOR_MAP"))
+            if (material.HasProperty(kEmissiveColorMap))
                 CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
 
             // Stencil usage rules:

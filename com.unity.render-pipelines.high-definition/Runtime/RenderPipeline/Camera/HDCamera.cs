@@ -647,6 +647,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
+            // Do not add extra jitter in VR (micro-variations from head tracking are enough)
+            if (xr.enabled)
+            {
+                taaJitter = Vector4.zero;
+                return origProj;
+            }
+
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
@@ -839,6 +846,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Time is also a part of the UnityPerView CBuffer.
             // Different views can have different values of the "Animated Materials" setting.
             bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(camera);
+
+            // We also enable animated materials in previews so the shader graph main preview works with time parameters.
+            animateMaterials |= camera.cameraType == CameraType.Preview;
 
             float  ct = animateMaterials ? time     : 0;
             float  pt = animateMaterials ? lastTime : 0;
