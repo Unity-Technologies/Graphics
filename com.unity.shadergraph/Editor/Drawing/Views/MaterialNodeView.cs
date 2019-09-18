@@ -163,7 +163,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterNode != null)
             {
                 AddToClassList("master");
-                ISubShader subShader;
                 if(!node.owner.targets.Where(x => x.Validate(GraphicsSettings.renderPipelineAsset)).Any())
                 {
                     AttachMessage("The current render pipeline is not compatible with this master node.", ShaderCompilerMessageSeverity.Error);

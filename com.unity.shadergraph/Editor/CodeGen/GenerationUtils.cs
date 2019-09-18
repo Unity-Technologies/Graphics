@@ -302,6 +302,11 @@ namespace UnityEditor.ShaderGraph
             using (var graphDefines = new ShaderStringBuilder())
             {
                 graphDefines.AppendLine("#define {0}", pass.referenceName);
+                if (pass.defines != null)
+                {
+                    foreach (var define in pass.defines)
+                        graphDefines.AppendLine($"#define {define}");
+                }
 
                 if (graphRequirements.permutationCount > 0)
                 {
