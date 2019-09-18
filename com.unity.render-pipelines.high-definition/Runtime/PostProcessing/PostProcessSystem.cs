@@ -555,7 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Final pass
                 using (new ProfilingSample(cmd, "Final Pass", CustomSamplerId.FinalPost.GetSampler()))
                 {
-                    DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, depthBuffer, finalRT, flipY);
+                    DoFinalPass(cmd, camera, blueNoise, source, afterPostProcessTexture, finalRT, flipY);
                     PoolSource(ref source, null);
                 }
             }
@@ -2226,7 +2226,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Final Pass
 
-        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RTHandle depthBuffer, RenderTargetIdentifier destination, bool flipY)
+        void DoFinalPass(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle source, RTHandle afterPostProcessTexture, RenderTargetIdentifier destination, bool flipY)
         {
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
@@ -2331,13 +2331,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FinalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
             }
 
-            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination, depthBuffer);
+            HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
         }
 
         #endregion
 
         #region User Post Processes
-        
+
         internal void DoUserBeforeTransparent(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
         {
             RTHandle source = colorBuffer;

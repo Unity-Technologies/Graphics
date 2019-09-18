@@ -170,10 +170,15 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     float fovCorrectedradiusSS =  clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
     float step = fovCorrectedradiusSS * _AOInvStepCountPlusOne;
 
+    // NOTE: Work around a shader compilation bug, where removing the tiny epsilon causes
+    // incorrect output on some drivers. The epsilon should be small enough to not affect
+    // the output.
+    float2 negDir = -dir + 1e-30;
+
     // Find horizons 
     float2 maxHorizons;
-    maxHorizons.y = HorizonLoop(positionVS, V, rayStart, -dir, offset, step, 0);
     maxHorizons.x = HorizonLoop(positionVS, V, rayStart, dir, offset, step, 0);
+    maxHorizons.y = HorizonLoop(positionVS, V, rayStart, negDir, offset, step, 0);
 
     // We now can transform normal data into normal in view space (latency from read should have been hidden as much as possible)
     float3 normalVS = GetNormalVS(normalBufferData);
