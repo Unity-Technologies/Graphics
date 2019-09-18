@@ -274,6 +274,110 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         };
 
+        public static List<Dependency[]> s_Dependencies = new List<Dependency[]>()
+        {
+            // VaryingsMeshToPS
+            new Dependency[]
+            {
+                new Dependency("VaryingsMeshToPS.positionRWS",      "AttributesMesh.positionOS"),
+                new Dependency("VaryingsMeshToPS.normalWS",         "AttributesMesh.normalOS"),
+                new Dependency("VaryingsMeshToPS.tangentWS",        "AttributesMesh.tangentOS"),
+                new Dependency("VaryingsMeshToPS.texCoord0",        "AttributesMesh.uv0"),
+                new Dependency("VaryingsMeshToPS.texCoord1",        "AttributesMesh.uv1"),
+                new Dependency("VaryingsMeshToPS.texCoord2",        "AttributesMesh.uv2"),
+                new Dependency("VaryingsMeshToPS.texCoord3",        "AttributesMesh.uv3"),
+                new Dependency("VaryingsMeshToPS.color",            "AttributesMesh.color"),
+                new Dependency("VaryingsMeshToPS.instanceID",       "AttributesMesh.instanceID"),
+            },
+            // FragInputs
+            new Dependency[]
+            {
+                new Dependency("FragInputs.positionRWS",            "VaryingsMeshToPS.positionRWS"),
+                new Dependency("FragInputs.tangentToWorld",         "VaryingsMeshToPS.normalWS"),
+                new Dependency("FragInputs.tangentToWorld",         "VaryingsMeshToPS.tangentWS"),
+                new Dependency("FragInputs.texCoord0",              "VaryingsMeshToPS.texCoord0"),
+                new Dependency("FragInputs.texCoord1",              "VaryingsMeshToPS.texCoord1"),
+                new Dependency("FragInputs.texCoord2",              "VaryingsMeshToPS.texCoord2"),
+                new Dependency("FragInputs.texCoord3",              "VaryingsMeshToPS.texCoord3"),
+                new Dependency("FragInputs.color",                  "VaryingsMeshToPS.color"),
+                new Dependency("FragInputs.isFrontFace",            "VaryingsMeshToPS.cullFace"),
+            },
+            // Vertex DescriptionInputs
+            new Dependency[]
+            {
+                new Dependency("VertexDescriptionInputs.ObjectSpaceNormal",         "AttributesMesh.normalOS"),
+                new Dependency("VertexDescriptionInputs.WorldSpaceNormal",          "AttributesMesh.normalOS"),
+                new Dependency("VertexDescriptionInputs.ViewSpaceNormal",           "VertexDescriptionInputs.WorldSpaceNormal"),
+
+                new Dependency("VertexDescriptionInputs.ObjectSpaceTangent",        "AttributesMesh.tangentOS"),
+                new Dependency("VertexDescriptionInputs.WorldSpaceTangent",         "AttributesMesh.tangentOS"),
+                new Dependency("VertexDescriptionInputs.ViewSpaceTangent",          "VertexDescriptionInputs.WorldSpaceTangent"),
+
+                new Dependency("VertexDescriptionInputs.ObjectSpaceBiTangent",      "AttributesMesh.normalOS"),
+                new Dependency("VertexDescriptionInputs.ObjectSpaceBiTangent",      "AttributesMesh.tangentOS"),
+                new Dependency("VertexDescriptionInputs.WorldSpaceBiTangent",       "VertexDescriptionInputs.ObjectSpaceBiTangent"),
+                new Dependency("VertexDescriptionInputs.ViewSpaceBiTangent",        "VertexDescriptionInputs.WorldSpaceBiTangent"),
+
+                new Dependency("VertexDescriptionInputs.ObjectSpacePosition",       "AttributesMesh.positionOS"),
+                new Dependency("VertexDescriptionInputs.WorldSpacePosition",        "AttributesMesh.positionOS"),
+                new Dependency("VertexDescriptionInputs.AbsoluteWorldSpacePosition","AttributesMesh.positionOS"),
+                new Dependency("VertexDescriptionInputs.ViewSpacePosition",         "VertexDescriptionInputs.WorldSpacePosition"),
+
+                new Dependency("VertexDescriptionInputs.WorldSpaceViewDirection",   "VertexDescriptionInputs.WorldSpacePosition"),
+                new Dependency("VertexDescriptionInputs.ObjectSpaceViewDirection",  "VertexDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("VertexDescriptionInputs.ViewSpaceViewDirection",    "VertexDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceTangent"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceBiTangent"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceNormal"),
+
+                new Dependency("VertexDescriptionInputs.ScreenPosition",            "VertexDescriptionInputs.WorldSpacePosition"),
+                new Dependency("VertexDescriptionInputs.uv0",                       "AttributesMesh.uv0"),
+                new Dependency("VertexDescriptionInputs.uv1",                       "AttributesMesh.uv1"),
+                new Dependency("VertexDescriptionInputs.uv2",                       "AttributesMesh.uv2"),
+                new Dependency("VertexDescriptionInputs.uv3",                       "AttributesMesh.uv3"),
+                new Dependency("VertexDescriptionInputs.VertexColor",               "AttributesMesh.color"),
+            },
+            // SurfaceDescriptionInputs
+            new Dependency[]
+            {
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceNormal",          "FragInputs.tangentToWorld"),
+                new Dependency("SurfaceDescriptionInputs.ObjectSpaceNormal",         "SurfaceDescriptionInputs.WorldSpaceNormal"),
+                new Dependency("SurfaceDescriptionInputs.ViewSpaceNormal",           "SurfaceDescriptionInputs.WorldSpaceNormal"),
+
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceTangent",         "FragInputs.tangentToWorld"),
+                new Dependency("SurfaceDescriptionInputs.ObjectSpaceTangent",        "SurfaceDescriptionInputs.WorldSpaceTangent"),
+                new Dependency("SurfaceDescriptionInputs.ViewSpaceTangent",          "SurfaceDescriptionInputs.WorldSpaceTangent"),
+
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceBiTangent",       "FragInputs.tangentToWorld"),
+                new Dependency("SurfaceDescriptionInputs.ObjectSpaceBiTangent",      "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
+                new Dependency("SurfaceDescriptionInputs.ViewSpaceBiTangent",        "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
+
+                new Dependency("SurfaceDescriptionInputs.WorldSpacePosition",        "FragInputs.positionRWS"),
+                new Dependency("SurfaceDescriptionInputs.AbsoluteWorldSpacePosition","FragInputs.positionRWS"),
+                new Dependency("SurfaceDescriptionInputs.ObjectSpacePosition",       "FragInputs.positionRWS"),
+                new Dependency("SurfaceDescriptionInputs.ViewSpacePosition",         "FragInputs.positionRWS"),
+
+                new Dependency("SurfaceDescriptionInputs.WorldSpaceViewDirection",   "FragInputs.positionRWS"),                   // we build WorldSpaceViewDirection using Varyings.positionWS in GetWorldSpaceNormalizeViewDir()
+                new Dependency("SurfaceDescriptionInputs.ObjectSpaceViewDirection",  "SurfaceDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("SurfaceDescriptionInputs.ViewSpaceViewDirection",    "SurfaceDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceTangent"),
+                new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
+                new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceNormal"),
+
+                new Dependency("SurfaceDescriptionInputs.ScreenPosition",            "SurfaceDescriptionInputs.WorldSpacePosition"),
+                new Dependency("SurfaceDescriptionInputs.uv0",                       "FragInputs.texCoord0"),
+                new Dependency("SurfaceDescriptionInputs.uv1",                       "FragInputs.texCoord1"),
+                new Dependency("SurfaceDescriptionInputs.uv2",                       "FragInputs.texCoord2"),
+                new Dependency("SurfaceDescriptionInputs.uv3",                       "FragInputs.texCoord3"),
+                new Dependency("SurfaceDescriptionInputs.VertexColor",               "FragInputs.color"),
+                new Dependency("SurfaceDescriptionInputs.FaceSign",                  "FragInputs.isFrontFace"),
+
+                new Dependency("DepthOffset", "FragInputs.positionWS"),
+            },
+        };
+
         // TODO: move this out of HDRPShaderStructs
         static public void AddActiveFieldsFromVertexGraphRequirements(IActiveFieldsSet activeFields, ShaderGraphRequirements requirements)
         {
