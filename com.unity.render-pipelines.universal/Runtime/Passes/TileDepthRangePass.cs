@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            int tileDepthRangeWidth = m_DeferredLights.GetTileXCount();
-            int tileDepthRangeHeight = m_DeferredLights.GetTileYCount();
+            int tileDepthRangeWidth = m_DeferredLights.GetTiler(0).GetTileXCount();
+            int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).GetTileYCount();
             RenderTextureDescriptor desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight,  UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32_SFloat, 0);
             cmd.GetTemporaryRT(m_DeferredLights.m_TileDepthRangeTexture.id, desc, FilterMode.Point);
             base.ConfigureTarget(m_DeferredLights.m_TileDepthRangeTexture.Identifier());
