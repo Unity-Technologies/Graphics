@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.Universal
     class UniversalMeshTarget : ITargetVariant<MeshTarget>
     {
         public string displayName => "Universal";
+        public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
+        public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
         public bool Validate(RenderPipelineAsset pipelineAsset)
         {

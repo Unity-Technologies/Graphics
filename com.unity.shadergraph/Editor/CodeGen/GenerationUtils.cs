@@ -391,19 +391,30 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Finalize
 
-            // Get Template
-            string templateLocation = GetTemplatePath("PassMesh.template");
+            // Pass Template
+            string passTemplatePath;
+            if(!string.IsNullOrEmpty(pass.passTemplatePath))
+                passTemplatePath = pass.passTemplatePath;
+            else
+                passTemplatePath = target.passTemplatePath;
 
-            if (!File.Exists(templateLocation))
+            // Shared Templates
+            string sharedTemplateDirectory;
+            if(!string.IsNullOrEmpty(pass.sharedTemplateDirectory))
+                sharedTemplateDirectory = pass.sharedTemplateDirectory;
+            else
+                sharedTemplateDirectory = target.sharedTemplateDirectory;
+
+            if (!File.Exists(passTemplatePath))
                 return false;
             
             // Get Template preprocessor
             string templatePath = "Packages/com.unity.shadergraph/Editor/Templates";
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands, 
-                isDebug, templatePath, sourceAssetDependencyPaths, assemblyName, resourceClassName);
+                isDebug, sharedTemplateDirectory, sourceAssetDependencyPaths, assemblyName, resourceClassName);
             
             // Process Template
-            templatePreprocessor.ProcessTemplateFile(templateLocation);
+            templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
             return true;
         }
@@ -649,7 +660,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static string GetTemplatePath(string templateName)
+        public static string GetDefaultTemplatePath(string templateName)
         {
             var basePath = "Packages/com.unity.shadergraph/Editor/Templates/";
             string templatePath = Path.Combine(basePath, templateName);
@@ -658,6 +669,11 @@ namespace UnityEditor.ShaderGraph
                 return templatePath;
 
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+        }
+
+        public static string GetDefaultSharedTemplateDirectory()
+        {
+            return "Packages/com.unity.shadergraph/Editor/Templates";
         }
 
         public static string GetShaderForNode(AbstractMaterialNode node, GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)

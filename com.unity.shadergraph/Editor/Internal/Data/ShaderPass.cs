@@ -34,5 +34,9 @@ namespace UnityEditor.ShaderGraph.Internal
         public string ColorMaskOverride;
         public string ZClipOverride;
         public List<string> StencilOverride;
+
+        // Custom Template
+        public string passTemplatePath;
+        public string sharedTemplateDirectory;
     }
 }

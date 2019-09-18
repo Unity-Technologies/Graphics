@@ -9,6 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDRPMeshTarget : ITargetVariant<MeshTarget>
     {
         public string displayName => "HDRP";
+        public string passTemplatePath => string.Empty;
+        public string sharedTemplateDirectory => string.Empty;
 
         public bool Validate(RenderPipelineAsset pipelineAsset)
         {
