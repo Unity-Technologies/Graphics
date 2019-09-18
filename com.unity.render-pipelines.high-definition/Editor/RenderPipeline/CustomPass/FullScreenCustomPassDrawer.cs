@@ -62,6 +62,9 @@ namespace UnityEditor.Rendering.HighDefinition
 			}
         }
 
-		protected override float GetPassHeight(SerializedProperty customPass) => Styles.defaultLineSpace * 2;
+		protected override float GetPassHeight(SerializedProperty customPass)
+		{
+			return Styles.defaultLineSpace + ((m_FullScreenPassMaterial.objectReferenceValue is Material) ? Styles.defaultLineSpace : 0);
+		}
     }
 }
