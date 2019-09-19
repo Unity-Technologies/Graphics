@@ -41,6 +41,10 @@ The properties available for Lights are in separate drop-down sections. Each dro
 - [Volumetrics](#VolumetricProperties)
 - [Shadows](#ShadowProperties)
 
+### Animation
+
+To make the Light work with the **Animation window**, when you click on the **Add Property** button, you need to use the properties inside the **HD Additional Light Data** component and not inside the Light component itself. If you do edit the properties inside the Light component, this modifies the built-in light values, which HDRP does not support. Alternatively, you can use the record button and modify the values directly inside the Inspector.
+
 <a name="GeneralProperties"></a>
 
 ### General
