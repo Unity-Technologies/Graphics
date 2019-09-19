@@ -26,9 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rendering issues with material previews
 - Fixed NPE when using light module in Shuriken particle systems (1173348).
 - Refresh cached shadow on editor changes
-
-### Fixed
 - Fixed light supported units caching (1182266)
+- Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
 
 ## [7.1.1] - 2019-09-05
 
