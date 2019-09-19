@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decal pivot position to behave like a spotlight
 - Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
 - Fix DebugMenu FrameSettingsHistory persistency on close
+- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
+- Fix DXR scene serialization in wizard
 
 ## [7.1.1] - 2019-09-05
 
