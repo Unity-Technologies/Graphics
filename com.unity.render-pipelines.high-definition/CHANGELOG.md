@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NPE when using light module in Shuriken particle systems (1173348).
 - Refresh cached shadow on editor changes
 
+### Fixed
+- Fixed light supported units caching (1182266)
+
 ## [7.1.1] - 2019-09-05
 
 ### Added
