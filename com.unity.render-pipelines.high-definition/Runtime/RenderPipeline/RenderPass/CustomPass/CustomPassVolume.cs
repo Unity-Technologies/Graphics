@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
+            // Remove null passes in case of something happens during the deserialization of the passes
+            customPasses.RemoveAll(c => c is null);
             GetComponents(m_Colliders);
             Register(this);
         }

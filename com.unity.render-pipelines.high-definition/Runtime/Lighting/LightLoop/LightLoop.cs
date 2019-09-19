@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
-        // For now we don't use shadow cascade borders.
+        // This control if we use cascade borders for directional light by default
         static internal readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
@@ -2013,7 +2013,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
                         }
 
-                        if (!aovRequest.IsLightEnabled(light.light.gameObject))
+                        if (light.light != null && !aovRequest.IsLightEnabled(light.light.gameObject))
                             continue;
 
                         var lightComponent = light.light;
@@ -2969,7 +2969,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
-                cmd.SetGlobalInt(HDShaderIDs._ScreenSpaceShadowArraySize, param.maxScreenSpaceShadows);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(param.hdCamera));
