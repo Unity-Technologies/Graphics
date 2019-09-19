@@ -1,4 +1,3 @@
-using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Profiling;
 using Unity.Collections;
 
@@ -6,7 +5,7 @@ using Unity.Collections;
 // RelLightIndices should be stored in ushort instead of uint.
 // TODO use Unity.Mathematics
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
-// TOOD Align() function duplicated. Is there an Unity function for that?
+// TODO Align() function duplicated. Is there an Unity function for that?
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -36,6 +35,8 @@ namespace UnityEngine.Rendering.Universal
         public const int kTilePixelHeight = 16;
         // Levels of hierachical tiling. Each level process 4x4 finer tiles.
         public const int kTilerDepth = 3;
+
+         public const int kMaxLightPerTile = 31;
 
 #if !UNITY_EDITOR && UNITY_SWITCH
         public const bool kHasNativeQuadSupport = true;
@@ -83,6 +84,7 @@ namespace UnityEngine.Rendering.Universal
         // Keep in sync with LIGHT_LIST_HEADER_SIZE.
         const int kLightListHeaderSize = 1;
 
+        const string k_DeferredPass = "Deferred Pass";
         const string k_TileDepthRange = "Tile Depth Range";
         const string k_TiledDeferredPass = "Tile-Based Deferred Shading";
         const string k_StencilDeferredPass = "Stencil Deferred Shading";
@@ -144,10 +146,18 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize hierarchical tilers. Next tiler processes 4x4 of the tiles of the previous tiler.
             // Tiler 0 has finest tiles, coarser tilers follow.
-            for (int i = 0; i < DeferredConfig.kTilerDepth; ++i)
+            for (int tilerLevel = 0; tilerLevel < DeferredConfig.kTilerDepth; ++tilerLevel)
             {
-                int scale = (int)Mathf.Pow(4, i);
-                m_Tilers[i] = new DeferredTiler(DeferredConfig.kTilePixelWidth * scale, DeferredConfig.kTilePixelHeight * scale);
+                int scale = (int)Mathf.Pow(4, tilerLevel);
+                // Tile header size is:
+                // 5 for finest tiles: ushort lightCount, half minDepth, half maxDepth, uint bitmask
+                // 1 for coarser tiles: ushort lightCount
+                m_Tilers[tilerLevel] = new DeferredTiler(
+                    DeferredConfig.kTilePixelWidth * scale,
+                    DeferredConfig.kTilePixelHeight * scale,
+                    (DeferredConfig.kMaxLightPerTile + 1) * scale * scale - 1,
+                    tilerLevel
+                );
             }
         }
 
@@ -158,6 +168,8 @@ namespace UnityEngine.Rendering.Universal
 
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            DeferredShaderData.instance.ResetBuffers();
+
             // Precompute tile data again if the camera projection or the screen resolution has changed.
             if (m_RenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
              || m_RenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
@@ -168,7 +180,10 @@ namespace UnityEngine.Rendering.Universal
                 m_CachedProjectionMatrix = renderingData.cameraData.camera.projectionMatrix;
 
                 foreach (DeferredTiler tiler in m_Tilers)
-                    tiler.PrecomputeTiles(renderingData.cameraData.camera.projectionMatrix, renderingData.cameraData.camera.orthographic, m_RenderWidth, m_RenderHeight);
+                {
+                    tiler.PrecomputeTiles(renderingData.cameraData.camera.projectionMatrix,
+                        renderingData.cameraData.camera.orthographic, m_RenderWidth, m_RenderHeight);
+                }
             }
 
             // Allocate temporary resources for each hierarchical tiler.
@@ -181,14 +196,72 @@ namespace UnityEngine.Rendering.Universal
             PrecomputeLights(
                 out prePointLights,
                 out m_stencilVisLights,
-                renderingData.lightData.visibleLights,
+                ref renderingData.lightData.visibleLights,
                 renderingData.cameraData.camera.worldToCameraMatrix,
                 renderingData.cameraData.camera.orthographic,
                 renderingData.cameraData.camera.nearClipPlane
             );
 
-            // Cull tile-friendly lights into the tile-grid structures.
-            m_Tilers[0].CullLightsWithMinMaxDepth(prePointLights, renderingData.cameraData.camera.orthographic);
+            NativeArray<ushort> defaultIndices = new NativeArray<ushort>(prePointLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < prePointLights.Length; ++i)
+                defaultIndices[i] = (ushort)i;
+
+            // Cull tile-friendly lights into the coarse tile structure.
+            DeferredTiler coarsestTiler = m_Tilers[m_Tilers.Length - 1];
+            if (m_Tilers.Length != 1)
+            {
+                coarsestTiler.CullIntermediateLights(ref prePointLights,
+                    ref defaultIndices, 0, prePointLights.Length,
+                    0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
+                );
+
+                // Filter to fine tile structure.
+                for (int t = m_Tilers.Length - 2; t >= 0; --t)
+                {
+                    DeferredTiler fineTiler = m_Tilers[t];
+                    DeferredTiler coarseTiler = m_Tilers[t + 1];
+                    ref NativeArray<ushort> coarseTiles = ref coarseTiler.GetTiles();
+                    int coarseTileHeader = coarseTiler.GetTileHeader();
+
+                    int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
+                    int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
+
+                    for (int j = 0; j < coarseTiler.GetTileYCount(); ++j)
+                    for (int i = 0; i < coarseTiler.GetTileXCount(); ++i)
+                    {
+                        int fine_istart = i * fineStepX;
+                        int fine_jstart = j * fineStepY;
+                        int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTiler.GetTileXCount());
+                        int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTiler.GetTileYCount());
+                        int coarseTileOffset = coarseTiler.GetTileOffset(i, j);
+                        int coarseVisLightCount = coarseTiles[coarseTileOffset];
+
+                        if (t != 0)
+                        {
+                            fineTiler.CullIntermediateLights(ref prePointLights,
+                                ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
+                                fine_istart, fine_iend, fine_jstart, fine_jend
+                            );
+                        }
+                        else
+                        {
+                            fineTiler.CullFinalLights(ref prePointLights,
+                                ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
+                                fine_istart, fine_iend, fine_jstart, fine_jend
+                            );
+                        }
+                    }
+                }
+            }
+            else
+            {
+                coarsestTiler.CullFinalLights(ref prePointLights,
+                    ref defaultIndices, 0, prePointLights.Length,
+                    0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
+                );
+            }
+
+            defaultIndices.Dispose();
 
             // We don't need this array anymore as all the lights have been inserted into the tile-grid structures.
             prePointLights.Dispose();
@@ -233,14 +306,24 @@ namespace UnityEngine.Rendering.Universal
 
         public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            RenderTiledPointLights(context, ref renderingData);
+            CommandBuffer cmd = CommandBufferPool.Get(k_DeferredPass);
 
-            RenderStencilLights(context, ref renderingData);
+            Profiler.BeginSample(k_DeferredPass);
+
+            RenderTiledPointLights(context, cmd, ref renderingData);
+
+            RenderStencilLights(context, cmd, ref renderingData);
+
+            Profiler.EndSample();
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
         }
 
         void PrecomputeLights(out NativeArray<DeferredTiler.PrePointLight> prePointLights,
                               out NativeArray<ushort> stencilVisLights,
-                              NativeArray<VisibleLight> visibleLights,
+                              ref NativeArray<VisibleLight> visibleLights,
                               Matrix4x4 view,
                               bool isOrthographic,
                               float zNear)
@@ -307,7 +390,7 @@ namespace UnityEngine.Rendering.Universal
             tileLightCount.Dispose();
         }
 
-        void RenderTiledPointLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        void RenderTiledPointLights(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_TileDeferredMaterial == null)
             {
@@ -315,13 +398,13 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            Profiler.BeginSample(k_TiledDeferredPass);
+
             // Allow max 256 draw calls for rendering all the batches of tiles
             DrawCall[] drawCalls = new DrawCall[256];
             int drawCallCount = 0;
 
             {
-                Profiler.BeginSample(k_TiledDeferredPass);
-
                 DeferredTiler tiler = m_Tilers[0];
 
                 int sizeof_TileData = 16;
@@ -365,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
                             continue;
 
                         // Find lights that are not in the batch yet.
-                        int trimmedLightCount = TrimLights(trimmedLights, tiles, tileOffset + tileHeader, tileLightCount, usedLights);
+                        int trimmedLightCount = TrimLights(ref trimmedLights, ref tiles, tileOffset + tileHeader, tileLightCount, ref usedLights);
                         Assertions.Assert.IsTrue(trimmedLightCount <= maxLightPerTile, "too many lights overlaps a tile");
 
                         // Checks whether one of the GPU buffers is reaching max capacity.
@@ -421,14 +504,14 @@ namespace UnityEngine.Rendering.Universal
                         // Add TileData.
                         uint listDepthRange = (uint)tiles[tileOffset + 1] | ((uint)tiles[tileOffset + 2] << 16);
                         uint listBitMask = (uint)tiles[tileOffset + 3] | ((uint)tiles[tileOffset + 4] << 16);
-                        StoreTileData(tileList, tileCount, PackTileID((uint)i, (uint)j), (ushort)relLightIndices, listDepthRange, listBitMask);
+                        StoreTileData(ref tileList, tileCount, PackTileID((uint)i, (uint)j), (ushort)relLightIndices, listDepthRange, listBitMask);
                         ++tileCount;
 
                         // Add newly discovered lights.
                         for (int l = 0; l < trimmedLightCount; ++l)
                         {
                             int visLightIndex = trimmedLights[l];
-                            StorePointLightData(pointLightBuffer, lightCount, renderingData.lightData.visibleLights, visLightIndex);
+                            StorePointLightData(ref pointLightBuffer, lightCount, ref renderingData.lightData.visibleLights, visLightIndex);
                             visLightToRelLights[visLightIndex] = (ushort)lightCount;
                             ++lightCount;
                             usedLights.Set(visLightIndex, true);
@@ -473,14 +556,9 @@ namespace UnityEngine.Rendering.Universal
                 tileList.Dispose();
                 pointLightBuffer.Dispose();
                 relLightList.Dispose();
-
-                DeferredShaderData.instance.ResetBuffers();
-
-                Profiler.EndSample();
             }
 
             // Now draw all tile batches.
-            CommandBuffer cmd = CommandBufferPool.Get(k_TiledDeferredPass);
             using (new ProfilingSample(cmd, k_TiledDeferredPass))
             {
                 MeshTopology topology = DeferredConfig.kHasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
@@ -527,13 +605,12 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalInt(ShaderConstants.g_InstanceOffset, dc.instanceOffset);
                     cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 0, topology, vertexCount, dc.instanceCount);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
+
+            Profiler.EndSample();
         }
 
-        void RenderStencilLights(ScriptableRenderContext context, ref RenderingData renderingData)
+        void RenderStencilLights(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_StencilDeferredMaterial == null)
             {
@@ -541,10 +618,11 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            Profiler.BeginSample(k_StencilDeferredPass);
+
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
 
-            CommandBuffer cmd = CommandBufferPool.Get(k_StencilDeferredPass);
             using (new ProfilingSample(cmd, k_StencilDeferredPass))
             {
                 // It doesn't seem UniversalRP use this.
@@ -586,14 +664,12 @@ namespace UnityEngine.Rendering.Universal
                         cmd.DrawMesh(m_SphereMesh, sphereMatrix, m_StencilDeferredMaterial, 0, 1);
                     }
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
             }
 
+            Profiler.EndSample();
         }
 
-        int TrimLights(NativeArray<ushort> trimmedLights, NativeArray<ushort> tiles, int offset, int lightCount, BitArray usedLights)
+        int TrimLights(ref NativeArray<ushort> trimmedLights, ref NativeArray<ushort> tiles, int offset, int lightCount, ref BitArray usedLights)
         {
             int trimCount = 0;
             for (int i = 0; i < lightCount; ++i)
@@ -606,14 +682,14 @@ namespace UnityEngine.Rendering.Universal
             return trimCount;
         }
 
-        void StorePointLightData(NativeArray<Vector4UInt> pointLightBuffer, int storeIndex, NativeArray<VisibleLight> visibleLights, int index)
+        void StorePointLightData(ref NativeArray<Vector4UInt> pointLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
             Vector3 wsPos = visibleLights[index].light.transform.position;
             pointLightBuffer[storeIndex * 2 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range));
             pointLightBuffer[storeIndex * 2 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].light.color.r), FloatToUInt(visibleLights[index].light.color.g), FloatToUInt(visibleLights[index].light.color.b), 0);
         }
 
-        void StoreTileData(NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, ushort relLightOffset, uint listDepthRange, uint listBitMask)
+        void StoreTileData(ref NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, ushort relLightOffset, uint listDepthRange, uint listBitMask)
         {
             // See struct TileData in TileDeferred.shader.
             tileList[storeIndex] = new Vector4UInt { x = tileID, y = relLightOffset, z = listDepthRange, w = listBitMask };

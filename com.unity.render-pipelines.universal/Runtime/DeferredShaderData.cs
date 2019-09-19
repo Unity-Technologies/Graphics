@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         static DeferredShaderData m_Instance = null;
 
         /// Precomputed tiles.
-        NativeArray<PreTile> m_PreTiles;
+        NativeArray<PreTile>[] m_PreTiles = null;
         // Store tileData for drawing instanced tiles.
         ComputeBuffer[,] m_TileLists = null;
         // Store point lights data for a draw call.
@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
         DeferredShaderData()
         {
             // TODO: make it a vector
+            m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kTilerDepth];
             m_TileLists = new ComputeBuffer[m_FrameLatency, 32]; 
             m_PointLightBuffers = new ComputeBuffer[m_FrameLatency,32];
             m_RelLightLists = new ComputeBuffer[m_FrameLatency,32];
@@ -67,7 +68,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void Dispose()
         {
-            DisposeNativeArray(ref m_PreTiles);
+            DisposeNativeArrays(ref m_PreTiles);
             DisposeBuffers(m_TileLists);
             DisposeBuffers(m_PointLightBuffers);
             DisposeBuffers(m_RelLightLists);
@@ -81,9 +82,9 @@ namespace UnityEngine.Rendering.Universal
             m_FrameIndex = (m_FrameIndex + 1) % m_FrameLatency;
         }
 
-        internal NativeArray<PreTile> GetPreTiles(int count)
+        internal NativeArray<PreTile> GetPreTiles(int level, int count)
         {
-            return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, count);
+            return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, level, count);
         }
 
         internal ComputeBuffer ReserveTileList(int count)
@@ -114,25 +115,28 @@ namespace UnityEngine.Rendering.Universal
                 return GetOrUpdateBuffer<uint>(m_RelLightLists, count, ComputeBufferType.Structured, m_RelLightList_UsedCount++);
         }
 
-        NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T> nativeArray, int count) where T : struct
+        NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T>[] nativeArrays, int level, int count) where T : struct
         {
-            if (!nativeArray.IsCreated)
+            if (!nativeArrays[level].IsCreated)
             {
-                nativeArray = new NativeArray<T>(count, Allocator.Persistent);
+                nativeArrays[level] = new NativeArray<T>(count, Allocator.Persistent);
             }
-            else if (count > nativeArray.Length)
+            else if (count > nativeArrays[level].Length)
             {
-                nativeArray.Dispose();
-                nativeArray = new NativeArray<T>(count, Allocator.Persistent);
+                nativeArrays[level].Dispose();
+                nativeArrays[level] = new NativeArray<T>(count, Allocator.Persistent);
             }
 
-            return nativeArray;
+            return nativeArrays[level];
         }
 
-        void DisposeNativeArray<T>(ref NativeArray<T> nativeArray) where T : struct
+        void DisposeNativeArrays<T>(ref NativeArray<T>[] nativeArrays) where T : struct
         {
-            if (nativeArray.IsCreated)
-                nativeArray.Dispose();
+            for (int i = 0; i < nativeArrays.Length; ++i)
+            {
+                if (nativeArrays[i].IsCreated)
+                    nativeArrays[i].Dispose();
+            }
         }
 
         ComputeBuffer GetOrUpdateBuffer<T>(ComputeBuffer[,] buffers, int count, ComputeBufferType type, int index) where T : struct

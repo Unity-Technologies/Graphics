@@ -1,4 +1,3 @@
-using UnityEngine.Profiling;
 using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
@@ -25,25 +24,33 @@ namespace UnityEngine.Rendering.Universal
             Out,
         }
 
-        int m_TilePixelWidth = 0;
-        int m_TilePixelHeight = 0;
-        int m_TileXCount = 0;
-        int m_TileYCount = 0;
-        int m_TileSize = 32;
-        int m_TileHeader = 5; // ushort lightCount, half minDepth, half maxDepth, uint bitmask
+        int m_TilePixelWidth;
+        int m_TilePixelHeight;
+        int m_TileXCount;
+        int m_TileYCount;
+        int m_TileHeader;
+        int m_TileSize;
+        int m_TilerLevel;
 
         // Adjusted frustum planes to account for tile size.
         FrustumPlanes m_FrustumPlanes;
+        // Are we dealing with an orthographic projection.
+        bool m_IsOrthographic;
 
         // Store all visible light indices for all tiles.
         NativeArray<ushort> m_Tiles;
         // Precompute tile data.
         NativeArray<PreTile> m_PreTiles;
 
-        public DeferredTiler(int tilePixelWidth, int tilePixelHeight)
+        public DeferredTiler(int tilePixelWidth, int tilePixelHeight, int maxLightPerTile, int tilerLevel)
         {
             m_TilePixelWidth = tilePixelWidth;
             m_TilePixelHeight = tilePixelHeight;
+            // Finest tiler (at index 0) computes extra tile data stored into the header, so it requires more space.
+            // See CullFinalLights().
+            m_TileHeader = tilerLevel == 0 ? 5 : 1;
+            m_TileSize = maxLightPerTile + m_TileHeader;
+            m_TilerLevel = tilerLevel;
         }
 
         public int GetTileXCount()
@@ -54,6 +61,16 @@ namespace UnityEngine.Rendering.Universal
         public int GetTileYCount()
         {
             return m_TileYCount;
+        }
+
+        public int GetTilePixelWidth()
+        {
+            return m_TilePixelWidth;
+        }
+
+        public int GetTilePixelHeight()
+        {
+            return m_TilePixelHeight;
         }
 
         public int GetTileXStride()
@@ -81,6 +98,9 @@ namespace UnityEngine.Rendering.Universal
             return ref m_Tiles;
         }
 
+        public int GetTileOffset(int i, int j)
+        { return (i + j * m_TileXCount) * m_TileSize; }
+
         public void Setup()
         {
             m_Tiles = new NativeArray<ushort>(m_TileXCount * m_TileYCount * m_TileSize, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -97,16 +117,17 @@ namespace UnityEngine.Rendering.Universal
             m_TileXCount = (renderWidth + m_TilePixelWidth - 1) / m_TilePixelWidth;
             m_TileYCount = (renderHeight + m_TilePixelHeight - 1) / m_TilePixelHeight;
 
-            m_PreTiles = DeferredShaderData.instance.GetPreTiles(m_TileXCount * m_TileYCount);
+            m_PreTiles = DeferredShaderData.instance.GetPreTiles(m_TilerLevel, m_TileXCount * m_TileYCount);
 
             // Adjust render width and height to account for tile size expanding over the screen (tiles have a fixed pixel size).
-            int adjustedRenderWidth = Align(renderWidth, DeferredConfig.kTilePixelWidth);
-            int adjustedRenderHeight = Align(renderHeight, DeferredConfig.kTilePixelHeight);
+            int adjustedRenderWidth = Align(renderWidth, m_TilePixelWidth);
+            int adjustedRenderHeight = Align(renderHeight, m_TilePixelHeight);
 
             // Now adjust the right and bottom clipping planes.
             m_FrustumPlanes = proj.decomposeProjection;
             m_FrustumPlanes.right = m_FrustumPlanes.left + (m_FrustumPlanes.right - m_FrustumPlanes.left) * (adjustedRenderWidth / (float)renderWidth);
             m_FrustumPlanes.bottom = m_FrustumPlanes.top + (m_FrustumPlanes.bottom - m_FrustumPlanes.top) * (adjustedRenderHeight / (float)renderHeight);
+            m_IsOrthographic = isOrthographic;
 
             // Tile size in world units.
             float tileWsWidth = (m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount;
@@ -161,29 +182,36 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void CullLightsWithMinMaxDepth(NativeArray<PrePointLight> visPointLights, bool isOrthographic)
+        // This differs from CullIntermediateLights in 3 ways:
+        // - tile-frustums/light intersection use different algorithm
+        // - depth range of the light shape intersecting the tile-frustums is output in the tile list header section
+        // - light indices written out are indexing visible_lights, rather than the array of PrePointLights.
+        public void CullFinalLights(ref NativeArray<PrePointLight> pointLights,
+                                    ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
+                                    int istart, int iend, int jstart, int jend)
         {
-            Profiler.BeginSample("CullLightsWithMinMaxDepth");
-
             Assertions.Assert.IsTrue(m_TileHeader >= 5, "not enough space to store min&max depth information for light list ");
 
             int tileXStride = m_TileSize;
             int tileYStride = m_TileSize * m_TileXCount;
             int maxLightPerTile = m_TileSize - m_TileHeader;
             int tileHeader = m_TileHeader;
+            int lightEndIndex = lightStartIndex + lightCount;
+            bool isOrthographic = m_IsOrthographic;
 
-            Vector2 tileSize = new Vector2((m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount, (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount);
+            Vector2 tileSize = new Vector2((m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount,
+                                           (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount);
             Vector2 tileExtents = tileSize * 0.5f;
             Vector2 tileExtentsInv = new Vector2(1.0f / tileExtents.x, 1.0f / tileExtents.y);
 
             // Store min&max depth range for each light in a tile.
             Vector2[] minMax = new Vector2[maxLightPerTile];
 
-            for (int j = 0; j < m_TileYCount; ++j)
+            for (int j = jstart; j < jend; ++j)
             {
                 float tileYCentre = m_FrustumPlanes.top - (tileExtents.y + j * tileSize.y);
 
-                for (int i = 0; i < m_TileXCount; ++i)
+                for (int i = istart; i < iend; ++i)
                 {
                     float tileXCentre = m_FrustumPlanes.left + tileExtents.x + i * tileSize.x;
 
@@ -195,9 +223,10 @@ namespace UnityEngine.Rendering.Universal
                     float listMinDepth = float.MaxValue;
                     float listMaxDepth = -float.MaxValue;
 
-                    for (ushort visLightIndex = 0; visLightIndex < visPointLights.Length; ++visLightIndex)
+                    for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
                     {
-                        PrePointLight ppl = visPointLights[visLightIndex];
+                        ushort lightIndex = lightIndices[vi];
+                        PrePointLight ppl = pointLights[lightIndex];
 
                         // Offset tileCentre toward the light to calculate a more conservative minMax depth bound,
                         // but it must remains inside the tile and must not pass further than the light centre.
@@ -238,7 +267,9 @@ namespace UnityEngine.Rendering.Universal
                         minMax[tileLightCount].x = minDepth;
                         minMax[tileLightCount].y = maxDepth;
 
-                        m_Tiles[tileOffset + tileHeader + tileLightCount] = ppl.visLightIndex;
+                        // Because this always output to the finest tiles, contrary to CullLights(),
+                        // the result are indices into visibleLights, instead of indices into pointLights.
+                        m_Tiles[tileOffset + tileHeader + tileLightCount] = pointLights[lightIndex].visLightIndex;
                         ++tileLightCount;
                     }
 
@@ -265,32 +296,32 @@ namespace UnityEngine.Rendering.Universal
                     m_Tiles[tileOffset + 4] = (ushort)((bitMask >> 16) & 0xFFFF);
                 }
             }
-
-            Profiler.EndSample();
         }
 
-        public void CullLights(NativeArray<PrePointLight> visPointLights)
+        public void CullIntermediateLights(ref NativeArray<PrePointLight> pointLights,
+                                           ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
+                                           int istart, int iend, int jstart, int jend)
         {
-            Profiler.BeginSample("CullLights");
-
             int tileXStride = m_TileSize;
             int tileYStride = m_TileSize * m_TileXCount;
             int maxLightPerTile = m_TileSize - m_TileHeader;
             int tileHeader = m_TileHeader;
+            int lightEndIndex = lightStartIndex + lightCount;
 
-            for (int j = 0; j < m_TileYCount; ++j)
+            for (int j = jstart; j < jend; ++j)
             {
-                for (int i = 0; i < m_TileXCount; ++i)
+                for (int i = istart; i < iend; ++i)
                 {
                     PreTile preTile = m_PreTiles[i + j * m_TileXCount];
                     int tileOffset = i * tileXStride + j * tileYStride;
                     ushort tileLightCount = 0;
 
-                    for (ushort visLightIndex = 0; visLightIndex < visPointLights.Length; ++visLightIndex)
+                    for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
                     {
-                        PrePointLight ppl = visPointLights[visLightIndex];
+                        ushort lightIndex = lightIndices[vi];
+                        PrePointLight ppl = pointLights[lightIndex];
 
-                        // This is faster than IntersectionLineSphere().
+                        // This is slightly faster than IntersectionLineSphere().
                         if (!Clip(ref preTile, ppl.vsPos, ppl.radius))
                             continue;
 
@@ -300,15 +331,13 @@ namespace UnityEngine.Rendering.Universal
                             break;
                         }
 
-                        m_Tiles[tileOffset + tileHeader + tileLightCount] = ppl.visLightIndex;
+                        m_Tiles[tileOffset + tileHeader + tileLightCount] = lightIndex;
                         ++tileLightCount;
                     }
 
                     m_Tiles[tileOffset] = tileLightCount;
                 }
             }
-
-            Profiler.EndSample();
         }
 
         // Return parametric intersection between a sphere and a line.
