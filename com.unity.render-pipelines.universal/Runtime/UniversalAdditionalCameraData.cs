@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
@@ -32,6 +35,20 @@ namespace UnityEngine.Rendering.Universal
         FastApproximateAntialiasing,
         SubpixelMorphologicalAntiAliasing,
         //TemporalAntialiasing
+	}
+
+    public enum CameraRenderType
+    {
+        Base,
+        // Commenting these out for now
+        //Overlay,
+        //ScreenSpaceUI,
+    }
+
+    public enum CameraOutput
+    {
+        Camera,
+        Texture,
     }
 
     // Only used for SMAA right now
@@ -40,6 +57,16 @@ namespace UnityEngine.Rendering.Universal
         Low,
         Medium,
         High
+	}
+
+    static class CameraTypeUtility
+    {
+        static string[] s_CameraTypeNames = Enum.GetNames(typeof(CameraRenderType)).ToArray();
+
+        public static string GetName(this CameraRenderType type)
+        {
+            return s_CameraTypeNames[(int)type];
+        }
     }
 
     [DisallowMultipleComponent]
@@ -59,7 +86,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
-        [SerializeField] int m_RendererIndex = -1;
+        [SerializeField] CameraRenderType m_CameraType = CameraRenderType.Base;
+        [SerializeField] CameraOutput m_CameraOutput = CameraOutput.Camera;
+		[SerializeField] List<Camera> m_Cameras = new List<Camera>();
+		[SerializeField] int m_RendererIndex = -1;
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
@@ -81,6 +111,18 @@ namespace UnityEngine.Rendering.Universal
 
         public float version => m_Version;
 
+        static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
+        internal static UniversalAdditionalCameraData defaultAdditionalCameraData
+        {
+            get
+            {
+                if (s_DefaultAdditionalCameraData == null)
+                    s_DefaultAdditionalCameraData = new UniversalAdditionalCameraData();
+
+                return s_DefaultAdditionalCameraData;
+            }
+        }
+
         public bool renderShadows
         {
             get => m_RenderShadows;
@@ -97,6 +139,28 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_RequiresOpaqueTextureOption;
             set => m_RequiresOpaqueTextureOption = value;
+        }
+
+        public CameraRenderType renderType
+        {
+            get => m_CameraType;
+            set => m_CameraType = value;
+        }
+
+        public CameraOutput cameraOutput
+        {
+            get => m_CameraOutput;
+            set => m_CameraOutput = value;
+        }
+
+        public List<Camera> cameras
+        {
+            get => m_Cameras;
+        }
+
+        public void AddCamera(Camera camera)
+        {
+            m_Cameras.Add(camera);
         }
 
         public bool requiresDepthTexture
@@ -198,6 +262,54 @@ namespace UnityEngine.Rendering.Universal
                 m_RequiresDepthTextureOption = (m_RequiresDepthTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
                 m_RequiresOpaqueTextureOption = (m_RequiresColorTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
             }
+        }
+
+        public void OnDrawGizmos()
+        {
+            string path = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
+            string gizmoName = "";
+            Color tint = Color.white;
+
+//            if (m_CameraType == CameraRenderType.Base)
+//            {
+//                gizmoName = $"{path}Camera_Base.png";
+//            }
+            // MTT: Commented due to not implemented yet
+//            else if (m_CameraType == CameraRenderType.Overlay)
+//            {
+//                gizmoName = $"{path}Camera_Overlay.png";
+//            }
+            // MTT: Commented due to not implemented yet
+//            else
+//            {
+//                gizmoName = $"{path}Camera_UI.png";
+//            }
+
+
+#if UNITY_2019_2_OR_NEWER
+#if UNITY_EDITOR
+            if (Selection.activeObject == gameObject)
+            {
+                // Get the preferences selection color
+                tint = SceneView.selectedOutlineColor;
+            }
+#endif
+            if (!string.IsNullOrEmpty(gizmoName))
+            {
+                Gizmos.DrawIcon(transform.position, gizmoName, true, tint);
+            }
+
+            if (renderPostProcessing)
+            {
+                Gizmos.DrawIcon(transform.position, $"{path}Camera_PostProcessing.png", true, tint);
+            }
+#else
+            if (renderPostProcessing)
+            {
+                Gizmos.DrawIcon(transform.position, $"{path}Camera_PostProcessing.png");
+            }
+            Gizmos.DrawIcon(transform.position, gizmoName);
+#endif
         }
     }
 }
