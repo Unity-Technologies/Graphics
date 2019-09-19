@@ -21,14 +21,18 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
             HLSLPROGRAM
 
+            #pragma multi_compile_fragment __ TILE_SIZE_8 TILE_SIZE_16
+
             #pragma vertex vert
             #pragma fragment frag
-//            #pragma enable_d3d11_debug_symbols
+            //#pragma enable_d3d11_debug_symbols
 
             TEXTURE2D_FLOAT(_MainTex);
             SAMPLER(sampler_MainTex);
 
             float4 _MainTexSize;
+            int g_TilePixelWidth;
+            int g_TilePixelHeight;
 
             struct Attributes
             {
@@ -59,12 +63,24 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                int2 baseTexel = int2(input.positionCS.xy) * int2(16, 16);
+                #if defined(TILE_SIZE_8)
+                #define TILE_SIZE_UNROLL [unroll]
+                const int2 tileSize = int2(8, 8);
+                #elif defined(TILE_SIZE_16)
+                #define TILE_SIZE_UNROLL [unroll]
+                const int2 tileSize = int2(16, 16);
+                #else
+                #define TILE_SIZE_UNROLL
+                const int2 tileSize = int2(g_TilePixelWidth, g_TilePixelHeight);
+                #endif
+
+                int2 baseTexel = int2(input.positionCS.xy) * tileSize;
 
                 float minDepth =  1.0;
                 float maxDepth = -1.0;
-                [unroll] for (int j = 0; j < 16; ++j)
-                [unroll] for (int i = 0; i < 16; ++i)
+
+                TILE_SIZE_UNROLL for (int j = 0; j < tileSize.y; ++j)
+                TILE_SIZE_UNROLL for (int i = 0; i < tileSize.x; ++i)
                 {
                     int2 tx = baseTexel + int2(i, j);
                     // TODO fixme: Depth buffer is inverted

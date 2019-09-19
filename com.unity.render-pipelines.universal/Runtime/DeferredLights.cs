@@ -50,6 +50,9 @@ namespace UnityEngine.Rendering.Universal
     {
         static class ShaderConstants
         {
+            public static readonly string TILE_SIZE_8 = "TILE_SIZE_8";
+            public static readonly string TILE_SIZE_16 = "TILE_SIZE_16";
+
             public static readonly int UTileList = Shader.PropertyToID("UTileList");
             public static readonly int g_TileList = Shader.PropertyToID("g_TileList");
             public static readonly int UPointLightBuffer = Shader.PropertyToID("UPointLightBuffer");
@@ -295,10 +298,24 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthRange);
             RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
             RenderTargetIdentifier tileDepthRangeSurface = m_TileDepthRangeTexture.Identifier();
+            int tileWidth = m_Tilers[0].GetTilePixelWidth();
+            int tileHeight = m_Tilers[0].GetTilePixelHeight();
 
             cmd.SetGlobalTexture(ShaderConstants._MainTex, depthSurface);
             cmd.SetGlobalVector(ShaderConstants._MainTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
+            cmd.SetGlobalInt(ShaderConstants.g_TilePixelWidth, tileWidth);
+            cmd.SetGlobalInt(ShaderConstants.g_TilePixelHeight, tileHeight);
+
+            // Should we move to ShaderKeywordStrings?
+            if (tileWidth == 8 && tileHeight == 8)
+                cmd.EnableShaderKeyword(ShaderConstants.TILE_SIZE_8);
+            else if (tileWidth == 16 && tileHeight == 16)
+                cmd.EnableShaderKeyword(ShaderConstants.TILE_SIZE_16);
+
             cmd.Blit(depthSurface, tileDepthRangeSurface, m_TileDepthInfoMaterial, 0);
+
+            cmd.DisableShaderKeyword(ShaderConstants.TILE_SIZE_8);
+            cmd.DisableShaderKeyword(ShaderConstants.TILE_SIZE_16);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -567,8 +584,11 @@ namespace UnityEngine.Rendering.Universal
                 // It doesn't seem UniversalRP use this.
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
-                cmd.SetGlobalInt(ShaderConstants.g_TilePixelWidth, DeferredConfig.kTilePixelWidth);
-                cmd.SetGlobalInt(ShaderConstants.g_TilePixelHeight, DeferredConfig.kTilePixelHeight);
+
+                int tileWidth = m_Tilers[0].GetTilePixelWidth();
+                int tileHeight = m_Tilers[0].GetTilePixelHeight();
+                cmd.SetGlobalInt(ShaderConstants.g_TilePixelWidth, tileWidth);
+                cmd.SetGlobalInt(ShaderConstants.g_TilePixelHeight, tileHeight);
 
                 Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
                 Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
