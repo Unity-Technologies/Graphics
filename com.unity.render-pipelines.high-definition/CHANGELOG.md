@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light supported units caching (1182266)
 - Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
 - Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
+- Fix Decal gizmo that become white after exiting play mode
+- Fix Decal pivot position to behave like a spotlight
 
 ## [7.1.1] - 2019-09-05
 
