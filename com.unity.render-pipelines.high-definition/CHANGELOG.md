@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
 - Fix crash when upgrading version of HDRP
 - Fixed rendering issues with material previews
+- Fixed a light leaking issue with box light casting shadows (case 1184475)
 
 ## [7.1.1] - 2019-09-05
 
