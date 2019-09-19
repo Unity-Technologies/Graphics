@@ -13,6 +13,7 @@ using Is = UnityEngine.TestTools.Constraints.Is;
 using UnityEngine.Networking.PlayerConnection;
 using UnityEngine;
 using UnityEngine.Profiling;
+using System.Collections;
 
 namespace UnityEngine.TestTools.Graphics
 {
@@ -43,7 +44,7 @@ namespace UnityEngine.TestTools.Graphics
         /// <param name="expected">The expected image that should be rendered by the camera.</param>
         /// <param name="cameras">The cameras to render from.</param>
         /// <param name="settings">Optional settings that control how the image comparison is performed. Can be null, in which case the rendered image is required to be exactly identical to the reference.</param>
-        public static void AreEqual(Texture2D expected, IEnumerable<Camera> cameras, ImageComparisonSettings settings = null)
+        public static IEnumerator AreEqual(Texture2D expected, IEnumerable<Camera> cameras, ImageComparisonSettings settings = null)
         {
             if (cameras == null)
                 throw new ArgumentNullException(nameof(cameras));
@@ -59,7 +60,6 @@ namespace UnityEngine.TestTools.Graphics
             // Persistent PerMaterial CBUFFER is build during culling, but some nodes could use new variants and CBUFFER will be up to date next frame.
             // ( this is editor specific, standalone player has no frame delay issue because all variants are ready at init stage )
             // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
-            int dummyRenderedFrameCount = 1;
 
             RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, settings.UseHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default, 24);
             desc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
@@ -68,41 +68,20 @@ namespace UnityEngine.TestTools.Graphics
             Texture2D actual = null;
             try
             {
-                for (int i=0;i< dummyRenderedFrameCount+1;i++)        // x frame delay + the last one is the one really tested ( ie 5 frames delay means 6 frames are rendered )
+                foreach(var camera in cameras)
                 {
-                    foreach (var camera in cameras)
-                    {
-                        camera.targetTexture = rt;
-                        camera.Render();
-                        camera.targetTexture = null;
-                    }
+                    camera.Render();
+                    yield return new WaitForEndOfFrame();
 
-					// only proceed the test on the last rendered frame
-					if (dummyRenderedFrameCount == i)
-					{
-						actual = new Texture2D(width, height, format, false);
-                        RenderTexture dummy = null;
-
-                        if (settings.UseHDR)
-                        {
-                            desc.colorFormat = RenderTextureFormat.Default;
-                            dummy = RenderTexture.GetTemporary(desc);
-                            UnityEngine.Graphics.Blit(rt, dummy);
-                        }
-                        else
-                            RenderTexture.active = rt;
-
-						actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-						RenderTexture.active = null;
-
-                        if (dummy != null)
-                            RenderTexture.ReleaseTemporary(dummy);
-
-						actual.Apply();
-
-						AreEqual(expected, actual, settings);
-					}
+                    
                 }
+                actual = new Texture2D(width, height, format, false);
+
+                actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+
+                actual.Apply();
+
+                AreEqual(expected, actual, settings);
 
             }
             finally

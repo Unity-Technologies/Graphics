@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 
@@ -11,10 +12,12 @@ namespace UnityEngine.TestTools.Graphics.Tests
             Assert.That(() => ImageAssert.AreEqual(new Texture2D(1, 1), (Camera)null), Throws.ArgumentNullException);
         }
 
-        [Test]
-        public void AreEqual_WithNullCameras_ThrowsArgumentNullException()
-        {
-            Assert.That(() => ImageAssert.AreEqual(new Texture2D(1, 1), (IEnumerable<Camera>)null), Throws.ArgumentNullException);
+        [UnityTest]
+        public IEnumerator AreEqual_WithNullCameras_ThrowsArgumentNullException()
+        {           
+            yield return ImageAssert.AreEqual(new Texture2D(1, 1), (IEnumerable<Camera>)null);
+            LogAssert.Expect(LogType.Exception, "*");
+
         }
 
         [Test]
