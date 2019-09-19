@@ -66,7 +66,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
                 cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget, blitMaterial);
             }
             else
