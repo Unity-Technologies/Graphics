@@ -135,6 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 size;                    // Used by area (X = length or width, Y = height) and punctual lights (X = radius)
         public float   diffuseDimmer;
         public float   specularDimmer;
+
+        public Vector3 padding;
+        public float   boxLightSafeExtent;
     };
 
 

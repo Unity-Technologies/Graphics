@@ -108,6 +108,8 @@ struct LightData
     real2 size;
     float diffuseDimmer;
     float specularDimmer;
+    float3 padding;
+    float boxLightSafeExtent;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData
