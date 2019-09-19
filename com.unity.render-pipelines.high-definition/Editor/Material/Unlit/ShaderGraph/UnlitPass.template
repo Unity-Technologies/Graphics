@@ -8,9 +8,11 @@ Pass
    
     // Render State
     $splice(Blending)
+    $splice(BlendingOp)
     $splice(Culling)
     $splice(ZTest)
     $splice(ZWrite)
+    $splice(ZClip)
     $splice(Stencil)
     $splice(ColorMask)
 

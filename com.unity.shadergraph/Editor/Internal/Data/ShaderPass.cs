@@ -30,6 +30,7 @@ namespace UnityEditor.ShaderGraph.Internal
         // Render State Overrides
         public string CullOverride;
         public string BlendOverride;
+        public string BlendOpOverride;
         public string ZTestOverride;
         public string ZWriteOverride;
         public string ColorMaskOverride;

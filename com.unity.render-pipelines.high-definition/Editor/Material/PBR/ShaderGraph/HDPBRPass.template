@@ -8,6 +8,7 @@ Pass
 
     // Render State
     $splice(Blending)
+    $splice(BlendingOp)
     $splice(Culling)
     $splice(ZTest)
     $splice(ZWrite)
@@ -114,21 +115,20 @@ Pass
 
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
     {
-        // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
-        surfaceData.ambientOcclusion =      1.0f;
-
-        // copy across graph values, if defined
-        $SurfaceDescription.Albedo:               surfaceData.baseColor =             surfaceDescription.Albedo;
-        $SurfaceDescription.Smoothness:           surfaceData.perceptualSmoothness =  surfaceDescription.Smoothness;
-        $SurfaceDescription.Occlusion:            surfaceData.ambientOcclusion =      surfaceDescription.Occlusion;
-        $SurfaceDescription.Metallic:             surfaceData.metallic =              surfaceDescription.Metallic;
-        $SurfaceDescription.Specular:             surfaceData.specularColor =         surfaceDescription.Specular;
+        
+        surfaceData.ambientOcclusion = 1.0f;
+        $SurfaceDescription.Albedo:               surfaceData.baseColor = surfaceDescription.Albedo;
+        $SurfaceDescription.Smoothness:           surfaceData.perceptualSmoothness = surfaceDescription.Smoothness;
+        $SurfaceDescription.Occlusion:            surfaceData.ambientOcclusion = surfaceDescription.Occlusion;
+        $SurfaceDescription.Metallic:             surfaceData.metallic = surfaceDescription.Metallic;
+        $SurfaceDescription.Specular:             surfaceData.specularColor = surfaceDescription.Specular;
 
         // These static material feature allow compile time optimization
         surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+
         #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
+            surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
         #endif
 
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
@@ -143,7 +143,6 @@ Pass
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
-
         surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
@@ -160,23 +159,23 @@ Pass
         #endif
 
         #ifdef DEBUG_DISPLAY
-        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-        {
-            // TODO: need to update mip info
-            surfaceData.metallic = 0;
-        }
+            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+            {
+                // TODO: need to update mip info
+                surfaceData.metallic = 0;
+            }
 
-        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-        // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
+            // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+            // as it can modify attribute use for static lighting
+            ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
         #endif
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
-        LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
+            uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
+            LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
         #endif
 
         float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);

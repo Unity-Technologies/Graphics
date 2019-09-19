@@ -692,6 +692,7 @@ namespace UnityEditor.ShaderGraph
         static void BuildRenderStatesFromPass(ShaderPass pass, ref Dictionary<string, string> spliceCommands)
         {
             spliceCommands.Add("Blending", pass.BlendOverride != null ? pass.BlendOverride : "// Blending: <None>");
+            spliceCommands.Add("BlendingOp", pass.BlendOpOverride != null ? pass.BlendOpOverride : "// BlendingOp: <None>");
             spliceCommands.Add("Culling", pass.CullOverride != null ? pass.CullOverride : "// Culling: <None>");
             spliceCommands.Add("ZTest", pass.ZTestOverride != null ? pass.ZTestOverride : "// ZTest: <None>");
             spliceCommands.Add("ZWrite", pass.ZWriteOverride != null ? pass.ZWriteOverride : "// ZWrite: <None>");
