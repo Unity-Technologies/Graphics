@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decal gizmo that become white after exiting play mode
 - Fixed Decal pivot position to behave like a spotlight
 - Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
+- Fix DebugMenu FrameSettingsHistory persistency on close
 
 ## [7.1.1] - 2019-09-05
 
