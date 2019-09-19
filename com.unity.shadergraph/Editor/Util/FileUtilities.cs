@@ -14,11 +14,16 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentNullException(nameof(data));
             }
 
+            return WriteToDisk(path, EditorJsonUtility.ToJson(data, true));
+        }
+
+        public static bool WriteToDisk(string path, string text)
+        {
             CheckoutIfValid(path);
 
             try
             {
-                File.WriteAllText(path, EditorJsonUtility.ToJson(data, true));
+                File.WriteAllText(path, text);
             }
             catch (Exception e)
             {
@@ -27,7 +32,7 @@ namespace UnityEditor.ShaderGraph
                 {
                         FileInfo fileInfo = new FileInfo(path);
                         fileInfo.IsReadOnly = false;
-                        File.WriteAllText(path, EditorJsonUtility.ToJson(data, true));
+                        File.WriteAllText(path, text);
                         return true;
                 }
                 Debug.LogException(e);

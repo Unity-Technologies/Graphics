@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXAbstractParticleHDRPLitOutput : VFXAbstractParticleOutput
+    abstract class VFXAbstractParticleHDRPLitOutput : VFXShaderGraphParticleOutput
     {
         public enum MaterialType
         {
@@ -155,11 +155,22 @@ namespace UnityEditor.VFX
 
         protected override bool needsExposureWeight { get { return (colorMode & ColorMode.Emissive) != 0 || useEmissive || useEmissiveMap; } }
 
+        protected override bool bypassExposure { get { return false; } }
+
+        protected override RPInfo currentRP
+        {
+            get { return hdrpLitInfo; }
+        }
+        public override bool isLitShader { get => true; }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
                 var properties = base.inputProperties;
+
+                if (shaderGraph == null)
+                {
                 properties = properties.Concat(PropertiesFromType("HDRPLitInputProperties"));
                 properties = properties.Concat(PropertiesFromType(kMaterialTypeToName[(int)materialType]));
 
@@ -184,6 +195,7 @@ namespace UnityEditor.VFX
 
                 if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
                     properties = properties.Concat(PropertiesFromType("EmissiveColorProperties"));
+                }
 
                 return properties;
             }
@@ -194,6 +206,8 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
+            if( shaderGraph == null)
+            {
             yield return slotExpressions.First(o => o.name == "smoothness");
 
             switch (materialType)
@@ -242,6 +256,7 @@ namespace UnityEditor.VFX
 
             if (((colorMode & ColorMode.Emissive) == 0) && useEmissive)
                 yield return slotExpressions.First(o => o.name == "emissiveColor");
+        }
         }
 
         public override IEnumerable<string> additionalDefines

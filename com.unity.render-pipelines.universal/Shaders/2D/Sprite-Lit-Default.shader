@@ -81,11 +81,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 float4 clipVertex = o.positionCS / o.positionCS.w;
                 o.lightingUV = ComputeScreenPos(clipVertex).xy;
-
-                #if UNITY_UV_STARTS_AT_TOP
-                o.lightingUV.y = 1.0 - o.lightingUV.y;
-                #endif
-
                 o.color = v.color;
                 return o;
             }
@@ -115,6 +110,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color		: COLOR;
                 float2 uv			: TEXCOORD0;
+                float4 tangent      : TANGENT;
             };
 
             struct Varyings
@@ -138,15 +134,12 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 Varyings o = (Varyings)0;
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
-                #if UNITY_UV_STARTS_AT_TOP
-                    o.positionCS.y = -o.positionCS.y;
-                #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
                 o.uv = attributes.uv;
                 o.color = attributes.color;
-                o.normalWS = TransformObjectToWorldDir(float3(0, 0, 1));
-                o.tangentWS = TransformObjectToWorldDir(float3(1, 0, 0));
-                o.bitangentWS = TransformObjectToWorldDir(float3(0, 1, 0));
+                o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
+                o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
+                o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
                 return o;
             }
 
@@ -156,7 +149,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
-                return NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, -i.normalWS.xyz);
+                return NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, i.normalWS.xyz);
             }
             ENDHLSL
         }

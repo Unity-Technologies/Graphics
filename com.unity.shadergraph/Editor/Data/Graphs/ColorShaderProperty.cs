@@ -3,30 +3,35 @@ using System.Text;
 using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class ColorShaderProperty : AbstractShaderProperty<Color>
+    [FormerName("UnityEditor.ShaderGraph.ColorShaderProperty")]
+    public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
-        public ColorShaderProperty()
+        internal ColorShaderProperty()
         {
             displayName = "Color";
         }
         
         public override PropertyType propertyType => PropertyType.Color;
         
-        public override bool isBatchable => true;
-        public override bool isExposable => true;
-        public override bool isRenamable => true;
+        internal override bool isBatchable => true;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+        internal override bool isGpuInstanceable => true;
         
-        public string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
+        internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
-        public override string GetPropertyBlockString()
+        internal override string GetPropertyBlockString()
         {
             return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
         }
 
-        public override string referenceNameBase => "Color";
+        public override string GetDefaultReferenceName()
+        {
+            return $"Color_{GuidEncoder.Encode(guid)}";
+        }
         
         [SerializeField]
         ColorMode m_ColorMode;
@@ -37,12 +42,12 @@ namespace UnityEditor.ShaderGraph
             set => m_ColorMode = value;
         }
         
-        public override AbstractMaterialNode ToConcreteNode()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -51,7 +56,7 @@ namespace UnityEditor.ShaderGraph
             };
         }        
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new ColorShaderProperty()
             {

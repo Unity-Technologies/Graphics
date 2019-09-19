@@ -1,6 +1,9 @@
 #ifndef UNITY_DEBUG_INCLUDED
 #define UNITY_DEBUG_INCLUDED
 
+#define TRANSPARENCY_OVERDRAW_COST 1.0
+#define TRANSPARENCY_OVERDRAW_A 1.0
+
 // Given an enum (represented by an int here), return a color.
 // Use for DebugView of enum
 real3 GetIndexColor(int index)

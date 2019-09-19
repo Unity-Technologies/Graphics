@@ -4,23 +4,41 @@
 
 <a name="AtmosphericScattering"></a>
 
-#### atmospheric scattering
+#### atmospheric scattering:
 Atmospheric scattering is the phenomena that occurs when particles suspended in the atmosphere diffuse (or scatter) a portion of the light, passing through them, in all directions.
 
 <a name="Bokeh"></a>
 
-#### bokeh
+#### bokeh:
 
 The effect that occurs when a camera renders an out-of-focus point of light.
 
 <a name="ChannelPacking"></a>
 
-#### channel packing
-A channel packed Texture is a Texture which has a separate grayscale image in each of its channels.
+#### channel packing:
+A channel-packed Texture is a Texture which has a separate grayscale image in each of its color channels.
+
+<a name="ExponentialVarianceShadowMap"></a>
+
+#### Exponential Variance Shadow Map:
+
+A type of shadow map that uses a statistical representation of the Scene's depth distribution and allows for the filtering of data stored in it.
+
+<a name="Face"></a>
+
+#### face:
+
+A face refers to one side of a piece of geometry. The front face is the side of the geometry with the normal.
+
+<a name="FaceCulling"></a>
+
+#### face culling:
+
+[Face](#Face) culling is an optimization that makes the renderer not draw faces of geometry that the camera can not see.
 
 <a name="f-number"></a>
 
-#### f-number
+#### f-number:
 
 The ratio of the focal length to the diameter of the camera lens.
 
@@ -31,7 +49,7 @@ The minimum rate at which you can sample a real-world signal without introducing
 
 <a name="PhysicallyBasedRendering"></a>
 
-#### physically-based rendering (PBR)
+#### physically-based rendering (PBR):
 PBR is an approach to rendering that emulates accurate lighting of real-world materials.
 
 <a name="RayMarching"></a>
@@ -49,16 +67,16 @@ A texture atlas is a large texture containing several smaller textures packed to
 ## Normal mapping
 
 <a name="TangentSpaceNormalMap"></a>
-#### tangent space normal map
+#### tangent space normal map:
 A type of [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html) in the UV space of the GameObject. You can use it on any Mesh, including deforming characters.
 
 <a name="ObjectSpaceNormalMap"></a>
 
-#### object space normal map
+#### object space normal map:
 This contains the same details as the tangent space normal map, but also includes orientation data. You can only use this type of normal map on a static Mesh that does not deform. This normal map type is less resource-intensive to process, because Unity does not need to make any transform calculations.
 
 <a name="BentNormalMap"></a>
-#### world space normal map
+#### bent normal map:
 HDRP uses the bent normal to prevent light leaking through the surface of a Mesh. In HDRP, bent normal maps can be in tangent space or object space.
 
 
@@ -77,7 +95,7 @@ An anti-aliasing technique that smooths edges on a per-pixel level. It is not as
 
 <a name="SpatialAliasing"></a>
 
-#### spatial aliasing
+#### spatial aliasing:
 Refers to aliasing in digital samples of visual signals.
 
 

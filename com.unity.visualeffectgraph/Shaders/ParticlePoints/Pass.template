@@ -24,14 +24,16 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 			
-	if (!alive)
+	if (!attributes.alive)
 		return o;
 				
-	float3 vPos = position;
+	float3 vPos = attributes.position;
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
+    
+    o.pointSize = 1;
 			
 	return o;
 }

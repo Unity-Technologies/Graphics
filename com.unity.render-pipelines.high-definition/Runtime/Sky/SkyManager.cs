@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public class BuiltinSkyParameters
     {
+        public HDCamera                 hdCamera;
         public Matrix4x4                pixelCoordToViewDirMatrix;
         public Vector3                  worldSpaceCameraPos;
         public Matrix4x4                viewMatrix;
@@ -89,6 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Only show the procedural sky upgrade message once
         static bool         logOnce = true;
+
+        MaterialPropertyBlock m_OpaqueAtmScatteringBlock;
 
 #if UNITY_EDITOR
         // For Preview windows we want to have a 'fixed' sky, so we can display chrome metal and have always the same look
@@ -227,10 +230,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 renderer.SetGlobalSkyData(cmd);
             }
-            else
-            {
-                SkyRenderer.SetGlobalNeutralSkyData(cmd);
-            }
         }
 
 #if UNITY_EDITOR
@@ -259,6 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.skyboxCubemapPS);
             m_BlitCubemapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubemapPS);
             m_OpaqueAtmScatteringMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.opaqueAtmosphericScatteringPS);
+
+            m_OpaqueAtmScatteringBlock = new MaterialPropertyBlock();
 
             m_LightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             m_LightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
@@ -355,14 +356,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (isRegularPreview)
                 ambientMode = SkyAmbientMode.Static;
 
-            m_CurrentSkyRenderingContext.UpdateEnvironment(m_CurrentSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, frameIndex, cmd);
+            m_CurrentSkyRenderingContext.UpdateEnvironment(hdCamera, m_CurrentSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, frameIndex, cmd);
             StaticLightingSky staticLightingSky = GetStaticLightingSky();
             // We don't want to update the static sky during preview because it contains custom lights that may change the result.
             // The consequence is that previews will use main scene static lighting but we consider this to be acceptable.
             if (staticLightingSky != null && !isRegularPreview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                m_StaticLightingSkyRenderingContext.UpdateEnvironment(m_StaticLightingSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, false, true, frameIndex, cmd);
+                m_StaticLightingSkyRenderingContext.UpdateEnvironment(hdCamera, m_StaticLightingSky, sunLight, hdCamera.mainViewConstants.worldSpaceCameraPos, false, true, frameIndex, cmd);
             }
 
             bool useRealtimeGI = true;
@@ -428,22 +429,27 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingSample(cmd, "Opaque Atmospheric Scattering"))
             {
-                // FIXME: 24B GC pressure
-                var propertyBlock = new MaterialPropertyBlock();
-                propertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
+                m_OpaqueAtmScatteringBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDirWS);
                 if (isMSAA)
-                    propertyBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
+                    m_OpaqueAtmScatteringBlock.SetTexture(HDShaderIDs._ColorTextureMS, colorBuffer);
                 else
-                    propertyBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
+                    m_OpaqueAtmScatteringBlock.SetTexture(HDShaderIDs._ColorTexture,   colorBuffer);
                 // The texture can be null when volumetrics are disabled.
                 if (volumetricLighting != null)
-                    propertyBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
+                    m_OpaqueAtmScatteringBlock.SetTexture(HDShaderIDs._VBufferLighting, volumetricLighting);
 
-                // Color -> Intermediate.
-                HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, propertyBlock, isMSAA? 1 : 0);
-                // Intermediate -> Color.
-                // Note: Blit does not support MSAA (and is probably slower).
-                cmd.CopyTexture(intermediateBuffer, colorBuffer);
+                if (Fog.IsPBRFogEnabled(hdCamera))
+                {
+                    // Color -> Intermediate.
+                    HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, intermediateBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 3 : 2);
+                    // Intermediate -> Color.
+                    // Note: Blit does not support MSAA (and is probably slower).
+                    cmd.CopyTexture(intermediateBuffer, colorBuffer);
+                }
+                else
+                {
+                    HDUtils.DrawFullScreen(cmd, m_OpaqueAtmScatteringMaterial, colorBuffer, depthBuffer, m_OpaqueAtmScatteringBlock, isMSAA ? 1 : 0);
+                }
             }
         }
 

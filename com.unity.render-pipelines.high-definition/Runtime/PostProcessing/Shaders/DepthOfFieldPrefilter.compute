@@ -32,7 +32,7 @@ CBUFFER_END
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     float2 texelSize = _ScreenSize.zw * _TargetScale.x;
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), texelSize, uint2(GROUP_SIZE, GROUP_SIZE));

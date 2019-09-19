@@ -110,7 +110,10 @@ namespace UnityEditor.VFX
         {
             if (typeof(UnityObject).IsAssignableFrom(fromType))
             {
-                return t => ConvertUnityObject(t, toType);
+                if (toType.IsAssignableFrom(fromType))
+                    return t => ConvertUnityObject(t, toType);
+                else
+                    return null;
             }
 
             Dictionary<System.Type, System.Func<object, object>> converters = null;
