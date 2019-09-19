@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 661a9f2f1e4e6304198f4a9da3d1fee8, type: 3}
+  m_Script: {fileID: 11500000, guid: 3cf6c57e8db40484a89f09aec5f12366, type: 3}
   m_Name: DeferredRendererData
   m_EditorClassIdentifier: 
   m_RendererFeatures: []
@@ -20,8 +20,9 @@ MonoBehaviour:
     screenSpaceShadowPS: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd,
       type: 3}
     samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
-    tileDepthInfoPS: {fileID: 4800000, guid: 19230a93f844c5b4da52e5c82418d5ab, type: 3}
-    tilingPS: {fileID: 4800000, guid: 603f9f036d2f80148b33e10261aa3971, type: 3}
+    tileDepthInfoPS: {fileID: 4800000, guid: f451c6bec16aa51408bdfd37f70aed12, type: 3}
+    tileDeferredPS: {fileID: 4800000, guid: 344787727e03649488a1022c09fa74b5, type: 3}
+    stencilDeferredPS: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
