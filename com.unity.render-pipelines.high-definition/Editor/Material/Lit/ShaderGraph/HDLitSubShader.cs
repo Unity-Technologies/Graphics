@@ -11,224 +11,21 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitSubShader")]
     class HDLitSubShader : ISubShader
     {
-        // Pass m_PassRaytracingIndirect = new Pass()
-        // {
-        //     Name = "IndirectDXR",
-        //     LightMode = "IndirectDXR",
-        //     TemplateName = "HDLitRaytracingPass.template",
-        //     MaterialName = "Lit",
-        //     ShaderPassName = "SHADERPASS_RAYTRACING_INDIRECT",
-        //     ExtraDefines = new List<string>()
-        //     {
-        //         "#pragma multi_compile _ LIGHTMAP_ON",
-        //         "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
-        //         "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
-        //         "#pragma multi_compile _ DIFFUSE_LIGHTING_ONLY",
-        //         "#define SHADOW_LOW",
-        //         "#define SKIP_RASTERIZED_SHADOWS",
-        //         DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
-        //     },
-        //     Includes = new List<string>()
-        //     {
-        //         "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl\"",
-        //     },
-        //     PixelShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.AlbedoSlotId,
-        //         HDLitMasterNode.NormalSlotId,
-        //         HDLitMasterNode.BentNormalSlotId,
-        //         HDLitMasterNode.TangentSlotId,
-        //         HDLitMasterNode.SubsurfaceMaskSlotId,
-        //         HDLitMasterNode.ThicknessSlotId,
-        //         HDLitMasterNode.DiffusionProfileHashSlotId,
-        //         HDLitMasterNode.IridescenceMaskSlotId,
-        //         HDLitMasterNode.IridescenceThicknessSlotId,
-        //         HDLitMasterNode.SpecularColorSlotId,
-        //         HDLitMasterNode.CoatMaskSlotId,
-        //         HDLitMasterNode.MetallicSlotId,
-        //         HDLitMasterNode.EmissionSlotId,
-        //         HDLitMasterNode.SmoothnessSlotId,
-        //         HDLitMasterNode.AmbientOcclusionSlotId,
-        //         HDLitMasterNode.SpecularOcclusionSlotId,
-        //         HDLitMasterNode.AlphaSlotId,
-        //         HDLitMasterNode.AlphaThresholdSlotId,
-        //         HDLitMasterNode.AnisotropySlotId,
-        //         HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-        //         HDLitMasterNode.SpecularAAThresholdSlotId,
-        //         HDLitMasterNode.RefractionIndexSlotId,
-        //         HDLitMasterNode.RefractionColorSlotId,
-        //         HDLitMasterNode.RefractionDistanceSlotId,
-        //     },
-        //     VertexShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.PositionSlotId,
-        //         HDLitMasterNode.VertexNormalSlotID,
-        //         HDLitMasterNode.VertexTangentSlotID
-        //     },
-        //     UseInPreview = false
-        // };
+        Pass m_PassRaytracingIndirect = new Pass()
+        {
+        };
 
-        // Pass m_PassRaytracingVisibility = new Pass()
-        // {
-        //     Name = "VisibilityDXR",
-        //     LightMode = "VisibilityDXR",
-        //     TemplateName = "HDLitRaytracingPass.template",
-        //     MaterialName = "Lit",
-        //     ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
-        //     ExtraDefines = new List<string>()
-        //     {
-        //         DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
-        //     },
-        //     Includes = new List<string>()
-        //     {
-        //         "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
-        //     },
-        //     PixelShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.AlbedoSlotId,
-        //         HDLitMasterNode.NormalSlotId,
-        //         HDLitMasterNode.BentNormalSlotId,
-        //         HDLitMasterNode.TangentSlotId,
-        //         HDLitMasterNode.SubsurfaceMaskSlotId,
-        //         HDLitMasterNode.ThicknessSlotId,
-        //         HDLitMasterNode.DiffusionProfileHashSlotId,
-        //         HDLitMasterNode.IridescenceMaskSlotId,
-        //         HDLitMasterNode.IridescenceThicknessSlotId,
-        //         HDLitMasterNode.SpecularColorSlotId,
-        //         HDLitMasterNode.CoatMaskSlotId,
-        //         HDLitMasterNode.MetallicSlotId,
-        //         HDLitMasterNode.EmissionSlotId,
-        //         HDLitMasterNode.SmoothnessSlotId,
-        //         HDLitMasterNode.AmbientOcclusionSlotId,
-        //         HDLitMasterNode.SpecularOcclusionSlotId,
-        //         HDLitMasterNode.AlphaSlotId,
-        //         HDLitMasterNode.AlphaThresholdSlotId,
-        //         HDLitMasterNode.AnisotropySlotId,
-        //         HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-        //         HDLitMasterNode.SpecularAAThresholdSlotId,
-        //         HDLitMasterNode.RefractionIndexSlotId,
-        //         HDLitMasterNode.RefractionColorSlotId,
-        //         HDLitMasterNode.RefractionDistanceSlotId,
-        //     },
-        //     VertexShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.PositionSlotId,
-        //         HDLitMasterNode.VertexNormalSlotID,
-        //         HDLitMasterNode.VertexTangentSlotID
-        //     },
-        //     UseInPreview = false
-        // };
+        Pass m_PassRaytracingVisibility = new Pass()
+        {
+        };
 
-        // Pass m_PassRaytracingForward = new Pass()
-        // {
-        //     Name = "ForwardDXR",
-        //     LightMode = "ForwardDXR",
-        //     TemplateName = "HDLitRaytracingPass.template",
-        //     MaterialName = "Lit",
-        //     ShaderPassName = "SHADERPASS_RAYTRACING_FORWARD",
-        //     ExtraDefines = new List<string>()
-        //     {
-        //         "#pragma multi_compile _ LIGHTMAP_ON",
-        //         "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
-        //         "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
-        //         "#define SHADOW_LOW",
-        //         "#define SKIP_RASTERIZED_SHADOWS",
-        //         DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
-        //     },
-        //     Includes = new List<string>()
-        //     {
-        //         "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl\"",
-        //     },
-        //     PixelShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.AlbedoSlotId,
-        //         HDLitMasterNode.NormalSlotId,
-        //         HDLitMasterNode.BentNormalSlotId,
-        //         HDLitMasterNode.TangentSlotId,
-        //         HDLitMasterNode.SubsurfaceMaskSlotId,
-        //         HDLitMasterNode.ThicknessSlotId,
-        //         HDLitMasterNode.DiffusionProfileHashSlotId,
-        //         HDLitMasterNode.IridescenceMaskSlotId,
-        //         HDLitMasterNode.IridescenceThicknessSlotId,
-        //         HDLitMasterNode.SpecularColorSlotId,
-        //         HDLitMasterNode.CoatMaskSlotId,
-        //         HDLitMasterNode.MetallicSlotId,
-        //         HDLitMasterNode.EmissionSlotId,
-        //         HDLitMasterNode.SmoothnessSlotId,
-        //         HDLitMasterNode.AmbientOcclusionSlotId,
-        //         HDLitMasterNode.SpecularOcclusionSlotId,
-        //         HDLitMasterNode.AlphaSlotId,
-        //         HDLitMasterNode.AlphaThresholdSlotId,
-        //         HDLitMasterNode.AnisotropySlotId,
-        //         HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-        //         HDLitMasterNode.SpecularAAThresholdSlotId,
-        //         HDLitMasterNode.RefractionIndexSlotId,
-        //         HDLitMasterNode.RefractionColorSlotId,
-        //         HDLitMasterNode.RefractionDistanceSlotId,
-        //     },
-        //     VertexShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.PositionSlotId,
-        //         HDLitMasterNode.VertexNormalSlotID,
-        //         HDLitMasterNode.VertexTangentSlotID
-        //     },
-        //     UseInPreview = false
-        // };
+        Pass m_PassRaytracingForward = new Pass()
+        {
+        };
 
-        // Pass m_PassRaytracingGBuffer = new Pass()
-        // {
-        //     Name = "GBufferDXR",
-        //     LightMode = "GBufferDXR",
-        //     TemplateName = "HDLitRaytracingPass.template",
-        //     MaterialName = "Lit",
-        //     ShaderPassName = "SHADERPASS_RAYTRACING_GBUFFER",
-        //     ExtraDefines = new List<string>()
-        //     {
-        //         "#pragma multi_compile _ LIGHTMAP_ON",
-        //         "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
-        //         "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
-        //         "#define SHADOW_LOW",
-        //         DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
-        //     },
-        //     Includes = new List<string>()
-        //     {
-        //         "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl\"",
-        //     },
-        //     PixelShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.AlbedoSlotId,
-        //         HDLitMasterNode.NormalSlotId,
-        //         HDLitMasterNode.BentNormalSlotId,
-        //         HDLitMasterNode.TangentSlotId,
-        //         HDLitMasterNode.SubsurfaceMaskSlotId,
-        //         HDLitMasterNode.ThicknessSlotId,
-        //         HDLitMasterNode.DiffusionProfileHashSlotId,
-        //         HDLitMasterNode.IridescenceMaskSlotId,
-        //         HDLitMasterNode.IridescenceThicknessSlotId,
-        //         HDLitMasterNode.SpecularColorSlotId,
-        //         HDLitMasterNode.CoatMaskSlotId,
-        //         HDLitMasterNode.MetallicSlotId,
-        //         HDLitMasterNode.EmissionSlotId,
-        //         HDLitMasterNode.SmoothnessSlotId,
-        //         HDLitMasterNode.AmbientOcclusionSlotId,
-        //         HDLitMasterNode.SpecularOcclusionSlotId,
-        //         HDLitMasterNode.AlphaSlotId,
-        //         HDLitMasterNode.AlphaThresholdSlotId,
-        //         HDLitMasterNode.AnisotropySlotId,
-        //         HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-        //         HDLitMasterNode.SpecularAAThresholdSlotId,
-        //         HDLitMasterNode.RefractionIndexSlotId,
-        //         HDLitMasterNode.RefractionColorSlotId,
-        //         HDLitMasterNode.RefractionDistanceSlotId,
-        //     },
-        //     VertexShaderSlots = new List<int>()
-        //     {
-        //         HDLitMasterNode.PositionSlotId,
-        //         HDLitMasterNode.VertexNormalSlotID,
-        //         HDLitMasterNode.VertexTangentSlotID
-        //     },
-        //     UseInPreview = false
-        // };
+        Pass m_PassRaytracingGBuffer = new Pass()
+        {
+        };
 
         private static ActiveFields GetActiveFieldsFromMasterNode(HDLitMasterNode masterNode, ShaderPass pass)
         {
@@ -555,104 +352,108 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             var masterNode = outputNode as HDLitMasterNode;
-
             var subShader = new ShaderGenerator();
-            subShader.AddShaderChunk("SubShader", false);
-            subShader.AddShaderChunk("{", false);
-            subShader.Indent();
+            
+            // TODO: For now this SubShader is used for both MDRPMeshTarget and HDRPMeshRaytracingTarget
+            if(target is HDRPRaytracingMeshTarget)
             {
-                //Handle data migration here as we need to have a renderingPass already set with accurate data at this point.
-                if (masterNode.renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                if(mode == GenerationMode.ForReals)
                 {
-                    switch (masterNode.surfaceType)
+                    subShader.AddShaderChunk("SubShader", false);
+                    subShader.AddShaderChunk("{", false);
+                    subShader.Indent();
                     {
-                        case SurfaceType.Opaque:
-                            masterNode.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
-                            break;
-                        case SurfaceType.Transparent:
-#pragma warning disable CS0618 // Type or member is obsolete
-                            if (masterNode.m_DrawBeforeRefraction)
-                            {
-                                masterNode.m_DrawBeforeRefraction = false;
-#pragma warning restore CS0618 // Type or member is obsolete
-                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
-                            }
-                            else
-                            {
-                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.Transparent;
-                            }
-                            break;
-                        default:
-                            throw new System.ArgumentException("Unknown SurfaceType");
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitIndirect, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitVisibility, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitForward, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitGBuffer, mode, subShader, sourceAssetDependencyPaths);
                     }
-                }
-
-                // Add tags at the SubShader level
-                int queue = HDRenderQueue.ChangeType(masterNode.renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
-                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
-
-                // generate the necessary shader passes
-                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
-                bool distortionActive = !opaque && masterNode.distortion.isOn;
-                bool transparentBackfaceActive = !opaque && masterNode.backThenFrontRendering.isOn;
-                bool transparentDepthPrepassActive = !opaque && masterNode.alphaTestDepthPrepass.isOn;
-                bool transparentDepthPostpassActive = !opaque && masterNode.alphaTestDepthPostpass.isOn;
-
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitSceneSelection, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitDepthOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitGBuffer, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitMotionVectors, mode, subShader, sourceAssetDependencyPaths);
-
-                if (distortionActive)
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitDistortion, mode, subShader, sourceAssetDependencyPaths);
-                }
-
-                if (transparentBackfaceActive)
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentBackface, mode, subShader, sourceAssetDependencyPaths);
-                }
-
-                if(opaque)
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitForwardOpaque, mode, subShader, sourceAssetDependencyPaths);
-                }
-                else
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitForwardTransparent, mode, subShader, sourceAssetDependencyPaths);
-                }
-                
-                if (transparentDepthPrepassActive)
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentDepthPrepass, mode, subShader, sourceAssetDependencyPaths);
-                }
-
-                if (transparentDepthPostpassActive)
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
+                    subShader.Deindent();
+                    subShader.AddShaderChunk("}", false);
                 }
             }
-            subShader.Deindent();
-            subShader.AddShaderChunk("}", false);
+            else // HDRPMeshTarget
+            {
+                subShader.AddShaderChunk("SubShader", false);
+                subShader.AddShaderChunk("{", false);
+                subShader.Indent();
+                {
+                    //Handle data migration here as we need to have a renderingPass already set with accurate data at this point.
+                    if (masterNode.renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                    {
+                        switch (masterNode.surfaceType)
+                        {
+                            case SurfaceType.Opaque:
+                                masterNode.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+                                break;
+                            case SurfaceType.Transparent:
+#pragma warning disable CS0618  // Type or member is obsolete
+                                if (masterNode.m_DrawBeforeRefraction)
+                                {
+                                    masterNode.m_DrawBeforeRefraction = false;
+#pragma warning restore CS0618  // Type or member is obsolete
+                                    masterNode.renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                                }
+                                else
+                                {
+                                    masterNode.renderingPass = HDRenderQueue.RenderQueueType.Transparent;
+                                }
+                                break;
+                            default:
+                                throw new System.ArgumentException("Unknown SurfaceType");
+                        }
+                    }
 
-// #if ENABLE_RAYTRACING
-//             if(mode == GenerationMode.ForReals)
-//             {
-//                 subShader.AddShaderChunk("SubShader", false);
-//                 subShader.AddShaderChunk("{", false);
-//                 subShader.Indent();
-//                 {
-//                     GenerateShaderPassLit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
-//                     GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
-//                     GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
-//                     GenerateShaderPassLit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
-//                 }
-//                 subShader.Deindent();
-//                 subShader.AddShaderChunk("}", false);
-//             }
-// #endif
+                    // Add tags at the SubShader level
+                    int queue = HDRenderQueue.ChangeType(masterNode.renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
+                    HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
+
+                    // generate the necessary shader passes
+                    bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
+                    bool distortionActive = !opaque && masterNode.distortion.isOn;
+                    bool transparentBackfaceActive = !opaque && masterNode.backThenFrontRendering.isOn;
+                    bool transparentDepthPrepassActive = !opaque && masterNode.alphaTestDepthPrepass.isOn;
+                    bool transparentDepthPostpassActive = !opaque && masterNode.alphaTestDepthPostpass.isOn;
+
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitMETA, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitSceneSelection, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitDepthOnly, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+
+                    if (distortionActive)
+                    {
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitDistortion, mode, subShader, sourceAssetDependencyPaths);
+                    }
+
+                    if (transparentBackfaceActive)
+                    {
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentBackface, mode, subShader, sourceAssetDependencyPaths);
+                    }
+
+                    if(opaque)
+                    {
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitForwardOpaque, mode, subShader, sourceAssetDependencyPaths);
+                    }
+                    else
+                    {
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitForwardTransparent, mode, subShader, sourceAssetDependencyPaths);
+                    }
+                    
+                    if (transparentDepthPrepassActive)
+                    {
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentDepthPrepass, mode, subShader, sourceAssetDependencyPaths);
+                    }
+
+                    if (transparentDepthPostpassActive)
+                    {
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
+                    }
+                }
+                subShader.Deindent();
+                subShader.AddShaderChunk("}", false);
+            }
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""");
 
             return subShader.GetShaderString(0);

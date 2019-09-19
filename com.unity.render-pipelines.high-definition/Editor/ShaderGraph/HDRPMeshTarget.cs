@@ -2258,6 +2258,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 scope = KeywordScope.Global,
             };
 
+            public static KeywordDescriptor DiffuseLightingOnly = new KeywordDescriptor()
+            {
+                displayName = "Diffuse Lighting Only",
+                referenceName = "DIFFUSE_LIGHTING_ONLY",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
             public static KeywordDescriptor LightLayers = new KeywordDescriptor()
             {
                 displayName = "Light Layers",
