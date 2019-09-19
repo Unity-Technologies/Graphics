@@ -93,11 +93,10 @@ namespace UnityEditor.VFX
                     {
                         var type = GetSGPropertyType(property);
                         PropertyInfo info = property.GetType().GetProperty("value", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                        return VFXConverter.ConvertTo(info?.GetValue(property),type);
+                        return VFXConverter.ConvertTo(info?.GetValue(property), type);
                     }
             }
         }
-
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -106,7 +105,10 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
                 if (shaderGraph != null)
-                    yield return "colorMappingMode";
+                {
+                    yield return "colorMapping";
+                    yield return "useAlphaClipping";
+                }
                 if (!VFXViewPreference.displayExperimentalOperator)
                     yield return "shaderGraph";
 

@@ -30,7 +30,7 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 	if (relativeIndex < stripData.nextIndex - 1)
 	{
 		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
-		prevTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
+		nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
 	}
 	
 	return normalize(prevTangent + nextTangent);
