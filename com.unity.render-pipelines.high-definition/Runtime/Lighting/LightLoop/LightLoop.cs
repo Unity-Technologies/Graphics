@@ -1284,28 +1284,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.up    *= 2.0f / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
 
                 // If we have shadows, we need to shrink the valid range so that we don't leak light due to filtering going out of bounds.
-                lightData.boxLightSafeExtent = 1;
+                lightData.boxLightSafeExtent = 1.0f;
                 if (shadowIndex >= 0)
                 {
                     // We subtract a bit from the safe extent depending on shadow resolution
                     float shadowRes = additionalLightData.shadowResolution.Value(m_ShadowInitParameters.shadowResolutionPunctual);
-
-                    // The idea is to subtract as much as 0.05 for big lights
-                    float shadowResFactor = Mathf.Lerp(0.05f, 0.001f, shadowRes / 2048.0f);
-                    // Scale the factor down if the light is small.
-                    float boxArea = additionalLightData.shapeWidth * additionalLightData.shapeHeight;
-
-                    // Shape correction factor
-                    float shapeCorrection = Mathf.Lerp(shadowResFactor, 0.0f, boxArea / 8.0f);
-                    shadowResFactor += shapeCorrection;
-
-                    // This is a wacky heuristic based on size of the box and shadow resolution.
-                    lightData.boxLightSafeExtent = 1.0f - Mathf.Clamp(shadowResFactor, 0.01f, 0.06f);
- //                   Debug.Log(Mathf.Clamp(shadowResFactor, 0.01f, 0.06f));
-                }
-                else
-                {
-                    lightData.boxLightSafeExtent = 1;
+                    shadowRes = Mathf.Clamp(shadowRes, 128.0f, 2048.0f); // Clamp in a somewhat plausible range.
+                    // The idea is to subtract as much as 0.05 for small resolutions.
+                    float shadowResFactor = Mathf.Lerp(0.05f, 0.01f, Mathf.Max(shadowRes / 2048.0f, 0.0f));
+                    lightData.boxLightSafeExtent = 1.0f - shadowResFactor;
                 }
             }
             else if (lightData.lightType == GPULightType.ProjectorPyramid)
