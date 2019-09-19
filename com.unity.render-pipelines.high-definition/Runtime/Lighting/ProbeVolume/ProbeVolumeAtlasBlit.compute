@@ -10,9 +10,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeSystem.cs.hlsl"
 
 StructuredBuffer<SphericalHarmonicsL1> _ProbeVolumeAtlasReadBuffer;
-RWTexture2D<float4> _ProbeVolumeAtlasWriteTextureShAr;
-RWTexture2D<float4> _ProbeVolumeAtlasWriteTextureShAg;
-RWTexture2D<float4> _ProbeVolumeAtlasWriteTextureShAb;
+RWTexture2DArray<float4> _ProbeVolumeAtlasWriteTextureSH;
 
 uint _ProbeVolumeAtlasReadBufferCount;
 float3 _ProbeVolumeResolution;
@@ -62,7 +60,7 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
         _ProbeVolumeAtlasResolutionAndInverse
     );
 
-    _ProbeVolumeAtlasWriteTextureShAr[writeIndex] = _ProbeVolumeAtlasReadBuffer[readIndex].shAr;
-    _ProbeVolumeAtlasWriteTextureShAg[writeIndex] = _ProbeVolumeAtlasReadBuffer[readIndex].shAg;
-    _ProbeVolumeAtlasWriteTextureShAb[writeIndex] = _ProbeVolumeAtlasReadBuffer[readIndex].shAb;
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 0)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAr;
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 1)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAg;
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 2)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAb;
 }

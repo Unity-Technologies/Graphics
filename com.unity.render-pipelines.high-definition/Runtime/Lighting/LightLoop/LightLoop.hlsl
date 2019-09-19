@@ -557,18 +557,18 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                             float2 probeVolumeAtlasUV2DFront = probeVolumeTexel2DFront * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
                             float lerpZ = frac(probeVolumeTexel3D.z - 0.5);
                             sampleShAr = lerp(
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAr, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0),
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAr, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0),
+                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  0, 0),
+                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0, 0),
                                 lerpZ
                             );
                             sampleShAg = lerp(
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAg, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0),
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAg, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0),
+                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  1, 0),
+                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 1, 0),
                                 lerpZ
                             );
                             sampleShAb = lerp(
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAb, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack, 0),
-                                SAMPLE_TEXTURE2D_LOD(_ProbeVolumeAtlasShAb, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0),
+                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  2, 0),
+                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 2, 0),
                                 lerpZ
                             );
                         }
