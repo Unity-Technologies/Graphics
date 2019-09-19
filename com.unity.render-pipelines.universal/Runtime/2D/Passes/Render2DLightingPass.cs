@@ -14,8 +14,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
-        //static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_CombinedRenderingPassName };
-
+        
         public Render2DLightingPass(Renderer2DData rendererData)
         {
             if (s_SortingLayers == null)
@@ -38,7 +37,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.Clear();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererLighting.CreateRenderTextures(cmd, camera);
+            ref var targetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
+            RendererLighting.CreateRenderTextures(cmd, targetDescriptor.width, targetDescriptor.height);
             Profiler.EndSample();
 
             cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
@@ -103,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if UNITY_EDITOR
                     cmd.name = "Render Light Volumes" + SortingLayer.IDToName(layerToRender);
 #endif
-                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
+                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment[0]);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                 }

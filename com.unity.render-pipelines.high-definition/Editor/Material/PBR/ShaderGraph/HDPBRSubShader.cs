@@ -55,7 +55,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = true,
 
@@ -63,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as PBRMasterNode;
                 GetStencilStateForGBuffer(true, false, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
 
                 // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
                 // Don't do it with debug display mode as it is possible there is no depth prepass in this case
@@ -144,9 +147,16 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
-            UseInPreview = false
+            UseInPreview = false,
+            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
+            {
+                var masterNode = node as PBRMasterNode;
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
+            }
         };
 
         Pass m_SceneSelectionPass = new Pass()
@@ -173,7 +183,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -229,7 +241,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = true,
 
@@ -237,6 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as PBRMasterNode;
                 GetStencilStateForDepthOrMV(false, true, false, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
             }
         };
 
@@ -265,7 +280,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
 
@@ -273,6 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var masterNode = node as PBRMasterNode;
                 GetStencilStateForDepthOrMV(false, true, true, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
             }
         };
 
@@ -321,7 +339,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
 
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -329,6 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as PBRMasterNode;
 
                 GetBlendMode(masterNode.surfaceType, masterNode.alphaMode, ref pass);
+                GetCullMode(masterNode.twoSided.isOn, ref pass);
 
                 pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
 
@@ -522,7 +543,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) ||
+                    masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

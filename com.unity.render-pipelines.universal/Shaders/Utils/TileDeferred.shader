@@ -219,7 +219,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                     float3 L = light.wsPos - wsPos.xyz;
                     half att = dot(L, L) < light.radius*light.radius ? 1.0 : 0.0;
 
-                    color += light.color.rgb * att * 0.1; // + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
+                    color += light.color.rgb * att * 0.1 + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
                 }
 
                 return half4(color, 0.0);

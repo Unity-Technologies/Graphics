@@ -9,7 +9,7 @@ using Unity.Collections;
 // TODO use Unity.Mathematics
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     // Render all tiled-based deferred lights.
     internal class DeferredPass : ScriptableRenderPass

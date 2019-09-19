@@ -43,12 +43,17 @@ Pass
 		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD3;
 		#endif
 		VFX_OPTIONAL_INTERPOLATION float3 normal : TEXCOORD4;
-		#if USE_NORMAL_MAP || USE_NORMAL_BENDING
+		#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER || SHADERGRAPH_HAS_NORMAL
 		VFX_OPTIONAL_INTERPOLATION float3 tangent : TEXCOORD5;
 		#endif
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;
 		#endif
+        #if VFX_NEEDS_POSWS_INTERPOLATOR
+            float3 posWS : TEXCOORD7;
+        #endif
+
+        ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -63,8 +68,11 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 #define VFX_VARYING_NORMAL normal
-#if USE_NORMAL_MAP || USE_NORMAL_BENDING
+#if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER || SHADERGRAPH_HAS_NORMAL
 #define VFX_VARYING_TANGENT tangent
+#endif
+#if VFX_NEEDS_POSWS_INTERPOLATOR
+    #define VFX_VARYING_POSWS posWS
 #endif
 #if USE_NORMAL_BENDING
 #define VFX_VARYING_BENTFACTORS bentFactors
@@ -76,8 +84,9 @@ ${VFXEnd}
 	
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}
 	#define SHADERPASS SHADERPASS_GBUFFER
-	${VFXIncludeRP("VFXLit.template")}
-					
+    ${VFXIncludeRP("VFXLit.template")}
+			
+    ${SHADERGRAPH_PIXEL_CODE_GBUFFER}
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
 	#if USE_DOUBLE_SIDED
@@ -87,8 +96,18 @@ ${VFXEnd}
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
-		${VFXComputeNormalWS}		
-		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
+		${VFXComputeNormalWS}
+
+        #ifdef VFX_SHADERGRAPH
+           ${VFXAdditionalInterpolantsPreparation}
+           ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
+           ${VFXIncludeRP("VFXSGSurfaceData.template")}
+            
+           VFXSetupBuiltin(builtin,surface,builtin.emissiveColor, i);
+           ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
+        #else
+            VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
+        #endif
 	}
 	ENDHLSL
 }

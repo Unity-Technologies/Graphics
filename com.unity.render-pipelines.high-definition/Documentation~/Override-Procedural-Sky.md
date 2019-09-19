@@ -6,7 +6,7 @@ This sky is similar to the procedural sky in Unity’s built-in render pipeline.
 
 ## Deprecation
 
-HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Based Sky](Override-Physically-Based-Sky). To use Procedural Sky for HDRP Projects in Unity 2019.3 or later, follow the instructions on the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
+HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Based Sky](Override-Physically-Based-Sky.html). To use Procedural Sky for HDRP Projects in Unity 2019.3 or later, follow the instructions on the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
 
 ## Using Procedural Sky
 

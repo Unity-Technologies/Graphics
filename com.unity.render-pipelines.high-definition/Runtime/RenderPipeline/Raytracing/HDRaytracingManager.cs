@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.HighDefinition;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -101,7 +102,9 @@ namespace UnityEngine.Rendering.HighDefinition
         BlueNoise m_BlueNoise = null;
 
         // Denoisers
+        HDTemporalFilter m_TemporalFilter = new HDTemporalFilter();
         HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
+        HDDiffuseDenoiser m_DiffuseDenoiser = new HDDiffuseDenoiser();
 
         // Ray-count manager data
         RayCountManager m_RayCountManager = new RayCountManager();
@@ -135,8 +138,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 RegisterEnvironment(environmentArray[envIdx]);
             }
 
-            // Init the simple denoiser
+            // Init the denoisers
+            m_TemporalFilter.Init(rayTracingResources, m_SharedRTManager);
             m_SimpleDenoiser.Init(rayTracingResources, m_SharedRTManager);
+            m_DiffuseDenoiser.Init(rpResources, rayTracingResources, m_SharedRTManager);
 
             // Init the ray count manager
             m_RayCountManager.Init(rayTracingResources, currentDebugDisplaySettings);
@@ -153,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdPipeline != null)
             {
-                hdPipeline.m_RayTracingManager.SetDirty();
+                hdPipeline.SetRayTracingSceneDirty();
             }
         }
 #endif
@@ -174,8 +179,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Clear the sub-scenes list
             m_SubScenes.Clear();
 
+            m_TemporalFilter.Release();
             m_SimpleDenoiser.Release();
-
+            m_DiffuseDenoiser.Release();
             m_RayCountManager.Release();
         }
 
@@ -394,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // This function finds which subscenes are going to be used for the camera and computes their light clusters
+        // This function finds which sub-scenes are going to be used for the camera and computes their light clusters
         public void UpdateCameraData(CommandBuffer cmd, HDCamera hdCamera)
         {
             // Set all the acceleration structures that are currently allocated to not updated
@@ -459,6 +465,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Create the acceleration structure
                 subScene.accelerationStructure = new Experimental.Rendering.RayTracingAccelerationStructure();
 
+                // We need to define the maximal number of meshes for our geometries
+                int maxNumSubMeshes = 1;
+
                 // First of all let's process all the LOD groups
                 LODGroup[] lodGroupArray = UnityEngine.GameObject.FindObjectsOfType<LODGroup>();
                 for (var i = 0; i < lodGroupArray.Length; i++)
@@ -482,8 +491,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                 // Is this object in one of the allowed layers ?
                                 if ((objectLayerValue & subScene.mask.value) != 0)
                                 {
+                                    Renderer currentRenderer = currentLOD.renderers[rendererIdx];
+
                                     // Add this fella to the renderer list
-                                    subScene.targetRenderers.Add(currentLOD.renderers[rendererIdx]);
+                                    subScene.targetRenderers.Add(currentRenderer);
+
+                                    // Also, we need to contribute to the maximal number of sub-meshes
+                                    MeshFilter currentFilter = currentRenderer.GetComponent<MeshFilter>();
+                                    if (currentFilter != null && currentFilter.sharedMesh != null)
+                                    {
+                                        maxNumSubMeshes = Mathf.Max(maxNumSubMeshes, currentFilter.sharedMesh.subMeshCount);
+                                    }
                                 }
                             }
                         }
@@ -499,7 +517,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                int maxNumSubMeshes = 1;
 
                 // Grab all the renderers from the scene
                 var rendererArray = UnityEngine.GameObject.FindObjectsOfType<Renderer>();
@@ -559,7 +576,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // For every sub-mesh/sub-material let's build the right flags
                             int numSubMeshes = currentRenderer.sharedMaterials.Length;
 
-                            uint instanceFlag = 0xff;
+                            // We need to build the instance flag for this renderer
+                            uint instanceFlag = 0x00;
+
+                            // Incorporate the shadow casting flag
+                            instanceFlag |= ((currentRenderer.shadowCastingMode == ShadowCastingMode.On) ? (uint)(1 << 2) : 0x00);
+
                             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                             {
                                 Material currentMaterial = currentRenderer.sharedMaterials[meshIdx];
@@ -576,7 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
 
                                     // Propagate the right mask
-                                    instanceFlag = materialIsTransparent ? (uint)0xf0 : (uint)0x0f;
+                                    instanceFlag |= materialIsTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
 
                                     // Is the material alpha tested?
                                     subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
@@ -721,10 +743,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_BlueNoise;
         }
+        public HDTemporalFilter GetTemporalFilter()
+        {
+            return m_TemporalFilter;
+        }
 
         public HDSimpleDenoiser GetSimpleDenoiser()
         {
             return m_SimpleDenoiser;
+        }
+
+        public HDDiffuseDenoiser GetDiffuseDenoiser()
+        {
+            return m_DiffuseDenoiser;
         }
 
         public HDRenderPipeline GetRenderPipeline()

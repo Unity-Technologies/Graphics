@@ -9,6 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitSubShader")]
     class HDLitSubShader : IHDLitSubShader
     {
+        internal static string DefineRaytracingKeyword(RayTracingNode.RaytracingVariant variant)
+            => $"#define {RayTracingNode.RaytracingVariantKeyword(variant)}";
+
         Pass m_PassGBuffer = new Pass()
         {
             Name = "GBuffer",
@@ -27,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ SHADOWS_SHADOWMASK",
                 "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
                 "#pragma multi_compile _ LIGHT_LAYERS",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -71,7 +75,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -101,6 +107,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
+            },
+            ExtraDefines = new List<string>()
+            {
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             RequiredFields = new List<string>()
             {
@@ -156,6 +166,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
             CullOverride = HDSubShaderUtilities.defaultCullMode,
             ZWriteOverride = HDSubShaderUtilities.zWriteOn,
+            ExtraDefines = new List<string>()
+            {
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
@@ -169,7 +183,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false,
         };
@@ -186,6 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -199,7 +216,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -248,7 +267,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -301,7 +322,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false,
 
@@ -320,6 +343,10 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_DISTORTION",
             ZWriteOverride = HDSubShaderUtilities.zWriteOff,
+            ExtraDefines = new List<string>()
+            {
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
@@ -344,7 +371,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -393,6 +422,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_PREPASS",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -406,7 +436,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
         };
@@ -464,7 +496,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -487,6 +521,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
+            },
+            ExtraDefines = new List<string>()
+            {
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             RequiredFields = new List<string>()
             {
@@ -527,7 +565,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -564,6 +604,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -577,7 +618,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
         };
@@ -596,7 +639,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#pragma multi_compile _ DIFFUSE_LIGHTING_ONLY",
                 "#define SHADOW_LOW",
-                "#define SKIP_RASTERIZED_SHADOWS",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
             },
             Includes = new List<string>()
             {
@@ -631,7 +674,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -643,6 +688,10 @@ namespace UnityEditor.Rendering.HighDefinition
             TemplateName = "HDLitRaytracingPass.template",
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_RAYTRACING_VISIBILITY",
+            ExtraDefines = new List<string>()
+            {
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
+            },
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
@@ -676,7 +725,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -694,7 +745,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#define SHADOW_LOW",
-                "#define SKIP_RASTERIZED_SHADOWS",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },
             Includes = new List<string>()
             {
@@ -729,7 +780,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -747,6 +800,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#define SHADOW_LOW",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },
             Includes = new List<string>()
             {
@@ -781,7 +835,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -1039,7 +1095,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(HDLitMasterNode.VertexNormalSlotID) ||
+                    masterNode.IsSlotConnected(HDLitMasterNode.VertexTangentSlotID) )
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

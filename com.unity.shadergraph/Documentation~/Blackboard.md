@@ -1,15 +1,16 @@
 # Blackboard
 
 ## Description
+The Blackboard lists [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) and [Keywords](Keywords) available for use in the graph. Here, you can define a range of Property and Keyword types, and the corresponding names, attributes, and default values. You can also expose Properties and Keywords to Materials that use the shader.
 
-The **Blackboard** defines the [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) that will be exposed to materials using the shader. Here you can define a range of [Property](https://docs.unity3d.com/Manual/SL-Properties.html) types as well as their various names, attributes and default values.
+To change the path of a [Shader Graph Asset](Shader-Graph-Asset), click on its path field in the Blackboard, and enter the new path. The Unity Editor uses the Shader Graph path to list the corresponding Shader Graph Asset in the Material Inspector's **Shader** drop-down menu. Similarly, you can change the path field of a [Sub Graph](Sub-graph). The Editor uses the Sub Graph path to list the corresponding Sub Graph Asset in the [Create Node Menu](Create-Node-Menu).
 
-You can also rename the [Shader Graph Asset](Shader-Graph-Asset.md) and change its path in the shader dropdown list by selecting their fields in the **Blackboard**'s title bar. When editing a [Sub-graph](Sub-graph.md) the path field will set the [Sub-graph's](Sub-graph.md) path in the [Create Node Menu](Create-Node-Menu.md).
+![](images/blackboard_shadergraph_path.png) ![](images/blackboard_subgraph_path.png)
 
-The **Blackboard** can be moved to anywhere in the [Shader Graph Window](Shader-Graph-Window.md) and will automatically move with the nearest corner of that window.
+You can move the Blackboard anywhere in the [Shader Graph Window](Shader-Graph-Window). It always maintains the same distance from the nearest corner, even if you resize the window.
 
-To create a new [Property](https://docs.unity3d.com/Manual/SL-Properties.html), click the *Add* button on the **Blackboard** title bar and select the [Property](https://docs.unity3d.com/Manual/SL-Properties.html) type.
+To create a new Property or Keyword, click the **Add (+)** button on the Blackboard's title bar, and select a Property or Keyword type.
 
-[Properties](https://docs.unity3d.com/Manual/SL-Properties.html) on the **Blackboard** can be reordered by dragging them in the list. They can be deleted with Delete (Windows) or Command + Backpace (OSX). You can rename a [Property](https://docs.unity3d.com/Manual/SL-Properties.html) by double clicking on its entry. Instances of a [Property](https://docs.unity3d.com/Manual/SL-Properties.html) can be created in the shader by dragging them on to the **Graph**.
+To reorder items listed on the Blackboard, drag and drop them. To delete items, use the Delete key on Windows, or the Command + Backspace key combination on OS X. To rename an item, double-click on its name, and enter a new name. Drag Properties and Keywords from the Blackboard to the graph to create a corresponding node.
 
-For a full list of [Property](https://docs.unity3d.com/Manual/SL-Properties.html) types see [Property Types](Property-Types.md).
+For a full list of Property types, see [Property Types](Property-Types).

@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
                 , argOut);
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             ValidateChannelCount();
             string inputValue = GetSlotValue(InputSlotId, generationMode);
@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph
             return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>

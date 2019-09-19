@@ -7,7 +7,7 @@ using Unity.Collections;
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
 // TODO Align() function duplicated. Is there an Unity function for that?
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     // Customization per platform.
     static class DeferredConfig

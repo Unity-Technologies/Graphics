@@ -1,3 +1,6 @@
+// If you edit this file, be sure to check out if your moditications will impact CustomPassRenderers.hlsl
+// and CustomPassRenderersShader.template
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"

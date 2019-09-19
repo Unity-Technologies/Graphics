@@ -7,7 +7,7 @@
 float4x4 _PixelCoordToViewDirWS;
 
 #if defined(USING_STEREO_MATRICES)
-    #define _PixelCoordToViewDirWS   _XRViewConstants[unity_StereoEyeIndex].pixelCoordToViewDirWS
+    #define _PixelCoordToViewDirWS  _XRPixelCoordToViewDirWS[unity_StereoEyeIndex]
 #endif
 
 // Generates a world-space view direction for sky and atmospheric effects

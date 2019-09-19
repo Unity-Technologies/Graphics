@@ -5,6 +5,7 @@ using Data.Util;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
@@ -22,6 +23,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class HDRPShaderStructs
     {
+        public static string s_ResourceClassName => typeof(HDRPShaderStructs).FullName;
+
+        public static string s_AssemblyName => typeof(HDRPShaderStructs).Assembly.FullName.ToString();
+
         internal struct AttributesMesh
         {
             [Semantic("POSITION")]                  Vector3 positionOS;
@@ -48,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             [Optional]                                                              Vector4 texCoord3;
             [Optional]                                                              Vector4 color;
             [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
-            [Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")] bool cullFace;
+            [Semantic("FRONT_FACE_SEMANTIC")][SystemGenerated][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")] bool cullFace;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
@@ -665,10 +670,10 @@ namespace UnityEditor.Rendering.HighDefinition
             graphRequirements.UnionWith(vertexRequirements);
 
             // build the graph outputs structure, and populate activeFields with the fields of that structure
-            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.baseInstance);
+            SubShaderGenerator.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, pixelGraphOutputStructName, activeFields.baseInstance);
 
             // Build the graph evaluation code, to evaluate the specified slots
-            GraphUtil.GenerateSurfaceDescriptionFunction(
+            SubShaderGenerator.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 keywordPermutationsPerPixelNode,
                 masterNode,
@@ -698,11 +703,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // -------------------------------------
                 // Generate Output structure for Vertex Description function
-                GraphUtil.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields.baseInstance);
+                SubShaderGenerator.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields.baseInstance);
 
                 // -------------------------------------
                 // Generate Vertex Description function
-                GraphUtil.GenerateVertexDescriptionFunction(
+                SubShaderGenerator.GenerateVertexDescriptionFunction(
                     masterNode.owner as GraphData,
                     vertexGraphEvalFunction,
                     functionRegistry,
@@ -725,9 +730,21 @@ namespace UnityEditor.Rendering.HighDefinition
             var zClipCode = new ShaderStringBuilder();
             var stencilCode = new ShaderStringBuilder();
             var colorMaskCode = new ShaderStringBuilder();
+            var dotsInstancingCode = new ShaderStringBuilder();
             HDSubShaderUtilities.BuildRenderStatesFromPass(pass, blendCode, cullCode, zTestCode, zWriteCode, zClipCode, stencilCode, colorMaskCode);
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields.baseInstance);
+            int instancedCount = sharedProperties.GetDotsInstancingPropertiesCount(mode);
+
+            if (instancedCount > 0)
+            {
+                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                dotsInstancingCode.AppendLine("// Dots Instancing vars");
+                dotsInstancingCode.AppendLine("//-------------------------------------------------------------------------------------");
+                dotsInstancingCode.AppendLine("");
+
+                dotsInstancingCode.Append(sharedProperties.GetDotsInstancingPropertiesDeclaration(mode));
+            }
 
             // Get keyword declarations
             sharedKeywords.GetKeywordsDeclaration(shaderKeywordDeclarations, mode);
@@ -752,17 +769,31 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // build graph inputs structures
             ShaderGenerator pixelGraphInputs = new ShaderGenerator();
-            ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.SurfaceDescriptionInputs), activeFields, pixelGraphInputs);
+            ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.SurfaceDescriptionInputs), activeFields, pixelGraphInputs, debugOutput);
             ShaderGenerator vertexGraphInputs = new ShaderGenerator();
-            ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs);
+            ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs, debugOutput);
 
             ShaderGenerator instancingOptions = new ShaderGenerator();
             {
                 instancingOptions.AddShaderChunk("#pragma multi_compile_instancing", true);
-                if (pass.ExtraInstancingOptions != null)
+                if (instancedCount > 0)
                 {
-                    foreach (var instancingOption in pass.ExtraInstancingOptions)
-                        instancingOptions.AddShaderChunk(instancingOption);
+                    instancingOptions.AddShaderChunk("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
+                    instancingOptions.AddShaderChunk("#define UNITY_SUPPORT_INSTANCING");
+                    instancingOptions.AddShaderChunk("#endif");
+                    instancingOptions.AddShaderChunk("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
+                    instancingOptions.AddShaderChunk("#define UNITY_DOTS_INSTANCING_ENABLED");
+                    instancingOptions.AddShaderChunk("#endif");
+                    instancingOptions.AddShaderChunk("#pragma instancing_options nolightprobe");
+                    instancingOptions.AddShaderChunk("#pragma instancing_options nolodfade");
+                }
+                else
+                {
+                    if (pass.ExtraInstancingOptions != null)
+                    {
+                        foreach (var instancingOption in pass.ExtraInstancingOptions)
+                            instancingOptions.AddShaderChunk(instancingOption);
+                    }
                 }
             }
 
@@ -884,14 +915,12 @@ namespace UnityEditor.Rendering.HighDefinition
             namedFragments.Add("ZClip", zClipCode.ToString());
             namedFragments.Add("Stencil", stencilCode.ToString());
             namedFragments.Add("ColorMask", colorMaskCode.ToString());
-
-            // this is the format string for building the 'C# qualified assembly type names' for $buildType() commands
-            string buildTypeAssemblyNameFormat = "UnityEditor.Rendering.HighDefinition.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
+            namedFragments.Add("DotsInstancedVars", dotsInstancingCode.ToString());
 
             string sharedTemplatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
             // process the template to generate the shader code for this pass
             ShaderSpliceUtil.TemplatePreprocessor templatePreprocessor =
-                new ShaderSpliceUtil.TemplatePreprocessor(activeFields, namedFragments, debugOutput, sharedTemplatePath, sourceAssetDependencyPaths, buildTypeAssemblyNameFormat);
+                new ShaderSpliceUtil.TemplatePreprocessor(activeFields, namedFragments, debugOutput, sharedTemplatePath, sourceAssetDependencyPaths, HDRPShaderStructs.s_AssemblyName, HDRPShaderStructs.s_ResourceClassName);
 
             templatePreprocessor.ProcessTemplateFile(templateLocation);
 
@@ -977,19 +1006,22 @@ namespace UnityEditor.Rendering.HighDefinition
             "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
             "#define USE_CLUSTERED_LIGHTLIST",
-            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH"
+            "#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH",
+            HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
 
         public static List<string> s_ExtraDefinesForwardMaterialDepthOrMotion = new List<string>()
         {
             "#define WRITE_NORMAL_BUFFER",
-            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH",
+            HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
 
         public static List<string> s_ExtraDefinesDepthOrMotion = new List<string>()
         {
             "#pragma multi_compile _ WRITE_NORMAL_BUFFER",
-            "#pragma multi_compile _ WRITE_MSAA_DEPTH"
+            "#pragma multi_compile _ WRITE_MSAA_DEPTH",
+            HDLitSubShader.DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
         };
 
         public static void SetStencilStateForDepth(ref Pass pass)
@@ -1204,14 +1236,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);
-            collector.AddShaderProperty(new Vector1ShaderProperty{
-                overrideReferenceName = "_AlphaCutoff",
-                displayName = "Alpha Cutoff",
-                floatType = FloatType.Slider,
-                rangeValues = new Vector2(0, 1),
-                hidden = true,
-                value = 0.5f
-            });
             collector.AddFloatProperty("_TransparentSortPriority", "_TransparentSortPriority", 0);
             collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold);
         }

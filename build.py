@@ -13,6 +13,7 @@ def packages_list():
         ("com.unity.render-pipelines.high-definition", os.path.join("com.unity.render-pipelines.high-definition")),
         ("com.unity.render-pipelines.high-definition-config", os.path.join("com.unity.render-pipelines.high-definition-config")),
         ("com.unity.testing.visualeffectgraph", os.path.join("com.unity.testing.visualeffectgraph")),
+        ("com.unity.testing.hdrp", os.path.join("com.unity.testing.hdrp")),
         ("com.unity.testframework.graphics", os.path.join("com.unity.testframework.graphics"))
     ]
 

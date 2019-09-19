@@ -172,21 +172,31 @@ real ComputeFogFactor(float z)
 #endif
 }
 
-half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
+real ComputeFogIntensity(real fogFactor)
 {
+    real fogIntensity = 0.0h;
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
 #if defined(FOG_EXP)
     // factor = exp(-density*z)
     // fogFactor = density*z compute at vertex
-    fogFactor = saturate(exp2(-fogFactor));
+    fogIntensity = saturate(exp2(-fogFactor));
 #elif defined(FOG_EXP2)
     // factor = exp(-(density*z)^2)
     // fogFactor = density*z compute at vertex
-    fogFactor = saturate(exp2(-fogFactor*fogFactor));
+    fogIntensity = saturate(exp2(-fogFactor * fogFactor));
+#elif defined(FOG_LINEAR)
+    fogIntensity = fogFactor;
 #endif
-    fragColor = lerp(fogColor, fragColor, fogFactor);
 #endif
+    return fogIntensity;
+}
 
+half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
+{
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    real fogIntensity = ComputeFogIntensity(fogFactor);
+    fragColor = lerp(fogColor, fragColor, fogIntensity);
+#endif
     return fragColor;
 }
 

@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -88,6 +89,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
                 m_ExposedToogle.value = input.generatePropertyBlock;
                 AddRow("Exposed", m_ExposedToogle, input.isExposable);
+				
             }
 
             if(!m_Graph.isSubGraph || input is ShaderKeyword)

@@ -74,7 +74,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
             GetBuiltinDataDebug(indexMaterialProperty, builtinData, result, needLinearToSRGB);
             GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
             GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-
+            
             // TEMP!
             // For now, the final blit in the backbuffer performs an sRGB write
             // So in the meantime we apply the inverse transform to linear data to compensate.
@@ -84,7 +84,14 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
             outColor = float4(result, 1.0);
         }
     }
-#endif
 
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    {
+        float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
+        outColor = result;
+    }
+
+#endif
+    
     return outColor;
 }

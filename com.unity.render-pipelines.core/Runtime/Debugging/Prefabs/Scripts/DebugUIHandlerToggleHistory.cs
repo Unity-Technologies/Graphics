@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine.UI;
 
 namespace UnityEngine.Rendering.UI
@@ -39,6 +40,15 @@ namespace UnityEngine.Rendering.UI
                 if (index < historyToggles.Length && historyToggles[index] != null)
                     historyToggles[index].isOn = field.GetHistoryValue(index);
             }
+
+            if (isActiveAndEnabled)
+                StartCoroutine(RefreshAfterSanitization());
+        }
+
+        IEnumerator RefreshAfterSanitization()
+        {
+            yield return null; //wait one frame
+            valueToggle.isOn = m_Field.getter();
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //[VFXInfo] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
+    [VFXInfo(experimental = true)]
     class VFXQuadStripOutput : VFXAbstractParticleOutput
     {
         [VFXSetting, SerializeField]

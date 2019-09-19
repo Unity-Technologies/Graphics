@@ -17,6 +17,9 @@ namespace UnityEditor.VFX.Block
         [SerializeField, VFXSetting, Tooltip("Controls whether particles are spawned based on a rate per second or per parent particle distance travelled")]
         protected Mode mode = Mode.OverTime;
 
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("True to allow one event max per frame")]
+        protected bool clampToOne = true;
+
         public override string name { get { return string.Format("Trigger Event Rate ({0})", ObjectNames.NicifyVariableName(mode.ToString())); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
@@ -84,6 +87,12 @@ namespace UnityEditor.VFX.Block
 uint count = floor({rateCount});
 {rateCount} = frac({rateCount});
 eventCount = count;";
+
+                if (clampToOne)
+                    outSource += @"
+eventCount = min(eventCount,1);
+";
+
                 return outSource;
             }
         }
