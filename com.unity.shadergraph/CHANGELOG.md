@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed 
 - The Editor now displays correct errors for missing or deleted Sub Graph Assets.
 - You can no longer drag and drop recursive nodes onto Sub Graph Assets.
+- Shader Graph no longer references the `NUnit` package.
 
 ## [7.1.1] - 2019-09-05
 ### Added
