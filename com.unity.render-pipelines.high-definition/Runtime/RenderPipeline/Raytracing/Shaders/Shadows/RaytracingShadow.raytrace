@@ -99,7 +99,10 @@ void RayGenAreaShadows()
 
     // Setup and check the spherical rectangle
     SphQuad squad;
-    InitSphericalQuad(lightData, positionWS, squad);
+    if (!InitSphericalQuad(lightData, positionWS, normalData.normalWS, squad))
+    {
+        return;
+    }
     
     // Compute the local frame that matches the normal
     misInput.localToWorld = GetLocalFrame(normalData.normalWS);
