@@ -1,8 +1,8 @@
-* # Getting started with ray tracing
+# Getting started with ray tracing
 
-  The High Definition Render Pipeline (HDRP) includes ray tracing support from Unity 2019.3. Ray tracing hardware acceleration is a feature that allows you to access data that is not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques. 
+The High Definition Render Pipeline (HDRP) includes ray tracing support from Unity 2019.3. Ray tracing hardware acceleration is a feature that allows you to access data that is not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques. 
 
-  While film production uses ray tracing extensively, its resource intensity has limited its use to offline rendering for a long time. Now, with recent advances in GPU hardware, you can make use of ray tracing effect in real time.
+While film production uses ray tracing extensively, its resource intensity has limited its use to offline rendering for a long time. Now, with recent advances in GPU hardware, you can make use of ray tracing effect in real time.
 
   This document covers:
 
@@ -21,7 +21,7 @@
 
   NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
 
-  - NVIDIA Pascal (1060, 1070, 1080 and their TI variants)
+  - NVIDIA Pascal (1060 6GB, 1070, 1080 and their TI variants)
 
   If your computer has one of these graphics cards, it can run ray tracing in Unity.
 
@@ -79,7 +79,7 @@
 
   #### HDRP Asset configuration
 
-  Now that Unity is running in DirectX 12, and you have disabled static batching, enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.html). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
+Now that Unity is running in DirectX 12, and you have disabled static batching, enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.html). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
 
   1. Click on your HDRP Asset in the Project window to view it in the Inspector.
   2. In the Rendering section, enable Realtime Ray Tracing. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
@@ -87,11 +87,11 @@
 
   <a name="TierTable"></a>
 
-  | Tier       | Description                                                  |
-  | ---------- | ------------------------------------------------------------ |
-  | **Tier 1** | Balances performance with quality. Use this tier for games and other high-frame rate applications. |
-  | **Tier 2** | A ray tracing implementation that is significantly more resource-intensive than Tier 1. This allows for effects with higher image quality. Use this tier for automotive, production, or graphics demos. |
-  | **Tier 3** | This tier enables the path tracer which sends rays from the Camera. When a ray hits a reflective or refractive surface, it recurses the process until it reaches a light source. The series of rays from the Camera to the Light forms a "path". This is the most resource intensive ray tracing method in HDRP. Use this tier for automotive, production, or graphics demos. |
+| Tier       | Description                                                  |
+| ---------- | ------------------------------------------------------------ |
+| **Tier 1** | Balances performance with quality. Use this tier for games and other high-frame rate applications. |
+| **Tier 2** | A ray tracing implementation that is significantly more resource-intensive than Tier 1. This allows for effects with higher image quality. Use this tier for automotive, production, or graphics demos. |
+| **Tier 3** | This tier enables the path tracer which sends rays from the Camera. When a ray hits a reflective or refractive surface, it recurses the process until it reaches a light source. The series of rays from the Camera to the Light forms a "path". This is the most resource intensive ray tracing method in HDRP. Use this tier for automotive, production, or graphics demos. |
 
   <a name="ManualSetup-RayTracingResources"></a>
 
@@ -108,7 +108,7 @@
 
   ### Final setup
 
-  Now that your HDRP Project supports ray tracing, there are a few steps you must complete in order to actually use it in your Scene.
+Now that your HDRP Project supports ray tracing, there are a few steps you must complete in order to actually use it in your Scene.
 
   1. [Disable static batching](#FinalSetup-DisablingStaticBatching)
   2. [ShaderConfig macro validation](#FinalSetup-Macros)
@@ -136,7 +136,7 @@
 
   #### Frame Settings
 
-  To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
+  To make HDRP calculate ray tracing effects for [Cameras](HDRP-Camera.html) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
 
   To enable ray tracing by default:
 
