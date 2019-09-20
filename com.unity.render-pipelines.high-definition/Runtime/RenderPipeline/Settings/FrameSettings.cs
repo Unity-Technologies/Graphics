@@ -552,6 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // No recursive reflections
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= !reflection && renderPipelineSettings.supportSSR && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughRefraction] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= !reflection && renderPipelineSettings.supportSubsurfaceScattering;
 

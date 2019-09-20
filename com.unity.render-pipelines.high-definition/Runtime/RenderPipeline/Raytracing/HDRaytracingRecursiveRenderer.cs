@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingPrimaryDebug, m_DebugRaytracingTexture);
 
             // Run the computation
-            cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+            cmd.DispatchRays(forwardShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
 
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             hdrp.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugRaytracingTexture, FullScreenDebugMode.RecursiveRayTracing);

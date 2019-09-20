@@ -55,8 +55,10 @@ RWTexture2DArray<float>     _ScreenSpaceShadowsTextureRW;
 
 // Prepass that evaluates the data required for the ray tracing
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
 
@@ -75,7 +77,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Let's now decode the BSDF data from the  gbuffer
     BSDFData bsdfData;
@@ -105,7 +107,13 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 
     // Setup and check the spherical rectangle
     SphQuad squad;
-    InitSphericalQuad(lightData, positionWS, squad);
+    if (!InitSphericalQuad(lightData, positionWS, bsdfData.normalWS, squad))
+    {
+        // We want this to be flagged as a proper shadow, and not a 0/0 case
+        _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
+        _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)] = float2(-1.0, -1.0);
+        return;
+    }
 
     // Compute the local frame that matches the normal
     misInput.localToWorld = GetLocalFrame(bsdfData.normalWS);
@@ -136,7 +144,7 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     lightData = _LightDatas[_RaytracingTargetAreaLight];
 
     // Here we need to evaluate the diffuseProbablity and the unshadowed lighting
-    if(!EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
+    if (!EvaluateMISProbabilties(lighting, bsdfData.perceptualRoughness, misInput.brdfProb))
     {
         // We want this to be flagged as a proper shadow, and not a 0/0 case
         _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
@@ -219,8 +227,10 @@ void RaytracingAreaShadowPrepass(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 
 // Prepass that evaluates the data required for the ray tracing
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
 
@@ -233,7 +243,7 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
     }
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Let's now decode the BSDF data from the  gbuffer
     BSDFData bsdfData;
@@ -355,8 +365,10 @@ void RaytracingAreaShadowNewSample(uint2 groupThreadId : SV_GroupThreadID, uint2
 RW_TEXTURE2D_X(float, _RaytracedDirectionalShadowIntegration);
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void ClearShadowTexture(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
     _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
@@ -366,8 +378,10 @@ void ClearShadowTexture(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : 
 float _DirectionalLightAngle;
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
 
@@ -377,7 +391,7 @@ void RaytracingDirectionalShadowSample(uint2 groupThreadId : SV_GroupThreadID, u
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Decode the world space normal
     NormalData normalData;
@@ -422,7 +436,7 @@ void RaytracingPointShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 g
         return;
 
     // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Decode the world space normal
     NormalData normalData;
@@ -474,9 +488,14 @@ void RaytracingPointShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 int _RaytracingShadowSlot;
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
-void OutputShadowTexture(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void OutputShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, _RaytracingShadowSlot)] = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
+
+    // Offset shadow slot based on XR setup
+    uint shadowSlot = INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot);
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
 }

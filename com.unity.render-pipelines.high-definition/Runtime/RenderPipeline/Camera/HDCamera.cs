@@ -265,10 +265,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Handle memory allocation.
             {
-                bool isColorPyramidHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing; // TODO: Also need 2 when color buffer is requested on the camera
+                bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
+                bool isHistoryColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && m_frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
 
-                int numColorPyramidBuffersRequired = isColorPyramidHistoryRequired ? 2 : 1; // TODO: 1 -> 0. Only one is needed when only distortion or refraction or enabled (none of the cases above)
+                int numColorPyramidBuffersRequired = 0;
+                if (isCurrentColorPyramidRequired)
+                    numColorPyramidBuffersRequired = 1;
+                if (isHistoryColorPyramidRequired) // Superset of case above
+                    numColorPyramidBuffersRequired = 2;
+
                 int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
 
                 if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
@@ -800,7 +806,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera.camera != null && camera.camera.cameraType == CameraType.SceneView)
                     continue;
 
-                if (camera.camera == null || !camera.camera.isActiveAndEnabled)
+                // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview))
                     s_Cleanup.Add(key);
             }
 
@@ -903,7 +910,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRWorldSpaceCameraPosViewOffset, xrWorldSpaceCameraPosViewOffset);
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRPrevWorldSpaceCameraPos, xrPrevWorldSpaceCameraPos);
             }
-            
+
         }
 
         public RTHandle GetPreviousFrameRT(int id)

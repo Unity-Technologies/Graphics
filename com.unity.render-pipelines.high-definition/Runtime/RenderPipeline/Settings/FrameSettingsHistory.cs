@@ -37,15 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             FrameSettingsHistory IFrameSettingsHistoryContainer.frameSettingsHistory
             {
                 get => m_FrameSettingsHistory;
-                set
-                {
-                    // do not loss the struct position so only change content
-                    m_FrameSettingsHistory.defaultType = value.defaultType;
-                    m_FrameSettingsHistory.customMask = value.customMask;
-                    m_FrameSettingsHistory.overridden = value.overridden;
-                    m_FrameSettingsHistory.sanitazed = value.sanitazed;
-                    m_FrameSettingsHistory.debug = value.debug;
-                }
+                set => m_FrameSettingsHistory = value;
             }
 
             // never used as hasCustomFrameSettings forced to false

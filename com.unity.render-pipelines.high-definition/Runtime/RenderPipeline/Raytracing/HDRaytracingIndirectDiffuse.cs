@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numTilesY = (hdCamera.actualHeight + (areaTileSize - 1)) / areaTileSize;
 
                 // Add the indirect diffuse to the GBuffer
-                cmd.DispatchCompute(indirectDiffuseCS, indirectDiffuseKernel, numTilesX, numTilesY, 1);
+                cmd.DispatchCompute(indirectDiffuseCS, indirectDiffuseKernel, numTilesX, numTilesY, hdCamera.viewCount);
             }
 
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_IDIntermediateBuffer0, FullScreenDebugMode.RayTracedGlobalIllumination);
@@ -130,8 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
             deferredParameters.height = hdCamera.actualHeight;
+            deferredParameters.viewCount = hdCamera.viewCount;
             deferredParameters.fov = hdCamera.camera.fieldOfView;
-
 
             // Compute buffers
             deferredParameters.rayBinResult = m_RayBinResult;
@@ -143,6 +143,13 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.gBufferRaytracingRT = m_Asset.renderPipelineRayTracingResources.gBufferRaytracingRT;
             deferredParameters.deferredRaytracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
             deferredParameters.rayBinningCS = m_Asset.renderPipelineRayTracingResources.rayBinningCS;
+
+            // XRTODO: add ray binning support for single-pass
+            if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
+            {
+                deferredParameters.rayBinning = false;
+                Debug.LogWarning("Ray binning is not supported with XR single-pass rendering!");
+            }
 
             return deferredParameters;
         }
@@ -191,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
                 // Compute the directions
-                cmd.DispatchCompute(indirectDiffuseCS, currentKernel, numTilesXHR, numTilesYHR, 1);
+                cmd.DispatchCompute(indirectDiffuseCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
                 // Prepare the components for the deferred lighting
                 DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera, rtEnvironment);
@@ -211,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
 
                 // Run the computation
-                cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseFullResName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+                cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseFullResName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
 
                 CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
             }
@@ -297,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Run the computation
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
 
-            cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseIntegrationName, (uint)widthResolution, (uint)heightResolution, 1);
+            cmd.DispatchRays(indirectDiffuseRT, m_RayGenIndirectDiffuseIntegrationName, (uint)widthResolution, (uint)heightResolution, (uint)hdCamera.viewCount);
 
             // Disable the keywords we do not need anymore
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);

@@ -21,5 +21,5 @@ float                                   _RaytracingPixelSpreadAngle;
 int                                     _RayCountEnabled;
 float                                   _RaytracingCameraNearPlane;
 uint                                    _RaytracingDiffuseRay;
-RWTexture2D<uint4>                      _RayCountTexture;
 int                                     _RaytracingPreExposition;
+RW_TEXTURE2D_X(uint4,                   _RayCountTexture);

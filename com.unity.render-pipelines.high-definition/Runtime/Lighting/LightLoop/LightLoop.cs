@@ -2969,7 +2969,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
-                cmd.SetGlobalInt(HDShaderIDs._ScreenSpaceShadowArraySize, param.maxScreenSpaceShadows);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(param.hdCamera));

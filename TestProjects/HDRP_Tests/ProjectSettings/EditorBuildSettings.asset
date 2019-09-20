@@ -243,6 +243,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2403_Area_TexturedRectLights.unity
     guid: 3b6ce72f472558240a2a8d61a932c6d0
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2404_Area_LightOrientation.unity
+    guid: e64d4cbd26924f44cb8ecf945d8f899a
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2501_LightLayers.unity
     guid: 100c0e304d8aba84186dcd9bf48e5b85
   - enabled: 1

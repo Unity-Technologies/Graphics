@@ -188,15 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FrameSettingsHistory IFrameSettingsHistoryContainer.frameSettingsHistory
         {
             get => m_RenderingPathHistory;
-            set
-            {
-                // do not loss the struct position so only change content
-                m_RenderingPathHistory.defaultType = value.defaultType;
-                m_RenderingPathHistory.customMask = value.customMask;
-                m_RenderingPathHistory.overridden = value.overridden;
-                m_RenderingPathHistory.sanitazed = value.sanitazed;
-                m_RenderingPathHistory.debug = value.debug;
-            }
+            set => m_RenderingPathHistory = value;
         }
 
         string IFrameSettingsHistoryContainer.panelName

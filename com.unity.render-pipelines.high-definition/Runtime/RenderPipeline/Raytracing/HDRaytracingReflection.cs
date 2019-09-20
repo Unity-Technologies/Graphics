@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
             deferredParameters.height = hdCamera.actualHeight;
+            deferredParameters.viewCount = hdCamera.viewCount;
             deferredParameters.fov = hdCamera.camera.fieldOfView;
 
             // Compute buffers
@@ -148,6 +149,13 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.gBufferRaytracingRT = m_Asset.renderPipelineRayTracingResources.gBufferRaytracingRT;
             deferredParameters.deferredRaytracingCS = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
             deferredParameters.rayBinningCS = m_Asset.renderPipelineRayTracingResources.rayBinningCS;
+
+            // XRTODO: add ray binning support for single-pass
+            if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
+            {
+                deferredParameters.rayBinning = false;
+                Debug.LogWarning("Ray binning is not supported with XR single-pass rendering!");
+            }
 
             return deferredParameters;
         }
@@ -203,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
 
                     // Compute the directions
-                    cmd.DispatchCompute(reflectionShaderCS, currentKernel, numTilesXHR, numTilesYHR, 1);
+                    cmd.DispatchCompute(reflectionShaderCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
                 }
                 else
                 {
@@ -213,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int numTilesYHR = (texHeight / 2 + (areaTileSize - 1)) / areaTileSize;
 
                     // Compute the directions
-                    cmd.DispatchCompute(reflectionShaderCS, currentKernel, numTilesXHR, numTilesYHR, 1);
+                    cmd.DispatchCompute(reflectionShaderCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
                 }
                 // Prepare the components for the deferred lighting
                 DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera, rtEnvironment);
@@ -230,12 +238,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Run the computation
                 if (settings.fullResolution.value)
                 {
-                    cmd.DispatchRays(reflectionShaderRT, m_RayGenReflectionFullResName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+                    cmd.DispatchRays(reflectionShaderRT, m_RayGenReflectionFullResName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
                 }
                 else
                 {
                     // Run the computation
-                    cmd.DispatchRays(reflectionShaderRT, m_RayGenReflectionHalfResName, (uint)(hdCamera.actualWidth / 2), (uint)(hdCamera.actualHeight / 2), 1);
+                    cmd.DispatchRays(reflectionShaderRT, m_RayGenReflectionHalfResName, (uint)(hdCamera.actualWidth / 2), (uint)(hdCamera.actualHeight / 2), (uint)hdCamera.viewCount);
                 }
             }
 
@@ -278,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(reflectionFilter, currentKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
 
                 // Compute the texture
-                cmd.DispatchCompute(reflectionFilter, currentKernel, numTilesXHR, numTilesYHR, 1);
+                cmd.DispatchCompute(reflectionFilter, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
                 using (new ProfilingSample(cmd, "Filter Reflection", CustomSamplerId.RaytracingFilterReflection.GetSampler()))
                 {
@@ -316,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", false);
 
             // Run the computation
-            cmd.DispatchRays(reflectionShader, m_RayGenIntegrationName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+            cmd.DispatchRays(reflectionShader, m_RayGenIntegrationName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
 
             // Disable multi-bounce
             CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);

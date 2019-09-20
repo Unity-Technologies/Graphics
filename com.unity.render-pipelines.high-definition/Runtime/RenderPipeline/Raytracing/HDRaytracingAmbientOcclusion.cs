@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._AmbientOcclusionTextureRW, m_AOIntermediateBuffer0);
 
             // Run the computation
-            cmd.DispatchRays(aoShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
+            cmd.DispatchRays(aoShader, m_RayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);
 
             using (new ProfilingSample(cmd, "Filter Ambient Occlusion", CustomSamplerId.RaytracingAmbientOcclusion.GetSampler()))
             {

@@ -85,7 +85,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ShadowAtlasSize = Shader.PropertyToID("_ShadowAtlasSize");
         public static readonly int _CascadeShadowAtlasSize = Shader.PropertyToID("_CascadeShadowAtlasSize");
         public static readonly int _CascadeShadowCount = Shader.PropertyToID("_CascadeShadowCount");
-        public static readonly int _ScreenSpaceShadowArraySize = Shader.PropertyToID("_ScreenSpaceShadowArraySize");
 
         // Moment shadow map data
         public static readonly int _MomentShadowAtlas = Shader.PropertyToID("_MomentShadowAtlas");

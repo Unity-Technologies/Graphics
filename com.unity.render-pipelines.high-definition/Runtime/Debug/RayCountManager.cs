@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rayCountCS = rayTracingResources.countTracedRays;
 
             // Allocate the texture that will hold the ray count
-            m_RayCountTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_UInt, enableRandomWrite: true, useMipMap: false, name: "RayCountTextureDebug");
+            m_RayCountTexture = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: false, name: "RayCountTextureDebug");
 
             // We only require 3 buffers (this supports a maximal size of 8192x8192)
             m_ReducedRayCountBuffer0 = new ComputeBuffer((int)RayCountValues.Count * 256 * 256, sizeof(uint));
