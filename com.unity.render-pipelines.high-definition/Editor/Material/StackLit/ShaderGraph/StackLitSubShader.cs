@@ -5,474 +5,13 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitSubShader")]
     class StackLitSubShader : ISubShader
     {
-        Pass m_PassMETA = new Pass()
-        {
-            Name = "META",
-            LightMode = "META",
-            TemplateName = "StackLitPass.template",
-            MaterialName = "StackLit",
-            ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
-            CullOverride = "Cull Off",
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.BaseColorSlotId,
-                StackLitMasterNode.NormalSlotId,
-                StackLitMasterNode.BentNormalSlotId,
-                StackLitMasterNode.TangentSlotId,
-                StackLitMasterNode.SubsurfaceMaskSlotId,
-                StackLitMasterNode.ThicknessSlotId,
-                StackLitMasterNode.DiffusionProfileHashSlotId,
-                StackLitMasterNode.IridescenceMaskSlotId,
-                StackLitMasterNode.IridescenceThicknessSlotId,
-                StackLitMasterNode.IridescenceCoatFixupTIRSlotId,
-                StackLitMasterNode.IridescenceCoatFixupTIRClampSlotId,
-                StackLitMasterNode.SpecularColorSlotId,
-                StackLitMasterNode.DielectricIorSlotId,
-                StackLitMasterNode.MetallicSlotId,
-                StackLitMasterNode.EmissionSlotId,
-                StackLitMasterNode.SmoothnessASlotId,
-                StackLitMasterNode.SmoothnessBSlotId,
-                StackLitMasterNode.AmbientOcclusionSlotId,
-                StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId,
-                StackLitMasterNode.AnisotropyASlotId,
-                StackLitMasterNode.AnisotropyBSlotId,
-                StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                StackLitMasterNode.SpecularAAThresholdSlotId,
-                StackLitMasterNode.CoatSmoothnessSlotId,
-                StackLitMasterNode.CoatIorSlotId,
-                StackLitMasterNode.CoatThicknessSlotId,
-                StackLitMasterNode.CoatExtinctionSlotId,
-                StackLitMasterNode.CoatNormalSlotId,
-                StackLitMasterNode.CoatMaskSlotId,
-                StackLitMasterNode.LobeMixSlotId,
-                StackLitMasterNode.HazinessSlotId,
-                StackLitMasterNode.HazeExtentSlotId,
-                StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
-                StackLitMasterNode.SpecularOcclusionSlotId,
-                StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
-                StackLitMasterNode.SOFixupStrengthFactorSlotId,
-                StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
-
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                //StackLitMasterNode.PositionSlotId
-            },
-            UseInPreview = false
-        };
-
-        Pass m_PassShadowCaster = new Pass()
-        {
-            Name = "ShadowCaster",
-            LightMode = "ShadowCaster",
-            TemplateName = "StackLitPass.template",
-            MaterialName = "StackLit",
-            ShaderPassName = "SHADERPASS_SHADOWS",
-            BlendOverride = "Blend One Zero",
-            ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
-            ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId,
-                StackLitMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.PositionSlotId
-            },
-            UseInPreview = false
-        };
-
-        Pass m_SceneSelectionPass = new Pass()
-        {
-            Name = "SceneSelectionPass",
-            LightMode = "SceneSelectionPass",
-            TemplateName = "StackLitPass.template",
-            MaterialName = "StackLit",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ColorMaskOverride = "ColorMask 0",
-            ExtraDefines = new List<string>()
-            {
-                "#define SCENESELECTIONPASS",
-                "#pragma editor_sync_compilation",
-            },
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId,
-                StackLitMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.PositionSlotId,
-                StackLitMasterNode.VertexNormalSlotId,
-                StackLitMasterNode.VertexTangentSlotId
-            },
-            UseInPreview = false
-        };
-
-        Pass m_PassDepthForwardOnly = new Pass()
-        {
-            Name = "DepthForwardOnly",
-            LightMode = "DepthForwardOnly",
-            TemplateName = "StackLitPass.template",
-            MaterialName = "StackLit",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ZWriteOverride = "ZWrite On",
-            CullOverride = HDSubShaderUtilities.defaultCullMode,
-
-            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            // Code path for WRITE_NORMAL_BUFFER
-            //
-            // See StackLit.hlsl:ConvertSurfaceDataToNormalData()
-            // which ShaderPassDepthOnly uses: we need to add proper interpolators dependencies depending on WRITE_NORMAL_BUFFER.
-            // In our case WRITE_NORMAL_BUFFER is always enabled here.
-            // Also, we need to add PixelShaderSlots dependencies for everything potentially used there.
-            // See AddPixelShaderSlotsForWriteNormalBufferPasses()
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                // see AddPixelShaderSlotsForWriteNormalBufferPasses
-                StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId,
-                StackLitMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.PositionSlotId,
-                StackLitMasterNode.VertexNormalSlotId,
-                StackLitMasterNode.VertexTangentSlotId
-            },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as StackLitMasterNode;
-                HDSubShaderUtilities.SetStencilStateForDepth(ref pass);
-
-                // See comments in:
-                AddPixelShaderSlotsForWriteNormalBufferPasses(masterNode, ref pass);
-            }
-        };
-
-        Pass m_PassMotionVectors = new Pass()
-        {
-            Name = "MotionVectors",
-            LightMode = "MotionVectors",
-            TemplateName = "StackLitPass.template",
-            MaterialName = "StackLit",
-            ShaderPassName = "SHADERPASS_MOTION_VECTORS",
-            CullOverride = HDSubShaderUtilities.defaultCullMode,
-            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-
-            PixelShaderSlots = new List<int>()
-            {
-                // see AddPixelShaderSlotsForWriteNormalBufferPasses
-                StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId,
-                StackLitMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.PositionSlotId,
-                StackLitMasterNode.VertexNormalSlotId,
-                StackLitMasterNode.VertexTangentSlotId
-            },
-            UseInPreview = false,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as StackLitMasterNode;
-                HDSubShaderUtilities.SetStencilStateForMotionVector(ref pass);
-
-                // For WRITE_NORMAL_BUFFER, see comments for pass m_PassDepthForwardOnly and in:
-                AddPixelShaderSlotsForWriteNormalBufferPasses(masterNode, ref pass);
-            }
-        };
-
-        Pass m_PassDistortion = new Pass()
-        {
-            Name = "DistortionVectors",
-            LightMode = "DistortionVectors",
-            TemplateName = "StackLitPass.template",
-            MaterialName = "StackLit",
-            ShaderPassName = "SHADERPASS_DISTORTION",
-            ZWriteOverride = "ZWrite Off",
-            CullOverride = HDSubShaderUtilities.defaultCullMode,
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl\"",
-            },
-            StencilOverride = new List<string>()
-            {
-                "// Stencil setup",
-                "Stencil",
-                "{",
-                string.Format("   WriteMask {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
-                string.Format("   Ref  {0}", (int)HDRenderPipeline.StencilBitMask.DistortionVectors),
-                "   Comp Always",
-                "   Pass Replace",
-                "}"
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId,
-                StackLitMasterNode.DistortionSlotId,
-                StackLitMasterNode.DistortionBlurSlotId,
-                StackLitMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.PositionSlotId,
-                StackLitMasterNode.VertexNormalSlotId,
-                StackLitMasterNode.VertexTangentSlotId
-            },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as StackLitMasterNode;
-                if (masterNode.distortionDepthTest.isOn)
-                {
-                    pass.ZTestOverride = "ZTest LEqual";
-                }
-                else
-                {
-                    pass.ZTestOverride = "ZTest Always";
-                }
-                if (masterNode.distortionMode == DistortionMode.Add)
-                {
-                    pass.BlendOverride = "Blend One One, One One";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-                else if (masterNode.distortionMode == DistortionMode.Multiply)
-                {
-                    pass.BlendOverride = "Blend DstColor Zero, DstAlpha Zero";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-                else // (masterNode.distortionMode == DistortionMode.Replace)
-                {
-                    pass.BlendOverride = "Blend One Zero, One Zero";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-            }
-        };
-
-        Pass m_PassForwardOnly = new Pass()
-        {
-            Name = "ForwardOnly",
-            LightMode = "ForwardOnly",
-            TemplateName = "StackLitPass.template",
-            MaterialName = "StackLit",
-            ShaderPassName = "SHADERPASS_FORWARD",
-            CullOverride = HDSubShaderUtilities.cullModeForward,
-            ZTestOverride = HDSubShaderUtilities.zTestDepthEqualForOpaque,
-            ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
-            // ExtraDefines are set when the pass is generated
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.BaseColorSlotId,
-                StackLitMasterNode.NormalSlotId,
-                StackLitMasterNode.BentNormalSlotId,
-                StackLitMasterNode.TangentSlotId,
-                StackLitMasterNode.SubsurfaceMaskSlotId,
-                StackLitMasterNode.ThicknessSlotId,
-                StackLitMasterNode.DiffusionProfileHashSlotId,
-                StackLitMasterNode.IridescenceMaskSlotId,
-                StackLitMasterNode.IridescenceThicknessSlotId,
-                StackLitMasterNode.IridescenceCoatFixupTIRSlotId,
-                StackLitMasterNode.IridescenceCoatFixupTIRClampSlotId,
-                StackLitMasterNode.SpecularColorSlotId,
-                StackLitMasterNode.DielectricIorSlotId,
-                StackLitMasterNode.MetallicSlotId,
-                StackLitMasterNode.EmissionSlotId,
-                StackLitMasterNode.SmoothnessASlotId,
-                StackLitMasterNode.SmoothnessBSlotId,
-                StackLitMasterNode.AmbientOcclusionSlotId,
-                StackLitMasterNode.AlphaSlotId,
-                StackLitMasterNode.AlphaClipThresholdSlotId,
-                StackLitMasterNode.AnisotropyASlotId,
-                StackLitMasterNode.AnisotropyBSlotId,
-                StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                StackLitMasterNode.SpecularAAThresholdSlotId,
-                StackLitMasterNode.CoatSmoothnessSlotId,
-                StackLitMasterNode.CoatIorSlotId,
-                StackLitMasterNode.CoatThicknessSlotId,
-                StackLitMasterNode.CoatExtinctionSlotId,
-                StackLitMasterNode.CoatNormalSlotId,
-                StackLitMasterNode.CoatMaskSlotId,
-                StackLitMasterNode.LobeMixSlotId,
-                StackLitMasterNode.HazinessSlotId,
-                StackLitMasterNode.HazeExtentSlotId,
-                StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
-                StackLitMasterNode.SpecularOcclusionSlotId,
-                StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
-                StackLitMasterNode.SOFixupStrengthFactorSlotId,
-                StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
-                StackLitMasterNode.LightingSlotId,
-                StackLitMasterNode.BackLightingSlotId,
-                StackLitMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                StackLitMasterNode.PositionSlotId,
-                StackLitMasterNode.VertexNormalSlotId,
-                StackLitMasterNode.VertexTangentSlotId
-            },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as StackLitMasterNode;
-                HDSubShaderUtilities.SetStencilStateForForward(ref pass);
-                HDSubShaderUtilities.SetBlendModeForForward(ref pass);
-
-                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
-
-                if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
-                {
-                    // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-                    // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-                    pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
-                    pass.ZTestOverride = "ZTest Equal";
-                }
-            }
-        };
-
-        private static void AddPixelShaderSlotsForWriteNormalBufferPasses(StackLitMasterNode masterNode, ref Pass pass)
-        {
-            // See StackLit.hlsl:ConvertSurfaceDataToNormalData()
-            // Note: We remove the slots we're adding as the editor will constantly regenerate the shader but
-            // without recreating the nodes thus the passes in the subshader object.
-            if (masterNode.coat.isOn)
-            {
-                // Check ConvertSurfaceDataToNormalData, in this case, we only need those:
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.CoatSmoothnessSlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.CoatSmoothnessSlotId);
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.CoatNormalSlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.CoatNormalSlotId);
-            }
-            else
-            {
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.NormalSlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.NormalSlotId);
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.LobeMixSlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.LobeMixSlotId);
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.SmoothnessASlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.SmoothnessASlotId);
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.SmoothnessBSlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.SmoothnessBSlotId);
-            }
-            // Also, when geometricSpecularAA.isOn, might want to add SpecularAAScreenSpaceVarianceSlotId and SpecularAAThresholdSlotId,
-            // since they affect smoothnesses in surfaceData directly. This is an implicit behavior for Lit, via the GBuffer pass.
-            // Versus performance, might not be important for what it is used for, but SSR uses the roughness too so for now,
-            // add them.
-            if (masterNode.geometricSpecularAA.isOn) // TODOTODO || Normal Map Filtering is on
-            {
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId);
-                pass.PixelShaderSlots.Remove(StackLitMasterNode.SpecularAAThresholdSlotId);
-                pass.PixelShaderSlots.Add(StackLitMasterNode.SpecularAAThresholdSlotId);
-            }
-        }
-
-        //
         // Reference for GetActiveFieldsFromMasterNode
         // -------------------------------------------
         //
@@ -584,22 +123,27 @@ namespace UnityEditor.Rendering.HighDefinition
         // geometricSpecularAA, energyConservingSpecular, specularOcclusion
         //
 
-        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(StackLitMasterNode masterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
             var baseActiveFields = activeFields.baseInstance;
 
-            StackLitMasterNode masterNode = iMasterNode as StackLitMasterNode;
-            if (masterNode == null)
+            // Graph Vertex
+            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
             {
-                return activeFields;
+                baseActiveFields.Add("features.graphVertex");
             }
+
+            // Graph Pixel (always enabled)
+            baseActiveFields.Add("features.graphPixel");
 
             if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
             {
-                if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
-                {                                                   // we need to be able to build interpolators using multiple input structs
-                                                                    // also: should only require isFrontFace if Normals are required...
+                if (pass.referenceName != "SHADERPASS_MOTION_VECTORS")  // HACK to get around lack of a good interpolator dependency system
+                {                                                       // we need to be able to build interpolators using multiple input structs
+                                                                        // also: should only require isFrontFace if Normals are required...
                     // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
                     baseActiveFields.Add("FragInputs.isFrontFace");
                 }
@@ -607,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.alphaTest.isOn)
             {
-                if (pass.PixelShaderUsesSlot(StackLitMasterNode.AlphaClipThresholdSlotId))
+                if (pass.pixelPorts.Contains(StackLitMasterNode.AlphaClipThresholdSlotId))
                 {
                     baseActiveFields.Add("AlphaTest");
                 }
@@ -648,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.coat.isOn)
             {
                 baseActiveFields.Add("Material.Coat");
-                if (pass.PixelShaderUsesSlot(StackLitMasterNode.CoatMaskSlotId))
+                if (pass.pixelPorts.Contains(StackLitMasterNode.CoatMaskSlotId))
                 {
                     var coatMaskSlot = masterNode.FindSlot<Vector1MaterialSlot>(StackLitMasterNode.CoatMaskSlotId);
                     bool connected = masterNode.IsSlotConnected(StackLitMasterNode.CoatMaskSlotId);
@@ -678,7 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     baseActiveFields.Add("DualSpecularLobeParametrization.HazyGloss");
                     // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
-                    if (masterNode.capHazinessWrtMetallic.isOn && pass.PixelShaderUsesSlot(StackLitMasterNode.HazyGlossMaxDielectricF0SlotId))
+                    if (masterNode.capHazinessWrtMetallic.isOn && pass.pixelPorts.Contains(StackLitMasterNode.HazyGlossMaxDielectricF0SlotId))
                     {
                         // check the supporting slot is there (although masternode should deal with having a consistent property config)
                         var maxDielectricF0Slot = masterNode.FindSlot<Vector1MaterialSlot>(StackLitMasterNode.HazyGlossMaxDielectricF0SlotId);
@@ -765,8 +309,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // and using #if defined() && etc)
             bool haveSomeSpecularAA = false; // TODOTODO in prevision of normal texture filtering
             if (masterNode.geometricSpecularAA.isOn
-                && pass.PixelShaderUsesSlot(StackLitMasterNode.SpecularAAThresholdSlotId)
-                && pass.PixelShaderUsesSlot(StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
+                && pass.pixelPorts.Contains(StackLitMasterNode.SpecularAAThresholdSlotId)
+                && pass.pixelPorts.Contains(StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
             {
                 haveSomeSpecularAA = true;
                 baseActiveFields.Add("GeometricSpecularAA");
@@ -806,12 +350,12 @@ namespace UnityEditor.Rendering.HighDefinition
             // Input special-casing predicates:
             //
 
-            if (masterNode.IsSlotConnected(StackLitMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(StackLitMasterNode.BentNormalSlotId))
+            if (masterNode.IsSlotConnected(StackLitMasterNode.BentNormalSlotId) && pass.pixelPorts.Contains(StackLitMasterNode.BentNormalSlotId))
             {
                 baseActiveFields.Add("BentNormal");
             }
 
-            if (masterNode.IsSlotConnected(StackLitMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(StackLitMasterNode.TangentSlotId))
+            if (masterNode.IsSlotConnected(StackLitMasterNode.TangentSlotId) && pass.pixelPorts.Contains(StackLitMasterNode.TangentSlotId))
             {
                 baseActiveFields.Add("Tangent");
             }
@@ -821,7 +365,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // For ambient occlusion, this is the case for the SpecularOcclusion calculations which also depend on it,
             // where a value of 1 will produce no results.
             // See SpecularOcclusion, we don't optimize out this case...
-            if (pass.PixelShaderUsesSlot(StackLitMasterNode.AmbientOcclusionSlotId))
+            if (pass.pixelPorts.Contains(StackLitMasterNode.AmbientOcclusionSlotId))
             {
                 bool connected = masterNode.IsSlotConnected(StackLitMasterNode.AmbientOcclusionSlotId);
                 var ambientOcclusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(StackLitMasterNode.AmbientOcclusionSlotId);
@@ -832,49 +376,72 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (masterNode.IsSlotConnected(StackLitMasterNode.CoatNormalSlotId) && pass.PixelShaderUsesSlot(StackLitMasterNode.CoatNormalSlotId))
+            if (masterNode.IsSlotConnected(StackLitMasterNode.CoatNormalSlotId) && pass.pixelPorts.Contains(StackLitMasterNode.CoatNormalSlotId))
             {
                 baseActiveFields.Add("CoatNormal");
             }
 
-            if (masterNode.IsSlotConnected(StackLitMasterNode.LightingSlotId)&& pass.PixelShaderUsesSlot(StackLitMasterNode.LightingSlotId))
+            if (masterNode.IsSlotConnected(StackLitMasterNode.LightingSlotId)&& pass.pixelPorts.Contains(StackLitMasterNode.LightingSlotId))
             {
                 baseActiveFields.Add("LightingGI");
             }
-            if (masterNode.IsSlotConnected(StackLitMasterNode.BackLightingSlotId)&& pass.PixelShaderUsesSlot(StackLitMasterNode.BackLightingSlotId))
+            if (masterNode.IsSlotConnected(StackLitMasterNode.BackLightingSlotId)&& pass.pixelPorts.Contains(StackLitMasterNode.BackLightingSlotId))
             {
                 baseActiveFields.Add("BackLightingGI");
             }
 
-        if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(StackLitMasterNode.DepthOffsetSlotId))
+        if (masterNode.depthOffset.isOn && pass.pixelPorts.Contains(StackLitMasterNode.DepthOffsetSlotId))
                 baseActiveFields.Add("DepthOffset");
 
             return activeFields;
         }
 
-        private static bool GenerateShaderPassLit(StackLitMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassLit(StackLitMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
-            if (mode == GenerationMode.ForReals || pass.UseInPreview)
-            {
-                pass.OnGeneratePass(masterNode);
-
-                // apply master node options to active fields
-                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
-
-                // use standard shader pass generation
-                bool vertexActive = false;
-                if (masterNode.IsSlotConnected(StackLitMasterNode.PositionSlotId) ||
-                    masterNode.IsSlotConnected(StackLitMasterNode.VertexNormalSlotId) ||
-                    masterNode.IsSlotConnected(StackLitMasterNode.VertexTangentSlotId) )
-                {
-                    vertexActive = true;
-                }
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
-            }
-            else
-            {
+            if(mode == GenerationMode.Preview && !pass.useInPreview)
                 return false;
+            
+            // Render state
+            if(pass.Equals(HDRPMeshTarget.Passes.StackLitDistortion))
+            {
+                if (masterNode.distortionDepthTest.isOn)
+                {
+                    pass.ZTestOverride = "ZTest LEqual";
+                }
+                else
+                {
+                    pass.ZTestOverride = "ZTest Always";
+                }
+                if (masterNode.distortionMode == DistortionMode.Add)
+                {
+                    pass.BlendOverride = "Blend One One, One One";
+                    pass.BlendOpOverride = "BlendOp Add, Add";
+                }
+                else if (masterNode.distortionMode == DistortionMode.Multiply)
+                {
+                    pass.BlendOverride = "Blend DstColor Zero, DstAlpha Zero";
+                    pass.BlendOpOverride = "BlendOp Add, Add";
+                }
+                else // (masterNode.distortionMode == DistortionMode.Replace)
+                {
+                    pass.BlendOverride = "Blend One Zero, One Zero";
+                    pass.BlendOpOverride = "BlendOp Add, Add";
+                }
             }
+            else if(pass.Equals(HDRPMeshTarget.Passes.StackLitForwardOnlyOpaque) || pass.Equals(HDRPMeshTarget.Passes.StackLitForwardOnlyTransparent))
+            {
+                if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
+                {
+                    pass.ZTestOverride = "ZTest Equal";
+                }
+            }
+
+            // Active Fields
+            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            
+            // Generate
+            return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
+                HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
         }
 
         public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -901,25 +468,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
-                bool transparent = !opaque;
+                bool distortionActive = !opaque && masterNode.distortion.isOn;
 
-                bool distortionActive = transparent && masterNode.distortion.isOn;
-
-                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
-
-                GenerateShaderPassLit(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitSceneSelection, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitMotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                 if (distortionActive)
                 {
-                    GenerateShaderPassLit(masterNode, m_PassDistortion, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitDistortion, mode, subShader, sourceAssetDependencyPaths);
                 }
 
                 // Assign define here based on opaque or transparent to save some variant
-                m_PassForwardOnly.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
-                GenerateShaderPassLit(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                if(opaque)
+                {
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitForwardOnlyOpaque, mode, subShader, sourceAssetDependencyPaths);
+                }
+                else
+                {
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitForwardOnlyTransparent, mode, subShader, sourceAssetDependencyPaths);
+                }
             }
 
             subShader.Deindent();

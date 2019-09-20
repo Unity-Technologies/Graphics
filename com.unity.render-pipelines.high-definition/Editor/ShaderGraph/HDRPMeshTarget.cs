@@ -4432,6 +4432,852 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/HairPass.template",
                 sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
             };
+
+            public static ShaderPass StackLitMETA = new ShaderPass()
+            {
+                // Definition
+                displayName = "META",
+                referenceName = "SHADERPASS_LIGHT_TRANSPORT",
+                lightMode = "META",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.BaseColorSlotId,
+                    StackLitMasterNode.NormalSlotId,
+                    StackLitMasterNode.BentNormalSlotId,
+                    StackLitMasterNode.TangentSlotId,
+                    StackLitMasterNode.SubsurfaceMaskSlotId,
+                    StackLitMasterNode.ThicknessSlotId,
+                    StackLitMasterNode.DiffusionProfileHashSlotId,
+                    StackLitMasterNode.IridescenceMaskSlotId,
+                    StackLitMasterNode.IridescenceThicknessSlotId,
+                    StackLitMasterNode.IridescenceCoatFixupTIRSlotId,
+                    StackLitMasterNode.IridescenceCoatFixupTIRClampSlotId,
+                    StackLitMasterNode.SpecularColorSlotId,
+                    StackLitMasterNode.DielectricIorSlotId,
+                    StackLitMasterNode.MetallicSlotId,
+                    StackLitMasterNode.EmissionSlotId,
+                    StackLitMasterNode.SmoothnessASlotId,
+                    StackLitMasterNode.SmoothnessBSlotId,
+                    StackLitMasterNode.AmbientOcclusionSlotId,
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.AnisotropyASlotId,
+                    StackLitMasterNode.AnisotropyBSlotId,
+                    StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                    StackLitMasterNode.SpecularAAThresholdSlotId,
+                    StackLitMasterNode.CoatSmoothnessSlotId,
+                    StackLitMasterNode.CoatIorSlotId,
+                    StackLitMasterNode.CoatThicknessSlotId,
+                    StackLitMasterNode.CoatExtinctionSlotId,
+                    StackLitMasterNode.CoatNormalSlotId,
+                    StackLitMasterNode.CoatMaskSlotId,
+                    StackLitMasterNode.LobeMixSlotId,
+                    StackLitMasterNode.HazinessSlotId,
+                    StackLitMasterNode.HazeExtentSlotId,
+                    StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
+                    StackLitMasterNode.SpecularOcclusionSlotId,
+                    StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
+                    StackLitMasterNode.SOFixupStrengthFactorSlotId,
+                    StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
+                },
+
+                // Render State Overrides
+                CullOverride = "Cull Off",
+
+                // Required fields
+                requiredAttributes = new List<string>()
+                {
+                    "AttributesMesh.normalOS",
+                    "AttributesMesh.tangentOS",     // Always present as we require it also in case of anisotropic lighting
+                    "AttributesMesh.uv0",
+                    "AttributesMesh.uv1",
+                    "AttributesMesh.color",
+                    "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass StackLitShadowCaster = new ShaderPass()
+            {
+                // Definition
+                displayName = "ShadowCaster",
+                referenceName = "SHADERPASS_SHADOWS",
+                lightMode = "ShadowCaster",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    StackLitMasterNode.PositionSlotId,
+                },
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.DepthOffsetSlotId,
+                },
+
+                // Render State Overrides
+                BlendOverride = "Blend One Zero",
+                ZWriteOverride = "ZWrite On",
+                ColorMaskOverride = "ColorMask 0",
+                ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass StackLitSceneSelection = new ShaderPass()
+            {
+                // Definition
+                displayName = "SceneSelectionPass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "SceneSelectionPass",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    StackLitMasterNode.PositionSlotId,
+                    StackLitMasterNode.VertexNormalSlotId,
+                    StackLitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.DepthOffsetSlotId,
+                },
+
+                // Render State Overrides
+                ColorMaskOverride = "ColorMask 0",
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                    "editor_sync_compilation",
+                },
+                defines = new List<string>()
+                {
+                    "SCENESELECTIONPASS",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass StackLitDepthForwardOnly = new ShaderPass()
+            {
+                // // Code path for WRITE_NORMAL_BUFFER
+                // See StackLit.hlsl:ConvertSurfaceDataToNormalData()
+                // which ShaderPassDepthOnly uses: we need to add proper interpolators dependencies depending on WRITE_NORMAL_BUFFER.
+                // In our case WRITE_NORMAL_BUFFER is always enabled here.
+                // Also, we need to add PixelShaderSlots dependencies for everything potentially used there.
+                // See AddPixelShaderSlotsForWriteNormalBufferPasses()
+
+                // Definition
+                displayName = "DepthForwardOnly",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "DepthForwardOnly",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
+                useInPreview = true,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    StackLitMasterNode.PositionSlotId,
+                    StackLitMasterNode.VertexNormalSlotId,
+                    StackLitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.DepthOffsetSlotId,
+                    // StackLitMasterNode.coat
+                    StackLitMasterNode.CoatSmoothnessSlotId,
+                    StackLitMasterNode.CoatNormalSlotId,
+                    // !StackLitMasterNode.coat
+                    StackLitMasterNode.NormalSlotId,
+                    StackLitMasterNode.LobeMixSlotId,
+                    StackLitMasterNode.SmoothnessASlotId,
+                    StackLitMasterNode.SmoothnessBSlotId,
+                    // StackLitMasterNode.geometricSpecularAA
+                    StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                    StackLitMasterNode.SpecularAAThresholdSlotId,
+                },
+
+                // Render State Overrides
+                CullOverride = HDSubShaderUtilities.defaultCullMode,
+                ZWriteOverride = "ZWrite On",
+                StencilOverride = new List<string>
+                {
+                    "Stencil",
+                    "{",
+                    "    WriteMask [_StencilWriteMaskDepth]",
+                    "    Ref [_StencilRefDepth]",
+                    "    Comp Always",
+                    "    Pass Replace",
+                    "}",
+                },
+
+                // Required fields
+                requiredAttributes = new List<string>()
+                {
+                    "AttributesMesh.normalOS",
+                    "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
+                    "AttributesMesh.uv0",
+                    "AttributesMesh.uv1",
+                    "AttributesMesh.color",
+                    "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                    "AttributesMesh.uv3",           // DEBUG_DISPLAY
+                },
+                requiredVaryings = new List<string>()
+                {
+                    "FragInputs.tangentToWorld",
+                    "FragInputs.positionRWS",
+                    "FragInputs.texCoord0",
+                    "FragInputs.texCoord1",
+                    "FragInputs.texCoord2",
+                    "FragInputs.texCoord3",
+                    "FragInputs.color",
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                },
+                defines = new List<string>()
+                {
+                    "WRITE_NORMAL_BUFFER",
+                    "RAYTRACING_SHADER_GRAPH_HIGH",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.WriteMsaaDepth,
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass StackLitMotionVectors = new ShaderPass()
+            {
+                // Definition
+                displayName = "MotionVectors",
+                referenceName = "SHADERPASS_MOTION_VECTORS",
+                lightMode = "MotionVectors",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    StackLitMasterNode.PositionSlotId,
+                    StackLitMasterNode.VertexNormalSlotId,
+                    StackLitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.DepthOffsetSlotId,
+                    // StackLitMasterNode.coat
+                    StackLitMasterNode.CoatSmoothnessSlotId,
+                    StackLitMasterNode.CoatNormalSlotId,
+                    // !StackLitMasterNode.coat
+                    StackLitMasterNode.NormalSlotId,
+                    StackLitMasterNode.LobeMixSlotId,
+                    StackLitMasterNode.SmoothnessASlotId,
+                    StackLitMasterNode.SmoothnessBSlotId,
+                    // StackLitMasterNode.geometricSpecularAA
+                    StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                    StackLitMasterNode.SpecularAAThresholdSlotId,
+                },
+
+                // Render State Overrides
+                CullOverride = HDSubShaderUtilities.defaultCullMode,
+                StencilOverride = new List<string>
+                {
+                    "Stencil",
+                    "{",
+                    "    WriteMask [_StencilWriteMaskMV]",
+                    "    Ref [_StencilRefMV]",
+                    "    Comp Always",
+                    "    Pass Replace",
+                    "}",
+                },
+
+                // Required fields
+                requiredAttributes = new List<string>()
+                {
+                    "AttributesMesh.normalOS",
+                    "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
+                    "AttributesMesh.uv0",
+                    "AttributesMesh.uv1",
+                    "AttributesMesh.color",
+                    "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                    "AttributesMesh.uv3",           // DEBUG_DISPLAY
+                },
+                requiredVaryings = new List<string>()
+                {
+                    "FragInputs.tangentToWorld",
+                    "FragInputs.positionRWS",
+                    "FragInputs.texCoord0",
+                    "FragInputs.texCoord1",
+                    "FragInputs.texCoord2",
+                    "FragInputs.texCoord3",
+                    "FragInputs.color",
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                },
+                defines = new List<string>()
+                {
+                    "WRITE_NORMAL_BUFFER",
+                    "RAYTRACING_SHADER_GRAPH_HIGH",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.WriteMsaaDepth,
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass StackLitDistortion = new ShaderPass()
+            {
+                // Definition
+                displayName = "DistortionVectors",
+                referenceName = "SHADERPASS_DISTORTION",
+                lightMode = "DistortionVectors",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl",
+                useInPreview = true,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    StackLitMasterNode.PositionSlotId,
+                    StackLitMasterNode.VertexNormalSlotId,
+                    StackLitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.DistortionSlotId,
+                    StackLitMasterNode.DistortionBlurSlotId,
+                    StackLitMasterNode.DepthOffsetSlotId,
+                },
+
+                // Render State Overrides
+                ZWriteOverride = "ZWrite Off",
+                CullOverride = HDSubShaderUtilities.defaultCullMode,
+                StencilOverride = new List<string>()
+                {
+                    "Stencil",
+                    "{",
+                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.DistortionVectors}",
+                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.DistortionVectors}",
+                    "    Comp Always",
+                    "    Pass Replace",
+                    "}"
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass StackLitForwardOnlyOpaque = new ShaderPass()
+            {
+                // Definition
+                displayName = "ForwardOnly",
+                referenceName = "SHADERPASS_FORWARD",
+                lightMode = "ForwardOnly",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl",
+                useInPreview = true,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    StackLitMasterNode.PositionSlotId,
+                    StackLitMasterNode.VertexNormalSlotId,
+                    StackLitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.BaseColorSlotId,
+                    StackLitMasterNode.NormalSlotId,
+                    StackLitMasterNode.BentNormalSlotId,
+                    StackLitMasterNode.TangentSlotId,
+                    StackLitMasterNode.SubsurfaceMaskSlotId,
+                    StackLitMasterNode.ThicknessSlotId,
+                    StackLitMasterNode.DiffusionProfileHashSlotId,
+                    StackLitMasterNode.IridescenceMaskSlotId,
+                    StackLitMasterNode.IridescenceThicknessSlotId,
+                    StackLitMasterNode.IridescenceCoatFixupTIRSlotId,
+                    StackLitMasterNode.IridescenceCoatFixupTIRClampSlotId,
+                    StackLitMasterNode.SpecularColorSlotId,
+                    StackLitMasterNode.DielectricIorSlotId,
+                    StackLitMasterNode.MetallicSlotId,
+                    StackLitMasterNode.EmissionSlotId,
+                    StackLitMasterNode.SmoothnessASlotId,
+                    StackLitMasterNode.SmoothnessBSlotId,
+                    StackLitMasterNode.AmbientOcclusionSlotId,
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.AnisotropyASlotId,
+                    StackLitMasterNode.AnisotropyBSlotId,
+                    StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                    StackLitMasterNode.SpecularAAThresholdSlotId,
+                    StackLitMasterNode.CoatSmoothnessSlotId,
+                    StackLitMasterNode.CoatIorSlotId,
+                    StackLitMasterNode.CoatThicknessSlotId,
+                    StackLitMasterNode.CoatExtinctionSlotId,
+                    StackLitMasterNode.CoatNormalSlotId,
+                    StackLitMasterNode.CoatMaskSlotId,
+                    StackLitMasterNode.LobeMixSlotId,
+                    StackLitMasterNode.HazinessSlotId,
+                    StackLitMasterNode.HazeExtentSlotId,
+                    StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
+                    StackLitMasterNode.SpecularOcclusionSlotId,
+                    StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
+                    StackLitMasterNode.SOFixupStrengthFactorSlotId,
+                    StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
+                    StackLitMasterNode.LightingSlotId,
+                    StackLitMasterNode.BackLightingSlotId,
+                    StackLitMasterNode.DepthOffsetSlotId,
+                },
+
+                // Render State Overrides
+                BlendOverride = "Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]",
+                CullOverride = HDSubShaderUtilities.cullModeForward,
+                ZTestOverride = HDSubShaderUtilities.zTestDepthEqualForOpaque,
+                ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
+                StencilOverride = new List<string>()
+                {
+                    "Stencil",
+                    "{",
+                    "    WriteMask [_StencilWriteMask]",
+                    "    Ref [_StencilRef]",
+                    "    Comp Always",
+                    "    Pass Replace",
+                    "}"
+                },
+
+                // Required fields
+                requiredAttributes = new List<string>()
+                {
+                    "AttributesMesh.normalOS",
+                    "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
+                    "AttributesMesh.uv0",
+                    "AttributesMesh.uv1",
+                    "AttributesMesh.color",
+                    "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                    "AttributesMesh.uv3",           // DEBUG_DISPLAY
+                },
+                requiredVaryings = new List<string>()
+                {
+                    "FragInputs.tangentToWorld",
+                    "FragInputs.positionRWS",
+                    "FragInputs.texCoord0",
+                    "FragInputs.texCoord1",
+                    "FragInputs.texCoord2",
+                    "FragInputs.texCoord3",
+                    "FragInputs.color",
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                },
+                defines = new List<string>()
+                {
+                    "HAS_LIGHTLOOP",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                    Keywords.DebugDisplay,
+                    Keywords.Lightmap,
+                    Keywords.DynamicLightmap,
+                    Keywords.DirectionalLightmapCombined,
+                    Keywords.ShadowsShadowmask,
+                    Keywords.Decals,
+                    Keywords.Shadow,
+                    Keywords.LightList,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass StackLitForwardOnlyTransparent = new ShaderPass()
+            {
+                // Definition
+                displayName = "ForwardOnly",
+                referenceName = "SHADERPASS_FORWARD",
+                lightMode = "ForwardOnly",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl",
+                useInPreview = true,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    StackLitMasterNode.PositionSlotId,
+                    StackLitMasterNode.VertexNormalSlotId,
+                    StackLitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    StackLitMasterNode.BaseColorSlotId,
+                    StackLitMasterNode.NormalSlotId,
+                    StackLitMasterNode.BentNormalSlotId,
+                    StackLitMasterNode.TangentSlotId,
+                    StackLitMasterNode.SubsurfaceMaskSlotId,
+                    StackLitMasterNode.ThicknessSlotId,
+                    StackLitMasterNode.DiffusionProfileHashSlotId,
+                    StackLitMasterNode.IridescenceMaskSlotId,
+                    StackLitMasterNode.IridescenceThicknessSlotId,
+                    StackLitMasterNode.IridescenceCoatFixupTIRSlotId,
+                    StackLitMasterNode.IridescenceCoatFixupTIRClampSlotId,
+                    StackLitMasterNode.SpecularColorSlotId,
+                    StackLitMasterNode.DielectricIorSlotId,
+                    StackLitMasterNode.MetallicSlotId,
+                    StackLitMasterNode.EmissionSlotId,
+                    StackLitMasterNode.SmoothnessASlotId,
+                    StackLitMasterNode.SmoothnessBSlotId,
+                    StackLitMasterNode.AmbientOcclusionSlotId,
+                    StackLitMasterNode.AlphaSlotId,
+                    StackLitMasterNode.AlphaClipThresholdSlotId,
+                    StackLitMasterNode.AnisotropyASlotId,
+                    StackLitMasterNode.AnisotropyBSlotId,
+                    StackLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                    StackLitMasterNode.SpecularAAThresholdSlotId,
+                    StackLitMasterNode.CoatSmoothnessSlotId,
+                    StackLitMasterNode.CoatIorSlotId,
+                    StackLitMasterNode.CoatThicknessSlotId,
+                    StackLitMasterNode.CoatExtinctionSlotId,
+                    StackLitMasterNode.CoatNormalSlotId,
+                    StackLitMasterNode.CoatMaskSlotId,
+                    StackLitMasterNode.LobeMixSlotId,
+                    StackLitMasterNode.HazinessSlotId,
+                    StackLitMasterNode.HazeExtentSlotId,
+                    StackLitMasterNode.HazyGlossMaxDielectricF0SlotId,
+                    StackLitMasterNode.SpecularOcclusionSlotId,
+                    StackLitMasterNode.SOFixupVisibilityRatioThresholdSlotId,
+                    StackLitMasterNode.SOFixupStrengthFactorSlotId,
+                    StackLitMasterNode.SOFixupMaxAddedRoughnessSlotId,
+                    StackLitMasterNode.LightingSlotId,
+                    StackLitMasterNode.BackLightingSlotId,
+                    StackLitMasterNode.DepthOffsetSlotId,
+                },
+
+                // Render State Overrides
+                BlendOverride = "Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]",
+                CullOverride = HDSubShaderUtilities.cullModeForward,
+                ZTestOverride = HDSubShaderUtilities.zTestDepthEqualForOpaque,
+                ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
+                StencilOverride = new List<string>()
+                {
+                    "Stencil",
+                    "{",
+                    "    WriteMask [_StencilWriteMask]",
+                    "    Ref [_StencilRef]",
+                    "    Comp Always",
+                    "    Pass Replace",
+                    "}"
+                },
+
+                // Required fields
+                requiredAttributes = new List<string>()
+                {
+                    "AttributesMesh.normalOS",
+                    "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
+                    "AttributesMesh.uv0",
+                    "AttributesMesh.uv1",
+                    "AttributesMesh.color",
+                    "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                    "AttributesMesh.uv3",           // DEBUG_DISPLAY
+                },
+                requiredVaryings = new List<string>()
+                {
+                    "FragInputs.tangentToWorld",
+                    "FragInputs.positionRWS",
+                    "FragInputs.texCoord0",
+                    "FragInputs.texCoord1",
+                    "FragInputs.texCoord2",
+                    "FragInputs.texCoord3",
+                    "FragInputs.color",
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "instancing_options renderinglayer",
+                },
+                defines = new List<string>()
+                {
+                    "HAS_LIGHTLOOP",
+                    "USE_CLUSTERED_LIGHTLIST",
+                    "RAYTRACING_SHADER_GRAPH_HIGH",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.LodFadeCrossfade,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.DoubleSided,
+                    Keywords.BlendMode,
+                    Keywords.DebugDisplay,
+                    Keywords.Lightmap,
+                    Keywords.DynamicLightmap,
+                    Keywords.DirectionalLightmapCombined,
+                    Keywords.ShadowsShadowmask,
+                    Keywords.Decals,
+                    Keywords.Shadow,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
         }
 #endregion
 
