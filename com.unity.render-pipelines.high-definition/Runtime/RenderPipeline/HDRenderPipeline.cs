@@ -3575,8 +3575,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSSR(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext)
         {
-            return;
-
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
                 return;
 
