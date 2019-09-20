@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_StencilDeferredPass = "Stencil Deferred Shading";
 
         // TODO: move to UI.
-        public bool useTiles = true;
+        public bool useTiles = true; // <- true: use TileDeferred.shader - false: use StencilDeferred.shader
 
         // Cached.
         int m_RenderWidth = 0;
@@ -679,8 +679,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalFloat("_LightRadius", vl.light.range);
                         cmd.SetGlobalVector("_LightColor", vl.light.color);
 
+                        // stencil pass
                         cmd.DrawMesh(m_SphereMesh, sphereMatrix, m_StencilDeferredMaterial, 0, 0);
 
+                        // point light pass
                         cmd.DrawMesh(m_SphereMesh, sphereMatrix, m_StencilDeferredMaterial, 0, 1);
                     }
                 }
