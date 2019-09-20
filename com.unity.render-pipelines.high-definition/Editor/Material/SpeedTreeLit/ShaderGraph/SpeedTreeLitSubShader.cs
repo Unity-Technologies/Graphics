@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2",
                 "FragInputs.texCoord3",
@@ -91,12 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as SpeedTreeLitMasterNode;
                 HDSubShaderUtilities.SetStencilStateForGBuffer(ref pass);
 
-                if (masterNode.billboard.isOn)
-                {
-                    pass.ExtraDefines.Add("#define SPEEDTREE_BILLBOARD");
-                    pass.ExtraDefines.Add("#define EFFECT_BILLBOARD");
-                }
-
                 masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
             }
         };
@@ -121,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "AttributesMesh.uv1",
                 "AttributesMesh.color",
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                "AttributesMesh.uv3",           // Wind animation can potentially use uv3
             },
 
             ExtraDefines = new List<string>()
@@ -586,6 +582,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2",
                 "FragInputs.texCoord3",

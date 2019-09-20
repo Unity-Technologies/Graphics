@@ -23,6 +23,11 @@ float4 _ST_WindFrondRipple;
 float4 _ST_WindAnimation;
 CBUFFER_END
 
+#if defined(SPEEDTREE_VERSION_8) || defined(SPEEDTREE_V8)
+UNITY_INSTANCING_BUFFER_START(STWind)
+UNITY_DEFINE_INSTANCED_PROP(float, _GlobalWindTime)
+UNITY_INSTANCING_BUFFER_END(STWind)
+#endif
 
 ///////////////////////////////////////////////////////////////////////
 //  UnpackNormalFromFloat
@@ -280,7 +285,7 @@ float3 GlobalWind(float3 vPos, float3 vInstancePos, bool bPreserveShape, float3 
 #endif
 
     if (bPreserveShape)
-        vPos.xyz = normalize(vPos.xyz) * fLength;
+        vPos.xyz = SafeNormalize(vPos.xyz) * fLength;
 
     return vPos;
 }

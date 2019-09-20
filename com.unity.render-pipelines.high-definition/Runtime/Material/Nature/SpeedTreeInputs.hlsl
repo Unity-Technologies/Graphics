@@ -60,12 +60,6 @@ uniform float _WindEnabled;
 
 #include "SpeedTreeWind.hlsl"
 
-#ifdef SPEEDTREE_VERSION_8
-UNITY_INSTANCING_BUFFER_START(STWind)
-UNITY_DEFINE_INSTANCED_PROP(float, _GlobalWindTime)
-UNITY_INSTANCING_BUFFER_END(STWind)
-#endif
-
 #endif
 
 #endif

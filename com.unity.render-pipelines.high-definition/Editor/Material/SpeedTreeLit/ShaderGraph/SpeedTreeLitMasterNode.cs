@@ -93,8 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // And here are the add-ons that are specific to SpeedTree
         public const string DepthBiasSlotName = "DepthOnlyBias";
         public const int DepthBiasSlotId = 35;
-        public const string BillboardShadowFadeSlotName = "BillboardShadowFade";
-        public const int BillboardShadowFadeSlotId = 36;
 
         // SpeedTree modal info
         public enum SpeedTreeVersion
@@ -187,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         const SlotMask StandardSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
-        const SlotMask SubsurfaceScatteringSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
+        const SlotMask SubsurfaceScatteringSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.SubsurfaceMask | SlotMask.Thickness | SlotMask.DiffusionProfile | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
         const SlotMask AnisotropySlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Tangent | SlotMask.Anisotropy | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
         const SlotMask IridescenceSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.IridescenceMask | SlotMask.IridescenceLayerThickness | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Metallic | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
         const SlotMask SpecularColorSlotMask = SlotMask.Position | SlotMask.Albedo | SlotMask.Normal | SlotMask.BentNormal | SlotMask.Specular | SlotMask.CoatMask | SlotMask.Emission | SlotMask.Smoothness | SlotMask.Occlusion | SlotMask.SpecularOcclusion | SlotMask.Alpha | SlotMask.AlphaThreshold | SlotMask.AlphaThresholdDepthPrepass | SlotMask.AlphaThresholdDepthPostpass | SlotMask.AlphaThresholdShadow | SlotMask.Lighting | SlotMask.DepthOffset;
@@ -767,22 +765,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Specific to SpeedTree Lit
         [SerializeField]
-        bool m_Billboard;
-
-        public ToggleData billboard
-        {
-            get { return new ToggleData(m_Billboard); }
-            set
-            {
-                if (m_Billboard == value.isOn)
-                    return;
-                m_Billboard = value.isOn;
-                UpdateNodeAfterDeserialization();
-                Dirty(ModificationScope.Topological);
-            }
-        }
-
-        [SerializeField]
         SpeedTreeVersion m_SpeedTreeVer;
 
         public SpeedTreeVersion speedTreeAssetVersion
@@ -829,39 +811,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        /*
-        [SerializeField]
-        TreeGeomType m_TreeGeomType;
-
-        public TreeGeomType speedTreeGeomType
-        {
-            get { return m_TreeGeomType; }
-            set
-            {
-                if (m_TreeGeomType == value)
-                    return;
-
-                m_TreeGeomType = value;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        WindQuality m_WindQuality;
-
-        public WindQuality windQuality
-        {
-            get { return m_WindQuality; }
-            set
-            {
-                if (m_WindQuality == value)
-                    return;
-
-                m_WindQuality = value;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-        */
         [SerializeField]
 
         public SpeedTreeLitMasterNode()
@@ -1037,12 +986,6 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new Vector1MaterialSlot(DepthBiasSlotId, DepthBiasSlotName, DepthBiasSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
             validSlots.Add(DepthBiasSlotId);
 
-            if (m_SpeedTreeVer == SpeedTreeVersion.SpeedTree8 && billboard.isOn)
-            {
-                AddSlot(new Vector1MaterialSlot(BillboardShadowFadeSlotId, BillboardShadowFadeSlotName, BillboardShadowFadeSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(BillboardShadowFadeSlotId);
-            }
-
             RemoveSlotsNameNotMatching(validSlots, true);
         }
 
@@ -1107,9 +1050,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void AddBasicGeometryDefines(ref List<String> ExtraDefines)
         {
+            ExtraDefines.Add("#pragma enable_d3d11_debug_symbols");
             ExtraDefines.Add("#pragma shader_feature_local EFFECT_BUMP");
+            ExtraDefines.Add("#pragma shader_feature_local ENABLE_WIND");
+            ExtraDefines.Add("#pragma shader_feature_local EFFECT_BILLBOARD");
             ExtraDefines.Add("#define _ALPHATEST_ON");
-            ExtraDefines.Add("#define ENABLE_WIND");
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
             {
                 ExtraDefines.Add("#pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
@@ -1227,9 +1172,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 hidden = true,
             });
 
+            // Use a different reference name for 8 and 7 because we need to do different things with them, and
+            // that is dependent on finding the property value by name.
+            string windQualityRefName = (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree8) ? "_WindQualityVer8" : "_WindQuality";
             collector.AddShaderProperty(new Vector1ShaderProperty()
             {
-                overrideReferenceName = "_WindQuality",
+                overrideReferenceName = windQualityRefName,
                 floatType = FloatType.Enum,
                 value = (int)WindQuality.Best,
                 enumNames = { "None", "Fastest", "Fast", "Better", "Best", "Palm" },
@@ -1238,27 +1186,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 hidden = true,
             });
 
+            collector.AddShaderProperty(new BooleanShaderProperty()
+            {
+                overrideReferenceName = "_Billboard",
+                value = false,
+                hidden = true,
+            });
+
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
             {
-                collector.AddShaderProperty(new Vector1ShaderProperty()
+                collector.AddShaderProperty(new BooleanShaderProperty()
                 {
-                    overrideReferenceName = "_Cull",
-                    floatType = FloatType.Enum,
-                    enumNames = { "Off", "Front", "Back" },
-                    enumValues = { (int)SpeedTree7CullMode.Off, (int)SpeedTree7CullMode.Front, (int)SpeedTree7CullMode.Back },
-                    value = (float)SpeedTree7CullMode.Back,
-                    hidden = true,
-                });
-            }
-            else
-            {
-                collector.AddShaderProperty(new Vector1ShaderProperty()
-                {
-                    overrideReferenceName = "_TwoSided",
-                    floatType = FloatType.Enum,
-                    enumNames = { "Yes", "No" },
-                    enumValues = { (int)SpeedTree8TwoSided.Yes, (int)SpeedTree8TwoSided.No },
-                    value = (float)SpeedTree8TwoSided.No,
+                    overrideReferenceName = "_BillboardFacing",
+                    value = false,
                     hidden = true,
                 });
             }
