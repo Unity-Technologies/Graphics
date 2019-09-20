@@ -28,11 +28,12 @@ RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
-void RaytracingReflectionsHalfRes(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RaytracingReflectionsHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 halfResCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
-    halfResCoord.x = halfResCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Pick which subpixel we will be launching our effects from
     float subPixelSample = GetBNDSequenceSample(halfResCoord, _RaytracingFrameIndex, 3);
@@ -53,7 +54,7 @@ void RaytracingReflectionsHalfRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
         return;
 
     // Convert this to a world space position 
-    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -114,11 +115,12 @@ void RaytracingReflectionsHalfRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
 }
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]
-void RaytracingReflectionsFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RaytracingReflectionsFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_REFLECTIONS_TILE_SIZE + groupThreadId;
-    currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Clear the output color texture
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
@@ -131,7 +133,7 @@ void RaytracingReflectionsFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
