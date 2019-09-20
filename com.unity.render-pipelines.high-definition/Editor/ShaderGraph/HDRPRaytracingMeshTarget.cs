@@ -734,6 +734,248 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Fabric/ShaderGraph/FabricRaytracingPass.template",
                 sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
             };
+
+            public static ShaderPass HDUnlitIndirect = new ShaderPass()
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDLitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.ColorSlotId,
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                    HDUnlitMasterNode.EmissionSlotId
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    HDRPMeshTarget.Keywords.SurfaceTypeTransparent,
+                    HDRPMeshTarget.Keywords.DoubleSided,
+                    HDRPMeshTarget.Keywords.BlendMode,
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitVisibility = new ShaderPass()
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDLitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.ColorSlotId,
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                    HDUnlitMasterNode.EmissionSlotId
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    HDRPMeshTarget.Keywords.SurfaceTypeTransparent,
+                    HDRPMeshTarget.Keywords.DoubleSided,
+                    HDRPMeshTarget.Keywords.BlendMode,
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitForward = new ShaderPass()
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDLitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.ColorSlotId,
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                    HDUnlitMasterNode.EmissionSlotId
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    HDRPMeshTarget.Keywords.SurfaceTypeTransparent,
+                    HDRPMeshTarget.Keywords.DoubleSided,
+                    HDRPMeshTarget.Keywords.BlendMode,
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitGBuffer = new ShaderPass()
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDLitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.ColorSlotId,
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                    HDUnlitMasterNode.EmissionSlotId
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    HDRPMeshTarget.Keywords.SurfaceTypeTransparent,
+                    HDRPMeshTarget.Keywords.DoubleSided,
+                    HDRPMeshTarget.Keywords.BlendMode,
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
         }
 #endregion
     }
