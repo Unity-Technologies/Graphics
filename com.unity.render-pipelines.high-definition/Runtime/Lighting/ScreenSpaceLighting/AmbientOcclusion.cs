@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 #endif
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
+        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && settings.intensity.value > 0f;
 
         public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
         {
