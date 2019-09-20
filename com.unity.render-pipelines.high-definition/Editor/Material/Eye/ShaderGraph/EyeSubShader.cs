@@ -4,329 +4,33 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using Data.Util;
 using UnityEditor.ShaderGraph.Internal;
+using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     class EyeSubShader : ISubShader
     {
-        Pass m_PassMETA = new Pass()
-        {
-            Name = "META",
-            LightMode = "META",
-            TemplateName = "EyePass.template",
-            MaterialName = "Eye",
-            ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
-            CullOverride = "Cull Off",
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                EyeMasterNode.AlbedoSlotId,
-                EyeMasterNode.SpecularOcclusionSlotId,
-                EyeMasterNode.NormalSlotId,
-                EyeMasterNode.IrisNormalSlotId,
-                EyeMasterNode.SmoothnessSlotId,
-                EyeMasterNode.IORSlotId,
-                EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.MaskSlotId,
-                EyeMasterNode.DiffusionProfileHashSlotId,
-                EyeMasterNode.SubsurfaceMaskSlotId,
-                EyeMasterNode.EmissionSlotId,
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-                //EyeMasterNode.PositionSlotId
-            },
-            UseInPreview = false,
-        };
-
-        Pass m_PassShadowCaster = new Pass()
-        {
-            Name = "ShadowCaster",
-            LightMode = "ShadowCaster",
-            TemplateName = "EyePass.template",
-            MaterialName = "Eye",
-            ShaderPassName = "SHADERPASS_SHADOWS",
-            BlendOverride = "Blend One Zero",
-            ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
-            ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
-            CullOverride = HDSubShaderUtilities.defaultCullMode,
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-               EyeMasterNode.AlphaSlotId,
-               EyeMasterNode.AlphaClipThresholdSlotId,
-               EyeMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-               EyeMasterNode.PositionSlotId,
-               EyeMasterNode.VertexNormalSlotID,
-               EyeMasterNode.VertexTangentSlotID
-            },
-            UseInPreview = false,
-        };
-
-        Pass m_SceneSelectionPass = new Pass()
-        {
-            Name = "SceneSelectionPass",
-            LightMode = "SceneSelectionPass",
-            TemplateName = "EyePass.template",
-            MaterialName = "Eye",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ColorMaskOverride = "ColorMask 0",
-            ExtraDefines = new List<string>()
-            {
-                "#define SCENESELECTIONPASS",
-                "#pragma editor_sync_compilation",
-            },
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-               EyeMasterNode.AlphaSlotId,
-               EyeMasterNode.AlphaClipThresholdSlotId,
-               EyeMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-               EyeMasterNode.PositionSlotId,
-               EyeMasterNode.VertexNormalSlotID,
-               EyeMasterNode.VertexTangentSlotID
-            },
-            UseInPreview = false
-        };
-
-        Pass m_PassDepthForwardOnly = new Pass()
-        {
-            Name = "DepthForwardOnly",
-            LightMode = "DepthForwardOnly",
-            TemplateName = "EyePass.template",
-            MaterialName = "Eye",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ZWriteOverride = "ZWrite On",
-            CullOverride = HDSubShaderUtilities.defaultCullMode,
-            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
-
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl\"",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-               EyeMasterNode.NormalSlotId,
-               EyeMasterNode.SmoothnessSlotId,
-               EyeMasterNode.AlphaSlotId,
-               EyeMasterNode.AlphaClipThresholdSlotId,
-               EyeMasterNode.DepthOffsetSlotId,
-            },
-
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-
-            VertexShaderSlots = new List<int>()
-            {
-               EyeMasterNode.PositionSlotId,
-               EyeMasterNode.VertexNormalSlotID,
-               EyeMasterNode.VertexTangentSlotID
-            },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as EyeMasterNode;
-                HDSubShaderUtilities.SetStencilStateForDepth(ref pass);
-            }
-        };
-
-        Pass m_PassMotionVectors = new Pass()
-        {
-            Name = "MotionVectors",
-            LightMode = "MotionVectors",
-            TemplateName = "EyePass.template",
-            MaterialName = "Eye",
-            ShaderPassName = "SHADERPASS_MOTION_VECTORS",
-            ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
-            CullOverride = HDSubShaderUtilities.defaultCullMode,
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-               EyeMasterNode.NormalSlotId,
-               EyeMasterNode.SmoothnessSlotId,
-               EyeMasterNode.AlphaSlotId,
-               EyeMasterNode.AlphaClipThresholdSlotId,
-               EyeMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-               EyeMasterNode.PositionSlotId,
-               EyeMasterNode.VertexNormalSlotID,
-               EyeMasterNode.VertexTangentSlotID
-            },
-            UseInPreview = false,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as EyeMasterNode;
-                HDSubShaderUtilities.SetStencilStateForMotionVector(ref pass);
-            }
-        };
-
-        Pass m_PassForwardOnly = new Pass()
-        {
-            Name = "ForwardOnly",
-            LightMode = "ForwardOnly",
-            TemplateName = "EyePass.template",
-            MaterialName = "Eye",
-            ShaderPassName = "SHADERPASS_FORWARD",
-            CullOverride = HDSubShaderUtilities.cullModeForward,
-            ZTestOverride = HDSubShaderUtilities.zTestDepthEqualForOpaque,
-            ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
-            // ExtraDefines are set when the pass is generated
-            Includes = new List<string>()
-            {
-                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl\"",
-            },
-            RequiredFields = new List<string>()
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
-            },
-            PixelShaderSlots = new List<int>()
-            {
-                EyeMasterNode.AlbedoSlotId,
-                EyeMasterNode.SpecularOcclusionSlotId,
-                EyeMasterNode.NormalSlotId,
-                EyeMasterNode.IrisNormalSlotId,
-                EyeMasterNode.SmoothnessSlotId,
-                EyeMasterNode.IORSlotId,
-                EyeMasterNode.AmbientOcclusionSlotId,
-                EyeMasterNode.MaskSlotId,
-                EyeMasterNode.DiffusionProfileHashSlotId,
-                EyeMasterNode.SubsurfaceMaskSlotId,
-                EyeMasterNode.EmissionSlotId,
-                EyeMasterNode.AlphaSlotId,
-                EyeMasterNode.AlphaClipThresholdSlotId,
-                EyeMasterNode.LightingSlotId,
-                EyeMasterNode.BackLightingSlotId,
-                EyeMasterNode.DepthOffsetSlotId,
-            },
-            VertexShaderSlots = new List<int>()
-            {
-               EyeMasterNode.PositionSlotId,
-               EyeMasterNode.VertexNormalSlotID,
-               EyeMasterNode.VertexTangentSlotID
-            },
-            UseInPreview = true,
-
-            OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
-            {
-                var masterNode = node as EyeMasterNode;
-                HDSubShaderUtilities.SetStencilStateForForward(ref pass);
-                HDSubShaderUtilities.SetBlendModeForForward(ref pass);
-
-                pass.ExtraDefines.Remove("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
-
-                if (masterNode.surfaceType == SurfaceType.Opaque)
-                {
-                    if (masterNode.alphaTest.isOn)
-                    {
-                        // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-                        // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-                        pass.ExtraDefines.Add("#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
-                        pass.ZTestOverride = "ZTest Equal";
-                    }
-                    else
-                        pass.ZTestOverride = null;
-                }
-            }
-        };
-
-        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(EyeMasterNode masterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
             var baseActiveFields = activeFields.baseInstance;
 
-            EyeMasterNode masterNode = iMasterNode as EyeMasterNode;
-            if (masterNode == null)
+            // Graph Vertex
+            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
             {
-                return activeFields;
+                baseActiveFields.Add("features.graphVertex");
             }
+
+            // Graph Pixel (always enabled)
+            baseActiveFields.Add("features.graphPixel");
 
             if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
             {
-                if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
-                {                                                   // we need to be able to build interpolators using multiple input structs
-                                                                    // also: should only require isFrontFace if Normals are required...
+                if (pass.referenceName != "SHADERPASS_MOTION_VECTORS")  // HACK to get around lack of a good interpolator dependency system
+                {                                                       // we need to be able to build interpolators using multiple input structs
+                                                                        // also: should only require isFrontFace if Normals are required...
                     // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
                     baseActiveFields.Add("FragInputs.isFrontFace");
                 }
@@ -334,20 +38,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
             switch (masterNode.materialType)
             {
-            case EyeMasterNode.MaterialType.Eye:
-                baseActiveFields.Add("Material.Eye");
-                break;
-            case EyeMasterNode.MaterialType.EyeCinematic:
-                baseActiveFields.Add("Material.EyeCinematic");
-                break;
-            default:
-                UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
-                break;
-        }
+                case EyeMasterNode.MaterialType.Eye:
+                    baseActiveFields.Add("Material.Eye");
+                    break;
+                case EyeMasterNode.MaterialType.EyeCinematic:
+                    baseActiveFields.Add("Material.EyeCinematic");
+                    break;
+                default:
+                    UnityEngine.Debug.LogError("Unknown material type: " + masterNode.materialType);
+                    break;
+            }
 
             if (masterNode.alphaTest.isOn)
             {
-                if (pass.PixelShaderUsesSlot(EyeMasterNode.AlphaClipThresholdSlotId))
+                if (pass.pixelPorts.Contains(EyeMasterNode.AlphaClipThresholdSlotId))
                 {
                     baseActiveFields.Add("AlphaTest");
                 }
@@ -386,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 baseActiveFields.Add("Material.SubsurfaceScattering");
             }
 
-            if (masterNode.IsSlotConnected(EyeMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.BentNormalSlotId))
+            if (masterNode.IsSlotConnected(EyeMasterNode.BentNormalSlotId) && pass.pixelPorts.Contains(EyeMasterNode.BentNormalSlotId))
             {
                 baseActiveFields.Add("BentNormal");
             }
@@ -408,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
 
-            if (pass.PixelShaderUsesSlot(EyeMasterNode.AmbientOcclusionSlotId))
+            if (pass.pixelPorts.Contains(EyeMasterNode.AmbientOcclusionSlotId))
             {
                 var occlusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(EyeMasterNode.AmbientOcclusionSlotId);
 
@@ -419,44 +123,40 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (masterNode.IsSlotConnected(EyeMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.LightingSlotId))
+            if (masterNode.IsSlotConnected(EyeMasterNode.LightingSlotId) && pass.pixelPorts.Contains(EyeMasterNode.LightingSlotId))
             {
                 baseActiveFields.Add("LightingGI");
             }
-            if (masterNode.IsSlotConnected(EyeMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(EyeMasterNode.BackLightingSlotId))
+            if (masterNode.IsSlotConnected(EyeMasterNode.BackLightingSlotId) && pass.pixelPorts.Contains(EyeMasterNode.BackLightingSlotId))
             {
                 baseActiveFields.Add("BackLightingGI");
             }
 
-            if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(EyeMasterNode.DepthOffsetSlotId))
+            if (masterNode.depthOffset.isOn && pass.pixelPorts.Contains(EyeMasterNode.DepthOffsetSlotId))
                 baseActiveFields.Add("DepthOffset");
 
             return activeFields;
         }
 
-        private static bool GenerateShaderPassEye(EyeMasterNode masterNode, Pass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassEye(EyeMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
-            if (mode == GenerationMode.ForReals || pass.UseInPreview)
-            {
-                pass.OnGeneratePass(masterNode);
-
-                // apply master node options to active fields
-                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
-
-                // use standard shader pass generation
-                bool vertexActive = false;
-                if (masterNode.IsSlotConnected(EyeMasterNode.PositionSlotId) ||
-                    masterNode.IsSlotConnected(EyeMasterNode.VertexNormalSlotID) ||
-                    masterNode.IsSlotConnected(EyeMasterNode.VertexTangentSlotID) )
-                {
-                    vertexActive = true;
-                }
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
-            }
-            else
-            {
+            if(mode == GenerationMode.Preview && !pass.useInPreview)
                 return false;
+
+            else if(pass.Equals(HDRPMeshTarget.Passes.EyeForwardOnlyOpaque) || pass.Equals(HDRPMeshTarget.Passes.EyeForwardOnlyTransparent))
+            {
+                if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
+                {
+                    pass.ZTestOverride = "ZTest Equal";
+                }
             }
+            
+            // Active Fields
+            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            
+            // Generate
+            return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
+                HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
         }
 
         public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
@@ -485,16 +185,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 int queue = HDRenderQueue.ChangeType(renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
 
-                GenerateShaderPassEye(masterNode, m_PassShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassEye(masterNode, m_PassMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassEye(masterNode, m_SceneSelectionPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, target, HDRPMeshTarget.Passes.EyeShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, target, HDRPMeshTarget.Passes.EyeMETA, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, target, HDRPMeshTarget.Passes.EyeSceneSelection, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerateShaderPassEye(masterNode, m_PassDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassEye(masterNode, m_PassMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, target, HDRPMeshTarget.Passes.EyeDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassEye(masterNode, target, HDRPMeshTarget.Passes.EyeMotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                 // Assign define here based on opaque or transparent to save some variant
-                m_PassForwardOnly.ExtraDefines = opaque ? HDSubShaderUtilities.s_ExtraDefinesForwardOpaque : HDSubShaderUtilities.s_ExtraDefinesForwardTransparent;
-                GenerateShaderPassEye(masterNode, m_PassForwardOnly, mode, subShader, sourceAssetDependencyPaths);
+                if(opaque)
+                {
+                    GenerateShaderPassEye(masterNode, target, HDRPMeshTarget.Passes.EyeForwardOnlyOpaque, mode, subShader, sourceAssetDependencyPaths);
+                }
+                else
+                {
+                    GenerateShaderPassEye(masterNode, target, HDRPMeshTarget.Passes.EyeForwardOnlyTransparent, mode, subShader, sourceAssetDependencyPaths);
+                }
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
