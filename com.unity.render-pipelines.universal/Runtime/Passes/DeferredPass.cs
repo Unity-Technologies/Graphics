@@ -27,6 +27,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // TODO: Cannot currently bind depth texture as read-only!
             ConfigureTarget(m_DeferredLights.m_LightingTexture.Identifier(), m_DeferredLights.m_DepthTexture.Identifier());
+
+            // Temporary: m_LightingTexture is not yet part of the GBuffer, so we must clear it before accumulating lighting results into it.
+            // Once m_LightingTexture is part of the gbuffer pass, Clear will not be necessary anymore...
+            ConfigureClear(ClearFlag.Color, Color.black);
         }
 
         // ScriptableRenderPass
