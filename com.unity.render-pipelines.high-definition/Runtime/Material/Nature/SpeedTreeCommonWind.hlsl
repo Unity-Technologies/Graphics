@@ -3,14 +3,32 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTreeWind.hlsl"
 
-void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float2 finalUV, out float finalAlpha)
+#if defined(SPEEDTREE_V7) && (EFFECT_BILLBOARD)
+
+CBUFFER_START(UnityBillboardPerCamera)
+float3 unity_BillboardNormal;
+float3 unity_BillboardTangent;
+float4 unity_BillboardCameraParams;
+#define unity_BillboardCameraPosition (unity_BillboardCameraParams.xyz)
+#define unity_BillboardCameraXZAngle (unity_BillboardCameraParams.w)
+CBUFFER_END
+
+CBUFFER_START(UnityBillboardPerBatch)
+float4 unity_BillboardInfo; // x: num of billboard slices; y: 1.0f / (delta angle between slices)
+float4 unity_BillboardSize; // x: width; y: height; z: bottom
+float4 unity_BillboardImageTexCoords[16];
+CBUFFER_END
+
+#endif
+
+void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float2 finalUV, out float finalAlpha)
 {
     finalPosition = vertex.xyz;
     finalNormal = normal.xyz;
     finalUV = texcoord0.xy;     // Billboard UVs might overwrite this.
     finalAlpha = 1.0;
 
-#ifdef SPEEDTREE_V7
+#if defined(SPEEDTREE_V7) && !defined(EFFECT_BILLBOARD)
 
 #ifdef ENABLE_WIND
     half windQuality = ((windOverride >= 0) ? windOverride : _WindQuality) * _WindEnabled;
@@ -104,6 +122,64 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     }
 #endif
 
+#elif defined(SPEEDTREE_V7)
+    // This is handling Speedtree v7 billboards
+    float4x4 objToWorld = UNITY_MATRIX_M;
+    // assume no scaling & rotation
+    finalPosition.xyz += float3(objToWorld[0].w, objToWorld[1].w, objToWorld[2].w);
+    float3 worldPos = finalPosition.xyz;
+
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    worldPos += _WorldSpaceCameraPos;
+#endif
+
+#ifdef BILLBOARD_FACE_CAMERA_POS
+    float3 eyeVec = normalize(unity_BillboardCameraPosition - worldPos);
+    float3 billboardTangent = normalize(float3(-eyeVec.z, 0, eyeVec.x));            // cross(eyeVec, {0,1,0})
+    float3 billboardNormal = float3(billboardTangent.z, 0, -billboardTangent.x);    // cross({0,1,0},billboardTangent)
+    float3 angle = atan2(billboardNormal.z, billboardNormal.x);                     // signed angle between billboardNormal to {0,0,1}
+    angle += angle < 0 ? 2 * SPEEDTREE_PI : 0;
+#else
+    float3 billboardTangent = unity_BillboardTangent;
+    float3 billboardNormal = unity_BillboardNormal;
+    float angle = unity_BillboardCameraXZAngle;
+#endif
+
+    float widthScale = texcoord1.x;
+    float heightScale = texcoord1.y;
+    float rotation = texcoord1.z;
+
+    float2 percent = texcoord0.xy;
+    float3 billboardPos = (percent.x - 0.5f) * unity_BillboardSize.x * widthScale * billboardTangent;
+    billboardPos.y += (percent.y * unity_BillboardSize.y + unity_BillboardSize.z) * heightScale;
+
+    half windQuality = ((windOverride >= 0) ? windOverride : _WindQuality) * _WindEnabled;
+
+#ifdef ENABLE_WIND
+    if (windQuality > 0)
+        billboardPos = GlobalWind(billboardPos, worldPos, true, _ST_WindVector.xyz, texcoord1.w);
+#endif
+
+    //finalPosition.xyz += billboardPos;
+    finalPosition.xyz = billboardPos;
+    finalNormal = billboardNormal.xyz;
+    //input.tangent = float4(billboardTangent.xyz, -1);
+
+    float slices = unity_BillboardInfo.x;
+    float invDelta = unity_BillboardInfo.y;
+    angle += rotation;
+
+    float imageIndex = fmod(floor(angle * invDelta + 0.5f), slices);
+    float4 imageTexCoords = unity_BillboardImageTexCoords[imageIndex];
+    if (imageTexCoords.w < 0)
+    {
+        finalUV = imageTexCoords.xy - imageTexCoords.zw * percent.yx;
+    }
+    else
+    {
+        finalUV = imageTexCoords.xy + imageTexCoords.zw * percent;
+    }
+
 #else // if it's SPEEDTREE_V8
     
     // smooth LOD
@@ -186,7 +262,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
         windyPosition = BranchWind(bPalmWind, windyPosition, treePos, float4(texcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
 #endif
 
-#endif // !EFFECT_BILLBOARD
+#endif // !defined(EFFECT_BILLBOARD)
 
         // global wind
         float globalWindTime = _ST_WindGlobal.x;
@@ -208,7 +284,11 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     bool topDown = (texcoord0.z > 0.5);
     float4x4 mtx_ITMV = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
     float3 viewDir = mtx_ITMV[2].xyz;
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    float3 cameraDir = normalize(_WorldSpaceCameraPos - treePos);
+#else
     float3 cameraDir = normalize(mul((float3x3)UNITY_MATRIX_M, _WorldSpaceCameraPos - treePos));
+#endif
     float viewDot = max(dot(viewDir, finalNormal), dot(cameraDir, finalNormal));
     viewDot *= viewDot;
     viewDot *= viewDot;
@@ -224,16 +304,19 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float4 color, float4 
     finalAlpha = clamp(viewDot, 0, 1);
 
     // adjust lighting on billboards to prevent seams between the different faces
-//    if (topDown)
-//    {
+    if (topDown)
+    {
         finalNormal += cameraDir;
-//    }
-//    else
-//    {
-//        half3 binormal = cross(finalNormal, input.tangent.xyz) * input.tangent.w;
-//        float3 right = cross(cameraDir, binormal);
-//        finalNormal = cross(binormal, right);
-//    }
+    }
+    else
+    {
+        // We do normally have the ability to use the w component in the tangent to denote flip/no-flip, but
+        // within shadergraph, we apparently cannot access that.
+        //float3 binormal = cross(finalNormal, tangent.xyz) * tangent.w;
+        float3 binormal = cross(finalNormal, tangent.xyz);
+        float3 right = cross(cameraDir, binormal);
+        finalNormal = cross(binormal, right);
+    }
 
     finalNormal = normalize(finalNormal);
 #endif // defined(EFFECT_BILLBOARD)

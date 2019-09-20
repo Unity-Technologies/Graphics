@@ -54,14 +54,18 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty("_SpeedTreeGeom"))
             {
                 SpeedTreeLitMasterNode.TreeGeomType v = (SpeedTreeLitMasterNode.TreeGeomType)material.GetInt("_SpeedTreeGeom");
-                // Initially assume that we're not the default type.
+                // Make sure to clear out all the potential options before setting the correct one.
+                // Avoids duplication and/or overlap -- this is especially important for wind.
                 material.DisableKeyword("GEOM_TYPE_BRANCH");
+                material.DisableKeyword("GEOM_TYPE_BRANCH_DETAIL");
+                material.DisableKeyword("GEOM_TYPE_FROND");
+                material.DisableKeyword("GEOM_TYPE_LEAF");
+                material.DisableKeyword("GEOM_TYPE_MESH");
 
                 switch (v)
                 {
                     case SpeedTreeLitMasterNode.TreeGeomType.BranchDetail:
                         material.EnableKeyword("GEOM_TYPE_BRANCH_DETAIL");
-                        //material.EnableKeyword("GEOM_TYPE_BRANCH");
                         break;
                     case SpeedTreeLitMasterNode.TreeGeomType.Branch:
                         material.EnableKeyword("GEOM_TYPE_BRANCH");
@@ -80,43 +84,55 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty("_WindEnabled"))
             {
-                int windOn = material.GetInt("_WindEnabled");
-                if (windOn == 0)
-                    material.DisableKeyword("ENABLE_WIND");
-            }
+                bool windOn = material.GetInt("_WindEnabled") != 0;
+                CoreUtils.SetKeyword(material, "ENABLE_WIND", windOn);
 
-            if (material.HasProperty("_WindQuality") && material.IsKeywordEnabled("SPEEDTREE_V8"))
-            {
-                SpeedTreeLitMasterNode.WindQuality q = (SpeedTreeLitMasterNode.WindQuality)material.GetInt("_WindQuality");
-
-                switch (q)
+                // This is something we only have to do for Speedtree version 8, whereas 7 uses the _WindQuality value directly.
+                // and of course, it only makes sense 
+                if (material.HasProperty("_WindQualityVer8") && windOn)
                 {
-                    case SpeedTreeLitMasterNode.WindQuality.None:
-                        material.EnableKeyword("_WINDQUALITY_NONE");
-                        break;
-                    case SpeedTreeLitMasterNode.WindQuality.Fastest:
-                        material.EnableKeyword("_WINDQUALITY_FASTEST");
-                        break;
-                    case SpeedTreeLitMasterNode.WindQuality.Fast:
-                        material.EnableKeyword("_WINDQUALITY_FAST");
-                        break;
-                    case SpeedTreeLitMasterNode.WindQuality.Better:
-                        material.EnableKeyword("_WINDQUALITY_BETTER");
-                        break;
-                    case SpeedTreeLitMasterNode.WindQuality.Best:
-                        material.EnableKeyword("_WINDQUALITY_BEST");
-                        break;
-                    case SpeedTreeLitMasterNode.WindQuality.Palm:
-                        material.EnableKeyword("_WINDQUALITY_PALM");
-                        break;
+                    SpeedTreeLitMasterNode.WindQuality q = (SpeedTreeLitMasterNode.WindQuality)material.GetInt("_WindQualityVer8");
+
+                    material.DisableKeyword("_WINDQUALITY_NONE");
+                    material.DisableKeyword("_WINDQUALITY_FASTEST");
+                    material.DisableKeyword("_WINDQUALITY_FAST");
+                    material.DisableKeyword("_WINDQUALITY_BETTER");
+                    material.DisableKeyword("_WINDQUALITY_BEST");
+                    material.DisableKeyword("_WINDQUALITY_PALM");
+
+                    switch (q)
+                    {
+                        case SpeedTreeLitMasterNode.WindQuality.None:
+                            material.EnableKeyword("_WINDQUALITY_NONE");
+                            break;
+                        case SpeedTreeLitMasterNode.WindQuality.Fastest:
+                            material.EnableKeyword("_WINDQUALITY_FASTEST");
+                            break;
+                        case SpeedTreeLitMasterNode.WindQuality.Fast:
+                            material.EnableKeyword("_WINDQUALITY_FAST");
+                            break;
+                        case SpeedTreeLitMasterNode.WindQuality.Better:
+                            material.EnableKeyword("_WINDQUALITY_BETTER");
+                            break;
+                        case SpeedTreeLitMasterNode.WindQuality.Best:
+                            material.EnableKeyword("_WINDQUALITY_BEST");
+                            break;
+                        case SpeedTreeLitMasterNode.WindQuality.Palm:
+                            material.EnableKeyword("_WINDQUALITY_PALM");
+                            break;
+                    }
                 }
             }
 
             if (material.HasProperty("_Billboard"))
             {
-                int b = material.GetInt("_Billboard");
-                if (b != 0)
-                    material.EnableKeyword("EFFECT_BILLBOARD");
+                bool billboardOn = material.GetInt("_Billboard") != 0;
+                CoreUtils.SetKeyword(material, "EFFECT_BILLBOARD", billboardOn);
+
+                if (material.HasProperty("_BillboardFacing"))
+                {
+                    CoreUtils.SetKeyword(material, "BILLBOARD_FACE_CAMERA_POS", billboardOn && (material.GetInt("_BillboardFacing") != 0));
+                }
             }
         }
 

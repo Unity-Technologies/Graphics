@@ -73,9 +73,10 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutUVSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutUVSlotId));
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutAlphaSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutAlphaSlotId));
             // Call the Wind Transformation function
-            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, (int){7}, {8}, {9}, {10}, {11});",
+            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, IN.{7}, (int){8}, {9}, {10}, {11}, {12});",
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Position),
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal),
+                            CoordinateSpace.Object.ToVariableName(InterpolatorType.Tangent),
                             ShaderGeneratorNames.VertexColor,
                             UVChannel.UV0.GetUVName(),
                             UVChannel.UV1.GetUVName(),

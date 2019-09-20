@@ -15,18 +15,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public const string SpeedTreeHeader = "SpeedTree Options";
 
-            //public static GUIContent versionText = new GUIContent("SpeedTree Asset Version", "Version of SpeedTree used to create the asset targeted");
             public static GUIContent typeText = new GUIContent("Geometry Type", "Which type of tree geometry component is the part being shaded");
             public static GUIContent enableWindText = new GUIContent("Enable Wind", "Whether you want the wind effect to be on or not");
             public static GUIContent windQualityText = new GUIContent("Wind Quality", "Detail level of the wind effect");
-            public static GUIContent twoSidedText = new GUIContent("Two Sided", "Whether geometry should be two-sided or not");
-            public static GUIContent cullingModeText = new GUIContent("Cull", "No culling, Front facing, or Back facing");
+            public static GUIContent billboardText = new GUIContent("Billboard", "This surface is a billboard");
+            public static GUIContent billboardFacingText = new GUIContent("Billboard Camera Facing", "Factor which affects billboard's impact on shadows");
         }
 
         Expandable m_ExpandableBit;
 
-        //MaterialProperty assetVersion = null;
-        //const string kAssetVersion = "_SpeedTreeVersion";
         MaterialProperty geomType = null;
         const string kGeomType = "_SpeedTreeGeom";
 
@@ -34,10 +31,11 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kWindEnable = "_WindEnabled";
         MaterialProperty windQuality = null;
         const string kWindQuality = "_WindQuality";
-        MaterialProperty twoSidedEnable = null;
-        const string kTwoSidedEnable = "_TwoSided";
-        MaterialProperty cullMode = null;
-        const string kCullMode = "_Cull";
+        MaterialProperty isBillboard = null;
+
+        const string kIsBillboard = "_Billboard";
+        MaterialProperty billboardFacesCam = null;
+        const string kBillboardFacing = "_BillboardFacing";
 
         public SpeedTreeLitOptionsUIBlock(Expandable expandableBit)
         {
@@ -46,17 +44,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadMaterialProperties()
         {
-            //assetVersion = FindProperty(kAssetVersion);
             geomType = FindProperty(kGeomType);
+
             windEnable = FindProperty(kWindEnable);
             windQuality = FindProperty(kWindQuality);
-            twoSidedEnable = FindProperty(kTwoSidedEnable);
-            cullMode = FindProperty(kCullMode);
+
+            isBillboard = FindProperty(kIsBillboard);
+            billboardFacesCam = FindProperty(kBillboardFacing);
         }
 
         void DrawSpeedTreeInputsGUI()
         {
-            //EditorGUI.BeginChangeCheck();
             if (geomType != null)
                 materialEditor.ShaderProperty(geomType, Styles.typeText);
 
@@ -66,16 +64,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(windQuality, Styles.windQualityText);
             }
 
-            if (twoSidedEnable != null)
-                materialEditor.ShaderProperty(twoSidedEnable, Styles.twoSidedText);
-
-            if (cullMode != null)
-                materialEditor.ShaderProperty(cullMode, Styles.cullingModeText);
-
-            //if (EditorGUI.EndChangeCheck())
-            //{
-
-            //}
+            if (isBillboard != null)
+            {
+                materialEditor.ShaderProperty(isBillboard, Styles.billboardText);
+                if (billboardFacesCam != null)
+                {
+                    materialEditor.ShaderProperty(billboardFacesCam, Styles.billboardFacingText);
+                }
+            }
         }
 
         public override void OnGUI()
