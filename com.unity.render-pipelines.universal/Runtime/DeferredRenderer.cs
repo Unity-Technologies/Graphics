@@ -119,8 +119,8 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);
             EnqueuePass(m_CopyDepthPass);
 
-            m_DeferredLights.Setup(m_DepthCopyTexture, m_TileDepthRangeTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
-            if(m_DeferredLights.useTiles)
+            m_DeferredLights.Setup(ref renderingData, m_DepthCopyTexture, m_TileDepthRangeTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
+            if(m_DeferredLights.HasTileLights())
                 EnqueuePass(m_TileDepthRangePass);
 
             EnqueuePass(m_DeferredPass);

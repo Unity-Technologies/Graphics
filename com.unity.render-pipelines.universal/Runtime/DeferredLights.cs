@@ -105,6 +105,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Hierarchical tilers.
         DeferredTiler[] m_Tilers;
 
+        // Should any visible lights be rendered as tile?
+        bool m_HasTileVisLights;
         // Visible lights rendered using stencil.
         NativeArray<ushort> m_stencilVisLights;
 
@@ -162,6 +164,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     tilerLevel
                 );
             }
+
+            m_HasTileVisLights = false;
         }
 
         public DeferredTiler GetTiler(int i)
@@ -270,12 +274,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             prePointLights.Dispose();
         }
 
-        public void Setup(RenderTargetHandle depthCopyTexture, RenderTargetHandle tileDepthRangeTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
+        public bool HasTileLights()
+        {
+            return m_HasTileVisLights;
+        }
+
+        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthCopyTexture, RenderTargetHandle tileDepthRangeTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
         {
             m_DepthCopyTexture = depthCopyTexture;
             m_TileDepthRangeTexture = tileDepthRangeTexture;
             m_LightingTexture = lightingTexture;
             m_DepthTexture = depthTexture;
+
+            m_HasTileVisLights = this.useTiles && CheckHasTileLights(ref renderingData.lightData.visibleLights);
         }
 
         public void FrameCleanup(CommandBuffer cmd)
@@ -338,6 +349,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         }
 
+        bool CheckHasTileLights(ref NativeArray<VisibleLight> visibleLights)
+        {
+            for (int visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
+            {
+                if (IsTileLight(visibleLights[visLightIndex].light))
+                    return true;
+            }
+
+            return false;
+        }
+
         void PrecomputeLights(out NativeArray<DeferredTiler.PrePointLight> prePointLights,
                               out NativeArray<ushort> stencilVisLights,
                               ref NativeArray<VisibleLight> visibleLights,
@@ -350,23 +372,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             NativeArray<int> tileLightCount = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
             int stencilLightCount = 0;
 
-            // Count the number of lights per type.
-            for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
+            if (this.useTiles)
             {
-                VisibleLight vl = visibleLights[visLightIndex];
-
-                if (vl.lightType == LightType.Point)
+                // Count the number of lights per type.
+                for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
                 {
-                    if (this.useTiles)
-                    {
+                    VisibleLight vl = visibleLights[visLightIndex];
+                    if (IsTileLight(vl.light))
                         ++tileLightCount[(int)vl.lightType];
-                        continue;
-                    }
+                    else // All remaining lights are processed as stencil volumes.
+                        ++stencilLightCount;
                 }
-
-                // All remaining lights are processed as stencil volumes.
-                ++stencilLightCount;
             }
+            else
+                stencilLightCount = visibleLights.Length;
 
             prePointLights = new NativeArray<DeferredTiler.PrePointLight>(tileLightCount[(int)LightType.Point], Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             stencilVisLights = new NativeArray<ushort>(stencilLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -382,7 +401,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (vl.lightType == LightType.Point)
                 {
-                    if (this.useTiles)
+                    if (this.useTiles && IsTileLight(vl.light))
                     {
                         DeferredTiler.PrePointLight ppl;
                         ppl.vsPos = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space
@@ -414,6 +433,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_TileDeferredMaterial, GetType().Name);
                 return;
             }
+
+            if (!m_HasTileVisLights)
+                return;
 
             Profiler.BeginSample(k_TiledDeferredPass);
 
@@ -638,6 +660,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
+            if (m_stencilVisLights.Length == 0)
+                return;
+
             Profiler.BeginSample(k_StencilDeferredPass);
 
             if (m_SphereMesh == null)
@@ -715,6 +740,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // See struct TileData in TileDeferred.shader.
             tileList[storeIndex] = new Vector4UInt { x = tileID, y = relLightOffset, z = listDepthRange, w = listBitMask };
+        }
+
+        bool IsTileLight(Light light)
+        {
+            return light.type == LightType.Point && light.shadows == LightShadows.None;
         }
 
         Mesh CreateSphereMesh()
