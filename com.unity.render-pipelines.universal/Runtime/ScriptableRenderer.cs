@@ -378,6 +378,19 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers > 1;
         }
 
+        // return true if "left" and "right" are the same
+        static bool SameColorAttachments(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
+        {
+            if (left.Length != right.Length)
+                return false;
+
+            for(int i = 0; i< left.Length; ++i)
+                if (left[i] != right[i])
+                    return false;
+
+            return true;
+        }
+
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
@@ -385,7 +398,9 @@ namespace UnityEngine.Rendering.Universal
 
             if(IsMRT(renderPass.colorAttachment))
             {
-                SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
+                // Only setup render target if current render pass attachments are different from the active ones
+                if ( !SameColorAttachments(renderPass.colorAttachment, m_ActiveColorAttachment)  || renderPass.depthAttachment != m_ActiveDepthAttachment)
+                    SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
             }
             else
             {
