@@ -22,16 +22,16 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void BeginRender()
         {
-            int width = Mathf.Max(Mathf.RoundToInt(m_scale.x * RTHandles.maxWidth), 1);
-            int height = Mathf.Max(Mathf.RoundToInt(m_scale.y * RTHandles.maxHeight), 1);
+            uint width = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.x * RTHandles.maxWidth), 1);
+            uint height = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.y * RTHandles.maxHeight), 1);
 
             m_Resolver.Init(width, height);
         }
 
         public void Resolve(CommandBuffer cmd, int width, int height)
         {
-            int resolveWidth = Mathf.Max(Mathf.RoundToInt(m_scale.x * width), 1);
-            int resolveHeight = Mathf.Max(Mathf.RoundToInt(m_scale.y * height), 1);
+            uint resolveWidth = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.x * width), 1);
+            uint resolveHeight = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.y * height), 1);
 
             m_Resolver.Process(cmd, opaqueHandle.nameID, 0, resolveWidth, 0, resolveHeight, 0, 0);
         }
