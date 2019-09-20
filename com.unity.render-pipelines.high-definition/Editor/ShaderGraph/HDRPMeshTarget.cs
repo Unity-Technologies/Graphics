@@ -28,9 +28,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 case UnlitMasterNode unlitMasterNode:
                     subShader = new UnlitSubShader();
                     return true;
-                case DecalMasterNode decalMasterNode:
-                    subShader = new DecalSubShader();
-                    return true;
                 case EyeMasterNode eyeMasterNode:
                     subShader = new EyeSubShader();
                     return true;
