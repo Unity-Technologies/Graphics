@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        public const int GBufferSlicesCount = 4;
+        public const int GBufferSlicesCount = 5;
 
         // attachments are like "binding points", internally they identify the texture shader properties declared with the same names
         public RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[GBufferSlicesCount];
@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferAttachments[1].Init("_GBuffer1");
             m_GBufferAttachments[2].Init("_GBuffer2");
             m_GBufferAttachments[3].Init("_GBuffer3");
+            m_GBufferAttachments[4].Init("_GBuffer4"); // TODO use as lighting base RT
 
             const int initialWidth = 1920;
             const int initialHeight = 1080;
@@ -35,6 +36,7 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferDescriptors[1] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);  // specular specular specular smoothness
             m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0); // normal   normal   normal   alpha
             m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0); // emission emission emission metallic
+            m_GBufferDescriptors[4] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0); // bakedGI  bakedGI  bakedGI  [unused]
 
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
         }

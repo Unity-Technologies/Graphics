@@ -1,68 +1,73 @@
 #ifndef UNIVERSAL_GBUFFERUTIL_INCLUDED
 #define UNIVERSAL_GBUFFERUTIL_INCLUDED
 
-// copied from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
-// TODO: adapt to Universal RP GBuffer
+// inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
-#if 0
-
-//-----------------------------------------------------------------------------
-// Main structure that store the data from the standard shader (i.e user input)
-struct UnityStandardData
+struct FragmentOutput
 {
-    half3   diffuseColor;
-    half    occlusion;
-
-    half3   specularColor;
-    half    smoothness;
-
-    float3  normalWorld;        // normal in world space
+    half4 GBuffer0 : SV_Target0;
+    half4 GBuffer1 : SV_Target1;
+    half4 GBuffer2 : SV_Target2;
+    half4 GBuffer3 : SV_Target3;
+    half4 GBuffer4 : SV_Target4;
 };
 
-//-----------------------------------------------------------------------------
-// This will encode UnityStandardData into GBuffer
-void UnityStandardDataToGbuffer(UnityStandardData data, out half4 outGBuffer0, out half4 outGBuffer1, out half4 outGBuffer2)
+// This will encode SurfaceData into GBuffer
+FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData)
 {
-    // RT0: diffuse color (rgb), occlusion (a) - sRGB rendertarget
-    outGBuffer0 = half4(data.diffuseColor, data.occlusion);
+    half3 remappedNormalWS = inputData.normalWS.xyz * 0.5f + 0.5f;
+    FragmentOutput output;
+    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo    albedo    albedo    occlusion    (sRGB rendertarget)
+    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.smoothness);  // specular  specular  specular  smoothness   (sRGB rendertarget)
+    //output.GBuffer2 = half4(inputData.normalWS.xyz, surfaceData.alpha);       // normal    normal    normal    alpha
+    output.GBuffer2 = half4(remappedNormalWS, surfaceData.alpha);               // normal    normal    normal    alpha
+    output.GBuffer3 = half4(surfaceData.emission.rgb, surfaceData.metallic);    // emission  emission  emission  metallic
+    output.GBuffer4 = half4(inputData.bakedGI, 1.0);                            // bakedGI   bakedGI   bakedGI   [unused]
 
-    // RT1: spec color (rgb), smoothness (a) - sRGB rendertarget
-    outGBuffer1 = half4(data.specularColor, data.smoothness);
-
-    // RT2: normal (rgb), --unused, very low precision-- (a)
-    outGBuffer2 = half4(data.normalWorld * 0.5f + 0.5f, 1.0f);
+    return output;
 }
-//-----------------------------------------------------------------------------
-// This decode the Gbuffer in a UnityStandardData struct
-UnityStandardData UnityStandardDataFromGbuffer(half4 inGBuffer0, half4 inGBuffer1, half4 inGBuffer2)
+
+// This decodes the Gbuffer into a SurfaceData struct
+SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2, half4 gbuffer3 /*, DeferredData deferredData*/)
 {
-    UnityStandardData data;
+    SurfaceData surfaceData;
 
-    data.diffuseColor = inGBuffer0.rgb;
-    data.occlusion = inGBuffer0.a;
+    surfaceData.albedo = gbuffer0.rgb;
+    surfaceData.occlusion = gbuffer0.a;
 
-    data.specularColor = inGBuffer1.rgb;
-    data.smoothness = inGBuffer1.a;
+    surfaceData.specular = gbuffer1.rgb;
+    surfaceData.smoothness = gbuffer1.a;
 
-    data.normalWorld = normalize((float3)inGBuffer2.rgb * 2 - 1);
+    surfaceData.normalTS = (half3)0; // Note: does this normalTS member need to be in SurfaceData? It looks like an intermediate value
 
-    return data;
+    surfaceData.alpha = gbuffer2.a;
+
+    surfaceData.emission = gbuffer3.rgb;
+    surfaceData.metallic = gbuffer3.a;
+
+    return surfaceData;
 }
-//-----------------------------------------------------------------------------
-// In some cases like for terrain, the user want to apply a specific weight to the attribute
-// The function below is use for this
-void UnityStandardDataApplyWeightToGbuffer(inout half4 inOutGBuffer0, inout half4 inOutGBuffer1, inout half4 inOutGBuffer2, half alpha)
+
+InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, half4 gbuffer4, float3 wsPos)
 {
-    // With UnityStandardData current encoding, We can apply the weigth directly on the gbuffer
-    inOutGBuffer0.rgb *= alpha; // diffuseColor
-    inOutGBuffer1 *= alpha; // SpecularColor and Smoothness
-    inOutGBuffer2.rgb *= alpha; // Normal
+    InputData inputData;
+
+    inputData.positionWS = wsPos;
+
+    half3 remappedNormal = normalize((float3)gbuffer2.rgb * 2 - 1);
+    inputData.normalWS = remappedNormal;
+
+    inputData.viewDirectionWS = GetCameraPositionWS() - wsPos.xyz;
+
+    // TODO: find how to pass this info?
+    inputData.shadowCoord     = (float4)0;
+    inputData.fogCoord        = (half  )0;
+    inputData.vertexLighting  = (half3 )0;
+
+    // TODO: pass bakedGI info without using GBuffer slot?
+    inputData.bakedGI = gbuffer4.rgb;
+
+    return inputData;
 }
-//-----------------------------------------------------------------------------
-
-
-#endif
-
-
 
 #endif // UNIVERSAL_GBUFFERUTIL_INCLUDED

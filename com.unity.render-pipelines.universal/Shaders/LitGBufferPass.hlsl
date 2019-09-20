@@ -123,13 +123,7 @@ Varyings LitGBufferPassVertex(Attributes input)
     return output;
 }
 
-struct FragmentOutput
-{
-    half4 GBuffer0 : SV_Target0;
-    half4 GBuffer1 : SV_Target1;
-    half4 GBuffer2 : SV_Target2;
-    half4 GBuffer3 : SV_Target3;
-};
+
 
 // Used in Standard (Physically Based) shader
 FragmentOutput LitGBufferPassFragment(Varyings input)
@@ -148,16 +142,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     // forward
     //color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
-    FragmentOutput output;
-
-    half3 remappedNormalWS = inputData.normalWS.xyz * 0.5f + 0.5f;
-
-    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo    albedo    albedo    occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.smoothness);  // specular  specular  specular  smoothness   (sRGB rendertarget)
-    output.GBuffer2 = half4(remappedNormalWS.xyz, surfaceData.alpha);           // normal    normal    normal    alpha
-    output.GBuffer3 = half4(surfaceData.emission.rgb, surfaceData.metallic);    // emission  emission  emission  metallic
-
-    return output;
+    return SurfaceDataToGbuffer(surfaceData, inputData);
 }
 
 #endif
