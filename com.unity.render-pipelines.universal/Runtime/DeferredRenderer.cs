@@ -49,6 +49,7 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             m_DeferredLights = new DeferredLights(tileDepthInfoMaterial, tileDeferredMaterial, stencilDeferredMaterial);
+            m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.

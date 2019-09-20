@@ -10,9 +10,10 @@ namespace UnityEditor.Rendering.Universal
     {
         private static class Styles
         {
-            public static readonly GUIContent RendererTitle = new GUIContent("Deferred Renderer", "Custom Deferred Renderer for LWRP.");
+            public static readonly GUIContent RendererTitle = new GUIContent("Deferred Renderer", "Custom Deferred Renderer for UniversalRP.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Default Layer Mask", "Controls which layers to globally include in the Custom Deferred Renderer.");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure stencil state for the opaque and transparent render passes.");
+            public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading", "Allows Tiled Deferred Shading on appropriate lights");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -20,6 +21,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_DefaultStencilState;
 
         SerializedProperty m_PostProcessData;
+
+        SerializedProperty m_TiledDeferredShading;
 
         SerializedProperty m_Shaders;
 
@@ -30,6 +33,8 @@ namespace UnityEditor.Rendering.Universal
             m_DefaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
 
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
+
+            m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
 
             m_Shaders = serializedObject.FindProperty("shaders");
         }
@@ -45,6 +50,7 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck()) // We copy the opaque mask to the transparent mask, later we might expose both
                 m_TransparentLayerMask.intValue = m_OpaqueLayerMask.intValue;
             EditorGUILayout.PropertyField(m_PostProcessData);
+            EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);

@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int g_DepthTex = Shader.PropertyToID("g_DepthTex");
         }
 
-        internal struct DrawCall
+        struct DrawCall
         {
             public ComputeBuffer tileList;
             public ComputeBuffer pointLightBuffer;
@@ -92,8 +92,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_TiledDeferredPass = "Tile-Based Deferred Shading";
         const string k_StencilDeferredPass = "Stencil Deferred Shading";
 
-        // TODO: move to UI.
-        public bool useTiles = true; // <- true: use TileDeferred.shader - false: use StencilDeferred.shader
+        public bool tiledDeferredShading = true; // <- true: use TileDeferred.shader - false: use StencilDeferred.shader
 
         // Cached.
         int m_RenderWidth = 0;
@@ -286,7 +285,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LightingTexture = lightingTexture;
             m_DepthTexture = depthTexture;
 
-            m_HasTileVisLights = this.useTiles && CheckHasTileLights(ref renderingData.lightData.visibleLights);
+            m_HasTileVisLights = this.tiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
         }
 
         public void FrameCleanup(CommandBuffer cmd)
@@ -372,7 +371,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             NativeArray<int> tileLightCount = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
             int stencilLightCount = 0;
 
-            if (this.useTiles)
+            if (this.tiledDeferredShading)
             {
                 // Count the number of lights per type.
                 for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
@@ -401,7 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (vl.lightType == LightType.Point)
                 {
-                    if (this.useTiles && IsTileLight(vl.light))
+                    if (this.tiledDeferredShading && IsTileLight(vl.light))
                     {
                         DeferredTiler.PrePointLight ppl;
                         ppl.vsPos = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space

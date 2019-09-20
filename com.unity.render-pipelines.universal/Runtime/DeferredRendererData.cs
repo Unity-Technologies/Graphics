@@ -104,5 +104,16 @@ namespace UnityEngine.Rendering.Universal
             catch {}
 #endif
         }
+
+
+        [SerializeField] bool m_TiledDeferredShading = true;
+
+        /// <summary>
+        /// Allows tiled deferred shading on appropriate lights.
+        /// </summary>
+        public bool tiledDeferredShading
+        {
+            get => m_TiledDeferredShading;
+        }
     }
 }
