@@ -11,22 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.HDLitSubShader")]
     class HDLitSubShader : ISubShader
     {
-        Pass m_PassRaytracingIndirect = new Pass()
-        {
-        };
-
-        Pass m_PassRaytracingVisibility = new Pass()
-        {
-        };
-
-        Pass m_PassRaytracingForward = new Pass()
-        {
-        };
-
-        Pass m_PassRaytracingGBuffer = new Pass()
-        {
-        };
-
         private static ActiveFields GetActiveFieldsFromMasterNode(HDLitMasterNode masterNode, ShaderPass pass)
         {
             var activeFields = new ActiveFields();
