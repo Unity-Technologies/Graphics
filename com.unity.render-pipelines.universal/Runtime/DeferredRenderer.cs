@@ -120,9 +120,8 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_CopyDepthPass);
 
             m_DeferredLights.Setup(m_DepthCopyTexture, m_TileDepthRangeTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
-            EnqueuePass(m_TileDepthRangePass);
-
-            EnqueuePass(m_RenderOpaqueForwardPass);
+            if(m_DeferredLights.useTiles)
+                EnqueuePass(m_TileDepthRangePass);
 
             EnqueuePass(m_DeferredPass);
 
