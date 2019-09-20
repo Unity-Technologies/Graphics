@@ -3,6 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace  UnityEngine.Rendering.HighDefinition
 {
+#if ENABLE_VIRTUALTEXTURES
     public class VTBufferManager
     {
         const int Scale = 16; //Keep in sync with TextureStack.hlsl
@@ -51,6 +52,6 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.SetRenderTarget(cmd, opaqueHandle.nameID, ClearFlag.Color, Color.white);
         }
-
     }
+#endif
 }
