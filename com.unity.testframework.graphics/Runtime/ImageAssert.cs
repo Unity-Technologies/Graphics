@@ -76,8 +76,11 @@ namespace UnityEngine.TestTools.Graphics
                     
                 }
                 actual = new Texture2D(width, height, format, false);
+                Vector2 screenRes = new Vector2(Screen.width, Screen.height); // Grab the resolution of the screen
+                Debug.Log("test");
 
-                actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                actual.ReadPixels(new Rect(0, 0, (int)screenRes.x, (int)screenRes.y), 0, 0, false); // grab screen pixels
+                actual = ResizeInto(actual, width, height);
 
                 actual.Apply();
 
@@ -90,6 +93,29 @@ namespace UnityEngine.TestTools.Graphics
                 if (actual != null)
                     UnityEngine.Object.Destroy(actual);
             }
+        }
+
+        public static Texture2D ResizeInto(Texture2D source, int width, int height)
+        {
+            Texture2D resize = new Texture2D(width, height, source.format, false);
+            resize.wrapMode = TextureWrapMode.Clamp;
+            Color[] destPix = new Color[width * height];
+            int y = 0;
+            while (y < height)
+            {
+                int x = 0;
+                while (x < width)
+                {
+                    float xFrac = x * 1.0F / (width);
+                    float yFrac = y * 1.0F / (height);
+                    destPix[y * width + x] = source.GetPixelBilinear(xFrac, yFrac);
+                    x++;
+                }
+                y++;
+            }
+            resize.SetPixels(destPix);
+            resize.Apply();
+            return resize;
         }
 
         /// <summary>
