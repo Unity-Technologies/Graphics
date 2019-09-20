@@ -57,9 +57,8 @@ namespace UnityEditor.Rendering.HighDefinition
             BakedShadow = 1 << 7,
             ShadowQuality = 1 << 8
         }
-
-        // That's not a real English word...
-        enum Advanceable
+        
+        enum AdvancedMode
         {
             General = 1 << 0,
             Shape = 1 << 1,
@@ -73,12 +72,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly CED.IDrawer Inspector;
 
-        static bool GetAdvanced(Advanceable mask, SerializedHDLight serialized, Editor owner)
+        static bool GetAdvanced(AdvancedMode mask, SerializedHDLight serialized, Editor owner)
         {
             return (serialized.serializedLightData.showAdditionalSettings.intValue & (int)mask) != 0;
         }
 
-        static void SetAdvanced(Advanceable mask, bool value, SerializedHDLight serialized, Editor owner)
+        static void SetAdvanced(AdvancedMode mask, bool value, SerializedHDLight serialized, Editor owner)
         {
             if (value)
             {
@@ -90,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void SwitchAdvanced(Advanceable mask, SerializedHDLight serialized, Editor owner)
+        static void SwitchAdvanced(AdvancedMode mask, SerializedHDLight serialized, Editor owner)
         {
             if ((serialized.serializedLightData.showAdditionalSettings.intValue & (int)mask) != 0)
             {
@@ -108,20 +107,20 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Inspector = CED.Group(
                 CED.AdvancedFoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedState,
-                    (serialized, owner) => GetAdvanced(Advanceable.General, serialized, owner),
-                    (serialized, owner) => SwitchAdvanced(Advanceable.General, serialized, owner),
+                    (serialized, owner) => GetAdvanced(AdvancedMode.General, serialized, owner),
+                    (serialized, owner) => SwitchAdvanced(AdvancedMode.General, serialized, owner),
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.AdvancedFoldoutGroup(s_Styles.generalHeader, Expandable.Shape, k_ExpandedState,
-                    (serialized, owner) => GetAdvanced(Advanceable.Shape, serialized, owner),
-                    (serialized, owner) => SwitchAdvanced(Advanceable.Shape, serialized, owner),
+                CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
+                    (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
+                    (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),
                     DrawShapeContent,
                     DrawShapeAdvancedContent
                     ),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
-                    (serialized, owner) => GetAdvanced(Advanceable.Emission, serialized, owner),
-                    (serialized, owner) => SwitchAdvanced(Advanceable.Emission, serialized, owner),
+                    (serialized, owner) => GetAdvanced(AdvancedMode.Emission, serialized, owner),
+                    (serialized, owner) => SwitchAdvanced(AdvancedMode.Emission, serialized, owner),
                     DrawEmissionContent,
                     DrawEmissionAdvancedContent
                     ),
@@ -129,11 +128,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric)),
                 CED.Conditional((serialized, owner) => serialized.editorLightShape != LightShape.Tube,
                     CED.AdvancedFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
-                        (serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner),
-                        (serialized, owner) => SwitchAdvanced(Advanceable.Shadow, serialized, owner),
+                        (serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner),
+                        (serialized, owner) => SwitchAdvanced(AdvancedMode.Shadow, serialized, owner),
                         CED.Group(
                             CED.FoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawShadowMapContent),
-                            CED.Conditional((serialized, owner) => GetAdvanced(Advanceable.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
+                            CED.Conditional((serialized, owner) => GetAdvanced(AdvancedMode.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
                                 CED.Group(GroupOption.Indent, DrawShadowMapAdvancedContent)),
                             CED.space,
                             CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
@@ -520,7 +519,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
                 {
                     // Display reflector only in advance mode
-                    if (serialized.serializedLightData.lightUnit.enumValueIndex == (int)PunctualLightUnit.Lumen && GetAdvanced(Advanceable.Emission, serialized, owner))
+                    if (serialized.serializedLightData.lightUnit.enumValueIndex == (int)PunctualLightUnit.Lumen && GetAdvanced(AdvancedMode.Emission, serialized, owner))
                     {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(serialized.serializedLightData.enableSpotReflector, s_Styles.enableSpotReflector);
@@ -656,7 +655,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             shadowmask = (ShadowmaskMode)EditorGUILayout.EnumPopup(s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
-                                Undo.RecordObjects(owner.targets, "Light Update Shadow Mask Mode");
+                                Undo.RecordObjects(owner.targets, "Light Update Shadowmask Mode");
                                 serialized.serializedLightData.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
                                 foreach (Light target in owner.targets)
                                     target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;

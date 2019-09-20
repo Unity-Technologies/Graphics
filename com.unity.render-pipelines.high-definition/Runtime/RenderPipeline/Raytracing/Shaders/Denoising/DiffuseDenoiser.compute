@@ -40,8 +40,10 @@ float _DenoiserFilterRadius;
 int _HalfResolutionFilter;
 
 [numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
-void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
 
@@ -152,8 +154,10 @@ void BILATERAL_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV
 
 // TODO: This needs to check depth before upscale to avoid artifacts
 [numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
-void GATHER_FILTER(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void GATHER_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Fetch the current pixel coordinate
     uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
 

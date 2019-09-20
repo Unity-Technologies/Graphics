@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.2.0] - 2019-XX-XX
 
+### Added
+- Ray tracing support for VR single-pass
+
 ### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
 - Fixed Hair and PBR shader graphs double sided modes
@@ -22,10 +25,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the modification of the _AlphaCutoff property in the material UI when exposed with a ShaderGraph parameter.
 - Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
 - Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
-- Fix crash when upgrading version of HDRP
+- Fixed crash when upgrading version of HDRP
 - Fixed rendering issues with material previews
 - Fixed NPE when using light module in Shuriken particle systems (1173348).
 - Refresh cached shadow on editor changes
+- Fixed light supported units caching (1182266)
+- Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
+- Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
+- Fixed Decal gizmo that become white after exiting play mode
+- Fixed Decal pivot position to behave like a spotlight
+- Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
+- Fix DebugMenu FrameSettingsHistory persistency on close
+- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
+- Fix DXR scene serialization in wizard
+- Fixed an issue where Previews would reallocate History Buffers every frame
+
+### Changed
+- Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
 
 ## [7.1.1] - 2019-09-05
 
