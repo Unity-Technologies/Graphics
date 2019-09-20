@@ -538,6 +538,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, k_SupportLightLayerContent);
+            // custom-begin:
+            if (serialized.renderPipelineSettings.supportLightLayers.boolValue)
+            {
+                EditorGUI.BeginChangeCheck();
+                string lightLayerName0 = EditorGUILayout.DelayedTextField(k_LightLayerName0, serialized.renderPipelineSettings.lightLayerName0.stringValue);
+                string lightLayerName1 = EditorGUILayout.DelayedTextField(k_LightLayerName1, serialized.renderPipelineSettings.lightLayerName1.stringValue);
+                string lightLayerName2 = EditorGUILayout.DelayedTextField(k_LightLayerName2, serialized.renderPipelineSettings.lightLayerName2.stringValue);
+                string lightLayerName3 = EditorGUILayout.DelayedTextField(k_LightLayerName3, serialized.renderPipelineSettings.lightLayerName3.stringValue);
+                string lightLayerName4 = EditorGUILayout.DelayedTextField(k_LightLayerName4, serialized.renderPipelineSettings.lightLayerName4.stringValue);
+                string lightLayerName5 = EditorGUILayout.DelayedTextField(k_LightLayerName5, serialized.renderPipelineSettings.lightLayerName5.stringValue);
+                string lightLayerName6 = EditorGUILayout.DelayedTextField(k_LightLayerName6, serialized.renderPipelineSettings.lightLayerName6.stringValue);
+                string lightLayerName7 = EditorGUILayout.DelayedTextField(k_LightLayerName7, serialized.renderPipelineSettings.lightLayerName7.stringValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.renderPipelineSettings.lightLayerName0.stringValue = lightLayerName0;
+                    serialized.renderPipelineSettings.lightLayerName1.stringValue = lightLayerName1;
+                    serialized.renderPipelineSettings.lightLayerName2.stringValue = lightLayerName2;
+                    serialized.renderPipelineSettings.lightLayerName3.stringValue = lightLayerName3;
+                    serialized.renderPipelineSettings.lightLayerName4.stringValue = lightLayerName4;
+                    serialized.renderPipelineSettings.lightLayerName5.stringValue = lightLayerName5;
+                    serialized.renderPipelineSettings.lightLayerName6.stringValue = lightLayerName6;
+                    serialized.renderPipelineSettings.lightLayerName7.stringValue = lightLayerName7;
+
+                }
+            }
+            // custom-end
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }

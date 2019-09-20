@@ -17,6 +17,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty supportVolumetrics;
         public SerializedProperty increaseResolutionOfVolumetrics;
         public SerializedProperty supportLightLayers;
+        // custom-begin:
+        public SerializedProperty lightLayerName0;
+        public SerializedProperty lightLayerName1;
+        public SerializedProperty lightLayerName2;
+        public SerializedProperty lightLayerName3;
+        public SerializedProperty lightLayerName4;
+        public SerializedProperty lightLayerName5;
+        public SerializedProperty lightLayerName6;
+        public SerializedProperty lightLayerName7;
+        // custom-end
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
 
@@ -53,6 +63,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
             increaseResolutionOfVolumetrics = root.Find((RenderPipelineSettings s) => s.increaseResolutionOfVolumetrics);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
+            // custom-begin:
+            lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
+            lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
+            lightLayerName2                 = root.Find((RenderPipelineSettings s) => s.lightLayerName2);
+            lightLayerName3                 = root.Find((RenderPipelineSettings s) => s.lightLayerName3);
+            lightLayerName4                 = root.Find((RenderPipelineSettings s) => s.lightLayerName4);
+            lightLayerName5                 = root.Find((RenderPipelineSettings s) => s.lightLayerName5);
+            lightLayerName6                 = root.Find((RenderPipelineSettings s) => s.lightLayerName6);
+            lightLayerName7                 = root.Find((RenderPipelineSettings s) => s.lightLayerName7);
+            // custom-end
             colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
             

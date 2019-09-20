@@ -278,7 +278,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
                 lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
             EditorGUI.BeginChangeCheck();
-            lightLayer = System.Convert.ToInt32(EditorGUILayout.EnumFlagsField(label, (LightLayerEnum)lightLayer));
+            // custom-begin:
+            // lightLayer = System.Convert.ToInt32(EditorGUILayout.EnumFlagsField(label, (LightLayerEnum)lightLayer));
+            lightLayer = LightLayerMaskPropertyDrawer(label, lightLayer);
+            // custom-end
             if (EditorGUI.EndChangeCheck())
             {
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
@@ -302,7 +305,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
                 lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
             EditorGUI.BeginChangeCheck();
-            lightLayer = System.Convert.ToInt32(EditorGUI.EnumFlagsField(rect, (LightLayerEnum)lightLayer));
+            // custom-begin:
+            // lightLayer = System.Convert.ToInt32(EditorGUI.EnumFlagsField(rect, (LightLayerEnum)lightLayer));
+            lightLayer = LightLayerMaskPropertyDrawer(rect, lightLayer);
+            // custom-end
             if (EditorGUI.EndChangeCheck())
             {
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
@@ -310,6 +316,42 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUI.showMixedValue = false;
         }
+
+        // custom-begin:
+        public static int LightLayerMaskPropertyDrawer(GUIContent label, int lightLayerMask)
+        {
+            HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+            lightLayerMask = EditorGUILayout.MaskField(label, lightLayerMask, hdrp.asset.lightLayerNames);
+
+            return lightLayerMask;
+        }
+
+        public static int LightLayerMaskPropertyDrawer(Rect position, int lightLayerMask)
+        {
+            HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+            lightLayerMask = EditorGUI.MaskField(position, lightLayerMask, hdrp.asset.lightLayerNames);
+
+            return lightLayerMask;
+        }
+
+        public static int LightLayerMaskPropertyDrawer(Rect position, GUIContent label, int lightLayerMask)
+        {
+            HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
+
+            lightLayerMask = EditorGUI.MaskField(position, label, lightLayerMask, hdrp.asset.lightLayerNames);
+
+            return lightLayerMask;
+        }
+
+
+        public static float ComputeLightLayerMaskPropertyDrawerHeight()
+        {
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        // custom-end
     }
 
     public static partial class SerializedPropertyExtention

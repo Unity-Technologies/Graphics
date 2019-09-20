@@ -164,14 +164,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     m_RenderingLayerNames = new string[32];
 
+                    // custom-begin:
                     // By design we can't touch this one, but we can rename it
-                    m_RenderingLayerNames[0] = "Light Layer default";
+                    // m_RenderingLayerNames[0] = "Light Layer default";
 
                     // We only support up to 7 layer + default.
-                    for (int i = 1; i < 8; ++i)
-                    {
-                        m_RenderingLayerNames[i] = string.Format("Light Layer {0}", i);
-                    }
+                    // for (int i = 1; i < 8; ++i)
+                    // {
+                    //     m_RenderingLayerNames[i] = string.Format("Light Layer {0}", i);
+                    // }
+                    // custom-end
 
                     // Unused
                     for (int i = 8; i < m_RenderingLayerNames.Length; ++i)
@@ -179,6 +181,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
                     }
                 }
+
+                // custom-begin:
+                m_RenderingLayerNames[0] = m_RenderPipelineSettings.lightLayerName0;
+                m_RenderingLayerNames[1] = m_RenderPipelineSettings.lightLayerName1;
+                m_RenderingLayerNames[2] = m_RenderPipelineSettings.lightLayerName2;
+                m_RenderingLayerNames[3] = m_RenderPipelineSettings.lightLayerName3;
+                m_RenderingLayerNames[4] = m_RenderPipelineSettings.lightLayerName4;
+                m_RenderingLayerNames[5] = m_RenderPipelineSettings.lightLayerName5;
+                m_RenderingLayerNames[6] = m_RenderPipelineSettings.lightLayerName6;
+                m_RenderingLayerNames[7] = m_RenderPipelineSettings.lightLayerName7;
+                // custom-end
 
                 return m_RenderingLayerNames;
             }
@@ -191,6 +204,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return renderingLayerNames;
             }
         }
+
+        // custom-begin:
+        [System.NonSerialized]
+        string[] m_LightLayerNames = null;
+        public string[] lightLayerNames
+        {
+            get
+            {
+                if (m_LightLayerNames == null)
+                {
+                    m_LightLayerNames = new string[8];
+                }
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    m_LightLayerNames[i] = renderingLayerNames[i];
+                }
+
+                return m_LightLayerNames;
+            }
+        }
+        // custom-end
 
         public override Shader defaultShader
         {
