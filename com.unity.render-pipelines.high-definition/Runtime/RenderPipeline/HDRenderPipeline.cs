@@ -74,6 +74,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPostRenderForward;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnPostRenderGizmos;
         public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer, RenderTargetIdentifier, RenderTargetIdentifier> OnCameraPreRenderPostProcess;
+        public static event Action<ScriptableRenderContext, Camera> OnNoesisBeginCameraRendering;
+        public static event Action<ScriptableRenderContext, Camera> OnNoesisEndCameraRendering;
 
         private void InitializeExternalCallbacks()
         {
@@ -89,6 +91,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             OnCameraPostRenderForward = null;
             OnPostRenderGizmos = null;
             OnCameraPreRenderPostProcess = null;
+            // OnNoesisBeginCameraRendering = null;
+            // OnNoesisEndCameraRendering = null;
             HDRPCallbackAttribute.ConfigureAllLoadedCallbacks();
         }
         // custom-end
@@ -1598,6 +1602,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         CommandBufferPool.Release(cmd);
                         renderContext.Submit();
+
+                        // custom-begin:
+                        if (OnNoesisBeginCameraRendering != null)
+                            OnNoesisBeginCameraRendering(renderContext, renderRequest.hdCamera.camera);
+
+                        Graphics.SetRenderTarget(renderRequest.target.copyToTarget);
+
+                        if (OnNoesisEndCameraRendering != null)
+                            OnNoesisEndCameraRendering(renderContext, renderRequest.hdCamera.camera);
+                        // custom-end
                     }
                 }
             }
@@ -2199,7 +2213,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
 #endif
-
                 aovRequest.Execute(cmd, aovBuffers, RenderOutputProperties.From(hdCamera));
         }
         }
