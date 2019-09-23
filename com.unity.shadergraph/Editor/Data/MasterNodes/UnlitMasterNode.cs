@@ -130,28 +130,28 @@ namespace UnityEditor.ShaderGraph
         {
             return new ConditionalField[]
             {
-                // Graph Features
-                new ConditionalField(DefaultFields.GraphFeatures.Vertex,        IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-                                                                                IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-                                                                                IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
-                new ConditionalField(DefaultFields.GraphFeatures.Pixel,         true),
-                
-                // Shader Features
-                new ConditionalField(DefaultFields.ShaderFeatures.AlphaTest,    IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
-                                                                                FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                // Features
+                new ConditionalField(DefaultFields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphPixel,          true),
                 
                 // Surface Type
-                new ConditionalField(DefaultFields.SurfaceType.Opaque,          surfaceType == ShaderGraph.SurfaceType.Opaque),
-                new ConditionalField(DefaultFields.SurfaceType.Transparent,     surfaceType != ShaderGraph.SurfaceType.Opaque),
+                new ConditionalField(DefaultFields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
+                new ConditionalField(DefaultFields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
                 
                 // Blend Mode
-                new ConditionalField(DefaultFields.BlendMode.Add,               surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
-                new ConditionalField(DefaultFields.BlendMode.Alpha,             surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
-                new ConditionalField(DefaultFields.BlendMode.Multiply,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
-                new ConditionalField(DefaultFields.BlendMode.Premultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
+                new ConditionalField(DefaultFields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
+                new ConditionalField(DefaultFields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
+                new ConditionalField(DefaultFields.BlendMultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
+                new ConditionalField(DefaultFields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
 
-                // Velocity
-                new ConditionalField(DefaultFields.Velocity.Precomputed,        addPrecomputedVelocity.isOn),
+                // Misc
+                new ConditionalField(DefaultFields.AlphaClip,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                new ConditionalField(DefaultFields.AlphaTest,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                new ConditionalField(DefaultFields.VelocityPrecomputed, addPrecomputedVelocity.isOn),
             };
         }
 
