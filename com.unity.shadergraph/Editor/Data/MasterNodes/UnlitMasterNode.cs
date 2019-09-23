@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    class UnlitMasterNode : MasterNode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class UnlitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
@@ -121,9 +121,43 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        protected override VisualElement CreateCommonSettingsElement()
+        public VisualElement CreateSettingsElement()
         {
             return new UnlitSettingsView(this);
+        }
+
+        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        {
+            return new ConditionalField[]
+            {
+                // Graph Features
+                new ConditionalField(DefaultFields.GraphFeatures.Vertex,        IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                                IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                                IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphFeatures.Pixel,         true),
+                
+                // Shader Features
+                new ConditionalField(DefaultFields.ShaderFeatures.AlphaTest,    IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                                                                                FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                
+                // Surface Type
+                new ConditionalField(DefaultFields.SurfaceType.Opaque,          surfaceType == ShaderGraph.SurfaceType.Opaque),
+                new ConditionalField(DefaultFields.SurfaceType.Transparent,     surfaceType != ShaderGraph.SurfaceType.Opaque),
+                
+                // Blend Mode
+                new ConditionalField(DefaultFields.BlendMode.Add,               surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
+                new ConditionalField(DefaultFields.BlendMode.Alpha,             surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
+                new ConditionalField(DefaultFields.BlendMode.Multiply,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
+                new ConditionalField(DefaultFields.BlendMode.Premultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
+
+                // Velocity
+                new ConditionalField(DefaultFields.Velocity.Precomputed,        addPrecomputedVelocity.isOn),
+            };
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
