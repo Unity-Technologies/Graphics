@@ -41,6 +41,7 @@ void EvaluateGGX(float3x3 localToWorld,
     {
         value = 0.0;
         pdf = 0.0;
+        return;
     }
     float NdotL = dot(localToWorld[2], outgoingDir);
 

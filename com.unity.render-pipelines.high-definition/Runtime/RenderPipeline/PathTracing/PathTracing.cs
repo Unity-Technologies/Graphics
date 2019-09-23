@@ -10,16 +10,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(false);
 
         [Tooltip("Defines the maximum number of paths cast within each pixel.")]
-        public ClampedIntParameter maxSamples = new ClampedIntParameter(256, 1, 512);
+        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 512);
 
         [Tooltip("Defines the minimum number of bounces for each path.")]
-        public ClampedIntParameter minDepth = new ClampedIntParameter(1, 1, 10);
+        public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
 
         [Tooltip("Defines the maximum number of bounces for each path.")]
-        public ClampedIntParameter maxDepth = new ClampedIntParameter(3, 1, 10);
+        public ClampedIntParameter maximumDepth = new ClampedIntParameter(3, 1, 10);
 
         [Tooltip("Defines the maximum intensity value computed for a path.")]
-        public ClampedFloatParameter maxIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+        public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
     }
 
 #if ENABLE_RAYTRACING
@@ -82,10 +82,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Inject the ray generation data
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, pathTracingSettings.maxSamples.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, pathTracingSettings.minDepth.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, pathTracingSettings.maxDepth.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, pathTracingSettings.maxIntensity.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, pathTracingSettings.maximumSamples.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, pathTracingSettings.minimumDepth.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, pathTracingSettings.maximumDepth.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, pathTracingSettings.maximumIntensity.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
 
             // Set the data for the ray generation

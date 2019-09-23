@@ -19,10 +19,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             var o = new PropertyFetcher<PathTracing>(serializedObject);
 
             m_Enable = Unpack(o.Find(x => x.enable));
-            m_MaxSamples = Unpack(o.Find(x => x.maxSamples));
-            m_MinDepth = Unpack(o.Find(x => x.minDepth));
-            m_MaxDepth = Unpack(o.Find(x => x.maxDepth));
-            m_MaxIntensity = Unpack(o.Find(x => x.maxIntensity));
+            m_MaxSamples = Unpack(o.Find(x => x.maximumSamples));
+            m_MinDepth = Unpack(o.Find(x => x.minimumDepth));
+            m_MaxDepth = Unpack(o.Find(x => x.maximumDepth));
+            m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
         }
 
         public override void OnInspectorGUI()
