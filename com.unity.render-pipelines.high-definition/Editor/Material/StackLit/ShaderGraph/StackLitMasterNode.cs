@@ -11,6 +11,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
+using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -24,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "HDRP/StackLit")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
-    class StackLitMasterNode : MasterNode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class StackLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -1186,9 +1187,33 @@ namespace UnityEditor.Rendering.HighDefinition
             RemoveSlotsNameNotMatching(validSlots, true);
         }
 
-        protected override VisualElement CreateCommonSettingsElement()
+        public VisualElement CreateSettingsElement()
         {
             return new StackLitSettingsView(this);
+        }
+
+        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        {
+            return null;
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+            // Fixup the material settings:
+            material.SetFloat(kSurfaceType, (int)(SurfaceType)surfaceType);
+            material.SetFloat(kDoubleSidedNormalMode, (int)doubleSidedMode);
+            material.SetFloat(kDoubleSidedEnable, doubleSidedMode != DoubleSidedMode.Disabled ? 1.0f : 0.0f);
+            material.SetFloat(kAlphaCutoffEnabled, alphaTest.isOn ? 1 : 0);
+            material.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode));
+            material.SetFloat(kEnableFogOnTransparent, transparencyFog.isOn ? 1.0f : 0.0f);
+            material.SetFloat(kZTestTransparent, (int)zTest);
+            material.SetFloat(kTransparentCullMode, (int)transparentCullMode);
+            material.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
+            // No sorting priority for shader graph preview
+            var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
+
+            StackLitGUI.SetupMaterialKeywordsAndPass(material);
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
@@ -1242,25 +1267,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool RequiresSplitLighting()
         {
             return subsurfaceScattering.isOn;
-        }
-
-        public override void ProcessPreviewMaterial(Material previewMaterial)
-        {
-            // Fixup the material settings:
-            previewMaterial.SetFloat(kSurfaceType, (int)(SurfaceType)surfaceType);
-            previewMaterial.SetFloat(kDoubleSidedNormalMode, (int)doubleSidedMode);
-            previewMaterial.SetFloat(kDoubleSidedEnable, doubleSidedMode != DoubleSidedMode.Disabled ? 1.0f : 0.0f);
-            previewMaterial.SetFloat(kAlphaCutoffEnabled, alphaTest.isOn ? 1 : 0);
-            previewMaterial.SetFloat(kBlendMode, (int)HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode));
-            previewMaterial.SetFloat(kEnableFogOnTransparent, transparencyFog.isOn ? 1.0f : 0.0f);
-            previewMaterial.SetFloat(kZTestTransparent, (int)zTest);
-            previewMaterial.SetFloat(kTransparentCullMode, (int)transparentCullMode);
-            previewMaterial.SetFloat(kZWrite, zWrite.isOn ? 1.0f : 0.0f);
-            // No sorting priority for shader graph preview
-            var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-            previewMaterial.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: alphaTest.isOn);
-
-            StackLitGUI.SetupMaterialKeywordsAndPass(previewMaterial);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
