@@ -389,67 +389,12 @@ namespace UnityEditor.Rendering.Universal
         };
 #endregion
 
-        ActiveFields GetActiveFieldsFromMasterNode(PBRMasterNode masterNode, ShaderPass pass)
-        {
-            var activeFields = new ActiveFields();
-            var baseActiveFields = activeFields.baseInstance;
-
-            // Graph Vertex
-            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
-            {
-                baseActiveFields.Add("features.graphVertex");
-            }
-
-            // Graph Pixel (always enabled)
-            baseActiveFields.Add("features.graphPixel");
-
-            if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
-                masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f)
-            {
-                baseActiveFields.Add("AlphaClip");
-            }
-            
-            if (masterNode.model == PBRMasterNode.Model.Specular)
-                baseActiveFields.Add("SpecularSetup");
-
-            if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
-            {
-                baseActiveFields.Add("Normal");
-            }
-
-            // Keywords for transparent
-            // #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-            if (masterNode.surfaceType != ShaderGraph.SurfaceType.Opaque)
-            {
-                // transparent-only defines
-                baseActiveFields.Add("SurfaceType.Transparent");
-
-                // #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-                if (masterNode.alphaMode == AlphaMode.Alpha)
-                {
-                    baseActiveFields.Add("BlendMode.Alpha");
-                }
-                else if (masterNode.alphaMode == AlphaMode.Additive)
-                {
-                    baseActiveFields.Add("BlendMode.Add");
-                }
-                else if (masterNode.alphaMode == AlphaMode.Premultiply)
-                {
-                    baseActiveFields.Add("BlendMode.Premultiply");
-                }
-            }
-
-            return activeFields;
-        }
-
         bool GenerateShaderPass(PBRMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             UniversalShaderGraphUtilities.SetRenderState(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, ref pass);
 
             // apply master node options to active fields
-            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
 
             return ShaderGraph.GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
                 UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);

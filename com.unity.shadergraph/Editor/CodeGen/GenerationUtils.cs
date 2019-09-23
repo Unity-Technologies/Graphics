@@ -23,10 +23,12 @@ namespace UnityEditor.ShaderGraph
 
             foreach(ConditionalField field in conditionalFields)
             {
-                Debug.Log($"{field.field.containerName}.{field.field.fieldName} : {field.condition}");
                 if(field.condition == true)
                 {
-                    baseFields.Add(field.field.fieldName);
+                    if(!string.IsNullOrEmpty(field.field.tag))
+                        baseFields.Add($"{field.field.tag}.{field.field.name}");
+                    else
+                        baseFields.Add(field.field.name);
                 }
             }
 

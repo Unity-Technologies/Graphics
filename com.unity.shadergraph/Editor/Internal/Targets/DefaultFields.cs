@@ -2,34 +2,26 @@
 {
     public static class DefaultFields
     {
-        public static class GraphFeatures
-        {
-            public static Field Vertex =        new Field("GRAPH_VERTEX");
-            public static Field Pixel =         new Field("GRAPH_PIXEL");
-        }
+#region Tags
+        const string kFeatures = "features";
+        const string kSurfaceType = "SurfaceType";
+        const string kBlendMode = "BlendMode";
+#endregion
 
-        public class ShaderFeatures
-        {
-            public static Field AlphaTest =     new Field("ALPHA_TEST");
-        }
-
-        public class SurfaceType
-        {
-            public static Field Opaque =        new Field("SURFACE_OPAQUE");
-            public static Field Transparent =   new Field("SURFACE_TRANSPARENT");
-        }
-
-        public class BlendMode
-        {
-            public static Field Alpha =         new Field("BLEND_ALPHA");
-            public static Field Add =           new Field("BLEND_ADD");
-            public static Field Premultiply =   new Field("BLEND_PREMULTIPLY");
-            public static Field Multiply =      new Field("BLEND_MULTIPLY");
-        }
-
-        public class Velocity
-        {
-            public static Field Precomputed =   new Field("VELOCITY_PRECOMPUTED");
-        }
+#region Fields
+        public static FieldDescriptor GraphVertex =           new FieldDescriptor(kFeatures, "graphVertex", "FEATURES_GRAPH_VERTEX");
+        public static FieldDescriptor GraphPixel =            new FieldDescriptor(kFeatures, "graphPixel", "FEATURES_GRAPH_PIXEL");
+        public static FieldDescriptor AlphaClip =             new FieldDescriptor(string.Empty, "AlphaClip", "_AlphaClip 1");
+        public static FieldDescriptor AlphaTest =             new FieldDescriptor(string.Empty, "AlphaTest", "ALPHA_TEST");
+        public static FieldDescriptor SurfaceOpaque =         new FieldDescriptor(kSurfaceType, "Opaque", "_SURFACE_TYPE_OPAQUE 1");
+        public static FieldDescriptor SurfaceTransparent =    new FieldDescriptor(kSurfaceType, "Transparent", "_SURFACE_TYPE_TRANSPARENT 1");
+        public static FieldDescriptor BlendAdd =              new FieldDescriptor(kBlendMode, "Add", "_BLENDMODE_ADD 1");
+        public static FieldDescriptor BlendAlpha =            new FieldDescriptor(kBlendMode, "Alpha", "_BLENDMODE_ALPHA 1");
+        public static FieldDescriptor BlendPremultiply =      new FieldDescriptor(kBlendMode, "Premultiply", "_ALPHAPREMULTIPLY_ON 1");
+        public static FieldDescriptor BlendMultiply =         new FieldDescriptor(kBlendMode, "Multiply", "_BLENDMODE_MULTIPLY 1");
+        public static FieldDescriptor VelocityPrecomputed =   new FieldDescriptor(string.Empty, "AddPrecomputedVelocity", "VELOCITY_PRECOMPUTED");
+        public static FieldDescriptor SpecularSetup =         new FieldDescriptor(string.Empty, "SpecularSetup", "_SPECULAR_SETUP");
+        public static FieldDescriptor Normal =                new FieldDescriptor(string.Empty, "Normal", "_NORMALMAP 1");
+#endregion
     }
 }

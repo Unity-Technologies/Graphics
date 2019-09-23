@@ -161,7 +161,32 @@ namespace UnityEditor.ShaderGraph
 
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
-            return null;
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(DefaultFields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphPixel,          true),
+                
+                // Surface Type
+                new ConditionalField(DefaultFields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
+                new ConditionalField(DefaultFields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
+                
+                // Blend Mode
+                new ConditionalField(DefaultFields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
+                new ConditionalField(DefaultFields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
+                new ConditionalField(DefaultFields.BlendMultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
+                new ConditionalField(DefaultFields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
+
+                // Misc
+                new ConditionalField(DefaultFields.AlphaClip,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                new ConditionalField(DefaultFields.AlphaTest,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                                                                        FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
+                new ConditionalField(DefaultFields.SpecularSetup,       model == PBRMasterNode.Model.Specular),
+                new ConditionalField(DefaultFields.Normal,              IsSlotConnected(PBRMasterNode.NormalSlotId)),
+            };
         }
 
         public void ProcessPreviewMaterial(Material material)
