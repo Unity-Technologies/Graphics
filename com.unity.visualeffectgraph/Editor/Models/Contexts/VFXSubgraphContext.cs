@@ -14,7 +14,8 @@ namespace UnityEditor.VFX
 
         [VFXSetting,SerializeField]
         protected VisualEffectAsset m_Subgraph;
-        
+
+        [NonSerialized]
         VFXModel[] m_SubChildren;
 
         public VisualEffectAsset subgraph
@@ -308,6 +309,8 @@ namespace UnityEditor.VFX
                 }
                 m_OriginalToCopy.Clear();
             }
+
+            m_SubChildren = null;
         }
 
         public void OnOriginalSlotModified(VFXModel original,InvalidationCause cause)
