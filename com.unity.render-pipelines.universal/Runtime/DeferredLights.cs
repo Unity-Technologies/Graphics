@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_TiledDeferredPass = "Tile-Based Deferred Shading";
         const string k_StencilDeferredPass = "Stencil Deferred Shading";
 
-        public bool tiledDeferredShading = true; // <- true: use TileDeferred.shader - false: use StencilDeferred.shader
+        public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point lights without shadows) - false: use StencilDeferred.shader for all lights
 
         // Cached.
         int m_RenderWidth = 0;
@@ -743,6 +743,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool IsTileLight(Light light)
         {
+            // In tileDeferred we might render hundreds to thousands point lights in the same pass.
+            // To render point light shadows we might need to bind as many depth-cubemaps layers ; doing so in a single pass could require too much bandwidth
             return light.type == LightType.Point && light.shadows == LightShadows.None;
         }
 
