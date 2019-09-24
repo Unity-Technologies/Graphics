@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix typo in strip tangent computation
 - Infinite recompilation using subgraph [Case 1186191] (https://issuetracker.unity3d.com/product/unity/issues/guid/1186191/)
 
+### Added
+- Custom Inspector for Spawn context, delay settings are more user friendly.
+
 ## [7.1.1] - 2019-09-05
 ### Added
 - Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
