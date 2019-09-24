@@ -15,79 +15,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.ShaderGraph.HDPBRSubShader")]
     class HDPBRSubShader : ISubShader
     {
-        private static ActiveFields GetActiveFieldsFromMasterNode(IMasterNode iMasterNode, ShaderPass pass)
-        {
-            var activeFields = new ActiveFields();
-            var baseActiveFields = activeFields.baseInstance;
-            PBRMasterNode masterNode = iMasterNode as PBRMasterNode;
-
-            // Graph Vertex
-            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
-            {
-                baseActiveFields.Add("features.graphVertex");
-            }
-
-            // Graph Pixel (always enabled)
-            baseActiveFields.Add("features.graphPixel");
-
-            if (masterNode.twoSided.isOn)
-            {
-                baseActiveFields.Add("DoubleSided");
-                if (pass.referenceName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
-                {                                                   // we need to be able to build interpolators using multiple input structs
-                                                                    // also: should only require isFrontFace if Normals are required...
-                    baseActiveFields.Add("DoubleSided.Mirror");         // TODO: change this depending on what kind of normal flip you want..
-                    baseActiveFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
-                }
-            }
-
-            // Model
-            switch (masterNode.model)
-            {
-                case PBRMasterNode.Model.Metallic:
-                    break;
-                case PBRMasterNode.Model.Specular:
-                    baseActiveFields.Add("Material.SpecularColor");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            // Alpha Test
-            if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
-                masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
-            {
-                baseActiveFields.Add("AlphaTest");
-            }
-
-            // Transparent
-            if (masterNode.surfaceType != ShaderGraph.SurfaceType.Opaque)
-            {
-                // #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-                baseActiveFields.Add("SurfaceType.Transparent");
-                baseActiveFields.Add("AlphaFog");
-
-                // #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-                if (masterNode.alphaMode == AlphaMode.Alpha)
-                {
-                    baseActiveFields.Add("BlendMode.Alpha");
-                }
-                else if (masterNode.alphaMode == AlphaMode.Additive)
-                {
-                    baseActiveFields.Add("BlendMode.Add");
-                }
-            }
-            // Opaque
-            else
-            {
-                
-            }
-
-            return activeFields;
-        }
-
         private static bool GenerateShaderPassLit(PBRMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             if(mode == GenerationMode.Preview && !pass.useInPreview)
@@ -124,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Action Fields
-            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
 
             // Generate
             return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,

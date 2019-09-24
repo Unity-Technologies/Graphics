@@ -1194,7 +1194,57 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
-            return null;
+            var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
+
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(DefaultFields.GraphVertex,                         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphPixel,                          true),
+
+                // Structs
+                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                                                                                        !pass.Equals(HDRPMeshTarget.Passes.StackLitMotionVectors)),
+
+                // Material
+                new ConditionalField(HDRPShaderGraphFields.Anisotropy,                  anisotropy.isOn),
+                new ConditionalField(HDRPShaderGraphFields.Coat,                        coat.isOn),
+                new ConditionalField(HDRPShaderGraphFields.CoatMask,                    coat.isOn && pass.pixelPorts.Contains(CoatMaskSlotId) &&
+                                                                                        (IsSlotConnected(CoatMaskSlotId) || 
+                                                                                        (FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value != 0.0f &&
+                                                                                        FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value != 1.0f))),
+                new ConditionalField(HDRPShaderGraphFields.CoatMaskZero,                coat.isOn && pass.pixelPorts.Contains(CoatMaskSlotId) &&
+                                                                                        FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 0.0f),
+                new ConditionalField(HDRPShaderGraphFields.CoatMaskOne,                 coat.isOn && pass.pixelPorts.Contains(CoatMaskSlotId) &&
+                                                                                        FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 1.0f),
+                new ConditionalField(HDRPShaderGraphFields.CoatNormal,                  coatNormal.isOn && pass.pixelPorts.Contains(CoatNormalSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.Iridescence,                 iridescence.isOn),
+                new ConditionalField(HDRPShaderGraphFields.SubsurfaceScattering,        subsurfaceScattering.isOn && surfaceType != SurfaceType.Transparent),
+                new ConditionalField(HDRPShaderGraphFields.Transmission,                transmission.isOn),
+
+                // Misc
+                new ConditionalField(DefaultFields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.AlphaFog,                    surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
+                new ConditionalField(HDRPShaderGraphFields.BlendPreserveSpecular,       surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
+                new ConditionalField(HDRPShaderGraphFields.EnergyConservingSpecular,    energyConservingSpecular.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DisableDecals,               !receiveDecals.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DisableSSR,                  !receiveSSR.isOn),
+                new ConditionalField(DefaultFields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
+                new ConditionalField(HDRPShaderGraphFields.BentNormal,                  IsSlotConnected(BentNormalSlotId) && 
+                                                                                        pass.pixelPorts.Contains(BentNormalSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.AmbientOcclusion,            pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
+                                                                                        (IsSlotConnected(AmbientOcclusionSlotId) ||
+                                                                                        ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
+                new ConditionalField(HDRPShaderGraphFields.Tangent,                     IsSlotConnected(TangentSlotId) && 
+                                                                                        pass.pixelPorts.Contains(TangentSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.LightingGI,                  IsSlotConnected(LightingSlotId) && 
+                                                                                        pass.pixelPorts.Contains(LightingSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.BackLightingGI,              IsSlotConnected(BackLightingSlotId) && 
+                                                                                        pass.pixelPorts.Contains(BackLightingSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.DepthOffset,                 depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
+            };
         }
 
         public void ProcessPreviewMaterial(Material material)

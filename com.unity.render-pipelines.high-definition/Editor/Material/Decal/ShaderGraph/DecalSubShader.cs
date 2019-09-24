@@ -12,42 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalSubShader")]
     class DecalSubShader : ISubShader
     {
-        private static ActiveFields GetActiveFieldsFromMasterNode(DecalMasterNode masterNode, ShaderPass pass)
-        {
-            var activeFields = new ActiveFields();
-            var baseActiveFields = activeFields.baseInstance;
-
-            // Graph Vertex
-            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
-            {
-                baseActiveFields.Add("features.graphVertex");
-            }
-
-            // Graph Pixel (always enabled)
-            baseActiveFields.Add("features.graphPixel");
-            
-            if(masterNode.affectsAlbedo.isOn)
-            {
-                baseActiveFields.Add("Material.AffectsAlbedo");
-            }
-            if (masterNode.affectsNormal.isOn)
-            {
-                baseActiveFields.Add("Material.AffectsNormal");
-            }
-            if (masterNode.affectsEmission.isOn)
-            {
-                baseActiveFields.Add("Material.AffectsEmission");
-            }
-            if (masterNode.affectsSmoothness.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn)
-            {
-                baseActiveFields.Add("Material.AffectsMaskMap");
-            }
-
-            return activeFields;
-        }
-
         private static bool GenerateShaderPass(DecalMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             if(mode == GenerationMode.Preview && !pass.useInPreview)
@@ -62,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Active Fields
-            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
             
             // Generate
             return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,

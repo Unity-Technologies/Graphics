@@ -13,61 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.UnlitSubShader")]
     class UnlitSubShader : ISubShader
     {
-        private static ActiveFields GetActiveFieldsFromMasterNode(IMasterNode iMasterNode, ShaderPass pass)
-        {
-            var activeFields = new ActiveFields();
-            var baseActiveFields = activeFields.baseInstance;
-            UnlitMasterNode masterNode = iMasterNode as UnlitMasterNode;
-
-            // Graph Vertex
-            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
-            {
-                baseActiveFields.Add("features.graphVertex");
-            }
-
-            // Graph Pixel (always enabled)
-            baseActiveFields.Add("features.graphPixel");
-
-            // Alpha Test
-            if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
-                masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
-            {
-                baseActiveFields.Add("AlphaTest");
-            }
-
-            // Transparent
-            if (masterNode.surfaceType != ShaderGraph.SurfaceType.Opaque)
-            {
-                // #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-                baseActiveFields.Add("SurfaceType.Transparent");
-
-                // #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-                if (masterNode.alphaMode == AlphaMode.Alpha)
-                {
-                    baseActiveFields.Add("BlendMode.Alpha");
-                }
-                else if (masterNode.alphaMode == AlphaMode.Additive)
-                {
-                    baseActiveFields.Add("BlendMode.Add");
-                }
-            }
-            // Opaque
-            else
-            {
-                
-            }
-
-            // Precomputed Velocity
-            if (masterNode.addPrecomputedVelocity.isOn)
-            {
-                baseActiveFields.Add("AddPrecomputedVelocity");
-            }
-
-            return activeFields;
-        }
-
         private static bool GenerateShaderPassUnlit(UnlitMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             if(pass.Equals(HDRPMeshTarget.Passes.UnlitShadowCaster))
@@ -96,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // apply master node options to active fields
-            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
 
             return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
                 HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);

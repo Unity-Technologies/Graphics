@@ -73,7 +73,7 @@ Pass
 
     // // Features and config toggles
     // $BaseParametrization.SpecularColor:
-    // $EnergyConservingSpecular:
+    // $Specular.EnergyConserving:
     // $Material.Anisotropy:
     // $Material.Coat:
     // $Material.CoatNormal:
@@ -190,7 +190,7 @@ Pass
 
     // The other predicates that don't directly map to inputs (the more abstract, called "specific" above)
     // are used in the surfaceData and builtinData functions.
-    // (eg EnergyConservingSpecular:, CapHazinessIfNotMetallic:, GeometricSpecularAA:, SpecularAA:)
+    // (eg Specular.EnergyConserving:, CapHazinessIfNotMetallic:, GeometricSpecularAA:, SpecularAA:)
 
     $AttributesMesh.normalOS:               #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
@@ -377,7 +377,7 @@ Pass
 
         #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
             // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
-            $EnergyConservingSpecular: surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
+            $Specular.EnergyConserving: surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
         #endif
 
         #ifdef _MATERIAL_FEATURE_HAZY_GLOSS

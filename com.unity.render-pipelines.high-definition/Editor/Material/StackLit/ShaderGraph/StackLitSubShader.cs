@@ -128,48 +128,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var activeFields = new ActiveFields();
             var baseActiveFields = activeFields.baseInstance;
 
-            // Graph Vertex
-            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
-            {
-                baseActiveFields.Add("features.graphVertex");
-            }
-
-            // Graph Pixel (always enabled)
-            baseActiveFields.Add("features.graphPixel");
-
-            if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
-            {
-                if (pass.referenceName != "SHADERPASS_MOTION_VECTORS")  // HACK to get around lack of a good interpolator dependency system
-                {                                                       // we need to be able to build interpolators using multiple input structs
-                                                                        // also: should only require isFrontFace if Normals are required...
-                    // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    baseActiveFields.Add("FragInputs.isFrontFace");
-                }
-            }
-
-            if (masterNode.alphaTest.isOn)
-            {
-                if (pass.pixelPorts.Contains(StackLitMasterNode.AlphaClipThresholdSlotId))
-                {
-                    baseActiveFields.Add("AlphaTest");
-                }
-            }
-
-            if (masterNode.surfaceType != SurfaceType.Opaque)
-            {
-                if (masterNode.transparencyFog.isOn)
-                {
-                    baseActiveFields.Add("AlphaFog");
-                }
-
-                if (masterNode.blendPreserveSpecular.isOn)
-                {
-                    baseActiveFields.Add("BlendMode.PreserveSpecular");
-                }
-            }
-
             //
             // Predicates to change into defines:
             //
@@ -180,40 +138,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.baseParametrization == StackLit.BaseParametrization.SpecularColor)
             {
                 baseActiveFields.Add("BaseParametrization.SpecularColor");
-            }
-            if (masterNode.energyConservingSpecular.isOn) // No defines, suboption of BaseParametrization.SpecularColor
-            {
-                baseActiveFields.Add("EnergyConservingSpecular");
-            }
-            if (masterNode.anisotropy.isOn)
-            {
-                baseActiveFields.Add("Material.Anisotropy");
-            }
-            if (masterNode.coat.isOn)
-            {
-                baseActiveFields.Add("Material.Coat");
-                if (pass.pixelPorts.Contains(StackLitMasterNode.CoatMaskSlotId))
-                {
-                    var coatMaskSlot = masterNode.FindSlot<Vector1MaterialSlot>(StackLitMasterNode.CoatMaskSlotId);
-                    bool connected = masterNode.IsSlotConnected(StackLitMasterNode.CoatMaskSlotId);
-
-                    if (connected || (coatMaskSlot.value != 0.0f && coatMaskSlot.value != 1.0f))
-                    {
-                        baseActiveFields.Add("CoatMask");
-                    }
-                    else if (coatMaskSlot.value == 0.0f)
-                    {
-                        baseActiveFields.Add("CoatMaskZero");
-                    }
-                    else if (coatMaskSlot.value == 1.0f)
-                    {
-                        baseActiveFields.Add("CoatMaskOne");
-                    }
-                }
-            }
-            if (masterNode.coatNormal.isOn)
-            {
-                baseActiveFields.Add("Material.CoatNormal");
             }
             if (masterNode.dualSpecularLobe.isOn)
             {
@@ -236,18 +160,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
-            if (masterNode.iridescence.isOn)
-            {
-                baseActiveFields.Add("Material.Iridescence");
-            }
-            if (masterNode.subsurfaceScattering.isOn && masterNode.surfaceType != SurfaceType.Transparent)
-            {
-                baseActiveFields.Add("Material.SubsurfaceScattering");
-            }
-            if (masterNode.transmission.isOn)
-            {
-                baseActiveFields.Add("Material.Transmission");
-            }
 
             // Advanced:
             if (masterNode.anisotropyForAreaLights.isOn)
@@ -269,25 +181,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.debug.isOn)
             {
                 baseActiveFields.Add("StackLitDebug");
-            }
-
-            //
-            // Other property predicates:
-            //
-
-            if (!masterNode.receiveDecals.isOn)
-            {
-                baseActiveFields.Add("DisableDecals");
-            }
-
-            if (!masterNode.receiveSSR.isOn)
-            {
-                baseActiveFields.Add("DisableSSR");
-            }
-
-            if (masterNode.addPrecomputedVelocity.isOn)
-            {
-                baseActiveFields.Add("AddPrecomputedVelocity");
             }
 
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
@@ -345,53 +238,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 baseActiveFields.Add("SpecularOcclusionConeFixupMethod." + masterNode.specularOcclusionConeFixupMethod.ToString());
             }
-
-            //
-            // Input special-casing predicates:
-            //
-
-            if (masterNode.IsSlotConnected(StackLitMasterNode.BentNormalSlotId) && pass.pixelPorts.Contains(StackLitMasterNode.BentNormalSlotId))
-            {
-                baseActiveFields.Add("BentNormal");
-            }
-
-            if (masterNode.IsSlotConnected(StackLitMasterNode.TangentSlotId) && pass.pixelPorts.Contains(StackLitMasterNode.TangentSlotId))
-            {
-                baseActiveFields.Add("Tangent");
-            }
-
-            // The following idiom enables an optimization on feature ports that don't have an enable switch in the settings
-            // view, where the default value might not produce a visual result and incur a processing cost we want to avoid.
-            // For ambient occlusion, this is the case for the SpecularOcclusion calculations which also depend on it,
-            // where a value of 1 will produce no results.
-            // See SpecularOcclusion, we don't optimize out this case...
-            if (pass.pixelPorts.Contains(StackLitMasterNode.AmbientOcclusionSlotId))
-            {
-                bool connected = masterNode.IsSlotConnected(StackLitMasterNode.AmbientOcclusionSlotId);
-                var ambientOcclusionSlot = masterNode.FindSlot<Vector1MaterialSlot>(StackLitMasterNode.AmbientOcclusionSlotId);
-                // master node always has it, assert ambientOcclusionSlot != null
-                if (connected || ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)
-                {
-                    baseActiveFields.Add("AmbientOcclusion");
-                }
-            }
-
-            if (masterNode.IsSlotConnected(StackLitMasterNode.CoatNormalSlotId) && pass.pixelPorts.Contains(StackLitMasterNode.CoatNormalSlotId))
-            {
-                baseActiveFields.Add("CoatNormal");
-            }
-
-            if (masterNode.IsSlotConnected(StackLitMasterNode.LightingSlotId)&& pass.pixelPorts.Contains(StackLitMasterNode.LightingSlotId))
-            {
-                baseActiveFields.Add("LightingGI");
-            }
-            if (masterNode.IsSlotConnected(StackLitMasterNode.BackLightingSlotId)&& pass.pixelPorts.Contains(StackLitMasterNode.BackLightingSlotId))
-            {
-                baseActiveFields.Add("BackLightingGI");
-            }
-
-        if (masterNode.depthOffset.isOn && pass.pixelPorts.Contains(StackLitMasterNode.DepthOffsetSlotId))
-                baseActiveFields.Add("DepthOffset");
 
             return activeFields;
         }
