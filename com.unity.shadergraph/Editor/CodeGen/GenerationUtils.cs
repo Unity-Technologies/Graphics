@@ -189,27 +189,7 @@ namespace UnityEditor.ShaderGraph
 
             // -----------------------------
             // Generated structs and Packing code 
-            // generate a packing struct descriptor and packing/unpacking functions for needed interpolators
-            using (var interpolatorBuilder = new ShaderStringBuilder())
-            {
-                foreach(StructDescriptor shaderStruct in pass.structs)
-                {
-                    List<int> packedCount = new List<int>();
-                    if(shaderStruct.interpolatorPack == false)
-                        continue; //skip non-interpolator structs
-
-                    //set up packed struct and function string builders
-                    StructDescriptor packedStruct = new StructDescriptor()
-                    {
-                        name = "Packed" + shaderStruct.name,
-                    };
-                    //generate packing function 
-                    GenerateInterpolatorFunctions(shaderStruct, packedStruct, "Pack", fields, out interpolatorBuilder, out packedCount);
-
-                    
-                }
-            }
-            
+                       
 
             // Generated String Builders for all struct types 
             using (var passStructBuilder = new ShaderStringBuilder())
@@ -555,58 +535,6 @@ namespace UnityEditor.ShaderGraph
             // 'C# qualified assembly type names' for $buildType() commands
             string assemblyQualifiedTypeName = $"{resourceClassName}+{structName}, {assemblyName}";
             return Type.GetType(assemblyQualifiedTypeName);
-        }
-
-        static void GenerateInterpolatorFunctions(StructDescriptor inStruct, StructDescriptor outStruct, string interpType, List<IField> fields, out ShaderStringBuilder interpFunction, out List<int> packedSubscripts)
-        {
-            packedSubscripts = new List<int>();
-            interpFunction = new ShaderStringBuilder();
-            interpFunction.AppendLine($"{outStruct.name} {interpType}{inStruct.name} ({inStruct.name} input)");
-            using(interpFunction.BlockSemicolonScope())
-            {
-                interpFunction.AppendLine($"{outStruct.name} output;");
-                foreach(SubscriptDescriptor subscript in inStruct.subscripts)
-                {
-                    if(!fields.Contains(subscript) && subscript.subcriptOptions.HasFlag(SubscriptDescriptor.SubscriptOptions.Optional))
-                        continue; //skip non-active optional subscripts   
-                    int floatVectorCount = 1; //TODO: process vector count of subscript type properly
-                    if(subscript.hasPreprocessor())
-                    {
-                        interpFunction.AppendLine($"#if {subscript.preprocessor}");
-                    }
-                    if (subscript.hasSemantic() || floatVectorCount == 0)
-                        interpFunction.AppendLine($"output.{subscript.name} = input.{subscript.name};");
-                    else
-                    {
-                        // pack float field
-                        // super simple packing: use the first interpolator that has room for the whole value
-                        int interpIndex = packedSubscripts.FindIndex(x => (x + floatVectorCount <= 4));
-                        int firstChannel;
-                        if (interpIndex < 0)
-                        {
-                            // allocate a new interpolator
-                            interpIndex = packedSubscripts.Count;
-                            firstChannel = 0;
-                            packedSubscripts.Add(floatVectorCount);
-                        }
-                        else
-                        {
-                            // pack into existing interpolator
-                            firstChannel = packedSubscripts[interpIndex];
-                            packedSubscripts[interpIndex] += floatVectorCount;
-                        }
-                        string packedChannels = ShaderSpliceUtil.GetChannelSwizzle(firstChannel, floatVectorCount);
-                        if(interpType == "Pack")
-                            interpFunction.AppendLine($"output.interp{interpIndex}.{packedChannels} = input.{subscript.name}");
-                        else if(interpType == "Unpack")
-                            interpFunction.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels}");
-                    }
-                    if(subscript.hasPreprocessor())
-                    {
-                        interpFunction.AppendLine("#endif");
-                    }
-                }
-            }            
         }
 
         static void GetUpstreamNodesForShaderPass(AbstractMaterialNode outputNode, ShaderPass pass, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
