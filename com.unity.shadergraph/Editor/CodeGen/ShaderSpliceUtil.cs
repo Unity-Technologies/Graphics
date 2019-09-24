@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph
         private static char[] channelNames =
         { 'x', 'y', 'z', 'w' };
 
-        private static string GetChannelSwizzle(int firstChannel, int channelCount)
+        public static string GetChannelSwizzle(int firstChannel, int channelCount)
         {
             System.Text.StringBuilder result = new System.Text.StringBuilder();
             int lastChannel = System.Math.Min(firstChannel + channelCount - 1, 4);
