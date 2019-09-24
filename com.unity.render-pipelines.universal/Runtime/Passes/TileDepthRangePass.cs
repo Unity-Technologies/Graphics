@@ -19,9 +19,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             int tileDepthRangeWidth = m_DeferredLights.GetTiler(0).GetTileXCount();
             int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).GetTileYCount();
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight,  UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32_SFloat, 0);
-            cmd.GetTemporaryRT(m_DeferredLights.m_TileDepthRangeTexture.id, desc, FilterMode.Point);
-            base.ConfigureTarget(m_DeferredLights.m_TileDepthRangeTexture.Identifier());
+            RenderTargetHandle tileDepthRangeTexture = m_DeferredLights.m_TileDepthRangeTexture;
+
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
+            cmd.GetTemporaryRT(tileDepthRangeTexture.id, desc, FilterMode.Point);
+            base.ConfigureTarget(tileDepthRangeTexture.Identifier());
         }
 
         /// <inheritdoc/>

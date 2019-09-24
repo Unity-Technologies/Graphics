@@ -11,7 +11,7 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    // Render all tiled-based deferred lights.
+    // Render all tiled-based deferred lights.      
     internal class DeferredPass : ScriptableRenderPass
     {
         DeferredLights m_DeferredLights;

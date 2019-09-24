@@ -116,7 +116,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 return output;
             }
 
-            Texture2D g_DepthTex;
+            Texture2D _DepthTex;
             Texture2D _GBuffer0;
             Texture2D _GBuffer1;
             Texture2D _GBuffer2;
@@ -137,9 +137,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 float2 clipCoord = input.positionCS.xy * _ScreenSize.zw * 2.0 - 1.0;
 
                 #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
-                float d = 1.0 - g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
+                float d = 1.0 - _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
                 #else
-                float d = g_DepthTex.Load(int3(input.positionCS.xy, 0)).x;
+                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
                 #endif
 
                 // Temporary code to calculate fragment world space position.

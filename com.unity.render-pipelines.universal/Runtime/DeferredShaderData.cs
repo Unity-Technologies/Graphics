@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.Universal
 
         /// Precomputed tiles.
         NativeArray<PreTile>[] m_PreTiles = null;
+        // Store depthRange data for generate depth buffer bitmask per tile.
+        ComputeBuffer[,] m_DepthRanges = null;
         // Store tileData for drawing instanced tiles.
         ComputeBuffer[,] m_TileLists = null;
         // Store point lights data for a draw call.
@@ -36,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
         // The data stored is a relative light index, which is an index into m_PointLightBuffer. 
         ComputeBuffer[,] m_RelLightLists = null;
 
+        int m_DepthRange_UsedCount = 0;
         int m_TileList_UsedCount = 0;
         int m_PointLightBuffer_UsedCount = 0;
         int m_RelLightList_UsedCount = 0;
@@ -47,10 +50,12 @@ namespace UnityEngine.Rendering.Universal
         {
             // TODO: make it a vector
             m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kTilerDepth];
+            m_DepthRanges = new ComputeBuffer[m_FrameLatency, 32];
             m_TileLists = new ComputeBuffer[m_FrameLatency, 32]; 
             m_PointLightBuffers = new ComputeBuffer[m_FrameLatency,32];
             m_RelLightLists = new ComputeBuffer[m_FrameLatency,32];
 
+            m_DepthRange_UsedCount = 0;
             m_TileList_UsedCount = 0;
             m_PointLightBuffer_UsedCount = 0;
             m_RelLightList_UsedCount = 0;
@@ -70,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             DisposeNativeArrays(ref m_PreTiles);
+            DisposeBuffers(m_DepthRanges);
             DisposeBuffers(m_TileLists);
             DisposeBuffers(m_PointLightBuffers);
             DisposeBuffers(m_RelLightLists);
@@ -77,6 +83,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void ResetBuffers()
         {
+            m_DepthRange_UsedCount = 0;
             m_TileList_UsedCount = 0;
             m_PointLightBuffer_UsedCount = 0;
             m_RelLightList_UsedCount = 0;
@@ -86,6 +93,14 @@ namespace UnityEngine.Rendering.Universal
         internal NativeArray<PreTile> GetPreTiles(int level, int count)
         {
             return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, level, count);
+        }
+
+        internal ComputeBuffer ReserveDepthRanges(int count)
+        {
+            if (DeferredConfig.kUseCBufferForDepthRange)
+                return GetOrUpdateBuffer<Vector4UInt>(m_DepthRanges, (count + 3) / 4, ComputeBufferType.Constant, m_DepthRange_UsedCount++);
+            else
+                return GetOrUpdateBuffer<TileData>(m_DepthRanges, count, ComputeBufferType.Structured, m_DepthRange_UsedCount++);
         }
 
         internal ComputeBuffer ReserveTileList(int count)

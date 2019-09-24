@@ -18,10 +18,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if UNITY_SWITCH
         // Constant buffers are used for data that a repeatedly fetched by shaders.
         // Structured buffers are used for data only consumed once.
+        public static bool kUseCBufferForDepthRange = true;
         public static bool kUseCBufferForTileList = false;
         public static bool kUseCBufferForLightData = true;
         public static bool kUseCBufferForLightList = false;
 #else
+        public static bool kUseCBufferForDepthRange = true;
         public static bool kUseCBufferForTileList = false;
         public static bool kUseCBufferForLightData = true;
         public static bool kUseCBufferForLightList = false;
@@ -53,23 +55,26 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly string TILE_SIZE_8 = "TILE_SIZE_8";
             public static readonly string TILE_SIZE_16 = "TILE_SIZE_16";
 
+            public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
+            public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
+            public static readonly int _tileXCount = Shader.PropertyToID("_tileXCount");
+            public static readonly int _DepthRangeOffset = Shader.PropertyToID("_DepthRangeOffset");
             public static readonly int UTileList = Shader.PropertyToID("UTileList");
-            public static readonly int g_TileList = Shader.PropertyToID("g_TileList");
+            public static readonly int _TileList = Shader.PropertyToID("_TileList");
             public static readonly int UPointLightBuffer = Shader.PropertyToID("UPointLightBuffer");
-            public static readonly int g_PointLightBuffer = Shader.PropertyToID("g_PointLightBuffer");
+            public static readonly int _PointLightBuffer = Shader.PropertyToID("_PointLightBuffer");
             public static readonly int URelLightList = Shader.PropertyToID("URelLightList");
-            public static readonly int g_RelLightList = Shader.PropertyToID("g_RelLightList");
-            public static readonly int g_TilePixelWidth = Shader.PropertyToID("g_TilePixelWidth");
-            public static readonly int g_TilePixelHeight = Shader.PropertyToID("g_TilePixelHeight");
-            public static readonly int g_InstanceOffset = Shader.PropertyToID("g_InstanceOffset");
-            public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
-            public static readonly int _MainTexSize = Shader.PropertyToID("_MainTexSize");
+            public static readonly int _RelLightList = Shader.PropertyToID("_RelLightList");
+            public static readonly int _TilePixelWidth = Shader.PropertyToID("_TilePixelWidth");
+            public static readonly int _TilePixelHeight = Shader.PropertyToID("_TilePixelHeight");
+            public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
+            public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
+            public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
             public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
             public static readonly int _InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
-            public static readonly int g_unproject0 = Shader.PropertyToID("g_unproject0");
-            public static readonly int g_unproject1 = Shader.PropertyToID("g_unproject1");
-            public static readonly int g_DepthTex = Shader.PropertyToID("g_DepthTex");
+            public static readonly int _unproject0 = Shader.PropertyToID("_unproject0");
+            public static readonly int _unproject1 = Shader.PropertyToID("_unproject1");
         }
 
         struct DrawCall
@@ -83,9 +88,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int instanceOffset;
             public int instanceCount;
         }
-
-        // Keep in sync with LIGHT_LIST_HEADER_SIZE.
-        const int kLightListHeaderSize = 1;
 
         const string k_DeferredPass = "Deferred Pass";
         const string k_TileDepthRange = "Tile Depth Range";
@@ -112,11 +114,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         // For rendering stencil point lights.
         Mesh m_SphereMesh;
 
-        // Max tile instancing limit per draw call. It depends on the max capacity of uniform buffers.
+        // Max number of tile depth range data that can be referenced per draw call.
+        int m_MaxDepthRangePerBatch;
+        // Max numer of instanced tile that can be referenced per draw call.
         int m_MaxTilesPerBatch;
         // Max number of point lights that can be referenced per draw call.
         int m_MaxPointLightPerBatch;
-        // Max number of relative light indices per draw call.
+        // Max number of relative light indices that can be referenced per draw call.
         int m_MaxRelLightIndicesPerBatch;
 
         // Generate per-tile depth information.
@@ -142,9 +146,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial = stencilDeferredMaterial;
 
             // Compute some platform limits.
+            m_MaxDepthRangePerBatch = (DeferredConfig.kUseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
             m_MaxTilesPerBatch = (DeferredConfig.kUseCBufferForTileList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(TileData));
             m_MaxPointLightPerBatch = (DeferredConfig.kUseCBufferForLightData ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
-            m_MaxRelLightIndicesPerBatch = (DeferredConfig.kUseCBufferForLightList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint); // Should be ushort!
+            m_MaxRelLightIndicesPerBatch = (DeferredConfig.kUseCBufferForLightList ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / sizeof(uint);
 
             m_Tilers = new DeferredTiler[DeferredConfig.kTilerDepth];
 
@@ -305,30 +310,89 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
+            uint invalidDepthRange = (uint)Mathf.FloatToHalf(-2.0f) | (((uint)Mathf.FloatToHalf(-1.0f)) << 16);
+
             CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthRange);
             RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
             RenderTargetIdentifier tileDepthRangeSurface = m_TileDepthRangeTexture.Identifier();
-            int tileWidth = m_Tilers[0].GetTilePixelWidth();
-            int tileHeight = m_Tilers[0].GetTilePixelHeight();
 
-            cmd.SetGlobalTexture(ShaderConstants._MainTex, depthSurface);
-            cmd.SetGlobalVector(ShaderConstants._MainTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
-            cmd.SetGlobalInt(ShaderConstants.g_TilePixelWidth, tileWidth);
-            cmd.SetGlobalInt(ShaderConstants.g_TilePixelHeight, tileHeight);
+            DeferredTiler tiler = m_Tilers[0];
+            int tileXCount = tiler.GetTileXCount();
+            int tileYCount = tiler.GetTileYCount();
+            int tileXStride = tiler.GetTileXStride();
+            int tileYStride = tiler.GetTileYStride();
+            int tilePixelWidth = tiler.GetTilePixelWidth();
+            int tilePixelHeight = tiler.GetTilePixelHeight();
+            ref NativeArray<ushort> tiles = ref tiler.GetTiles();
 
-            // Should we move to ShaderKeywordStrings?
-            if (tileWidth == 8 && tileHeight == 8)
+            cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);
+            cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
+            cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tilePixelWidth);
+            cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tilePixelHeight);
+
+            Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
+            Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1)); // (kc)
+            Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
+            cmd.SetGlobalVector(ShaderConstants._unproject0, projScreenInv.GetRow(2));
+            cmd.SetGlobalVector(ShaderConstants._unproject1, projScreenInv.GetRow(3));
+
+            if (tilePixelWidth == 8 && tilePixelHeight == 8)
                 cmd.EnableShaderKeyword(ShaderConstants.TILE_SIZE_8);
-            else if (tileWidth == 16 && tileHeight == 16)
+            else if (tilePixelWidth == 16 && tilePixelHeight == 16)
                 cmd.EnableShaderKeyword(ShaderConstants.TILE_SIZE_16);
 
-            cmd.Blit(depthSurface, tileDepthRangeSurface, m_TileDepthInfoMaterial, 0);
+            int tileY = 0;
+            int tileYIncrement = DeferredConfig.kPreferredCBufferSize / (tileXCount * 4);
+            int maxDepthRangePerDrawCall = Align(tileXCount * tileYIncrement, 4);
+
+            NativeArray<uint> depthRanges = new NativeArray<uint>(maxDepthRangePerDrawCall, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            while (tileY < tileYCount)
+            {
+                int tileYEnd = Mathf.Min(tileYCount, tileY + tileYIncrement);
+
+                for (int j = tileY; j < tileYEnd; ++j)
+                {
+                    for (int i = 0; i < tileXCount; ++i)
+                    {
+                        int tileOffset = i * tileXStride + j * tileYStride;
+                        int tileLightCount = tiles[tileOffset];
+
+                        uint listDepthRange;
+                        if (tileLightCount == 0)
+                            listDepthRange = invalidDepthRange;
+                        else
+                            listDepthRange = ((uint)tiles[tileOffset + 1]) | (((uint)tiles[tileOffset + 2]) << 16);
+
+                        depthRanges[i + (j - tileY) * tileXCount] = listDepthRange;
+                    }
+                }
+
+                ComputeBuffer _depthRanges = DeferredShaderData.instance.ReserveDepthRanges(maxDepthRangePerDrawCall);
+                _depthRanges.SetData(depthRanges, 0, 0, depthRanges.Length);
+
+                if (DeferredConfig.kUseCBufferForDepthRange)
+                    cmd.SetGlobalConstantBuffer(_depthRanges, ShaderConstants.UDepthRanges, 0, maxDepthRangePerDrawCall * 4);
+                else
+                    cmd.SetGlobalBuffer(ShaderConstants._DepthRanges, _depthRanges);
+
+                cmd.SetGlobalInt(ShaderConstants._tileXCount, tileXCount);
+                cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, tileY * tileXCount);
+
+                cmd.EnableScissorRect(new Rect(0, tileY, tileXCount, tileYEnd - tileY));
+                cmd.Blit(depthSurface, tileDepthRangeSurface, m_TileDepthInfoMaterial, 0);
+
+                tileY = tileYEnd;
+            }
 
             cmd.DisableShaderKeyword(ShaderConstants.TILE_SIZE_8);
             cmd.DisableShaderKeyword(ShaderConstants.TILE_SIZE_16);
+            cmd.DisableScissorRect();
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
+            depthRanges.Dispose();
         }
 
         public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -493,7 +557,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // In that case, the draw call must be flushed and new GPU buffer(s) be allocated.
                         bool tileListIsFull = (tileCount == m_MaxTilesPerBatch);
                         bool lightBufferIsFull = (lightCount + trimmedLightCount > m_MaxPointLightPerBatch);
-                        bool relLightListIsFull = (relLightIndices + kLightListHeaderSize + tileLightCount > m_MaxRelLightIndicesPerBatch);
+                        bool relLightListIsFull = (relLightIndices + tileLightCount > m_MaxRelLightIndicesPerBatch);
 
                         if (tileListIsFull || lightBufferIsFull || relLightListIsFull)
                         {
@@ -540,9 +604,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         }
 
                         // Add TileData.
-                        uint listDepthRange = (uint)tiles[tileOffset + 1] | ((uint)tiles[tileOffset + 2] << 16);
                         uint listBitMask = (uint)tiles[tileOffset + 3] | ((uint)tiles[tileOffset + 4] << 16);
-                        StoreTileData(ref tileList, tileCount, PackTileID((uint)i, (uint)j), (ushort)relLightIndices, listDepthRange, listBitMask);
+                        StoreTileData(ref tileList, tileCount, PackTileID((uint)i, (uint)j), listBitMask, (ushort)relLightIndices, (ushort)tileLightCount);
                         ++tileCount;
 
                         // Add newly discovered lights.
@@ -554,9 +617,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                             ++lightCount;
                             usedLights.Set(visLightIndex, true);
                         }
-
-                        // Add tile header: make sure the size is matching kLightListHeaderSize.
-                        relLightList[relLightIndices++] = (ushort)tileLightCount;
 
                         // Add light list for the tile.
                         for (int l = 0; l < tileLightCount; ++l)
@@ -608,21 +668,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int tileWidth = m_Tilers[0].GetTilePixelWidth();
                 int tileHeight = m_Tilers[0].GetTilePixelHeight();
-                cmd.SetGlobalInt(ShaderConstants.g_TilePixelWidth, tileWidth);
-                cmd.SetGlobalInt(ShaderConstants.g_TilePixelHeight, tileHeight);
+                cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
+                cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 
                 Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
                 Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
                 Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
                 cmd.SetGlobalMatrix(ShaderConstants._InvCameraViewProj, viewProjInv);
 
-                Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));
-                Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
-                cmd.SetGlobalVector(ShaderConstants.g_unproject0, projScreenInv.GetRow(2));
-                cmd.SetGlobalVector(ShaderConstants.g_unproject1, projScreenInv.GetRow(3));
-
                 cmd.SetGlobalTexture(m_TileDepthRangeTexture.id, m_TileDepthRangeTexture.Identifier());
-                cmd.SetGlobalTexture(ShaderConstants.g_DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
+                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
                 for (int i = 0; i < drawCallCount; ++i)
                 {
@@ -631,19 +686,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (DeferredConfig.kUseCBufferForTileList)
                         cmd.SetGlobalConstantBuffer(dc.tileList, ShaderConstants.UTileList, 0, dc.tileListSize);
                     else
-                        cmd.SetGlobalBuffer(ShaderConstants.g_TileList, dc.tileList);
+                        cmd.SetGlobalBuffer(ShaderConstants._TileList, dc.tileList);
 
                     if (DeferredConfig.kUseCBufferForLightData)
                         cmd.SetGlobalConstantBuffer(dc.pointLightBuffer, ShaderConstants.UPointLightBuffer, 0, dc.pointLightBufferSize);
                     else
-                        cmd.SetGlobalBuffer(ShaderConstants.g_PointLightBuffer, dc.pointLightBuffer);
+                        cmd.SetGlobalBuffer(ShaderConstants._PointLightBuffer, dc.pointLightBuffer);
 
                     if (DeferredConfig.kUseCBufferForLightList)
                         cmd.SetGlobalConstantBuffer(dc.relLightList, ShaderConstants.URelLightList, 0, dc.relLightListSize);
                     else
-                        cmd.SetGlobalBuffer(ShaderConstants.g_RelLightList, dc.relLightList);
+                        cmd.SetGlobalBuffer(ShaderConstants._RelLightList, dc.relLightList);
 
-                    cmd.SetGlobalInt(ShaderConstants.g_InstanceOffset, dc.instanceOffset);
+                    cmd.SetGlobalInt(ShaderConstants._InstanceOffset, dc.instanceOffset);
                     cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 0, topology, vertexCount, dc.instanceCount);
                 }
             }
@@ -678,7 +733,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
                 cmd.SetGlobalMatrix("_InvCameraViewProj", viewProjInv);
 
-                cmd.SetGlobalTexture("g_DepthTex", m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
+                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
@@ -735,16 +790,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             pointLightBuffer[storeIndex * 2 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].light.color.r), FloatToUInt(visibleLights[index].light.color.g), FloatToUInt(visibleLights[index].light.color.b), 0);
         }
 
-        void StoreTileData(ref NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, ushort relLightOffset, uint listDepthRange, uint listBitMask)
+        void StoreTileData(ref NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)
         {
             // See struct TileData in TileDeferred.shader.
-            tileList[storeIndex] = new Vector4UInt { x = tileID, y = relLightOffset, z = listDepthRange, w = listBitMask };
+            tileList[storeIndex] = new Vector4UInt { x = tileID, y = listBitMask, z = relLightOffset | ((uint)lightCount << 16), w = 0 };
         }
 
         bool IsTileLight(Light light)
         {
-            // In tileDeferred we might render hundreds to thousands point lights in the same pass.
-            // To render point light shadows we might need to bind as many depth-cubemaps layers ; doing so in a single pass could require too much bandwidth
             return light.type == LightType.Point && light.shadows == LightShadows.None;
         }
 
