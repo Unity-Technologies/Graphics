@@ -265,10 +265,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Handle memory allocation.
             {
-                bool isColorPyramidHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing; // TODO: Also need 2 when color buffer is requested on the camera
+                bool isCurrentColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) || m_frameSettings.IsEnabled(FrameSettingsField.Distortion);
+                bool isHistoryColorPyramidRequired = m_frameSettings.IsEnabled(FrameSettingsField.SSR) || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = m_frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && m_frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
 
-                int numColorPyramidBuffersRequired = isColorPyramidHistoryRequired ? 2 : 1; // TODO: 1 -> 0. Only one is needed when only distortion or refraction or enabled (none of the cases above)
+                int numColorPyramidBuffersRequired = 0;
+                if (isCurrentColorPyramidRequired)
+                    numColorPyramidBuffersRequired = 1;
+                if (isHistoryColorPyramidRequired) // Superset of case above
+                    numColorPyramidBuffersRequired = 2;
+
                 int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
 
                 if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
@@ -647,6 +653,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
+            // Do not add extra jitter in VR (micro-variations from head tracking are enough)
+            if (xr.enabled)
+            {
+                taaJitter = Vector4.zero;
+                return origProj;
+            }
+
             // The variance between 0 and the actual halton sequence values reveals noticeable
             // instability in Unity's shadow maps, so we avoid index 0.
             float jitterX = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 2) - 0.5f;
@@ -793,7 +806,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera.camera != null && camera.camera.cameraType == CameraType.SceneView)
                     continue;
 
-                if (camera.camera == null || !camera.camera.isActiveAndEnabled)
+                // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview))
                     s_Cleanup.Add(key);
             }
 
@@ -839,6 +853,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Time is also a part of the UnityPerView CBuffer.
             // Different views can have different values of the "Animated Materials" setting.
             bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(camera);
+
+            // We also enable animated materials in previews so the shader graph main preview works with time parameters.
+            animateMaterials |= camera.cameraType == CameraType.Preview;
 
             float  ct = animateMaterials ? time     : 0;
             float  pt = animateMaterials ? lastTime : 0;
@@ -893,7 +910,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRWorldSpaceCameraPosViewOffset, xrWorldSpaceCameraPosViewOffset);
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRPrevWorldSpaceCameraPos, xrPrevWorldSpaceCameraPos);
             }
-            
+
         }
 
         public RTHandle GetPreviousFrameRT(int id)

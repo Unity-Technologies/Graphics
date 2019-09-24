@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, 4, SurfaceOptionUIBlock.Features.All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, kMaxLayerCount, features: commonLitSurfaceInputsFeatures),
             new MaterialToCopyUIBlock(MaterialUIBlock.Expandable.MaterialReferences),

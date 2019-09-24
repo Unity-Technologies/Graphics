@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             kSurfaceType, kBlendMode, "_SrcBlend", "_DstBlend", "_AlphaSrcBlend", "_AlphaDstBlend",
             kZWrite, "_CullMode", "_CullModeForward", kTransparentCullMode,
             kZTestDepthEqualForOpaque,
-            kAlphaCutoffEnabled, "_AlphaCutoff",
+            kAlphaCutoffEnabled,
             "_TransparentSortPriority", "_UseShadowThreshold",
             kDoubleSidedEnable, kDoubleSidedNormalMode,
             kTransparentBackfaceEnable, kReceivesSSR, kUseSplitLighting

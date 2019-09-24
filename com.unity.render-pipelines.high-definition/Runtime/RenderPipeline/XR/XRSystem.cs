@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera == null)
                     continue;
 
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 // Read XR SDK or legacy settings
                 bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
 
@@ -292,20 +292,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
-            #if UNITY_2020_1_OR_NEWER
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
-            #else
-                if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
-            #endif
                 {
                     if (blitDesc.nativeBlitAvailable)
                     {
-                    #if UNITY_2020_1_OR_NEWER
                         display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates, mirrorBlitMode);
-                    #else
-                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
-                    #endif
                     }
                     else
                     {

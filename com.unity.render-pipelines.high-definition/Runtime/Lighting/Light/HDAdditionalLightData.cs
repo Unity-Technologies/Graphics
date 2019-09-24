@@ -399,9 +399,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_LightUnit == value)
                     return;
 
-                if (!IsValidLightUnitForType(legacyLight.type, m_LightTypeExtent, value))
+                if (!IsValidLightUnitForType(legacyLight.type, m_LightTypeExtent, m_SpotLightShape, value))
                 {
-                    var supportedTypes = String.Join(", ", GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent));
+                    var supportedTypes = String.Join(", ", GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent, m_SpotLightShape));
                     Debug.LogError($"Set Light Unit '{value}' to a {GetLightTypeName()} is not allowed, only {supportedTypes} are supported.");
                     return;
                 }
@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     legacyLight.type = LightType.Point;
                 }
 
-                var supportedUnits = GetSupportedLightUnits(legacyLight.type, value);
+                var supportedUnits = GetSupportedLightUnits(legacyLight.type, value, m_SpotLightShape);
                 // If the current light unit is not supported by the new light type, we change it
                 if (!supportedUnits.Any(u => u == lightUnit))
                     lightUnit = supportedUnits.First();
@@ -1477,7 +1477,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DisableCachedShadowSlot();
         }
-
         void OnDisable()
         {
             DisableCachedShadowSlot();
@@ -1635,7 +1634,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
 
             int count = GetShadowRequestCount();
-            bool needsCachedSlotsInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+            bool needsCachedSlotsInAtlas = shadowsAreCached && !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
 
             for (int index = 0; index < count; index++)
             {
@@ -1745,8 +1744,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
 
-                bool shouldUseRequestFromCachedList = hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
-                bool cachedDataIsValid =  m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
+                bool shouldUseRequestFromCachedList = shadowIsCached && hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
+                bool cachedDataIsValid = shadowIsCached && m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
 
                 if (resolutionRequest == null)
@@ -2129,6 +2128,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnValidate()
         {
             UpdateBounds();
+            DisableCachedShadowSlot();
+            m_ShadowMapRenderedSinceLastRequest = false;
         }
 
 #region Update functions to patch values in the Light component when we change properties inside HDAdditionalLightData
@@ -2467,12 +2468,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Set the range of the light.
-        /// </summary>
-        /// <param name="range"></param>
-        public void SetRange(float range) => legacyLight.range = range;
-
-        /// <summary>
         /// Set the type of the light.
         /// Note: this will also change the unit of the light if the current one is not supported by the new light type.
         /// </summary>
@@ -2704,6 +2699,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // A bunch of function that changes stuff on the legacy light so users don't have to get the
         // light component which would lead to synchronization problem with ou HD datas.
+        
+        /// <summary>
+        /// Set the range of the light.
+        /// </summary>
+        /// <param name="range"></param>
+        public void SetRange(float range) => legacyLight.range = range;
 
         /// <summary>
         /// Set the light layer and shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
@@ -2728,7 +2729,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Get the list of supported light units depending on the current light type.
         /// </summary>
         /// <returns></returns>
-        public LightUnit[] GetSupportedLightUnits() => GetSupportedLightUnits(legacyLight.type, lightTypeExtent);
+        public LightUnit[] GetSupportedLightUnits() => GetSupportedLightUnits(legacyLight.type, m_LightTypeExtent, m_SpotLightShape);
 
         /// <summary>
         /// Set the area light size.
@@ -2761,21 +2762,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #region Utils
 
-        bool IsValidLightUnitForType(LightType type, LightTypeExtent typeExtent, LightUnit unit)
+        bool IsValidLightUnitForType(LightType type, LightTypeExtent typeExtent, SpotLightShape spotLightShape, LightUnit unit)
         {
-            LightUnit[] allowedUnits = GetSupportedLightUnits(type, typeExtent);
+            LightUnit[] allowedUnits = GetSupportedLightUnits(type, typeExtent, spotLightShape);
 
             return allowedUnits.Any(u => u == unit);
         }
 
         [System.NonSerialized]
-        Dictionary<int, LightUnit[]>  supportedLightTypeCache = new Dictionary<int, LightUnit[]>();
-        LightUnit[] GetSupportedLightUnits(LightType type, LightTypeExtent typeExtent)
+        static Dictionary<int, LightUnit[]>  supportedLightTypeCache = new Dictionary<int, LightUnit[]>();
+        static LightUnit[] GetSupportedLightUnits(LightType type, LightTypeExtent typeExtent, SpotLightShape spotLightShape)
         {
             LightUnit[]     supportedTypes;
 
             // Combine the two light types to access the dictionary
-            int cacheKey = (int)type | ((int)typeExtent << 16);
+            int cacheKey = ((int)type & 0xFF) << 0;
+            cacheKey |= ((int)typeExtent & 0xFF) << 8;
+            cacheKey |= ((int)spotLightShape & 0xFF) << 16;
+
             // We cache the result once they are computed, it avoid garbage generated by Enum.GetValues and Linq.
             if (supportedLightTypeCache.TryGetValue(cacheKey, out supportedTypes))
                 return supportedTypes;
@@ -2786,6 +2790,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedTypes = Enum.GetValues(typeof(DirectionalLightUnit)).Cast<LightUnit>().ToArray();
             else
                 supportedTypes = Enum.GetValues(typeof(PunctualLightUnit)).Cast<LightUnit>().ToArray();
+            
+            supportedLightTypeCache[cacheKey] = supportedTypes;
 
             return supportedTypes;
         }

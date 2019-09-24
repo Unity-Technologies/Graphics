@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.0.0] - 2019-XX-XX
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Restored usage of ENABLE_VR to fix compilation errors on some platforms.
+- Only call SetDirty on an object when actually modifying it in SRP updater utility 
 
 ## [7.1.1] - 2019-09-05
 
