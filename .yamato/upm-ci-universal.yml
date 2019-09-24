@@ -157,7 +157,7 @@ linux_apis:
   artifacts:
     logs:
       paths:
-        - "**/upm-ci~/test-results/**/*"  
+        - "**/test-results/**/*"  
 {% endfor %}   
 {% endfor %}
 
