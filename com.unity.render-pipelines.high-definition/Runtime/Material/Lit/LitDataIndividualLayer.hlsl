@@ -189,11 +189,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     alphaCutoff = _AlphaCutoffPostpass;
     #endif
 
-#if SHADERPASS == SHADERPASS_SHADOWS 
+    #if !defined(RAYTRACING_SURFACE_SHADER)
+        #if SHADERPASS == SHADERPASS_SHADOWS 
     DoAlphaTest(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
-#else
+        #else
     DoAlphaTest(alpha, alphaCutoff);
-#endif
+        #endif
+    #endif
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);

@@ -42,14 +42,14 @@ struct UVMapping
 #undef SAMPLE_TEXTURE_FUNC
 
 // Lod sampling functions
-#define ADD_FUNC_SUFFIX(Name) Name##Lod
+#define ADD_FUNC_SUFFIX(Name) MERGE_NAME(Name, Lod)
 #define SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping, lod) SAMPLE_TEXTURE2D_LOD(textureName, samplerName, uvMapping, lod)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMappingInternal.hlsl"
 #undef ADD_FUNC_SUFFIX
 #undef SAMPLE_TEXTURE_FUNC
 
 // Bias sampling functions
-#define ADD_FUNC_SUFFIX(Name) Name##Bias
+#define ADD_FUNC_SUFFIX(Name) MERGE_NAME(Name, Bias)
 #define SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping, bias) SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, uvMapping, bias)
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMappingInternal.hlsl"
 #undef ADD_FUNC_SUFFIX
