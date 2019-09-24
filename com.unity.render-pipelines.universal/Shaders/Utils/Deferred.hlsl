@@ -13,16 +13,17 @@
 #define MAX_POINTLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHTDATA))
 #define MAX_REL_LIGHT_INDICES_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 
+// Keep in sync with kUseCBufferForDepthRange.
 // Keep in sync with kUseCBufferForTileData.
 // Keep in sync with kUseCBufferForLightData.
 // Keep in sync with kUseCBufferForLightList.
 #if defined(SHADER_API_SWITCH)
-#define USE_CBUFFER_FOR_DEPTHRANGE 1
+#define USE_CBUFFER_FOR_DEPTHRANGE 0
 #define USE_CBUFFER_FOR_TILELIST 0
 #define USE_CBUFFER_FOR_LIGHTDATA 1
 #define USE_CBUFFER_FOR_LIGHTLIST 0
 #else
-#define USE_CBUFFER_FOR_DEPTHRANGE 1
+#define USE_CBUFFER_FOR_DEPTHRANGE 0
 #define USE_CBUFFER_FOR_TILELIST 0
 #define USE_CBUFFER_FOR_LIGHTDATA 1
 #define USE_CBUFFER_FOR_LIGHTLIST 0

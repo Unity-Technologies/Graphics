@@ -18,12 +18,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if UNITY_SWITCH
         // Constant buffers are used for data that a repeatedly fetched by shaders.
         // Structured buffers are used for data only consumed once.
-        public static bool kUseCBufferForDepthRange = true;
+        public static bool kUseCBufferForDepthRange = false;
         public static bool kUseCBufferForTileList = false;
         public static bool kUseCBufferForLightData = true;
         public static bool kUseCBufferForLightList = false;
 #else
-        public static bool kUseCBufferForDepthRange = true;
+        public static bool kUseCBufferForDepthRange = false;
         public static bool kUseCBufferForTileList = false;
         public static bool kUseCBufferForLightData = true;
         public static bool kUseCBufferForLightList = false;
@@ -343,9 +343,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int tileY = 0;
             int tileYIncrement = DeferredConfig.kPreferredCBufferSize / (tileXCount * 4);
-            int maxDepthRangePerDrawCall = Align(tileXCount * tileYIncrement, 4);
 
-            NativeArray<uint> depthRanges = new NativeArray<uint>(maxDepthRangePerDrawCall, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<uint> depthRanges = new NativeArray<uint>(m_MaxDepthRangePerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             while (tileY < tileYCount)
             {
@@ -368,11 +367,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                ComputeBuffer _depthRanges = DeferredShaderData.instance.ReserveDepthRanges(maxDepthRangePerDrawCall);
+                ComputeBuffer _depthRanges = DeferredShaderData.instance.ReserveDepthRanges(m_MaxDepthRangePerBatch);
                 _depthRanges.SetData(depthRanges, 0, 0, depthRanges.Length);
 
                 if (DeferredConfig.kUseCBufferForDepthRange)
-                    cmd.SetGlobalConstantBuffer(_depthRanges, ShaderConstants.UDepthRanges, 0, maxDepthRangePerDrawCall * 4);
+                    cmd.SetGlobalConstantBuffer(_depthRanges, ShaderConstants.UDepthRanges, 0, m_MaxDepthRangePerBatch * 4);
                 else
                     cmd.SetGlobalBuffer(ShaderConstants._DepthRanges, _depthRanges);
 

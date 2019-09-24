@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Universal
             if (DeferredConfig.kUseCBufferForDepthRange)
                 return GetOrUpdateBuffer<Vector4UInt>(m_DepthRanges, (count + 3) / 4, ComputeBufferType.Constant, m_DepthRange_UsedCount++);
             else
-                return GetOrUpdateBuffer<TileData>(m_DepthRanges, count, ComputeBufferType.Structured, m_DepthRange_UsedCount++);
+                return GetOrUpdateBuffer<uint>(m_DepthRanges, count, ComputeBufferType.Structured, m_DepthRange_UsedCount++);
         }
 
         internal ComputeBuffer ReserveTileList(int count)
