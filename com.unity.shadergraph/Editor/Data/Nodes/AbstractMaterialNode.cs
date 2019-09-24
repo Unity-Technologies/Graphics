@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
 
         public virtual bool allowedInSubGraph
         {
-            get { return true; }
+            get { return !(this is IMasterNode); }
         }
 
         public virtual bool allowedInMainGraph

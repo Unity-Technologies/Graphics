@@ -16,6 +16,30 @@ namespace UnityEditor.ShaderGraph
     {
         const string kDebugSymbol = "SHADERGRAPH_DEBUG";
 
+        public static ActiveFields GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
+        {
+            var activeFields = new ActiveFields();
+            var baseFields = activeFields.baseInstance;
+
+            foreach(ConditionalField conditionalField in conditionalFields)
+            {
+                if(conditionalField.condition == true)
+                {
+                    baseFields.Add(conditionalField.field.ToFieldString());
+                }
+            }
+
+            return activeFields;
+        }
+
+        public static string ToFieldString(this IField field)
+        {
+            if(!string.IsNullOrEmpty(field.tag))
+                return $"{field.tag}.{field.name}";
+            else
+                return field.name;
+        }
+
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 
             ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths,
             List<Dependency[]> dependencies, string resourceClassName, string assemblyName)
@@ -454,12 +478,9 @@ namespace UnityEditor.ShaderGraph
             if (!File.Exists(passTemplatePath))
                 return false;
             
-            // Get Template preprocessor
-            string templatePath = "Packages/com.unity.shadergraph/Editor/Templates";
+            // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands, 
                 isDebug, sharedTemplateDirectory, sourceAssetDependencyPaths, assemblyName, resourceClassName);
-            
-            // Process Template
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
             return true;

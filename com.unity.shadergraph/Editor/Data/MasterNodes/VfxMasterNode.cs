@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Visual Effect")]
-    sealed class VfxMasterNode : MasterNode, IMayRequirePosition
+    sealed class VfxMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition
     {
         const string BaseColorSlotName = "Base Color";
         const string MetallicSlotName = "Metallic";
@@ -142,9 +142,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        protected override VisualElement CreateCommonSettingsElement()
+        public VisualElement CreateSettingsElement()
         {
             return new SettingsView(this);
+        }
+
+        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        {
+            return null;
+        }
+
+        public void ProcessPreviewMaterial(Material material)
+        {
+
         }
 
         public override bool hasPreview => false;
