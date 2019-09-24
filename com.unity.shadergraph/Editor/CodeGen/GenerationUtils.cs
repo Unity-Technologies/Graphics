@@ -39,6 +39,9 @@ namespace UnityEditor.ShaderGraph
             ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths,
             List<Dependency[]> dependencies, string resourceClassName, string assemblyName)
         {
+            //TODO: implement proper field passing to check active fields
+            List<IField> fields = new List<IField>();
+
             // --------------------------------------------------
             // Debug
 
@@ -182,6 +185,43 @@ namespace UnityEditor.ShaderGraph
                 if(passKeywordBuilder.length == 0)
                     passKeywordBuilder.AppendLine("// PassKeywords: <None>");
                 spliceCommands.Add("PassKeywords", passKeywordBuilder.ToCodeBlack());
+            }
+
+            // Generated Structs
+            using (var passStructBuilder = new ShaderStringBuilder())
+            {
+                if(pass.structs != null)
+                {
+                    foreach(StructDescriptor shaderStruct in pass.structs)
+                    {
+                        passStructBuilder.AppendLine($"struct {shaderStruct.name}");
+                        using(passStructBuilder.BlockSemicolonScope())
+                        {
+                            foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
+                            {
+                                if(!fields.Contains(subscript) && subscript.subcriptOptions.HasFlag(SubscriptDescriptor.SubscriptOptions.Optional))
+                                    continue; //skip non-active optional subscripts   
+                                
+                                if(subscript.hasPreprocessor())
+                                {
+                                    passStructBuilder.AppendLine($"#ifdef {subscript.preprocessor}");
+                                }
+
+                                string semantic = subscript.hasSemantic() ? $" : {subscript.semantic}" : string.Empty;
+
+                                passStructBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
+
+                                if(subscript.hasPreprocessor())
+                                {
+                                    passStructBuilder.AppendLine("#endif");
+                                }
+                            }
+                        }
+                    }
+                }
+                if(passStructBuilder.length == 0)
+                    passStructBuilder.AppendLine("//PassStructs: <None>");
+                spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlack());
             }
 
             // --------------------------------------------------

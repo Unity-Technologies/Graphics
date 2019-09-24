@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public IEnumerable<string> includes;
         public IEnumerable<string> defines;
         public IEnumerable<KeywordDescriptor> keywords;
+        public IEnumerable<StructDescriptor> structs;
         public IEnumerable<string> defaultDotsInstancingOptions;
 
         // Port mask
