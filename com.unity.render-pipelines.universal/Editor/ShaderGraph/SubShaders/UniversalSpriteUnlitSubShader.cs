@@ -78,34 +78,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
         };
 #endregion
 
-        private static ActiveFields GetActiveFieldsFromMasterNode(SpriteUnlitMasterNode masterNode, ShaderPass pass)
-        {
-            var activeFields = new ActiveFields();
-            var baseActiveFields = activeFields.baseInstance;
-
-            // Graph Vertex
-            if(masterNode.IsSlotConnected(SpriteUnlitMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(SpriteUnlitMasterNode.VertNormalSlotId) || 
-               masterNode.IsSlotConnected(SpriteUnlitMasterNode.VertTangentSlotId))
-            {
-                baseActiveFields.Add("features.graphVertex");
-            }
-
-            // Graph Pixel (always enabled)
-            baseActiveFields.Add("features.graphPixel");
-
-            baseActiveFields.Add("SurfaceType.Transparent");
-            baseActiveFields.Add("BlendMode.Alpha");
-
-            return activeFields;
-        }
-
         private static bool GenerateShaderPass(SpriteUnlitMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             UniversalShaderGraphUtilities.SetRenderState(SurfaceType.Transparent, AlphaMode.Alpha, true, ref pass);
 
             // apply master node options to active fields
-            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
 
             // use standard shader pass generation
             return ShaderGraph.GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,

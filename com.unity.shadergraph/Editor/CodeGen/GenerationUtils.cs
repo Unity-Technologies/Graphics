@@ -21,18 +21,23 @@ namespace UnityEditor.ShaderGraph
             var activeFields = new ActiveFields();
             var baseFields = activeFields.baseInstance;
 
-            foreach(ConditionalField field in conditionalFields)
+            foreach(ConditionalField conditionalField in conditionalFields)
             {
-                if(field.condition == true)
+                if(conditionalField.condition == true)
                 {
-                    if(!string.IsNullOrEmpty(field.field.tag))
-                        baseFields.Add($"{field.field.tag}.{field.field.name}");
-                    else
-                        baseFields.Add(field.field.name);
+                    baseFields.Add(conditionalField.field.ToFieldString());
                 }
             }
 
             return activeFields;
+        }
+
+        public static string ToFieldString(this IField field)
+        {
+            if(!string.IsNullOrEmpty(field.tag))
+                return $"{field.tag}.{field.name}";
+            else
+                return field.name;
         }
 
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 

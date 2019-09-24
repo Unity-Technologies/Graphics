@@ -59,7 +59,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
-            return null;
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(DefaultFields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphPixel,          true),
+                
+                // Surface Type
+                new ConditionalField(DefaultFields.SurfaceTransparent,  true),
+                
+                // Blend Mode
+                new ConditionalField(DefaultFields.BlendAlpha,          true),
+            };
         }
 
         public void ProcessPreviewMaterial(Material material)
