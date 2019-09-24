@@ -478,12 +478,9 @@ namespace UnityEditor.ShaderGraph
             if (!File.Exists(passTemplatePath))
                 return false;
             
-            // Get Template preprocessor
-            string templatePath = "Packages/com.unity.shadergraph/Editor/Templates";
+            // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands, 
                 isDebug, sharedTemplateDirectory, sourceAssetDependencyPaths, assemblyName, resourceClassName);
-            
-            // Process Template
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
             return true;
