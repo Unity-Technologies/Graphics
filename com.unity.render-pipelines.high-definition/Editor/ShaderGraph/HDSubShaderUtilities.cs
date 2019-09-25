@@ -1236,14 +1236,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);
-            collector.AddShaderProperty(new Vector1ShaderProperty{
-                overrideReferenceName = "_AlphaCutoff",
-                displayName = "Alpha Cutoff",
-                floatType = FloatType.Slider,
-                rangeValues = new Vector2(0, 1),
-                hidden = true,
-                value = 0.5f
-            });
             collector.AddFloatProperty("_TransparentSortPriority", "_TransparentSortPriority", 0);
             collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold);
         }

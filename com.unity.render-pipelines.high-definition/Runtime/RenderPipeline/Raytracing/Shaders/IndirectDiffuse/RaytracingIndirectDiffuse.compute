@@ -27,11 +27,12 @@ TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
-void RaytracingIndirectDiffuseFullRes(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
-    currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     // Clear the output color texture
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, -1.0f);
@@ -44,7 +45,7 @@ void RaytracingIndirectDiffuseFullRes(uint2 groupThreadId : SV_GroupThreadID, ui
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -75,13 +76,15 @@ TEXTURE2D_X(_GBufferTexture0);
 RW_TEXTURE2D_X(float4, _GBufferTexture3);
 
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
-void IndirectDiffuseAccumulation(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void IndirectDiffuseAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
 #if SHADEROPTIONS_RAYTRACING
     // Fetch the current pixel coordinate
     uint2 currentPixelCoordinate = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
 
     // Add the indirect diffuse to the buffer (while pre-multiplying by the base color)
-    _GBufferTexture3[COORD_TEXTURE2D_X(currentPixelCoordinate)] += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, currentPixelCoordinate) * LOAD_TEXTURE2D_X(_GBufferTexture0, currentPixelCoordinate);
+    _GBufferTexture3[COORD_TEXTURE2D_X(currentPixelCoordinate)] += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, currentPixelCoordinate) * LOAD_TEXTURE2D_X(_GBufferTexture0, currentPixelCoordinate) * _IndirectLightingMultiplier.x;
 #endif
 }

@@ -19,6 +19,17 @@ UNITY_INSTANCING_BUFFER_START(Terrain)
     UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
 UNITY_INSTANCING_BUFFER_END(Terrain)
 
+#ifdef _ALPHATEST_ON
+TEXTURE2D(_TerrainHolesTexture);
+SAMPLER(sampler_TerrainHolesTexture);
+
+void ClipHoles(float2 uv)
+{
+	float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+	clip(hole == 0.0f ? -1 : 1);
+}
+#endif
+
 struct Attributes
 {
     float4 positionOS : POSITION;
@@ -276,6 +287,10 @@ Varyings SplatmapVert(Attributes v)
 // Used in Standard Terrain shader
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
 {
+#ifdef _ALPHATEST_ON
+	ClipHoles(IN.uvMainAndLM.xy);
+#endif	
+
     half3 normalTS = half3(0.0h, 0.0h, 1.0h);
 #ifdef TERRAIN_SPLAT_BASEPASS
     half3 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uvMainAndLM.xy).rgb;
@@ -360,11 +375,22 @@ struct AttributesLean
     float4 position     : POSITION;
     float3 normalOS       : NORMAL;
     UNITY_VERTEX_INPUT_INSTANCE_ID
+#ifdef _ALPHATEST_ON
+	float2 texcoord     : TEXCOORD0;
+#endif
 };
 
-float4 ShadowPassVertex(AttributesLean v) : SV_POSITION
+struct VaryingsLean
 {
-    Varyings o;
+    float4 clipPos      : SV_POSITION;
+#ifdef _ALPHATEST_ON		
+    float2 texcoord     : TEXCOORD0;
+#endif
+};
+
+VaryingsLean ShadowPassVertex(AttributesLean v)
+{
+    VaryingsLean o = (VaryingsLean)0;
     UNITY_SETUP_INSTANCE_ID(v);
     TerrainInstancing(v.position, v.normalOS);
 
@@ -379,26 +405,42 @@ float4 ShadowPassVertex(AttributesLean v) : SV_POSITION
     clipPos.z = max(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
 #endif
 
-    return clipPos;
+	o.clipPos = clipPos;
+	
+#ifdef _ALPHATEST_ON		
+	o.texcoord = v.texcoord;
+#endif	
+	
+	return o;
 }
 
-half4 ShadowPassFragment() : SV_TARGET
+half4 ShadowPassFragment(VaryingsLean IN) : SV_TARGET
 {
+#ifdef _ALPHATEST_ON
+	ClipHoles(IN.texcoord);
+#endif	
     return 0;
 }
 
 // Depth pass
 
-float4 DepthOnlyVertex(AttributesLean v) : SV_POSITION
+VaryingsLean DepthOnlyVertex(AttributesLean v)
 {
-    Varyings o = (Varyings)0;
+    VaryingsLean o = (VaryingsLean)0;
     UNITY_SETUP_INSTANCE_ID(v);
     TerrainInstancing(v.position, v.normalOS);
-    return TransformObjectToHClip(v.position.xyz);
+    o.clipPos = TransformObjectToHClip(v.position.xyz);
+#ifdef _ALPHATEST_ON		
+	o.texcoord = v.texcoord;
+#endif	
+	return o;
 }
 
-half4 DepthOnlyFragment() : SV_TARGET
+half4 DepthOnlyFragment(VaryingsLean IN) : SV_TARGET
 {
+#ifdef _ALPHATEST_ON
+	ClipHoles(IN.texcoord);
+#endif
     return 0;
 }
 

@@ -25,9 +25,9 @@ Texture2D<float>			          	_StencilTexture;
 TEXTURE2D_X(_DepthTexture);
 
 // Output structure of the reflection raytrace shader
-Texture2D<float> 						_RaytracingFlagMask;
-RWTexture2D<float4> 					_CameraColorTextureRW;
-RWTexture2D<float4> 					_RaytracingPrimaryDebug;
+TEXTURE2D_X(_RaytracingFlagMask);
+RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
+RW_TEXTURE2D_X(float4, _RaytracingPrimaryDebug);
 
 [shader("miss")]
 void MissShaderRenderer(inout RayIntersection rayIntersection : SV_RayPayload)
@@ -38,24 +38,26 @@ void MissShaderRenderer(inout RayIntersection rayIntersection : SV_RayPayload)
 [shader("raygeneration")]
 void RayGenRenderer()
 {
-	uint2 LaunchIndex = DispatchRaysIndex();
+    uint3 LaunchIndex = DispatchRaysIndex();
     uint2 LaunchDim = DispatchRaysDimensions();
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
 
 	// Pixel coordinate of the current pixel
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
-	_RaytracingPrimaryDebug[currentPixelCoord] = float4(0.0, 0.0, 0.0, 1.0);
+	_RaytracingPrimaryDebug[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 1.0);
 
 
     // If we do not need to override the pixel, stop right away
-    if (_RaytracingFlagMask[currentPixelCoord] < 0.5f)
+    if (_RaytracingFlagMask[COORD_TEXTURE2D_X(currentPixelCoord)].x < 0.5f)
     	return;
 
 	// Read the depth value
 	float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentPixelCoord).x;
 
 	// Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 	posInput.positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
 	// Compute the incident vector on the surfaces
@@ -86,12 +88,12 @@ void RayGenRenderer()
 
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_FORWARD] = _RayCountTexture[currentPixelCoord][RAYCOUNTVALUES_FORWARD] + rayIntersection.rayCount;
+        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_FORWARD] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_FORWARD] + rayIntersection.rayCount;
     }
 
 	// Alright we are done :D 
-	_RaytracingPrimaryDebug[currentPixelCoord] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
-    _CameraColorTextureRW[currentPixelCoord] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
+	_RaytracingPrimaryDebug[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.color * GetCurrentExposureMultiplier(), 1.0);
 }
 
 [shader("closesthit")]
