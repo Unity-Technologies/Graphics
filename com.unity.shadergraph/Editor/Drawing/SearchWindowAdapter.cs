@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.UIElements;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.Searcher;
@@ -21,9 +14,7 @@ namespace UnityEditor.ShaderGraph
         public SearchWindowAdapter(string title) : base(title)
         {
             m_DefaultItemTemplate = Resources.Load<VisualTreeAsset>("SearcherItem");
-        }
-
-        
+        }        
     }
 
     internal class SearchNodeItem : SearcherItem
@@ -34,10 +25,7 @@ namespace UnityEditor.ShaderGraph
         {
             NodeGUID = nodeGUID;
             
-        }
-
-        
-    }
-    
+        }        
+    }    
 }
 
