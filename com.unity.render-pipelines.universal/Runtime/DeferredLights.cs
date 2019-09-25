@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                ComputeBuffer _depthRanges = DeferredShaderData.instance.ReserveDepthRanges(m_MaxDepthRangePerBatch);
+                ComputeBuffer _depthRanges = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxDepthRangePerBatch, DeferredConfig.kUseCBufferForDepthRange);
                 _depthRanges.SetData(depthRanges, 0, 0, depthRanges.Length);
 
                 if (DeferredConfig.kUseCBufferForDepthRange)
@@ -530,9 +530,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 NativeArray<Vector4UInt> pointLightBuffer = new NativeArray<Vector4UInt>(m_MaxPointLightPerBatch * sizeof_vec4_PointLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 NativeArray<uint> relLightList = new NativeArray<uint>(m_MaxRelLightIndicesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-                ComputeBuffer _tileList = DeferredShaderData.instance.ReserveTileList(m_MaxTilesPerBatch);
-                ComputeBuffer _pointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
-                ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveRelLightList(m_MaxRelLightIndicesPerBatch);
+                ComputeBuffer _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.kUseCBufferForTileList);
+                ComputeBuffer _pointLightBuffer = DeferredShaderData.instance.ReserveBuffer<PointLightData>(m_MaxPointLightPerBatch, DeferredConfig.kUseCBufferForLightData);
+                ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
 
                 // Acceleration structure to quickly find if a light has already been added to the uniform block data for the current draw call.
                 NativeArray<ushort> trimmedLights = new NativeArray<ushort>(maxLightPerTile, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -575,14 +575,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                             if (tileListIsFull)
                             {
                                 _tileList.SetData(tileList, 0, 0, tileList.Length); // Must pass complete array (restriction for binding Unity Constant Buffers)
-                                _tileList = DeferredShaderData.instance.ReserveTileList(m_MaxTilesPerBatch);
+                                _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.kUseCBufferForTileList);
                                 tileCount = 0;
                             }
 
                             if (lightBufferIsFull)
                             {
                                 _pointLightBuffer.SetData(pointLightBuffer, 0, 0, pointLightBuffer.Length);
-                                _pointLightBuffer = DeferredShaderData.instance.ReservePointLightBuffer(m_MaxPointLightPerBatch);
+                                _pointLightBuffer = DeferredShaderData.instance.ReserveBuffer<PointLightData>(m_MaxPointLightPerBatch, DeferredConfig.kUseCBufferForLightData);
                                 lightCount = 0;
 
                                 // If pointLightBuffer was reset, then all lights in the current tile must be added.
@@ -595,7 +595,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             if (relLightListIsFull)
                             {
                                 _relLightList.SetData(relLightList, 0, 0, relLightList.Length);
-                                _relLightList = DeferredShaderData.instance.ReserveRelLightList(m_MaxRelLightIndicesPerBatch);
+                                _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
                                 relLightIndices = 0;
                             }
 

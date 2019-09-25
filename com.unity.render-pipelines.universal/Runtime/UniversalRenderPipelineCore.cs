@@ -102,9 +102,9 @@ namespace UnityEngine.Rendering.Universal
     public struct TileData
     {
         public uint tileID;         // 2x 16 bits
-        public uint relLightOffset; // 16 bits is enough
-        public uint listDepthRange; // 2x halfs
         public uint listBitMask;    // 32 bits
+        public uint relLightOffset; // 16 bits is enough
+        public uint unused;
     }
 
     // Actual point light data passed to the deferred shaders.

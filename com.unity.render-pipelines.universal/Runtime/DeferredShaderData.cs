@@ -72,24 +72,11 @@ namespace UnityEngine.Rendering.Universal
             return GetOrUpdateNativeArray<PreTile>(ref m_PreTiles, level, count);
         }
 
-        internal ComputeBuffer ReserveDepthRanges(int count)
+        internal ComputeBuffer ReserveBuffer<T>(int count, bool asCBuffer) where T : struct
         {
-            return GetOrUpdateBuffer(Align(count, 4), Marshal.SizeOf<uint>(), DeferredConfig.kUseCBufferForDepthRange);
-        }
-
-        internal ComputeBuffer ReserveTileList(int count)
-        {
-            return GetOrUpdateBuffer(count, Marshal.SizeOf<TileData>(), DeferredConfig.kUseCBufferForTileList);
-        }
-
-        internal ComputeBuffer ReservePointLightBuffer(int count)
-        {
-            return GetOrUpdateBuffer(count, Marshal.SizeOf<PointLightData>(), DeferredConfig.kUseCBufferForLightData);
-        }
-
-        internal ComputeBuffer ReserveRelLightList(int count)
-        {
-            return GetOrUpdateBuffer(Align(count, 4), Marshal.SizeOf<uint>(), DeferredConfig.kUseCBufferForLightList);
+            int stride = Marshal.SizeOf<T>();
+            int paddedCount = asCBuffer ? Align(stride * count, 16) / stride : count;
+            return GetOrUpdateBuffer(paddedCount, stride, asCBuffer);
         }
 
         NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T>[] nativeArrays, int level, int count) where T : struct
