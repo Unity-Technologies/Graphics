@@ -257,7 +257,7 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var context in m_Contexts )
                     {
-                        context.UnregisterCallback<GeometryChangedEvent>(OnContextChanged);
+                        context?.UnregisterCallback<GeometryChangedEvent>(OnContextChanged);
                     }
                 }
                 m_Contexts = value;
@@ -265,7 +265,7 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var context in m_Contexts)
                     {
-                        context.RegisterCallback<GeometryChangedEvent>(OnContextChanged);
+                        context?.RegisterCallback<GeometryChangedEvent>(OnContextChanged);
                     }
                 }
                 RecomputeBounds();
