@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph
 
                     foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
                     {
-                        if(!fields.Contains(subscript) && subscript.subcriptOptions.HasFlag(SubscriptDescriptor.SubscriptOptions.Optional))
+                        if(!fields.Contains(subscript) && subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional))
                             continue; //skip non-active optional subscripts
                         
                         int vectorCount = subscript.vectorCount;
@@ -261,7 +261,7 @@ namespace UnityEditor.ShaderGraph
                             packBuilder.AppendLine($"output.interp{interpIndex}.{packedChannels} =  input.{subscript.name};");
                             unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
                             var packedSubscript = new SubscriptDescriptor(subscript.tag, "interp" + interpIndex, "", subscript.type,
-                                "TEXCOORD" + interpIndex, subscript.preprocessor, subscript.subcriptOptions);
+                                "TEXCOORD" + interpIndex, subscript.preprocessor, subscript.subscriptOptions);
                             packedSubscripts.Add(packedSubscript);
                         }
                         
@@ -305,7 +305,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
                             {
-                                if(!fields.Contains(subscript) && subscript.subcriptOptions.HasFlag(SubscriptDescriptor.SubscriptOptions.Optional))
+                                if(!fields.Contains(subscript) && subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional))
                                     continue; //skip non-active optional subscripts
                                 
                                 if(subscript.hasPreprocessor())

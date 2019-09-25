@@ -1,14 +1,13 @@
 ﻿namespace UnityEditor.ShaderGraph.Internal
 {
+    public enum SubscriptOptions
+    {
+        Static = 0,
+        Optional = 1 << 0, 
+        Generated = 1 << 1
+    }
     public class SubscriptDescriptor : IField
     {
-        public enum SubscriptOptions
-        {
-            Static = 0,
-            Optional = 1 << 0, 
-            Generated = 1 << 1
-        }
-
         public string tag { get; }
         public string name { get; }
         public string define { get; }
@@ -16,10 +15,10 @@
         public int vectorCount { get; }
         public string semantic { get; }
         public string preprocessor { get; }
-        public SubscriptOptions subcriptOptions { get; }
+        public SubscriptOptions subscriptOptions { get; }
 
         public SubscriptDescriptor(string tag, string name, string define, ShaderValueType type,
-                string semantic = "", string preprocessor = "", SubscriptOptions subcriptOptions = SubscriptOptions.Static)
+                string semantic = "", string preprocessor = "", SubscriptOptions subscriptOptions = SubscriptOptions.Static)
         {
             this.tag = tag;
             this.name = name;
@@ -28,11 +27,11 @@
             this.vectorCount = type.GetVectorCount();
             this.semantic = semantic;
             this.preprocessor = preprocessor;
-            this.subcriptOptions = subcriptOptions;
+            this.subscriptOptions = subscriptOptions;
         }
 
         public SubscriptDescriptor(string tag, string name, string define, string type,
-                string semantic = "", string preprocessor = "", SubscriptOptions subcriptOptions = SubscriptOptions.Static)
+                string semantic = "", string preprocessor = "", SubscriptOptions subscriptOptions = SubscriptOptions.Static)
         {
             this.tag = tag;
             this.name = name;
@@ -41,7 +40,7 @@
             this.vectorCount = 0;
             this.semantic = semantic;            
             this.preprocessor = preprocessor;
-            this.subcriptOptions = subcriptOptions;
+            this.subscriptOptions = subscriptOptions;
         }
 
         public bool hasPreprocessor()
@@ -56,7 +55,7 @@
 
         public bool hasFlag(SubscriptOptions options)
         {
-            return (this.subcriptOptions & options) == options;
+            return (this.subscriptOptions & options) == options;
         }
     }
 }

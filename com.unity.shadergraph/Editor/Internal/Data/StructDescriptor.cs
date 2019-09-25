@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace UnityEditor.ShaderGraph.Internal
+﻿namespace UnityEditor.ShaderGraph.Internal
 {
     public struct StructDescriptor
     {
