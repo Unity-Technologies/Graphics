@@ -67,6 +67,9 @@ namespace UnityEditor.Rendering.Universal
                 "Varyings.shadowCoord", //shadow coord, vert input is dependency
             },
 
+            // Render State
+            renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
+
             // Pass setup
             includes = new List<string>()
             {
@@ -122,9 +125,8 @@ namespace UnityEditor.Rendering.Universal
                 PBRMasterNode.AlphaThresholdSlotId
             },
 
-            // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
+            // Render State
+            renderStateOverrides = UniversalMeshTarget.RenderStates.DepthOnly,
 
             // Pass setup
             includes = new List<string>()
@@ -172,9 +174,8 @@ namespace UnityEditor.Rendering.Universal
                 "Attributes.normalOS",
             },
 
-            // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ZTestOverride = "ZTest LEqual",
+            // Render State
+            renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
 
             // Pass setup
             includes = new List<string>()
@@ -225,9 +226,8 @@ namespace UnityEditor.Rendering.Universal
                 "Attributes.uv2", //needed for meta vertex position
             },
 
-            // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ZTestOverride = "ZTest LEqual",
+            // Render State
+            renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
 
             // Pass setup
             includes = new List<string>()
@@ -271,6 +271,9 @@ namespace UnityEditor.Rendering.Universal
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
             },
+
+            // Render State
+            renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
 
             // Pass setup
             includes = new List<string>()
@@ -391,12 +394,7 @@ namespace UnityEditor.Rendering.Universal
 
         bool GenerateShaderPass(PBRMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
-            UniversalShaderGraphUtilities.SetRenderState(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, ref pass);
-
-            // apply master node options to active fields
-            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-
-            return ShaderGraph.GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
+            return ShaderGraph.GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, result, sourceAssetDependencyPaths,
                 UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
         }
 

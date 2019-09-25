@@ -39,5 +39,66 @@ namespace UnityEditor.Rendering.Universal
                     return false;
             }
         }
+
+        public static class RenderStates
+        {
+            public static readonly RenderStateOverride[] Default = new RenderStateOverride[]
+            {
+                // Opaque
+                RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                RenderStateOverride.ZWrite(ZWrite.On, 0),
+                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                RenderStateOverride.Cull(Cull.Back, 0),
+
+                // Alpha Test
+                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
+
+                // Transparent
+                RenderStateOverride.ZWrite(ZWrite.Off, 1, new IField[] { DefaultFields.SurfaceTransparent }),
+
+                // Blend Mode
+                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
+                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
+                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+            };
+
+            public static readonly RenderStateOverride[] ShadowCasterMeta = new RenderStateOverride[]
+            {
+                // Opaque
+                RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                RenderStateOverride.ZWrite(ZWrite.On, 0),
+                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                RenderStateOverride.Cull(Cull.Back, 0),
+
+                // Alpha Test
+                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
+
+                // Blend Mode
+                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
+                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
+                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+            };
+
+            public static readonly RenderStateOverride[] DepthOnly = new RenderStateOverride[]
+            {
+                // Opaque
+                RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                RenderStateOverride.ZWrite(ZWrite.On, 0),
+                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                RenderStateOverride.Cull(Cull.Back, 0),
+                RenderStateOverride.ColorMask("0", 0),
+
+                // Alpha Test
+                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
+
+                // Blend Mode
+                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
+                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
+                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+            };
+        }
     }
 }
