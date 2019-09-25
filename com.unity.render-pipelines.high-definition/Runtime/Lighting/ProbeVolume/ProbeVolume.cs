@@ -389,6 +389,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DrawProbes()
         {
+            UnityEditor.SceneView sceneView = UnityEditor.SceneView.lastActiveSceneView;
+            if (sceneView != null && !sceneView.drawGizmos)
+                return;
+
             SetupPositions();
 
             int layer = 0;
