@@ -49,6 +49,8 @@ namespace UnityEditor
             }
 
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+
+            Selection.activeObject = go;
         }
 
 

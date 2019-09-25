@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string firstTimeInitTooltip = "Populate or override Default Resources Folder content with required assets and assign it in GraphicSettings.";
             public const string newSceneLabel = "Default Scene Prefab";
             public const string newSceneTooltip = "This prefab contains scene elements that are used when creating a new scene in HDRP.";
+            public const string newDXRSceneLabel = "Default DXR Scene Prefab";
+            public const string newDXRSceneTooltip = "This prefab contains scene elements that are used when creating a new scene in HDRP when ray-tracing is activated in the HDRenderPipelineAsset.";
             public const string hdrpConfigLabel = "HDRP";
             public const string hdrpConfigTooltip = "This tab contains configuration check for High Definition Render Pipeline.";
             public const string hdrpVRConfigLabel = "HDRP + VR";
@@ -62,22 +64,26 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string hdrpAssetEditorResourcesError = "There is an issue with the editor resources!";
             public const string hdrpAssetDiffusionProfileLabel = "Diffusion profile";
             public const string hdrpAssetDiffusionProfileError = "There is no diffusion profile assigned in the HDRP asset!";
-            public const string defaultVolumeProfileLabel = "Default scene prefab";
-            public const string defaultVolumeProfileError = "Default scene prefab must be set to create HD templated scene!";
+            public const string defaultSceneLabel = "Default scene prefab";
+            public const string defaultSceneError = "Default scene prefab must be set to create HD templated scene!";
             public const string vrSupportedLabel = "VR activated";
             public const string vrSupportedError = "VR need to be enabled in Player Settings!";
             public const string dxrAutoGraphicsAPILabel = "Auto graphics API";
             public const string dxrAutoGraphicsAPIError = "Auto Graphics API is not supported!";
             public const string dxrDirect3D12Label = "Direct3D 12";
             public const string dxrDirect3D12Error = "Direct3D 12 is needed!";
+            public const string dxrScreenSpaceShadowLabel = "Screen Space Shadow";
+            public const string dxrScreenSpaceShadowError = "Screen Space Shadow is required!";
+            public const string dxrStaticBatchingLabel = "Static Batching";
+            public const string dxrStaticBatchingError = "Static Batching is not supported!";
             public const string dxrSymbolLabel = "Scripting symbols";
             public const string dxrSymbolError = "REALTIME_RAYTRACING_SUPPORT must be defined!";
             public const string dxrResourcesLabel = "DXR resources";
             public const string dxrResourcesError = "There is an issue with the DXR resources!";
             public const string dxrActivatedLabel = "DXR activated";
             public const string dxrActivatedError = "DXR is not activated!";
-            public const string screenSpaceShadowLabel = "Screen Space Shadow";
-            public const string screenSpaceShadowError = "Screen Space Shadow is required!";
+            public const string defaultDXRSceneLabel = "Default DXR scene prefab";
+            public const string defaultDXRSceneError = "Default DXR scene prefab must be set to create HD templated scene!";
 
             public const string hdrpAssetDisplayDialogTitle = "Create or Load HDRenderPipelineAsset";
             public const string hdrpAssetDisplayDialogContent = "Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?";
@@ -85,8 +91,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string diffusionProfileSettingsDisplayDialogContent = "Do you want to create a fresh DiffusionProfileSettings in the default resource folder and automatically assign it?";
             public const string scenePrefabTitle = "Create or Load HD default scene";
             public const string scenePrefabContent = "Do you want to create a fresh HD default scene in the default resource folder and automatically assign it?";
+            public const string dxrScenePrefabTitle = "Create or Load DXR HD default scene";
+            public const string dxrScenePrefabContent = "Do you want to create a fresh DXR HD default scene in the default resource folder and automatically assign it?";
             public const string displayDialogCreate = "Create One";
             public const string displayDialogLoad = "Load One";
+            public const string displayDialogCancel = "Cancel";
         }
 
         enum Configuration
@@ -99,6 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Configuration m_Configuration;
         VisualElement m_BaseUpdatable;
         ObjectField m_DefaultScene;
+        ObjectField m_DefaultDXRScene;
 
         [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
         static void OpenWindow()
@@ -172,6 +182,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
             container.Add(m_DefaultScene = CreateDefaultScene());
+            container.Add(m_DefaultDXRScene = CreateDXRDefaultScene());
             
             container.Add(CreateTitle(Style.configurationTitle));
             container.Add(CreateTabbedBox(
@@ -231,8 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                     }
                 }));
-
-
+            
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateMigrationButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
             container.Add(CreateMigrationButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
@@ -283,12 +293,34 @@ namespace UnityEditor.Rendering.HighDefinition
             return newScene;
         }
 
+        ObjectField CreateDXRDefaultScene()
+        {
+            var newDXRScene = new ObjectField(Style.newDXRSceneLabel)
+            {
+                tooltip = Style.newSceneTooltip,
+                name = "NewDXRScene",
+                objectType = typeof(GameObject),
+                value = HDProjectSettings.defaultDXRScenePrefab
+            };
+            newDXRScene.Q<Label>().AddToClassList("normal");
+            newDXRScene.RegisterValueChangedCallback(evt
+                => HDProjectSettings.defaultDXRScenePrefab = evt.newValue as GameObject);
+
+            return newDXRScene;
+        }
+
         VisualElement CreateTabbedBox((string label, string tooltip)[] tabs, out VisualElement innerBox)
         {
             var toolbar = new ToolbarRadio();
             toolbar.AddRadios(tabs);
+            toolbar.SetValueWithoutNotify(HDProjectSettings.wizardActiveTab);
+            m_Configuration = (Configuration)HDProjectSettings.wizardActiveTab;
             toolbar.RegisterValueChangedCallback(evt =>
-                m_Configuration = (Configuration)evt.newValue);
+            {
+                int index = evt.newValue;
+                m_Configuration = (Configuration)index;
+                HDProjectSettings.wizardActiveTab = index;
+            });
 
             var outerBox = new VisualElement() { name = "OuterBox" };
             innerBox = new VisualElement { name = "InnerBox" };
@@ -324,11 +356,11 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(new ConfigInfoLine(Style.lightmapLabel, Style.lightmapError, Style.resolveAllBuildTarget, IsLightmapCorrect, FixLightmap));
             container.Add(new ConfigInfoLine(Style.shadowMaskLabel, Style.shadowMaskError,Style.resolveAllQuality, IsShadowmaskCorrect, FixShadowmask));
             container.Add(new ConfigInfoLine(Style.hdrpAssetLabel, Style.hdrpAssetError, Style.resolveAll, IsHdrpAssetCorrect, FixHdrpAsset));
-            container.Add(new ConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.resolve, IsHdrpAssetUsedCorrect, () => FixHdrpAssetUsed(async: false), indent: 1));
+            container.Add(new ConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.resolve, IsHdrpAssetUsedCorrect, () => FixHdrpAssetUsed(fromAsync: false), indent: 1));
             container.Add(new ConfigInfoLine(Style.hdrpAssetRuntimeResourcesLabel, Style.hdrpAssetRuntimeResourcesError, Style.resolve, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources, indent: 1));
             container.Add(new ConfigInfoLine(Style.hdrpAssetEditorResourcesLabel, Style.hdrpAssetEditorResourcesError, Style.resolve, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources, indent: 1));
             container.Add(new ConfigInfoLine(Style.hdrpAssetDiffusionProfileLabel, Style.hdrpAssetDiffusionProfileError, Style.resolve, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile, indent: 1));
-            container.Add(new ConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(async: false)));
+            container.Add(new ConfigInfoLine(Style.defaultSceneLabel, Style.defaultSceneError, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(fromAsync: false)));
         }
 
         void AddVRConfigInfo(VisualElement container)
@@ -338,9 +370,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             container.Add(new ConfigInfoLine(Style.dxrAutoGraphicsAPILabel, Style.dxrAutoGraphicsAPIError, Style.resolve, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI));
             container.Add(new ConfigInfoLine(Style.dxrDirect3D12Label, Style.dxrDirect3D12Error, Style.resolve, IsDXRDirect3D12Correct, () => FixDXRDirect3D12(fromAsync: false)));
-            container.Add(new ConfigInfoLine(Style.screenSpaceShadowLabel, Style.screenSpaceShadowError, Style.resolve, IsScreenSpaceShadowCorrect, FixScreenSpaceShadow));
+            container.Add(new ConfigInfoLine(Style.dxrStaticBatchingLabel, Style.dxrStaticBatchingError, Style.resolve, IsDXRStaticBatchingCorrect, FixDXRStaticBatching));
+            container.Add(new ConfigInfoLine(Style.dxrScreenSpaceShadowLabel, Style.dxrScreenSpaceShadowError, Style.resolve, IsDXRScreenSpaceShadowCorrect, FixDXRScreenSpaceShadow));
             container.Add(new ConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.resolve, IsDXRActivationCorrect, FixDXRActivation));
             container.Add(new ConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.resolve, IsDXRAssetCorrect, FixDXRAsset));
+            container.Add(new ConfigInfoLine(Style.defaultDXRSceneLabel, Style.defaultDXRSceneError, Style.resolve, IsDXRDefaultSceneCorrect, () => FixDXRDefaultScene(fromAsync: false)));
         }
 
         Label CreateTitle(string title)

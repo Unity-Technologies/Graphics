@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering
 
             foreach (var kvp in m_SortedVolumes)
             {
-                if ((kvp.Key & mask) == 0)
+                if (kvp.Key != mask)
                     continue;
 
                 foreach (var volume in kvp.Value)
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering
                     && !IsVolumeRenderedByCamera(volume, trigger.GetComponent<Camera>()))
                     continue;
 #endif
-                
+
                 // Skip disabled volumes and volumes without any data or weight
                 if (!volume.enabled || volume.profileRef == null || volume.weight <= 0f)
                     continue;
@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering
 #endif
         }
     }
-    
+
     /// <summary>
     /// Scope in which is volume is filtered by its rendering camera.
     /// </summary>

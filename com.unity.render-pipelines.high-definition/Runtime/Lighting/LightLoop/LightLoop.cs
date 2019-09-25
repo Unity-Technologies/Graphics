@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
-        // For now we don't use shadow cascade borders.
+        // This control if we use cascade borders for directional light by default
         static internal readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
@@ -2005,7 +2005,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var light = cullResults.visibleLights[lightIndex];
 
-                        if (!aovRequest.IsLightEnabled(light.light.gameObject))
+                        // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
+                        // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
+                        const int minimumPixelAreaOnScreen = 1;
+                        if ((light.screenRect.height * hdCamera.actualHeight) * (light.screenRect.width * hdCamera.actualWidth) < minimumPixelAreaOnScreen)
+                        {
+                            continue;
+                        }
+
+                        if (light.light != null && !aovRequest.IsLightEnabled(light.light.gameObject))
                             continue;
 
                         var lightComponent = light.light;
@@ -2031,27 +2039,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
                         HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape, 
                                                                 ref lightCategory, ref gpuLightType, ref lightVolumeType);
-
-                        bool typeIsFull = false;
-                        if (lightCategory == LightCategory.Punctual)
-                        {
-                            if (gpuLightType == GPULightType.Directional)
-                            {
-                                typeIsFull = (directionalLightcount >= m_MaxDirectionalLightsOnScreen);
-                            }
-                            else
-                            {
-                                typeIsFull = (punctualLightcount >= m_MaxPunctualLightsOnScreen);
-                            }
-                        }
-                        else
-                        {
-                            typeIsFull = (areaLightCount >= m_MaxAreaLightsOnScreen);
-                        }
-
-                        // If no slot is left for the target light type, we continue
-                        if (typeIsFull)
-                            continue;
 
                         if (hasDebugLightFilter
                             && !debugLightFilter.IsEnabledFor(gpuLightType, additionalData.spotLightShape))
@@ -2097,6 +2084,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var light = cullResults.visibleLights[lightIndex];
                         var lightComponent = light.light;
+
+                        switch(lightCategory)
+                        {
+                            case LightCategory.Punctual:
+                                if (punctualLightcount >= m_MaxPunctualLightsOnScreen)
+                                    continue;
+                                break;
+                            case LightCategory.Area:
+                                if (areaLightCount >= m_MaxAreaLightsOnScreen)
+                                    continue;
+                                break;
+                            default:
+                                break;
+                        }
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
 
@@ -2968,7 +2969,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
-                cmd.SetGlobalInt(HDShaderIDs._ScreenSpaceShadowArraySize, param.maxScreenSpaceShadows);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(param.hdCamera));
