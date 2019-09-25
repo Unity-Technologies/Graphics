@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             material.enableInstancing = true;
 
-            if (UnityEditor.Selection.activeGameObject != this.gameObject)
+            if (!UnityEditor.Selection.Contains(this.gameObject))
             {
                 foreach (Mesh debugMesh in m_DebugProbePointMeshList)
                     Graphics.DrawMesh(debugMesh, Matrix4x4.identity, material, layer);
