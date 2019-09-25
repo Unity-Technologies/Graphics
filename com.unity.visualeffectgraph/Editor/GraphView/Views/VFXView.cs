@@ -1737,6 +1737,8 @@ namespace UnityEditor.VFX.UI
 
             foreach( var context in GetAllContexts())
             {
+                if (context.controller.model is VFXBlockSubgraphContext)
+                    return false;
                 if (usedDatas.Contains(context.controller.model.GetData()) && !selectedContexts.Contains(context))
                     return false;
             }
