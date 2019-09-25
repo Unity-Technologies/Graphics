@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kWindEnable = "_WindEnabled";
         MaterialProperty windQuality = null;
         const string kWindQuality = "_WindQuality";
+        const string kWindQuality8 = "_WindQualityVer8";
         MaterialProperty isBillboard = null;
 
         const string kIsBillboard = "_Billboard";
@@ -48,6 +49,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             windEnable = FindProperty(kWindEnable);
             windQuality = FindProperty(kWindQuality);
+            if (windQuality == null)
+                windQuality = FindProperty(kWindQuality8);
 
             isBillboard = FindProperty(kIsBillboard);
             billboardFacesCam = FindProperty(kBillboardFacing);
