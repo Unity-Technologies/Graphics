@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GetID();
 
-            float debugProbeSize = 0.1f;
+            float debugProbeSize = Gizmos.probeSize;
 
             string inputsString =
                         id.ToString() +
