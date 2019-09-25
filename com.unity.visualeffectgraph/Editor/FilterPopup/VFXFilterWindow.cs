@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
             Vector2 position { get; set; }
         }
 
-        public static readonly float DefaultWidth = 240f;
+        public static readonly float DefaultWidth = 300f;
         public static readonly float DefaultHeight = 300f;
 
         #region BaseElements
