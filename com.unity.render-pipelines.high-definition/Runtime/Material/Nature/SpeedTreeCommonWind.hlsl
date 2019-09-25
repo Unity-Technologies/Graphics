@@ -163,7 +163,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
     //finalPosition.xyz += billboardPos;
     finalPosition.xyz = billboardPos;
     finalNormal = billboardNormal.xyz;
-    //input.tangent = float4(billboardTangent.xyz, -1);
+    //input.tangent = float4(billboardTangent.xyz, -1);     // can't write to the tangent vector yet.
 
     float slices = unity_BillboardInfo.x;
     float invDelta = unity_BillboardInfo.y;

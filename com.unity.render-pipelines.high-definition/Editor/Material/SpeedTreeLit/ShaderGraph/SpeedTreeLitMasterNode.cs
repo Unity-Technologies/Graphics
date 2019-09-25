@@ -1054,11 +1054,13 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines.Add("#pragma shader_feature_local EFFECT_BUMP");
             ExtraDefines.Add("#pragma shader_feature_local ENABLE_WIND");
             ExtraDefines.Add("#pragma shader_feature_local EFFECT_BILLBOARD");
+            ExtraDefines.Add("#pragma shader_feature_local _ SPEEDTREE_V7 SPEEDTREE_V8");
             ExtraDefines.Add("#define _ALPHATEST_ON");
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
             {
-                ExtraDefines.Add("#pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
+                ExtraDefines.Add("#pragma shader_feature_local _ GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
                 ExtraDefines.Add("#define SPEEDTREE_V7");
+                ExtraDefines.Add("#undef SPEEDTREE_V8");
                 ExtraDefines.Add("#define WIND_QUALITY_NONE    0");
                 ExtraDefines.Add("#define WIND_QUALITY_FASTEST 1");
                 ExtraDefines.Add("#define WIND_QUALITY_FAST    2");
@@ -1068,7 +1070,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                ExtraDefines.Add("#pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM");
+                ExtraDefines.Add("#pragma shader_feature_local _ _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM");
+                ExtraDefines.Add("#undef SPEEDTREE_V7");
                 ExtraDefines.Add("#define SPEEDTREE_V8");
                 ExtraDefines.Add("#define GEOM_TYPE_BRANCH 0");
                 ExtraDefines.Add("#define GEOM_TYPE_FROND 1");
