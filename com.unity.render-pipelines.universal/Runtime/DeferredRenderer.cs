@@ -78,8 +78,9 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
-                                      || rendererFeatures.Count != 0;
+            //bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
+            //                          || rendererFeatures.Count != 0;
+            bool createColorTexture = true; // we always create a new colorTexture in this pass: it is used as the 3rd GBuffer slice used in the GBuffer pass, and as lightingBuffer RenderTarget in the Deferred pass
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
@@ -114,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
-            m_GBufferPass.Setup(ref renderingData, m_DepthTexture);
+            m_GBufferPass.Setup(ref renderingData, m_DepthTexture, m_ActiveCameraColorAttachment);
             EnqueuePass(m_GBufferPass);
 
             m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);
@@ -186,7 +187,9 @@ namespace UnityEngine.Rendering.Universal
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
-                var colorDescriptor = descriptor;
+                //var colorDescriptor = descriptor;
+                // keep in sync with UnityGBuffer.hlsl
+                var colorDescriptor = new RenderTextureDescriptor(descriptor.width, descriptor.height, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);  // emission+GI     emission+GI     emission+GI  [unused]     (lighting buffer)
                 colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }

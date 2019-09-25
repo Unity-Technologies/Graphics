@@ -5,30 +5,29 @@
 
 struct FragmentOutput
 {
-    half4 GBuffer0 : SV_Target0;
-    half4 GBuffer1 : SV_Target1;
-    half4 GBuffer2 : SV_Target2;
-    half4 GBuffer3 : SV_Target3;
-    half4 GBuffer4 : SV_Target4;
+    half4 GBuffer0 : SV_Target0; // maps to GBufferPass.m_GBufferAttachments[0] on C# side
+    half4 GBuffer1 : SV_Target1; // maps to GBufferPass.m_GBufferAttachments[1] on C# side
+    half4 GBuffer2 : SV_Target2; // maps to GBufferPass.m_GBufferAttachments[2] on C# side
+    half4 GBuffer3 : SV_Target3; // maps to DeferredPass.m_CameraColorAttachment on C# side
 };
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData)
+FragmentOutput SurfaceDataAndGlobalIlluminationToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination)
 {
-    half3 remappedNormalWS = inputData.normalWS.xyz * 0.5f + 0.5f;
+    half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
+    half2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+
     FragmentOutput output;
-    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo    albedo    albedo    occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.smoothness);  // specular  specular  specular  smoothness   (sRGB rendertarget)
-    //output.GBuffer2 = half4(inputData.normalWS.xyz, surfaceData.alpha);       // normal    normal    normal    alpha
-    output.GBuffer2 = half4(remappedNormalWS, surfaceData.alpha);               // normal    normal    normal    alpha
-    output.GBuffer3 = half4(surfaceData.emission.rgb, surfaceData.metallic);    // emission  emission  emission  metallic
-    output.GBuffer4 = half4(inputData.bakedGI, 1.0);                            // bakedGI   bakedGI   bakedGI   [unused]
+    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);                 // albedo          albedo          albedo       occlusion    (sRGB rendertarget)
+    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.smoothness);              // specular        specular        specular     smoothness   (sRGB rendertarget)
+    output.GBuffer2 = half4(remappedOctNormalWS, surfaceData.metallic, surfaceData.alpha);  // encoded-normal  encoded-normal  metallic     alpha
+    output.GBuffer3 = half4(surfaceData.emission.rgb + globalIllumination, 0);              // emission+GI     emission+GI     emission+GI  [unused]     (lighting buffer)
 
     return output;
 }
 
 // This decodes the Gbuffer into a SurfaceData struct
-SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2, half4 gbuffer3 /*, DeferredData deferredData*/)
+SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
 {
     SurfaceData surfaceData;
 
@@ -40,32 +39,32 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 
     surfaceData.normalTS = (half3)0; // Note: does this normalTS member need to be in SurfaceData? It looks like an intermediate value
 
+    surfaceData.metallic = gbuffer2.b;
     surfaceData.alpha = gbuffer2.a;
 
-    surfaceData.emission = gbuffer3.rgb;
-    surfaceData.metallic = gbuffer3.a;
+    surfaceData.emission = (half3)0; // Note: this is not made available at lighting pass in this renderer - emission contribution is included (with GI) in the value GBuffer3.rgb, that is used as a renderTarget during lighting
 
     return surfaceData;
 }
 
-InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, half4 gbuffer4, float3 wsPos)
+InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
 {
     InputData inputData;
 
     inputData.positionWS = wsPos;
 
-    half3 remappedNormal = normalize((float3)gbuffer2.rgb * 2 - 1);
-    inputData.normalWS = remappedNormal;
+    half2 remappedOctNormalWS = gbuffer2.xy;                        // values between [ 0,  1]
+    half2 octNormalWS = normalize(remappedOctNormalWS.xy * 2 - 1);  // values between [-1, +1]
+    inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
 
     inputData.viewDirectionWS = GetCameraPositionWS() - wsPos.xyz;
 
-    // TODO: find how to pass this info?
+    // TODO: pass this info?
     inputData.shadowCoord     = (float4)0;
     inputData.fogCoord        = (half  )0;
     inputData.vertexLighting  = (half3 )0;
 
-    // TODO: pass bakedGI info without using GBuffer slot?
-    inputData.bakedGI = gbuffer4.rgb;
+    inputData.bakedGI = (half3)0; // Note: this is not made available at lighting pass in this renderer - bakedGI contribution is included (with emission) in the value GBuffer3.rgb, that is used as a renderTarget during lighting
 
     return inputData;
 }

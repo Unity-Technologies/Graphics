@@ -139,10 +139,18 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     //half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
-    // forward
+
+    // in LitForwardPass GlobalIllumination is called inside UniversalFragmentPBR
+    // in Deferred rendering we store this value in the GBuffer, and add emission as well
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+    half3 globalIllumination = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+
+
+    // Forward also has this step (TODO: support equivalent in Deferred)
     //color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
-    return SurfaceDataToGbuffer(surfaceData, inputData);
+    return SurfaceDataAndGlobalIlluminationToGbuffer(surfaceData, inputData, globalIllumination);
 }
 
 #endif

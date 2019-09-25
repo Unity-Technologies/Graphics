@@ -120,8 +120,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Texture2D _GBuffer0;
             Texture2D _GBuffer1;
             Texture2D _GBuffer2;
-            Texture2D _GBuffer3;
-            Texture2D _GBuffer4;
 
             float3 _LightWsPos;
             float _LightRadius;
@@ -152,17 +150,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
-                half4 gbuffer3 = _GBuffer3.Load(int3(input.positionCS.xy, 0));
-                half4 gbuffer4 = _GBuffer4.Load(int3(input.positionCS.xy, 0));
 
-                SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, gbuffer3);
-                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, gbuffer4, wsPos.xyz);
+                SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, wsPos.xyz);
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-
-                // TODO re-use _GBuffer4 as base RT instead?
-                // TODO Do this in a separate pass?
-                color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
                 Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, wsPos.xyz);
                 color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);

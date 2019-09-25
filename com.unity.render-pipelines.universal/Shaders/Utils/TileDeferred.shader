@@ -158,8 +158,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Texture2D _GBuffer0;
             Texture2D _GBuffer1;
             Texture2D _GBuffer2;
-            Texture2D _GBuffer3;
-            Texture2D _GBuffer4;
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
@@ -180,11 +178,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
-                half4 gbuffer3 = _GBuffer3.Load(int3(input.positionCS.xy, 0));
-                half4 gbuffer4 = _GBuffer4.Load(int3(input.positionCS.xy, 0));
 
-                SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, gbuffer3);
-                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, gbuffer4, wsPos.xyz);
+                SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, wsPos.xyz);
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 #else
@@ -195,10 +191,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
                 half3 color = 0.0.xxx;
 
-#if TEST_WIP_DEFERRED_POINT_LIGHTING
-                // TODO re-use _GBuffer4 as base RT instead?
-                color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
-#endif
                 [loop] for (int li = 0; li < lightCount; ++li)
                 {
                     uint offsetInList = relLightOffset + li;

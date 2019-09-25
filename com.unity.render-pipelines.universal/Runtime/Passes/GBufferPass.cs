@@ -7,11 +7,12 @@ namespace UnityEngine.Rendering.Universal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        public const int GBufferSlicesCount = 5;
+        public const int GBufferSlicesCount = 3;
 
         // attachments are like "binding points", internally they identify the texture shader properties declared with the same names
         public RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[GBufferSlicesCount];
         public RenderTargetHandle m_DepthBufferAttachment;
+        RenderTargetHandle m_LightingGBufferAttachment;
 
         RenderTextureDescriptor[] m_GBufferDescriptors = new RenderTextureDescriptor[GBufferSlicesCount];
         RenderTextureDescriptor m_DepthBufferDescriptor;
@@ -27,21 +28,19 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferAttachments[0].Init("_GBuffer0"); // Use these strings to refer to the GBuffers in shaders
             m_GBufferAttachments[1].Init("_GBuffer1");
             m_GBufferAttachments[2].Init("_GBuffer2");
-            m_GBufferAttachments[3].Init("_GBuffer3");
-            m_GBufferAttachments[4].Init("_GBuffer4"); // TODO use as lighting base RT
+            //m_GBufferAttachments[3].Init("_GBuffer3"); // Initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
 
             const int initialWidth = 1920;
             const int initialHeight = 1080;
-            m_GBufferDescriptors[0] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);  // albedo   albedo   albedo   occlusion
-            m_GBufferDescriptors[1] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);  // specular specular specular smoothness
-            m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0); // normal   normal   normal   alpha
-            m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0); // emission emission emission metallic
-            m_GBufferDescriptors[4] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0); // bakedGI  bakedGI  bakedGI  [unused]
+            m_GBufferDescriptors[0] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);   // albedo          albedo          albedo       occlusion    (sRGB rendertarget)
+            m_GBufferDescriptors[1] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);   // specular        specular        specular     smoothness   (sRGB rendertarget)
+            m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);  // encoded-normal  encoded-normal  metallic     alpha
+            //m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);  // emission+GI     emission+GI     emission+GI  [unused]     (lighting buffer)  // <- initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
 
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
         }
 
-        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture)
+        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle lightingGBufferAttachment)
         {
             for(int gbufferIndex = 0; gbufferIndex < m_GBufferDescriptors.Length ; ++gbufferIndex)
             {
@@ -55,18 +54,24 @@ namespace UnityEngine.Rendering.Universal
             m_DepthBufferDescriptor.msaaSamples = 1;
 
             m_DepthBufferAttachment = depthTexture;
+            m_LightingGBufferAttachment = lightingGBufferAttachment;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
         {
             // Create and declare the render targets used in the pass
+
             cmd.GetTemporaryRT(m_DepthBufferAttachment.id, m_DepthBufferDescriptor, FilterMode.Point);
-            RenderTargetIdentifier[] colorAttachments = new RenderTargetIdentifier[GBufferSlicesCount];
+            RenderTargetIdentifier[] colorAttachments = new RenderTargetIdentifier[GBufferSlicesCount + 1];
             for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
             {
                 cmd.GetTemporaryRT(m_GBufferAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
                 colorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex].Identifier();
             }
+
+            // the last slice is the lighting buffer created in DeferredRenderer.cs
+            colorAttachments[GBufferSlicesCount] = m_LightingGBufferAttachment.Identifier();
+
             ConfigureTarget(colorAttachments, m_DepthBufferAttachment.Identifier());
 
             // TODO: if depth-prepass is enabled, do not clear depth here!
