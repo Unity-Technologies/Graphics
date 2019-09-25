@@ -15,7 +15,7 @@ real3 UnpackNormalMaxComponent(real3 n)
     return normalize(n * 2.0 - 1.0);
 }
 
-// Ref: http://www.vis.uni-stuttgart.de/~engelhts/paper/vmvOctaMaps.pdf
+// Ref: http://www.vis.uni-stuttgart.de/~engelhts/paper/vmvOctaMaps.pdf "Octahedron Environment Maps"
 // Encode with Oct, this function work with any size of output
 // return real between [-1, 1]
 real2 PackNormalOctRectEncode(real3 n)
@@ -47,7 +47,7 @@ real3 UnpackNormalOctRectEncode(real2 f)
     return normalize(p);
 }
 
-// Ref: http://jcgt.org/published/0003/02/01/paper.pdf
+// Ref: http://jcgt.org/published/0003/02/01/paper.pdf "A Survey of Efficient Representations for Independent Unit Vectors"
 // Encode with Oct, this function work with any size of output
 // return float between [-1, 1]
 float2 PackNormalOctQuadEncode(float3 n)
