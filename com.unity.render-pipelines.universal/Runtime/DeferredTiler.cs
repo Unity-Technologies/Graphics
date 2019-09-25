@@ -282,8 +282,10 @@ namespace UnityEngine.Rendering.Universal
                     float depthRangeInv = 1.0f / (listMaxDepth - listMinDepth);
                     for (int tileLightIndex = 0; tileLightIndex < tileLightCount; ++tileLightIndex)
                     {
-                        int firstBit = (int)((minMax[tileLightIndex].x - listMinDepth) * 32.0f * depthRangeInv);
-                        int lastBit = (int)((minMax[tileLightIndex].y - listMinDepth) * 32.0f * depthRangeInv);
+                        float lightMinDepth = Mathf.Max(minMax[tileLightIndex].x, m_FrustumPlanes.zNear);
+                        float lightMaxDepth = Mathf.Min(minMax[tileLightIndex].y, m_FrustumPlanes.zFar);
+                        int firstBit = (int)((lightMinDepth - listMinDepth) * 32.0f * depthRangeInv);
+                        int lastBit = (int)((lightMaxDepth - listMinDepth) * 32.0f * depthRangeInv);
                         int bitCount = lastBit - firstBit + 1;
                         bitCount = (bitCount > 32 ? 32 : bitCount);
                         bitMask |= (uint)(((1ul << bitCount) - 1) << firstBit);
