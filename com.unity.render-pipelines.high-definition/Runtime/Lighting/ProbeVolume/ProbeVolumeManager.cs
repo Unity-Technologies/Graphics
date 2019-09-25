@@ -18,8 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return _instance;
             }
         }
-
-
         private ProbeVolumeManager()
         {
             volumes = new List<ProbeVolume>();
@@ -27,7 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public List<ProbeVolume> volumes = null;
         private bool volumesIsDirty = true;
-
         public void RegisterVolume(ProbeVolume volume)
         {
             if (volumes.Contains(volume))
@@ -36,7 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes.Add(volume);
             volumesIsDirty = true;
         }
-
         public void DeRegisterVolume(ProbeVolume volume)
         {
             if (!volumes.Contains(volume))
@@ -45,7 +41,6 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes.Remove(volume);
             volumesIsDirty = true;
         }
-
 #if UNITY_EDITOR
         public void ReactivateProbes()
         {
@@ -56,9 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 v.EnableBaking();
             }
 
-            UnityEditor.Lightmapping.bakeCompleted -= ReactivateProbes;
+            UnityEditor.Lightmapping.additionalBakedProbesCompleted -= ReactivateProbes;
         }
-
         public static void BakeSingle(ProbeVolume probeVolume)
         {
             if (!probeVolume)
@@ -72,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 v.DisableBaking();
             }
 
-            UnityEditor.Lightmapping.bakeCompleted += manager.ReactivateProbes;
+            UnityEditor.Lightmapping.additionalBakedProbesCompleted += manager.ReactivateProbes;
             UnityEditor.Lightmapping.BakeAsync();
         }
     }
