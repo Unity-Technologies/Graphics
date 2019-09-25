@@ -8,6 +8,14 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kMaterial = "Material";
         const string kSpecular = "Specular";
         const string kDoubleSided = "DoubleSided";
+        const string kBaseParametrization = "BaseParametrization";
+        const string kDualSpecularLobeParametrization = "DualSpecularLobeParametrization";
+        const string kSSSpecularOcclusionBaseMode = "ScreenSpaceSpecularOcclusionBaseMode";
+        const string kSSSpecularOcclusionAOConeSize = "ScreenSpaceSpecularOcclusionAOConeSize";
+        const string kSSSpecularOcclusionAOConeDir = "ScreenSpaceSpecularOcclusionAOConeDir";
+        const string kDataBasedSpecularOcclusionBaseMode = "DataBasedSpecularOcclusionBaseMode";
+        const string kDataBasedSpecularOcclusionAOConeSize = "DataBasedSpecularOcclusionAOConeSize";
+        const string kSpecularOcclusionConeFixupMethod = "SpecularOcclusionConeFixupMethod";
 #endregion
 
 #region Fields
@@ -21,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor Translucent =             new FieldDescriptor(kMaterial, "Translucent", "_MATERIAL_FEATURE_TRANSLUCENT 1");
         public static FieldDescriptor Coat =                    new FieldDescriptor(kMaterial, "Coat", "_MATERIAL_FEATURE_COAT");
         public static FieldDescriptor CoatNormal =              new FieldDescriptor(kMaterial, "CoatNormal", "_MATERIAL_FEATURE_COAT_NORMALMAP");
+        public static FieldDescriptor DualSpecularLobe =        new FieldDescriptor(kMaterial, "DualSpecularLobe", "_MATERIAL_FEATURE_DUAL_SPECULAR_LOBE");
         public static FieldDescriptor Eye =                     new FieldDescriptor(kMaterial, "Eye", "_MATERIAL_FEATURE_EYE 1");
         public static FieldDescriptor EyeCinematic =            new FieldDescriptor(kMaterial, "EyeCinematic", "_MATERIAL_FEATURE_EYE_CINEMATIC 1");
         public static FieldDescriptor CottonWool =              new FieldDescriptor(kMaterial, "CottonWool", "_MATERIAL_FEATURE_COTTON_WOOL 1");
@@ -34,8 +43,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // Specular
         public static FieldDescriptor EnergyConservingSpecular = new FieldDescriptor(kSpecular, "EnergyConserving", "_ENERGY_CONSERVING_SPECULAR 1");
         public static FieldDescriptor SpecularAA =              new FieldDescriptor(kSpecular, "AA", "_ENABLE_GEOMETRIC_SPECULAR_AA 1");
+        public static FieldDescriptor GeometricSpecularAA =     new FieldDescriptor(kSpecular, "GeometricAA", "_ENABLE_GEOMETRIC_SPECULAR_AA 1");
         
         // Specular Occlusion
+        public static FieldDescriptor SpecularOcclusion =       new FieldDescriptor(string.Empty, "SpecularOcclusion", "_ENABLESPECULAROCCLUSION");
         public static FieldDescriptor SpecularOcclusionFromAO = new FieldDescriptor(string.Empty, "SpecularOcclusionFromAO", "_SPECULAR_OCCLUSION_FROM_AO 1");
         public static FieldDescriptor SpecularOcclusionFromAOBentNormal = new FieldDescriptor(string.Empty, "SpecularOcclusionFromAOBentNormal", "_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1");
         public static FieldDescriptor SpecularOcclusionCustom = new FieldDescriptor(string.Empty, "SpecularOcclusionCustom", "_SPECULAR_OCCLUSION_CUSTOM 1");
@@ -49,6 +60,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "_HAS_REFRACTION 1");
         public static FieldDescriptor RefractionBox =           new FieldDescriptor(string.Empty, "RefractionBox", "_REFRACTION_PLANE 1");
         public static FieldDescriptor RefractionSphere =        new FieldDescriptor(string.Empty, "RefractionSphere", "_REFRACTION_SPHERE 1");
+
+        // Base Parametrization
+        public static FieldDescriptor BaseParamSpecularColor =  new FieldDescriptor(kBaseParametrization, "SpecularColor", "_MATERIAL_FEATURE_SPECULAR_COLOR");
+
+        // Dual Specular Lobe Parametrization
+        public static FieldDescriptor HazyGloss =               new FieldDescriptor(kDualSpecularLobeParametrization, "HazyGloss", "_MATERIAL_FEATURE_HAZY_GLOSS");
 
         // Misc
         public static FieldDescriptor AlphaTestShadow =         new FieldDescriptor(string.Empty, "AlphaTestShadow", "_ALPHA_TEST_SHADOW 1");
@@ -72,6 +89,49 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor Transmittance =           new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
         public static FieldDescriptor RimTransmissionIntensity = new FieldDescriptor(string.Empty, "RimTransmissionIntensity", "_RIM_TRANSMISSION_INTENSITY 1");
         public static FieldDescriptor UseLightFacingNormal =    new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
+        public static FieldDescriptor CapHazinessIfNotMetallic = new FieldDescriptor(string.Empty, "CapHazinessIfNotMetallic", "");
+        
+        // Advanced
+        public static FieldDescriptor AnisotropyForAreaLights = new FieldDescriptor(string.Empty, "AnisotropyForAreaLights", "_ANISOTROPY_FOR_AREA_LIGHTS");
+        public static FieldDescriptor RecomputeStackPerLight =  new FieldDescriptor(string.Empty, "RecomputeStackPerLight", "_VLAYERED_RECOMPUTE_PERLIGHT");
+        public static FieldDescriptor HonorPerLightMinRoughness = new FieldDescriptor(string.Empty, "HonorPerLightMinRoughness", "_STACK_LIT_HONORS_LIGHT_MIN_ROUGHNESS");
+        public static FieldDescriptor ShadeBaseUsingRefractedAngles = new FieldDescriptor(string.Empty, "ShadeBaseUsingRefractedAngles", "_VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE");
+        public static FieldDescriptor StackLitDebug =           new FieldDescriptor(string.Empty, "StackLitDebug", "_STACKLIT_DEBUG");
+
+        // Screen Space Specular Occlusion Base Mode
+        public static FieldDescriptor SSSpecularOcclusionBaseModeOff = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "Off", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_DISABLED");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeDirectFromAO = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "DirectFromAO", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeConeConeFromBentAO = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "ConeConeFromBentAO", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeSPTDIntegrationOfBentAO = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "SPTDIntegrationOfBentAO", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeCustom = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "Custom", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO");
+
+        // Screen Space Specular Occlusion AO Cone Size
+        public static FieldDescriptor SSSpecularOcclusionAOConeSizeUniformAO = new FieldDescriptor(kSSSpecularOcclusionAOConeSize, "UniformAO", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM");
+        public static FieldDescriptor SSSpecularOcclusionAOConeSizeCosWeightedAO = new FieldDescriptor(kSSSpecularOcclusionAOConeSize, "CosWeightedAO", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS");
+        public static FieldDescriptor SSSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO = new FieldDescriptor(kSSSpecularOcclusionAOConeSize, "CosWeightedBentCorrectAO", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION");
+        
+        // Screen Space Specular Occlusion AO Cone Dir
+        public static FieldDescriptor SSSpecularOcclusionAOConeDirGeomNormal = new FieldDescriptor(kSSSpecularOcclusionAOConeDir, "GeomNormal", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_GEOM_NORMAL");
+        public static FieldDescriptor SSSpecularOcclusionAOConeDirBentNormal = new FieldDescriptor(kSSSpecularOcclusionAOConeDir, "BentNormal", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_BENT_NORMAL");
+        public static FieldDescriptor SSSpecularOcclusionAOConeDirShadingNormal = new FieldDescriptor(kSSSpecularOcclusionAOConeDir, "ShadingNormal", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_SHADING_NORMAL");
+
+        // Data Bases Specular Occlusion Base Mode
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeOff = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "Off", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_DISABLED");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeDirectFromAO = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "DirectFromAO", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeConeConeFromBentAO = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "ConeConeFromBentAO", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeSPTDIntegrationOfBentAO = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "SPTDIntegrationOfBentAO", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeCustom = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "Custom", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT");
+
+        // Data Based Specular Occlusion AO Cone Size
+        public static FieldDescriptor DataBasedSpecularOcclusionAOConeSizeUniformAO = new FieldDescriptor(kDataBasedSpecularOcclusionAOConeSize, "UniformAO", "_DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM");
+        public static FieldDescriptor DataBasedSpecularOcclusionAOConeSizeCosWeightedAO = new FieldDescriptor(kDataBasedSpecularOcclusionAOConeSize, "CosWeightedAO", "_DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS");
+        public static FieldDescriptor DataBasedSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO = new FieldDescriptor(kDataBasedSpecularOcclusionAOConeSize, "CosWeightedBentCorrectAO", "_DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION");
+
+        // Specular Occlusion Cone Fixup Method
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodOff = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "Off", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_NONE");
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostBSDFRoughness = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostBSDFRoughness", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS");
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodTiltDirectionToGeomNormal = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "TiltDirectionToGeomNormal", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM");
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostAndTilt = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostAndTilt", "_BENT_VISIBILITY_FIXUP_FLAGS (BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS|BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)");
 
         // TODO: ALEX - Move this...
         public static FieldDescriptor IsFrontFace =             new FieldDescriptor("FragInputs", "isFrontFace", "");

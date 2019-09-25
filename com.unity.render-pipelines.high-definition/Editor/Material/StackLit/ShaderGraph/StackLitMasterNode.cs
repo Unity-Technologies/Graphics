@@ -1192,6 +1192,116 @@ namespace UnityEditor.Rendering.HighDefinition
             return new StackLitSettingsView(this);
         }
 
+        // Reference for GetConditionalFields
+        // -------------------------------------------
+        //
+        // Properties (enables etc):
+        //
+        //  ok+MFD -> material feature define: means we need a predicate, because we will transform it into a #define that match the material feature, shader_feature-defined, that the rest of the shader code uses.
+        //
+        //  ok+MFD masterNode.baseParametrization    --> even though we can just always transfer present fields (check with $SurfaceDescription.*) like specularcolor and metallic,
+        //                                               we need to translate this into the _MATERIAL_FEATURE_SPECULAR_COLOR define.
+        //
+        //  ok masterNode.energyConservingSpecular
+        //
+        //  ~~~~ ok+MFD: these are almost all material features:
+        //  masterNode.anisotropy
+        //  masterNode.coat
+        //  masterNode.coatNormal
+        //  masterNode.dualSpecularLobe
+        //  masterNode.dualSpecularLobeParametrization
+        //  masterNode.capHazinessWrtMetallic           -> not a material feature define, as such, we will create a combined predicate for the HazyGlossMaxDielectricF0 slot dependency
+        //                                                 instead of adding a #define in the template...
+        //  masterNode.iridescence
+        //  masterNode.subsurfaceScattering
+        //  masterNode.transmission
+        //
+        //  ~~~~ ...ok+MFD: these are all material features
+        //
+        //  ok masterNode.receiveDecals
+        //  ok masterNode.receiveSSR
+        //  ok masterNode.geometricSpecularAA    --> check, a way to combine predicates and/or exclude passes: TODOTODO What about WRITE_NORMAL_BUFFER passes ? (ie smoothness)
+        //  ok masterNode.specularOcclusion      --> no use for it though! see comments.
+        //
+        //  ~~~~ ok+D: these require translation to defines also...
+        //
+        //  masterNode.anisotropyForAreaLights
+        //  masterNode.recomputeStackPerLight
+        //  masterNode.shadeBaseUsingRefractedAngles
+        //  masterNode.debug
+
+        // Inputs: Most inputs don't need a specific predicate in addition to the "present field predicate", ie the $SurfaceDescription.*,
+        //         but in some special cases we check connectivity to avoid processing the default value for nothing...
+        //         (see specular occlusion with _MASKMAP and _BENTNORMALMAP in LitData, or _TANGENTMAP, _BENTNORMALMAP, etc. which act a bit like that
+        //         although they also avoid sampling in that case, but default tiny texture map sampling isn't a big hit since they are all cached once
+        //         a default "unityTexWhite" is sampled, it is cached for everyone defaulting to white...)
+        //
+        // ok+ means there's a specific additional predicate
+        //
+        // ok masterNode.BaseColorSlotId
+        // ok masterNode.NormalSlotId
+        //
+        // ok+ masterNode.BentNormalSlotId     --> Dependency of the predicate on IsSlotConnected avoids processing even if the slots
+        // ok+ masterNode.TangentSlotId            are always there so any pass that declares its use in PixelShaderSlots will have the field in SurfaceDescription,
+        //                                         but it's not necessarily useful (if slot isnt connected, waste processing on potentially static expressions if
+        //                                         shader compiler cant optimize...and even then, useless to have static override value for those.)
+        //
+        //                                         TODOTODO: Note you could have the same argument for NormalSlot (which we dont exclude with a predicate).
+        //                                         Also and anyways, the compiler is smart enough not to do the TS to WS matrix multiply on a (0,0,1) vector.
+        //
+        // ok+ masterNode.CoatNormalSlotId       -> we already have a "material feature" coat normal map so can use that instead, although using that former, we assume the coat normal slot
+        //                                         will be there, but it's ok, we can #ifdef the code on the material feature define, and use the $SurfaceDescription.CoatNormal predicate
+        //                                         for the actual assignment,
+        //                                         although for that one we could again
+        //                                         use the "connected" condition like for tangent and bentnormal
+        //
+        // The following are all ok, no need beyond present field predicate, ie $SurfaceDescription.*,
+        // except special cases where noted
+        //
+        // ok masterNode.SubsurfaceMaskSlotId
+        // ok masterNode.ThicknessSlotId
+        // ok masterNode.DiffusionProfileHashSlotId
+        // ok masterNode.IridescenceMaskSlotId
+        // ok masterNode.IridescenceThicknessSlotId
+        // ok masterNode.SpecularColorSlotId
+        // ok masterNode.DielectricIorSlotId
+        // ok masterNode.MetallicSlotId
+        // ok masterNode.EmissionSlotId
+        // ok masterNode.SmoothnessASlotId
+        // ok masterNode.SmoothnessBSlotId
+        // ok+ masterNode.AmbientOcclusionSlotId    -> defined a specific predicate, but not used, see StackLitData.
+        // ok masterNode.AlphaSlotId
+        // ok masterNode.AlphaClipThresholdSlotId
+        // ok masterNode.AnisotropyASlotId
+        // ok masterNode.AnisotropyBSlotId
+        // ok masterNode.SpecularAAScreenSpaceVarianceSlotId
+        // ok masterNode.SpecularAAThresholdSlotId
+        // ok masterNode.CoatSmoothnessSlotId
+        // ok masterNode.CoatIorSlotId
+        // ok masterNode.CoatThicknessSlotId
+        // ok masterNode.CoatExtinctionSlotId
+        // ok masterNode.LobeMixSlotId
+        // ok masterNode.HazinessSlotId
+        // ok masterNode.HazeExtentSlotId
+        // ok masterNode.HazyGlossMaxDielectricF0SlotId     -> No need for a predicate, the needed predicate is the combined (capHazinessWrtMetallic + HazyGlossMaxDielectricF0)
+        //                                                     "leaking case": if the 2 are true, but we're not in metallic mode, the capHazinessWrtMetallic property is wrong,
+        //                                                     that means the master node is really misconfigured, spew an error, should never happen...
+        //                                                     If it happens, it's because we forgot UpdateNodeAfterDeserialization() call when modifying the capHazinessWrtMetallic or baseParametrization
+        //                                                     properties, maybe through debug etc.
+        //
+        // ok masterNode.DistortionSlotId            -> Warning: peculiarly, instead of using $SurfaceDescription.Distortion and DistortionBlur,
+        // ok masterNode.DistortionBlurSlotId           we do an #if (SHADERPASS == SHADERPASS_DISTORTION) in the template, instead of
+        //                                              relying on other passed NOT to include the DistortionSlotId in their PixelShaderSlots!!
+
+        // Other to deal with, and
+        // Common between Lit and StackLit:
+        //
+        // doubleSidedMode, alphaTest, receiveDecals,
+        // surfaceType, alphaMode, blendPreserveSpecular, transparencyFog,
+        // distortion, distortionMode, distortionDepthTest,
+        // sortPriority (int)
+        // geometricSpecularAA, energyConservingSpecular, specularOcclusion
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
@@ -1223,6 +1333,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.Iridescence,                 iridescence.isOn),
                 new ConditionalField(HDRPShaderGraphFields.SubsurfaceScattering,        subsurfaceScattering.isOn && surfaceType != SurfaceType.Transparent),
                 new ConditionalField(HDRPShaderGraphFields.Transmission,                transmission.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DualSpecularLobe,            dualSpecularLobe.isOn),
+
+                // Base Parametrization
+                // Even though we can just always transfer the present (check with $SurfaceDescription.*) fields like specularcolor
+                // and metallic, we still need to know the baseParametrization in the template to translate into the
+                // _MATERIAL_FEATURE_SPECULAR_COLOR define:
+                new ConditionalField(HDRPShaderGraphFields.BaseParamSpecularColor,      baseParametrization == StackLit.BaseParametrization.SpecularColor),
+
+                // Dual Specular Lobe Parametrization
+                new ConditionalField(HDRPShaderGraphFields.HazyGloss,                   dualSpecularLobe.isOn && 
+                                                                                        dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss),
 
                 // Misc
                 new ConditionalField(DefaultFields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
@@ -1244,6 +1365,92 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.BackLightingGI,              IsSlotConnected(BackLightingSlotId) && 
                                                                                         pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.DepthOffset,                 depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
+                // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
+                // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
+                // if capHazinessWrtMetallic.isOn.
+                new ConditionalField(HDRPShaderGraphFields.CapHazinessIfNotMetallic,    dualSpecularLobe.isOn && 
+                                                                                        dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss &&
+                                                                                        capHazinessWrtMetallic.isOn && pass.pixelPorts.Contains(HazyGlossMaxDielectricF0SlotId)),
+                // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
+                // into a single $GeometricSpecularAA pedicate.
+                //
+                // ($SurfaceDescription.* predicates are useful to make sure the field is present in the struct in the template.
+                // The field will be present if both the master node and pass have the slotid, see this set intersection we make
+                // in GenerateSurfaceDescriptionStruct(), with HDSubShaderUtilities.FindMaterialSlotsOnNode().)
+                //
+                // Normally, since the feature enable adds the required slots, only the $SurfaceDescription.* would be required,
+                // but some passes might not need it and not declare the PixelShaderSlot, or, inversely, the pass might not
+                // declare it as a way to avoid it.
+                //
+                // IE this has also the side effect to disable geometricSpecularAA - even if "on" - for passes that don't explicitly
+                // advertise these slots(eg for a general feature, with separate "enable" and "field present" predicates, the
+                // template could take a default value and process it anyway if a feature is "on").
+                //
+                // (Note we can achieve the same results in the template on just single predicates by making defines out of them,
+                // and using #if defined() && etc)
+                new ConditionalField(HDRPShaderGraphFields.GeometricSpecularAA,         geometricSpecularAA.isOn &&
+                                                                                        pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
+                                                                                        pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.SpecularAA,                  geometricSpecularAA.isOn &&
+                                                                                        pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
+                                                                                        pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusion,           screenSpaceSpecularOcclusionBaseMode != SpecularOcclusionBaseMode.Off ||
+                                                                                        dataBasedSpecularOcclusionBaseMode != SpecularOcclusionBaseMode.Off),
+
+                // Advanced
+                new ConditionalField(HDRPShaderGraphFields.AnisotropyForAreaLights,     anisotropyForAreaLights.isOn),
+                new ConditionalField(HDRPShaderGraphFields.RecomputeStackPerLight,      recomputeStackPerLight.isOn),
+                new ConditionalField(HDRPShaderGraphFields.HonorPerLightMinRoughness,   honorPerLightMinRoughness.isOn),
+                new ConditionalField(HDRPShaderGraphFields.ShadeBaseUsingRefractedAngles, shadeBaseUsingRefractedAngles.isOn),
+                new ConditionalField(HDRPShaderGraphFields.StackLitDebug,               debug.isOn),
+
+                // Screen Space Specular Occlusion Base Mode
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionBaseModeOff, screenSpaceSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.Off),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionBaseModeDirectFromAO, screenSpaceSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.DirectFromAO),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionBaseModeConeConeFromBentAO, screenSpaceSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.ConeConeFromBentAO),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionBaseModeSPTDIntegrationOfBentAO, screenSpaceSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionBaseModeCustom, screenSpaceSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.Custom),
+
+                // Screen Space Specular Occlusion AO Cone Size
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionAOConeSizeUniformAO, SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) &&
+                                                                                        screenSpaceSpecularOcclusionAOConeSize == SpecularOcclusionAOConeSize.UniformAO),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionAOConeSizeCosWeightedAO, SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) &&
+                                                                                        screenSpaceSpecularOcclusionAOConeSize == SpecularOcclusionAOConeSize.CosWeightedAO),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO, SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) &&
+                                                                                        screenSpaceSpecularOcclusionAOConeSize == SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO),
+
+                // Screen Space Specular Occlusion AO Cone Dir
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionAOConeDirGeomNormal, SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) &&
+                                                                                        screenSpaceSpecularOcclusionAOConeDir == SpecularOcclusionAOConeDir.GeomNormal),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionAOConeDirBentNormal, SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) &&
+                                                                                        screenSpaceSpecularOcclusionAOConeDir == SpecularOcclusionAOConeDir.BentNormal),
+                new ConditionalField(HDRPShaderGraphFields.SSSpecularOcclusionAOConeDirShadingNormal, SpecularOcclusionModeUsesVisibilityCone(screenSpaceSpecularOcclusionBaseMode) &&
+                                                                                        screenSpaceSpecularOcclusionAOConeDir == SpecularOcclusionAOConeDir.ShadingNormal),
+
+                // Data Based Specular Occlusion Base Mode
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionBaseModeOff, dataBasedSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.Off),
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionBaseModeDirectFromAO, dataBasedSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.DirectFromAO),
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionBaseModeConeConeFromBentAO, dataBasedSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.ConeConeFromBentAO),
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionBaseModeSPTDIntegrationOfBentAO, dataBasedSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO),
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionBaseModeCustom, dataBasedSpecularOcclusionBaseMode == SpecularOcclusionBaseMode.Custom),
+
+                // Data Based Specular Occlusion AO Cone Size
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionAOConeSizeUniformAO, SpecularOcclusionModeUsesVisibilityCone(dataBasedSpecularOcclusionBaseMode) &&
+                                                                                        dataBasedSpecularOcclusionAOConeSize == SpecularOcclusionAOConeSize.UniformAO),
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionAOConeSizeCosWeightedAO, SpecularOcclusionModeUsesVisibilityCone(dataBasedSpecularOcclusionBaseMode) &&
+                                                                                        dataBasedSpecularOcclusionAOConeSize == SpecularOcclusionAOConeSize.CosWeightedAO),
+                new ConditionalField(HDRPShaderGraphFields.DataBasedSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO, SpecularOcclusionModeUsesVisibilityCone(dataBasedSpecularOcclusionBaseMode) &&
+                                                                                        dataBasedSpecularOcclusionAOConeSize == SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO),
+
+                // Specular Occlusion Cone Fixup Method
+                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionConeFixupMethodOff, SpecularOcclusionUsesBentNormal() &&
+                                                                                        specularOcclusionConeFixupMethod == SpecularOcclusionConeFixupMethod.Off),
+                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionConeFixupMethodBoostBSDFRoughness, SpecularOcclusionUsesBentNormal() &&
+                                                                                        specularOcclusionConeFixupMethod == SpecularOcclusionConeFixupMethod.BoostBSDFRoughness),
+                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionConeFixupMethodTiltDirectionToGeomNormal, SpecularOcclusionUsesBentNormal() &&
+                                                                                        specularOcclusionConeFixupMethod == SpecularOcclusionConeFixupMethod.TiltDirectionToGeomNormal),
+                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionConeFixupMethodBoostAndTilt, SpecularOcclusionUsesBentNormal() &&
+                                                                                        specularOcclusionConeFixupMethod == SpecularOcclusionConeFixupMethod.BoostAndTilt),
             };
         }
 
