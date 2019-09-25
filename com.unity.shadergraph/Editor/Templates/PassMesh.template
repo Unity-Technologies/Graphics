@@ -87,7 +87,7 @@ Pass
 
     $buildType(Attributes)
 
-    $buildType(Varyings)
+    $splice(InterpolatorPack)
 
     // --------------------------------------------------
     // Build Graph Inputs

@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return false;
         }
 
+#region ShaderStructs
         public static class ShaderStructs
         {
             public struct Attributes
@@ -209,5 +210,6 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
             }
         }
+#endregion
     }
 }

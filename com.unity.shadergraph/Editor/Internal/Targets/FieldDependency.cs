@@ -2,12 +2,12 @@
 {
     struct FieldDependency
     {
-        public IField name;             // the name of the thing
+        public IField field;             // the name of the thing
         public IField dependsOn;        // the thing above depends on this -- it reads it / calls it / requires it to be defined
 
-        public FieldDependency(IField name, IField dependsOn)
+        public FieldDependency(IField field, IField dependsOn)
         {
-            this.name = name;
+            this.field = field;
             this.dependsOn = dependsOn;
         }
     }
