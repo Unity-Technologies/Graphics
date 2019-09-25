@@ -3,8 +3,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-
-
     [Serializable]
     public partial struct DensityVolumeArtistParameters
     {
@@ -130,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // class DensityVolumeParameters
 
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Density Volume", 1100)]
     public partial class DensityVolume : MonoBehaviour

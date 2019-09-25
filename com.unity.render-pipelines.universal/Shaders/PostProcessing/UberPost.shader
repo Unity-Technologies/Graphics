@@ -8,6 +8,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
         #pragma multi_compile_local _ _FILM_GRAIN
         #pragma multi_compile_local _ _DITHERING
+		#pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -146,7 +147,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             #if defined(BLOOM)
             {
-                #if _BLOOM_HQ
+                #if _BLOOM_HQ && !defined(SHADER_API_GLES)
                 half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), uvDistorted, _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex);
                 #else
                 half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, uvDistorted);
@@ -201,7 +202,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #endif
 
             // Back to sRGB
-            #if UNITY_COLORSPACE_GAMMA
+            #if UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
             {
                 color = LinearToSRGB(color);
             }

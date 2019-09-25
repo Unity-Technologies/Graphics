@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Renderer))]
-    public class VFXVisibilityEventBinder : VFXEventBinderBase
+    class VFXVisibilityEventBinder : VFXEventBinderBase
     {
         public enum Activation
         {

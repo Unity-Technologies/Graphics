@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class SerializableTexture : ISerializationCallbackReceiver
+    public sealed class SerializableTexture : ISerializationCallbackReceiver
     {
         [SerializeField]
         string m_SerializedTexture;

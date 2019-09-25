@@ -20,10 +20,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdAsset == null)
                 return 1;
 
-            // Currently we force MEDIUM on deferred, so PCF 5x5 is used.
-            if (camera.frameSettings.litShaderMode == LitShaderMode.Deferred)
-                return 5;
-
             switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
             {
                 // Warning: these values have to match the algorithms used for shadow filtering (in HDShadowAlgorithm.hlsl)

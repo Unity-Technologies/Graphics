@@ -1,0 +1,14 @@
+Pass
+{		
+	Tags { "LightMode"="DepthOnly" }
+
+	ZWrite On
+	Blend Off
+	
+	HLSLPROGRAM
+	#define IS_MOTION_VECTORS_PASS 0
+	${VFXIncludeRP("Templates/PlanarPrimitive/PassDepthOrMV.template")}
+
+
+	ENDHLSL
+}

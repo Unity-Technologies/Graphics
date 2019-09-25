@@ -2,6 +2,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -94,13 +95,13 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
-            textureSlot.defaultType = (textureType == TextureType.Normal ? TextureShaderProperty.DefaultType.Bump : TextureShaderProperty.DefaultType.White);
+            textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
 
             base.ValidateNode();
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var uvName = GetSlotValue(UVInput, generationMode);
 
@@ -121,7 +122,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (normalMapSpace == NormalMapSpace.Tangent)
                 {
-                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotRGBAId)));
+                    sb.AppendLine(string.Format("{0}.rgb = UnpackNormal({0});", GetVariableNameForSlot(OutputSlotRGBAId)));
                 }
                 else
                 {

@@ -76,9 +76,10 @@ namespace UnityEditor.Rendering
                     return;
                 }
 
+                bool drawGizmo = sceneView.drawGizmos;
                 sceneView.drawGizmos = false;
                 previewCamera.Render();
-                sceneView.drawGizmos = true;
+                sceneView.drawGizmos = drawGizmo;
                 Graphics.DrawTexture(cameraRect, previewCamera.targetTexture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, GUITextureBlit2SRGBMaterial);
                 // We set target texture to null after this call otherwise if both sceneview and gameview are visible and we have a preview camera wwe
                 // get this error: "Releasing render texture that is set as Camera.targetTexture!"

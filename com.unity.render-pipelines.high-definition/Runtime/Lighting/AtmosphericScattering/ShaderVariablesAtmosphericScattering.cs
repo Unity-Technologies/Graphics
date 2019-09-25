@@ -4,22 +4,17 @@ namespace UnityEngine.Rendering.HighDefinition
     struct ShaderVariablesAtmosphericScattering
     {
         // Common
-        public int     _AtmosphericScatteringType;
+        public int     _FogEnabled;
+        public int     _PBRFogEnabled;
         public float   _MaxFogDistance;
         public float   _FogColorMode;
         public float   _SkyTextureMipCount;
-        public Vector4 _FogColorDensity; // color in rgb, density in alpha
+        public Vector4 _FogColor; // color in rgb
         public Vector4 _MipFogParameters;
-
-        // Linear fog
-        public Vector4 _LinearFogParameters;
-
-        // Exp fog
-        public Vector4 _ExpFogParameters;
 
         // Volumetrics
         public float  _VBufferLastSliceDist;       // The distance to the middle of the last slice
-        public int    _EnableDistantFog;           // bool...
+        public int _EnableVolumetricFog;           // bool...
     }
 }
 

@@ -51,19 +51,34 @@ namespace UnityEditor.ShaderGraph
             anyShaders |= movedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase));
             if (anyShaders)
                 UpdateAfterAssetChange(movedAssets);
-            
-            var changedSubGraphs = movedAssets.Union(importedAssets)
-                .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
+
+            var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
+
+            var changedGraphGuids = importedAssets
+                .Where(x => x.EndsWith(ShaderGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
+                    || x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase))
+                .Select(AssetDatabase.AssetPathToGUID)
+                .ToList();
+            foreach (var window in windows)
+            {
+                if (changedGraphGuids.Contains(window.selectedGuid))
+                {
+                    window.CheckForChanges();
+                }
+            }
+
+            var changedFiles = movedAssets.Union(importedAssets)
+                .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
+                || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))
                 .Select(AssetDatabase.AssetPathToGUID)
                 .Distinct()
                 .ToList();
 
-            if (changedSubGraphs.Count > 0)
+            if (changedFiles.Count > 0)
             {
-                var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
                 foreach (var window in windows)
                 {
-                    window.ReloadSubGraphsOnNextUpdate(changedSubGraphs);
+                    window.ReloadSubGraphsOnNextUpdate(changedFiles);
                 }
             }
         }
