@@ -9,8 +9,8 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-using VFXVector2Field = UnityEditor.VFX.UIElements.VFXVector2Field;
-using VFXVector4Field = UnityEditor.VFX.UIElements.VFXVector4Field;
+using VFXVector2Field = UnityEditor.VFX.UI.VFXVector2Field;
+using VFXVector4Field = UnityEditor.VFX.UI.VFXVector4Field;
 
 namespace UnityEditor.VFX
 {
@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
     }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public class StringProviderAttribute : PropertyAttribute
+    class StringProviderAttribute : PropertyAttribute
     {
         public StringProviderAttribute(Type providerType)
         {
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
     }
 
     [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public class PushButtonAttribute : PropertyAttribute
+    class PushButtonAttribute : PropertyAttribute
     {
         public PushButtonAttribute(Type pushButtonProvider, string buttonName)
         {

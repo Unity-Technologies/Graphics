@@ -18,6 +18,11 @@ namespace UnityEngine.Rendering
         }
     }
 
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public sealed class VolumeComponentDeprecated : Attribute
+    {
+    }
+
     [Serializable]
     public class VolumeComponent : ScriptableObject
     {
@@ -38,7 +43,7 @@ namespace UnityEngine.Rendering
         {
             // Automatically grab all fields of type VolumeParameter for this instance
             parameters = this.GetType()
-                .GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic  | BindingFlags.Instance)
                 .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
                 .OrderBy(t => t.MetadataToken) // Guaranteed order
                 .Select(t => (VolumeParameter)t.GetValue(this))

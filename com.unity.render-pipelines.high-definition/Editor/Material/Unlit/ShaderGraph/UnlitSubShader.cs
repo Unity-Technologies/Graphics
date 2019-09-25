@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
@@ -7,6 +8,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.UnlitSubShader")]
     class UnlitSubShader : IUnlitSubShader
     {
         Pass m_PassMETA = new Pass()
@@ -67,7 +69,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                UnlitMasterNode.PositionSlotId
+                UnlitMasterNode.PositionSlotId,
+                UnlitMasterNode.VertNormalSlotId,
+                UnlitMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -101,7 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                UnlitMasterNode.PositionSlotId
+                UnlitMasterNode.PositionSlotId,
+                UnlitMasterNode.VertNormalSlotId,
+                UnlitMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -142,7 +148,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                UnlitMasterNode.PositionSlotId
+                UnlitMasterNode.PositionSlotId,
+                UnlitMasterNode.VertNormalSlotId,
+                UnlitMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
 
@@ -188,7 +196,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                UnlitMasterNode.PositionSlotId
+                UnlitMasterNode.PositionSlotId,
+                UnlitMasterNode.VertNormalSlotId,
+                UnlitMasterNode.VertTangentSlotId
             },
             UseInPreview = false,
 
@@ -223,7 +233,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                UnlitMasterNode.PositionSlotId
+                UnlitMasterNode.PositionSlotId,
+                UnlitMasterNode.VertNormalSlotId,
+                UnlitMasterNode.VertTangentSlotId
             },
             UseInPreview = true,
 
@@ -322,9 +334,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             UnlitMasterNode masterNode = iMasterNode as UnlitMasterNode;
             if (masterNode == null)
@@ -335,7 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                 masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == UnlitMasterNode.AlphaThresholdSlotId).value > 0.0f)
             {
-                activeFields.Add("AlphaTest");
+                baseActiveFields.Add("AlphaTest");
             }
 
             // Keywords for transparent
@@ -343,16 +356,16 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.surfaceType != ShaderGraph.SurfaceType.Opaque)
             {
                 // transparent-only defines
-                activeFields.Add("SurfaceType.Transparent");
+                baseActiveFields.Add("SurfaceType.Transparent");
 
                 // #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
                 if (masterNode.alphaMode == AlphaMode.Alpha)
                 {
-                    activeFields.Add("BlendMode.Alpha");
+                    baseActiveFields.Add("BlendMode.Alpha");
                 }
                 else if (masterNode.alphaMode == AlphaMode.Additive)
                 {
-                    activeFields.Add("BlendMode.Add");
+                    baseActiveFields.Add("BlendMode.Add");
                 }
             }
             else
@@ -360,9 +373,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // opaque-only defines
             }
 
-            if (masterNode.addVelocityChange.isOn)
+            if (masterNode.addPrecomputedVelocity.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                baseActiveFields.Add("AddPrecomputedVelocity");
             }
 
             return activeFields;
@@ -373,10 +386,16 @@ namespace UnityEditor.Rendering.HighDefinition
             pass.OnGeneratePass(masterNode);
 
             // apply master node options to active fields
-            HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+            var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
             // use standard shader pass generation
-            bool vertexActive = masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId);
+            bool vertexActive = false;
+            if (masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId) ||
+                masterNode.IsSlotConnected(UnlitMasterNode.VertNormalSlotId) ||
+                masterNode.IsSlotConnected(UnlitMasterNode.VertTangentSlotId) )
+            {
+                vertexActive = true;
+            }
             return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
         }
 
@@ -399,7 +418,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var renderingPass = masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
                 int queue = HDRenderQueue.ChangeType(renderingPass, 0, true);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDUnlitShader, queue);
-                
+
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque);
 

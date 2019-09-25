@@ -77,15 +77,24 @@ namespace UnityEditor.Rendering
         Material m_Material;
         readonly Color[] m_PolychromeHandleColor;
         readonly HierarchicalBox m_Parent;
+        Color m_MonochromeFillColor;
         Color m_MonochromeHandleColor;
         Color m_WireframeColor;
         Color m_WireframeColorBehind;
         int[] m_ControlIDs = new int[6] { 0, 0, 0, 0, 0, 0 };
         bool m_MonoHandle = true;
 
-        Material material => m_Material == null || m_Material.Equals(null)
-            ? (m_Material = new Material(k_Material))
-            : m_Material;
+        Material material
+        {
+            get
+            {
+                if (m_Material == null || m_Material.Equals(null))
+                    m_Material = new Material(k_Material);
+                //material can be lost when exiting play mode so gather the color again when reconstructing it
+                m_Material.color = m_MonochromeFillColor;   
+                return m_Material;
+            }
+        }
 
         /// <summary>
         /// Allow to switch between the mode where all axis are controlled together or not
@@ -106,7 +115,8 @@ namespace UnityEditor.Rendering
             set
             {
                 value.a = 8f / 255;
-                material.color = value;
+                m_MonochromeFillColor = value;
+                material.color = m_MonochromeFillColor;
                 value.a = 1f;
                 m_MonochromeHandleColor = value;
                 value.a = 0.7f;
@@ -118,7 +128,6 @@ namespace UnityEditor.Rendering
 
         //Note: Handles.Slider not allow to use a specific ControlID.
         //Thus Slider1D is used (with reflection)
-        static PropertyInfo k_Scale = Type.GetType("UnityEditor.SnapSettings, UnityEditor").GetProperty("scale");
         static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
         static MethodInfo k_Slider1D_Do = k_Slider1D
                 .GetMethod(
@@ -143,7 +152,6 @@ namespace UnityEditor.Rendering
                     });
             }
         }
-        static float snapScale => (float)k_Scale.GetValue(null, null);
 
         /// <summary>Constructor. Used to setup colors and also the container if any.</summary>
         /// <param name="baseColor">The color of each face of the box. Other colors are deduced from it.</param>
@@ -248,32 +256,32 @@ namespace UnityEditor.Rendering
             var theChangedFace = NamedFace.None;
 
             EditorGUI.BeginChangeCheck();
-            Slider1D(m_ControlIDs[(int)NamedFace.Left], ref leftPosition, Vector3.left, snapScale, GetHandleColor(NamedFace.Left));
+            Slider1D(m_ControlIDs[(int)NamedFace.Left], ref leftPosition, Vector3.left, EditorSnapSettings.scale, GetHandleColor(NamedFace.Left));
             if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Left;
 
             EditorGUI.BeginChangeCheck();
-            Slider1D(m_ControlIDs[(int)NamedFace.Right], ref rightPosition, Vector3.right, snapScale, GetHandleColor(NamedFace.Right));
+            Slider1D(m_ControlIDs[(int)NamedFace.Right], ref rightPosition, Vector3.right, EditorSnapSettings.scale, GetHandleColor(NamedFace.Right));
             if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Right;
 
             EditorGUI.BeginChangeCheck();
-            Slider1D(m_ControlIDs[(int)NamedFace.Top], ref topPosition, Vector3.up, snapScale, GetHandleColor(NamedFace.Top));
+            Slider1D(m_ControlIDs[(int)NamedFace.Top], ref topPosition, Vector3.up, EditorSnapSettings.scale, GetHandleColor(NamedFace.Top));
             if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Top;
 
             EditorGUI.BeginChangeCheck();
-            Slider1D(m_ControlIDs[(int)NamedFace.Bottom], ref bottomPosition, Vector3.down, snapScale, GetHandleColor(NamedFace.Bottom));
+            Slider1D(m_ControlIDs[(int)NamedFace.Bottom], ref bottomPosition, Vector3.down, EditorSnapSettings.scale, GetHandleColor(NamedFace.Bottom));
             if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Bottom;
 
             EditorGUI.BeginChangeCheck();
-            Slider1D(m_ControlIDs[(int)NamedFace.Front], ref frontPosition, Vector3.forward, snapScale, GetHandleColor(NamedFace.Front));
+            Slider1D(m_ControlIDs[(int)NamedFace.Front], ref frontPosition, Vector3.forward, EditorSnapSettings.scale, GetHandleColor(NamedFace.Front));
             if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Front;
 
             EditorGUI.BeginChangeCheck();
-            Slider1D(m_ControlIDs[(int)NamedFace.Back], ref backPosition, Vector3.back, snapScale, GetHandleColor(NamedFace.Back));
+            Slider1D(m_ControlIDs[(int)NamedFace.Back], ref backPosition, Vector3.back, EditorSnapSettings.scale, GetHandleColor(NamedFace.Back));
             if (EditorGUI.EndChangeCheck())
                 theChangedFace = NamedFace.Back;
 

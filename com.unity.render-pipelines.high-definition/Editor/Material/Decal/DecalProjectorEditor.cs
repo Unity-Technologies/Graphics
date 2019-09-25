@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader.name);
+        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
@@ -45,10 +45,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (targets.Length < 2)
                     return false;
-                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjector).material.shader.name);
+                bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjector).material.shader);
                 for (int index = 0; index < targets.Length; ++index)
                 {
-                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjector).material.shader.name) ^ show)
+                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjector).material.shader) ^ show)
                         return true;
                 }
                 return false;
@@ -202,8 +202,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
 
-                    // [TODO: remove this part. As soon as you select component that are old enough to have Offset not reseted, it will change the position
-                    // It is also incompatible with pivot management]
                     // Automatically recenter our transform component if necessary.
                     // In order to correctly handle world-space snapping, we only perform this recentering when the user is no longer interacting with the gizmo.
                     if ((GUIUtility.hotControl == 0) && (decalProjector.offset != Vector3.zero))
@@ -216,9 +214,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         // Re-center the transform to the center of the decal projector bounds,
                         // while maintaining the world-space coordinates of the decal projector boundings vertices.
-                        decalProjector.transform.Translate(decalProjector.offset, Space.Self);
+                        // Center of the decal projector is not the same of the HierarchicalBox as we want it to be on the z face as lights
+                        decalProjector.transform.Translate(decalProjector.offset + new Vector3(0f, 0f, handle.size.z * -0.5f), Space.Self);
 
-                        decalProjector.offset = Vector3.zero;
+                        decalProjector.offset = new Vector3(0f, 0f, handle.size.z * 0.5f);
                         if (PrefabUtility.IsPartOfNonAssetPrefabInstance(decalProjector))
                         {
                             PrefabUtility.RecordPrefabInstancePropertyModifications(decalProjector);

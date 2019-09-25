@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/UI Slider Parameter Binder")]
+    [AddComponentMenu("VFX/Property Binders/UI Slider Binder")]
     [VFXBinder("UI/Slider")]
     class VFXUISliderBinder : VFXBinderBase
     {

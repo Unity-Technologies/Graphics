@@ -13,7 +13,7 @@ using System.Collections.Generic;
 namespace UnityEditor.Experimental.VFX.Utility
 {
     [CustomEditor(typeof(VisualEffectActivationClip))]
-    public class VisualEffectActivationClipEditor : Editor
+    class VisualEffectActivationClipEditor : Editor
     {
         private SerializedProperty onClipEnterProperty;
         private SerializedProperty onClipExitProperty;

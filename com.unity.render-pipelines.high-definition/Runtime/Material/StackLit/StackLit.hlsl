@@ -536,6 +536,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -554,6 +555,12 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     if (overrideNormal)
     {
         surfaceData.normalWS = tangentToWorld[2];
+    }
+
+    if (overrideAO)
+    {
+        float overrideAOValue = _DebugLightingAmbientOcclusion.y;
+        surfaceData.ambientOcclusion = overrideAOValue;
     }
 
     // There is no metallic with SSS and specular color mode
@@ -770,6 +777,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
+
+    // Blindly copy: will never be used if custom (ext) input is not used and selected as the SO method for baked/data-based specular occlusion.
+    bsdfData.specularOcclusionCustomInput = surfaceData.specularOcclusionCustomInput;
 
     bsdfData.geomNormalWS = surfaceData.geomNormalWS; // We should always have this whether we enable coat normals or not.
 
@@ -2347,6 +2357,7 @@ float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
 //#define SPECULAR_OCCLUSION_FROM_AO 0
 //#define SPECULAR_OCCLUSION_CONECONE 1
 //#define SPECULAR_OCCLUSION_SPTD 2
+//#define SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT 3
 
 float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclusion, float specularOcclusionFromData, float3 fresnel0,
                                                   /* for debug: */
@@ -2359,6 +2370,8 @@ float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclu
         break;
     case SPECULAR_OCCLUSION_FROM_AO:
         //debugCoeff = float3(1.0,0.0,0.0);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
         break;
     case SPECULAR_OCCLUSION_CONECONE:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(1.0,0.0,0.0); } )
@@ -2380,7 +2393,7 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                         float3 bentNormalWS, int bentVisibilityAlgorithm,
                                         float3x3 orthoBasisViewNormal, bool useHemisphereClip,
                                         uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE,
-                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed */
+                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed or direct custom specular occlusion user input*/
 {
     SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
     //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
@@ -2416,6 +2429,10 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                                                 bsdfData.soFixupStrengthFactor,
                                                                 bsdfData.soFixupMaxAddedRoughness,
                                                                 bsdfData.geomNormalWS);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
+        //specularOcclusion = 1.0;
+        specularOcclusion = bsdfData.specularOcclusionCustomInput;
         break;
     }
 
@@ -2515,6 +2532,9 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
 
     // Get specular occlusion from data (baked) values temporarily in preLightData.hemiSpecularOcclusion[]
     // and combine those data-based SO values with the screen-space SO values into one final hemispherical specular occlusion:
+    //
+    // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+    // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
     dataBasedSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
                                                                                    bsdfData.ambientOcclusion,
                                                                                    V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
@@ -2549,6 +2569,8 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                         bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
                                                                                         orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip);
 
+        // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+        // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
         dataBasedSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
                                                                                       bsdfData.ambientOcclusion,
                                                                                       V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,

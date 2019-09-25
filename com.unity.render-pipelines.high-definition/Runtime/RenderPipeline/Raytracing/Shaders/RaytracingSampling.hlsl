@@ -1,44 +1,74 @@
-// We need a noise texture for sampling
-Texture2D<float2>                       _OwenScrambledRGTexture;
 Texture2D<float>                        _OwenScrambledTexture;
-Texture2D<float4>                       _ScramblingTexture;
+Texture2D<float>                        _ScramblingTileXSPP;
+Texture2D<float>                        _RankingTileXSPP;
+Texture2D<float2>                       _ScramblingTexture;
 
-uint2 ScramblingValue(uint i, uint j)
+float ScramblingValueFloat(uint2 pixelCoord)
 {
-    i = i % 256;
-    j = j % 256;
-    return clamp((uint2)(_ScramblingTexture[uint2(i, j)] * 256.0f), uint2(0,0), uint2(255, 255));
+    pixelCoord = pixelCoord & 255;
+    return _ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x;
 }
 
-float2 GetRaytracingNoiseSampleRG(uint sampleIndex, uint2 scramblingValue)
+float2 ScramblingValueFloat2(uint2 pixelCoord)
 {
-    // Make sure arguments are in the right range
-    sampleIndex = sampleIndex % 256;
-
-    // Fetch the matching Value sequence
-    uint2 value = clamp((uint)(_OwenScrambledRGTexture[uint2(sampleIndex, 0)].xy * 256.0f), 0, 255);
-
-    // Scramble the value
-    value = value ^ scramblingValue;
-
-    // convert to float and return
-    float2 v = (0.5 + float2(value)) / 256.0;
-    return v;
+    pixelCoord = pixelCoord & 255;
+    return _ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].xy;
 }
 
-float GetRaytracingNoiseSample(uint sampleIndex, uint sampleDimension, uint scramblingValue)
+uint ScramblingValueUInt(uint2 pixelCoord)
+{
+    pixelCoord = pixelCoord & 255;
+    return clamp((uint)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)].x * 256.0f), 0, 255);
+}
+
+uint2 ScramblingValueUInt2(uint2 pixelCoord)
+{
+    pixelCoord = pixelCoord & 255;
+    return clamp((uint2)(_ScramblingTexture[uint2(pixelCoord.x, pixelCoord.y)] * 256.0f), uint2(0,0), uint2(255, 255));
+}
+
+// Wrapper to sample the scrambled low Low-Discrepancy sequence (returns a float)
+float GetLDSequenceSampleFloat(uint sampleIndex, uint sampleDimension)
 {
     // Make sure arguments are in the right range
-    sampleIndex = sampleIndex % 256;
-    sampleDimension = sampleDimension % 256;
+    sampleIndex = sampleIndex & 255;
+    // sampleDimension = sampleDimension & 255;
 
-    // Fetch the matching Value sequence
-    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, sampleIndex)].x * 256.0f), 0, 255);
+    // Fetch the sequence value and return it
+    return _OwenScrambledTexture[uint2(sampleDimension, sampleIndex)];
+}
 
-    // Scramble the value
-    value = value ^ scramblingValue;
+// Wrapper to sample the scrambled low Low-Discrepancy sequence (returns an unsigned int)
+uint GetLDSequenceSampleUInt(uint sampleIndex, uint sampleDimension)
+{
+    // Make sure arguments are in the right range
+    sampleIndex = sampleIndex & 255;
+    // sampleDimension = sampleDimension & 255;
+
+    // Fetch the sequence value and return it
+    return clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, sampleIndex)] * 256.0f), 0, 255);
+}
+
+// This is an implementation of the method from the paper
+// "A Low-Discrepancy Sampler that Distributes Monte Carlo Errors as a Blue Noise in Screen Space" by Heitz et al.
+float GetBNDSequenceSample(uint2 pixelCoord, uint sampleIndex, uint sampleDimension)
+{
+    // wrap arguments
+    pixelCoord = pixelCoord & 127;
+    sampleIndex = sampleIndex & 255;
+    sampleDimension = sampleDimension & 255;
+
+    // xor index based on optimized ranking
+    uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
+    uint rankedSampleIndex = sampleIndex ^ clamp((uint)(_RankingTileXSPP[uint2(rankingIndex & 127, rankingIndex / 128)] * 256.0f), 0, 255);
+
+    // fetch value in sequence
+    uint value = clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, rankedSampleIndex.x)] * 256.0f), 0, 255);
+
+    // If the dimension is optimized, xor sequence value based on optimized scrambling
+    uint scramblingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);
+    value = value ^ clamp((uint)(_ScramblingTileXSPP[uint2(scramblingIndex & 127, scramblingIndex / 128)] * 256.0f), 0, 255);
 
     // convert to float and return
-    float v = (0.5f + value) / 256.0f;
-    return v;
+    return (0.5f + value) / 256.0f;
 }

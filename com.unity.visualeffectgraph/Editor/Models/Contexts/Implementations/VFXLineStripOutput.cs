@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //[VFXInfo] // TODO Put back VFXInfo once C++ PR for strips has landed
+    [VFXInfo(experimental = true)]
     class VFXLineStripOutput : VFXAbstractParticleOutput
     {
         protected VFXLineStripOutput() : base(true) { }

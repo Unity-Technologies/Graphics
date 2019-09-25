@@ -1,8 +1,11 @@
+using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -39,7 +42,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (from == 0 && to == 1 && space == CoordinateSpace.World)
             {
-                var names = validSpaces.Select(cs => cs.ToString()).ToArray();
+                var names = validSpaces.Select(cs => cs.ToString().PascalToLabel()).ToArray();
                 spacePopup = new PopupList(names, (int)CoordinateSpace.AbsoluteWorld);
             }
         }

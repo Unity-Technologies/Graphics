@@ -111,7 +111,7 @@ Shader "HDRP/AxF"
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
 
-        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+        [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
     }
 
@@ -131,7 +131,7 @@ Shader "HDRP/AxF"
     #pragma shader_feature _DISABLE_DECALS
     #pragma shader_feature _DISABLE_SSR
 
-    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
