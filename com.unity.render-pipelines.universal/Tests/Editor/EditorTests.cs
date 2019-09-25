@@ -1,9 +1,9 @@
 using NUnit.Framework;
 using UnityEditor;
-using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEditor.Rendering.Universal.Internal;
 using UnityEngine.TestTools;
 
 class EditorTests
@@ -18,9 +18,11 @@ class EditorTests
 
         try
         {
-            UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create();
+            ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
+            UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
             LogAssert.NoUnexpectedReceived();
             ScriptableObject.DestroyImmediate(asset);
+            ScriptableObject.DestroyImmediate(data);
         }
         // Makes sure the render pipeline is restored in case of a NullReference exception.
         finally
@@ -63,7 +65,8 @@ class EditorTests
     [Test]
     public void ValidateNewAssetResources()
     {
-        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create();
+        ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
+        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         Assert.AreNotEqual(null, asset.defaultMaterial);
         Assert.AreNotEqual(null, asset.defaultParticleMaterial);
         Assert.AreNotEqual(null, asset.defaultLineMaterial);
@@ -77,8 +80,9 @@ class EditorTests
         Assert.AreEqual(null, asset.default2DMaterial);
 
         Assert.AreNotEqual(null, asset.m_EditorResourcesAsset, "Editor Resources should be initialized when creating a new pipeline.");
-        Assert.AreNotEqual(null, asset.m_RendererData, "A default renderer data should be created when creating a new pipeline.");
+        Assert.AreNotEqual(null, asset.m_RendererDataList, "A default renderer data should be created when creating a new pipeline.");
         ScriptableObject.DestroyImmediate(asset);
+        ScriptableObject.DestroyImmediate(data);
     }
 
     // When changing LWRP settings, all settings should be valid.
@@ -86,7 +90,8 @@ class EditorTests
     public void ValidateAssetSettings()
     {
         // Create a new asset and validate invalid settings
-        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create();
+        ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
+        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         if (asset != null)
         {
             asset.shadowDistance = -1.0f;
@@ -117,5 +122,6 @@ class EditorTests
             Assert.LessOrEqual(asset.maxAdditionalLightsCount, UniversalRenderPipeline.maxPerObjectLights);
         }
         ScriptableObject.DestroyImmediate(asset);
+        ScriptableObject.DestroyImmediate(data);
     }
 }

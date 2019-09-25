@@ -16,16 +16,16 @@ namespace UnityEditor.VFX
                 VFXSlot outputSlot = param.outputSlots[0];
 
                 param.subgraphMode = true;
-                if (inputExpression.Count > cptSlot)
-                {
-                    if(backedUpExpressions!= null)
-                    {
-                        backedUpExpressions.Add(outputSlot.GetExpression());
-                    }
-                    outputSlot.SetExpression(inputExpression[cptSlot]);
-                }
+                if (inputExpression.Count <= cptSlot)
+                    continue;
 
-                cptSlot += 1;
+                foreach(var slot in outputSlot.GetExpressionSlots())
+                {
+                    if (backedUpExpressions != null)
+                        backedUpExpressions.Add(slot.GetExpression());
+                    slot.SetExpression(inputExpression[cptSlot]);
+                    cptSlot += 1;
+                }
             }
 
             return cptSlot;
@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get {
-                foreach (var param in GetParameters(t => VFXSubgraphUtility.InputPredicate(t)))
+                foreach (var param in GetParameters(t => VFXSubgraphUtility.InputPredicate(t)).OrderBy(t=>t.order))
                 {
                     yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
                 }
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get {
-                foreach (var param in GetParameters(t => VFXSubgraphUtility.OutputPredicate(t)))
+                foreach (var param in GetParameters(t => VFXSubgraphUtility.OutputPredicate(t)).OrderBy(t => t.order))
                 {
                     if (!string.IsNullOrEmpty(param.tooltip))
                         yield return new VFXPropertyWithValue(new VFXProperty(param.type, param.exposedName, new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, param.tooltip)));
@@ -141,7 +141,7 @@ namespace UnityEditor.VFX
             VFXGraph graph = m_Subgraph.GetResource().GetOrCreateGraph();
 
             // Change all the inputExpressions of the parameters.
-            var parameters = GetParameters(t => VFXSubgraphUtility.InputPredicate(t));
+            var parameters = GetParameters(t => VFXSubgraphUtility.InputPredicate(t)).OrderBy(t => t.order);
 
             var backedUpExpressions = new List<VFXExpression>();
 
@@ -150,7 +150,7 @@ namespace UnityEditor.VFX
             List<VFXExpression> outputExpressions = new List<VFXExpression>();
             foreach (var param in GetParameters(t => VFXSubgraphUtility.OutputPredicate(t)))
             {
-                outputExpressions.AddRange(param.inputSlots[0].GetVFXValueTypeSlots().Select(t => t.GetExpression()));
+                outputExpressions.AddRange(param.inputSlots[0].GetExpressionSlots().Select(t => t.GetExpression()));
             }
 
             foreach (var param in parameters)

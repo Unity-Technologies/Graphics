@@ -94,10 +94,10 @@ Pass
     // $RecomputeStackPerLight:
     // $ShadeBaseUsingRefractedAngles:
     // $StackLitDebug:
-    // Decals:
-    // DisableSSR:
+    // $Decals:
+    // $DisableSSR:
     // $SpecularOcclusion:
-    // AdditionalVelocityChange:
+    // $AddPrecomputedVelocity:
 
     //
     // Original shader keywords reference:
@@ -147,7 +147,7 @@ Pass
 
     $DisableDecals:                                      #define _DISABLE_DECALS
     $DisableSSR:                                         #define _DISABLE_SSR
-    $AdditionalVelocityChange:                           #define _ADDITIONAL_VELOCITY_CHANGE
+    $AddPrecomputedVelocity:                           #define _ADD_PRECOMPUTED_VELOCITY
 
     // StackLit shader_features:
 
@@ -267,6 +267,8 @@ Pass
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------
+	$splice(DotsInstancedVars)
+
 #if !( (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT))
     // StackLit.hlsl hooks the callback from PostInitBuiltinData() via #define MODIFY_BAKED_DIFFUSE_LIGHTING
     // but in ShaderGraph, we don't evaluate/set all input ports when the values are not used by the pass.

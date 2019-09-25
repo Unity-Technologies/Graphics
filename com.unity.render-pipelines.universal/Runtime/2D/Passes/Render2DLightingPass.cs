@@ -14,8 +14,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
-        //static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_CombinedRenderingPassName };
-
+        
         public Render2DLightingPass(Renderer2DData rendererData)
         {
             if (s_SortingLayers == null)
@@ -38,7 +37,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.Clear();
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
-            RendererLighting.CreateRenderTextures(cmd, camera);
+            ref var targetDescriptor = ref renderingData.cameraData.cameraTargetDescriptor;
+            RendererLighting.CreateRenderTextures(cmd, targetDescriptor.width, targetDescriptor.height);
             Profiler.EndSample();
 
             cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
@@ -60,12 +60,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             for (int i = 0; i < s_SortingLayers.Length; i++)
             {
-                // The canvas renderer overrides its sorting layer value with short.MaxValue in the editor.
-                // When drawing the last sorting layer, include the range from layerValue to short.MaxValue
-                // so that UI can be rendered in the scene view.
+                // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
+                // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
+                // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
                 short layerValue = (short)s_SortingLayers[i].value;
+                var lowerBound = (i == 0) ? short.MinValue : layerValue;
                 var upperBound = (i == s_SortingLayers.Length - 1) ? short.MaxValue : layerValue;
-                filterSettings.sortingLayerRange = new SortingLayerRange(layerValue, upperBound);
+                filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
                 int layerToRender = s_SortingLayers[i].id;
 
@@ -102,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if UNITY_EDITOR
                     cmd.name = "Render Light Volumes" + SortingLayer.IDToName(layerToRender);
 #endif
-                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender);
+                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                 }

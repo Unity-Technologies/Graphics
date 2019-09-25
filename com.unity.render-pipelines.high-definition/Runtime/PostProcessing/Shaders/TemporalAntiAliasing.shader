@@ -15,6 +15,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
+        RW_TEXTURE2D_X(float3, _OutputHistoryTexture);
 
         struct Attributes
         {
@@ -59,7 +60,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             float2 uv = input.texcoord - jitter;
 
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
-            float3 history = Fetch(_InputHistoryTexture, input.texcoord - motionVector, 0.0, _RTHandleScaleHistory.xy);
+            float3 history = Fetch(_InputHistoryTexture, input.texcoord - motionVector, 0.0, _RTHandleScaleHistory.zw);
 
             float3 topLeft = Fetch(_InputTexture, uv, -RADIUS, _RTHandleScale.xy);
             float3 bottomRight = Fetch(_InputTexture, uv, RADIUS, _RTHandleScale.xy);
@@ -108,6 +109,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             color = Unmap(lerp(color, history, feedback));
             color = clamp(color, 0.0, CLAMP_MAX);
 
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color; 
         }
 

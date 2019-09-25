@@ -5,6 +5,9 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Contains properties and helper functions that you can use when rendering.
+    /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public static class RenderingUtils
     {
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
@@ -18,6 +21,10 @@ namespace UnityEngine.Rendering.Universal
         };
 
         static Mesh s_FullscreenMesh = null;
+
+        /// <summary>
+        /// Returns a mesh that you can use with <see cref="CommandBuffer.DrawMesh(Mesh, Matrix4x4, Material)"/> to render full-screen effects.
+        /// </summary>
         public static Mesh fullscreenMesh
         {
             get
@@ -56,6 +63,25 @@ namespace UnityEngine.Rendering.Universal
         public static UnityEngine.Rendering.PostProcessing.PostProcessRenderContext postProcessRenderContext => null;
 #endif
 
+        internal static bool useStructuredBuffer
+        {
+            // There are some performance issues with StructuredBuffers in some platforms.
+            // We fallback to UBO in those cases.
+            get
+            {
+                // TODO: For now disabling SSBO until figure out Vulkan binding issues.
+                // When enabling this also enable it in shader side in Input.hlsl
+                return false;
+
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                //GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
+                //return !Application.isMobilePlatform &&
+                //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
+                //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
+            }
+            
+        }
+
         static Material s_ErrorMaterial;
         static Material errorMaterial
         {
@@ -92,7 +118,13 @@ namespace UnityEngine.Rendering.Universal
             m_RenderTextureFormatSupport.Clear();
         }
 
-        internal static bool SupportsRenderTextureFormat(RenderTextureFormat format)
+        /// <summary>
+        /// Checks if a render texture format is supported by the run-time system.
+        /// Similar to <see cref="SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat)"/>, but doesn't allocate memory.
+        /// </summary>
+        /// <param name="format">The format to look up.</param>
+        /// <returns>Returns true if the graphics card supports the given <c>RenderTextureFormat</c></returns>
+        public static bool SupportsRenderTextureFormat(RenderTextureFormat format)
         {
             if (!m_RenderTextureFormatSupport.TryGetValue(format, out var support))
             {

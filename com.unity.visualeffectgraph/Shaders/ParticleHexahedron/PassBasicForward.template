@@ -19,14 +19,25 @@ Pass
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
 		#endif
-		nointerpolation uint faceID : TEXCOORD2;
-		#if VFX_NEEDS_POSWS_INTERPOLATOR
-		float3 posWS : TEXCOORD3;
+		#if USE_FLIPBOOK_MOTIONVECTORS
+		// x: motion vectors scale X
+		// y: motion vectors scale Y
+		nointerpolation float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
-		
+		nointerpolation uint faceID : TEXCOORD3;
+		#if VFX_NEEDS_POSWS_INTERPOLATOR
+		float3 posWS : TEXCOORD4;
+		#endif
+		#if USE_UV_SCALE_BIAS
+		nointerpolation float4 scaleBias : TEXCOORD5;
+		#endif
+		#if USE_FLIPBOOK
+		nointerpolation float4 flipBookSize : TEXCOORD6;
+		nointerpolation float texIndex : TEXCOORD7;
+		#endif
 		#if WRITE_MOTION_VECTOR_IN_FORWARD
-		float4 cPosPrevious : TEXCOORD4;
-		float4 cPosNonJiterred : TEXCOORD5;
+		float4 cPosPrevious : TEXCOORD7;
+		float4 cPosNonJiterred : TEXCOORD8;
 		#endif
 		
 		UNITY_VERTEX_OUTPUT_STEREO
@@ -51,6 +62,19 @@ Pass
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
+#if USE_UV_SCALE_BIAS
+#define VFX_VARYING_UV_SCALE scaleBias.xy
+#define VFX_VARYING_UV_BIAS scaleBias.zw
+#endif
+#if USE_FLIPBOOK
+#define VFX_VARYING_TEXINDEX texIndex
+#define VFX_VARYING_FLIPBOOKSIZE flipBookSize.xy
+#define VFX_VARYING_INVFLIPBOOKSIZE flipBookSize.zw
+#endif
+#if USE_FLIPBOOK_MOTIONVECTORS
+#define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy	
+#endif
+								
 #if WRITE_MOTION_VECTOR_IN_FORWARD
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
@@ -64,8 +88,8 @@ Pass
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
-		
 		o.color = VFXGetFragmentColor(i);
+		
 		o.color *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));
 		o.color = VFXApplyFog(o.color,i);
 		VFXClipFragmentColor(o.color.a,i);

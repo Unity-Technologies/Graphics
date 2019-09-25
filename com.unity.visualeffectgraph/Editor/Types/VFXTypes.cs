@@ -8,10 +8,10 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [AttributeUsage(AttributeTargets.Struct)]
-    public class VFXTypeAttribute : Attribute
+    class VFXTypeAttribute : Attribute
     {}
 
-    public enum SpaceableType
+    enum SpaceableType
     {
         None,
         Position,
@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Struct)]
-    public class VFXSpaceAttribute : PropertyAttribute
+    class VFXSpaceAttribute : PropertyAttribute
     {
         public readonly SpaceableType type;
         public VFXSpaceAttribute(SpaceableType type)
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    public class ShowAsColorAttribute : Attribute
+    class ShowAsColorAttribute : Attribute
     {}
 
     class CoordinateSpaceInfo
@@ -296,9 +296,9 @@ namespace UnityEditor.VFX
         [Min(0.0f), Tooltip("The width and height of the camera in pixels.")]
         public Vector2 pixelDimensions;
         [Tooltip("The depth buffer of the camera")]
-        public Texture2D depthBuffer;
+        public Texture2DArray depthBuffer;
         [Tooltip("The color buffer of the camera")]
-        public Texture2D colorBuffer;
+        public Texture2DArray colorBuffer;
 
         public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f, pixelDimensions = new Vector2(1920, 1080) };
     }

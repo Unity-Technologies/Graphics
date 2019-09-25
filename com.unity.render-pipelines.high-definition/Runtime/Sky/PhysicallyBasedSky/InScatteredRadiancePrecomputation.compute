@@ -269,7 +269,13 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Gather the volume contribution.
     {
         // Arbitrary number of samples...
+#if defined(SHADER_API_XBOXONE)
+        // This forces a different code path, the xbox compiler flusters with the path coming from 89 samples.
+        // We don't care too much about perf as it is pre-computation, so we simply get more samples.
+        const int numVolumeSamples = 144;
+#else
         const int numVolumeSamples = 89;
+#endif
 
         for (int i = 0; i < numVolumeSamples; i++)
         {
@@ -313,8 +319,9 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         #endif // SRC_MS
 
             // AtmospherPhaseScatter / AirPhase.
+            // Assume that, after multiple bounces, the effect of anisotropy is lost.
             // The view direction is the opposite of the incoming direction.
-            float3 phase  = AirScatter(height) + AerosolScatter(height) * AerosolToAirPhaseRatio(-cosTheta);
+            float3 phase  = AirScatter(height) + AerosolScatter(height);
             float  weight = rcp(numVolumeSamples);
 
             tableEntry.rgb += weight * phase * radiance;

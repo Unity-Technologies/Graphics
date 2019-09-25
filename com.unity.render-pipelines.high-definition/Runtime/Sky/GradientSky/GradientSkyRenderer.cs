@@ -28,18 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_GradientSkyMaterial);
         }
 
-        public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
-        {
-            if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
-            }
-            else
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
-            }
-        }
-
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             m_GradientSkyMaterial.SetColor(_GradientBottom, m_GradientSkyParams.bottom.value);

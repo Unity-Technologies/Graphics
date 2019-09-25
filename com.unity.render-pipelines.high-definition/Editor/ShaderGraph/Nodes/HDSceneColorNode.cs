@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -65,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return $"Unity_HDRP_SampleSceneColor_{concretePrecision.ToShaderString()}";
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {
@@ -92,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             string exposureMultiplier = (exposure.isOn || generationMode.IsPreview()) ? "1.0" : "GetInverseCurrentExposureMultiplier()";
             string uv = GetSlotValue(kUvInputSlotId, generationMode);

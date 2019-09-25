@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         // Reflections Attributes
         public SerializedProperty reflLayerMask;
 
-        // Primary visiblity raytracing
+        // Recursive Ray Tracing
         public SerializedProperty raytracedLayerMask;
 
         // Area Shadow Properties
@@ -35,8 +35,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
             var o = new PropertyFetcher<HDRaytracingEnvironment>(serializedObject);
 
-            // Ambient Occlusion
+            // Generic Attributes
             rayBias = o.Find(x => x.rayBias);
+
+            // Ambient Occlusion
             aoLayerMask = o.Find(x => x.aoLayerMask);
 
             // Reflections Attributes

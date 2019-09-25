@@ -127,7 +127,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return half4(avg, coc);
         }
 
-        void Accumulate(float4 samp0, float2 uv, float2 disp, inout float4 farAcc, inout float4 nearAcc)
+        void Accumulate(float4 samp0, float2 uv, float2 disp, inout half4 farAcc, inout half4 nearAcc)
         {
             float dist = length(disp);
 

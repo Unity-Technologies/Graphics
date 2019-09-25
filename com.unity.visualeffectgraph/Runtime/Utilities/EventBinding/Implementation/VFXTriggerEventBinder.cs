@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Collider))]
-    public class VFXTriggerEventBinder : VFXEventBinderBase
+    class VFXTriggerEventBinder : VFXEventBinderBase
     {
         public enum Activation
         {

@@ -218,7 +218,7 @@ float4 ResolveVT_##stackName(float2 uv)\
 #define PrepareStack(uv, stackName) PrepareVT_##stackName(uv)
 #define SampleStack(info, textureName) SampleVT_##textureName(info)
 #define SampleStack_Normal(info, textureName, scale) SampleVT_Normal_##textureName(info, scale)
-#define GetResolveOutput(info) Granite_PackTileId(info.resolveOutput)
+#define GetResolveOutput(info) info.resolveOutput
 #define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
 RW_TEXTURE2D(float4, VTFeedback) : register(u7);
