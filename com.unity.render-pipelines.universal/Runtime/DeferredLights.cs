@@ -797,6 +797,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool IsTileLight(Light light)
         {
+            // tileDeferred might render a lot of point lights in the same draw call.
+            // point light shadows require generating cube shadow maps in real-time, requiring extra CPU/GPU resources ; which can become expensive quickly
             return light.type == LightType.Point && light.shadows == LightShadows.None;
         }
 
