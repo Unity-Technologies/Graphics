@@ -47,6 +47,7 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_NoAssetLabel;
+        VisualElement m_LockedElement;
 
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -362,7 +363,7 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("Please Select An Asset");
+            m_NoAssetLabel = new Label("Please Open An Asset");
             m_NoAssetLabel.style.position = PositionType.Absolute;
             m_NoAssetLabel.style.left = 0f;
             m_NoAssetLabel.style.right = new StyleLength(0f);
@@ -373,6 +374,16 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.color = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
+
+            m_LockedElement = new Label("Asset is Locked");
+            m_LockedElement.style.position = PositionType.Absolute;
+            m_LockedElement.style.left = 0f;
+            m_LockedElement.style.right = new StyleLength(0f);
+            m_LockedElement.style.top = new StyleLength(0f);
+            m_LockedElement.style.bottom = new StyleLength(0f);
+            m_LockedElement.style.unityTextAlign = TextAnchor.MiddleCenter;
+            m_LockedElement.style.fontSize = new StyleLength(72f);
+            m_LockedElement.style.color = Color.white * 0.75f;
 
             m_Blackboard = new VFXBlackboard(this);
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
@@ -652,6 +663,9 @@ namespace UnityEditor.VFX.UI
                 m_NoAssetLabel.RemoveFromHierarchy();
 
                 pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
+
+                if (!AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
+                    Insert(this.IndexOf(m_Toolbar), m_LockedElement);
             }
             else
             {
@@ -660,6 +674,15 @@ namespace UnityEditor.VFX.UI
                     Add(m_NoAssetLabel);
                 }
             }
+        }
+
+        public void OnFocus()
+        {   
+            if (controller != null && controller.model.asset != null && !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
+                Insert(this.IndexOf(m_Toolbar),m_LockedElement);
+            else
+                m_LockedElement.RemoveFromHierarchy();
+
         }
 
         public void FrameNewController()
@@ -1390,6 +1413,7 @@ namespace UnityEditor.VFX.UI
         {
             Task task = Provider.Checkout(controller.model.visualEffectObject, CheckoutMode.Both);
             task.Wait();
+            OnFocus();
         }
 
         void ElementAddedToGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
