@@ -7,12 +7,14 @@ Pass
     }
    
     // Render State
-    $splice(Blending)
-    $splice(Culling)
+    $splice(Blend)
+    $splice(BlendOp)
+    $splice(Cull)
     $splice(ZTest)
     $splice(ZWrite)
-    $splice(Stencil)
+    $splice(ZClip)
     $splice(ColorMask)
+    $splice(Stencil)
 
     HLSLPROGRAM
     #pragma vertex vert

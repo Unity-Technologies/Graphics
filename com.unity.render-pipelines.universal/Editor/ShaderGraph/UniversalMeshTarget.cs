@@ -93,6 +93,9 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.shadowCoord", //shadow coord, vert input is dependency
                 },
 
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
+
                 // Pass setup
                 includes = new List<string>()
                 {
@@ -148,9 +151,8 @@ namespace UnityEditor.Rendering.Universal
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State Overrides
-                ZWriteOverride = "ZWrite On",
-                ColorMaskOverride = "ColorMask 0",
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.DepthOnly,
 
                 // Pass setup
                 includes = new List<string>()
@@ -198,9 +200,8 @@ namespace UnityEditor.Rendering.Universal
                     "Attributes.normalOS",
                 },
 
-                // Render State Overrides
-                ZWriteOverride = "ZWrite On",
-                ZTestOverride = "ZTest LEqual",
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
 
                 // Pass setup
                 includes = new List<string>()
@@ -252,9 +253,8 @@ namespace UnityEditor.Rendering.Universal
                     "Attributes.uv2", //needed for meta vertex position
                 },
 
-                // Render State Overrides
-                ZWriteOverride = "ZWrite On",
-                ZTestOverride = "ZTest LEqual",
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
 
                 // Pass setup
                 includes = new List<string>()
@@ -299,6 +299,9 @@ namespace UnityEditor.Rendering.Universal
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
+
                 // Pass setup
                 includes = new List<string>()
                 {
@@ -339,6 +342,9 @@ namespace UnityEditor.Rendering.Universal
                     UnlitMasterNode.AlphaSlotId,
                     UnlitMasterNode.AlphaThresholdSlotId
                 },
+
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
 
                 // Pass setup
                 includes = new List<string>()
@@ -393,6 +399,9 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.texCoord0",
                     "Varyings.screenPosition",
                 },
+
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
                 
                 // Pass setup
                 includes = new List<string>()
@@ -450,6 +459,9 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.bitangentWS",
                 },
 
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
+
                 // Pass setup
                 includes = new List<string>()
                 {
@@ -496,6 +508,9 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.color",
                     "Varyings.texCoord0",
                 },
+
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
                 
                 // Pass setup
                 includes = new List<string>()
@@ -548,6 +563,9 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.color",
                     "Varyings.texCoord0",
                 },
+
+                // Render State
+                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
                 
                 // Pass setup
                 includes = new List<string>()
@@ -713,6 +731,69 @@ namespace UnityEditor.Rendering.Universal
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
+            };
+        }
+#endregion
+
+#region RenderStates
+        public static class RenderStates
+        {
+            public static readonly RenderStateOverride[] Default = new RenderStateOverride[]
+            {
+                // Opaque
+                RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                RenderStateOverride.ZWrite(ZWrite.On, 0),
+                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                RenderStateOverride.Cull(Cull.Back, 0),
+
+                // Alpha Test
+                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
+
+                // Transparent
+                RenderStateOverride.ZWrite(ZWrite.Off, 1, new IField[] { DefaultFields.SurfaceTransparent }),
+
+                // Blend Mode
+                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
+                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
+                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+            };
+
+            public static readonly RenderStateOverride[] ShadowCasterMeta = new RenderStateOverride[]
+            {
+                // Opaque
+                RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                RenderStateOverride.ZWrite(ZWrite.On, 0),
+                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                RenderStateOverride.Cull(Cull.Back, 0),
+
+                // Alpha Test
+                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
+
+                // Blend Mode
+                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
+                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
+                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+            };
+
+            public static readonly RenderStateOverride[] DepthOnly = new RenderStateOverride[]
+            {
+                // Opaque
+                RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                RenderStateOverride.ZWrite(ZWrite.On, 0),
+                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                RenderStateOverride.Cull(Cull.Back, 0),
+                RenderStateOverride.ColorMask("0", 0),
+
+                // Alpha Test
+                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
+
+                // Blend Mode
+                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
+                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
+                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
             };
         }
 #endregion

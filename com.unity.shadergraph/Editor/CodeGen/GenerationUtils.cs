@@ -16,19 +16,28 @@ namespace UnityEditor.ShaderGraph
     {
         const string kDebugSymbol = "SHADERGRAPH_DEBUG";
 
-        public static ActiveFields GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
+        public static List<IField> GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
         {
-            var activeFields = new ActiveFields();
-            var baseFields = activeFields.baseInstance;
-
+            var fields = new List<IField>();
             foreach(ConditionalField conditionalField in conditionalFields)
             {
                 if(conditionalField.condition == true)
                 {
-                    baseFields.Add(conditionalField.field.ToFieldString());
+                    fields.Add(conditionalField.field);
                 }
             }
 
+            return fields;
+        }
+
+        static ActiveFields ToActiveFields(this List<IField> fields)
+        {
+            var activeFields = new ActiveFields();
+            var baseFields = activeFields.baseInstance;
+
+            foreach(IField field in fields)
+                baseFields.Add(field.ToFieldString());
+            
             return activeFields;
         }
 
@@ -41,9 +50,28 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 
-            ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths,
+            ShaderGenerator result, List<string> sourceAssetDependencyPaths,
             List<Dependency[]> dependencies, string resourceClassName, string assemblyName)
         {
+            // Early exit if pass is not used in preview
+            if(mode == GenerationMode.Preview && !pass.useInPreview)
+                return false;
+
+            // Get base active fields from MasterNode
+            // TODO: ActiveFields should be refactored to work on IFields and convert to string as late as possible
+            // After this change we can read List<IField> for conditionals directly from ActiveFields.baseInstance
+            List<IField> fields;
+            if(outputNode is IMasterNode masterNode)
+            {
+                fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
+            }
+            // Peeview shader
+            else
+            {
+                fields = new List<IField>() { DefaultFields.GraphPixel };
+            }
+            var activeFields = fields.ToActiveFields();
+
             // --------------------------------------------------
             // Debug
 
@@ -139,7 +167,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Render state
-            BuildRenderStatesFromPass(pass, ref spliceCommands);
+            BuildRenderStatesFromPass(pass, fields, ref spliceCommands);
 
             // --------------------------------------------------
             // Pass Code
@@ -706,25 +734,75 @@ namespace UnityEditor.ShaderGraph
             return activeSlots;
         }
 
-        static void BuildRenderStatesFromPass(ShaderPass pass, ref Dictionary<string, string> spliceCommands)
+        static void BuildRenderStatesFromPass(ShaderPass pass, List<IField> fields, ref Dictionary<string, string> spliceCommands)
         {
-            spliceCommands.Add("Blending", pass.BlendOverride != null ? pass.BlendOverride : "// Blending: <None>");
-            spliceCommands.Add("Culling", pass.CullOverride != null ? pass.CullOverride : "// Culling: <None>");
-            spliceCommands.Add("ZTest", pass.ZTestOverride != null ? pass.ZTestOverride : "// ZTest: <None>");
-            spliceCommands.Add("ZWrite", pass.ZWriteOverride != null ? pass.ZWriteOverride : "// ZWrite: <None>");
-            spliceCommands.Add("ZClip", pass.ZClipOverride != null ? pass.ZClipOverride : "// ZClip: <None>");
-            spliceCommands.Add("ColorMask", pass.ColorMaskOverride != null ? pass.ColorMaskOverride : "// ColorMask: <None>");
+            // Split overrides by type and sort by priority
+            var cullOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Cull).OrderByDescending(x => x.priority).ToList();
+            var blendOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Blend).OrderByDescending(x => x.priority).ToList();
+            var blendOpOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.BlendOp).OrderByDescending(x => x.priority).ToList();
+            var zTestOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZTest).OrderByDescending(x => x.priority).ToList();
+            var zWriteOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZWrite).OrderByDescending(x => x.priority).ToList();
+            var zClipOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZClip).OrderByDescending(x => x.priority).ToList();
+            var colorMaskOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ColorMask).OrderByDescending(x => x.priority).ToList();
+            var stencilOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Stencil).OrderByDescending(x => x.priority).ToList();
 
-            using(var stencilBuilder = new ShaderStringBuilder())
+            // Evaulate stacks to value strings
+            var cullCommand = EvaluateRenderStateOverrideStack(cullOverrides, fields);
+            var blendCommand = EvaluateRenderStateOverrideStack(blendOverrides, fields);
+            var blendOpCommand = EvaluateRenderStateOverrideStack(blendOpOverrides, fields);
+            var zTestCommand = EvaluateRenderStateOverrideStack(zTestOverrides, fields);
+            var zWriteCommand = EvaluateRenderStateOverrideStack(zWriteOverrides, fields);
+            var zClipCommand = EvaluateRenderStateOverrideStack(zClipOverrides, fields);
+            var colorMaskCommand = EvaluateRenderStateOverrideStack(colorMaskOverrides, fields);
+            var stencilCommand = EvaluateRenderStateOverrideStack(stencilOverrides, fields);
+
+            // Splice commands
+            spliceCommands.Add("Cull", cullCommand != string.Empty ? cullCommand : "// Cull: <None>");
+            spliceCommands.Add("Blend", blendCommand != string.Empty ? blendCommand : "// Blend: <None>");
+            spliceCommands.Add("BlendOp", blendOpCommand != string.Empty ? blendOpCommand : "// BlendOp: <None>");
+            spliceCommands.Add("ZTest", zTestCommand != string.Empty ? zTestCommand : "// ZTest: <None>");
+            spliceCommands.Add("ZWrite", zWriteCommand != string.Empty ? zWriteCommand : "// ZWrite: <None>");
+            spliceCommands.Add("ZClip", zClipCommand != string.Empty ? zClipCommand : "// ZClip: <None>");
+            spliceCommands.Add("ColorMask", colorMaskCommand != string.Empty ? colorMaskCommand : "// ColorMask: <None>");
+            spliceCommands.Add("Stencil", stencilCommand != string.Empty ? stencilCommand : "// Stencil: <None>");
+        }
+
+        static string EvaluateRenderStateOverrideStack(List<RenderStateOverride> overrides, List<IField> fields)
+        {
+            if(overrides == null)
+                return string.Empty;
+            
+            for(int i = 0; i < overrides.Count; i++)
             {
-                if (pass.StencilOverride != null)
+                if(overrides[i].requiredFields == null)
                 {
-                    foreach (var str in pass.StencilOverride)
-                        stencilBuilder.AppendLine(str);
+                    // Valid override, end stack evaluation
+                    return overrides[i].value;
                 }
-                
-                spliceCommands.Add("Stencil", stencilBuilder.ToCodeBlack());
-            }
+                else
+                {
+                    bool requirementsMet = true;
+                    foreach(IField requiredField in overrides[i].requiredFields)
+                    {
+                        // Required field is not active
+                        // Fail requirementsMet and end evaluation
+                        if(!fields.Contains(requiredField))
+                        {
+                            requirementsMet = false;
+                            break;
+                        }
+                    }
+
+                    // If all requirements met valid override
+                    // End stack evaluation
+                    if(requirementsMet)
+                        return overrides[i].value;
+                }
+            }   
+            
+            // No valid override
+            // Handle outside evaluate method
+            return string.Empty;
         }
 
         public static string GetDefaultTemplatePath(string templateName)
