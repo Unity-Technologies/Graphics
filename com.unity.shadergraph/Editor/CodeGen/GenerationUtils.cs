@@ -189,14 +189,116 @@ namespace UnityEditor.ShaderGraph
 
             // -----------------------------
             // Generated structs and Packing code 
-                       
+            var interpolatorBuilder = new ShaderStringBuilder();
+            var passStructs = new List<StructDescriptor>();
 
+            if(pass.structs != null)
+            {
+                passStructs.AddRange(pass.structs);
+
+                foreach (StructDescriptor shaderStruct in pass.structs)
+                {
+                    if(shaderStruct.interpolatorPack == false)
+                        continue; //skip structs that do not need interpolator packs 
+                    
+                    //set up function string builders and struct builder 
+                    List<int> packedCounts = new List<int>();
+                    var packBuilder = new ShaderStringBuilder();
+                    var unpackBuilder = new ShaderStringBuilder();
+                    var packStruct = new StructDescriptor() { name = "Packed" + shaderStruct.name, interpolatorPack = true,
+                        subscripts = new SubscriptDescriptor[]{} };
+                    List<SubscriptDescriptor> packedSubscripts = new List<SubscriptDescriptor>();
+                    
+                    //declare function headers
+                    packBuilder.AppendLine($"{packStruct.name} Pack{shaderStruct.name} ({shaderStruct.name} input)");
+                    packBuilder.AppendLine("{");
+                    packBuilder.IncreaseIndent();
+                    packBuilder.AppendLine($"{packStruct.name} output;");
+
+                    unpackBuilder.AppendLine($"{shaderStruct.name} Unpack{shaderStruct.name} ({packStruct.name} input)");
+                    unpackBuilder.AppendLine("{");
+                    unpackBuilder.IncreaseIndent();
+                    unpackBuilder.AppendLine($"{shaderStruct.name} output;");
+
+                    foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
+                    {
+                        if(!fields.Contains(subscript) && subscript.subcriptOptions.HasFlag(SubscriptDescriptor.SubscriptOptions.Optional))
+                            continue; //skip non-active optional subscripts
+                        
+                        int vectorCount = subscript.vectorCount;
+                        if(subscript.hasPreprocessor())
+                        {
+                            packBuilder.AppendLine($"#if {subscript.preprocessor}");
+                            unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
+                        }
+                        if(subscript.hasSemantic())// || floatVectorCount == 0)//TODO: actually get proper vector count for each item 
+                        {
+                            packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
+                            unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
+                            packedSubscripts.Add(subscript);
+                        }
+                        else
+                        {
+                            // pack float field
+                            // super simple packing: use the first interpolator that has room for the whole value
+                            int interpIndex = packedCounts.FindIndex(x => (x + vectorCount <= 4));
+                            int firstChannel;
+                            if (interpIndex < 0)
+                            {
+                                // allocate a new interpolator
+                                interpIndex = packedCounts.Count;
+                                firstChannel = 0;
+                                packedCounts.Add(vectorCount);
+                            }
+                            else
+                            {
+                                // pack into existing interpolator
+                                firstChannel = packedCounts[interpIndex];
+                                packedCounts[interpIndex] += vectorCount;
+                            }
+                            // add code to packer and unpacker -- add subscript to packedstruct
+                            string packedChannels = ShaderSpliceUtil.GetChannelSwizzle(firstChannel, vectorCount);
+                            packBuilder.AppendLine($"output.interp{interpIndex}.{packedChannels} =  input.{subscript.name};");
+                            unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
+                            var packedSubscript = new SubscriptDescriptor(subscript.tag, "interp" + interpIndex, "", subscript.type,
+                                "TEXCOORD" + interpIndex, subscript.preprocessor, subscript.subcriptOptions);
+                            packedSubscripts.Add(packedSubscript);
+                        }
+                        
+                        if(subscript.hasPreprocessor())
+                        {
+                            packBuilder.AppendLine("#endif");
+                            unpackBuilder.AppendLine("#endif");
+                        }
+                    }
+                    //close function declarations
+                    packStruct.subscripts = packedSubscripts.ToArray();
+                    passStructs.Add(packStruct);
+
+                    packBuilder.AppendLine("return output;");
+                    packBuilder.DecreaseIndent();
+                    packBuilder.AppendLine("}");
+
+                    unpackBuilder.AppendLine("return output;");
+                    unpackBuilder.DecreaseIndent();
+                    unpackBuilder.AppendLine("}");
+                    
+                    interpolatorBuilder.Concat(packBuilder);
+                    interpolatorBuilder.Concat(unpackBuilder);
+                }           
+            }
+            if(interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision 
+                interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Float.ToShaderString());
+            else
+                interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
+            spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlack());
+            
             // Generated String Builders for all struct types 
             using (var passStructBuilder = new ShaderStringBuilder())
             {
-                if(pass.structs != null)
+                if(passStructs != null)
                 {
-                    foreach(StructDescriptor shaderStruct in pass.structs)
+                    foreach(StructDescriptor shaderStruct in passStructs)
                     {
                         passStructBuilder.AppendLine($"struct {shaderStruct.name}");
                         using(passStructBuilder.BlockSemicolonScope())
@@ -204,17 +306,14 @@ namespace UnityEditor.ShaderGraph
                             foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
                             {
                                 if(!fields.Contains(subscript) && subscript.subcriptOptions.HasFlag(SubscriptDescriptor.SubscriptOptions.Optional))
-                                    continue; //skip non-active optional subscripts   
+                                    continue; //skip non-active optional subscripts
                                 
                                 if(subscript.hasPreprocessor())
                                 {
                                     passStructBuilder.AppendLine($"#if {subscript.preprocessor}");
                                 }
-
                                 string semantic = subscript.hasSemantic() ? $" : {subscript.semantic}" : string.Empty;
-
                                 passStructBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
-
                                 if(subscript.hasPreprocessor())
                                 {
                                     passStructBuilder.AppendLine("#endif");
@@ -223,8 +322,10 @@ namespace UnityEditor.ShaderGraph
                         }
                     }
                 }
-                if(passStructBuilder.length == 0)
-                    passStructBuilder.AppendLine("//PassStructs: <None>");
+                if(passStructBuilder.length != 0) //hard code structs to float, TODO: proper handle precision 
+                passStructBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Float.ToShaderString());
+                else
+                    passStructBuilder.AppendLine("//Pass Structs: <None>");
                 spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlack());
             }
 

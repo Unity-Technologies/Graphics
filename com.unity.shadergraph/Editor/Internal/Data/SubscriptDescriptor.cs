@@ -13,6 +13,7 @@
         public string name { get; }
         public string define { get; }
         public string type { get; }
+        public int vectorCount { get; }
         public string semantic { get; }
         public string preprocessor { get; }
         public SubscriptOptions subcriptOptions { get; }
@@ -23,8 +24,9 @@
             this.tag = tag;
             this.name = name;
             this.define = define;
-            this.type = type.ToString(); //TODO: implement proper to string get here
-            this.semantic = semantic;            
+            this.type = type.ToShaderString();
+            this.vectorCount = type.GetVectorCount();
+            this.semantic = semantic;
             this.preprocessor = preprocessor;
             this.subcriptOptions = subcriptOptions;
         }
@@ -36,6 +38,7 @@
             this.name = name;
             this.define = define;
             this.type = type;
+            this.vectorCount = 0;
             this.semantic = semantic;            
             this.preprocessor = preprocessor;
             this.subcriptOptions = subcriptOptions;

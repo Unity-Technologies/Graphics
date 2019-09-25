@@ -2,7 +2,6 @@
 {
     public enum ShaderValueType
     {
-        Color,
         Boolean,
         Float,
         Float2,
