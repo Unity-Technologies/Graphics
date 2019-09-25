@@ -897,7 +897,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
     }
 
-    internal struct BitArray : System.IDisposable
+    struct BitArray : System.IDisposable
     {
         NativeArray<uint> m_Mem; // ulong not supported in il2cpp???
         int m_BitCount;
@@ -932,6 +932,22 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Mem[bitIndex >> 5] |= 1u << (bitIndex & 31);
             else
                 m_Mem[bitIndex >> 5] &= ~(1u << (bitIndex & 31));
+        }
+    };
+
+    struct Vector4UInt
+    {
+        public uint x;
+        public uint y;
+        public uint z;
+        public uint w;
+
+        public Vector4UInt(uint _x, uint _y, uint _z, uint _w)
+        {
+            x = _x;
+            y = _y;
+            z = _z;
+            w = _w;
         }
     };
 }

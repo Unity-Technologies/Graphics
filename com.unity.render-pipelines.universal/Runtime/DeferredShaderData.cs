@@ -5,60 +5,35 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    struct Vector4UInt
-    {
-        public uint x;
-        public uint y;
-        public uint z;
-        public uint w;
-
-        public Vector4UInt(uint _x, uint _y, uint _z, uint _w)
-        {
-            x = _x;
-            y = _y;
-            z = _z;
-            w = _w;
-        }
-    };
-
-
     class DeferredShaderData : IDisposable
     {
         static DeferredShaderData m_Instance = null;
 
-        /// Precomputed tiles.
+        struct ComputeBufferInfo
+        {
+            public uint frameUsed;
+            public ComputeBufferType type; // There is no interface to retrieve the type of a ComputeBuffer, so we must save it on our side
+        }
+
+        // Precomputed tiles (for each tiler).
         NativeArray<PreTile>[] m_PreTiles = null;
-        // Store depthRange data for generate depth buffer bitmask per tile.
-        ComputeBuffer[,] m_DepthRanges = null;
-        // Store tileData for drawing instanced tiles.
-        ComputeBuffer[,] m_TileLists = null;
-        // Store point lights data for a draw call.
-        ComputeBuffer[,] m_PointLightBuffers = null;
-        // Store lists of lights. Each tile has a list of lights, which start address is given by m_TileList.
-        // The data stored is a relative light index, which is an index into m_PointLightBuffer. 
-        ComputeBuffer[,] m_RelLightLists = null;
+        // Structured buffers and constant buffers are all allocated from this array.
+        ComputeBuffer[] m_Buffers = null;
+        // We need to store extra info per ComputeBuffer.
+        ComputeBufferInfo[] m_BufferInfos;
 
-        int m_DepthRange_UsedCount = 0;
-        int m_TileList_UsedCount = 0;
-        int m_PointLightBuffer_UsedCount = 0;
-        int m_RelLightList_UsedCount = 0;
-
-        int m_FrameLatency = 4;
-        int m_FrameIndex = 0;
+        // How many buffers have been created so far. This is <= than m_Buffers.Length.
+        int m_BufferCount = 0;
+        // Remember index of last buffer used. This optimizes the search for available buffer.
+        int m_CachedBufferIndex = 0;
+        // This counter is allowed to cycle back to 0.
+        uint m_FrameIndex = 0;
 
         DeferredShaderData()
         {
-            // TODO: make it a vector
             m_PreTiles = new NativeArray<PreTile>[DeferredConfig.kTilerDepth];
-            m_DepthRanges = new ComputeBuffer[m_FrameLatency, 32];
-            m_TileLists = new ComputeBuffer[m_FrameLatency, 32]; 
-            m_PointLightBuffers = new ComputeBuffer[m_FrameLatency,32];
-            m_RelLightLists = new ComputeBuffer[m_FrameLatency,32];
-
-            m_DepthRange_UsedCount = 0;
-            m_TileList_UsedCount = 0;
-            m_PointLightBuffer_UsedCount = 0;
-            m_RelLightList_UsedCount = 0;
+            m_Buffers = new ComputeBuffer[64];
+            m_BufferInfos = new ComputeBufferInfo[64];
         }
 
         internal static DeferredShaderData instance
@@ -75,19 +50,20 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             DisposeNativeArrays(ref m_PreTiles);
-            DisposeBuffers(m_DepthRanges);
-            DisposeBuffers(m_TileLists);
-            DisposeBuffers(m_PointLightBuffers);
-            DisposeBuffers(m_RelLightLists);
+
+            for (int i = 0; i < m_Buffers.Length; ++i)
+            {
+                if (m_Buffers[i] != null)
+                {
+                    m_Buffers[i].Dispose();
+                    m_Buffers[i] = null;
+                }
+            }
         }
 
         internal void ResetBuffers()
         {
-            m_DepthRange_UsedCount = 0;
-            m_TileList_UsedCount = 0;
-            m_PointLightBuffer_UsedCount = 0;
-            m_RelLightList_UsedCount = 0;
-            m_FrameIndex = (m_FrameIndex + 1) % m_FrameLatency;
+            ++m_FrameIndex; // Allowed to cycle back to 0.
         }
 
         internal NativeArray<PreTile> GetPreTiles(int level, int count)
@@ -97,38 +73,22 @@ namespace UnityEngine.Rendering.Universal
 
         internal ComputeBuffer ReserveDepthRanges(int count)
         {
-            if (DeferredConfig.kUseCBufferForDepthRange)
-                return GetOrUpdateBuffer<Vector4UInt>(m_DepthRanges, (count + 3) / 4, ComputeBufferType.Constant, m_DepthRange_UsedCount++);
-            else
-                return GetOrUpdateBuffer<uint>(m_DepthRanges, count, ComputeBufferType.Structured, m_DepthRange_UsedCount++);
+            return GetOrUpdateBuffer(Align(count, 4), Marshal.SizeOf<uint>(), DeferredConfig.kUseCBufferForDepthRange);
         }
 
         internal ComputeBuffer ReserveTileList(int count)
         {
-            if (DeferredConfig.kUseCBufferForTileList)
-                return GetOrUpdateBuffer<Vector4UInt>(m_TileLists, count, ComputeBufferType.Constant, m_TileList_UsedCount++);
-            else
-                return GetOrUpdateBuffer<TileData>(m_TileLists, count, ComputeBufferType.Structured, m_TileList_UsedCount++);
+            return GetOrUpdateBuffer(count, Marshal.SizeOf<TileData>(), DeferredConfig.kUseCBufferForTileList);
         }
 
         internal ComputeBuffer ReservePointLightBuffer(int count)
         {
-            if (DeferredConfig.kUseCBufferForLightData)
-            {
-                int sizeof_PointLightData = System.Runtime.InteropServices.Marshal.SizeOf(typeof(PointLightData));
-                int vec4Count = sizeof_PointLightData / 16;
-                return GetOrUpdateBuffer<Vector4UInt>(m_PointLightBuffers, count * vec4Count, ComputeBufferType.Constant, m_PointLightBuffer_UsedCount++);
-            }
-            else
-                return GetOrUpdateBuffer<PointLightData>(m_PointLightBuffers, count, ComputeBufferType.Structured, m_PointLightBuffer_UsedCount++);
+            return GetOrUpdateBuffer(count, Marshal.SizeOf<PointLightData>(), DeferredConfig.kUseCBufferForLightData);
         }
 
         internal ComputeBuffer ReserveRelLightList(int count)
         {
-            if (DeferredConfig.kUseCBufferForLightList)
-                return GetOrUpdateBuffer<Vector4UInt>(m_RelLightLists, (count + 3) / 4, ComputeBufferType.Constant, m_RelLightList_UsedCount++);
-            else
-                return GetOrUpdateBuffer<uint>(m_RelLightLists, count, ComputeBufferType.Structured, m_RelLightList_UsedCount++);
+            return GetOrUpdateBuffer(Align(count, 4), Marshal.SizeOf<uint>(), DeferredConfig.kUseCBufferForLightList);
         }
 
         NativeArray<T> GetOrUpdateNativeArray<T>(ref NativeArray<T>[] nativeArrays, int level, int count) where T : struct
@@ -155,19 +115,43 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        ComputeBuffer GetOrUpdateBuffer<T>(ComputeBuffer[,] buffers, int count, ComputeBufferType type, int index) where T : struct
+        ComputeBuffer GetOrUpdateBuffer(int count, int stride, bool isConstantBuffer)
         {
-            if (buffers[m_FrameIndex,index] == null)
+            ComputeBufferType type = isConstantBuffer ? ComputeBufferType.Constant : ComputeBufferType.Structured;
+            uint maxQueuedFrames = (uint)QualitySettings.maxQueuedFrames;
+
+            for (int i = 0; i < m_BufferCount; ++i)
             {
-                buffers[m_FrameIndex, index] = new ComputeBuffer(count, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
-            }
-            else if (count > buffers[m_FrameIndex, index].count)
-            {
-                buffers[m_FrameIndex, index].Dispose();
-                buffers[m_FrameIndex, index] = new ComputeBuffer(count, Marshal.SizeOf<T>(), type, ComputeBufferMode.Immutable);
+                int bufferIndex = (m_CachedBufferIndex + i + 1) % m_BufferCount;
+
+                if (IsLessCircular(m_BufferInfos[bufferIndex].frameUsed + maxQueuedFrames, m_FrameIndex)
+                    && m_BufferInfos[bufferIndex].type == type && m_Buffers[bufferIndex].count == count && m_Buffers[bufferIndex].stride == stride)
+                {
+                    m_BufferInfos[bufferIndex].frameUsed = m_FrameIndex;
+                    m_CachedBufferIndex = bufferIndex;
+                    return m_Buffers[bufferIndex];
+                }
             }
 
-            return buffers[m_FrameIndex, index];
+            if (m_BufferCount == m_Buffers.Length) // If all buffers used: allocate more space.
+            {
+                ComputeBuffer[] newBuffers = new ComputeBuffer[m_BufferCount * 2];
+                for (int i = 0; i < m_BufferCount; ++i)
+                    newBuffers[i] = m_Buffers[i];
+                m_Buffers = newBuffers;
+
+                ComputeBufferInfo[] newBufferInfos = new ComputeBufferInfo[m_BufferCount * 2];
+                for (int i = 0; i < m_BufferCount; ++i)
+                    newBufferInfos[i] = m_BufferInfos[i];
+                m_BufferInfos = newBufferInfos;
+            }
+
+            // Create new buffer.
+            m_Buffers[m_BufferCount] = new ComputeBuffer(count, stride, type, ComputeBufferMode.Immutable);
+            m_BufferInfos[m_BufferCount].frameUsed = m_FrameIndex;
+            m_BufferInfos[m_BufferCount].type = type;
+            m_CachedBufferIndex = m_BufferCount;
+            return m_Buffers[m_BufferCount++];
         }
 
         void DisposeBuffers(ComputeBuffer[,] buffers)
@@ -184,6 +168,16 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+        }
+
+        static bool IsLessCircular(uint a, uint b)
+        {
+            return a != b ? (b - a) < 0x80000000 : false;
+        }
+
+        static int Align(int s, int alignment)
+        {
+            return ((s + alignment - 1) / alignment) * alignment;
         }
     }
 }
