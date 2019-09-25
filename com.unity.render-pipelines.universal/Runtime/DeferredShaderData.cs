@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.Universal
                     m_Buffers[i] = null;
                 }
             }
+            m_BufferCount = 0;
         }
 
         internal void ResetBuffers()
@@ -124,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 int bufferIndex = (m_CachedBufferIndex + i + 1) % m_BufferCount;
 
-                if (m_Buffers[bufferIndex] != null && IsLessCircular(m_BufferInfos[bufferIndex].frameUsed + maxQueuedFrames, m_FrameIndex)
+                if (IsLessCircular(m_BufferInfos[bufferIndex].frameUsed + maxQueuedFrames, m_FrameIndex)
                     && m_BufferInfos[bufferIndex].type == type && m_Buffers[bufferIndex].count == count && m_Buffers[bufferIndex].stride == stride)
                 {
                     m_BufferInfos[bufferIndex].frameUsed = m_FrameIndex;
