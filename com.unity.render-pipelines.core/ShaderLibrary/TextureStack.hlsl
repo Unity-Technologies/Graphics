@@ -222,17 +222,9 @@ float4 ResolveVT_##stackName(float2 uv)\
 #define GetResolveOutput(info) info.resolveOutput
 #define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
-RW_TEXTURE2D(float4, VTFeedback) : register(u7);
-#define VTFeedbackScale 16
-void StoreVTFeedback(float4 feedback, uint2 positionSS)
+void GetPackedVTFeedback(float4 feedback)
 {
-    [branch]
-    if ( (positionSS.x & (VTFeedbackScale - 1)) == 0 && (positionSS.y & (VTFeedbackScale - 1)) == 0)
-    {
-
-        const uint2 vt_pos = positionSS / VTFeedbackScale;
-        VTFeedback[vt_pos] = Granite_PackTileId(feedback);
-    }
+    return Granite_PackTileId(feedback);
 }
 
 #else
@@ -269,7 +261,7 @@ StackInfo MakeStackInfo(float2 uv)
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
 #define ResolveStack(uv, stackName) float4(1,1,1,1)
-#define StoreVTFeedback(feedback, positionSS)
+#define GetPackedVTFeedback(feedback)
 
 #endif
 

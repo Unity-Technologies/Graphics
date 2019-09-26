@@ -6,52 +6,97 @@ namespace  UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
     public class VTBufferManager
     {
-        const int Scale = 16; //Keep in sync with TextureStack.hlsl
+        public static GraphicsFormat GetFeedbackBufferFormat()
+        {
+            return GraphicsFormat.R8G8B8A8_UNorm;
+        }
 
-        RTHandle opaqueHandle = null;
-        Vector2 m_scale = new Vector2(1.0f / (float)Scale, 1.0f / (float)Scale);
-
+        RTHandle m_VTFeedbackBufferMSAA;
         VirtualTextureResolver m_Resolver = new VirtualTextureResolver();
+        public static int AdditionalForwardRT = 1;
+        int resolveScale = 16;
+        RTHandle lowresResolver;
+        ComputeShader downSampleCS;
 
-        public void CreateBuffers()
+        public VTBufferManager(HDRenderPipelineAsset asset)
         {
-            opaqueHandle = RTHandles.Alloc(m_scale, TextureXR.slices,
-                colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: false,
-                name: "VTFeedbackBuffer_opaque", enableRandomWrite: true);
+            downSampleCS = asset.renderPipelineResources.shaders.VTFeedbackDownsample;
         }
 
-        public void BeginRender()
+        public void CreateBuffers(RenderPipelineSettings settings)
         {
-            uint width = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.x * RTHandles.maxWidth), 1);
-            uint height = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.y * RTHandles.maxHeight), 1);
-
-            m_Resolver.Init(width, height);
+            if (settings.supportMSAA || settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            {
+                // Our processing handles both MSAA and regular buffers so we don't need to explicitly resolve here saving a buffer
+                m_VTFeedbackBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
+                    enableMSAA: true, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
+            }
         }
 
-        public void Resolve(CommandBuffer cmd, int width, int height)
+        public void BeginRender(int width, int height)
         {
-            uint resolveWidth = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.x * width), 1);
-            uint resolveHeight = (uint)Mathf.Max(Mathf.RoundToInt(m_scale.y * height), 1);
+            GetResolveDimensions(ref width, ref height);
 
-            m_Resolver.Process(cmd, opaqueHandle.nameID, 0, resolveWidth, 0, resolveHeight, 0, 0);
+            if (width != m_Resolver.CurrentWidth || width != m_Resolver.CurrentHeight)
+            {
+                RTHandles.Release(lowresResolver);
+            }
+            lowresResolver = RTHandles.Alloc(width, height, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
+
+
+            m_Resolver.Init((uint)width, (uint)height);
+        }
+
+        public void Resolve(CommandBuffer cmd, RTHandle rt, int width, int height)
+        {
+            if (rt != null)
+            {
+                ResolveVTDispatch(cmd, rt, width, height );
+            }
+
+            if (m_VTFeedbackBufferMSAA != null)
+            {
+                ResolveVTDispatch(cmd, m_VTFeedbackBufferMSAA, width, height );
+            }
+        }
+
+        void ResolveVTDispatch(CommandBuffer cmd, RTHandle buffer, int width, int height)
+        {
+            string mainFunction = (buffer.enableMSAA) ? "KMainMSAA" : "KMain";
+
+            int kernel = downSampleCS.FindKernel(mainFunction);
+            cmd.SetComputeTextureParam(downSampleCS, kernel, HDShaderIDs._InputTexture, buffer.nameID);
+            cmd.SetComputeTextureParam(downSampleCS, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
+            var resolveCounter = 0;
+            var startOffsetX = (resolveCounter % resolveScale);
+            var startOffsetY = (resolveCounter / resolveScale) % resolveScale;
+            cmd.SetComputeVectorParam(downSampleCS, HDShaderIDs._Params, new Vector4(resolveScale, startOffsetX, startOffsetY, /*unused*/-1));
+            var TGSize = 8;
+            cmd.DispatchCompute(downSampleCS, kernel, ((int)width + (TGSize - 1)) / TGSize, ((int)height + (TGSize - 1)) / TGSize, 1);
+
+            GetResolveDimensions(ref width, ref height);
+            m_Resolver.Process(cmd, lowresResolver.nameID, 0, (uint)width, 0, (uint)height, 0, 0);
+        }
+
+        void GetResolveDimensions(ref int w, ref int h)
+        {
+            w = (w + (resolveScale - 1)) / resolveScale;
+            h = (h + (resolveScale - 1)) / resolveScale;
         }
 
         public void DestroyBuffers()
         {
-            RTHandles.Release(opaqueHandle);
-            opaqueHandle = null;
+            RTHandles.Release(m_VTFeedbackBufferMSAA);
+            m_VTFeedbackBufferMSAA = null;
             m_Resolver.Dispose();
         }
 
-        public RenderTargetIdentifier GetOpaqueRTI()
+        public RTHandle GetForwardMSAABuffer()
         {
-            return opaqueHandle.nameID;
+            return m_VTFeedbackBufferMSAA;
         }
 
-        public void Clear(CommandBuffer cmd)
-        {
-            CoreUtils.SetRenderTarget(cmd, opaqueHandle.nameID, ClearFlag.Color, Color.white);
-        }
+
     }
 #endif
 }

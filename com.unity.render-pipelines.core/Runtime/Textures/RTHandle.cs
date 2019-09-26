@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering
 
         public string name { get { return m_Name; } }
 
+        public bool enableMSAA { get { return m_EnableMSAA; } }
+
         // Keep constructor private
         internal RTHandle(RTHandleSystem owner)
         {
