@@ -75,6 +75,8 @@ void InitSphericalQuad(LightData areaLightData, float3 positionWS, out SphQuad s
 
 bool InitSphericalQuad(LightData areaLightData, float3 positionWS, float3 normalWS, out SphQuad squad)
 {
+    ZERO_INITIALIZE(SphQuad, squad);
+    
     // Dimension of the area light
     float halfWidth  = areaLightData.size.x * 0.5;
     float halfHeight = areaLightData.size.y * 0.5;
