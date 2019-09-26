@@ -736,73 +736,53 @@ namespace UnityEditor.ShaderGraph
 
         static void BuildRenderStatesFromPass(ShaderPass pass, List<IField> fields, ref Dictionary<string, string> spliceCommands)
         {
-            // Split overrides by type and sort by priority
-            var cullOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Cull).OrderByDescending(x => x.priority).ToList();
-            var blendOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Blend).OrderByDescending(x => x.priority).ToList();
-            var blendOpOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.BlendOp).OrderByDescending(x => x.priority).ToList();
-            var zTestOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZTest).OrderByDescending(x => x.priority).ToList();
-            var zWriteOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZWrite).OrderByDescending(x => x.priority).ToList();
-            var zClipOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZClip).OrderByDescending(x => x.priority).ToList();
-            var colorMaskOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ColorMask).OrderByDescending(x => x.priority).ToList();
-            var stencilOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Stencil).OrderByDescending(x => x.priority).ToList();
-
-            // Evaulate stacks to value strings
-            var cullCommand = EvaluateRenderStateOverrideStack(cullOverrides, fields);
-            var blendCommand = EvaluateRenderStateOverrideStack(blendOverrides, fields);
-            var blendOpCommand = EvaluateRenderStateOverrideStack(blendOpOverrides, fields);
-            var zTestCommand = EvaluateRenderStateOverrideStack(zTestOverrides, fields);
-            var zWriteCommand = EvaluateRenderStateOverrideStack(zWriteOverrides, fields);
-            var zClipCommand = EvaluateRenderStateOverrideStack(zClipOverrides, fields);
-            var colorMaskCommand = EvaluateRenderStateOverrideStack(colorMaskOverrides, fields);
-            var stencilCommand = EvaluateRenderStateOverrideStack(stencilOverrides, fields);
-
-            // Splice commands
-            spliceCommands.Add("Cull", cullCommand != string.Empty ? cullCommand : "// Cull: <None>");
-            spliceCommands.Add("Blend", blendCommand != string.Empty ? blendCommand : "// Blend: <None>");
-            spliceCommands.Add("BlendOp", blendOpCommand != string.Empty ? blendOpCommand : "// BlendOp: <None>");
-            spliceCommands.Add("ZTest", zTestCommand != string.Empty ? zTestCommand : "// ZTest: <None>");
-            spliceCommands.Add("ZWrite", zWriteCommand != string.Empty ? zWriteCommand : "// ZWrite: <None>");
-            spliceCommands.Add("ZClip", zClipCommand != string.Empty ? zClipCommand : "// ZClip: <None>");
-            spliceCommands.Add("ColorMask", colorMaskCommand != string.Empty ? colorMaskCommand : "// ColorMask: <None>");
-            spliceCommands.Add("Stencil", stencilCommand != string.Empty ? stencilCommand : "// Stencil: <None>");
+            foreach(RenderState.Type type in Enum.GetValues(typeof(RenderState.Type)))
+            {
+                var renderStates = pass.renderStates?.Where(x => x.renderState.type == type);
+                var command = EvaluateConditionalShaderStrings(renderStates, fields);
+                spliceCommands.Add($"{type}", GetSpliceCommand(command, $"{type}"));
+            }
         }
 
-        static string EvaluateRenderStateOverrideStack(List<RenderStateOverride> overrides, List<IField> fields)
+        static string EvaluateConditionalShaderStrings(IEnumerable<IConditionalShaderString> conditionalShaderStrings, List<IField> fields)
         {
-            if(overrides == null)
-                return string.Empty;
+            if(conditionalShaderStrings == null)
+                return null;
             
-            for(int i = 0; i < overrides.Count; i++)
+            foreach(IConditionalShaderString conditionalShaderString in conditionalShaderStrings)
             {
-                if(overrides[i].requiredFields == null)
-                {
-                    // Valid override, end stack evaluation
-                    return overrides[i].value;
-                }
-                else
-                {
-                    bool requirementsMet = true;
-                    foreach(IField requiredField in overrides[i].requiredFields)
-                    {
-                        // Required field is not active
-                        // Fail requirementsMet and end evaluation
-                        if(!fields.Contains(requiredField))
-                        {
-                            requirementsMet = false;
-                            break;
-                        }
-                    }
+                // No FieldConditions, return
+                if(conditionalShaderString.fieldConditions == null)
+                    return conditionalShaderString.value;
 
-                    // If all requirements met valid override
-                    // End stack evaluation
-                    if(requirementsMet)
-                        return overrides[i].value;
-                }
-            }   
+                // One or more FieldConditions failed, continue
+                if(conditionalShaderString.fieldConditions.Where(x => !fields.TestFieldCondition(x)).Any())
+                    continue;
+
+                // All FieldConditions passed, return
+                return conditionalShaderString.value;
+            }
             
-            // No valid override
-            // Handle outside evaluate method
-            return string.Empty;
+            // No ConditionalShaderStrings, return
+            return null;
+        }
+
+        static bool TestFieldCondition(this List<IField> fields, FieldCondition fieldCondition)
+        {
+            // Required active field is not active
+            if(fieldCondition.condition == true && !fields.Contains(fieldCondition.field))
+                return false;
+
+            // Required non-active field is active
+            else if(fieldCondition.condition == false && fields.Contains(fieldCondition.field))
+                return false;
+
+            return true;
+        }
+
+        static string GetSpliceCommand(string command, string token)
+        {
+            return command != null ? command : $"// {token}: <None>";
         }
 
         public static string GetDefaultTemplatePath(string templateName)
