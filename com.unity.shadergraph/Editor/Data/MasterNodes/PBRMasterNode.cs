@@ -186,6 +186,7 @@ namespace UnityEditor.ShaderGraph
                                                                         FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
                 new ConditionalField(DefaultFields.SpecularSetup,       model == PBRMasterNode.Model.Specular),
                 new ConditionalField(DefaultFields.Normal,              IsSlotConnected(PBRMasterNode.NormalSlotId)),
+                new ConditionalField(DefaultFields.DoubleSided,         twoSided.isOn),
             };
         }
 
