@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -27,14 +28,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         IManipulator m_ResetReferenceMenu;
-
-        public delegate void OnExposedToggle();
-        OnExposedToggle m_OnExposedToggle;
-        public OnExposedToggle onExposedToggle
-        {
-            get => m_OnExposedToggle;
-            set => m_OnExposedToggle = value;
-        }
 
         EventCallback<KeyDownEvent> m_KeyDownCallback;
         public EventCallback<KeyDownEvent> keyDownCallback => m_KeyDownCallback;
@@ -85,51 +78,45 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if(!m_Graph.isSubGraph)
             {
-                if(input.isExposable)
+                m_ExposedToogle = new Toggle();
+                m_ExposedToogle.OnToggleChanged(evt =>
                 {
-                    m_ExposedToogle = new Toggle();
-                    m_ExposedToogle.OnToggleChanged(evt =>
-                    {
-                        m_Graph.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
-                        if(m_OnExposedToggle != null)
-                            m_OnExposedToggle();
-                        
-                        input.generatePropertyBlock = evt.newValue;
-                        m_BlackboardField.icon = input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
-                        DirtyNodes(ModificationScope.Graph);
-                    });
-                    m_ExposedToogle.value = input.generatePropertyBlock;
-                    AddRow("Exposed", m_ExposedToogle);
-                }
+                    m_Graph.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
+                    input.generatePropertyBlock = evt.newValue;
+                    m_BlackboardField.icon = input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+                    Rebuild();
+                    DirtyNodes(ModificationScope.Graph);
+                });
+                m_ExposedToogle.value = input.generatePropertyBlock;
+                AddRow("Exposed", m_ExposedToogle, input.isExposable);
+				
             }
 
-            if(!m_Graph.isSubGraph)
+            if(!m_Graph.isSubGraph || input is ShaderKeyword)
             {
-                if(input.isRenamable)
+                m_ReferenceNameField = new TextField(512, false, false, ' ') { isDelayed = true };
+                m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                m_ReferenceNameField.value = input.referenceName;
+                m_ReferenceNameField.RegisterValueChangedCallback(evt =>
                 {
-                    m_ReferenceNameField = new TextField(512, false, false, ' ') { isDelayed = true };
-                    m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
+                    m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
+                    if (m_ReferenceNameField.value != m_Input.referenceName)
+                        m_Graph.SanitizeGraphInputReferenceName(input, evt.newValue);
+                    
                     m_ReferenceNameField.value = input.referenceName;
-                    m_ReferenceNameField.RegisterValueChangedCallback(evt =>
-                    {
-                        m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
-                        if (m_ReferenceNameField.value != m_Input.referenceName)
-                            m_Graph.SanitizeGraphInputReferenceName(input, evt.newValue);
-                        
-                        m_ReferenceNameField.value = input.referenceName;
-                        if (string.IsNullOrEmpty(input.overrideReferenceName))
-                            m_ReferenceNameField.RemoveFromClassList("modified");
-                        else
-                            m_ReferenceNameField.AddToClassList("modified");
-
-                        DirtyNodes(ModificationScope.Graph);
-                        UpdateReferenceNameResetMenu();
-                    });
-                    if (!string.IsNullOrEmpty(input.overrideReferenceName))
+                    if (string.IsNullOrEmpty(input.overrideReferenceName))
+                        m_ReferenceNameField.RemoveFromClassList("modified");
+                    else
                         m_ReferenceNameField.AddToClassList("modified");
 
-                    AddRow("Reference", m_ReferenceNameField);
-                }
+                    Rebuild();
+                    DirtyNodes(ModificationScope.Graph);
+                    UpdateReferenceNameResetMenu();
+                });
+                if (!string.IsNullOrEmpty(input.overrideReferenceName))
+                    m_ReferenceNameField.AddToClassList("modified");
+
+                AddRow("Reference", m_ReferenceNameField, input.isRenamable);
             }
         }
 
@@ -161,9 +148,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }, DropdownMenuAction.AlwaysEnabled);
         }
 
-        public VisualElement AddRow(string labelText, VisualElement control)
+        public VisualElement AddRow(string labelText, VisualElement control, bool enabled = true)
         {
-            VisualElement rowView = CreateRow(labelText, control);
+            VisualElement rowView = CreateRow(labelText, control, enabled);
             Add(rowView);
             m_Rows.Add(rowView);
             return rowView;
@@ -183,20 +170,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             BuildCustomFields(m_Input);
         }
 
-        VisualElement CreateRow(string labelText, VisualElement control)
+        VisualElement CreateRow(string labelText, VisualElement control, bool enabled)
         {
             VisualElement rowView = new VisualElement();
 
             rowView.AddToClassList("rowView");
 
-            Label label = new Label(labelText);
-
-            label.AddToClassList("rowViewLabel");
-            rowView.Add(label);
-
+            if(!string.IsNullOrEmpty(labelText))
+            {
+                Label label = new Label(labelText);
+                label.SetEnabled(enabled);
+                label.AddToClassList("rowViewLabel");
+                rowView.Add(label);
+            }
+            
             control.AddToClassList("rowViewControl");
-            rowView.Add(control);
+            control.SetEnabled(enabled);
 
+            rowView.Add(control);
             return rowView;
         }
     }

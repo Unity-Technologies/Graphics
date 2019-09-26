@@ -16,7 +16,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    public static class VisualEffectControl
+    static class VisualEffectControl
     {
         public static void ControlStop(this VisualEffect effect)
         {
@@ -53,16 +53,16 @@ namespace UnityEditor.VFX
     }
 
 
-    public class VisualEffectEditor : Editor
+    class VisualEffectEditor : Editor
     {
         const string kGeneralFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.General";
         const string kRendererFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer";
-        const string kParameterFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Parameter";
+        const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
         bool showGeneralCategory;
 
         bool showRendererCategory;
-        bool showParameterCategory;
+        bool showPropertyCategory;
 
         protected SerializedProperty m_VisualEffectAsset;
         SerializedProperty m_ReseedOnPlay;
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
         protected void OnEnable()
         {
             m_SingleSerializedObject = targets.Length == 1 ? serializedObject : new SerializedObject(targets[0]);
-            showParameterCategory = EditorPrefs.GetBool(kParameterFoldoutStatePreferenceName, true);
+            showPropertyCategory = EditorPrefs.GetBool(kPropertyFoldoutStatePreferenceName, true);
             showRendererCategory = EditorPrefs.GetBool(kRendererFoldoutStatePreferenceName, true);
             showGeneralCategory = EditorPrefs.GetBool(kGeneralFoldoutStatePreferenceName, true);
 
@@ -433,7 +433,7 @@ namespace UnityEditor.VFX
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
 
-            var buttonWidth = GUILayout.Width(50);
+            var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), buttonWidth))
             {
@@ -468,12 +468,12 @@ namespace UnityEditor.VFX
             float playRate = effect.playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Contents.playRate, GUILayout.Width(44));
+            GUILayout.Label(Contents.playRate, GUILayout.Width(46));
             playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
             effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
 
             var eventType = Event.current.type;
-            if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(36)))
+            if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
             {
                 GenericMenu menu = new GenericMenu();
                 foreach (var value in VisualEffectControl.setPlaybackValues)
@@ -763,20 +763,20 @@ namespace UnityEditor.VFX
 
                 if (m_graph.m_ParameterInfo != null)
                 {
-                    bool newShowParameterCategory = ShowHeader(Contents.headerParameters, true, showParameterCategory);
-                    if( newShowParameterCategory != showParameterCategory)
+                    bool newShowParameterCategory = ShowHeader(Contents.headerProperties, true, showPropertyCategory);
+                    if( newShowParameterCategory != showPropertyCategory)
                     {
-                        EditorPrefs.SetBool(kParameterFoldoutStatePreferenceName, newShowParameterCategory);
-                        showParameterCategory = newShowParameterCategory;
+                        EditorPrefs.SetBool(kPropertyFoldoutStatePreferenceName, newShowParameterCategory);
+                        showPropertyCategory = newShowParameterCategory;
                     }
 
-                    if(showParameterCategory)
+                    if(showPropertyCategory)
                     {
                         var stack = new List<int>();
                         int currentCount = m_graph.m_ParameterInfo.Length;
                         if (currentCount == 0)
                         {
-                            GUILayout.Label("No Parameter exposed in the asset");
+                            GUILayout.Label("No Property exposed in the Visual Effect Graph");
                         }
                         else
                         {
@@ -1172,7 +1172,7 @@ namespace UnityEditor.VFX
         {
             public static readonly GUIContent headerPlayControls =  EditorGUIUtility.TrTextContent("Play Controls");
             public static readonly GUIContent headerGeneral =       EditorGUIUtility.TrTextContent("General");
-            public static readonly GUIContent headerParameters =    EditorGUIUtility.TrTextContent("Parameters");
+            public static readonly GUIContent headerProperties =    EditorGUIUtility.TrTextContent("Properties");
             public static readonly GUIContent headerRenderer =      EditorGUIUtility.TrTextContent("Renderer");
 
             public static readonly GUIContent assetPath =           EditorGUIUtility.TrTextContent("Asset Template");

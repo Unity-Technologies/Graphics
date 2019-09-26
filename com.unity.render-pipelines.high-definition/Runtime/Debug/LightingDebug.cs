@@ -98,6 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideSmoothness
                 || overrideAlbedo
                 || overrideNormal
+                || overrideAmbientOcclusion
                 || overrideSpecularColor
                 || overrideEmissiveColor
                 || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
@@ -125,6 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 overrideAlbedo = false;
         public Color                overrideAlbedoValue = new Color(0.5f, 0.5f, 0.5f);
         public bool                 overrideNormal = false;
+        public bool                 overrideAmbientOcclusion = false;
+        public float                overrideAmbientOcclusionValue = 1.0f;
         public bool                 overrideSpecularColor = false;
         public Color                overrideSpecularColorValue = new Color(1.0f, 1.0f, 1.0f);
         public bool                 overrideEmissiveColor = false;

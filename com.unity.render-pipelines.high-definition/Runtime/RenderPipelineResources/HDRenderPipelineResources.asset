@@ -98,6 +98,8 @@ MonoBehaviour:
       type: 3}
     preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba,
       type: 3}
+    defaultRendererCustomPass: {fileID: 4800000, guid: 18cb4caffc5f88c44bf4d8f1a7841e73,
+      type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
@@ -158,7 +160,6 @@ MonoBehaviour:
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
     temporalAntialiasingPS: {fileID: 4800000, guid: d22a37b5c800a0040a87b2a58de74e13,
       type: 3}
-    CopyTAAHistoryCS: {fileID: 7200000, guid: c275ad6555b51e54599ef9f39d199907, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}
@@ -234,6 +235,15 @@ MonoBehaviour:
     owenScrambled256Tex: {fileID: 2800000, guid: 2a205358e67aa9e4a94a128ac9362f4e,
       type: 3}
     scramblingTex: {fileID: 2800000, guid: bf25cd6288e2c8d43854a61a8496a830, type: 3}
+    rankingTile1SPP: {fileID: 2800000, guid: f2fe0251f704c4c478a8063775cffedb, type: 3}
+    scramblingTile1SPP: {fileID: 2800000, guid: 6185473f62ad3e74da4acac5d482917a,
+      type: 3}
+    rankingTile8SPP: {fileID: 2800000, guid: af4bd638a4b3eb14781e6441adcdfbb9, type: 3}
+    scramblingTile8SPP: {fileID: 2800000, guid: 152f8b933250a7b448fc2d4d301b9944,
+      type: 3}
+    rankingTile256SPP: {fileID: 2800000, guid: 1e604a266c415cd46b36d97cd9220aa8, type: 3}
+    scramblingTile256SPP: {fileID: 2800000, guid: 882fb55d7b3e7c94598a318df9376e32,
+      type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

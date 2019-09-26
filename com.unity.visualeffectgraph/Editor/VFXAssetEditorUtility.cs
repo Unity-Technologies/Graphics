@@ -14,7 +14,7 @@ using UnityObject = UnityEngine.Object;
 namespace UnityEditor
 {
     [InitializeOnLoad]
-    public static class VisualEffectAssetEditorUtility
+    static class VisualEffectAssetEditorUtility
     {
         private static string m_TemplatePath = null;
 
@@ -49,6 +49,8 @@ namespace UnityEditor
             }
 
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+
+            Selection.activeObject = go;
         }
 
 

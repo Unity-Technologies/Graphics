@@ -2,15 +2,9 @@
 // - XRDisplaySubsystem from the XR SDK
 // - or the 'legacy' C++ stereo rendering path and XRSettings (will be removed in 2020.1)
 
-#if UNITY_2019_3_OR_NEWER && ENABLE_VR
-#define USE_XR_SDK
-#endif
-
 using System;
 using System.Collections.Generic;
-#if USE_XR_SDK
 using UnityEngine.XR;
-#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -19,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         None,                       // default layout
         TestComposite,              // split the  into tiles to simulate multi-pass
-        TestSinglePassOneEye,       // render only eye with single-pass instancing path
+        TestSinglePassOneEye,       // render only eye with single-pass path
     }
 
     internal class XRSystem
@@ -33,35 +27,50 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
+#if ENABLE_XR_MODULE
+        // XR SDK display interface
+        static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
+        XRDisplaySubsystem display = null;
+
         // Internal resources used by XR rendering
         Material occlusionMeshMaterial = null;
         Material mirrorViewMaterial = null;
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
-
-#if USE_XR_SDK
-        List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
-        XRDisplaySubsystem display = null;
 #endif
 
         internal XRSystem(RenderPipelineResources.ShaderResources shaders)
         {
+#if ENABLE_XR_MODULE
             RefreshXrSdk();
-            // XRTODO: replace by dynamic render graph
-            TextureXR.maxViews = GetMaxViews();
 
             if (shaders != null)
             {
                 occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(shaders.xrOcclusionMeshPS);
                 mirrorViewMaterial = CoreUtils.CreateEngineMaterial(shaders.xrMirrorViewPS);
             }
+#endif
+            // XRTODO: replace by dynamic render graph
+            TextureXR.maxViews = GetMaxViews();
         }
+
+#if ENABLE_XR_MODULE
+        // With XR SDK: disable legacy VR system before rendering first frame
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
+        internal static void XRSystemInit()
+        {
+            SubsystemManager.GetInstances(displayList);
+
+            for (int i = 0; i < displayList.Count; i++)
+                displayList[i].disableLegacyRenderer = true;
+        }
+#endif
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
         internal int GetMaxViews()
         {
             int maxViews = 1;
 
-#if USE_XR_SDK
+#if ENABLE_XR_MODULE
             if (display != null)
             {
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
@@ -90,14 +99,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool xrSdkActive = RefreshXrSdk();
 
-            // Validate state
-            Debug.Assert(framePasses.Count == 0, "XRSystem.ReleaseFrame() was not called!");
+            if (framePasses.Count > 0)
+            {
+                Debug.LogWarning("XRSystem.ReleaseFrame() was not called!");
+                ReleaseFrame();
+            }
 
             foreach (var camera in cameras)
             {
                 if (camera == null)
                     continue;
 
+#if ENABLE_VR && ENABLE_VR_MODULE
                 // Read XR SDK or legacy settings
                 bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
 
@@ -110,6 +123,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (xrEnabled && xrSupported)
                 {
+                    if (XRGraphics.renderViewportScale != 1.0f)
+                    {
+                        Debug.LogWarning("RenderViewportScale has no effect with this render pipeline. Use dynamic resolution instead.");
+                    }
+
                     if (xrSdkActive)
                     {
                         CreateLayoutFromXrSdk(camera);
@@ -120,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
                 else
+#endif
                 {
                     AddPassToFrame(camera, emptyPass);
                 }
@@ -141,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool RefreshXrSdk()
         {
-#if USE_XR_SDK
+#if ENABLE_XR_MODULE
             SubsystemManager.GetInstances(displayList);
 
             if (displayList.Count > 0)
@@ -152,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
 
-                return true;
+                return display.running;
             }
             else
             {
@@ -175,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 for (int passIndex = 0; passIndex < 2; ++passIndex)
                 {
-                    var xrPass = XRPass.Create(passIndex, cullingParams);
+                    var xrPass = XRPass.Create(multipassId: passIndex, cullingPassId: 0, cullingParams);
                     xrPass.AddView(camera, (Camera.StereoscopicEye)passIndex);
 
                     AddPassToFrame(camera, xrPass);
@@ -183,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                var xrPass = XRPass.Create(multipassId: 0, cullingParams);
+                var xrPass = XRPass.Create(multipassId: 0, cullingPassId: 0, cullingParams);
 
                 for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
                 {
@@ -194,17 +213,37 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_XR_MODULE
         void CreateLayoutFromXrSdk(Camera camera)
         {
-#if USE_XR_SDK
+            bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
+            {
+                if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
+                    return false;
+
+                if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
+                    return false;
+
+                renderPass.GetRenderParameter(camera, 0, out var renderParam0);
+                renderPass.GetRenderParameter(camera, 1, out var renderParam1);
+
+                if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
+                    return false;
+
+                if (renderParam0.viewport != renderParam1.viewport)
+                    return false;
+
+                return true;
+            }
+
             for (int renderPassIndex = 0; renderPassIndex < display.GetRenderPassCount(); ++renderPassIndex)
             {
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
-                if (CanUseInstancing(camera, renderPass))
+                if (CanUseSinglePass(renderPass))
                 {
-                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
+                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, textureArraySlice: -1, cullingParams, occlusionMeshMaterial);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
@@ -220,20 +259,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
-                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
+                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, textureArraySlice: renderParam.textureArraySlice, cullingParams, occlusionMeshMaterial);
                         xrPass.AddView(renderPass, renderParam);
 
                         AddPassToFrame(camera, xrPass);
                     }
                 }
             }
-#endif
         }
+#endif
 
         internal void Cleanup()
         {
+#if ENABLE_XR_MODULE
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
+#endif
         }
 
         internal void AddPassToFrame(Camera camera, XRPass xrPass)
@@ -241,43 +282,22 @@ namespace UnityEngine.Rendering.HighDefinition
             framePasses.Add((camera, xrPass));
         }
 
-#if USE_XR_SDK
-        bool CanUseInstancing(Camera camera, XRDisplaySubsystem.XRRenderPass renderPass)
-        {
-            if (renderPass.renderTargetDesc.dimension != TextureDimension.Tex2DArray)
-                return false;
-
-            if (renderPass.GetRenderParameterCount() != 2 || renderPass.renderTargetDesc.volumeDepth != 2)
-                return false;
-
-            renderPass.GetRenderParameter(camera, 0, out var renderParam0);
-            renderPass.GetRenderParameter(camera, 1, out var renderParam1);
-
-            if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
-                return false;
-
-            if (renderParam0.viewport != renderParam1.viewport)
-                return false;
-
-            return true;
-        }
-#endif
-
         internal void RenderMirrorView(CommandBuffer cmd)
         {
-#if USE_XR_SDK
-            if (display == null)
+#if ENABLE_XR_MODULE
+            if (display == null || !display.running)
                 return;
 
             using (new ProfilingSample(cmd, "XR Mirror View"))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
 
-                if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
+                int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
+                if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
                 {
                     if (blitDesc.nativeBlitAvailable)
                     {
-                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
+                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates, mirrorBlitMode);
                     }
                     else
                     {
@@ -294,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mirrorViewMaterialProperty.SetInt(HDShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
-                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Triangles, 3, 1, mirrorViewMaterialProperty);
+                            cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
                         }
                     }
                 }
@@ -324,9 +344,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (layoutOverride == XRLayoutOverride.TestSinglePassOneEye)
             {
-                var xrPass = XRPass.Create(framePasses.Count, cullingParams, camera.targetTexture);
+                var xrPass = XRPass.Create(multipassId: framePasses.Count, cullingPassId: 0, cullingParams, camera.targetTexture);
 
-                // 2x single-pass instancing
+                // 2x single-pass
                 for (int i = 0; i < 2; ++i)
                     xrPass.AddView(camera.projectionMatrix, camera.worldToCameraMatrix, camera.pixelRect);
 
@@ -348,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int tileX = 0; tileX < tileCountX; ++tileX)
                     {
-                        var xrPass = XRPass.Create(framePasses.Count, cullingParams, camera.targetTexture);
+                        var xrPass = XRPass.Create(multipassId: framePasses.Count, cullingPassId: 0, cullingParams, camera.targetTexture);
 
                         float spliRatioX1 = Mathf.Pow((tileX + 0.0f) / tileCountX, splitRatio);
                         float spliRatioX2 = Mathf.Pow((tileX + 1.0f) / tileCountX, splitRatio);

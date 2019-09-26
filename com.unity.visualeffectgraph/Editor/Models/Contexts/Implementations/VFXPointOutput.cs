@@ -7,7 +7,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXPointOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Point Output"; } }
+        public override string name { get { return "Output Particle Point"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePoints"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticlePointOutput; } }
 
@@ -19,6 +19,7 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 yield return "cullMode";
+                yield return "colorMapping";
             }
         }
 

@@ -43,12 +43,16 @@
 	width: 0px;
     visibility: hidden;
     flex-direction: column-reverse;
+    border-color: #232323;
+    border-left-width: 1px;
 }
 
 #debugContainer
 {
 	width: 0px;
     visibility: hidden;
+    border-color: #232323;
+    border-left-width: 1px;
 }
 
 #environmentContainer > EnvironmentElement
@@ -59,7 +63,7 @@
 
 .showEnvironmentPanel > #environmentContainer
 {
-	width: 250px; /*219px;*/
+	width: 249px;
     visibility: visible;
 }
 
@@ -109,6 +113,32 @@
     -unity-text-align: middle-center;
 }
 
+#environmentListCreationToolbar > ObjectField > Label
+{
+    min-width: 60px;
+    width: 60px;
+}
+
+#environmentListCreationToolbar > ToolbarButton
+{
+    min-width: 40px;
+    width: 40px;
+    flex: 0;
+    border-left-width: 1px;
+    border-right-width: 0px;
+    margin-right: -1px;
+}
+
+ObjectFieldDisplay > Label
+{
+    -unity-text-align: middle-left;
+}
+
+ObjectFieldDisplay > Image
+{
+    min-width: 12px;
+}
+
 ToolbarButton
 {
     border-left-width: 0px;
@@ -122,14 +152,19 @@ ToolbarButton
     min-width: 20px;
     -unity-text-align: middle-center;
     background-color: #3c3c3c;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.list-environment-overlay > ToolbarButton:hover
+{
+    background-color: #585858;
 }
 
 .list-environment-overlay > #duplicate
 {
     border-right-width: 0px;
 }
-
-
 
 Image.unity-list-view__item
 {
@@ -186,7 +221,7 @@ Image.unity-list-view__item:selected
 #separator
 {
     flex: 1;
-    width: 190px;
+    width: 188px;
     border-bottom-width: 1px;
     border-color: #232323;
     height: 0;
@@ -202,6 +237,61 @@ Image.unity-list-view__item:selected
     margin-right: 1px;
 }
 
+#sunToBrightestButton:hover
+{
+    background-color: #585858;
+}
+
+/* /////// */
+/* /DEBUG/ */
+/* /////// */
+
+MultipleDifferentValue
+{
+    -unity-font-style: bold;
+    font-size: 15px;
+    -unity-text-align: middle-center;
+    margin-bottom: 2px;
+    height: 15px;
+}
+
+MultipleSourcePopupField > MultipleDifferentValue
+{
+    -unity-text-align: middle-left;
+    width: 120px;
+    background-color: #515151;
+    position: absolute;
+    left: 103px;
+    bottom: 1px;
+}
+
+MultipleSourcePopupField > MultipleDifferentValue:hover
+{
+    background-color: #585858;
+}
+
+#debugToolbar
+{
+    margin-top: 16px;
+    margin-bottom: 16px;
+    flex-direction: row;
+    align-self: center;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-color: #232323;
+}
+
+#debugToolbar > ToolbarToggle
+{
+    width: 40px;
+    left: 0px;
+}
+
+#debugToolbar > ToolbarToggle > *
+{
+    justify-content: center;
+}
+
 /* /////// */
 /* TOOLBAR */
 /* /////// */
@@ -211,7 +301,7 @@ Image.unity-list-view__item:selected
     flex-direction: row;
 }
 
-#toolbar > #toolbarRadio
+#toolbarRadio
 {
     flex-direction: row;
 }
@@ -221,24 +311,25 @@ Image.unity-list-view__item:selected
     padding: 2px;
 }
 
-#toolbar > * > .unity-label
+#tabsRadio 
 {
-    padding-top: 3px;
-    padding-bottom: 0px;
-    min-width: 30px;
-}
-
-#sideToolbar
-{
-    width: 249px;
-}
-
-#sideToolbar > #tabsRadio
-{
-    min-width: auto;
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
     flex: 1;
     flex-direction: row;
     -unity-text-align: middle-center;
+}
+
+#tabsRadio > ToolbarToggle
+{
+    flex: 1;
+    left: 0px;
+}
+
+#tabsRadio > ToolbarToggle > * > Label
+{
+    flex: 1;
 }
 
 .unity-toolbar-toggle
@@ -259,18 +350,21 @@ Image.unity-list-view__item:selected
     max-width: 80px;
     flex-shrink: 0;
     min-width: 24px;
+    border-left-width: 1px;
 }
 
 #renderdoc-content > Label
 {
     -unity-text-align: middle-left;
     min-width: 0px;
+    padding-top: 0px;
 }
 
 #renderdoc-content > Image
 {
     flex-shrink: 0;
     min-width: 16px;
+    min-height: 16px;
 }
 
 #cameraMenu
@@ -309,17 +403,4 @@ Image.unity-list-view__item:selected
 #cursorFollower
 {
     position: absolute;
-}
-
-
-
-/* TEST UNDER THIS LINE */
-#firstView
-{
-    background-color: rgb(255, 0, 0);
-}
-
-#secondView
-{
-    background-color: rgb(0, 255, 0);
 }

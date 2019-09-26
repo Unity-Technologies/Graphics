@@ -1,0 +1,6 @@
+{
+	"displayName":"Procedural Patterns Subgraph Examples",
+	"interactiveImport": "false",
+	"description":"This collection of subgraphs showcases various procedural techniques possible with shadergraph. Use them in your project or edit them to create other procedural pattens. Subgraph patterns: Bacteria, Brick, Dots, Grid, Herringbone, Hex Lattice, Houndstooth, Smooth Wave, Spiral, Stripes, Truchet, Whirl, Zig Zag",
+	"createSeparatePackage": true
+}

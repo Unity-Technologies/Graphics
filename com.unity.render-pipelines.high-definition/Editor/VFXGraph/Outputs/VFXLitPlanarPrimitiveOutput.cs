@@ -8,10 +8,10 @@ namespace UnityEditor.VFX
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
     class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Lit " + primitiveType.ToString() + " Output"; } }
+        public override string name { get { return "Output Particle Lit " + primitiveType.ToString(); } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
-        public override bool supportsUV { get { return true; } }
+        public override bool supportsUV { get { return shaderGraph == null; } }
         public sealed override bool implementsMotionVector { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

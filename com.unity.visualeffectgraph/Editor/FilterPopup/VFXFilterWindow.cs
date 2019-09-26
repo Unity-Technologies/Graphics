@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.VFX.UI
 {
     [InitializeOnLoad]
-    public class VFXFilterWindow : EditorWindow
+    class VFXFilterWindow : EditorWindow
     {
         public interface IProvider
         {
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
             Vector2 position { get; set; }
         }
 
-        public static readonly float DefaultWidth = 240f;
+        public static readonly float DefaultWidth = 300f;
         public static readonly float DefaultHeight = 300f;
 
         #region BaseElements
@@ -685,7 +685,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public struct DisabledScope : IDisposable
+    struct DisabledScope : IDisposable
     {
         private static Stack<bool> s_EnabledStack = new Stack<bool>();
         bool m_Disposed;

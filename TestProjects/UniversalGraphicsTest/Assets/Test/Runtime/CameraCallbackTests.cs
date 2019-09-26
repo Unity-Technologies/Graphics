@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal.Internal;
 
 [CreateAssetMenu]
 public class CameraCallbackTests : ScriptableRendererFeature
@@ -28,8 +29,12 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	}
 
 	public override void Create()
-	{
-		ForwardRendererData data = UniversalRenderPipeline.asset.m_RendererData as ForwardRendererData;
+    {
+        ForwardRendererData data = null;
+        if(UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
+		    data = UniversalRenderPipeline.asset.m_RendererDataList[0] as ForwardRendererData;
+		if (data == null)
+			return;
 		var shader = data.shaders.samplingPS;
 		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shader);
 	}

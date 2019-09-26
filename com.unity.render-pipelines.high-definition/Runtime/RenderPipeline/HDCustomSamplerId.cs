@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderShadowMaps,
         ScreenSpaceShadows,
         BuildLightList,
+        ContactShadows,
         BlitToFinalRT,
         Distortion,
         ApplyDistortion,
@@ -114,6 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        CustomPostProcessBeforePP,
+        CustomPostProcessAfterPP,
+        CustomPostProcessBeforeTransparent,
 
         Max
     }

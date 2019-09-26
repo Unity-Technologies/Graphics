@@ -22,7 +22,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = uint2(0, 0);
+    posInput.positionSS = rayIntersection.pixelCoord;
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
@@ -30,7 +30,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
 
     // If this fella is not opaque, then we ignore this hit
-    if(!isVisible)
+    if (!isVisible)
     {
         IgnoreHit();
     }
