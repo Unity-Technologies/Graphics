@@ -325,6 +325,8 @@ namespace UnityEditor.ShaderGraph
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
             spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlack());
+
+            //generate packed struct descriptors when interpolator pack is true 
             
             // Generated String Builders for all struct types 
             using (var passStructBuilder = new ShaderStringBuilder())
@@ -338,15 +340,21 @@ namespace UnityEditor.ShaderGraph
                         {
                             foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
                             {
+                                //permutation check for active valid fields
+                                //else just find active fields 
+
                                 if(!fields.Contains(subscript) && subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional))
                                     continue; //skip non-active optional subscripts
                                 
+                                //if field is active: 
                                 if(subscript.hasPreprocessor())
                                 {
                                     passStructBuilder.AppendLine($"#if {subscript.preprocessor}");
                                 }
+                                //if in permutation, add permutation ifdef
                                 string semantic = subscript.hasSemantic() ? $" : {subscript.semantic}" : string.Empty;
                                 passStructBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
+                                //if in permutation, add permutation endif
                                 if(subscript.hasPreprocessor())
                                 {
                                     passStructBuilder.AppendLine("#endif");
