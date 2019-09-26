@@ -76,8 +76,10 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
+    float linDepth = IsPerspectiveProjection() ? input.positionSS.w : dot(input.positionRWS.xyz, GetViewForwardDir());
+
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, linDepth, input.positionRWS);
 
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
