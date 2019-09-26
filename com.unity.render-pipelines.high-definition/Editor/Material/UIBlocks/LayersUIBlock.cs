@@ -14,11 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public static readonly GUIContent materialToCopyHeader = EditorGUIUtility.TrTextContent("Material to copy");
-            public static readonly GUIContent layerNameHeader = EditorGUIUtility.TrTextContent("Layer name");
-            public static readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also copy UV.");
-            public static readonly GUIContent copyButtonIcon = EditorGUIUtility.IconContent("d_UnityEditor.ConsoleWindow", "Copy Material parameters to layer. If UV is disabled, this will not copy UV.");
-
             public static readonly string[] headers =
             {
                 "Main layer",
@@ -80,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
             {
-                using (var header = new MaterialHeaderScope(Styles.headers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor))
+                using (var header = new MaterialHeaderScope(Styles.headers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor, colorDot: kLayerColors[layerIndex]))
                 {
                     if (header.expanded)
                     {
