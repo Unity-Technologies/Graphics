@@ -16,12 +16,6 @@ namespace UnityEditor.Rendering.Universal
     [FormerName("UnityEditor.Rendering.LWRP.LightWeightPBRSubShader")]
     class UniversalPBRSubShader : ISubShader
     {
-        bool GenerateShaderPass(PBRMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
-        {
-            return ShaderGraph.GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, result, sourceAssetDependencyPaths,
-                UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
-        }
-
         public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
@@ -31,24 +25,32 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Master Node data
-            var pbrMasterNode = outputNode as PBRMasterNode;
-            var universalMeshTarget = target as UniversalMeshTarget;
+            var masterNode = outputNode as PBRMasterNode;
             var subShader = new ShaderGenerator();
 
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
             {
-                var surfaceTags = ShaderGenerator.BuildMaterialTags(pbrMasterNode.surfaceType);
+                var surfaceTags = ShaderGenerator.BuildMaterialTags(masterNode.surfaceType);
                 var tagsBuilder = new ShaderStringBuilder(0);
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
-                
-                GenerateShaderPass(pbrMasterNode, target, UniversalMeshTarget.Passes.Forward, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(pbrMasterNode, target, UniversalMeshTarget.Passes.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(pbrMasterNode, target, UniversalMeshTarget.Passes.DepthOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(pbrMasterNode, target, UniversalMeshTarget.Passes.Meta, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(pbrMasterNode, target, UniversalMeshTarget.Passes._2D, mode, subShader, sourceAssetDependencyPaths);
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Forward, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.DepthOnly, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Meta, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes._2D, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
