@@ -121,6 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool oldDisplayAreaLightEmissiveMesh;
         public float oldLightColorTemperature;
         public float oldIntensity;
+        public bool lightEnabled;
     }
 
 
@@ -1456,9 +1457,36 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (m_Light == null)
-                    m_Light = GetComponent<Light>();
+                TryGetComponent<Light>(out m_Light);
                 return m_Light;
+            }
+        }
+        
+        MeshRenderer m_EmissiveMeshRenderer;
+        internal MeshRenderer emissiveMeshRenderer
+        {
+            get
+            {
+                if (m_EmissiveMeshRenderer == null)
+                {
+                    TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
+                }
+                
+                return m_EmissiveMeshRenderer;
+            }
+        }
+
+        MeshFilter m_EmissiveMeshFilter;
+        internal MeshFilter emissiveMeshFilter
+        {
+            get
+            {
+                if (m_EmissiveMeshFilter == null)
+                {
+                    TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
+                }
+                
+                return m_EmissiveMeshFilter;
             }
         }
 
@@ -1477,9 +1505,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DisableCachedShadowSlot();
         }
+
         void OnDisable()
         {
             DisableCachedShadowSlot();
+            SetEmissiveMeshRendererEnabled(false);
+        }
+
+        void SetEmissiveMeshRendererEnabled(bool enabled)
+        {
+            if (displayAreaLightEmissiveMesh && emissiveMeshRenderer)
+            {
+                emissiveMeshRenderer.enabled = enabled;
+            }
         }
 
         int GetShadowRequestCount()
@@ -1985,6 +2023,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
 
+            if (legacyLight.enabled != timelineWorkaround.lightEnabled)
+            {
+                SetEmissiveMeshRendererEnabled(legacyLight.enabled);
+                timelineWorkaround.lightEnabled = legacyLight.enabled;
+            }
+
             // Check if the intensity have been changed by the inspector or an animator
             if (timelineWorkaround.oldLossyScale != transform.lossyScale
                 || intensity != timelineWorkaround.oldIntensity
@@ -2216,18 +2260,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAreaLightEmissiveMesh()
         {
-            MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
-            MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
-
             bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
             {
                 if (emissiveMeshRenderer == null)
-                    emissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
+                    m_EmissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
                 if (emissiveMeshFilter == null)
-                    emissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
+                    m_EmissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
             }
             else // Or remove them if the option is disabled
             {
