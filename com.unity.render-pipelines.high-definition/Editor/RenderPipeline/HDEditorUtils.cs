@@ -258,26 +258,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         /// <summary>Provide a specific property drawer for LightLayer (without label)</summary>
         /// <param name="rect">The rect where to draw</param>
-        /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        internal static void LightLayerMaskPropertyDrawer(Rect rect, SerializedProperty property)
+        /// <param name="value">The value to display (representing an int that should be displayed as a LightLayer)</param>
+        /// <return> The value after modification</return>
+        internal static int LightLayerMaskPropertyDrawer(Rect rect, int value)
         {
-            var renderingLayerMask = property.intValue;
-            int lightLayer;
-            if (property.hasMultipleDifferentValues)
-            {
-                EditorGUI.showMixedValue = true;
-                lightLayer = 0;
-            }
-            else
-                lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+            int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
             EditorGUI.BeginChangeCheck();
             lightLayer = System.Convert.ToInt32(EditorGUI.EnumFlagsField(rect, (LightLayerEnum)lightLayer));
             if (EditorGUI.EndChangeCheck())
             {
-                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                property.intValue = lightLayer;
+                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
             }
-            EditorGUI.showMixedValue = false;
+            return lightLayer;
         }
     }
 
