@@ -425,8 +425,8 @@ void RayGenShadowSegmentSingle()
     if (rayDistance < 0.0)
     {
         // Read the previous value and add one
-        float previousValue = _RaytracedDirectionalShadowIntegration[currentPixelCoord];
-        _RaytracedDirectionalShadowIntegration[currentPixelCoord] = previousValue + 1.0 / (float)_RaytracingNumSamples;
+        float previousValue = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+        _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
         return;
     }
 
