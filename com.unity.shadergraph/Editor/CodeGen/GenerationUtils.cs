@@ -264,7 +264,7 @@ namespace UnityEditor.ShaderGraph
                             packBuilder.AppendLine($"#if {subscript.preprocessor}");
                             unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
                         }
-                        if(subscript.hasSemantic())// || floatVectorCount == 0)//TODO: actually get proper vector count for each item 
+                        if(subscript.hasSemantic() || vectorCount == 0)
                         {
                             packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
                             unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
@@ -885,11 +885,11 @@ namespace UnityEditor.ShaderGraph
                     // find all dependencies of field that are not already active
                     foreach (FieldDependency[] dependArray in dependsList)
                     {
-                        foreach (FieldDependency d in dependArray.Where(d => ($"{d.field.tag}.{d.field.name}" == field) && !activeFields.Contains($"{d.dependsOn.tag}.{d.dependsOn.name}")))
+                        foreach (FieldDependency d in dependArray.Where(d => (d.field.ToFieldString() == field) && !activeFields.Contains(d.dependsOn.ToFieldString())))
                         {
                             // activate them and add them to the queue
-                            activeFields.Add($"{d.dependsOn.tag}.{d.dependsOn.name}");
-                            fieldsToPropagate.Enqueue($"{d.dependsOn.tag}.{d.dependsOn.name}");
+                            activeFields.Add(d.dependsOn.ToFieldString());
+                            fieldsToPropagate.Enqueue(d.dependsOn.ToFieldString());
                         }
                     }
                 }
