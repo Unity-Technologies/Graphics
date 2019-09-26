@@ -669,14 +669,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 #if ENABLE_RAYTRACING
-                if(LightShape.Rectangle == serialized.editorLightShape || LightShape.Point == serialized.editorLightShape)
+                var spotLightShape = (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex;
+                if (LightShape.Rectangle == serialized.editorLightShape || LightShape.Point == serialized.editorLightShape || (LightShape.Spot == serialized.editorLightShape && SpotLightShape.Cone == spotLightShape))
                 {
                     EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
                     if(serialized.serializedLightData.useRayTracedShadows.boolValue)
                     {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
-                        if (LightShape.Point == serialized.editorLightShape)
+                        if (LightShape.Point == serialized.editorLightShape || (LightShape.Spot == serialized.editorLightShape && SpotLightShape.Cone == spotLightShape))
                         {
                             EditorGUILayout.PropertyField(serialized.serializedLightData.lightShadowRadius, s_Styles.lightShadowRadius);
                             serialized.serializedLightData.lightShadowRadius.floatValue = Mathf.Max(serialized.serializedLightData.lightShadowRadius.floatValue, 0.001f);

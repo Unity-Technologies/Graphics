@@ -621,6 +621,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AnalyticHistoryBuffer           = Shader.PropertyToID("_AnalyticHistoryBuffer");
         public static readonly int _RaytracingLightRadius           = Shader.PropertyToID("_RaytracingLightRadius");
 
+        public static readonly int _RaytracingSpotAngle             = Shader.PropertyToID("_RaytracingSpotAngle");
         public static readonly int _RaytracedDirectionalShadowIntegration = Shader.PropertyToID("_RaytracedDirectionalShadowIntegration");
         public static readonly int _DirectionalLightAngle            = Shader.PropertyToID("_DirectionalLightAngle");
 

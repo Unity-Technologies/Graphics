@@ -1541,7 +1541,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRenderPipeline.EvaluateGPULightType(legacyLight.type, lightTypeExtent, spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
             // Flag the ray tracing only shadows
-            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point))
+            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone)))
             {
                 m_WillRenderScreenSpaceShadow = true;
                 m_WillRenderRayTracedShadow = true;
