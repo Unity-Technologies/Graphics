@@ -847,30 +847,56 @@ namespace UnityEditor.VFX.UI
 
         Action FocusParticleSystem(string systemName)
         {
-            var systems = m_View.systems;
+            var visibleSystems = m_View.systems;
 
-            foreach (var system in systems)
+            Func<Experimental.GraphView.GraphElement, Action> focus = (elt) =>
+            {
+                return () =>
+                {
+                    Rect rectToFit = elt.GetPosition();
+                    var frameTranslation = Vector3.zero;
+                    var frameScaling = Vector3.one;
+
+                    if (rectToFit.width <= 50 || rectToFit.height <= 50)
+                    {
+                        return;
+                    }
+
+                    VFXView.CalculateFrameTransform(rectToFit, m_View.layout, 30, out frameTranslation, out frameScaling);
+                    Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
+                    m_View.UpdateViewTransform(frameTranslation, frameScaling);
+                    m_View.contentViewContainer.MarkDirtyRepaint();
+                };
+            };
+
+            foreach (var system in visibleSystems)
             {
                 if (system.controller.title == systemName)
                 {
-                    return () =>
-                    {
-                        Rect rectToFit = system.GetPosition();
-                        var frameTranslation = Vector3.zero;
-                        var frameScaling = Vector3.one;
-
-                        if (rectToFit.width <= 50 || rectToFit.height <= 50)
-                        {
-                            return;
-                        }
-
-                        VFXView.CalculateFrameTransform(rectToFit, m_View.layout, 30, out frameTranslation, out frameScaling);
-                        Matrix4x4.TRS(frameTranslation, Quaternion.identity, frameScaling);
-                        m_View.UpdateViewTransform(frameTranslation, frameScaling);
-                        m_View.contentViewContainer.MarkDirtyRepaint();
-                    };
+                    return focus(system);
                 }
             }
+
+            var subgraphs = m_View.GetAllContexts().Where(c => c.controller.model.contextType == VFXContextType.Subgraph);            
+
+            var models = new HashSet<ScriptableObject>();
+            foreach (var subgraph in subgraphs)
+            {
+                models.Clear();
+                subgraph.controller.model.CollectDependencies(models, false);
+                var subSystems = models.OfType<VFXContext>()
+                    .Where(c => c.contextType == VFXContextType.Spawner || c.GetData() != null)
+                    .Select(c => c.contextType == VFXContextType.Spawner ? c as VFXModel : c.GetData())
+                    .Distinct().ToList();
+                foreach (var subSystem in subSystems)
+                {
+                    if (m_View.controller.graph.systemNames.GetUniqueSystemName(subSystem) == systemName)
+                    {
+                        return focus(subgraph);
+                    }
+                }
+            }
+
             return () => { };
         }
 
