@@ -43,8 +43,8 @@ namespace UnityEditor.VFX
 
             }
 
-            if (!(model is VFXSubgraphContext))
-                Debug.LogError("model not associated to a system.");
+            //if (!(model is VFXSubgraphContext))
+            //    Debug.LogError("model not associated to a system.");
             return null;
         }
 
@@ -78,8 +78,8 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (!(model is VFXSubgraphContext))
-                Debug.LogError("model not associated to a system.");
+            //if (!(model is VFXSubgraphContext))
+            //    Debug.LogError("model not associated to a system.");
         }
 
         private static string GetSystemUnindexedName(VFXModel model)
