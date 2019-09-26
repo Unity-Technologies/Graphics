@@ -188,7 +188,7 @@ namespace UnityEditor.VFX.UI
                 };
             }
 
-            static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
+            private static readonly Func<Box, Rect> k_BoxWorldclip = GetWorldClipRect();
 
             public CurveContent(VFXUIDebug debugUI, int maxPoints, long timeBetweenDraw = 33)
             {
@@ -607,7 +607,8 @@ namespace UnityEditor.VFX.UI
 
         void None()
         {
-            m_DebugButton.text = "Debug modes";
+            if (m_DebugButton != null)
+                m_DebugButton.text = "Debug modes";
         }
 
         void Efficiency()

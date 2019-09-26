@@ -158,9 +158,6 @@ namespace UnityEditor.VFX.UI
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
-            m_DebugUI = new VFXUIDebug(m_View);
-            m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
-
             m_AttachButton = this.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;
 
@@ -407,7 +404,9 @@ namespace UnityEditor.VFX.UI
                 m_EventsContainer.Clear();
             m_Events.Clear();
             m_SelectButton.visible = false;
-            m_DebugUI.Clear();
+            if (m_DebugUI != null)
+                m_DebugUI.Clear();
+
         }
 
         public void Attach(VisualEffect effect = null)
@@ -430,6 +429,7 @@ namespace UnityEditor.VFX.UI
                 m_SelectButton.visible = true;
 
                 m_DebugUI = new VFXUIDebug(m_View);
+                m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
                 m_DebugUI.SetVisualEffect(m_AttachedComponent);
             }
         }
