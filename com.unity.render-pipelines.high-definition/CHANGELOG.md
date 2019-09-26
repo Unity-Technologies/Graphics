@@ -6,13 +6,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.3] - 2019-09-XX
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [7.1.2] - 2019-09-19
-
 ### Added
 - Ray tracing support for VR single-pass
+
+### Fixed
+- Fixed light supported units caching (1182266)
+- Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
+- Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
+- Fixed Decal gizmo that become white after exiting play mode
+- Fixed Decal pivot position to behave like a spotlight
+- Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
+- Fix DebugMenu FrameSettingsHistory persistency on close
+- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
+- Fix DXR scene serialization in wizard
+- Fixed an issue where Previews would reallocate History Buffers every frame
+
+### Changed
+- Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
+
+## [7.1.2] - 2019-09-19
 
 ### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
@@ -34,19 +46,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed rendering issues with material previews
 - Fixed NPE when using light module in Shuriken particle systems (1173348).
 - Refresh cached shadow on editor changes
-- Fixed light supported units caching (1182266)
-- Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
-- Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
-- Fixed Decal gizmo that become white after exiting play mode
-- Fixed Decal pivot position to behave like a spotlight
-- Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
-- Fix DebugMenu FrameSettingsHistory persistency on close
-- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
-- Fix DXR scene serialization in wizard
-- Fixed an issue where Previews would reallocate History Buffers every frame
-
-### Changed
-- Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
 
 ## [7.1.1] - 2019-09-05
 
