@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void NewFrame()
             {
+                areaLightCookieManager.NewFrame();
                 cookieTexArray.NewFrame();
                 cubeCookieTexArray.NewFrame();
                 reflectionProbeCache.NewFrame();
