@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
         GBufferPass m_GBufferPass;
         CopyDepthPass m_CopyDepthPass;
         TileDepthRangePass m_TileDepthRangePass;
+        TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DeferredPass m_DeferredPass;
         FinalBlitPass m_FinalBlitPass;
@@ -24,7 +25,8 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
-        RenderTargetHandle m_TileDepthRangeTexture;
+        RenderTargetHandle m_DepthInfoTexture;
+        RenderTargetHandle m_TileDepthInfoTexture;
 
         StencilState m_DefaultStencilState;
 
@@ -56,7 +58,8 @@ namespace UnityEngine.Rendering.Universal
 //            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, copyDepthMaterial);
-            m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights);
+            m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
+            m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 3, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingSkybox, RenderQueueRange.opaque, m_DeferredLights);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
@@ -70,7 +73,8 @@ namespace UnityEngine.Rendering.Universal
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
             m_ColorGradingLut.Init("_InternalGradingLut");
-            m_TileDepthRangeTexture.Init("_TileDepthRangeTexture");
+            m_DepthInfoTexture.Init("_DepthInfoTexture");
+            m_TileDepthInfoTexture.Init("_TileDepthInfoTexture");
         }
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -121,10 +125,12 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);
             EnqueuePass(m_CopyDepthPass);
 
-            m_DeferredLights.Setup(ref renderingData, m_DepthCopyTexture, m_TileDepthRangeTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
+            m_DeferredLights.Setup(ref renderingData, m_DepthCopyTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
             if (m_DeferredLights.HasTileLights())
             {
                 EnqueuePass(m_TileDepthRangePass);
+                if (m_DeferredLights.HasTileDepthRangeExtraPass())
+                    EnqueuePass(m_TileDepthRangeExtraPass);
             }
 
             EnqueuePass(m_DeferredPass);

@@ -8,28 +8,48 @@ namespace UnityEngine.Rendering.Universal.Internal
     internal class TileDepthRangePass : ScriptableRenderPass
     {
         DeferredLights m_DeferredLights;
+        int m_PassIndex = 0;
 
-        public TileDepthRangePass(RenderPassEvent evt, DeferredLights deferredLights)
+        public TileDepthRangePass(RenderPassEvent evt, DeferredLights deferredLights, int passIndex)
         {
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
+            m_PassIndex = passIndex;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            int tileDepthRangeWidth = m_DeferredLights.GetTiler(0).GetTileXCount();
-            int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).GetTileYCount();
-            RenderTargetHandle tileDepthRangeTexture = m_DeferredLights.m_TileDepthRangeTexture;
+            RenderTargetHandle outputTex;
+            RenderTextureDescriptor desc;
 
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
-            cmd.GetTemporaryRT(tileDepthRangeTexture.id, desc, FilterMode.Point);
-            base.ConfigureTarget(tileDepthRangeTexture.Identifier());
+            if (m_PassIndex == 0 && m_DeferredLights.HasTileDepthRangeExtraPass())
+            {
+                int alignment = 1 << DeferredConfig.kTileDepthInfoIntermediateLevel;
+                int depthInfoWidth = (m_DeferredLights.m_RenderWidth + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+                int depthInfoHeight = (m_DeferredLights.m_RenderHeight + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+
+                outputTex = m_DeferredLights.m_DepthInfoTexture;
+                desc = new RenderTextureDescriptor(depthInfoWidth, depthInfoHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
+            }
+            else
+            {
+                int tileDepthRangeWidth = m_DeferredLights.GetTiler(0).GetTileXCount();
+                int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).GetTileYCount();
+
+                outputTex = m_DeferredLights.m_TileDepthInfoTexture;
+                desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
+            }
+            cmd.GetTemporaryRT(outputTex.id, desc, FilterMode.Point);
+            base.ConfigureTarget(outputTex.Identifier());
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            m_DeferredLights.ExecuteTileDepthRangePass(context, ref renderingData);
+            if (m_PassIndex == 0)
+                m_DeferredLights.ExecuteTileDepthInfoPass(context, ref renderingData);
+            else
+                m_DeferredLights.ExecuteDownsampleBitmaskPass(context, ref renderingData);
         }
 
         /// <inheritdoc/>
@@ -38,8 +58,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(m_DeferredLights.m_TileDepthRangeTexture.id);
-            m_DeferredLights.m_TileDepthRangeTexture = RenderTargetHandle.CameraTarget;
+            cmd.ReleaseTemporaryRT(m_DeferredLights.m_TileDepthInfoTexture.id);
+            m_DeferredLights.m_TileDepthInfoTexture = RenderTargetHandle.CameraTarget;
         }
     }
 }

@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
     internal class DeferredTiler
     {
         // Precomputed light data
-        public struct PrePointLight
+        internal struct PrePointLight
         {
             // view-space position.
             public Vector3 vsPos;
@@ -291,9 +291,20 @@ namespace UnityEngine.Rendering.Universal
                         bitMask |= (uint)(((1ul << bitCount) - 1) << firstBit);
                     }
 
+                    // As listMinDepth and listMaxDepth are used to calculate the geometry 2.5D bitmask,
+                    // we can optimize the shader execution (TileDepthInfo.shader) by refactoring the calculation.
+                    //   int bitIndex = 32.0h * (geoDepth - listMinDepth) / (listMaxDepth - listMinDepth);
+                    // Equivalent to:
+                    //   a =                 32.0 / (listMaxDepth - listMinDepth)
+                    //   b = -listMinDepth * 32.0 / (listMaxDepth - listMinDepth)
+                    //   int bitIndex = geoDepth * a + b;
+                    //
+                    float a = 32.0f / (listMaxDepth - listMinDepth);
+                    float b = -listMinDepth * a;
+
                     m_Tiles[tileOffset] = tileLightCount;
-                    m_Tiles[tileOffset + 1] = Mathf.FloatToHalf(listMinDepth);
-                    m_Tiles[tileOffset + 2] = Mathf.FloatToHalf(listMaxDepth);
+                    m_Tiles[tileOffset + 1] = Mathf.FloatToHalf(a);
+                    m_Tiles[tileOffset + 2] = Mathf.FloatToHalf(b);
                     m_Tiles[tileOffset + 3] = (ushort)(bitMask & 0xFFFF);
                     m_Tiles[tileOffset + 4] = (ushort)((bitMask >> 16) & 0xFFFF);
                 }

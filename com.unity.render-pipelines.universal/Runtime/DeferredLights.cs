@@ -1,8 +1,9 @@
 using UnityEngine.Profiling;
 using Unity.Collections;
 
-// cleanup code
-// RelLightIndices should be stored in ushort instead of uint.
+// TODO use subpass API to hide extra TileDepthPass
+// TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
+// TODO RelLightIndices should be stored in ushort instead of uint.
 // TODO use Unity.Mathematics
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
 // TODO Align() function duplicated. Is there an Unity function for that?
@@ -12,6 +13,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Customization per platform.
     static class DeferredConfig
     {
+        // Keep in sync with shader define USE_CBUFFER_FOR_DEPTHRANGE
         // Keep in sync with shader define USE_CBUFFER_FOR_TILELIST
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTDATA
         // Keep in sync with shader define USE_CBUFFER_FOR_LIGHTLIST
@@ -38,7 +40,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Levels of hierachical tiling. Each level process 4x4 finer tiles.
         public const int kTilerDepth = 3;
 
-         public const int kMaxLightPerTile = 31;
+        public const int kMaxLightPerTile = 31;
+
+        // On platforms where the tile dimensions is large (16x16), it may be faster to generate tileDepthInfo texture
+        // with an intermediate mip level, as this allows spawning more pixel shaders (avoid GPU starvation).
+        // Set to -1 to disable.
+        #if UNITY_SWITCH
+        public const int kTileDepthInfoIntermediateLevel = 1;
+        #else
+        public const int kTileDepthInfoIntermediateLevel = -1;
+        #endif
 
 #if !UNITY_EDITOR && UNITY_SWITCH
         public const bool kHasNativeQuadSupport = true;
@@ -52,13 +63,22 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         static class ShaderConstants
         {
-            public static readonly string TILE_SIZE_8 = "TILE_SIZE_8";
-            public static readonly string TILE_SIZE_16 = "TILE_SIZE_16";
+            public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
+            public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
+            public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
+            public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
+            public static readonly int _DownsamplePixelWidth = Shader.PropertyToID("_DownsamplePixelWidth");
+            public static readonly int _DownsamplePixelHeight = Shader.PropertyToID("_DownsamplePixelHeight");
+            public static readonly int _SourceShiftX = Shader.PropertyToID("_SourceShiftX");
+            public static readonly int _SourceShiftY = Shader.PropertyToID("_SourceShiftY");
+            public static readonly int _TileShiftX = Shader.PropertyToID("_TileShiftX");
+            public static readonly int _TileShiftY = Shader.PropertyToID("_TileShiftY");
             public static readonly int _tileXCount = Shader.PropertyToID("_tileXCount");
             public static readonly int _DepthRangeOffset = Shader.PropertyToID("_DepthRangeOffset");
+            public static readonly int _BitmaskTex = Shader.PropertyToID("_BitmaskTex");
             public static readonly int UTileList = Shader.PropertyToID("UTileList");
             public static readonly int _TileList = Shader.PropertyToID("_TileList");
             public static readonly int UPointLightBuffer = Shader.PropertyToID("UPointLightBuffer");
@@ -90,16 +110,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         const string k_DeferredPass = "Deferred Pass";
-        const string k_TileDepthRange = "Tile Depth Range";
+        const string k_TileDepthInfo = "Tile Depth Info";
         const string k_TiledDeferredPass = "Tile-Based Deferred Shading";
         const string k_StencilDeferredPass = "Stencil Deferred Shading";
 
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point lights without shadows) - false: use StencilDeferred.shader for all lights
 
         // Cached.
-        int m_RenderWidth = 0;
+        internal int m_RenderWidth = 0;
         // Cached.
-        int m_RenderHeight = 0;
+        internal int m_RenderHeight = 0;
         // Cached.
         Matrix4x4 m_CachedProjectionMatrix;
 
@@ -136,8 +156,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTargetHandle m_DepthTexture;
         //
         internal RenderTargetHandle m_DepthCopyTexture;
-        // Per-tile depth range texture.
-        internal RenderTargetHandle m_TileDepthRangeTexture;
+        // Intermediate depth info texture.
+        internal RenderTargetHandle m_DepthInfoTexture;
+        // Per-tile depth info texture.
+        internal RenderTargetHandle m_TileDepthInfoTexture;
 
         public DeferredLights(Material tileDepthInfoMaterial, Material tileDeferredMaterial, Material stencilDeferredMaterial)
         {
@@ -278,15 +300,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             prePointLights.Dispose();
         }
 
-        public bool HasTileLights()
-        {
-            return m_HasTileVisLights;
-        }
-
-        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthCopyTexture, RenderTargetHandle tileDepthRangeTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
+        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthCopyTexture, RenderTargetHandle depthInfoTexture, RenderTargetHandle tileDepthInfoTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
         {
             m_DepthCopyTexture = depthCopyTexture;
-            m_TileDepthRangeTexture = tileDepthRangeTexture;
+            m_DepthInfoTexture = depthInfoTexture;
+            m_TileDepthInfoTexture = tileDepthInfoTexture;
             m_LightingTexture = lightingTexture;
             m_DepthTexture = depthTexture;
 
@@ -302,19 +320,29 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_stencilVisLights.Dispose();
         }
 
-        public void ExecuteTileDepthRangePass(ScriptableRenderContext context, ref RenderingData renderingData)
+        public bool HasTileLights()
         {
-            if (m_TileDeferredMaterial == null)
+            return m_HasTileVisLights;
+        }
+
+        public bool HasTileDepthRangeExtraPass()
+        {
+            DeferredTiler tiler = m_Tilers[0];
+            int tilePixelWidth = tiler.GetTilePixelWidth();
+            int tilePixelHeight = tiler.GetTilePixelHeight();
+            int tileMipLevel = (int)Mathf.Log(Mathf.Min(tilePixelWidth, tilePixelHeight), 2);
+            return DeferredConfig.kTileDepthInfoIntermediateLevel >= 0 && DeferredConfig.kTileDepthInfoIntermediateLevel < tileMipLevel;
+        }
+
+        public void ExecuteTileDepthInfoPass(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            if (m_TileDepthInfoMaterial == null)
             {
-                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_TileDeferredMaterial, GetType().Name);
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_TileDepthInfoMaterial, GetType().Name);
                 return;
             }
 
             uint invalidDepthRange = (uint)Mathf.FloatToHalf(-2.0f) | (((uint)Mathf.FloatToHalf(-1.0f)) << 16);
-
-            CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthRange);
-            RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
-            RenderTargetIdentifier tileDepthRangeSurface = m_TileDepthRangeTexture.Identifier();
 
             DeferredTiler tiler = m_Tilers[0];
             int tileXCount = tiler.GetTileXCount();
@@ -323,23 +351,47 @@ namespace UnityEngine.Rendering.Universal.Internal
             int tileYStride = tiler.GetTileYStride();
             int tilePixelWidth = tiler.GetTilePixelWidth();
             int tilePixelHeight = tiler.GetTilePixelHeight();
+            int tileMipLevel = (int)Mathf.Log(Mathf.Min(tilePixelWidth, tilePixelHeight), 2);
+            int intermediateMipLevel = DeferredConfig.kTileDepthInfoIntermediateLevel >= 0 && DeferredConfig.kTileDepthInfoIntermediateLevel < tileMipLevel ? DeferredConfig.kTileDepthInfoIntermediateLevel : tileMipLevel;
+            int tileShiftMipLevel = tileMipLevel - intermediateMipLevel;
+            int alignment = 1 << intermediateMipLevel;
+            int depthInfoWidth = (m_RenderWidth + alignment - 1) >> intermediateMipLevel;
+            int depthInfoHeight = (m_RenderHeight + alignment - 1) >> intermediateMipLevel;
             ref NativeArray<ushort> tiles = ref tiler.GetTiles();
+
+            CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthInfo);
+            RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
+            RenderTargetIdentifier depthInfoSurface = ((tileMipLevel == intermediateMipLevel) ? m_TileDepthInfoTexture : m_DepthInfoTexture).Identifier();
 
             cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);
             cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
-            cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tilePixelWidth);
-            cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tilePixelHeight);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelWidth, tilePixelWidth);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelHeight, tilePixelHeight);
+            cmd.SetGlobalInt(ShaderConstants._SourceShiftX, intermediateMipLevel);
+            cmd.SetGlobalInt(ShaderConstants._SourceShiftY, intermediateMipLevel);
+            cmd.SetGlobalInt(ShaderConstants._TileShiftX, tileShiftMipLevel);
+            cmd.SetGlobalInt(ShaderConstants._TileShiftY, tileShiftMipLevel);
 
             Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
-            Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1)); // (kc)
+            Matrix4x4 clip = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 1, 0, 0), new Vector4(0, 0, 0.5f, 0), new Vector4(0, 0, 0.5f, 1));
             Matrix4x4 projScreenInv = Matrix4x4.Inverse(clip * proj);
             cmd.SetGlobalVector(ShaderConstants._unproject0, projScreenInv.GetRow(2));
             cmd.SetGlobalVector(ShaderConstants._unproject1, projScreenInv.GetRow(3));
 
-            if (tilePixelWidth == 8 && tilePixelHeight == 8)
-                cmd.EnableShaderKeyword(ShaderConstants.TILE_SIZE_8);
-            else if (tilePixelWidth == 16 && tilePixelHeight == 16)
-                cmd.EnableShaderKeyword(ShaderConstants.TILE_SIZE_16);
+            string shaderVariant = null;
+            if (tilePixelWidth == tilePixelHeight)
+            {
+                if (intermediateMipLevel == 1)
+                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_2;
+                else if (intermediateMipLevel == 2)
+                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_4;
+                else if (intermediateMipLevel == 3)
+                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_8;
+                else if (intermediateMipLevel == 4)
+                    shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_16;
+            }
+            if (shaderVariant != null)
+                cmd.EnableShaderKeyword(shaderVariant);
 
             int tileY = 0;
             int tileYIncrement = DeferredConfig.kPreferredCBufferSize / (tileXCount * 4);
@@ -356,13 +408,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         int tileOffset = i * tileXStride + j * tileYStride;
                         int tileLightCount = tiles[tileOffset];
-
-                        uint listDepthRange;
-                        if (tileLightCount == 0)
-                            listDepthRange = invalidDepthRange;
-                        else
-                            listDepthRange = ((uint)tiles[tileOffset + 1]) | (((uint)tiles[tileOffset + 2]) << 16);
-
+                        uint listDepthRange = tileLightCount == 0 ? invalidDepthRange : ((uint)tiles[tileOffset + 1]) | (((uint)tiles[tileOffset + 2]) << 16);
                         depthRanges[i + (j - tileY) * tileXCount] = listDepthRange;
                     }
                 }
@@ -378,20 +424,66 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalInt(ShaderConstants._tileXCount, tileXCount);
                 cmd.SetGlobalInt(ShaderConstants._DepthRangeOffset, tileY * tileXCount);
 
-                cmd.EnableScissorRect(new Rect(0, tileY, tileXCount, tileYEnd - tileY));
-                cmd.Blit(depthSurface, tileDepthRangeSurface, m_TileDepthInfoMaterial, 0);
+                cmd.EnableScissorRect(new Rect(0, tileY << tileShiftMipLevel, depthInfoWidth, (tileYEnd - tileY) << tileShiftMipLevel));
+                cmd.Blit(depthSurface, depthInfoSurface, m_TileDepthInfoMaterial, 0);
 
                 tileY = tileYEnd;
             }
 
-            cmd.DisableShaderKeyword(ShaderConstants.TILE_SIZE_8);
-            cmd.DisableShaderKeyword(ShaderConstants.TILE_SIZE_16);
             cmd.DisableScissorRect();
+
+            if (shaderVariant != null)
+                cmd.DisableShaderKeyword(shaderVariant);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
             depthRanges.Dispose();
+        }
+
+        public void ExecuteDownsampleBitmaskPass(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            if (m_TileDepthInfoMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_TileDepthInfoMaterial, GetType().Name);
+                return;
+            }
+
+            CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthInfo);
+            RenderTargetIdentifier depthInfoSurface = m_DepthInfoTexture.Identifier();
+            RenderTargetIdentifier tileDepthInfoSurface = m_TileDepthInfoTexture.Identifier();
+
+            DeferredTiler tiler = m_Tilers[0];
+            int tilePixelWidth = tiler.GetTilePixelWidth();
+            int tilePixelHeight = tiler.GetTilePixelHeight();
+            int tileWidthLevel = (int)Mathf.Log(tilePixelWidth, 2);
+            int tileHeightLevel = (int)Mathf.Log(tilePixelHeight, 2);
+            int intermediateMipLevel = DeferredConfig.kTileDepthInfoIntermediateLevel;
+            int diffWidthLevel = tileWidthLevel - intermediateMipLevel;
+            int diffHeightLevel = tileHeightLevel - intermediateMipLevel;
+
+            cmd.SetGlobalTexture(ShaderConstants._BitmaskTex, depthInfoSurface);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelWidth, tilePixelWidth);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelHeight, tilePixelHeight);
+
+            string shaderVariant = null;
+            if (diffWidthLevel == 1 && diffHeightLevel == 1)
+                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_2;
+            else if (diffWidthLevel == 2 && diffHeightLevel == 2)
+                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_4;
+            else if (diffWidthLevel == 3 && diffHeightLevel == 3)
+                shaderVariant = ShaderConstants.DOWNSAMPLING_SIZE_8;
+
+            if (shaderVariant != null)
+                cmd.EnableShaderKeyword(shaderVariant);
+
+            cmd.Blit(depthInfoSurface, tileDepthInfoSurface, m_TileDepthInfoMaterial, 1);
+
+            if (shaderVariant != null)
+                cmd.DisableShaderKeyword(shaderVariant);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -675,7 +767,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
                 cmd.SetGlobalMatrix(ShaderConstants._InvCameraViewProj, viewProjInv);
 
-                cmd.SetGlobalTexture(m_TileDepthRangeTexture.id, m_TileDepthRangeTexture.Identifier());
+                cmd.SetGlobalTexture(m_TileDepthInfoTexture.id, m_TileDepthInfoTexture.Identifier());
                 cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
                 for (int i = 0; i < drawCallCount; ++i)

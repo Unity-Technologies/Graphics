@@ -68,7 +68,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             uint _TilePixelHeight;
             uint _InstanceOffset;
 
-            Texture2D<uint> _TileDepthRangeTexture;
+            Texture2D<uint> _TileDepthInfoTexture;
 
             struct Attributes
             {
@@ -90,7 +90,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 TileData tileData = LoadTileData(instanceID);
                 uint2 tileCoord = UnpackTileID(tileData.tileID);
 
-                uint geoDepthBitmask = _TileDepthRangeTexture.Load(int3(tileCoord, 0)).x;
+                uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
                 bool shouldDiscard = (geoDepthBitmask & tileData.listBitMask) == 0;
 
                 // This handles both "real quad" and "2 triangles" cases: remaps {0, 1, 2, 3, 4, 5} into {0, 1, 2, 3, 0, 2}.
