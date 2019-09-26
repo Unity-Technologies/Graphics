@@ -13,10 +13,6 @@ platforms:
     type: Unity::VM::osx
     image: buildfarm/mac:stable
     flavor: m1.mac
-  - name: Linux
-    type: Unity::VM::GPU
-    image: cds-ops/cds-ubuntu-18.04-base:stable
-    flavor: m1.large
 testplatforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
