@@ -136,24 +136,20 @@ namespace UnityEngine.Rendering.HighDefinition
         private List<Matrix4x4[]> m_DebugProbeMatricesList;
         private List<Mesh> m_DebugProbePointMeshList;
         private Hash128 m_DebugProbeInputHash = new Hash128();
-
         public bool dataUpdated = false;
 
-        [SerializeField]
         public ProbeVolumeAsset probeVolumeAsset = null;
-
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
-        private int id = -1;
+        private int m_ID = -1;
         private static int s_IDNext = 0;
-
-        // TODO: Need a more permanent ID here
+        
         public int GetID()
         {
-            if (id == -1) { id = s_IDNext++; }
-            return id;
+            if (m_ID == -1) { m_ID = s_IDNext++; }
+            return m_ID;
         }
-
+        
         public SphericalHarmonicsL1[] GetData()
         {
             dataUpdated = false;
@@ -195,6 +191,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnEnable()
         {
+            GetID();
+
             ProbeVolumeManager.manager.RegisterVolume(this);
 
             // Signal update
@@ -227,6 +225,17 @@ namespace UnityEngine.Rendering.HighDefinition
         protected void OnValidate()
         {
             parameters.Constrain();
+
+            string inputString =
+                        this.transform.position.ToString() +
+                        this.transform.rotation.ToString() +
+                        parameters.size.ToString() +
+                        parameters.resolutionX.ToString() +
+                        parameters.resolutionY.ToString() +
+                        parameters.resolutionZ.ToString();
+
+            Hash = Hash128.Compute(inputString);
+
             SetupPositions();
         }
 
@@ -235,15 +244,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!this.gameObject.activeInHierarchy)
                 return;
 
-            if (id == -1)
+            if (m_ID == -1)
                 return;
 
             SphericalHarmonicsL1[] data = new SphericalHarmonicsL1[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
 
             var nativeData = new NativeArray<SphericalHarmonicsL2>(data.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(id, nativeData);
+            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_ID, nativeData);
 
-            // TODO: Remove this data copy.
             for (int i = 0, iLen = data.Length; i < iLen; ++i)
             {
                 data[i].shAr = new Vector4(nativeData[i][0, 1], nativeData[i][0, 2], nativeData[i][0, 3], nativeData[i][0, 0]);
@@ -255,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!probeVolumeAsset)
             { 
-                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(id);
+                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(m_ID);
                 UnityEditor.EditorUtility.SetDirty(this);
             }
 
@@ -270,8 +278,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
 
-            if (id != -1)
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(id, null);
+            if (m_ID != -1)
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_ID, null);
         }
 
         public void EnableBaking()
@@ -284,26 +292,20 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupPositions();
         }
 
+        public Hash128 Hash { get; private set; } = new Hash128();
+
         protected void SetupPositions()
         {
             if (!this.gameObject.activeInHierarchy)
                 return;
 
-            GetID();
-
             float debugProbeSize = Gizmos.probeSize;
 
-            string inputsString =
-                        id.ToString() +
-                        debugProbeSize.ToString() +
-                        this.transform.position.ToString() +
-                        this.transform.rotation.ToString() +
-                        parameters.size.ToString() +
-                        parameters.resolutionX.ToString() +
-                        parameters.resolutionY.ToString() +
-                        parameters.resolutionZ.ToString();
+            string inputString = m_ID.ToString() + debugProbeSize.ToString();
+            Hash128 debugProbeInputHash = Hash128.Compute(inputString);
+            Hash128 settingsHash = Hash;
 
-            Hash128 debugProbeInputHash = Hash128.Compute(inputsString);
+            UnityEngine.HashUtilities.AppendHash(ref settingsHash, ref debugProbeInputHash);
 
             if (m_DebugProbeInputHash == debugProbeInputHash)
                 return;
@@ -388,9 +390,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugProbeInputHash = debugProbeInputHash;
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(id, positions);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_ID, positions);
         }
-
         public void DrawProbes()
         {
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.lastActiveSceneView;
@@ -400,7 +401,6 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupPositions();
 
             int layer = 0;
-            int submeshIndex = 0;
 
             Material material = m_DebugMaterial;
 
@@ -421,17 +421,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!mesh)
                     return;
 
+                int submeshIndex = 0;
                 MaterialPropertyBlock properties = null;
                 ShadowCastingMode castShadows = ShadowCastingMode.Off;
                 bool receiveShadows = false;
-                
-                Camera camera = null;
+
+                Camera emptyCamera = null;
                 LightProbeUsage lightProbeUsage = LightProbeUsage.Off;
                 LightProbeProxyVolume lightProbeProxyVolume = null;
 
                 foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
                 {
-                    Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, camera, lightProbeUsage, lightProbeProxyVolume);
+                    Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
                 }
             }
         }

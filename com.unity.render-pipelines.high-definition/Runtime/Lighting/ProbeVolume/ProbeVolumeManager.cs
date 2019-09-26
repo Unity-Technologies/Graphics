@@ -46,8 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             foreach (ProbeVolume v in volumes)
             {
-                int id = v.GetID();
-                
                 v.EnableBaking();
             }
 
