@@ -84,7 +84,8 @@ void Frag(PackedVaryingsToPS packedInput,
 
     uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
 
-    float linDepth = IsPerspectiveProjection() ? input.positionSS.w : dot(input.positionRWS.xyz, GetViewForwardDir());
+    float linDepth = IsPerspectiveProjection() ? input.positionSS.w :
+                     dot(input.positionRWS.xyz - GetCurrentViewPosition(), GetViewForwardDir());
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, linDepth, input.positionRWS.xyz, tileIndex);
