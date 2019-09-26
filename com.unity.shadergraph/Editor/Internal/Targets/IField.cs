@@ -2,7 +2,7 @@
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    interface IField
+    public interface IField
     {
         string tag { get; }
         string name { get; }

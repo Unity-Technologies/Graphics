@@ -17,204 +17,6 @@ namespace UnityEditor.Rendering.Universal
     [FormerName("UnityEngine.Rendering.LWRP.LightWeightUnlitSubShader")]
     class UniversalUnlitSubShader : ISubShader
     {
-#region Passes
-        ShaderPass m_UnlitPass = new ShaderPass
-        {
-            // Definition
-            displayName = "Pass",
-            referenceName = "SHADERPASS_UNLIT",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl",
-            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            useInPreview = true,
-
-            // Port mask
-            vertexPorts = new List<int>()
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId
-            },
-            pixelPorts = new List<int>
-            {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-
-            // Pass setup
-            includes = new List<string>()
-            {
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-            },
-            pragmas = new List<string>()
-            {
-                "prefer_hlslcc gles",
-                "exclude_renderers d3d11_9x",
-                "target 2.0",
-                "multi_compile_instancing",
-            },
-            keywords = new KeywordDescriptor[]
-            {
-                s_LightmapKeyword,
-                s_DirectionalLightmapCombinedKeyword,
-                s_SampleGIKeyword,
-            },
-        };
-
-        ShaderPass m_DepthOnlyPass = new ShaderPass()
-        {
-            // Definition
-            displayName = "DepthOnly",
-            referenceName = "SHADERPASS_DEPTHONLY",
-            lightMode = "DepthOnly",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl",
-            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            useInPreview = true,
-
-            // Port mask
-            vertexPorts = new List<int>()
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId
-            },
-            pixelPorts = new List<int>()
-            {
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-
-            // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ColorMaskOverride = "ColorMask 0",
-
-            // Pass setup
-            includes = new List<string>()
-            {
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-            },
-            pragmas = new List<string>()
-            {
-                "prefer_hlslcc gles",
-                "exclude_renderers d3d11_9x",
-                "target 2.0",
-                "multi_compile_instancing",
-            },
-        };
-
-        ShaderPass m_ShadowCasterPass = new ShaderPass()
-        {
-            // Definition
-            displayName = "ShadowCaster",
-            referenceName = "SHADERPASS_SHADOWCASTER",
-            lightMode = "ShadowCaster",
-            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl",
-            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            
-            // Port mask
-            vertexPorts = new List<int>()
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId
-            },
-            pixelPorts = new List<int>()
-            {
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            },
-
-            // Required fields
-            requiredAttributes = new List<string>()
-            {
-                "Attributes.normalOS", 
-            },
-
-            // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ZTestOverride = "ZTest LEqual",
-
-            // Pass setup
-            includes = new List<string>()
-            {
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
-            },
-            pragmas = new List<string>()
-            {
-                "prefer_hlslcc gles",
-                "exclude_renderers d3d11_9x",
-                "target 2.0",
-                "multi_compile_instancing",
-            },
-            keywords = new KeywordDescriptor[]
-            {
-                s_SmoothnessChannelKeyword,
-            },
-        };
-#endregion
-        
-#region Keywords
-        static KeywordDescriptor s_LightmapKeyword = new KeywordDescriptor()
-        {
-            displayName = "Lightmap",
-            referenceName = "LIGHTMAP_ON",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
-        static KeywordDescriptor s_DirectionalLightmapCombinedKeyword = new KeywordDescriptor()
-        {
-            displayName = "Directional Lightmap Combined",
-            referenceName = "DIRLIGHTMAP_COMBINED",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
-        static KeywordDescriptor s_SampleGIKeyword = new KeywordDescriptor()
-        {
-            displayName = "Sample GI",
-            referenceName = "_SAMPLE_GI",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
-        };
-
-        static KeywordDescriptor s_SmoothnessChannelKeyword = new KeywordDescriptor()
-        {
-            displayName = "Smoothness Channel",
-            referenceName = "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
-        };
-#endregion
-
-        private static bool GenerateShaderPass(UnlitMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
-        {
-            UniversalShaderGraphUtilities.SetRenderState(masterNode.surfaceType, masterNode.alphaMode, masterNode.twoSided.isOn, ref pass);
-
-            // apply master node options to active fields
-            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-
-            // use standard shader pass generation
-            return ShaderGraph.GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
-                UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
-        }
-
         public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
@@ -235,10 +37,15 @@ namespace UnityEditor.Rendering.Universal
                 var tagsBuilder = new ShaderStringBuilder(0);
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
-                
-                GenerateShaderPass(unlitMasterNode, target, m_UnlitPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(unlitMasterNode, target, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(unlitMasterNode, target, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);   
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Unlit, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.DepthOnly, mode, subShader, sourceAssetDependencyPaths,
+                    UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 referenceName = "SHADERPASS_PREVIEW",
                 passInclude = "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl",
                 varyingsInclude = "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl",
+                useInPreview = true,
 
                 // Pass setup
                 includes = new List<string>()

@@ -20,6 +20,7 @@
         public static FieldDescriptor BlendPremultiply =      new FieldDescriptor(kBlendMode, "Premultiply", "_ALPHAPREMULTIPLY_ON 1");
         public static FieldDescriptor BlendMultiply =         new FieldDescriptor(kBlendMode, "Multiply", "_BLENDMODE_MULTIPLY 1");
         public static FieldDescriptor VelocityPrecomputed =   new FieldDescriptor(string.Empty, "AddPrecomputedVelocity", "_ADD_PRECOMPUTED_VELOCITY");
+        public static FieldDescriptor DoubleSided =           new FieldDescriptor(string.Empty, "DoubleSided", "_DOUBLE_SIDED 1");
         public static FieldDescriptor SpecularSetup =         new FieldDescriptor(string.Empty, "SpecularSetup", "_SPECULAR_SETUP");
         public static FieldDescriptor Normal =                new FieldDescriptor(string.Empty, "Normal", "_NORMALMAP 1");
 #endregion
