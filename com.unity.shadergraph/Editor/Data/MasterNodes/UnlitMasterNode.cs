@@ -152,6 +152,7 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(DefaultFields.AlphaTest,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                                                                         FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
                 new ConditionalField(DefaultFields.VelocityPrecomputed, addPrecomputedVelocity.isOn),
+                new ConditionalField(DefaultFields.DoubleSided,         twoSided.isOn),
             };
         }
 
