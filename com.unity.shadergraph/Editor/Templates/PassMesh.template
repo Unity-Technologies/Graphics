@@ -85,7 +85,7 @@ Pass
     // --------------------------------------------------
     // Structs and Packing
 
-    $buildType(Attributes)
+    $splice(PassStructs)
 
     $splice(InterpolatorPack)
 

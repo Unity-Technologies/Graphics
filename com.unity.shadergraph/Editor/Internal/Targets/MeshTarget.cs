@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceNormal = new SubscriptDescriptor(VertexDescriptionInputs.name, "ViewSpaceNormal", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceNormal = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceNormal", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceNormal = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceNormal", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceNormal = new SubscriptDescriptor(VertexDescriptionInputs.name, "TangentSpaceNormal", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "ViewSpaceTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceTangent", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "TangentSpaceTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceBiTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "ViewSpaceBiTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceBiTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceBiTangent", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceBiTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceBiTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceBiTangent = new SubscriptDescriptor(VertexDescriptionInputs.name, "TangentSpaceBiTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceViewDirection = new SubscriptDescriptor(VertexDescriptionInputs.name, "ViewSpaceViewDirection", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceViewDirection = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceViewDirection", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceViewDirection = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpaceViewDirection", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceViewDirection = new SubscriptDescriptor(VertexDescriptionInputs.name, "TangentSpaceViewDirection", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -119,11 +119,11 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpacePosition = new SubscriptDescriptor(VertexDescriptionInputs.name, "ViewSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpacePosition = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpacePosition", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpacePosition = new SubscriptDescriptor(VertexDescriptionInputs.name, "WorldSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpacePosition = new SubscriptDescriptor(VertexDescriptionInputs.name, "TangentSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor AbsoluteWorldpacePosition = new SubscriptDescriptor(VertexDescriptionInputs.name, "AbsoluteWorldSpacePosition", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor AbsoluteWorldSpacePosition = new SubscriptDescriptor(VertexDescriptionInputs.name, "AbsoluteWorldSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 
                 public static SubscriptDescriptor ScreenPosition = new SubscriptDescriptor(VertexDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,
@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceNormal = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "ViewSpaceNormal", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceNormal = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceNormal", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceNormal = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceNormal", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceNormal = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "TangentSpaceNormal", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "ViewSpaceTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceTangent", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "TangentSpaceTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceBiTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "ViewSpaceBiTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceBiTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceBiTangent", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceBiTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceBiTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceBiTangent = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "TangentSpaceBiTangent", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpaceViewDirection = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "ViewSpaceViewDirection", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpaceViewDirection = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceViewDirection", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpaceViewDirection = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpaceViewDirection", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpaceViewDirection = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "TangentSpaceViewDirection", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
@@ -185,11 +185,11 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor ViewSpacePosition = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "ViewSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor WorldpacePosition = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpacePosition", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor WorldSpacePosition = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "WorldSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor TangentSpacePosition = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "TangentSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor AbsoluteWorldpacePosition = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "AbsoluteWorldSpacePosition", "", ShaderValueType.Float3,
+                public static SubscriptDescriptor AbsoluteWorldSpacePosition = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "AbsoluteWorldSpacePosition", "", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 
                 public static SubscriptDescriptor ScreenPosition = new SubscriptDescriptor(SurfaceDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,

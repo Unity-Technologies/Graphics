@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 
-            ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths,
+            ShaderGenerator result, List<string> sourceAssetDependencyPaths,
             List<Dependency[]> dependencies, List<FieldDependency[]> fieldDependencies, string resourceClassName, string assemblyName)
         {
             // Early exit if pass is not used in preview
