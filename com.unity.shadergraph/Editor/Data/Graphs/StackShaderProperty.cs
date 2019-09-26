@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -22,7 +23,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType
         {
-            get { return PropertyType.TextureStack; }
+            get { return PropertyType.Vector1; }
         }
 
         public bool modifiable
@@ -31,18 +32,17 @@ namespace UnityEditor.ShaderGraph
             set { m_Modifiable = value; }
         }
 
-        public override bool isBatchable
+        internal override bool isBatchable
         {
-            // Note we are semi batchable, constants are but texture slots not. Need to clarify this.
+            get { return referenceName.EndsWith("_cb"); }
+        }
+
+        internal override bool isRenamable
+        {
             get { return true; }
         }
 
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
-
-        public override bool isExposable
+        internal override bool isExposable
         {
             get { return true; }
         }
@@ -62,24 +62,19 @@ namespace UnityEditor.ShaderGraph
             return result.ToString();
         }
 
-        public override string GetPropertyBlockString()
+        internal override string GetPropertyBlockString()
         {
             return ""; //A stack only has variables declared in the actual shader not in the shaderlab wrapper code
         }
 
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
             // This node needs to generate some properties both in batched as in unbatched mode
-            throw new Exception("Don't use this, use GetPropertyDeclarationStringForBatchMode instead");
-        }
-
-        public override string GetPropertyDeclarationStringForBatchMode(GenerationMode mode, string delimiter = ";")
-        {
             int numSlots = slotNames.Count;
 
-            if (mode == GenerationMode.InConstantBuffer)
+            if (referenceName.EndsWith("_cb"))
             {
-                return string.Format("DECLARE_STACK_CB({0}){1}", referenceName, delimiter);
+                return string.Format("DECLARE_STACK_CB({0}){1}", referenceName.Substring(0, referenceName.Length - 3), delimiter);
             }
             else
             {
@@ -87,25 +82,26 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString()
         {
             throw new NotImplementedException();
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(PropertyType.TextureStack)
+            return new PreviewProperty(PropertyType.Vector1)
             {
-                name = referenceName
+                name = referenceName,
+                floatValue = 1.0f
             };
         }
 
-        public override AbstractMaterialNode ToConcreteNode()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return null;
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             var copied = new StackShaderProperty();
             copied.displayName = displayName;

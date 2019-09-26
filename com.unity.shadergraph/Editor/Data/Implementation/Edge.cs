@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.Graphing
 {
     [Serializable]
-    class Edge : IEdge
+    class Edge : IEdge, IComparable<Edge>
     {
         [SerializeField]
         private SlotReference m_OutputSlot;
@@ -55,6 +55,15 @@ namespace UnityEditor.Graphing
                 // Can't make fields readonly due to Unity serialization
                 return (m_OutputSlot.GetHashCode() * 397) ^ m_InputSlot.GetHashCode();
             }
+        }
+
+        public int CompareTo(Edge other)
+        {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+            var outputSlotComparison = m_OutputSlot.CompareTo(other.m_OutputSlot);
+            if (outputSlotComparison != 0) return outputSlotComparison;
+            return m_InputSlot.CompareTo(other.m_InputSlot);
         }
     }
 }

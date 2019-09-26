@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.UI
         {
             RecreateResources();
 
-            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXSystemBorder");
+            var tpl = VFXView.LoadUXML("VFXSystemBorder");
             tpl.CloneTree(this);
 
             this.AddStyleSheetPath("VFXSystemBorder");

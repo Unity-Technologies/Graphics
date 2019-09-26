@@ -23,23 +23,11 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_SkyHDRIMaterial);
         }
 
-        public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
-        {
-            if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
-            }
-            else
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
-            }
-        }
-
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             float luxMultiplier = m_HdriSkyParams.desiredLuxValue.value / m_HdriSkyParams.upperHemisphereLuxValue.value;
-            float multiplier = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? m_HdriSkyParams.multiplier.value : luxMultiplier;
-            float exposure = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? GetExposure(m_HdriSkyParams, builtinParams.debugSettings) : 1;
+            float multiplier = (m_HdriSkyParams.skyIntensityMode.value == SkyIntensityMode.Exposure) ? m_HdriSkyParams.multiplier.value : luxMultiplier;
+            float exposure = (m_HdriSkyParams.skyIntensityMode.value == SkyIntensityMode.Exposure) ? GetExposure(m_HdriSkyParams, builtinParams.debugSettings) : 1;
             float phi = Mathf.Deg2Rad * -m_HdriSkyParams.rotation.value; // -rotation to match Legacy...
 
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky.value);

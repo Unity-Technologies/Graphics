@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System;
 using System.Globalization;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -111,7 +112,7 @@ namespace UnityEditor.ShaderGraph
             for (int i = 0; i < numSlots; i++)
             {
                 var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputIds[i]);
-                textureSlot.defaultType = (m_TextureTypes[i] == TextureType.Normal ? TextureShaderProperty.DefaultType.Bump : TextureShaderProperty.DefaultType.White);
+                textureSlot.defaultType = (m_TextureTypes[i] == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
             }
             base.ValidateNode();
         }
@@ -122,7 +123,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             // Not all outputs may be connected (well one is or we wouln't get called) so we are carefull to
             // only generate code for connected outputs
@@ -206,7 +207,7 @@ namespace UnityEditor.ShaderGraph
 
             // Add attributes to any connected textures
             int found = 0;
-            foreach (var prop in properties.properties.OfType<TextureShaderProperty>())
+            foreach (var prop in properties.properties.OfType<Texture2DShaderProperty>())
             {
                 foreach (var inputTex in slotNames)
                 {
@@ -230,9 +231,17 @@ namespace UnityEditor.ShaderGraph
                 modifiable = false,
                 slotNames = slotNames
             });
+
+            properties.AddShaderProperty(new StackShaderProperty()
+            {
+                overrideReferenceName = stackName + "_cb",
+                generatePropertyBlock = true,
+                modifiable = false,
+                slotNames = slotNames
+            });
         }
 
-        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
+        public bool RequiresMeshUV(Internal.UVChannel channel, ShaderStageCapability stageCapability)
         {
             s_TempSlots.Clear();
             GetInputSlots(s_TempSlots);
@@ -445,7 +454,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var slots = this.GetInputSlots<ISlot>();
             int numSlots = slots.Count();

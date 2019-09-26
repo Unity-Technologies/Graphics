@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // We compute at most one bounce per frame for perf reasons.
         // We need to store the frame index because more than one render can happen during a frame (cubemap update + regular rendering).
         int m_LastPrecomputedBounce;
-        int m_LastPrecomputationFrameIndex;
 
         bool m_IsBuilt = false;
 
@@ -115,7 +114,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                SkyRenderer.SetGlobalNeutralSkyData(cmd);
+                cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, CoreUtils.blackVolumeTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, CoreUtils.blackVolumeTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, CoreUtils.blackVolumeTexture);
             }
 
         }
@@ -139,20 +140,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_LastPrecomputedBounce = 0;
             m_IsBuilt = false;
-        }
-
-        public override void SetRenderTargets(BuiltinSkyParameters builtinParams)
-        {
-            /* TODO: why is this overridable? */
-
-            if (builtinParams.depthBuffer == BuiltinSkyParameters.nullRT)
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer);
-            }
-            else
-            {
-                CoreUtils.SetRenderTarget(builtinParams.commandBuffer, builtinParams.colorBuffer, builtinParams.depthBuffer);
-            }
         }
 
         static float CornetteShanksPhasePartConstant(float anisotropy)
@@ -281,17 +268,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // 'renderSunDisk' parameter is not supported.
-        // Users should instead create an emissive (or lit) mesh for every relevant light source
-        // (to support multiple stars in space, moons with moon phases, etc).
-        public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
+        public override bool Update(BuiltinSkyParameters builtinParams)
         {
-            CommandBuffer cmd = builtinParams.commandBuffer;
+            var cmd = builtinParams.commandBuffer;
             UpdateGlobalConstantBuffer(cmd);
 
-            int currentParamHash = m_Settings.GetHashCode();
-
-            if (currentParamHash != m_LastPrecomputationParamHash)
+            int currPrecomputationParamHash = m_Settings.GetPrecomputationHashCode();
+            if (currPrecomputationParamHash != m_LastPrecomputationParamHash)
             {
                 // Hash does not match, have to restart the precomputation from scratch.
                 m_LastPrecomputedBounce = 0;
@@ -316,48 +299,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value && m_LastPrecomputationFrameIndex < builtinParams.frameIndex)
+            if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value)
             {
                 // Free temp tables.
                 // This is a deferred release (one frame late)!
                 RTHandles.Release(m_GroundIrradianceTables[1]);
                 RTHandles.Release(m_InScatteredRadianceTables[3]);
                 RTHandles.Release(m_InScatteredRadianceTables[4]);
-                m_GroundIrradianceTables[1]    = null;
+                m_GroundIrradianceTables[1] = null;
                 m_InScatteredRadianceTables[3] = null;
                 m_InScatteredRadianceTables[4] = null;
             }
 
             if (m_LastPrecomputedBounce < m_Settings.numberOfBounces.value)
             {
-                // When rendering into a cubemap for environment lighting, if the sky is not realtime, then we need to do all the bounces at once
-                // It's ok in terms of performance because it's only done once (as long as parameters don't change).
-                // However, editing parameters will be very slow.
-                if (builtinParams.updateMode != EnvironmentUpdateMode.Realtime)
-                {
-                    for (int i = m_LastPrecomputedBounce; i < m_Settings.numberOfBounces.value; ++i)
-                    {
-                        PrecomputeTables(cmd);
-                        m_LastPrecomputedBounce++;
-                    }
+                PrecomputeTables(cmd);
+                m_LastPrecomputedBounce++;
 
-                    // Update the hash for the current bounce.
-                    m_LastPrecomputationParamHash  = currentParamHash;
-                    m_LastPrecomputationFrameIndex = builtinParams.frameIndex;
-                }
-                // In case of realtime environment lighting, we need to update only one bounce and only once per frame
-                // (the same sky can be rendered into a cubemap and in the regular view).
-                // Also, we obviously want the precomputation to run at least once.
-                else if ((m_LastPrecomputationFrameIndex < builtinParams.frameIndex) || (m_LastPrecomputedBounce == 0))
-                {
-                    PrecomputeTables(cmd);
-                    m_LastPrecomputedBounce++;
+                // Update the hash for the current bounce.
+                m_LastPrecomputationParamHash = currPrecomputationParamHash;
 
-                    // Update the hash for the current bounce.
-                    m_LastPrecomputationParamHash  = currentParamHash;
-                    m_LastPrecomputationFrameIndex = builtinParams.frameIndex;
-                }
+                // If the sky is realtime, an upcoming update will update the sky lighting. Otherwise we need to force an update.
+                return builtinParams.updateMode != EnvironmentUpdateMode.Realtime;
             }
+
+            return false;
+        }
+
+        // 'renderSunDisk' parameter is not supported.
+        // Users should instead create an emissive (or lit) mesh for every relevant light source
+        // (to support multiple stars in space, moons with moon phases, etc).
+        public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
+        {
+            CommandBuffer cmd = builtinParams.commandBuffer;
 
             // Precomputation is done, shading is next.
             Quaternion planetRotation = Quaternion.Euler(m_Settings.planetRotation.value.x,
@@ -415,6 +389,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture, m_Settings.spaceEmissionTexture.value);
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
+
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, renderForCubemap ? 0 : 1);
         }

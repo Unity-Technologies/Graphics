@@ -9,7 +9,7 @@ RW_TEXTURE2D_X(float3, _OutputTexture);
 [numthreads(8, 8, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     float3 color = LOAD_TEXTURE2D_X(_InputTexture, dispatchThreadId.xy).xyz;
 
     if (AnyIsNaN(color) || AnyIsInf(color))

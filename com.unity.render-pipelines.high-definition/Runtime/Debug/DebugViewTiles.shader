@@ -94,7 +94,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                 uint2 pixelCoord = (tileCoord + uint2((quadVertex+1) & 1, (quadVertex >> 1) & 1)) * tileSize;
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-                // With instancing, all tiles from the indirect buffer are processed so we need to discard them if they don't match the current eye index
+                // With XR single-pass, all tiles from the indirect buffer are processed so we need to discard them if they don't match the current eye index
                 uint tile_StereoEyeIndex = tileIndex >> TILE_INDEX_SHIFT_EYE;
                 if (unity_StereoEyeIndex != tile_StereoEyeIndex)
                     variant = -1;

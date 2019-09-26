@@ -11,6 +11,7 @@ using UnityEngine.Rendering;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
@@ -183,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeTypeSettings = node as IHasSettings;
             if (nodeTypeSettings != null)
                 m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-            
+
             // Add manipulators
             m_SettingsButton.AddManipulator(new Clickable(() =>
                 {
@@ -198,6 +199,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ButtonContainer.Add(m_CollapseButton);
                 m_TitleContainer.Add(m_ButtonContainer);
             }
+
+            // Register OnMouseHover callbacks for node highlighting
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -237,7 +242,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_TitleContainer.style.borderBottomColor = color;
         }
-        
+
         public void ResetColor()
         {
             m_TitleContainer.style.borderBottomColor = noColor;
@@ -376,7 +381,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             if (evt.newValue.Equals(node.precision))
                                 return;
-                            
+
                             var editorView = GetFirstAncestorOfType<GraphEditorView>();
                             var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
 
@@ -628,7 +633,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PortInputContainer.Add(portInputView);
                     SetPortInputPosition(port, portInputView);
                 }
-                
+
                 port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
             }
         }
@@ -636,8 +641,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         void UpdatePortInput(GeometryChangedEvent evt)
         {
             var port = (ShaderPort)evt.target;
-            var inputView = m_PortInputContainer.Children().OfType<PortInputView>().First(x => Equals(x.slot, port.slot));
-            SetPortInputPosition(port, inputView);
+            var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
+            
+            // Ensure PortInputViews are initialized correctly
+            // Dynamic port lists require one update to validate before init
+            if(inputViews.Count() != 0)
+            {
+                var inputView = inputViews.First();
+                SetPortInputPosition(port, inputView);
+            }
+            
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 
@@ -689,6 +702,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 previewNode.SetDimensions(updatedWidth, updatedHeight);
                 UpdateSize();
+            }
+        }
+
+        void OnMouseHover(EventBase evt)
+        {
+            var graphView = GetFirstAncestorOfType<GraphEditorView>();
+            if (graphView == null)
+                return;
+
+            var blackboardProvider = graphView.blackboardProvider;
+            if (blackboardProvider == null)
+                return;
+
+            // Keyword nodes should be highlighted when Blackboard entry is hovered
+            // TODO: Move to new NodeView type when keyword node has unique style
+            if(node is KeywordNode keywordNode)
+            {
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                if (keywordRow != null)
+                {
+                    if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                    {
+                        keywordRow.AddToClassList("hovered");
+                    }
+                    else
+                    {
+                        keywordRow.RemoveFromClassList("hovered");
+                    }
+                }
             }
         }
 
