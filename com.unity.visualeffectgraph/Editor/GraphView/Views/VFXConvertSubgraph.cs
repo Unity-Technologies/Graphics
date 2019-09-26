@@ -216,7 +216,8 @@ namespace UnityEditor.VFX.UI
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                CreateUniqueSubgraph("Subgraph", VisualEffectResource.Extension,VisualEffectAssetEditorUtility.CreateNewAsset);
+                if (!CreateUniqueSubgraph("Subgraph", VisualEffectResource.Extension, VisualEffectAssetEditorUtility.CreateNewAsset))
+                    return;
                 CopyPasteNodes();
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphContext>();
                 PostSetupNode();
@@ -230,7 +231,8 @@ namespace UnityEditor.VFX.UI
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension,VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>);
+                if (CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
+                    return;
                 CopyPasteNodes();
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
                 PostSetupNode();
@@ -248,7 +250,8 @@ namespace UnityEditor.VFX.UI
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                CreateUniqueSubgraph("SubgraphBlock", VisualEffectSubgraphBlock.Extension,VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>);
+                if (!CreateUniqueSubgraph("SubgraphBlock", VisualEffectSubgraphBlock.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>))
+                    return;
 
                 m_SourceControllers.RemoveAll(t => t is VFXContextController); // Don't copy contexts
                 CopyPasteNodes();
@@ -302,7 +305,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            void CreateUniqueSubgraph(string typeName, string extension, Func<string,VisualEffectObject> createFunc)
+            bool CreateUniqueSubgraph(string typeName, string extension, Func<string,VisualEffectObject> createFunc)
             {
                 string graphPath = AssetDatabase.GetAssetPath(m_SourceView.controller.model);
                 string graphName;
@@ -333,6 +336,9 @@ namespace UnityEditor.VFX.UI
                 }
                 targetSubgraphPath = EditorUtility.SaveFilePanelInProject("Create Subgraph", fileName, extension.Substring(1),"Select where you want to save your subgraph.");
 
+                if (string.IsNullOrEmpty(targetSubgraphPath))
+                    return false;
+
                 if( Path.GetExtension(targetSubgraphPath) != extension)
                 {
                     targetSubgraphPath += extension;
@@ -345,6 +351,8 @@ namespace UnityEditor.VFX.UI
                 m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
                 m_TargetController.useCount++;
                 m_TargetControllers = new List<VFXNodeController>();
+
+                return true;
             }
 
             void PostSetupNode()
