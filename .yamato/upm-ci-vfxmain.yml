@@ -25,8 +25,6 @@ win_apis:
   - name: Vulkan
     cmd: -force-vulkan
 linux_apis:
-  - name: OpenGLCore
-    cmd: -force-glcore
   - name: Vulkan
     cmd: -force-vulkan
 ---
