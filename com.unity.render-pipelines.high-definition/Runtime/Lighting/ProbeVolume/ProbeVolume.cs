@@ -130,19 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Rendering/Probe Volume")]
     public class ProbeVolume : MonoBehaviour
     {
-        // public Texture ProbeVolumeTexture { get; set; }
-
-        enum Version
-        {
-            First,
-            // Add new version here and they will automatically be the Current one
-            Max,
-            Current = Max - 1
-        }
-
-        [SerializeField]
-        int m_Version = (int)Version.First;
-
         // Debugging code
         private Material m_DebugMaterial = null;
         private Mesh m_DebugMesh = null;
@@ -153,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool dataUpdated = false;
 
         [SerializeField]
-        public SphericalHarmonicsL1[] data = null;
+        public ProbeVolumeAsset probeVolumeAsset = null;
 
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
@@ -170,7 +157,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public SphericalHarmonicsL1[] GetData()
         {
             dataUpdated = false;
-            return data;
+
+            if (!probeVolumeAsset)
+                return null;
+
+            return probeVolumeAsset.data;
         }
 
         protected void Awake()
@@ -180,8 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool CheckMigrationRequirement()
         {
-            //exit as quicker as possible
-            if (m_Version == (int)Version.Current)
+            if (probeVolumeAsset && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.Current)
                 return false;
 
             // TODO: Implement any migration checks.
@@ -196,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Migrate()
         {
-            //Must not be called at deserialisation time if require other component
+            // Must not be called at deserialization time if require other component
             while (CheckMigrationRequirement())
             {
                 ApplyMigration();
@@ -206,6 +196,10 @@ namespace UnityEngine.Rendering.HighDefinition
         protected void OnEnable()
         {
             ProbeVolumeManager.manager.RegisterVolume(this);
+
+            // Signal update
+            if (probeVolumeAsset)
+                dataUpdated = true;
 
             m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
             m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
@@ -244,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (id == -1)
                 return;
 
-            data = new SphericalHarmonicsL1[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
+            SphericalHarmonicsL1[] data = new SphericalHarmonicsL1[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
 
             var nativeData = new NativeArray<SphericalHarmonicsL2>(data.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(id, nativeData);
@@ -258,6 +252,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             nativeData.Dispose();
+
+            if (!probeVolumeAsset)
+            { 
+                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(id);
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+
+            probeVolumeAsset.data = data;
+            UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
+            UnityEditor.AssetDatabase.Refresh();
 
             dataUpdated = true;
         }
