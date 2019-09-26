@@ -58,6 +58,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
             if (GetClassFromNode(nodeView.node, out var ussClass))
             {
                 nodeView.colorElement.AddToClassList(ussClass);
+                nodeView.colorElement.AddToClassList("CategoryColor");
             }
         }
 
@@ -66,6 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
             if (GetClassFromNode(nodeView.node, out var ussClass))
             {
                 nodeView.colorElement.RemoveFromClassList(ussClass);
+                nodeView.colorElement.RemoveFromClassList("CategoryColor");
             }
         }
     }

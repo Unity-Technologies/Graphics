@@ -1,37 +1,62 @@
 /* Node Category Colors */
-MaterialNodeView.Artistic #title {
-    border-color:#DB773B;
+MaterialNodeView.Artistic #selection-border {
+    border-color: rgba(219, 119, 59, 0.61);
 }
 
-MaterialNodeView.Channel #title {
-    border-color:#97D13D;
+MaterialNodeView.Channel #selection-border {
+    border-color: rgba(151, 209, 61, 0.61);
 }
 
-MaterialNodeView.Input #title {
-    border-color:#CB3022;
+MaterialNodeView.Input #selection-border {
+    border-color: rgba(203, 48, 34, 0.61);
 }
 
-MaterialNodeView.Math #title {
-    border-color:#4B92F3;
+MaterialNodeView.Math #selection-border {
+    border-color: rgba(75, 146, 243, 0.61);
 }
 
-MaterialNodeView.Procedural #title {
-    border-color:#9C4FFF;
+MaterialNodeView.Procedural #selection-border {
+    border-color: rgba(156, 79, 255, 0.6);
 }
 
-MaterialNodeView.Utility #title {
-    border-color:#AEAEAE;
+MaterialNodeView.Utility #selection-border {
+    border-color: rgba(174, 174, 174, 0.6);
 }
 
-MaterialNodeView.UV #title {
-    border-color:#08D78B;
+MaterialNodeView.UV #selection-border {
+    border-color: rgba(8, 215, 139, 0.6);
 }
 
 /* Precision Colors */
-MaterialNodeView.Float #title {
-    border-color:#4B92F3;
+MaterialNodeView.Float #selection-border {
+    border-color: rgba(75, 146, 243, 0.61);
 }
 
-MaterialNodeView.Half #title {
-    border-color:#CB3022;
+MaterialNodeView.Half #selection-border {
+    border-color: rgba(203, 48, 34, 0.61);
+}
+
+MaterialNodeView.CategoryColor:hover > #selection-border{
+    border-color: rgba(68,192,255, 0.5);
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+}
+
+MaterialNodeView.CategoryColor:selected  > #selection-border
+{
+    border-color: #44C0FF;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+}
+
+MaterialNodeView.CategoryColor #selection-border{
+    border-radius: 10px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
 }
