@@ -1004,7 +1004,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("lightlayersMask")]
         LightLayerEnum m_LightlayersMask = LightLayerEnum.LightLayerDefault;
         /// <summary>
-        /// Light Layers used for shadows only, for default Light Layers use Light.renderingLayerMask
+        /// Controls which layer will be affected by this light
         /// </summary>
         /// <value></value>
         public LightLayerEnum lightlayersMask
@@ -1012,10 +1012,10 @@ namespace UnityEngine.Rendering.HighDefinition
             get => linkShadowLayers ? (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask) : m_LightlayersMask;
             set
             {
-                if (m_LightlayersMask == value)
-                    return;
-
                 m_LightlayersMask = value;
+
+                if (linkShadowLayers)
+                    legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)m_LightlayersMask, legacyLight.renderingLayerMask);
             }
         }
 
@@ -1027,13 +1027,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool linkShadowLayers
         {
             get => m_LinkShadowLayers;
-            set
-            {
-                if (m_LinkShadowLayers == value)
-                    return;
-
-                m_LinkShadowLayers = value;
-            }
+            set => m_LinkShadowLayers = value;
         }
 
         /// <summary>
