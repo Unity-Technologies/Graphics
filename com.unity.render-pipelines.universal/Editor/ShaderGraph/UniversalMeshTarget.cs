@@ -92,6 +92,19 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.fogFactorAndVertexLight", //fog and vertex lighting, vert input is dependency
                     "Varyings.shadowCoord", //shadow coord, vert input is dependency
                 },
+                requiredFields = new List<IField>()
+                {
+                    MeshTarget.ShaderStructs.Attributes.uv1,
+                    MeshTarget.ShaderStructs.Varyings.positionWS,
+                    MeshTarget.ShaderStructs.Varyings.normalWS,
+                    MeshTarget.ShaderStructs.Varyings.tangentWS,
+                    MeshTarget.ShaderStructs.Varyings.bitangentWS,
+                    MeshTarget.ShaderStructs.Varyings.viewDirectionWS,
+                    UniversalMeshTarget.ShaderStructs.Varyings.lightmapUV,
+                    UniversalMeshTarget.ShaderStructs.Varyings.sh,
+                    UniversalMeshTarget.ShaderStructs.Varyings.fogFactorAndVertexLight,
+                    UniversalMeshTarget.ShaderStructs.Varyings.shadowCoord,
+                },
 
                 // Render State
                 renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
@@ -130,6 +143,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -179,6 +194,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -209,6 +226,10 @@ namespace UnityEditor.Rendering.Universal
                 {
                     "Attributes.normalOS",
                 },
+                requiredFields = new List<IField>()
+                {
+                    MeshTarget.ShaderStructs.Attributes.normalOS,
+                },
 
                 // Render State
                 renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
@@ -234,6 +255,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -267,6 +290,11 @@ namespace UnityEditor.Rendering.Universal
                     "Attributes.uv1", //needed for meta vertex position
                     "Attributes.uv2", //needed for meta vertex position
                 },
+                requiredFields = new List<IField>()
+                {
+                    MeshTarget.ShaderStructs.Attributes.uv1,
+                    MeshTarget.ShaderStructs.Attributes.uv2,
+                },
 
                 // Render State
                 renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
@@ -294,6 +322,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -342,6 +372,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -396,6 +428,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -429,6 +463,12 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.texCoord0",
                     "Varyings.screenPosition",
                 },
+                requiredFields = new List<IField>()
+                {
+                    MeshTarget.ShaderStructs.Varyings.color,
+                    MeshTarget.ShaderStructs.Varyings.texCoord0,
+                    MeshTarget.ShaderStructs.Varyings.screenPosition,
+                },
 
                 // Render State
                 renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
@@ -460,6 +500,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -493,6 +535,12 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.tangentWS",
                     "Varyings.bitangentWS",
                 },
+                requiredFields = new List<IField>()
+                {
+                    MeshTarget.ShaderStructs.Varyings.normalWS,
+                    MeshTarget.ShaderStructs.Varyings.tangentWS,
+                    MeshTarget.ShaderStructs.Varyings.bitangentWS,
+                },
 
                 // Render State
                 renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
@@ -516,6 +564,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -548,6 +598,11 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.color",
                     "Varyings.texCoord0",
                 },
+                requiredFields = new List<IField>()
+                {
+                    MeshTarget.ShaderStructs.Varyings.color,
+                    MeshTarget.ShaderStructs.Varyings.texCoord0,
+                },
 
                 // Render State
                 renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
@@ -574,6 +629,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
 
@@ -608,6 +665,13 @@ namespace UnityEditor.Rendering.Universal
                     "Varyings.color",
                     "Varyings.texCoord0",
                 },
+                requiredFields = new List<IField>()
+                {
+                    MeshTarget.ShaderStructs.Attributes.color,
+                    MeshTarget.ShaderStructs.Attributes.uv0,
+                    MeshTarget.ShaderStructs.Varyings.color,
+                    MeshTarget.ShaderStructs.Varyings.texCoord0,
+                },
 
                 // Render State
                 renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
@@ -634,6 +698,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     UniversalMeshTarget.Attributes,
                     UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
                 }
             };
         }

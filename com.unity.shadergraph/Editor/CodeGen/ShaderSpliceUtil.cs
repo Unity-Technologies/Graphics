@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Data.Util;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -115,11 +116,6 @@ namespace UnityEditor.ShaderGraph
             if (isOptional)
             {
                 string fullName = parentType.Name + "." + field.Name;
-                if (!activeFields.Contains(fullName))
-                {
-                    // not active, skip the optional field
-                    fieldActive = false;
-                }
             }
             return fieldActive;
         }
@@ -592,12 +588,6 @@ namespace UnityEditor.ShaderGraph
                                     break;
                                 }
                             }
-                            else if (command.Is("buildType"))
-                            {
-                                ProcessBuildTypeCommand(command, end);
-                                appendEndln = false;
-                                break;      // buildType command always ignores the rest of the line, error or not
-                            }
                             else
                             {
                                 // let's see if it is a predicate
@@ -744,7 +734,6 @@ namespace UnityEditor.ShaderGraph
                             ShaderGenerator temp = new ShaderGenerator();
                             temp.Indent();
                             temp.AddShaderChunk("// Generated Type: " + typeName);
-                            BuildType(type, activeFields, temp, isDebug);
                             result.AppendLine(temp.GetShaderString(0, false));
                         }
                     }
@@ -754,10 +743,10 @@ namespace UnityEditor.ShaderGraph
             private bool ProcessPredicate(Token predicate, int endLine, ref int cur, ref bool appendEndln)
             {
                 // eval if(param)
-                var fieldName = predicate.GetString();
+                var fieldName = new FieldDescriptor(predicate.GetString(), "", "");
                 var nonwhitespace = SkipWhitespace(predicate.s, predicate.end + 1, endLine);
 
-                if (!fieldName.StartsWith("features") && activeFields.permutationCount > 0)
+                if (!fieldName.tag.StartsWith("features") && activeFields.permutationCount > 0)
                 {
                     var passedPermutations = activeFields.allPermutations.instances
                         .Where(i => i.Contains(fieldName))
@@ -897,38 +886,6 @@ namespace UnityEditor.ShaderGraph
                 if (count > 0)
                 {
                     result.Append(str, start, count);
-                }
-            }
-        }
-
-        public static void ApplyDependencies(IActiveFields activeFields, List<Dependency[]> dependsList)
-        {
-            // add active fields to queue
-            Queue<string> fieldsToPropagate = new Queue<string>();
-            foreach (var f in activeFields.fields)
-            {
-                fieldsToPropagate.Enqueue(f);
-            }
-
-            // foreach field in queue:
-            while (fieldsToPropagate.Count > 0)
-            {
-                string field = fieldsToPropagate.Dequeue();
-                if (activeFields.Contains(field))           // this should always be true
-                {
-                    if(dependsList == null)
-                        return;
-                        
-                    // find all dependencies of field that are not already active
-                    foreach (Dependency[] dependArray in dependsList)
-                    {
-                        foreach (Dependency d in dependArray.Where(d => (d.name == field) && !activeFields.Contains(d.dependsOn)))
-                        {
-                            // activate them and add them to the queue
-                            activeFields.Add(d.dependsOn);
-                            fieldsToPropagate.Enqueue(d.dependsOn);
-                        }
-                    }
                 }
             }
         }

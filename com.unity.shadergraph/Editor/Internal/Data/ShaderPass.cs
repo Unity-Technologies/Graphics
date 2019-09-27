@@ -28,6 +28,8 @@ namespace UnityEditor.ShaderGraph.Internal
         public List<string> requiredAttributes;
         public List<string> requiredVaryings;
 
+        public List<IField> requiredFields;
+
         // Render State
         public RenderStateOverride[] renderStateOverrides;
 

@@ -67,6 +67,13 @@ Pass
     $splice(PassIncludes)
 
     // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+    // --------------------------------------------------
     // Graph
 
     // Graph Properties
@@ -81,13 +88,6 @@ Pass
     
     // Graph Pixel
     $splice(GraphPixel)
-
-    // --------------------------------------------------
-    // Structs and Packing
-
-    $splice(PassStructs)
-
-    $splice(InterpolatorPack)
 
     // --------------------------------------------------
     // Build Graph Inputs

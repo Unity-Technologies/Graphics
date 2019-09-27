@@ -2,10 +2,10 @@
 {
     public struct ConditionalField
     {
-        public FieldDescriptor field { get; }
+        public IField field { get; }
         public bool condition { get; }
 
-        public ConditionalField(FieldDescriptor field, bool condition)
+        public ConditionalField(IField field, bool condition)
         {
             this.field = field;
             this.condition = condition;

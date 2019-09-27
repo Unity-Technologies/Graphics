@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
 
                         if (activeFields != null)
                         {
-                            activeFields.AddAll(structName + "." + hlslName);
+                            //activeFields.AddAll(structName + "." + hlslName);
                         }
                     }
                 }
@@ -253,7 +253,7 @@ namespace UnityEditor.ShaderGraph
 
                     if (activeFields != null)
                     {
-                        activeFields.AddAll(structName + "." + hlslName);
+                        //activeFields.AddAll(structName + "." + hlslName);
                     }
                 }
             }
