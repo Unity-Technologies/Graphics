@@ -3,6 +3,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class SerializedProbeVolume
     {
         public SerializedProperty probeVolumeParams;
+        public SerializedProperty probeVolumeAsset;
         public SerializedProperty debugColor;
         public SerializedProperty drawProbes;
 
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SerializedObject = serializedObject;
 
             probeVolumeParams = m_SerializedObject.FindProperty("parameters");
+            probeVolumeAsset = m_SerializedObject.FindProperty("probeVolumeAsset");
 
             debugColor = probeVolumeParams.FindPropertyRelative("debugColor");
             drawProbes = probeVolumeParams.FindPropertyRelative("drawProbes");
