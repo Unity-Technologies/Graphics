@@ -9,7 +9,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
 #endif
 
-#define RUSSIAN_ROULETTE_THRESHOLD 0.1
+#define RUSSIAN_ROULETTE_THRESHOLD 0.5
 
 bool RussianRouletteTest(float value, float rand, out float factor)
 {
@@ -76,6 +76,9 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     BuiltinData builtinData;
     GetSurfaceDataFromIntersection(fragInput, -WorldRayDirection(), posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
 
+    // Check if we want to compute direct and emissive lighting for current depth
+    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
+
 #ifdef HAS_LIGHTLOOP
 
     // Compute the bsdf data
@@ -93,9 +96,6 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     // Get current path throughput
     float3 pathThroughput = rayIntersection.color;
-
-    // Check if we want to compute direct and emissive lighting for current depth
-    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
     // And reset the ray intersection color, which will store our final result
     rayIntersection.color = computeDirect ? builtinData.emissiveColor : 0.0;
@@ -193,10 +193,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     }
 
 #else
-
-    rayIntersection.color = !currentDepth || currentDepth >= _RaytracingMinRecursion ?
-        builtinData.emissiveColor : 0.0;
-
+    rayIntersection.color = !currentDepth || computeDirect ? builtinData.emissiveColor : 0.0;
 #endif
 
     // Apply exposure modifier to our path result
