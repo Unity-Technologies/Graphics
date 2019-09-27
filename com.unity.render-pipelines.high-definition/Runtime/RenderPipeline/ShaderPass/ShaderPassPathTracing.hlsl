@@ -107,7 +107,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         return;
 
     // Create the list of active lights
-    LightList lightList = CreateLightList(position, builtinData);
+    LightList lightList = CreateLightList(position, builtinData.renderingLayers);
 
     // Bunch of variables common to material and light sampling
     float pdf;
@@ -155,7 +155,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         float russianRouletteFactor = 1.0;
 
         float rand = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 3);
-        if (RussianRouletteTest(russianRouletteValue, rand, russianRouletteFactor))
+        if (!currentDepth || RussianRouletteTest(russianRouletteValue, rand, russianRouletteFactor))
         {
             rayDescriptor.TMax = FLT_INF;
 
@@ -181,7 +181,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
                 rayDescriptor.TMax = nextRayIntersection.t + _RaytracingRayBias;
                 float3 lightValue;
                 float lightPdf;
-                EvaluateLights(lightList, rayDescriptor, builtinData, lightValue, lightPdf);
+                EvaluateLights(lightList, rayDescriptor, lightValue, lightPdf);
 
                 float misWeight = PowerHeuristic(pdf, lightPdf);
 

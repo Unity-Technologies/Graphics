@@ -9,19 +9,19 @@
 struct LightList
 {
     uint  localCount;
-    uint  localIdx[MAX_LOCAL_LIGHT_COUNT];
+    uint  localIndex[MAX_LOCAL_LIGHT_COUNT];
     float localWeight;
 
     uint  distantCount;
-    uint  distantIdx[MAX_DISTANT_LIGHT_COUNT];
+    uint  distantIndex[MAX_DISTANT_LIGHT_COUNT];
     float distantWeight;
 
     #ifdef USE_LIGHT_CLUSTER
-    uint  cellIdx;
+    uint  cellIndex;
     #endif
 };
 
-LightList CreateLightList(float3 position, BuiltinData builtinData)
+LightList CreateLightList(float3 position, uint lightLayers)
 {
     LightList list;
 
@@ -30,7 +30,7 @@ LightList CreateLightList(float3 position, BuiltinData builtinData)
     uint localCount;
 
     #ifdef USE_LIGHT_CLUSTER
-    GetLightCountAndStartCluster(position, LIGHTCATEGORY_AREA, localCount, localCount, list.cellIdx);
+    GetLightCountAndStartCluster(position, LIGHTCATEGORY_AREA, localCount, localCount, list.cellIndex);
     #else
     localCount = _PunctualLightCountRT + _AreaLightCountRT;
     #endif
@@ -38,13 +38,13 @@ LightList CreateLightList(float3 position, BuiltinData builtinData)
     for (uint i = 0; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
     {
         #ifdef USE_LIGHT_CLUSTER
-        const LightData lightData = FetchClusterLightIndex(list.cellIdx, i);
+        const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
         #else
         const LightData lightData = _LightDatasRT[i];
         #endif
 
-        if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-            list.localIdx[list.localCount++] = i;
+        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers))
+            list.localIndex[list.localCount++] = i;
     }
 
     // Then filter the active distant lights (directional)
@@ -52,8 +52,8 @@ LightList CreateLightList(float3 position, BuiltinData builtinData)
 
     for (uint i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, builtinData.renderingLayers))
-            list.distantIdx[list.distantCount++] = i;
+        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers))
+            list.distantIndex[list.distantCount++] = i;
     }
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant, if both are present)
@@ -71,9 +71,9 @@ uint GetLightCount(LightList list)
 LightData GetLocalLightData(LightList list, uint i)
 {
     #ifdef USE_LIGHT_CLUSTER
-    return FetchClusterLightIndex(list.cellIdx, list.localIdx[i]);
+    return FetchClusterLightIndex(list.cellIndex, list.localIndex[i]);
     #else
-    return _LightDatasRT[list.localIdx[i]];
+    return _LightDatasRT[list.localIndex[i]];
     #endif
 }
 
@@ -84,7 +84,7 @@ LightData GetLocalLightData(LightList list, float inputSample)
 
 DirectionalLightData GetDistantLightData(LightList list, uint i)
 {
-    return _DirectionalLightDatas[list.distantIdx[i]];
+    return _DirectionalLightDatas[list.distantIndex[i]];
 }
 
 DirectionalLightData GetDistantLightData(LightList list, float inputSample)
@@ -203,13 +203,13 @@ bool SampleLights(LightList lightList,
 
 void EvaluateLights(LightList lightList,
                     RayDesc rayDescriptor,
-                    BuiltinData builtinData,
                     out float3 value,
                     out float pdf)
 {
     value = 0.0;
     pdf = 0.0;
 
+    // First local lights
     for (uint i = 0; i < lightList.localCount; i++)
     {
         LightData lightData = GetLocalLightData(lightList, i);
@@ -238,6 +238,24 @@ void EvaluateLights(LightList lightList,
 
                 // If we consider that a ray is very unlikely to hit 2 area lights one after another, we can exit the loop
                 break;
+            }
+        }
+    }
+
+    // Then distant lights
+    for (uint i = 0; i < lightList.distantCount; i++)
+    {
+        DirectionalLightData lightData = GetDistantLightData(lightList, i);
+
+        if (lightData.angularDiameter > 0.0 && rayDescriptor.TMax >= FLT_INF)
+        {
+            float cosHalfAngle = cos(lightData.angularDiameter * 0.5);
+            float cosTheta = -dot(rayDescriptor.Direction, lightData.forward);
+            if (cosTheta >= cosHalfAngle)
+            {
+                float rcpPdf = TWO_PI * (1.0 - cosHalfAngle);
+                value += lightData.color / rcpPdf;
+                pdf += GetDistantLightWeight(lightList) / rcpPdf;
             }
         }
     }
