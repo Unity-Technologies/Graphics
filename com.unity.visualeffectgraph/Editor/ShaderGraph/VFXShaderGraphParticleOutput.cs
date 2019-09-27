@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        new void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
             if (!string.IsNullOrEmpty(shadergraphGUID))
