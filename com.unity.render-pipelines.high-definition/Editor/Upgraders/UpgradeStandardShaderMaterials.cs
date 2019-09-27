@@ -32,15 +32,5 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
         }
-
-        [MenuItem("Edit/Render Pipeline/Upgrade Unity Builtin Scene Light Intensity for High Definition", priority = CoreUtils.editMenuPriority2)]
-        internal static void UpgradeLights()
-        {
-            Light[] lights = Light.GetLights(LightType.Directional, 0);
-            foreach (var l in lights)
-            {
-                l.intensity *= Mathf.PI;
-            }
-        }
     }
 }
