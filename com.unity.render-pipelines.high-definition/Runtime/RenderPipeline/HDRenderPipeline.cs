@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly GBufferManager m_GbufferManager;
         readonly DBufferManager m_DbufferManager;
 #if ENABLE_VIRTUALTEXTURES
-        readonly VTBufferManager m_VTBufferManager;
+        readonly VTBufferManager m_VtBufferManager;
 #endif
         readonly SharedRTManager m_SharedRTManager = new SharedRTManager();
         readonly PostProcessSystem m_PostProcessSystem;
@@ -271,7 +271,12 @@ namespace UnityEngine.Rendering.HighDefinition
         Stack<Camera>                   m_ProbeCameraPool = new Stack<Camera>();
 
         RenderTargetIdentifier[] m_MRTTransparentMotionVec;
-        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, (optional) VT, diffuse, sss buffer;
+#if ENABLE_VIRTUALTEXTURES
+        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3 + VTBufferManager.AdditionalForwardRT]; // Specular, (optional) VT, diffuse, sss buffer; note: vt is alway on slot 1 to keep in sync with unlit.
+        RenderTargetIdentifier[] m_MRTWithVTFeedback = new RenderTargetIdentifier[2];
+#else
+        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, diffuse, sss buffer;
+#endif
         RenderTargetIdentifier[] mMRTSingle = new RenderTargetIdentifier[1];
         string m_ForwardPassProfileName;
 
@@ -374,7 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
             m_DbufferManager = new DBufferManager(asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
 #if ENABLE_VIRTUALTEXTURES
-            m_VTBufferManager = new VTBufferManager();
+            m_VtBufferManager = new VTBufferManager(asset);
 #endif
 
             m_SharedRTManager.Build(asset);
@@ -450,10 +455,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
             Debug.Log("Scriptable renderpipeline VT enabled");
+            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2 + VTBufferManager.AdditionalForwardRT];
 #else
             Debug.Log("Scriptable renderpipeline VT disabled");
-#endif
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
+#endif
 #if ENABLE_RAYTRACING
             m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_BlueNoise, this, m_SharedRTManager, m_DebugDisplaySettings);
             InitRayTracedReflections();
@@ -544,7 +550,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DbufferManager.CreateBuffers();
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VTBufferManager.CreateBuffers();
+            m_VtBufferManager.CreateBuffers(settings);
 #endif
 
             InitSSSBuffers();
@@ -596,7 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
 #if ENABLE_VIRTUALTEXTURES
-            m_VTBufferManager.DestroyBuffers();
+            m_VtBufferManager.DestroyBuffers();
 #endif
             m_MipGenerator.Release();
 
@@ -1733,7 +1739,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.BeginRender();
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VTBufferManager.BeginRender();
+            m_VtBufferManager.BeginRender(hdCamera.actualWidth, hdCamera.actualHeight);
 #endif
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
@@ -2204,7 +2210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VTBufferManager.Resolve(cmd, hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VtBufferManager.Resolve(cmd, m_GbufferManager.GetVTFeedbackBuffer(), hdCamera.actualWidth, hdCamera.actualHeight);
             VirtualTexturing.UpdateSystem();
 #endif
 
@@ -2890,9 +2896,6 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBuffer Debug" : "GBuffer", CustomSamplerId.GBuffer.GetSampler()))
             {
                 // setup GBuffer for rendering
-#if ENABLE_VIRTUALTEXTURES
-                cmd.SetRandomWriteTarget(7, m_VTBufferManager.GetOpaqueRTI());
-#endif
                 CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
 
 
@@ -3237,19 +3240,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     renderTarget = m_MRTWithSSS;
                     renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer; // Store the specular color
-                    renderTarget[1] = msaa ? m_CameraSssDiffuseLightingMSAABuffer : m_CameraSssDiffuseLightingBuffer;
-                    renderTarget[2] = msaa ? GetSSSBufferMSAA() : GetSSSBuffer();
+
+#if ENABLE_VIRTUALTEXTURES
+                    renderTarget[1] = GetVTFeedbackBufferForForward(hdCamera);
+                    const int offset = 2;
+#else
+                    const int offset = 1;
+#endif
+                    renderTarget[offset+0] = msaa ? m_CameraSssDiffuseLightingMSAABuffer : m_CameraSssDiffuseLightingBuffer;
+                    renderTarget[offset+1] = msaa ? GetSSSBufferMSAA() : GetSSSBuffer();
                 }
                 else
                 {
-
+#if ENABLE_VIRTUALTEXTURES
+                    renderTarget = m_MRTWithVTFeedback;
+                    renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+                    renderTarget[1] = GetVTFeedbackBufferForForward(hdCamera);
+#else
                     renderTarget = mMRTSingle;
                     renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-                }
-
-#if ENABLE_VIRTUALTEXTURES
-                cmd.SetRandomWriteTarget(7, m_VTBufferManager.GetOpaqueRTI());
 #endif
+                }
 
                 RenderForwardRendererList(hdCamera.frameSettings,
                                             RendererList.Create(PrepareForwardOpaqueRendererList(cullResults, hdCamera)),
@@ -3324,7 +3335,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
 
                 m_MRTTransparentMotionVec[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-                m_MRTTransparentMotionVec[1] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+
+#if ENABLE_VIRTUALTEXTURES
+                m_MRTTransparentMotionVec[1] = GetVTFeedbackBufferForForward(hdCamera);
+                const int offset = 2;
+#else
+                const int offset = 1;
+#endif
+                m_MRTTransparentMotionVec[offset] = renderMotionVecForTransparent ? m_SharedRTManager.GetMotionVectorsBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                     // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent, here the normal buffer
                     // as it is guaranteed to exist and to have the same size.
@@ -4098,7 +4116,19 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
                 using (new ProfilingSample(cmd, "Clear VTFeedback Buffers", CustomSamplerId.VTFeedbackClear.GetSampler()))
                 {
-                    m_VTBufferManager.Clear(cmd);
+                    RTHandle alreadyCleared = null;
+                    if (m_GbufferManager?.GetVTFeedbackBuffer() != null)
+                    {
+                        alreadyCleared = m_GbufferManager.GetVTFeedbackBuffer();
+                        CoreUtils.SetRenderTarget(cmd, alreadyCleared, ClearFlag.Color, Color.white);
+
+                    }
+
+                    // If the forward buffer is different from the GBuffer clear it also
+                    if (GetVTFeedbackBufferForForward(hdCamera) != alreadyCleared)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, GetVTFeedbackBufferForForward(hdCamera), ClearFlag.Color, Color.white);
+                    }
                 }
 #endif
 
@@ -4268,5 +4298,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 VFXManager.SetCameraBuffer(hdCamera.camera, VFXCameraBufferTypes.Color, colorBuffer, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight);
             }
         }
+
+#if ENABLE_VIRTUALTEXTURES
+        RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
+        {
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                return m_VtBufferManager.GetForwardMSAABuffer();
+            }
+            else
+            {
+                return m_GbufferManager.GetVTFeedbackBuffer();
+            }
+        }
+#endif
     }
 }

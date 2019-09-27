@@ -24,10 +24,6 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-#if VIRTUAL_TEXTURES_ACTIVE
-[earlydepthstencil]
-#endif
 void Frag(  PackedVaryingsToPS packedInput,
             OUTPUT_GBUFFER(outGBuffer)
             #ifdef _DEPTHOFFSET_ON
@@ -58,7 +54,4 @@ void Frag(  PackedVaryingsToPS packedInput,
     outputDepth = posInput.deviceDepth;
 #endif
 
-#if VIRTUAL_TEXTURES_ACTIVE
-    StoreVTFeedback(builtinData.vtFeedback, posInput.positionSS);
-#endif
 }

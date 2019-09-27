@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             [Optional]                                                              Vector4 texCoord3;
             [Optional]                                                              Vector4 color;
             [Semantic("CUSTOM_INSTANCE_ID")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
-            [Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")] bool cullFace;
+            [Semantic("FRONT_FACE_SEMANTIC")][SystemGenerated][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)")] bool cullFace;
             [Optional]																Vector4 pixelCoordinate;
 
             public static Dependency[] tessellationDependencies = new Dependency[]

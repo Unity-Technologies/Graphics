@@ -233,6 +233,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+#if ENABLE_VIRTUALTEXTURES
+            [Reload("Runtime/ShaderLibrary/DownsampleVTFeedback.compute")]
+            public ComputeShader VTFeedbackDownsample;
+#endif
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
