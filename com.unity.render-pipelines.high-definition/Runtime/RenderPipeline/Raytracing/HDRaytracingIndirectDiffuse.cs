@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.clampValue = settings.clampValue.value;
             deferredParameters.includeSky = true;
             deferredParameters.diffuseLightingOnly = true;
-            deferredParameters.halfResolution = false;
+            deferredParameters.halfResolution = !settings.fullResolution.value;;
             deferredParameters.rtEnv = rtEnv;
             deferredParameters.rayCountFlag = m_RayTracingManager.rayCountManager.RayCountIsEnabled();
             deferredParameters.preExpose = true;
@@ -164,12 +164,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch all the settings
             LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
+            ComputeShader indirectDiffuseCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+
             if (settings.deferredMode.value)
             {
-                ComputeShader indirectDiffuseCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
-
                 // Fetch the new sample kernel
-                int currentKernel = indirectDiffuseCS.FindKernel("RaytracingIndirectDiffuseFullRes");
+                int currentKernel = indirectDiffuseCS.FindKernel(settings.fullResolution.value ? "RaytracingIndirectDiffuseFullRes" : "RaytracingIndirectDiffuseHalfRes");
 
                 // Inject the ray-tracing sampling data
                 blueNoise.BindDitheredRNGData8SPP(cmd);
@@ -225,6 +225,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Filter Indirect Diffuse", CustomSamplerId.RaytracingFilterIndirectDiffuse.GetSampler()))
             {
+                // Fetch the right filter to use
+                int currentKernel = indirectDiffuseCS.FindKernel(settings.fullResolution.value ? "IndirectDiffuseIntegrationUpscaleFullRes" : "IndirectDiffuseIntegrationUpscaleHalfRes");
+
+                // Inject all the parameters for the compute
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._IndirectDiffuseTexture, m_IDIntermediateBuffer0);
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, m_RaytracingDirectionBuffer);
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._BlueNoiseTexture, blueNoise.textureArray16RGB);
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._UpscaledIndirectDiffuseTextureRW, m_IDIntermediateBuffer1);
+                cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
+                cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._SpatialFilterRadius, settings.upscaleRadius.value);
+
+                // Texture dimensions
+                int texWidth = hdCamera.actualWidth;
+                int texHeight = hdCamera.actualHeight;
+
+                // Evaluate the dispatch parameters
+                int areaTileSize = 8;
+                int numTilesXHR = (texWidth  + (areaTileSize - 1)) / areaTileSize;
+                int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
+
+                // Compute the texture
+                cmd.DispatchCompute(indirectDiffuseCS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
+
+                // Copy the data back to the right buffer
+                HDUtils.BlitCameraTexture(cmd, m_IDIntermediateBuffer1, m_IDIntermediateBuffer0);
+
+                // Denoise if required
                 if (settings.denoise.value)
                 {
                     DenoiseIndirectDiffuseBuffer(hdCamera, cmd, settings);

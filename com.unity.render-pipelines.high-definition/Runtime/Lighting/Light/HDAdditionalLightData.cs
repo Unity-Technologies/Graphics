@@ -121,6 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool oldDisplayAreaLightEmissiveMesh;
         public float oldLightColorTemperature;
         public float oldIntensity;
+        public bool lightEnabled;
     }
 
 
@@ -1003,7 +1004,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("lightlayersMask")]
         LightLayerEnum m_LightlayersMask = LightLayerEnum.LightLayerDefault;
         /// <summary>
-        /// Light Layers used for shadows only, for default Light Layers use Light.renderingLayerMask
+        /// Controls which layer will be affected by this light
         /// </summary>
         /// <value></value>
         public LightLayerEnum lightlayersMask
@@ -1011,10 +1012,10 @@ namespace UnityEngine.Rendering.HighDefinition
             get => linkShadowLayers ? (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask) : m_LightlayersMask;
             set
             {
-                if (m_LightlayersMask == value)
-                    return;
-
                 m_LightlayersMask = value;
+
+                if (linkShadowLayers)
+                    legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)m_LightlayersMask, legacyLight.renderingLayerMask);
             }
         }
 
@@ -1026,13 +1027,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool linkShadowLayers
         {
             get => m_LinkShadowLayers;
-            set
-            {
-                if (m_LinkShadowLayers == value)
-                    return;
-
-                m_LinkShadowLayers = value;
-            }
+            set => m_LinkShadowLayers = value;
         }
 
         /// <summary>
@@ -1456,9 +1451,36 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (m_Light == null)
-                    m_Light = GetComponent<Light>();
+                TryGetComponent<Light>(out m_Light);
                 return m_Light;
+            }
+        }
+        
+        MeshRenderer m_EmissiveMeshRenderer;
+        internal MeshRenderer emissiveMeshRenderer
+        {
+            get
+            {
+                if (m_EmissiveMeshRenderer == null)
+                {
+                    TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
+                }
+                
+                return m_EmissiveMeshRenderer;
+            }
+        }
+
+        MeshFilter m_EmissiveMeshFilter;
+        internal MeshFilter emissiveMeshFilter
+        {
+            get
+            {
+                if (m_EmissiveMeshFilter == null)
+                {
+                    TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
+                }
+                
+                return m_EmissiveMeshFilter;
             }
         }
 
@@ -1477,9 +1499,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DisableCachedShadowSlot();
         }
+
         void OnDisable()
         {
             DisableCachedShadowSlot();
+            SetEmissiveMeshRendererEnabled(false);
+        }
+
+        void SetEmissiveMeshRendererEnabled(bool enabled)
+        {
+            if (displayAreaLightEmissiveMesh && emissiveMeshRenderer)
+            {
+                emissiveMeshRenderer.enabled = enabled;
+            }
         }
 
         int GetShadowRequestCount()
@@ -1541,7 +1573,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRenderPipeline.EvaluateGPULightType(legacyLight.type, lightTypeExtent, spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
             // Flag the ray tracing only shadows
-            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point))
+            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone)))
             {
                 m_WillRenderScreenSpaceShadow = true;
                 m_WillRenderRayTracedShadow = true;
@@ -1985,6 +2017,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
 
+            if (legacyLight.enabled != timelineWorkaround.lightEnabled)
+            {
+                SetEmissiveMeshRendererEnabled(legacyLight.enabled);
+                timelineWorkaround.lightEnabled = legacyLight.enabled;
+            }
+
             // Check if the intensity have been changed by the inspector or an animator
             if (timelineWorkaround.oldLossyScale != transform.lossyScale
                 || intensity != timelineWorkaround.oldIntensity
@@ -2216,18 +2254,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAreaLightEmissiveMesh()
         {
-            MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
-            MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
-
             bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
             {
                 if (emissiveMeshRenderer == null)
-                    emissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
+                    m_EmissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
                 if (emissiveMeshFilter == null)
-                    emissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
+                    m_EmissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
             }
             else // Or remove them if the option is disabled
             {
@@ -2660,12 +2695,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="lightLayerMask"></param>
         /// <param name="shadowLightLayerMask"></param>
-        public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLightLayerMask)
+        public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLayerMask)
         {
             // disable the shadow / light layer link
             linkShadowLayers = false;
-            legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayerMask, (int)legacyLight.renderingLayerMask);
-            lightlayersMask = shadowLightLayerMask;
+            legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
+            lightlayersMask = lightLayerMask;
         }
 
         /// <summary>
@@ -2707,10 +2742,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetRange(float range) => legacyLight.range = range;
 
         /// <summary>
-        /// Set the light layer and shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
+        /// Set the shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
         /// <param name="lightLayerMask"></param>
-        public void SetLightLayer(LightLayerEnum lightLayerMask) => legacyLight.renderingLayerMask = (int)lightLayerMask;
+        public void SetShadowLightLayer(LightLayerEnum shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
 
         /// <summary>
         /// Set the light culling mask.
