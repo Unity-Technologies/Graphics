@@ -139,6 +139,7 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
+#if SHADEROPTIONS_RAYTRACING
     #ifdef HALF_RESOLUTION
     // Compute the half res coordinate that we shall be using for our effect
     uint2 targetCoord = dispatchThreadId.xy;
@@ -237,6 +238,7 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
     {
         _UpscaledIndirectDiffuseTextureRW[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, 1.0);
     }
+#endif
 }
 
 // Gbuffer textures to accumulate the indirect diffuse
