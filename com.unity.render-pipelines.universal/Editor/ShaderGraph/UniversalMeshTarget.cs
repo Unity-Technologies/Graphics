@@ -91,16 +91,16 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Forward,
-                keywords = new KeywordDescriptor[]
+                keywords = new ConditionalKeyword[]
                 {
-                    Keywords.Lightmap,
-                    Keywords.DirectionalLightmapCombined,
-                    Keywords.MainLightShadows,
-                    Keywords.MainLightShadowsCascade,
-                    Keywords.AdditionalLights,
-                    Keywords.AdditionalLightShadows,
-                    Keywords.ShadowsSoft,
-                    Keywords.MixedLightingSubtractive,
+                    new ConditionalKeyword(Keywords.Lightmap),
+                    new ConditionalKeyword(Keywords.DirectionalLightmapCombined),
+                    new ConditionalKeyword(Keywords.MainLightShadows),
+                    new ConditionalKeyword(Keywords.MainLightShadowsCascade),
+                    new ConditionalKeyword(Keywords.AdditionalLights),
+                    new ConditionalKeyword(Keywords.AdditionalLightShadows),
+                    new ConditionalKeyword(Keywords.ShadowsSoft),
+                    new ConditionalKeyword(Keywords.MixedLightingSubtractive),
                 },
                 includes = new ConditionalInclude[]
                 {
@@ -226,9 +226,9 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Default,
-                keywords = new KeywordDescriptor[]
+                keywords = new ConditionalKeyword[]
                 {
-                    Keywords.SmoothnessChannel,
+                    new ConditionalKeyword(Keywords.SmoothnessChannel),
                 },
                 includes = new ConditionalInclude[]
                 {
@@ -300,11 +300,11 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
-                keywords = new KeywordDescriptor[]
+                keywords = new ConditionalKeyword[]
                 {
-                    Keywords.Lightmap,
-                    Keywords.DirectionalLightmapCombined,
-                    Keywords.SampleGI,
+                    new ConditionalKeyword(Keywords.Lightmap),
+                    new ConditionalKeyword(Keywords.DirectionalLightmapCombined),
+                    new ConditionalKeyword(Keywords.SampleGI),
                 },
                 includes = new ConditionalInclude[]
                 {
@@ -349,13 +349,13 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
-                keywords = new KeywordDescriptor[]
+                keywords = new ConditionalKeyword[]
                 {
-                    Keywords.ETCExternalAlpha,
-                    Keywords.ShapeLightType0,
-                    Keywords.ShapeLightType1,
-                    Keywords.ShapeLightType2,
-                    Keywords.ShapeLightType3,
+                    new ConditionalKeyword(Keywords.ETCExternalAlpha),
+                    new ConditionalKeyword(Keywords.ShapeLightType0),
+                    new ConditionalKeyword(Keywords.ShapeLightType1),
+                    new ConditionalKeyword(Keywords.ShapeLightType2),
+                    new ConditionalKeyword(Keywords.ShapeLightType3),
                 },
                 includes = new ConditionalInclude[]
                 {
@@ -444,9 +444,9 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
-                keywords = new KeywordDescriptor[]
+                keywords = new ConditionalKeyword[]
                 {
-                    Keywords.ETCExternalAlpha,
+                    new ConditionalKeyword(Keywords.ETCExternalAlpha),
                 },
                 includes = new ConditionalInclude[]
                 {
@@ -489,9 +489,9 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
-                keywords = new KeywordDescriptor[]
+                keywords = new ConditionalKeyword[]
                 {
-                    Keywords.ETCExternalAlpha,
+                    new ConditionalKeyword(Keywords.ETCExternalAlpha),
                 },
                 includes = new ConditionalInclude[]
                 {

@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public ConditionalRenderState[] renderStates;
         public ConditionalPragma[] pragmas;
         public IEnumerable<string> defines;
-        public IEnumerable<KeywordDescriptor> keywords;
+        public ConditionalKeyword[] keywords;
         public ConditionalInclude[] includes;
         public IEnumerable<string> defaultDotsInstancingOptions;
 

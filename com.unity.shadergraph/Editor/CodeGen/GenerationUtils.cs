@@ -233,14 +233,16 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.keywords != null)
                 {
-                    foreach(KeywordDescriptor keyword in pass.keywords)
+                    foreach(ConditionalKeyword keyword in pass.keywords)
                     {
-                        passKeywordBuilder.AppendLine(keyword.ToDeclarationString());
+                        string value = null;
+                        if(keyword.TestActive(fields, out value))
+                            passKeywordBuilder.AppendLine(value);
                     }
                 }
-                if(passKeywordBuilder.length == 0)
-                    passKeywordBuilder.AppendLine("// PassKeywords: <None>");
-                spliceCommands.Add("PassKeywords", passKeywordBuilder.ToCodeBlack());
+
+                string command = GetSpliceCommand(passKeywordBuilder.ToCodeBlack(), "PassKeywords");
+                spliceCommands.Add("PassKeywords", command);
             }
 
             // --------------------------------------------------
