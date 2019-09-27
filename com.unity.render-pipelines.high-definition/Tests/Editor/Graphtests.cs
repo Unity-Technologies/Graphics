@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         };
 
         [Test, TestCaseSource(nameof(k_ArrayListRefEnumerate))]
-        public void ArrayListRefEnumerator_Works(List<int> list)
+        public void ArrayValues_Works(List<int> list)
         {
             var arraylist = new ArrayList<int>();
             foreach (var i in list)
@@ -24,11 +24,37 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             Assert.AreEqual(arraylist.count, list.Count);
             var a = arraylist.values;
             var l = list.GetEnumerator();
-            for(int c = arraylist.count, i = 0; i < c; ++i)
+            for (int c = arraylist.count, i = 0; i < c; ++i)
             {
                 Assert.True(a.MoveNext());
                 Assert.True(l.MoveNext());
                 Assert.AreEqual(a.current, l.Current);
+            }
+        }
+
+        [Test, TestCaseSource(nameof(k_ArrayListRefEnumerate))]
+        public void ArrayValuesMut_Works(List<int> list)
+        {
+            var arraylist = new ArrayList<int>();
+            foreach (var i in list)
+                arraylist.Add(i);
+
+            Assert.AreEqual(arraylist.count, list.Count);
+
+            {
+                var a = arraylist.valuesMut;
+                while (a.MoveNext()) a.current += 1;
+            }
+
+            {
+                var a = arraylist.values;
+                var l = list.GetEnumerator();
+                for (int c = arraylist.count, i = 0; i < c; ++i)
+                {
+                    Assert.True(a.MoveNext());
+                    Assert.True(l.MoveNext());
+                    Assert.AreEqual(a.current, l.Current + 1);
+                }
             }
         }
     }
