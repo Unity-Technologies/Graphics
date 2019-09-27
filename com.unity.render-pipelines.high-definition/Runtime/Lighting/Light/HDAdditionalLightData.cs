@@ -596,9 +596,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Only for Punctual/Sphere/Disc
+        // Only for Punctual/Sphere/Disc. Default shape radius is not 0 so that specular highlight is visible by default, it matches the previous default of 0.99 for MaxSmoothness.
         [SerializeField, FormerlySerializedAs("shapeRadius")]
-        float m_ShapeRadius = 0.0f;
+        float m_ShapeRadius = 0.025f;
         /// <summary>
         /// Get/Set the radius of a light
         /// </summary>
@@ -785,7 +785,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_InteractsWithSky = value;
             }
         }
-
         [SerializeField, FormerlySerializedAs("angularDiameter")]
         float m_AngularDiameter = 0;
         /// <summary>
@@ -800,7 +799,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_AngularDiameter == value)
                     return;
 
-                m_AngularDiameter = value;
+                m_AngularDiameter = Mathf.Clamp(value, 0, 360);
             }
         }
 

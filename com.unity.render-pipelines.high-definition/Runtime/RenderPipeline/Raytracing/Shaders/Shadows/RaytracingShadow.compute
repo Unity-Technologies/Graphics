@@ -376,9 +376,6 @@ void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 }
 
-// Angle of the directional light
-float _DirectionalLightAngle;
-
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -416,7 +413,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);
 
-    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(_DirectionalLightAngle * 3.14 / 180.0));
+    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter));
 
     float3 wsDir = mul(localDir, localToWorld); 
 
