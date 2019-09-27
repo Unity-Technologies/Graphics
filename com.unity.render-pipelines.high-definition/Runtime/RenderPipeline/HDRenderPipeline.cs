@@ -378,7 +378,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
             m_DbufferManager = new DBufferManager(asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
+#if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager = new VTBufferManager(asset);
+#endif
 
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
@@ -453,10 +455,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
             Debug.Log("Scriptable renderpipeline VT enabled");
+            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2 + VTBufferManager.AdditionalForwardRT];
 #else
             Debug.Log("Scriptable renderpipeline VT disabled");
+            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 #endif
-            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2 + VTBufferManager.AdditionalForwardRT];
 #if ENABLE_RAYTRACING
             m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_BlueNoise, this, m_SharedRTManager, m_DebugDisplaySettings);
             InitRayTracedReflections();
