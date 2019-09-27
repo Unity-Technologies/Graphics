@@ -1,6 +1,7 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Reflection-Proxy-Volume" + Documentation.endURL)]
+    [AddComponentMenu("Rendering/Reflection Proxy Volume")]
     public class ReflectionProxyVolumeComponent : MonoBehaviour
     {
         [SerializeField]
