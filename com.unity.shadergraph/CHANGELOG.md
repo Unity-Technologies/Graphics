@@ -4,6 +4,7 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 ## [7.1.3] - 2019-09-XX
 
 Version Updated
@@ -17,6 +18,17 @@ The version number for this package has increased due to a version update of a r
 ### Fixed 
 - The Editor now displays correct errors for missing or deleted Sub Graph Assets.
 - You can no longer drag and drop recursive nodes onto Sub Graph Assets.
+=======
+## [8.0.0] - 2019-XX-XX
+### Added
+- Added samples for Procedural Patterns to the package.
+- You can now use the right-click context menu to delete Sticky Notes.
+- You can now save your graph as a new Asset.
+- You can now use the right-click context menu to set the precision on multiple selected nodes.
+
+### Fixed
+- Edges no longer produce errors when you save a Shader Graph.
+>>>>>>> HDRP/staging
 - Shader Graph no longer references the `NUnit` package.
 - Fixed a shader compatibility issue in the SRP Batcher when you use a hybrid instancing custom variable.
 
@@ -40,6 +52,11 @@ The version number for this package has increased due to a version update of a r
 - PBR master nodes now calculate Global Illumination (GI) correctly.
 - PBR master nodes now apply surface normals.
 - PBR master nodes now apply fog.
+<<<<<<< HEAD
+=======
+- The Editor now displays correct errors for missing or deleted Sub Graph Assets.
+- You can no longer drag and drop recursive nodes onto Sub Graph Assets.
+>>>>>>> HDRP/staging
 
 ## [7.0.1] - 2019-07-25
 ### Changed

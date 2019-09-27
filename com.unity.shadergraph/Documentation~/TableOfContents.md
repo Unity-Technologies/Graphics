@@ -199,6 +199,7 @@
             * [Ellipse](Ellipse-Node)  
             * [Polygon](Polygon-Node)  
             * [Rectangle](Rectangle-Node)  
+            * [Rounded Polygon](Rounded-Polygon-Node) 
             * [Rounded Rectangle](Rounded-Rectangle-Node) 
         * [Checkerboard](Checkerboard-Node) 
     * [Utility](Utility-Nodes)

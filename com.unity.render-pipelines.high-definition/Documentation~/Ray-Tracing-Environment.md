@@ -6,6 +6,7 @@ This component allows you to use ray tracing in your Scene. It defines which Lay
 
 To add a Ray Tracing Environment to your Scene, you can:
 
+<<<<<<< HEAD
 - Add the component to a GameObject already in your Scene.
 
 - 1. In the Scene view or Hierarchy, select a GameObject.
@@ -14,6 +15,14 @@ To add a Ray Tracing Environment to your Scene, you can:
 - Create a new GameObject with the component already attached.
 
 - 1. Select GameObject > Rendering > Ray Tracing Environment.
+=======
+* Add the component to a GameObject already in your Scene.
+	1. In the Scene view or Hierarchy, select a GameObject.
+	2. Select Add Component > Scripts > Unity.Rendering.HighDefinition > HD Raytracing Environment.
+
+* Create a new GameObject with the component already attached.
+	1. Select **GameObject > Rendering > Ray Tracing Environment**.
+>>>>>>> HDRP/staging
 
 ## Properties
 

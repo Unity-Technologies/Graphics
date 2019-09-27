@@ -300,7 +300,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
 #endif
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> HDRP/staging
         public HDRenderPipeline(HDRenderPipelineAsset asset, HDRenderPipelineAsset defaultAsset)
         {
             m_Asset = asset;
@@ -324,6 +328,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpgradeResourcesIfNeeded();
             
+            //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
+            //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
+            //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
+            if (HDRenderPipeline.defaultAsset.renderPipelineResources == null
+                || HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null
+#if ENABLE_RAYTRACING
+                || HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources == null
+#endif
+                )
+                return;
+            else
+                m_ResourcesInitialized = true;
+
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
@@ -484,6 +501,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+#else
+            // If ray tracing is not enabled we do not want to have ray tracing resources referenced
+            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources = null;
 #endif
 
             if (HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null)
@@ -676,7 +696,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!SystemInfo.supportsComputeShaders)
                 return false;
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> HDRP/staging
             if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
                 return false;
 
@@ -773,7 +797,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ResourcesInitialized)
                 return;
 #endif
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> HDRP/staging
             base.Dispose(disposing);
 
             ReleaseScreenSpaceShadows();
@@ -1919,8 +1947,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
-            var showGizmos = camera.cameraType == CameraType.Game
-                || camera.cameraType == CameraType.SceneView;
+            var showGizmos = camera.cameraType == CameraType.SceneView ||
+                            (camera.targetTexture == null && camera.cameraType == CameraType.Game);
 #endif
 
             RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
@@ -2050,7 +2078,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (new ProfilingSample(cmd, "Render screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
                 {
+                    hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
                     RenderScreenSpaceShadows(hdCamera, cmd);
+                    hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
                 }
 
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
@@ -2122,11 +2152,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
 
                     RenderColorPyramid(hdCamera, cmd, true);
-                }
 
-                // Bind current color pyramid for shader graph SceneColorNode on transparent objects
-                var currentColorPyramid = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-                cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, currentColorPyramid);
+                    // Bind current color pyramid for shader graph SceneColorNode on transparent objects
+                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
+                }
+                else
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, TextureXR.GetBlackTexture());
+                }
 
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForwardTransparent(cullingResults, hdCamera, false, renderContext, cmd);
@@ -2163,7 +2196,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (showGizmos)
                 {
                     if(m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+<<<<<<< HEAD
                     { 
+=======
+                    {
+>>>>>>> HDRP/staging
                         Gizmos.exposure = Texture2D.blackTexture;
                     }
                     else
@@ -3344,7 +3381,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                
+
             var customPassTargets = new CustomPass.RenderTargets
             {
                 cameraColorBuffer = m_CameraColorBuffer,
@@ -3578,7 +3615,9 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.rayTracing.value)
             {
+                hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
+                hdCamera.xr.StopSinglePass(cmd, hdCamera.camera, renderContext);
             }
             else
 #endif
@@ -3748,7 +3787,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingNormal, debugNormal);
+<<<<<<< HEAD
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAmbientOcclusion, debugAmbientOcclusion);                
+=======
+                cmd.SetGlobalVector(HDShaderIDs._DebugLightingAmbientOcclusion, debugAmbientOcclusion);
+>>>>>>> HDRP/staging
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSpecularColor, debugSpecularColor);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingEmissiveColor, debugEmissiveColor);
                 cmd.SetGlobalColor(HDShaderIDs._DebugLightingMaterialValidateHighColor, materialDebugSettings.materialValidateHighColor);
@@ -4063,7 +4106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // clear coat selection
                         if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
                         {
-                            CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffer(2), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.black);
+                            CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffer(2), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
                         }
                     }
                 }
@@ -4175,7 +4218,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 normalBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Normal, Allocator, 1);
-                cmd.CopyTexture(mainNormalBuffer, 0, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, normalBuffer, 0, 0, 0, 0);
+
+                for (int i = 0; i < hdCamera.viewCount; i++)
+                    cmd.CopyTexture(mainNormalBuffer, i, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, normalBuffer, i, 0, 0, 0);
             }
 
             if (needDepthBuffer)
@@ -4188,7 +4233,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 depthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Depth, Allocator, 1);
-                cmd.CopyTexture(mainDepthBuffer, 0, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, depthBuffer, 0, 0, 0, 0);
+
+                for (int i = 0; i < hdCamera.viewCount; i++)
+                    cmd.CopyTexture(mainDepthBuffer, i, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, depthBuffer, i, 0, 0, 0);
             }
 
             // Send buffers to client.

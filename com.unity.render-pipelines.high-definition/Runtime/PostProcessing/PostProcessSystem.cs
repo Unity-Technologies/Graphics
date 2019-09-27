@@ -254,7 +254,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 void CleanupCustomPostProcess(string typeString)
                 {
+<<<<<<< HEAD
                     var comp = VolumeManager.instance.stack.GetComponent(Type.GetType(typeString)) as CustomPostProcessVolumeComponent;
+=======
+                    Type t = Type.GetType(typeString);
+
+                    if (t == null)
+                        return;
+
+                    var comp = VolumeManager.instance.stack.GetComponent(t) as CustomPostProcessVolumeComponent;                    comp.CleanupInternal();
+>>>>>>> HDRP/staging
                     comp.CleanupInternal();
                 }
             }

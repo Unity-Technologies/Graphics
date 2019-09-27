@@ -4,6 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 ## [7.1.3] - 2019-09-XX
 
 Version Updated
@@ -11,14 +12,26 @@ The version number for this package has increased due to a version update of a r
 
 ## [7.1.2] - 2019-09-19
 ### Added
+=======
+## [8.0.0] - 2019-XX-XX
+### Added
+- Added the option to strip Terrain hole Shader variants.
+>>>>>>> HDRP/staging
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
 
 ### Fixed
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
+<<<<<<< HEAD
 - Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
 - Improved overall memory bandwidth usage.
+=======
+- Fixed an issue where Terrain hole Shader changes were missing. [case 1179808](https://issuetracker.unity3d.com/issues/terrain-brush-tool-is-not-drawing-when-paint-holes-is-selected)
+- Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
+- Fixed Unlit and BakedLit shader compilations in the meta pass.
+- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+>>>>>>> HDRP/staging
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

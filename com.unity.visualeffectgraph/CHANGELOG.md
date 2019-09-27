@@ -4,6 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 ## [7.1.3] - 2019-09-XX
 
 Version Updated
@@ -15,6 +16,12 @@ The version number for this package has increased due to a version update of a r
 - Correct VFXSettings display in Shader Graph compatible outputs
 - No more NullReference on sub-outputs after domain reload
 - Fix typo in strip tangent computation
+=======
+## [8.0.0] - 2019-XX-XX
+
+### Fixed
+- Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
+>>>>>>> HDRP/staging
 
 ## [7.1.1] - 2019-09-05
 ### Added

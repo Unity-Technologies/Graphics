@@ -21,6 +21,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enables ray binning")]
         public BoolParameter rayBinning = new BoolParameter(false);
 
+        [Tooltip("Full Resolution")]
+        public BoolParameter fullResolution = new BoolParameter(false);
+
+        [Tooltip("Upscale Radius")]
+        public ClampedIntParameter upscaleRadius = new ClampedIntParameter(2, 2, 4);
+
         // Tier 2
         [Tooltip("Number of samples for GI.")]
         public ClampedIntParameter sampleCount = new ClampedIntParameter(1, 1, 32);

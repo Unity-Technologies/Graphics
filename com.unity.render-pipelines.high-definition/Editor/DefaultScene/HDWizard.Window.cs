@@ -304,7 +304,11 @@ namespace UnityEditor.Rendering.HighDefinition
             };
             newDXRScene.Q<Label>().AddToClassList("normal");
             newDXRScene.RegisterValueChangedCallback(evt
+<<<<<<< HEAD
                 => HDProjectSettings.defaultScenePrefab = evt.newValue as GameObject);
+=======
+                => HDProjectSettings.defaultDXRScenePrefab = evt.newValue as GameObject);
+>>>>>>> HDRP/staging
 
             return newDXRScene;
         }
