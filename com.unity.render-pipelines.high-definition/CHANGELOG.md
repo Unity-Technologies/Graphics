@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
+- Added a warning message in the console when a diffusion profile that is not referenced in the HDRP asset is assigned in a diffusion profile node or a master node slot in ShaderGraph.
 
 ### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
