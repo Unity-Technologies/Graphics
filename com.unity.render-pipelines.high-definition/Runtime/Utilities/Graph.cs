@@ -5,11 +5,11 @@ namespace UnityEditor.Rendering.HighDefinition
     using UnityEngine.Assertions;
     using static IndexGraph;
 
-    /// <summary>Class to provide static API for <see cref="IndexGraph{N, E}"/>.</summary>
+    /// <summary>EXPERIMENTAL: Class to provide static API for <see cref="IndexGraph{N, E}"/>.</summary>
     public static class IndexGraph
     {
         /// <summary>
-        /// Index of a node in an <see cref="IndexGraph{N, E}"/>.
+        /// EXPERIMENTAL: Index of a node in an <see cref="IndexGraph{N, E}"/>.
         /// </summary>
         public struct NodeIndex: IEquatable<NodeIndex>
         {
@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Index of an edge in an <see cref="IndexGraph{N, E}"/>.
+        /// EXPERIMENTAL: Index of an edge in an <see cref="IndexGraph{N, E}"/>.
         /// </summary>
         public struct EdgeIndex : IEquatable<EdgeIndex>
         {
@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Enumerators
         //
 
-        /// <summary>Enumerate edges by reference of <see cref="IndexGraph{N, E}"/>.</summary>
+        /// <summary>EXPERIMENTAL: Enumerate edges by reference of <see cref="IndexGraph{N, E}"/>.</summary>
         /// <typeparam name="E">The type of the edges.</typeparam>
         public struct EdgeRefEnumerator<E> : IRefEnumerator<E>
             where E: struct
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public void Reset() => m_En.Reset();
         }
 
-        /// <summary>Enumerate edges by mutable reference of <see cref="IndexGraph{N, E}"/>.</summary>
+        /// <summary>EXPERIMENTAL: Enumerate edges by mutable reference of <see cref="IndexGraph{N, E}"/>.</summary>
         /// <typeparam name="E">The type of the edges.</typeparam>
         public struct EdgeMutEnumerator<E> : IMutEnumerator<E> 
             where E : struct
@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public void Reset() => m_En.Reset();
         }
 
-        /// <summary>Enumerate nodes by reference of <see cref="IndexGraph{N, E}"/>.</summary>
+        /// <summary>EXPERIMENTAL: Enumerate nodes by reference of <see cref="IndexGraph{N, E}"/>.</summary>
         /// <typeparam name="E">The type of the nodes.</typeparam>
         public struct NodeRefEnumerator<N> : IRefEnumerator<N>
             where N: struct
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public void Reset() => m_En.Reset();
         }
 
-        /// <summary>Enumerate nodes by mutable reference of <see cref="IndexGraph{N, E}"/>.</summary>
+        /// <summary>EXPERIMENTAL: Enumerate nodes by mutable reference of <see cref="IndexGraph{N, E}"/>.</summary>
         /// <typeparam name="E">The type of the nodes.</typeparam>
         public struct NodeMutEnumerator<N> : IMutEnumerator<N>
             where N : struct
@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public void Reset() => m_En.Reset();
         }
 
-        /// <summary>Enumerate node indices of nodes leaving a node index in an <see cref="IndexGraph{N, E}"/>.</summary>
+        /// <summary>EXPERIMENTAL: Enumerate node indices of nodes leaving a node index in an <see cref="IndexGraph{N, E}"/>.</summary>
         public struct NodeIndexFromEnumerator : IRefEnumerator<NodeIndex>
         {
             struct FromIndex : IInFunc<(NodeIndex from, NodeIndex to), bool>
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public void Reset() => m_Enumerator.Reset();
         }
 
-        /// <summary>Enumerate node indices of nodes coming at a node index in an <see cref="IndexGraph{N, E}"/>.</summary>
+        /// <summary>EXPERIMENTAL: Enumerate node indices of nodes coming at a node index in an <see cref="IndexGraph{N, E}"/>.</summary>
         public struct NodeIndexToEnumerator : IRefEnumerator<NodeIndex>
         {
             struct ToIndex : IInFunc<(NodeIndex from, NodeIndex to), bool>
@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 
     /// <summary>
-    /// Graph stored as index based nodes and edges.
+    /// EXPERIMENTAL: Graph stored as index based nodes and edges.
     ///
     /// Remove operations are not conservative: <see cref="NodeIndex"/> and <see cref="EdgeIndex"/> may change.
     /// </summary>
@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering.HighDefinition
     //
 
     /// <summary>
-    /// Iterate by reference over a collection.
+    /// EXPERIMENTAL: Iterate by reference over a collection.
     ///
     /// similar to <see cref="System.Collections.Generic.IEnumerator{T}"/> but with a reference to the strong type.
     /// </summary>
@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Iterate by mutable reference over a collection.
+    /// EXPERIMENTAL: Iterate by mutable reference over a collection.
     ///
     /// similar to <see cref="System.Collections.Generic.IEnumerator{T}"/> but with a mutable reference to the strong type.
     /// </summary>
@@ -300,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Interface similar to <see cref="System.Func{T, TResult}"/> but consuming <c>in</c> arguments.
+    /// EXPERIMENTAL: Interface similar to <see cref="System.Func{T, TResult}"/> but consuming <c>in</c> arguments.
     ///
     /// Implement this interface on a struct to have inlined callbacks by the compiler.
     /// </summary>
@@ -312,7 +312,7 @@ namespace UnityEditor.Rendering.HighDefinition
         R Execute(in T1 t1);
     }
 
-    /// <summary>An enumerator performing a select function.</summary>
+    /// <summary>EXPERIMENTAL: An enumerator performing a select function.</summary>
     /// <typeparam name="I">Type of the input value.</typeparam>
     /// <typeparam name="O">Type of the output value.</typeparam>
     /// <typeparam name="En">Type of the enumerator to consume by reference.</typeparam>
@@ -342,7 +342,7 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// An enumerator by reference thats skip values based on a where clause.
+    /// EXPERIMENTAL: An enumerator by reference thats skip values based on a where clause.
     /// </summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
     /// <typeparam name="En">Type of the enumerator.</typeparam>
@@ -404,7 +404,7 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// An enumerator by mutable reference thats skip values based on a where clause.
+    /// EXPERIMENTAL: An enumerator by mutable reference thats skip values based on a where clause.
     /// </summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
     /// <typeparam name="En">Type of the enumerator.</typeparam>
@@ -470,7 +470,7 @@ namespace UnityEditor.Rendering.HighDefinition
     //
 
     /// <summary>
-    /// A list based on an array with reference access.
+    /// EXPERIMENTAL: A list based on an array with reference access.
     ///
     /// If the array does not have any values, it does not allocate memory on the heap.
     ///
@@ -620,7 +620,7 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// An enumerator by reference over a <see cref="ArrayList{T}"/>.
+    /// EXPERIMENTAL: An enumerator by reference over a <see cref="ArrayList{T}"/>.
     /// </summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
     public struct ArrayListRefEnumerator<T> : IRefEnumerator<T>
@@ -679,7 +679,7 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// An enumerator by mutable reference over a <see cref="ArrayList{T}"/>.
+    /// EXPERIMENTAL: An enumerator by mutable reference over a <see cref="ArrayList{T}"/>.
     /// </summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
     public struct ArrayListMutEnumerator<T> : IMutEnumerator<T>
