@@ -576,9 +576,21 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                     float3 sampleOutgoingRadiance = SHEvalLinearL0L1(bsdfData.normalWS, sampleShAr, sampleShAg, sampleShAb);
 
-                    // TODO: Sample irradiance data from atlas and integrate against diffuse BRDF.
-                    // probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * sample * weight;
-                    probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight * bsdfData.diffuseColor;
+#ifdef DEBUG_DISPLAY
+                    if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
+                    {
+                        probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weight;
+                    }
+                    else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DIFFUSE_GIONLY)
+                    {
+                        probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight;
+                    }
+                    else
+#endif
+                    {
+                        probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight * bsdfData.diffuseColor;
+                    }
+
                     probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
 
                 }

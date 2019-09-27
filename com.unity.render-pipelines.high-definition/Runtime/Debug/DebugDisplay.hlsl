@@ -17,6 +17,7 @@ float _DebugViewMaterialArray[11]; // Contain the id (define in various material
 int _DebugMipMapMode; // Match enum DebugMipMapMode
 int _DebugMipMapModeTerrainTexture; // Match enum DebugMipMapModeTerrainTexture
 int _ColorPickerMode; // Match enum ColorPickerDebugMode
+int _DebugProbeVolumeMode; // Match enum ProbeVolumeDebugMode
 int _DebugStep;
 int _DebugDepthPyramidMip;
 int _DebugFullScreenMode;

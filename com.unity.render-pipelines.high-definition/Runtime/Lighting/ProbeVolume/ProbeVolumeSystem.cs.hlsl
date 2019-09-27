@@ -4,7 +4,7 @@
 
 #ifndef PROBEVOLUMESYSTEM_CS_HLSL
 #define PROBEVOLUMESYSTEM_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.ProbeVolumeEngineData
+// Generated from UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 // PackingRules = Exact
 struct ProbeVolumeEngineData
 {
@@ -19,8 +19,17 @@ struct ProbeVolumeEngineData
     float3 resolutionInverse;
 };
 
+// Generated from UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
+// PackingRules = Exact
+struct SphericalHarmonicsL1
+{
+    float4 shAr;
+    float4 shAg;
+    float4 shAb;
+};
+
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.ProbeVolumeEngineData
+// Accessors for UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 //
 float3 GetDebugColor(ProbeVolumeEngineData value)
 {
@@ -58,18 +67,8 @@ float3 GetResolutionInverse(ProbeVolumeEngineData value)
 {
     return value.resolutionInverse;
 }
-
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.SphericalHarmonicsL1
-// PackingRules = Exact
-struct SphericalHarmonicsL1
-{
-    float4 shAr;
-    float4 shAg;
-    float4 shAb;
-};
-
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.SphericalHarmonicsL1
+// Accessors for UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
 //
 float4 GetShAr(SphericalHarmonicsL1 value)
 {

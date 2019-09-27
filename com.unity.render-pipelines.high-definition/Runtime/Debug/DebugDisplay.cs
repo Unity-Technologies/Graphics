@@ -197,6 +197,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return data.colorPickerDebugSettings.colorPickerMode;
         }
 
+        public ProbeVolumeDebugMode GetProbeVolumeDebugMode()
+        {
+            return data.lightingDebugSettings.probeVolumeDebugMode;
+        }
+
         public bool IsCameraFreezeEnabled()
         {
             return data.debugCameraToFreeze != 0;

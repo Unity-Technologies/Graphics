@@ -93,7 +93,9 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum ProbeVolumeDebugMode
     {
         None,
-        VisualizeAtlas
+        VisualizeAtlas,
+        VisualizeDiffuseGIOnly,
+        VisualizeDebugColors,
     }
 
     [Serializable]
@@ -110,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideSpecularColor
                 || overrideEmissiveColor
                 || shadowDebugMode == ShadowMapDebugMode.SingleShadow
-                || probeVolumeDebugMode == ProbeVolumeDebugMode.VisualizeAtlas;
+                || probeVolumeDebugMode != ProbeVolumeDebugMode.None;
         }
 
         public bool IsDebugDisplayRemovePostprocess()
