@@ -12,23 +12,20 @@ namespace UnityEditor.ShaderGraph.Internal
         public string varyingsInclude;
         public bool useInPreview;
 
-        // Setup
-        public IEnumerable<string> pragmas;
-        public IEnumerable<string> includes;
-        public IEnumerable<string> defines;
-        public IEnumerable<KeywordDescriptor> keywords;
-        public IEnumerable<string> defaultDotsInstancingOptions;
-
         // Port mask
-        public List<int> vertexPorts;
-        public List<int> pixelPorts;
+        public int[] vertexPorts;
+        public int[] pixelPorts;
 
         // Required fields
-        public List<string> requiredAttributes;
-        public List<string> requiredVaryings;
+        public string[] requiredFields;
 
-        // Render State
-        public RenderStateOverride[] renderStateOverrides;
+        // Conditional State
+        public ConditionalRenderState[] renderStates;
+        public ConditionalPragma[] pragmas;
+        public ConditionalDefine[] defines;
+        public ConditionalKeyword[] keywords;
+        public ConditionalInclude[] includes;
+        public IEnumerable<string> defaultDotsInstancingOptions;
 
         // Custom Template
         public string passTemplatePath;
