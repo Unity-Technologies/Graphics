@@ -106,8 +106,7 @@ namespace UnityEditor.ShaderGraph
             // GET CUSTOM ACTIVE FIELDS HERE!
 
             // Get active fields from ShaderPass
-            AddRequiredFields(pass.requiredAttributes, activeFields.baseInstance);
-            AddRequiredFields(pass.requiredVaryings, activeFields.baseInstance);
+            AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
 
             // Get Port references from ShaderPass
             List<MaterialSlot> pixelSlots;
@@ -182,7 +181,7 @@ namespace UnityEditor.ShaderGraph
                         foreach(ConditionalRenderState renderState in renderStates)
                         {
                             string value = null;
-                            if(EvaluateConditionalShaderString(renderState, fields, out value))
+                            if(renderState.TestActive(fields, out value))
                             {
                                 renderStateBuilder.AppendLine(value);
                                 break;
@@ -203,7 +202,7 @@ namespace UnityEditor.ShaderGraph
                     foreach(ConditionalPragma pragma in pass.pragmas)
                     {
                         string value = null;
-                        if(EvaluateConditionalShaderString(pragma, fields, out value))
+                        if(pragma.TestActive(fields, out value))
                             passPragmaBuilder.AppendLine(value);
                     }
                 }
@@ -220,7 +219,7 @@ namespace UnityEditor.ShaderGraph
                     foreach(ConditionalInclude include in pass.includes)
                     {
                         string value = null;
-                        if(EvaluateConditionalShaderString(include, fields, out value))
+                        if(include.TestActive(fields, out value))
                             passIncludeBuilder.AppendLine(value);
                     }
                 }
@@ -759,41 +758,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             return activeSlots;
-        }
-
-        static bool EvaluateConditionalShaderString(IConditionalShaderString conditionalShaderString, List<IField> fields, out string value)
-        {
-            // Test FieldCondition against current active Fields
-            bool TestFieldCondition(FieldCondition fieldCondition)
-            {
-                // Required active field is not active
-                if(fieldCondition.condition == true && !fields.Contains(fieldCondition.field))
-                    return false;
-
-                // Required non-active field is active
-                else if(fieldCondition.condition == false && fields.Contains(fieldCondition.field))
-                    return false;
-
-                return true;
-            }
-
-            // No FieldConditions
-            if(conditionalShaderString.fieldConditions == null)
-            {
-                value = conditionalShaderString.value;
-                return true;
-            }
-
-            // One or more FieldConditions failed
-            if(conditionalShaderString.fieldConditions.Where(x => !TestFieldCondition(x)).Any())
-            {
-                value = null;
-                return false;
-            }
-
-            // All FieldConditions passed
-            value = conditionalShaderString.value;
-            return true;
         }
 
         static string GetSpliceCommand(string command, string token)

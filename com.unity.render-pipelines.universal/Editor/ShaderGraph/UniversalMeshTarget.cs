@@ -74,12 +74,9 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new List<string>()
                 {
                     "Attributes.uv1", //needed for meta vertex position
-                },
-                requiredVaryings = new List<string>()
-                {
                     "Varyings.positionWS",
                     "Varyings.normalWS",
                     "Varyings.tangentWS", //needed for vertex lighting
@@ -176,7 +173,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new List<string>()
                 {
                     "Attributes.normalOS",
                 },
@@ -220,7 +217,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new List<string>()
                 {
                     "Attributes.uv1", //needed for meta vertex position
                     "Attributes.uv2", //needed for meta vertex position
@@ -342,7 +339,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredVaryings = new List<string>()
+                requiredFields = new List<string>()
                 {
                     "Varyings.color",
                     "Varyings.texCoord0",
@@ -394,7 +391,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredVaryings = new List<string>()
+                requiredFields = new List<string>()
                 {
                     "Varyings.normalWS",
                     "Varyings.tangentWS",
@@ -438,7 +435,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredVaryings = new List<string>()
+                requiredFields = new List<string>()
                 {
                     "Varyings.color",
                     "Varyings.texCoord0",
@@ -481,13 +478,10 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new List<string>()
                 {
                     "Attributes.color",
                     "Attributes.uv0",
-                },
-                requiredVaryings = new List<string>()
-                {
                     "Varyings.color",
                     "Varyings.texCoord0",
                 },

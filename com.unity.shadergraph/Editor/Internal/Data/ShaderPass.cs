@@ -17,8 +17,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public List<int> pixelPorts;
 
         // Required fields
-        public List<string> requiredAttributes;
-        public List<string> requiredVaryings;
+        public List<string> requiredFields;
 
         // Conditional State
         public ConditionalRenderState[] renderStates;
