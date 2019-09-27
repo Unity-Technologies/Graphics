@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // On platforms where the tile dimensions is large (16x16), it may be faster to generate tileDepthInfo texture
         // with an intermediate mip level, as this allows spawning more pixel shaders (avoid GPU starvation).
         // Set to -1 to disable.
-        #if UNITY_SWITCH
+#if UNITY_SWITCH
         public const int kTileDepthInfoIntermediateLevel = 1;
         #else
         public const int kTileDepthInfoIntermediateLevel = -1;
@@ -70,8 +70,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
-            public static readonly int _DownsamplePixelWidth = Shader.PropertyToID("_DownsamplePixelWidth");
-            public static readonly int _DownsamplePixelHeight = Shader.PropertyToID("_DownsamplePixelHeight");
+            public static readonly int _DownsamplingWidth = Shader.PropertyToID("_DownsamplingWidth");
+            public static readonly int _DownsamplingHeight = Shader.PropertyToID("_DownsamplingHeight");
             public static readonly int _SourceShiftX = Shader.PropertyToID("_SourceShiftX");
             public static readonly int _SourceShiftY = Shader.PropertyToID("_SourceShiftY");
             public static readonly int _TileShiftX = Shader.PropertyToID("_TileShiftX");
@@ -365,8 +365,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalTexture(ShaderConstants._DepthTex, depthSurface);
             cmd.SetGlobalVector(ShaderConstants._DepthTexSize, new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight));
-            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelWidth, tilePixelWidth);
-            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelHeight, tilePixelHeight);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
             cmd.SetGlobalInt(ShaderConstants._SourceShiftX, intermediateMipLevel);
             cmd.SetGlobalInt(ShaderConstants._SourceShiftY, intermediateMipLevel);
             cmd.SetGlobalInt(ShaderConstants._TileShiftX, tileShiftMipLevel);
@@ -394,7 +394,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.EnableShaderKeyword(shaderVariant);
 
             int tileY = 0;
-            int tileYIncrement = DeferredConfig.kPreferredCBufferSize / (tileXCount * 4);
+            int tileYIncrement = (DeferredConfig.kUseCBufferForDepthRange ? DeferredConfig.kPreferredCBufferSize : DeferredConfig.kPreferredStructuredBufferSize) / (tileXCount * 4);
 
             NativeArray<uint> depthRanges = new NativeArray<uint>(m_MaxDepthRangePerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
@@ -463,8 +463,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             int diffHeightLevel = tileHeightLevel - intermediateMipLevel;
 
             cmd.SetGlobalTexture(ShaderConstants._BitmaskTex, depthInfoSurface);
-            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelWidth, tilePixelWidth);
-            cmd.SetGlobalInt(ShaderConstants._DownsamplePixelHeight, tilePixelHeight);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplingWidth, tilePixelWidth);
+            cmd.SetGlobalInt(ShaderConstants._DownsamplingHeight, tilePixelHeight);
+
+            int alignment = 1 << DeferredConfig.kTileDepthInfoIntermediateLevel;
+            int depthInfoWidth = (m_RenderWidth + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+            int depthInfoHeight = (m_RenderHeight + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+            cmd.SetGlobalVector("_BitmaskTexSize", new Vector4(depthInfoWidth, depthInfoHeight, 1.0f / depthInfoWidth, 1.0f / depthInfoHeight));
 
             string shaderVariant = null;
             if (diffWidthLevel == 1 && diffHeightLevel == 1)
