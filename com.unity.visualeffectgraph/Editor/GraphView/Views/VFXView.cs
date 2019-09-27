@@ -300,6 +300,10 @@ namespace UnityEditor.VFX.UI
             {
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
             }
+            else
+            {
+                styleSheets.Add(LoadStyleSheet("VFXView-dark"));
+            }
 
             AddLayer(-1);
             AddLayer(1);
@@ -398,6 +402,7 @@ namespace UnityEditor.VFX.UI
             toggleComponentBoard.value = componentBoardVisible;*/
 
             Add(m_Toolbar);
+            m_Toolbar.SetEnabled(false);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
@@ -661,6 +666,7 @@ namespace UnityEditor.VFX.UI
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
+                m_Toolbar.SetEnabled(true);
 
                 pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
 
@@ -672,6 +678,7 @@ namespace UnityEditor.VFX.UI
                 if (m_NoAssetLabel.parent == null)
                 {
                     Add(m_NoAssetLabel);
+                    m_Toolbar.SetEnabled(false);
                 }
             }
         }
