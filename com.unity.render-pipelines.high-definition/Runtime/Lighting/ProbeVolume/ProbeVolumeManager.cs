@@ -24,14 +24,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public List<ProbeVolume> volumes = null;
-        private bool volumesIsDirty = true;
+
         public void RegisterVolume(ProbeVolume volume)
         {
             if (volumes.Contains(volume))
                 return;
 
             volumes.Add(volume);
-            volumesIsDirty = true;
         }
         public void DeRegisterVolume(ProbeVolume volume)
         {
@@ -39,7 +38,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             volumes.Remove(volume);
-            volumesIsDirty = true;
         }
 #if UNITY_EDITOR
         public void ReactivateProbes()
