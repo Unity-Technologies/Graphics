@@ -226,17 +226,13 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = stackName,
-                generatePropertyBlock = true,
-                modifiable = false,
+                overrideReferenceName = stackName + "_cb",
                 slotNames = slotNames
             });
 
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = stackName + "_cb",
-                generatePropertyBlock = true,
-                modifiable = false,
+                overrideReferenceName = stackName,
                 slotNames = slotNames
             });
         }
