@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             supportedRaytracingTier = RaytracingTier.Tier2,
             lodBias = new FloatScalableSetting { low = 1, medium = 1, high = 1 },
             maximumLODLevel = new IntScalableSetting(),
+            supportProbeVolume = false,
+            probeVolumeSettings = GlobalProbeVolumeSettings.@default,
         };
 
         [Serializable]
@@ -113,6 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportRayTracing;
         public RaytracingTier supportedRaytracingTier;
 
+        public GlobalProbeVolumeSettings probeVolumeSettings;
         public GlobalLightLoopSettings lightLoopSettings;
         public HDShadowInitParameters hdShadowInitParams;
         public GlobalDecalSettings decalSettings;

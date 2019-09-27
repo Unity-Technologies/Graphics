@@ -102,29 +102,33 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
         static int s_ProbeVolumeAtlasBlitKernel = -1;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
-        public const int k_ProbeVolumeAtlasWidth = 1024;
-        public const int k_ProbeVolumeAtlasHeight = 1024;
+        static int s_ProbeVolumeAtlasWidth = 1024;
+        static int s_ProbeVolumeAtlasHeight = 1024;
 
         // TODO: Preallocating compute buffer for this worst case of a single probe volume that consumes the whole atlas is a memory hog.
         // May want to look at dynamic resizing of compute buffer based on use, or more simply, slicing it up across multiple dispatches for massive volumes.
         // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount (12) bytes ~= 50.3 MB.
-        public const int k_MaxProbeVolumeProbeCount = k_ProbeVolumeAtlasWidth * k_ProbeVolumeAtlasHeight;
+        static int s_MaxProbeVolumeProbeCount = 1024 * 1024;
         RTHandle m_ProbeVolumeAtlasSHRTHandle;
         Texture2DAtlas probeVolumeAtlas = null; // TODO(Nicholas): it was marked as public, but Texture2DAtlas is not publicly accessible anymore.
 
         // Note: These max resolution dimensions are implicitly defined from the way probe volumes are laid out in our 2D atlas.
-        // If this layout changes, these resolution contraints should be updated to reflect the actual contraint.
+        // If this layout changes, these resolution constraints should be updated to reflect the actual constraint.
         // Currently, the constraint is defined as: the maximum resolution that could possibly be allocated given the atlas size and only one probe volume resident.
         public static void ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, int requestedX)
         {
-            maxY = k_ProbeVolumeAtlasHeight;
-            maxX = k_ProbeVolumeAtlasWidth;
-            maxZ = k_ProbeVolumeAtlasWidth / Mathf.Min(maxX, requestedX);
+            maxY = s_ProbeVolumeAtlasHeight;
+            maxX = s_ProbeVolumeAtlasWidth;
+            maxZ = s_ProbeVolumeAtlasWidth / Mathf.Min(maxX, requestedX);
         }
 
         public void Build(HDRenderPipelineAsset asset)
         {
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+
+            s_ProbeVolumeAtlasWidth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasWidth;
+            s_ProbeVolumeAtlasHeight = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasHeight;
+            s_MaxProbeVolumeProbeCount = s_ProbeVolumeAtlasWidth * s_ProbeVolumeAtlasHeight;
 
             preset = m_SupportProbeVolume ? ProbeVolumeSystemPreset.On : ProbeVolumeSystemPreset.Off;
 
@@ -153,11 +157,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>();
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
-            s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(k_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(SphericalHarmonicsL1)));
+            s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(SphericalHarmonicsL1)));
 
             m_ProbeVolumeAtlasSHRTHandle = RTHandles.Alloc(
-                width: k_ProbeVolumeAtlasWidth,
-                height: k_ProbeVolumeAtlasHeight,
+                width: s_ProbeVolumeAtlasWidth,
+                height: s_ProbeVolumeAtlasHeight,
                 slices: 3, // one texture per [RGB] SH coefficients
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
@@ -166,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: "ProbeVolumeAtlasSH"
             );
 
-            probeVolumeAtlas = new Texture2DAtlas(k_ProbeVolumeAtlasWidth, k_ProbeVolumeAtlasHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
+            probeVolumeAtlas = new Texture2DAtlas(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
         }
 
         // For the initial allocation, no suballocation happens (the texture is full size).

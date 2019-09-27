@@ -737,7 +737,8 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                // TODO: Add Probe Volume render pipeline settings here.
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, k_ProbeVolumeAtlasWidth);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, k_ProbeVolumeAtlasHeight);
                 --EditorGUI.indentLevel;
             }
 
