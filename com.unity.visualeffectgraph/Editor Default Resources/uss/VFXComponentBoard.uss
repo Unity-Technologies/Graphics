@@ -247,6 +247,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     flex-grow: 1;
     width: 20%;
     -unity-text-align: middle-center;
+    white-space: normal;
 }
 #debug-system-stat-entry-name {
     width: 25%;

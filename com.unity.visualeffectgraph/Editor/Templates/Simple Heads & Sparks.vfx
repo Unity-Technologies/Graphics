@@ -14,28 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
-  systemInfos:
-  - title: Heads
-    position:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    contexts:
-    - {fileID: 8926484042661615407}
-    - {fileID: 8926484042661615432}
-  - title: Trailing Sparks
-    position:
-      serializedVersion: 2
-      x: 0
-      y: 0
-      width: 0
-      height: 0
-    contexts:
-    - {fileID: 8926484042661615447}
-    - {fileID: 8926484042661615470}
-    - {fileID: 8926484042661615489}
   categories:
   - name: Emission
     collapsed: 0

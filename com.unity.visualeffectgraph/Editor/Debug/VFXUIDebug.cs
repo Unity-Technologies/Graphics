@@ -772,7 +772,7 @@ namespace UnityEditor.VFX.UI
             var SystemInfoName = new TextElement();
             SystemInfoName.name = "debug-system-stat-title-name";
             SystemInfoName.text = "Particle System";
-            SystemInfoName.tooltip = "Click on a name to focus the corresponding particle system";
+            SystemInfoName.tooltip = "Click on a name to focus the corresponding particle system.";
 
             var SystemInfoAlive = new TextElement();
             SystemInfoAlive.name = "debug-system-stat-title";
@@ -780,8 +780,8 @@ namespace UnityEditor.VFX.UI
 
             var SystemInfoMaxAlive = new TextElement();
             SystemInfoMaxAlive.name = "debug-system-stat-title";
-            SystemInfoMaxAlive.text = "Max Alive";
-            SystemInfoMaxAlive.tooltip = "Click on a value to set the capacity of a particle system";
+            SystemInfoMaxAlive.text = "Set Capacity";
+            SystemInfoMaxAlive.tooltip = "Set a particle system capacity based on the maximum number of alive particles since recording started.";
 
             var SystemInfoEfficiency = new TextElement();
             SystemInfoEfficiency.name = "debug-system-stat-title";
