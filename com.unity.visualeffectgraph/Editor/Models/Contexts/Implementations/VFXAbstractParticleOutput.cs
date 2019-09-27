@@ -352,7 +352,11 @@ namespace UnityEditor.VFX
                 if (!implementsMotionVector || !subOutput.supportsMotionVector)
                     yield return "generateMotionVector";
 
+<<<<<<< HEAD
                 if (!supportSoftParticles)
+=======
+                if (isBlendModeOpaque || !supportSoftParticles)
+>>>>>>> HDRP/staging
                 {
                     yield return "useSoftParticle";
                 }

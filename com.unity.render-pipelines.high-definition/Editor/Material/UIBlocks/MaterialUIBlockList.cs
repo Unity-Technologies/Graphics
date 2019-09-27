@@ -17,11 +17,31 @@ namespace UnityEditor.Rendering.HighDefinition
     class MaterialUIBlockList : List<MaterialUIBlock>
     {
         [System.NonSerialized]
-        bool        m_Initialized = false;
+        bool                        m_Initialized = false;
 
-        Material[]  m_Materials;
+        Material[]                  m_Materials;
 
+        /// <summary>
+        /// Parent of the ui block list, in case of nesting (Layered Lit material)
+        /// </summary>
+        public MaterialUIBlockList  parent;
+
+        /// <summary>
+        /// List of materials currently selected in the inspector
+        /// </summary>
         public Material[] materials => m_Materials;
+
+        /// <summary>
+        /// Construct a sub ui block list by passing the parent ui block list (useful for layered UI where ui blocks are nested)
+        /// </summary>
+        /// <param name="parent"></param>
+        public MaterialUIBlockList(MaterialUIBlockList parent) => this.parent = parent;
+
+        /// <summary>
+        /// Construct a ui block list
+        /// </summary>
+        /// <returns></returns>
+        public MaterialUIBlockList() : this(null) {}
 
         /// <summary>
         /// Render the list of ui blocks added contained in the materials property

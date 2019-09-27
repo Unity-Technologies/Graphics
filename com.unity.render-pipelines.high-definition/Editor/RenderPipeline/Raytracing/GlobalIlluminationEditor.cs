@@ -15,6 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // Tier 1
         SerializedDataParameter m_DeferredMode;
         SerializedDataParameter m_RayBinning;
+        SerializedDataParameter m_FullResolution;
+        SerializedDataParameter m_UpscaleRadius;
 
         // Tier 2
         SerializedDataParameter m_SampleCount;
@@ -38,6 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Tier 1
             m_DeferredMode = Unpack(o.Find(x => x.deferredMode));
             m_RayBinning = Unpack(o.Find(x => x.rayBinning));
+            m_FullResolution = Unpack(o.Find(x => x.fullResolution));
+            m_UpscaleRadius = Unpack(o.Find(x => x.upscaleRadius));
 
             // Tier 2
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
@@ -77,6 +81,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         PropertyField(m_DeferredMode);
                         PropertyField(m_RayBinning);
+                        PropertyField(m_FullResolution);
+                        PropertyField(m_UpscaleRadius);
                     }
                     break;
                     case RenderPipelineSettings.RaytracingTier.Tier2:

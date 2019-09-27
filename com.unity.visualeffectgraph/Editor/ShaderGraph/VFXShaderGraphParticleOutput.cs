@@ -93,11 +93,19 @@ namespace UnityEditor.VFX
                     {
                         var type = GetSGPropertyType(property);
                         PropertyInfo info = property.GetType().GetProperty("value", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+<<<<<<< HEAD
                         return VFXConverter.ConvertTo(info?.GetValue(property), type);
+=======
+                        return VFXConverter.ConvertTo(info?.GetValue(property),type);
+>>>>>>> HDRP/staging
                     }
             }
         }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> HDRP/staging
         protected override IEnumerable<string> filteredOutSettings
         {
             get
@@ -105,10 +113,14 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
                 if (shaderGraph != null)
+<<<<<<< HEAD
                 {
                     yield return "colorMapping";
                     yield return "useAlphaClipping";
                 }
+=======
+                    yield return "colorMappingMode";
+>>>>>>> HDRP/staging
                 if (!VFXViewPreference.displayExperimentalOperator)
                     yield return "shaderGraph";
 

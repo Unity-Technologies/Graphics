@@ -1,11 +1,20 @@
 {
     "name": "com.unity.render-pipelines.high-definition-config",
     "description": "Configuration files for the High Definition Render Pipeline.",
+<<<<<<< HEAD
     "version": "7.1.3",
     "unity": "2019.3",
     "unityRelease": "0b4",
     "displayName": "High Definition RP Config",
     "dependencies": {
         "com.unity.render-pipelines.core": "7.1.3"
+=======
+    "version": "8.0.0",
+    "unity": "2020.1",
+    "unityRelease": "0a3",
+    "displayName": "High Definition RP Config",
+    "dependencies": {
+        "com.unity.render-pipelines.core": "8.0.0"
+>>>>>>> HDRP/staging
     }
 }

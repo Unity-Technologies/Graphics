@@ -51,7 +51,11 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 // Initialize built-in needed attributes
 #if VFX_USE_OLDPOSITION_CURRENT
+<<<<<<< HEAD
 			attributes.oldPosition = attributes.position;
+=======
+			attributes.oldPosition = position;
+>>>>>>> HDRP/staging
 #endif
 #if HAS_STRIPS
             const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);

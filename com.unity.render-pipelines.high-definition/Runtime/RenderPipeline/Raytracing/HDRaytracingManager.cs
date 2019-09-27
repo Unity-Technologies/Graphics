@@ -9,6 +9,14 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [GenerateHLSL]
+    internal enum RayTracingRendererFlag
+    {
+        Opaque = 0x01,
+        Transparent = 0x02,
+        CastShadow = 0x04
+    }
+
 #if ENABLE_RAYTRACING
     class HDRayTracingLights
     {
@@ -580,7 +588,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             uint instanceFlag = 0x00;
 
                             // Incorporate the shadow casting flag
+<<<<<<< HEAD
                             instanceFlag |= ((currentRenderer.shadowCastingMode == ShadowCastingMode.On) ? (uint)(1 << 2) : 0x00);
+=======
+                            instanceFlag |= ((currentRenderer.shadowCastingMode == ShadowCastingMode.On) ? (uint)(RayTracingRendererFlag.CastShadow) : 0x00);
+>>>>>>> HDRP/staging
 
                             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                             {
@@ -598,7 +610,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                     && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
 
                                     // Propagate the right mask
+<<<<<<< HEAD
                                     instanceFlag |= materialIsTransparent ? (uint)(1 << 1) : (uint)(1 << 0);
+=======
+                                    instanceFlag |= materialIsTransparent ? (uint)(RayTracingRendererFlag.Transparent) : (uint)(RayTracingRendererFlag.Opaque);
+>>>>>>> HDRP/staging
 
                                     // Is the material alpha tested?
                                     subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
