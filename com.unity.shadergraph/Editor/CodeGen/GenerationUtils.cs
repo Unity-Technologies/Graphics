@@ -166,11 +166,34 @@ namespace UnityEditor.ShaderGraph
                 spliceCommands.Add("LightMode", "// LightMode: <None>");
             }
 
-            // Render state
-            BuildRenderStatesFromPass(pass, fields, ref spliceCommands);
-
             // --------------------------------------------------
             // Pass Code
+
+            // Render State
+            using (var renderStateBuilder = new ShaderStringBuilder())
+            {
+                // Render states need to be separated by RenderState.Type
+                // The first passing ConditionalRenderState of each type is inserted 
+                foreach(RenderState.Type type in Enum.GetValues(typeof(RenderState.Type)))
+                {
+                    var renderStates = pass.renderStates?.Where(x => x.renderState.type == type);
+                    if(renderStates != null)
+                    {
+                        foreach(ConditionalRenderState renderState in renderStates)
+                        {
+                            string value = null;
+                            if(EvaluateConditionalShaderString(renderState, fields, out value))
+                            {
+                                renderStateBuilder.AppendLine(value);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                string command = GetSpliceCommand(renderStateBuilder.ToCodeBlack(), "RenderState");
+                spliceCommands.Add("RenderState", command);
+            }
 
             // Pragmas
             using (var passPragmaBuilder = new ShaderStringBuilder())
@@ -734,29 +757,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             return activeSlots;
-        }
-
-        static void BuildRenderStatesFromPass(ShaderPass pass, List<IField> fields, ref Dictionary<string, string> spliceCommands)
-        {
-            foreach(RenderState.Type type in Enum.GetValues(typeof(RenderState.Type)))
-            {
-                // Get all render states of this type and initialize the command for failure
-                var renderStates = pass.renderStates?.Where(x => x.renderState.type == type);
-                string command = null;
-
-                if(renderStates != null)
-                {
-                    // Find the first passing conditional render state
-                    foreach(ConditionalRenderState renderState in renderStates)
-                    {
-                        if(EvaluateConditionalShaderString(renderState, fields, out command))
-                            break;
-                    }
-                }
-                    
-                // Splice
-                spliceCommands.Add($"{type}", GetSpliceCommand(command, $"{type}"));
-            }
         }
 
         static bool EvaluateConditionalShaderString(IConditionalShaderString conditionalShaderString, List<IField> fields, out string value)
