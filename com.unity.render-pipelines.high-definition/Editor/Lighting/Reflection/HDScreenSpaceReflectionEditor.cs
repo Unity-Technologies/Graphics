@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DepthBufferThickness;
 
         // Ray Tracing
+        SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Denoise;
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ScreenFadeDistance = Unpack(o.Find(x => x.screenFadeDistance));
 
             // Generic ray tracing
+            m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
             m_RayLength                     = Unpack(o.Find(x => x.rayLength));
             m_ClampValue                    = Unpack(o.Find(x => x.clampValue));
             m_Denoise                       = Unpack(o.Find(x => x.denoise));
@@ -90,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             #if ENABLE_RAYTRACING
             if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
+                PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of reflection rays."));
                 PropertyField(m_ClampValue, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
                 RenderPipelineSettings.RaytracingTier currentTier = currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;

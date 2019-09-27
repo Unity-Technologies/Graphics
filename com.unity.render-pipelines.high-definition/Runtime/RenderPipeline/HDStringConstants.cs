@@ -557,6 +557,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_RAYTRACING
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
+        public static readonly int _RayTracingLayerMask             = Shader.PropertyToID("_RayTracingLayerMask");
         public static readonly int _RaytracingNumSamples            = Shader.PropertyToID("_RaytracingNumSamples");
         public static readonly int _RaytracingSampleIndex           = Shader.PropertyToID("_RaytracingSampleIndex");
         public static readonly int _RaytracingRayMaxLength          = Shader.PropertyToID("_RaytracingRayMaxLength");
