@@ -424,10 +424,14 @@ namespace UnityEditor.ShaderGraph
             using (var graphDefines = new ShaderStringBuilder())
             {
                 graphDefines.AppendLine("#define {0}", pass.referenceName);
-                if (pass.defines != null)
+                if(pass.defines != null)
                 {
-                    foreach (var define in pass.defines)
-                        graphDefines.AppendLine($"#define {define}");
+                    foreach(ConditionalDefine define in pass.defines)
+                    {
+                        string value = null;
+                        if(define.TestActive(fields, out value))
+                            graphDefines.AppendLine(value);
+                    }
                 }
 
                 if (graphRequirements.permutationCount > 0)
@@ -733,7 +737,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static void AddRequiredFields(
-            List<string> passRequiredFields,            // fields the pass requires
+            string[] passRequiredFields,            // fields the pass requires
             IActiveFieldsSet activeFields)
         {
             if (passRequiredFields != null)

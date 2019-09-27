@@ -13,16 +13,16 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool useInPreview;
 
         // Port mask
-        public List<int> vertexPorts;
-        public List<int> pixelPorts;
+        public int[] vertexPorts;
+        public int[] pixelPorts;
 
         // Required fields
-        public List<string> requiredFields;
+        public string[] requiredFields;
 
         // Conditional State
         public ConditionalRenderState[] renderStates;
         public ConditionalPragma[] pragmas;
-        public IEnumerable<string> defines;
+        public ConditionalDefine[] defines;
         public ConditionalKeyword[] keywords;
         public ConditionalInclude[] includes;
         public IEnumerable<string> defaultDotsInstancingOptions;

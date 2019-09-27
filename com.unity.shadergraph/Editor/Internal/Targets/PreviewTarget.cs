@@ -37,9 +37,9 @@ namespace UnityEditor.ShaderGraph.Internal
                     new ConditionalPragma(Pragma.Vertex("vert")),
                     new ConditionalPragma(Pragma.Fragment("frag")),
                 },
-                defines = new List<string>()
+                defines = new ConditionalDefine[]
                 {
-                    "SHADERGRAPH_PREVIEW 1",
+                    new ConditionalDefine(Keywords.Preview, 1),
                 },
                 includes = new ConditionalInclude[]
                 {
@@ -53,6 +53,20 @@ namespace UnityEditor.ShaderGraph.Internal
                     new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
                 },
+            };
+        }
+#endregion
+
+#region Keywords
+        public static class Keywords
+        {
+            public static KeywordDescriptor Preview = new KeywordDescriptor()
+            {
+                displayName = "Preview",
+                referenceName = "SHADERGRAPH_PREVIEW",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
             };
         }
 #endregion

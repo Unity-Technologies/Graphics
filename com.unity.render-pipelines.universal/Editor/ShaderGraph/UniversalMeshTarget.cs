@@ -54,13 +54,13 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlbedoSlotId,
                     PBRMasterNode.NormalSlotId,
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.uv1", //needed for meta vertex position
                     "Varyings.positionWS",
@@ -125,13 +125,13 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlphaSlotId,
                     PBRMasterNode.AlphaThresholdSlotId
@@ -160,20 +160,20 @@ namespace UnityEditor.Rendering.Universal
                 varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlphaSlotId,
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
                 // Required fields
-                requiredFields = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.normalOS",
                 },
@@ -202,13 +202,13 @@ namespace UnityEditor.Rendering.Universal
                 varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlbedoSlotId,
                     PBRMasterNode.EmissionSlotId,
@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.uv1", //needed for meta vertex position
                     "Attributes.uv2", //needed for meta vertex position
@@ -249,13 +249,13 @@ namespace UnityEditor.Rendering.Universal
                 varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlbedoSlotId,
                     PBRMasterNode.AlphaSlotId,
@@ -284,13 +284,13 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     UnlitMasterNode.PositionSlotId,
                     UnlitMasterNode.VertNormalSlotId,
                     UnlitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     UnlitMasterNode.ColorSlotId,
                     UnlitMasterNode.AlphaSlotId,
@@ -326,20 +326,20 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteLitMasterNode.PositionSlotId,
                     SpriteLitMasterNode.VertNormalSlotId,
                     SpriteLitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteLitMasterNode.ColorSlotId,
                     SpriteLitMasterNode.MaskSlotId,
                 },
 
                 // Required fields
-                requiredFields = new List<string>()
+                requiredFields = new string[]
                 {
                     "Varyings.color",
                     "Varyings.texCoord0",
@@ -378,20 +378,20 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteLitMasterNode.PositionSlotId,
                     SpriteLitMasterNode.VertNormalSlotId,
                     SpriteLitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteLitMasterNode.ColorSlotId,
                     SpriteLitMasterNode.NormalSlotId
                 },
 
                 // Required fields
-                requiredFields = new List<string>()
+                requiredFields = new string[]
                 {
                     "Varyings.normalWS",
                     "Varyings.tangentWS",
@@ -422,20 +422,20 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteLitMasterNode.PositionSlotId,
                     SpriteLitMasterNode.VertNormalSlotId,
                     SpriteLitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteLitMasterNode.ColorSlotId,
                     SpriteLitMasterNode.NormalSlotId
                 },
 
                 // Required fields
-                requiredFields = new List<string>()
+                requiredFields = new string[]
                 {
                     "Varyings.color",
                     "Varyings.texCoord0",
@@ -466,19 +466,19 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteUnlitMasterNode.PositionSlotId,
                     SpriteUnlitMasterNode.VertNormalSlotId,
                     SpriteUnlitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteUnlitMasterNode.ColorSlotId,
                 },
 
                 // Required fields
-                requiredFields = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.color",
                     "Attributes.uv0",
