@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kMaterial = "Material";
         const string kSpecular = "Specular";
         const string kDoubleSided = "DoubleSided";
+        const string kDistortion = "Distortion";
         const string kBaseParametrization = "BaseParametrization";
         const string kDualSpecularLobeParametrization = "DualSpecularLobeParametrization";
         const string kSSSpecularOcclusionBaseMode = "ScreenSpaceSpecularOcclusionBaseMode";
@@ -38,6 +39,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "_MATERIAL_AFFECTS_ALBEDO 1");
         public static FieldDescriptor AffectsNormal =           new FieldDescriptor(kMaterial, "AffectsNormal", "_MATERIAL_AFFECTS_NORMAL 1");
         public static FieldDescriptor AffectsEmission =         new FieldDescriptor(kMaterial, "AffectsEmission", "_MATERIAL_AFFECTS_EMISSION 1");
+        public static FieldDescriptor AffectsMetal =            new FieldDescriptor(kMaterial, "AffectsMetal", "");
+        public static FieldDescriptor AffectsAO =               new FieldDescriptor(kMaterial, "AffectsAO", "");
+        public static FieldDescriptor AffectsSmoothness =       new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
         public static FieldDescriptor AffectsMaskMap =          new FieldDescriptor(kMaterial, "AffectsMaskMap", "_MATERIAL_AFFECTS_MASKMAP 1");
 
         // Specular
@@ -55,6 +59,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor DoubleSided =             new FieldDescriptor(string.Empty, "DoubleSided", "");
         public static FieldDescriptor DoubleSidedFlip =         new FieldDescriptor(kDoubleSided, "Flip", "");
         public static FieldDescriptor DoubleSidedMirror =       new FieldDescriptor(kDoubleSided, "Mirror", "");
+
+        // Distortion
+        public static FieldDescriptor DistortionDepthTest =     new FieldDescriptor(kDistortion, "DepthTest", "");
+        public static FieldDescriptor DistortionAdd =           new FieldDescriptor(kDistortion, "Add", "");
+        public static FieldDescriptor DistortionMultiply =      new FieldDescriptor(kDistortion, "Multiply", "");
+        public static FieldDescriptor DistortionReplace =       new FieldDescriptor(kDistortion, "Replace", "");
 
         // Refraction
         public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "_HAS_REFRACTION 1");

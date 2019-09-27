@@ -4,6 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using BlendOp = UnityEditor.ShaderGraph.Internal.BlendOp;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -22,11 +23,17 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             switch(masterNode)
             {
+                case UnlitMasterNode unlitMasterNode:
+                    subShader = new UnlitSubShader();
+                    return true;
                 case PBRMasterNode pbrMasterNode:
                     subShader = new HDPBRSubShader();
                     return true;
-                case UnlitMasterNode unlitMasterNode:
-                    subShader = new UnlitSubShader();
+                case HDUnlitMasterNode hdUnlitMasterNode:
+                    subShader = new HDUnlitSubShader();
+                    return true;
+                case HDLitMasterNode hdLitMasterNode:
+                    subShader = new HDLitSubShader();
                     return true;
                 case EyeMasterNode eyeMasterNode:
                     subShader = new EyeSubShader();
@@ -37,12 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 case HairMasterNode hairMasterNode:
                     subShader = new HairSubShader();
                     return true;
-                case HDLitMasterNode hdLitMasterNode:
-                    subShader = new HDLitSubShader();
-                    return true;
-                case HDUnlitMasterNode hdUnlitMasterNode:
-                    subShader = new HDUnlitSubShader();
-                    return true;
                 case StackLitMasterNode stackLitMasterNode:
                     subShader = new StackLitSubShader();
                     return true;
@@ -51,6 +52,23 @@ namespace UnityEditor.Rendering.HighDefinition
                     return false;
             }
         }
+
+#region RenderState
+        static class RenderStateUniforms
+        { 
+            public static readonly string srcBlend = "[_SrcBlend]";
+            public static readonly string dstBlend = "[_DstBlend]";
+            public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
+            public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
+            public static readonly string cullMode = "[_CullMode]";
+            public static readonly string cullModeForward = "[_CullModeForward]";
+            public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
+            public static readonly string zTestTransparent = "[_ZTestTransparent]";
+            public static readonly string zTestGBuffer = "[_ZTestGBuffer]";
+            public static readonly string zWrite = "[_ZWrite]";
+            public static readonly string zClip = "[_ZClip]";
+        }
+#endregion
 
 #region Passes
         public static class Passes
@@ -73,7 +91,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render State Overrides
-                CullOverride = "Cull Off",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(Cull.Off, 0),
+                },
 
                 // Required fields
                 requiredAttributes = new List<string>()
@@ -134,8 +155,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render State Overrides
-                ColorMaskOverride = "ColorMask 0",
-                ZWriteOverride = "ZWrite On",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(Cull.Off, 0, new IField[] { DefaultFields.DoubleSided }),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0", 0),
+                },
 
                 // Pass setup
                 pragmas = new List<string>()
@@ -185,7 +210,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render State Overrides
-                ColorMaskOverride = "ColorMask 0",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(Cull.Off, 0, new IField[] { DefaultFields.DoubleSided }),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0", 0),
+
+                    // Transparent
+                    RenderStateOverride.ZWrite(ZWrite.Off, 1, new IField[] { DefaultFields.SurfaceTransparent }),
+                },
 
                 // Pass setup
                 pragmas = new List<string>()
@@ -243,8 +276,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Caution: When using MSAA we have normal and depth buffer bind.
                 // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
                 // This is not a problem in no MSAA mode as there is no buffer bind
-                ColorMaskOverride = "ColorMask 0 0",
-                ZWriteOverride = "ZWrite On",
+                // Render State Overrides
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(Cull.Off, 0, new IField[] { DefaultFields.DoubleSided }),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0 0", 0),
+
+                    // Transparent
+                    RenderStateOverride.ZWrite(ZWrite.Off, 1, new IField[] { DefaultFields.SurfaceTransparent }),
+                },
 
                 // Pass setup
                 pragmas = new List<string>()
@@ -302,16 +343,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
                 // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
                 // This is not a problem in no MSAA mode as there is no buffer bind
-                ColorMaskOverride = "ColorMask 0 1",
-                StencilOverride = new List<string>()
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
-                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Cull(Cull.Off, 0, new IField[] { DefaultFields.DoubleSided }),
+                    RenderStateOverride.ColorMask("ColorMask 0 1", 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors).ToString(),
+                        Ref = ((int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
                 },
 
                 // Required fields
@@ -373,16 +415,28 @@ namespace UnityEditor.Rendering.HighDefinition
                     UnlitMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State Overrides
-                StencilOverride = new List<string>()
+                // Render state overrides
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int) HDRenderPipeline.StencilBitMask.LightingMask}",
-                    $"    Ref  {(int)StencilLightingUsage.NoLighting}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero, 0),
+                    RenderStateOverride.Cull(Cull.Off, 0, new IField[] { DefaultFields.DoubleSided }),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.LightingMask).ToString(),
+                        Ref = ((int)StencilLightingUsage.NoLighting).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+
+                    // Transparent
+                    RenderStateOverride.ZWrite(ZWrite.Off, 1, new IField[]{ DefaultFields.SurfaceTransparent }),
+
+                    // Blend
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendAlpha, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[]{ DefaultFields.BlendAdd, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendPremultiply, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendMultiply, DefaultFields.SurfaceTransparent }),
                 },
 
                 // Pass setup
@@ -444,15 +498,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                StencilOverride = new List<string>
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.LightingMask | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer}",
-                    $"    Ref  {(int)StencilLightingUsage.RegularLighting}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.LightingMask | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer).ToString(),
+                        Ref = ((int)StencilLightingUsage.RegularLighting).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+
+                    // Alpha Test
+                    RenderStateOverride.ZTest(ZTest.Equal, 1, new IField[] { DefaultFields.SurfaceOpaque, DefaultFields.AlphaTest }),
                 },
 
                 // Required fields
@@ -528,7 +586,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render State Overrides
-                CullOverride = "Cull Off",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(Cull.Off, 0),
+                },
 
                 // Required fields
                 requiredAttributes = new List<string>()
@@ -597,9 +658,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render State Overrides
-                BlendOverride = "Blend One Zero",
-                ZWriteOverride = "ZWrite On",
-                ColorMaskOverride = "ColorMask 0",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0", 0),
+                },
 
                 // Pass setup
                 pragmas = new List<string>()
@@ -657,7 +721,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render State Overrides
-                ColorMaskOverride = "ColorMask 0",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(Cull.Off, 0, new IField[] { DefaultFields.DoubleSided }),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0", 0),
+
+                    // Transparent
+                    RenderStateOverride.ZWrite(ZWrite.Off, 1, new IField[] { DefaultFields.SurfaceTransparent }),
+                },
 
                 // Pass setup
                 pragmas = new List<string>()
@@ -721,17 +793,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State Overrides
-                ZWriteOverride = "ZWrite On",
-                StencilOverride = new List<string>
+                // Render state overrides
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR}",
-                    $"    Ref  0",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR).ToString(),
+                        Ref = "0",
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
                 },
 
                 // Required fields
@@ -819,19 +891,19 @@ namespace UnityEditor.Rendering.HighDefinition
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State Overrides
-                BlendOverride = "Blend One Zero",
-                ZWriteOverride = "ZWrite On",
-                ColorMaskOverride = "ColorMask 0",
-                StencilOverride = new List<string>
+                // Render state overrides
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
-                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0", 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors).ToString(),
+                        Ref = ((int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
                 },
 
                 // Required fields
@@ -908,16 +980,24 @@ namespace UnityEditor.Rendering.HighDefinition
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State Overrides
-                StencilOverride = new List<string>
+                // Render state overrides
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.LightingMask}",
-                    $"    Ref  {(int)StencilLightingUsage.RegularLighting}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero, 0),
+                    RenderStateOverride.ZTest(ZTest.Equal, 0, new IField[] { DefaultFields.SurfaceOpaque, DefaultFields.AlphaTest }),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.LightingMask).ToString(),
+                        Ref = ((int)StencilLightingUsage.RegularLighting).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+
+                    // Blend
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendAlpha, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[]{ DefaultFields.BlendAdd, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendPremultiply, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendMultiply, DefaultFields.SurfaceTransparent }),
                 },
 
                 // Required fields
@@ -1006,16 +1086,24 @@ namespace UnityEditor.Rendering.HighDefinition
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State Overrides
-                StencilOverride = new List<string>
+                // Render state overrides
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.LightingMask}",
-                    $"    Ref  {(int)StencilLightingUsage.RegularLighting}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero, 0),
+                    RenderStateOverride.ZTest(ZTest.Equal, 0, new IField[] { DefaultFields.SurfaceOpaque, DefaultFields.AlphaTest }),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.LightingMask).ToString(),
+                        Ref = ((int)StencilLightingUsage.RegularLighting).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+
+                    // Blend
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendAlpha, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[]{ DefaultFields.BlendAdd, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendPremultiply, DefaultFields.SurfaceTransparent }),
+                    RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[]{ DefaultFields.BlendMultiply, DefaultFields.SurfaceTransparent }),
                 },
 
                 // Required fields
@@ -1073,6 +1161,494 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Custom template
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/PBR/ShaderGraph/HDPBRPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitMETA = new ShaderPass()
+            {
+                // Definition
+                displayName = "META",
+                referenceName = "SHADERPASS_LIGHT_TRANSPORT",
+                lightMode = "META",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                pixelPorts = new List<int>
+                {
+                    HDUnlitMasterNode.ColorSlotId,
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                    HDUnlitMasterNode.EmissionSlotId,
+                },
+
+                // Render State Overrides
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(Cull.Off, 0),
+                },
+
+                // Required fields
+                requiredAttributes = new List<string>()
+                {
+                    "AttributesMesh.normalOS",
+                    "AttributesMesh.tangentOS",     // Always present as we require it also in case of anisotropic lighting
+                    "AttributesMesh.uv0",
+                    "AttributesMesh.uv1",
+                    "AttributesMesh.color",
+                    "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitShadowCaster = new ShaderPass()
+            {
+                // Definition
+                displayName = "ShadowCaster",
+                referenceName = "SHADERPASS_SHADOWS",
+                lightMode = "ShadowCaster",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                },
+
+                // Render State Overrides
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(RenderStateUniforms.cullMode, 0),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ZClip(RenderStateUniforms.zClip, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0", 0),
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitSceneSelection = new ShaderPass()
+            {
+                // Definition
+                displayName = "SceneSelectionPass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "SceneSelectionPass",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId
+                },
+
+                // Render State Overrides
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(RenderStateUniforms.cullMode, 0),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0", 0),
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                    "editor_sync_compilation",
+                },
+                defines = new List<string>()
+                {
+                    "SCENESELECTIONPASS",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitDepthForwardOnly = new ShaderPass()
+            {
+                // Definition
+                displayName = "DepthForwardOnly",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "DepthForwardOnly",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
+                useInPreview = true,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId
+                },
+
+                // Render State Overrides
+                // Caution: When using MSAA we have normal and depth buffer bind.
+                // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+                // This is not a problem in no MSAA mode as there is no buffer bind
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(RenderStateUniforms.cullMode, 0),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0 0", 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = "[_StencilWriteMaskDepth]",
+                        Ref = "[_StencilRefDepth]",
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.WriteMsaaDepth,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitMotionVectors = new ShaderPass()
+            {
+                // Definition
+                displayName = "MotionVectors",
+                referenceName = "SHADERPASS_MOTION_VECTORS",
+                lightMode = "MotionVectors",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl",
+                useInPreview = false,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId
+                },
+
+                // Render State Overrides
+                // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
+                // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
+                // This is not a problem in no MSAA mode as there is no buffer bind
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Cull(RenderStateUniforms.cullMode, 0),
+                    RenderStateOverride.ZWrite(ZWrite.On, 0),
+                    RenderStateOverride.ColorMask("ColorMask 0 1", 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = "[_StencilWriteMaskMV]",
+                        Ref = "[_StencilRefMV]",
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+                },
+
+                // Required fields
+                requiredVaryings = new List<string>()
+                {
+                    "FragInputs.positionRWS",
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.WriteMsaaDepth,
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitDistortion = new ShaderPass()
+            {
+                // Definition
+                displayName = "DistortionVectors",
+                referenceName = "SHADERPASS_DISTORTION",
+                lightMode = "DistortionVectors",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl",
+                useInPreview = true,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                    HDUnlitMasterNode.DistortionSlotId,
+                    HDUnlitMasterNode.DistortionBlurSlotId,
+                },
+
+                // Render State Overrides
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.BlendOp(BlendOp.Add, BlendOp.Add, 0),
+                    RenderStateOverride.Cull(RenderStateUniforms.cullMode, 0),
+                    RenderStateOverride.ZTest(ZTest.Always, 0),
+                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.DistortionVectors).ToString(),
+                        Ref = ((int)HDRenderPipeline.StencilBitMask.DistortionVectors).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+
+                    // Depth Test
+                    RenderStateOverride.ZTest(ZTest.LEqual, 1, new IField[]{ HDRPShaderGraphFields.DistortionDepthTest }),
+
+                    // Distortion Mode
+                    RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 0, new IField[]{ HDRPShaderGraphFields.DistortionAdd }),
+                    RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero, 0, new IField[]{ HDRPShaderGraphFields.DistortionMultiply }),
+                    RenderStateOverride.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero, 0, new IField[]{ HDRPShaderGraphFields.DistortionReplace }),
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.BlendMode,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
+                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+            };
+
+            public static ShaderPass HDUnlitForwardOnly = new ShaderPass()
+            {
+                // Definition
+                displayName = "ForwardOnly",
+                referenceName = "SHADERPASS_FORWARD_UNLIT",
+                lightMode = "ForwardOnly",
+                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl",
+                useInPreview = true,
+
+                // Port mask
+                vertexPorts = new List<int>()
+                {
+                    HDUnlitMasterNode.PositionSlotId,
+                    HDUnlitMasterNode.VertexNormalSlotId,
+                    HDUnlitMasterNode.VertexTangentSlotId
+                },
+                pixelPorts = new List<int>
+                {
+                    HDUnlitMasterNode.ColorSlotId,
+                    HDUnlitMasterNode.AlphaSlotId,
+                    HDUnlitMasterNode.AlphaThresholdSlotId,
+                    HDUnlitMasterNode.EmissionSlotId
+                },
+
+                // Render State Overrides
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Blend(RenderStateUniforms.srcBlend, RenderStateUniforms.dstBlend, RenderStateUniforms.alphaSrcBlend, RenderStateUniforms.alphaDstBlend, 0),
+                    RenderStateOverride.Cull(RenderStateUniforms.cullMode, 0),
+                    RenderStateOverride.ZTest(RenderStateUniforms.zTestTransparent, 0),
+                    RenderStateOverride.ZWrite(RenderStateUniforms.zWrite, 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = "[_StencilWriteMask]",
+                        Ref = "[_StencilRef]",
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+                },
+
+                // Pass setup
+                pragmas = new List<string>()
+                {
+                    "#pragma target 4.5",
+                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
+                    "multi_compile_instancing",
+                },
+                includes = new List<string>()
+                {
+                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
+                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                },
+                keywords = new List<KeywordDescriptor>()
+                {
+                    Keywords.SurfaceTypeTransparent,
+                    Keywords.BlendMode,
+                    Keywords.DebugDisplay,
+                },
+
+                // Custom template
+                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
                 sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
             };
 
@@ -5276,475 +5852,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Custom template
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
-            };
-
-            public static ShaderPass HDUnlitMETA = new ShaderPass()
-            {
-                // Definition
-                displayName = "META",
-                referenceName = "SHADERPASS_LIGHT_TRANSPORT",
-                lightMode = "META",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl",
-                useInPreview = false,
-
-                // Port mask
-                pixelPorts = new List<int>
-                {
-                    HDUnlitMasterNode.ColorSlotId,
-                    HDUnlitMasterNode.AlphaSlotId,
-                    HDUnlitMasterNode.AlphaThresholdSlotId,
-                    HDUnlitMasterNode.EmissionSlotId,
-                },
-
-                // Render State Overrides
-                CullOverride = "Cull Off",
-
-                // Required fields
-                requiredAttributes = new List<string>()
-                {
-                    "AttributesMesh.normalOS",
-                    "AttributesMesh.tangentOS",     // Always present as we require it also in case of anisotropic lighting
-                    "AttributesMesh.uv0",
-                    "AttributesMesh.uv1",
-                    "AttributesMesh.color",
-                    "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                keywords = new List<KeywordDescriptor>()
-                {
-                    Keywords.SurfaceTypeTransparent,
-                    Keywords.BlendMode,
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
-            };
-
-            public static ShaderPass HDUnlitShadowCaster = new ShaderPass()
-            {
-                // Definition
-                displayName = "ShadowCaster",
-                referenceName = "SHADERPASS_SHADOWS",
-                lightMode = "ShadowCaster",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
-                useInPreview = false,
-
-                // Port mask
-                vertexPorts = new List<int>()
-                {
-                    HDUnlitMasterNode.PositionSlotId,
-                    HDUnlitMasterNode.VertexNormalSlotId,
-                    HDUnlitMasterNode.VertexTangentSlotId
-                },
-                pixelPorts = new List<int>
-                {
-                    HDUnlitMasterNode.AlphaSlotId,
-                    HDUnlitMasterNode.AlphaThresholdSlotId,
-                },
-
-                // Render State Overrides
-                ColorMaskOverride = "ColorMask 0",
-                ZClipOverride = HDSubShaderUtilities.zClipShadowCaster,
-                CullOverride = HDSubShaderUtilities.defaultCullMode,
-                ZWriteOverride = HDSubShaderUtilities.zWriteOn,
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                keywords = new List<KeywordDescriptor>()
-                {
-                    Keywords.SurfaceTypeTransparent,
-                    Keywords.BlendMode,
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
-            };
-
-            public static ShaderPass HDUnlitSceneSelection = new ShaderPass()
-            {
-                // Definition
-                displayName = "SceneSelectionPass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "SceneSelectionPass",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
-                useInPreview = false,
-
-                // Port mask
-                vertexPorts = new List<int>()
-                {
-                    HDUnlitMasterNode.PositionSlotId,
-                    HDUnlitMasterNode.VertexNormalSlotId,
-                    HDUnlitMasterNode.VertexTangentSlotId
-                },
-                pixelPorts = new List<int>
-                {
-                    HDUnlitMasterNode.AlphaSlotId,
-                    HDUnlitMasterNode.AlphaThresholdSlotId
-                },
-
-                // Render State Overrides
-                ColorMaskOverride = "ColorMask 0",
-                CullOverride = HDSubShaderUtilities.defaultCullMode,
-                ZWriteOverride = HDSubShaderUtilities.zWriteOn,
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing",
-                    "editor_sync_compilation",
-                },
-                defines = new List<string>()
-                {
-                    "SCENESELECTIONPASS",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                keywords = new List<KeywordDescriptor>()
-                {
-                    Keywords.SurfaceTypeTransparent,
-                    Keywords.BlendMode,
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
-            };
-
-            public static ShaderPass HDUnlitDepthForwardOnly = new ShaderPass()
-            {
-                // Definition
-                displayName = "DepthForwardOnly",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "DepthForwardOnly",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl",
-                useInPreview = true,
-
-                // Port mask
-                vertexPorts = new List<int>()
-                {
-                    HDUnlitMasterNode.PositionSlotId,
-                    HDUnlitMasterNode.VertexNormalSlotId,
-                    HDUnlitMasterNode.VertexTangentSlotId
-                },
-                pixelPorts = new List<int>
-                {
-                    HDUnlitMasterNode.AlphaSlotId,
-                    HDUnlitMasterNode.AlphaThresholdSlotId
-                },
-
-                // Render State Overrides
-                // Caution: When using MSAA we have normal and depth buffer bind.
-                // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-                // This is not a problem in no MSAA mode as there is no buffer bind
-                ColorMaskOverride = "ColorMask 0 0",
-                ZWriteOverride = HDSubShaderUtilities.zWriteOn,
-                CullOverride = HDSubShaderUtilities.defaultCullMode,
-                StencilOverride = new List<string>
-                {
-                    "Stencil",
-                    "{",
-                    "    WriteMask [_StencilWriteMaskDepth]",
-                    "    Ref [_StencilRefDepth]",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}",
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                keywords = new List<KeywordDescriptor>()
-                {
-                    Keywords.WriteMsaaDepth,
-                    Keywords.SurfaceTypeTransparent,
-                    Keywords.BlendMode,
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
-            };
-
-            public static ShaderPass HDUnlitMotionVectors = new ShaderPass()
-            {
-                // Definition
-                displayName = "MotionVectors",
-                referenceName = "SHADERPASS_MOTION_VECTORS",
-                lightMode = "MotionVectors",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl",
-                useInPreview = false,
-
-                // Port mask
-                vertexPorts = new List<int>()
-                {
-                    HDUnlitMasterNode.PositionSlotId,
-                    HDUnlitMasterNode.VertexNormalSlotId,
-                    HDUnlitMasterNode.VertexTangentSlotId
-                },
-                pixelPorts = new List<int>
-                {
-                    HDUnlitMasterNode.AlphaSlotId,
-                    HDUnlitMasterNode.AlphaThresholdSlotId
-                },
-
-                // Render State Overrides
-                // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
-                // Mean unlit object need to not write in it (or write 0) - Disable color mask for this RT
-                // This is not a problem in no MSAA mode as there is no buffer bind
-                ColorMaskOverride = "ColorMask 0 1",
-                CullOverride = HDSubShaderUtilities.defaultCullMode,
-                ZWriteOverride = HDSubShaderUtilities.zWriteOn,
-                StencilOverride = new List<string>
-                {
-                    "Stencil",
-                    "{",
-                    "    WriteMask [_StencilWriteMaskMV]",
-                    "    Ref [_StencilRefMV]",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}",
-                },
-
-                // Required fields
-                requiredVaryings = new List<string>()
-                {
-                    "FragInputs.positionRWS",
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                keywords = new List<KeywordDescriptor>()
-                {
-                    Keywords.WriteMsaaDepth,
-                    Keywords.SurfaceTypeTransparent,
-                    Keywords.BlendMode,
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
-            };
-
-            public static ShaderPass HDUnlitDistortion = new ShaderPass()
-            {
-                // Definition
-                displayName = "DistortionVectors",
-                referenceName = "SHADERPASS_DISTORTION",
-                lightMode = "DistortionVectors",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl",
-                useInPreview = true,
-
-                // Port mask
-                vertexPorts = new List<int>()
-                {
-                    HDUnlitMasterNode.PositionSlotId,
-                    HDUnlitMasterNode.VertexNormalSlotId,
-                    HDUnlitMasterNode.VertexTangentSlotId
-                },
-                pixelPorts = new List<int>
-                {
-                    HDUnlitMasterNode.AlphaSlotId,
-                    HDUnlitMasterNode.AlphaThresholdSlotId,
-                    HDUnlitMasterNode.DistortionSlotId,
-                    HDUnlitMasterNode.DistortionBlurSlotId,
-                },
-
-                // Render State Overrides
-                CullOverride = HDSubShaderUtilities.defaultCullMode,
-                ZWriteOverride = HDSubShaderUtilities.zWriteOff,
-                StencilOverride = new List<string>()
-                {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.DistortionVectors}",
-                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.DistortionVectors}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                keywords = new List<KeywordDescriptor>()
-                {
-                    Keywords.SurfaceTypeTransparent,
-                    Keywords.BlendMode,
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
-            };
-
-            public static ShaderPass HDUnlitForwardOnly = new ShaderPass()
-            {
-                // Definition
-                displayName = "ForwardOnly",
-                referenceName = "SHADERPASS_FORWARD_UNLIT",
-                lightMode = "ForwardOnly",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl",
-                useInPreview = true,
-
-                // Port mask
-                vertexPorts = new List<int>()
-                {
-                    HDUnlitMasterNode.PositionSlotId,
-                    HDUnlitMasterNode.VertexNormalSlotId,
-                    HDUnlitMasterNode.VertexTangentSlotId
-                },
-                pixelPorts = new List<int>
-                {
-                    HDUnlitMasterNode.ColorSlotId,
-                    HDUnlitMasterNode.AlphaSlotId,
-                    HDUnlitMasterNode.AlphaThresholdSlotId,
-                    HDUnlitMasterNode.EmissionSlotId
-                },
-
-                // Render State Overrides
-                BlendOverride = "Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]",
-                CullOverride = HDSubShaderUtilities.defaultCullMode,
-                ZTestOverride = HDSubShaderUtilities.zTestTransparent,
-                ZWriteOverride = HDSubShaderUtilities.ZWriteDefault,
-                StencilOverride = new List<string>()
-                {
-                    "Stencil",
-                    "{",
-                    "    WriteMask [_StencilWriteMask]",
-                    "    Ref [_StencilRef]",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                keywords = new List<KeywordDescriptor>()
-                {
-                    Keywords.SurfaceTypeTransparent,
-                    Keywords.BlendMode,
-                    Keywords.DebugDisplay,
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
                 sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
             };
         }

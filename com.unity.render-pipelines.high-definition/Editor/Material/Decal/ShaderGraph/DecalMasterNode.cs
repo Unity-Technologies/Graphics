@@ -212,16 +212,19 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(DefaultFields.GraphVertex,             IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-                                                                            IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-                                                                            IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
-                new ConditionalField(DefaultFields.GraphPixel,              true),
+                new ConditionalField(DefaultFields.GraphVertex,                 IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                                IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                                IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphPixel,                  true),
                 
                 // Material
-                new ConditionalField(HDRPShaderGraphFields.AffectsAlbedo,   affectsAlbedo.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsNormal,   affectsNormal.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsEmission, affectsEmission.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsMaskMap,  affectsSmoothness.isOn || affectsMetal.isOn || affectsAO.isOn),
+                new ConditionalField(HDRPShaderGraphFields.AffectsAlbedo,       affectsAlbedo.isOn),
+                new ConditionalField(HDRPShaderGraphFields.AffectsNormal,       affectsNormal.isOn),
+                new ConditionalField(HDRPShaderGraphFields.AffectsEmission,     affectsEmission.isOn),
+                new ConditionalField(HDRPShaderGraphFields.AffectsMetal,        affectsMetal.isOn),
+                new ConditionalField(HDRPShaderGraphFields.AffectsAO,           affectsAO.isOn),
+                new ConditionalField(HDRPShaderGraphFields.AffectsSmoothness,   affectsSmoothness.isOn),
+                new ConditionalField(HDRPShaderGraphFields.AffectsMaskMap,      affectsSmoothness.isOn || affectsMetal.isOn || affectsAO.isOn),
             };
         }
 

@@ -12,27 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DecalSubShader")]
     class DecalSubShader : ISubShader
     {
-        private static bool GenerateShaderPass(DecalMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
-        {
-            if(mode == GenerationMode.Preview && !pass.useInPreview)
-                return false;
-            
-            if(pass.Equals(HDRPDecalTarget.Passes.Projector4RT) || pass.Equals(HDRPDecalTarget.Passes.Mesh4RT))
-            {
-                int colorMaskIndex = (masterNode.affectsMetal.isOn ? 1 : 0);
-                colorMaskIndex |= (masterNode.affectsAO.isOn ? 2 : 0);
-                colorMaskIndex |= (masterNode.affectsSmoothness.isOn ? 4 : 0);
-                pass.ColorMaskOverride = HDRPDecalTarget.ColorMasks[colorMaskIndex];
-            }
-
-            // Active Fields
-            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-            
-            // Generate
-            return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
-                HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
-        }
-
         public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
@@ -57,26 +36,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Caution: Order of GenerateShaderPass matter. Only generate required pass
                 if (masterNode.affectsAlbedo.isOn || masterNode.affectsNormal.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn || masterNode.affectsSmoothness.isOn)
                 {
-                    GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Projector3RT, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Projector4RT, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Projector3RT, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Projector4RT, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
                 if (masterNode.affectsEmission.isOn)
                 {
-                    GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.ProjectorEmissive, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.ProjectorEmissive, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
                 if (masterNode.affectsAlbedo.isOn || masterNode.affectsNormal.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn || masterNode.affectsSmoothness.isOn)
                 {
-                    GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Mesh3RT, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Mesh4RT, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Mesh3RT, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Mesh4RT, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
                 if (masterNode.affectsEmission.isOn)
                 {
-                    GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.MeshEmissive, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.MeshEmissive, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
 
                 if (mode.IsPreview())
                 {
-                    GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Preview, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPDecalTarget.Passes.Preview, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
             }
             subShader.Deindent();

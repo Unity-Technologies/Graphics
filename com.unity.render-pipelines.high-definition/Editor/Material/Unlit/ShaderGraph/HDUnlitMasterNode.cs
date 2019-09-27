@@ -357,6 +357,12 @@ namespace UnityEditor.Rendering.HighDefinition
                                                                                         IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
                                                                                         IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
                 new ConditionalField(DefaultFields.GraphPixel,                          true),
+
+                // Distortion
+                new ConditionalField(HDRPShaderGraphFields.DistortionDepthTest,         distortionDepthTest.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DistortionAdd,               distortionMode == DistortionMode.Add),
+                new ConditionalField(HDRPShaderGraphFields.DistortionMultiply,          distortionMode == DistortionMode.Multiply),
+                new ConditionalField(HDRPShaderGraphFields.DistortionReplace,           distortionMode == DistortionMode.Replace),
                 
                 // Misc
                 new ConditionalField(DefaultFields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),

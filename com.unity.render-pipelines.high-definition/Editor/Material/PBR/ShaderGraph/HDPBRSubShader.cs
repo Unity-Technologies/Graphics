@@ -15,49 +15,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.ShaderGraph.HDPBRSubShader")]
     class HDPBRSubShader : ISubShader
     {
-        private static bool GenerateShaderPassLit(PBRMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
-        {
-            if(mode == GenerationMode.Preview && !pass.useInPreview)
-                return false;
-            
-            // Update render state
-            if(pass.Equals(HDRPMeshTarget.Passes.PBRGBuffer))
-            {
-                if (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque &&
-                    (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
-                    masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f))
-                {
-                    pass.ZTestOverride = "ZTest Equal";
-                }
-                else
-                {
-                    pass.ZTestOverride = "ZTest LEqual";
-                }
-            }
-            else if(pass.Equals(HDRPMeshTarget.Passes.PBRSceneSelection))
-            {
-                HDSubShaderUtilities.GetCullMode(masterNode.twoSided.isOn, ref pass);
-                HDSubShaderUtilities.GetZWrite(masterNode.surfaceType, ref pass);
-            }
-            else if(pass.Equals(HDRPMeshTarget.Passes.PBRForwardOpaque) || pass.Equals(HDRPMeshTarget.Passes.PBRForwardTransparent))
-            {
-                HDSubShaderUtilities.GetBlendMode(masterNode.surfaceType, masterNode.alphaMode, ref pass);
-                if (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque &&
-                    (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
-                    masterNode.GetInputSlots<Vector1MaterialSlot>().First(x => x.id == PBRMasterNode.AlphaThresholdSlotId).value > 0.0f))
-                {
-                    pass.ZTestOverride = "ZTest Equal";
-                }
-            }
-
-            // Action Fields
-            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-
-            // Generate
-            return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
-                HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
-        }
-
         public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
@@ -81,20 +38,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == UnityEditor.ShaderGraph.SurfaceType.Opaque);
 
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRSceneSelection, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRShadowCaster, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRMETA, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRSceneSelection, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
 
                 if (opaque)
                 {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRDepthOnly, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRGBuffer, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRMotionVectors, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRForwardOpaque, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRDepthOnly, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRGBuffer, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRMotionVectors, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRForwardOpaque, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
                 else
                 {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.PBRForwardTransparent, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.Passes.PBRForwardTransparent, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
                 
             }

@@ -382,62 +382,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class HDSubShaderUtilities
     {
-        public static readonly string zClipShadowCaster = "ZClip [_ZClip]";
-        public static readonly string defaultCullMode = "Cull [_CullMode]";
-        public static readonly string cullModeForward = "Cull [_CullModeForward]";
-        public static readonly string zTestDepthEqualForOpaque = "ZTest [_ZTestDepthEqualForOpaque]";
-        public static readonly string zTestTransparent = "ZTest [_ZTestTransparent]";
-        public static readonly string zTestGBuffer = "ZTest [_ZTestGBuffer]";
-        public static readonly string zWriteOn = "ZWrite On";
-        public static readonly string zWriteOff = "ZWrite Off";
-        public static readonly string ZWriteDefault = "ZWrite [_ZWrite]";
-
-        public static void GetBlendMode(ShaderGraph.SurfaceType surfaceType, AlphaMode alphaMode, ref ShaderPass pass)
-        {
-            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
-            {
-                pass.BlendOverride = "Blend One Zero, One Zero";
-            }
-            else
-            {
-                switch (alphaMode)
-                {
-                    case AlphaMode.Alpha:
-                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
-                        break;
-                    case AlphaMode.Additive:
-                        pass.BlendOverride = "Blend One One, One One";
-                        break;
-                    case AlphaMode.Premultiply:
-                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
-                        break;
-                    // This isn't supported in HDRP.
-                    case AlphaMode.Multiply:
-                    default:
-                        pass.BlendOverride = "Blend One OneMinusSrcAlpha, One OneMinusSrcAlpha";
-                        break;
-                }
-            }
-        }
-
-        public static void GetCullMode(bool doubleSided, ref ShaderPass pass)
-        {
-            if (doubleSided)
-                pass.CullOverride = "Cull Off";
-        }
-
-        public static void GetZWrite(ShaderGraph.SurfaceType surfaceType, ref ShaderPass pass)
-        {
-            if (surfaceType == ShaderGraph.SurfaceType.Opaque)
-            {
-                pass.ZWriteOverride = "ZWrite On";
-            }
-            else
-            {
-                pass.ZWriteOverride = "ZWrite Off";
-            }
-        }
-
         public static void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, int queue)
         {
             ShaderStringBuilder builder = new ShaderStringBuilder();

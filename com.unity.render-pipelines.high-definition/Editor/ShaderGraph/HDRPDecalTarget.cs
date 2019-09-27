@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static string[] ColorMasks = new string[8]
+        readonly static string[] s_ColorMasks = new string[8]
         {
             "ColorMask 0 2 ColorMask 0 3",      // nothing
             "ColorMask R 2 ColorMask R 3",      // metal
@@ -71,20 +71,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
-                CullOverride = "Cull Front",
-                ZTestOverride = "ZTest Greater",
-                ZWriteOverride = "ZWrite Off",
-                ColorMaskOverride = ColorMasks[4], // Smoothness only
-                StencilOverride = new List<string>()
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha", 0),
+                    RenderStateOverride.Cull(Cull.Front, 0),
+                    RenderStateOverride.ZTest(ZTest.Greater, 0),
+                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
+                    RenderStateOverride.ColorMask(s_ColorMasks[4], 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
                 },
 
                 // Pass setup
@@ -139,19 +139,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
-                CullOverride = "Cull Front",
-                ZTestOverride = "ZTest Greater",
-                ZWriteOverride = "ZWrite Off",
-                StencilOverride = new List<string>()
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}",
+                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor", 0),
+                    RenderStateOverride.Cull(Cull.Front, 0),
+                    RenderStateOverride.ZTest(ZTest.Greater, 0),
+                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
+                    RenderStateOverride.ColorMask(s_ColorMasks[0], 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+
+                    // Affects Channel Overrides
+                    RenderStateOverride.ColorMask(s_ColorMasks[1], 1, new IField[] { HDRPShaderGraphFields.AffectsMetal }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[2], 1, new IField[] { HDRPShaderGraphFields.AffectsAO }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[4], 1, new IField[] { HDRPShaderGraphFields.AffectsSmoothness }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[3], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[5], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsSmoothness }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[6], 2, new IField[] { HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[7], 3, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
                 },
 
                 // Pass setup
@@ -199,10 +209,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                CullOverride = "Cull Front",
-                ZTestOverride = "ZTest Greater",
-                ZWriteOverride = "ZWrite Off",
-                BlendOverride = "Blend 0 SrcAlpha One",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Blend("Blend 0 SrcAlpha One", 0),
+                    RenderStateOverride.Cull(Cull.Front, 0),
+                    RenderStateOverride.ZTest(ZTest.Greater, 0),
+                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
+                },
 
                 // Pass setup
                 pragmas = new List<string>()
@@ -252,20 +265,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
-                ZTestOverride = "ZTest LEqual",
-                ZWriteOverride = "ZWrite Off",
-                ColorMaskOverride = ColorMasks[4], // Smoothness only
-                StencilOverride = new List<string>()
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "// Stencil setup",
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha", 0),
+                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
+                    RenderStateOverride.ColorMask(s_ColorMasks[4], 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
                 },
 
                 // Required fields
@@ -334,19 +346,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor",
-                ZTestOverride = "ZTest LEqual",
-                ZWriteOverride = "ZWrite Off",
-                StencilOverride = new List<string>()
+                renderStateOverrides = new RenderStateOverride[]
                 {
-                    "// Stencil setup",
-                    "Stencil",
-                    "{",
-                    $"    WriteMask {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    $"    Ref  {(int)HDRenderPipeline.StencilBitMask.Decals}",
-                    "    Comp Always",
-                    "    Pass Replace",
-                    "}"
+                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor", 0),
+                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
+                    RenderStateOverride.ColorMask(s_ColorMasks[0], 0),
+                    RenderStateOverride.Stencil(new Stencil()
+                    {
+                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }, 0),
+
+                    // Affects Channel Overrides
+                    RenderStateOverride.ColorMask(s_ColorMasks[1], 1, new IField[] { HDRPShaderGraphFields.AffectsMetal }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[2], 1, new IField[] { HDRPShaderGraphFields.AffectsAO }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[4], 1, new IField[] { HDRPShaderGraphFields.AffectsSmoothness }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[3], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[5], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsSmoothness }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[6], 2, new IField[] { HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
+                    RenderStateOverride.ColorMask(s_ColorMasks[7], 3, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
                 },
 
                 // Required fields
@@ -416,9 +437,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                BlendOverride = "Blend 0 SrcAlpha One",
-                ZTestOverride = "ZTest LEqual",
-                ZWriteOverride = "ZWrite Off",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.Blend("Blend 0 SrcAlpha One", 0),
+                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
+                },
 
                 // Required fields
                 requiredAttributes = new List<string>()
@@ -483,7 +507,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 },
 
                 // Render state overrides
-                ZTestOverride = "ZTest LEqual",
+                renderStateOverrides = new RenderStateOverride[]
+                {
+                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
+                },
 
                 // Required fields
                 requiredAttributes = new List<string>()
