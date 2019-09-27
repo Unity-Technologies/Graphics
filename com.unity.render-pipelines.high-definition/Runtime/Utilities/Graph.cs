@@ -575,7 +575,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Behaviour is undefined when <paramref name="index"/> is out of bounds.
         /// </summary>
         /// <param name="index">The index of the item to remove.</param>
-        public unsafe void RemoveSwapBackUnsafe(int index)
+        public unsafe void RemoveSwapBackAtUnsafe(int index)
         {
             var spanMut = this.spanMut;
             spanMut[index] = spanMut[data.count - 1];
@@ -585,12 +585,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>/// Removes an item by copying the last entry at <paramref name="index"/> position.</summary>
         /// <param name="index">The index of the item to remove.</param>
         /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of bounds.</exception>
-        public void RemoveSwapBack(int index)
+        public void RemoveSwapBackAt(int index)
         {
             if (index < 0 || index >= data.count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
-            unsafe { RemoveSwapBackUnsafe(index); }
+            unsafe { RemoveSwapBackAtUnsafe(index); }
         }
 
         /// <summary>
