@@ -140,14 +140,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAsset probeVolumeAsset = null;
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
-
-        private int m_ID = -1;
-        private static int s_IDNext = 0;
         
         public int GetID()
         {
-            if (m_ID == -1) { m_ID = s_IDNext++; }
-            return m_ID;
+            return GetInstanceID();
         }
         
         public SphericalHarmonicsL1[] GetData()
@@ -191,18 +187,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnEnable()
         {
-            GetID();
-
             ProbeVolumeManager.manager.RegisterVolume(this);
 
             // Signal update
             if (probeVolumeAsset)
                 dataUpdated = true;
 
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+                return;
+
             m_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
             m_DebugMaterial = new Material(Shader.Find("HDRP/Lit"));
 
-#if UNITY_EDITOR
             EnableBaking();
 #endif
         }
@@ -211,6 +208,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeManager.manager.DeRegisterVolume(this);
 #if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+                return;
+
             DisableBaking();
 #endif
         }
@@ -244,13 +244,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!this.gameObject.activeInHierarchy)
                 return;
 
-            if (m_ID == -1)
-                return;
-
             SphericalHarmonicsL1[] data = new SphericalHarmonicsL1[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
 
             var nativeData = new NativeArray<SphericalHarmonicsL2>(data.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_ID, nativeData);
+            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), nativeData);
 
             for (int i = 0, iLen = data.Length; i < iLen; ++i)
             {
@@ -263,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!probeVolumeAsset)
             { 
-                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(m_ID);
+                probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
                 UnityEditor.EditorUtility.SetDirty(this);
             }
 
@@ -278,8 +275,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
 
-            if (m_ID != -1)
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_ID, null);
+            if (GetID() != -1)
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), null);
         }
 
         public void EnableBaking()
@@ -301,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float debugProbeSize = Gizmos.probeSize;
 
-            string inputString = m_ID.ToString() + debugProbeSize.ToString();
+            string inputString = GetID().ToString() + debugProbeSize.ToString();
             Hash128 debugProbeInputHash = Hash128.Compute(inputString);
             Hash128 settingsHash = Hash;
 
@@ -390,8 +387,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DebugProbeInputHash = debugProbeInputHash;
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_ID, positions);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), positions);
         }
+
         public void DrawProbes()
         {
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.lastActiveSceneView;
