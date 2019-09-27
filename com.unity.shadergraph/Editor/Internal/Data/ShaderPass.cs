@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         // Conditional State
         public ConditionalRenderState[] renderStates;
-        public IEnumerable<string> pragmas;
+        public ConditionalPragma[] pragmas;
         public IEnumerable<string> defines;
         public IEnumerable<KeywordDescriptor> keywords;
         public IEnumerable<string> includes;

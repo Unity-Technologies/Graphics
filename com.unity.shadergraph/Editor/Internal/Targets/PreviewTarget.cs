@@ -32,6 +32,15 @@ namespace UnityEditor.ShaderGraph.Internal
                 useInPreview = true,
 
                 // Pass setup
+                pragmas = new ConditionalPragma[]
+                {
+                    new ConditionalPragma(Pragma.Vertex("vert")),
+                    new ConditionalPragma(Pragma.Fragment("frag")),
+                },
+                defines = new List<string>()
+                {
+                    "SHADERGRAPH_PREVIEW 1",
+                },
                 includes = new List<string>()
                 {
                     "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
@@ -44,10 +53,6 @@ namespace UnityEditor.ShaderGraph.Internal
                     "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl",
                     "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
                 },
-                defines = new List<string>()
-                {
-                    "SHADERGRAPH_PREVIEW 1",
-                }
             };
         }
 #endregion

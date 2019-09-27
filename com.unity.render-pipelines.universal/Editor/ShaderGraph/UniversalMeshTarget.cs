@@ -92,15 +92,8 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.Default,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_fog",
-                    "multi_compile_instancing",
-                },
+                renderStates = RenderStates.Default,
+                pragmas = Pragmas.Forward,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.Lightmap,
@@ -149,13 +142,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
-                },
+                pragmas = Pragmas.Instanced,
                 includes = new List<string>()
                 {
                     "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
@@ -196,13 +183,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
-                },
+                pragmas = Pragmas.Instanced,
                 includes = new List<string>()
                 {
                     "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
@@ -247,12 +228,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
+                pragmas = Pragmas.Default,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.SmoothnessChannel,
@@ -291,13 +267,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
-                },
+                pragmas = Pragmas.Instanced,
                 includes = new List<string>()
                 {
                     "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
@@ -333,13 +303,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
-                },
+                pragmas = Pragmas.Instanced,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.Lightmap,
@@ -388,12 +352,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
+                pragmas = Pragmas.Default,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.ETCExternalAlpha,
@@ -445,12 +404,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
+                pragmas = Pragmas.Default,
                 includes = new List<string>()
                 {
                     "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
@@ -493,12 +447,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
+                pragmas = Pragmas.Default,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.ETCExternalAlpha,
@@ -546,12 +495,7 @@ namespace UnityEditor.Rendering.Universal
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
+                pragmas = Pragmas.Default,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.ETCExternalAlpha,
@@ -714,7 +658,7 @@ namespace UnityEditor.Rendering.Universal
 #endregion
 
 #region RenderStates
-        public static class RenderStates
+        static class RenderStates
         {
             public static readonly ConditionalRenderState[] Default = new ConditionalRenderState[]
             {
@@ -755,6 +699,41 @@ namespace UnityEditor.Rendering.Universal
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true)),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true)),
                 new ConditionalRenderState(RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true)),
+            };
+        }
+#endregion
+
+#region Pragmas
+        static class Pragmas
+        {
+            public static readonly ConditionalPragma[] Default = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(2.0)),
+                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
+                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
+                new ConditionalPragma(Pragma.Vertex("vert")),
+                new ConditionalPragma(Pragma.Fragment("frag")),
+            };
+
+            public static readonly ConditionalPragma[] Instanced = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(2.0)),
+                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
+                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
+                new ConditionalPragma(Pragma.Vertex("vert")),
+                new ConditionalPragma(Pragma.Fragment("frag")),
+            };
+
+            public static readonly ConditionalPragma[] Forward = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(2.0)),
+                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
+                new ConditionalPragma(Pragma.MultiCompileFog),
+                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
+                new ConditionalPragma(Pragma.Vertex("vert")),
+                new ConditionalPragma(Pragma.Fragment("frag")),
             };
         }
 #endregion

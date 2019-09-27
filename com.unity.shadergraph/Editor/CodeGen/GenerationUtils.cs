@@ -177,14 +177,16 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.pragmas != null)
                 {
-                    foreach(string pragma in pass.pragmas)
+                    foreach(ConditionalPragma pragma in pass.pragmas)
                     {
-                        passPragmaBuilder.AppendLine($"#pragma {pragma}");
+                        string value = null;
+                        if(EvaluateConditionalShaderString(pragma, fields, out value))
+                            passPragmaBuilder.AppendLine(value);
                     }
                 }
-                if(passPragmaBuilder.length == 0)
-                    passPragmaBuilder.AppendLine("// PassPragmas: <None>");
-                spliceCommands.Add("PassPragmas", passPragmaBuilder.ToCodeBlack());
+
+                string command = GetSpliceCommand(passPragmaBuilder.ToCodeBlack(), "PassPragmas");
+                spliceCommands.Add("PassPragmas", command);
             }
 
             // Includes
@@ -738,51 +740,63 @@ namespace UnityEditor.ShaderGraph
         {
             foreach(RenderState.Type type in Enum.GetValues(typeof(RenderState.Type)))
             {
+                // Get all render states of this type and initialize the command for failure
                 var renderStates = pass.renderStates?.Where(x => x.renderState.type == type);
-                var command = EvaluateConditionalShaderStrings(renderStates, fields);
+                string command = null;
+
+                if(renderStates != null)
+                {
+                    // Find the first passing conditional render state
+                    foreach(ConditionalRenderState renderState in renderStates)
+                    {
+                        if(EvaluateConditionalShaderString(renderState, fields, out command))
+                            break;
+                    }
+                }
+                    
+                // Splice
                 spliceCommands.Add($"{type}", GetSpliceCommand(command, $"{type}"));
             }
         }
 
-        static string EvaluateConditionalShaderStrings(IEnumerable<IConditionalShaderString> conditionalShaderStrings, List<IField> fields)
+        static bool EvaluateConditionalShaderString(IConditionalShaderString conditionalShaderString, List<IField> fields, out string value)
         {
-            if(conditionalShaderStrings == null)
-                return null;
-            
-            foreach(IConditionalShaderString conditionalShaderString in conditionalShaderStrings)
+            // Test FieldCondition against current active Fields
+            bool TestFieldCondition(FieldCondition fieldCondition)
             {
-                // No FieldConditions, return
-                if(conditionalShaderString.fieldConditions == null)
-                    return conditionalShaderString.value;
+                // Required active field is not active
+                if(fieldCondition.condition == true && !fields.Contains(fieldCondition.field))
+                    return false;
 
-                // One or more FieldConditions failed, continue
-                if(conditionalShaderString.fieldConditions.Where(x => !fields.TestFieldCondition(x)).Any())
-                    continue;
+                // Required non-active field is active
+                else if(fieldCondition.condition == false && fields.Contains(fieldCondition.field))
+                    return false;
 
-                // All FieldConditions passed, return
-                return conditionalShaderString.value;
+                return true;
             }
-            
-            // No ConditionalShaderStrings, return
-            return null;
-        }
 
-        static bool TestFieldCondition(this List<IField> fields, FieldCondition fieldCondition)
-        {
-            // Required active field is not active
-            if(fieldCondition.condition == true && !fields.Contains(fieldCondition.field))
+            // No FieldConditions
+            if(conditionalShaderString.fieldConditions == null)
+            {
+                value = conditionalShaderString.value;
+                return true;
+            }
+
+            // One or more FieldConditions failed
+            if(conditionalShaderString.fieldConditions.Where(x => !TestFieldCondition(x)).Any())
+            {
+                value = null;
                 return false;
+            }
 
-            // Required non-active field is active
-            else if(fieldCondition.condition == false && fields.Contains(fieldCondition.field))
-                return false;
-
+            // All FieldConditions passed
+            value = conditionalShaderString.value;
             return true;
         }
 
         static string GetSpliceCommand(string command, string token)
         {
-            return command != null ? command : $"// {token}: <None>";
+            return !string.IsNullOrEmpty(command) ? command : $"// {token}: <None>";
         }
 
         public static string GetDefaultTemplatePath(string templateName)
