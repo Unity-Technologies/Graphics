@@ -434,7 +434,7 @@ namespace UnityEditor.VFX.UI
         // [1] toggle
         // [2] system name
         // [3] alive
-        // [4] max alive (Button)
+        // [4] max alive (Button or TextElement)
         // [5] efficiency
         Dictionary<int, VisualElement[]> m_SystemInfos;
 
@@ -819,10 +819,24 @@ namespace UnityEditor.VFX.UI
             alive.name = "debug-system-stat-entry";
             alive.text = " - ";
 
-            var maxAlive = new Button();
-            maxAlive.name = "debug-system-stat-entry";
-            maxAlive.text = "0";
-            maxAlive.clickable.clickedWithEventInfo += CapacitySetter(systemName);
+            bool isSystemInSubgraph;
+            var setCapacity = CapacitySetter(systemName, out isSystemInSubgraph);
+            VisualElement maxAlive;
+            if (isSystemInSubgraph)
+            {
+                var maxAliveButton = new Button();
+                maxAliveButton.name = "debug-system-stat-entry";
+                maxAliveButton.text = "0";
+                maxAliveButton.clickable.clickedWithEventInfo += setCapacity;
+                maxAlive = maxAliveButton;
+            }
+            else
+            {
+                var maxAliveText = new TextElement();
+                maxAliveText.name = "debug-system-stat-entry";
+                maxAliveText.text = "0";
+                maxAlive = maxAliveText;
+            }
 
             var efficiency = new TextElement();
             efficiency.name = "debug-system-stat-entry";
@@ -877,7 +891,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            var subgraphs = m_View.GetAllContexts().Where(c => c.controller.model.contextType == VFXContextType.Subgraph);            
+            var subgraphs = m_View.GetAllContexts().Where(c => c.controller.model.contextType == VFXContextType.Subgraph);
 
             var models = new HashSet<ScriptableObject>();
             foreach (var subgraph in subgraphs)
@@ -900,22 +914,24 @@ namespace UnityEditor.VFX.UI
             return () => { };
         }
 
-        Action<EventBase> CapacitySetter(string systemName)
+        Action<EventBase> CapacitySetter(string systemName, out bool isSystemInSubGraph)
         {
-            var models = new HashSet<ScriptableObject>();
-            m_Graph.CollectDependencies(models, false);
-            var datas = models.OfType<VFXDataParticle>();
+            var viewableSystems = m_View.GetAllContexts().Select(c => c.controller.model.GetData()).OfType<VFXDataParticle>();
 
-            foreach (var data in datas)
+            foreach (var system in viewableSystems)
             {
-                if (m_Graph.systemNames.GetUniqueSystemName(data) == systemName)
+                if (m_Graph.systemNames.GetUniqueSystemName(system) == systemName)
+                {
+                    isSystemInSubGraph = true;
                     return (e) =>
                     {
                         var button = e.currentTarget as Button;
                         if (button != null)
-                            data.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.01f));
+                            system.SetSettingValue("capacity", (uint)(float.Parse(button.text) * 1.01f));
                     };
+                }
             }
+            isSystemInSubGraph = false;
             return (e) => { };
         }
 
@@ -924,8 +940,8 @@ namespace UnityEditor.VFX.UI
             var statUI = m_SystemInfos[systemId];// [0] is title bar
             if (statUI[3] is TextElement alive)
                 alive.text = stat.alive.ToString();
-            if (statUI[4] is Button maxAlive)
-                maxAlive.text = Mathf.Max(int.Parse(maxAlive.text), stat.alive).ToString();
+            if (statUI[4] is TextElement maxAliveText)
+                maxAliveText.text = Mathf.Max(int.Parse(maxAliveText.text), stat.alive).ToString();
             if (statUI[5] is TextElement efficiency)
             {
                 var eff = (int)((float)stat.alive * 100.0f / (float)stat.capacity);
@@ -946,7 +962,7 @@ namespace UnityEditor.VFX.UI
                 {
                     if (statUI[3] is TextElement alive)
                         alive.text = " - ";
-                    if (statUI[4] is Button maxAlive)
+                    if (statUI[4] is TextElement maxAlive)
                         maxAlive.text = "0";
                     if (statUI[5] is TextElement efficiency)
                         efficiency.text = " - ";
