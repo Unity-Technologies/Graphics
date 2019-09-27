@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Ray Tracing parameters
         SerializedDataParameter m_RayTracing;
+        SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_Denoise;
@@ -35,6 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirectLightingStrength = Unpack(o.Find(x => x.directLightingStrength));
 
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
+            m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
 
             m_Denoise = Unpack(o.Find(x => x.denoise));
@@ -63,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_RAYTRACING
             if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
+                PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
                 PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
                 PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));

@@ -1952,10 +1952,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
-#if ENABLE_RAYTRACING
-            HDRaytracingEnvironment raytracingEnv = m_RayTracingManager.CurrentEnvironment();
-#endif
-
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 

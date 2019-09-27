@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(GlobalIllumination))]
     class GlobalIlluminatorEditor : VolumeComponentEditor
     {
+        SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
@@ -33,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
 
+            m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
@@ -71,6 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 EditorGUI.indentLevel++;
+                PropertyField(m_LayerMask);
                 PropertyField(m_RayLength);
                 PropertyField(m_ClampValue);
 

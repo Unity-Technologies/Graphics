@@ -9,6 +9,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enable. Enables recursive rendering.")]
         public BoolParameter enable = new BoolParameter(false);
 
+        [Tooltip("Layer Mask. Layer mask used to include the objects for recursive rendering.")]
+        public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
         [Tooltip("Max Depth. Defines the maximal recursion for rays.")]
         public ClampedIntParameter maxDepth = new ClampedIntParameter(4, 1, 10);
 
