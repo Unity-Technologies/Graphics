@@ -41,17 +41,17 @@ namespace UnityEditor.ShaderGraph.Internal
                 {
                     "SHADERGRAPH_PREVIEW 1",
                 },
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
                 },
             };
         }

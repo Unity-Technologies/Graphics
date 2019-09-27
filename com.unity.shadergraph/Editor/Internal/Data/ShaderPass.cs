@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public ConditionalPragma[] pragmas;
         public IEnumerable<string> defines;
         public IEnumerable<KeywordDescriptor> keywords;
-        public IEnumerable<string> includes;
+        public ConditionalInclude[] includes;
         public IEnumerable<string> defaultDotsInstancingOptions;
 
         // Custom Template

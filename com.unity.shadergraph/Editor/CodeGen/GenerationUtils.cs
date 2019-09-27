@@ -217,14 +217,16 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.includes != null)
                 {
-                    foreach(string include in pass.includes)
+                    foreach(ConditionalInclude include in pass.includes)
                     {
-                        passIncludeBuilder.AppendLine($"#include \"{include}\"");
+                        string value = null;
+                        if(EvaluateConditionalShaderString(include, fields, out value))
+                            passIncludeBuilder.AppendLine(value);
                     }
                 }
-                if(passIncludeBuilder.length == 0)
-                    passIncludeBuilder.AppendLine("// PassIncludes: <None>");
-                spliceCommands.Add("PassIncludes", passIncludeBuilder.ToCodeBlack());
+
+                string command = GetSpliceCommand(passIncludeBuilder.ToCodeBlack(), "PassIncludes");
+                spliceCommands.Add("PassIncludes", command);
             }
 
             // Keywords

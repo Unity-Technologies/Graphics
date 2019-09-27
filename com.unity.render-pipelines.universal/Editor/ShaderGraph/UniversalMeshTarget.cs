@@ -105,15 +105,15 @@ namespace UnityEditor.Rendering.Universal
                     Keywords.ShadowsSoft,
                     Keywords.MixedLightingSubtractive,
                 },
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl")),
                 },
             };
 
@@ -143,13 +143,13 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
                 pragmas = Pragmas.Instanced,
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
             };
 
@@ -184,14 +184,14 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Instanced,
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl")),
                 },
             };
 
@@ -233,13 +233,13 @@ namespace UnityEditor.Rendering.Universal
                 {
                     Keywords.SmoothnessChannel,
                 },
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl")),
                 },
             };
 
@@ -268,13 +268,12 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
             };
 
@@ -310,12 +309,12 @@ namespace UnityEditor.Rendering.Universal
                     Keywords.DirectionalLightmapCombined,
                     Keywords.SampleGI,
                 },
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
             };
 
@@ -361,13 +360,13 @@ namespace UnityEditor.Rendering.Universal
                     Keywords.ShapeLightType2,
                     Keywords.ShapeLightType3,
                 },
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl")),
                 },
             };
 
@@ -405,13 +404,13 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl")),
                 },
             };
 
@@ -446,18 +445,18 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.Default,
+                renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.ETCExternalAlpha,
                 },
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
             };
 
@@ -494,18 +493,18 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.Default,
+                renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = new KeywordDescriptor[]
                 {
                     Keywords.ETCExternalAlpha,
                 },
-                includes = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
             };
         }
