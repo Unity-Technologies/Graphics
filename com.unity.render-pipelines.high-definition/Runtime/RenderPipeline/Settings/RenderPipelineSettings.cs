@@ -38,6 +38,13 @@ namespace UnityEngine.Rendering.HighDefinition
             R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat
         }
 
+        public enum CustomBufferFormat
+        {
+            R8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+            R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        }
+
         /// <summary>Default RenderPipelineSettings</summary>
         public static readonly RenderPipelineSettings @default = new RenderPipelineSettings()
         {
@@ -50,6 +57,8 @@ namespace UnityEngine.Rendering.HighDefinition
             supportTransparentDepthPrepass = true,
             supportTransparentDepthPostpass = true,
             colorBufferFormat = ColorBufferFormat.R11G11B10,
+            supportCustomPass = true,
+            customBufferFormat = CustomBufferFormat.R8G8B8A8,
             supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
             supportDecals = true,
             msaaSampleCount = MSAASamples.None,
@@ -91,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTransparentDepthPrepass;
         public bool supportTransparentDepthPostpass;
         public ColorBufferFormat colorBufferFormat;
+        public bool supportCustomPass;
+        public CustomBufferFormat customBufferFormat;
         public SupportedLitShaderMode supportedLitShaderMode;
 
         // Engine
