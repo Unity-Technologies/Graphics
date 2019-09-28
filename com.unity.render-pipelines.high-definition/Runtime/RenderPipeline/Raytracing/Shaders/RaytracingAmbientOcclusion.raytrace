@@ -68,9 +68,6 @@ void RayGenAmbientOcclusion()
 	// Variable that accumulate the radiance
 	float3 finalColor = float3(0.0, 0.0, 0.0);
 
-	// Minimal distance of the intersection
-	float minDistance = _RaytracingRayMaxLength;
-
 	// Let's loop through th e samples
 	for (int i = 0; i < numSamples; ++i)
 	{
@@ -100,14 +97,8 @@ void RayGenAmbientOcclusion()
 		rayIntersection.t = 0.0f;
 
 		// Evaluate the ray intersection
-		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_AMBIENT_OCCLUSION, 0, 1, 0, rayDescriptor, rayIntersection);
 		
-		// combine
-		if (rayIntersection.t > 0.0f)
-		{
-			minDistance = min(minDistance, rayIntersection.t);
-		}
-
 		// Accumulate this value
 		finalColor += rayIntersection.color;
 	}

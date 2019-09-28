@@ -82,23 +82,21 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Inner Angle (%)** | Determines where the attenuation between the inner cone and the outer cone starts. Higher values cause the light at the edges of the Spot Light to fade out. Lower values stop the light from fading at the edges. This property is only for Lights with a **Cone Shape**. |
 | **Spot Angle**      | The angle in degrees at the base of a Spot Light’s cone.     |
 | **Aspect Ratio**    | Adjusts the shape of a Pyramid Spot Light to create rectangular Spot Lights. Set this to 1 for a square projection. Values lower than 1 make the Light wider, from the point of origin. Values higher than 1 make the Light longer. This property is only for Lights with a **Pyramid Shape**. |
-| **Emission Radius** | The radius of the light source.                              |
-| **Max Smoothness**  | For **Cone** and **Pyramid**. Changes the specular highlight in order to mimic a spherical Light. This allows you to avoid very sharp specular highlights that do not match the shape of the source Light. |
+| **Radius**          | The radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the softness of baked shadows and ray traced shadows. |
 | **Size X**          | For **Box**. Adjusts the horizontal size of the Box Light. No light shines outside of the dimensions you set. |
 | **Size Y**          | For **Box**. Adjusts the vertical size of the Box Light. No light shines outside of the dimensions you set. |
 
 #### Directional Light
 
-| **Property**                | **Description**                                              |
-| --------------------------- | ------------------------------------------------------------ |
-| **Max Smoothness**          | Allows you to alter the specular highlight. This allows you to avoid very sharp specular highlights that do not match the shape of the Light source. |
+| **Property**         | **Description**                                              |
+| -------------------- | ------------------------------------------------------------ |
+| **Angular Diameter** | Allows you to set the area of a distant light source through an angle in degrees. This has an impact on the size of specular highlights and the softness of baked shadows and ray traced shadows. |
 
 #### Point Light
 
-| **Property**        | **Description**                                              |
-| ------------------- | ------------------------------------------------------------ |
-| **Emission Radius** | Defines the radius of the light source.                      |
-| **Max Smoothness**  | Allows you to alter the specular highlight. This allows you to avoid very sharp specular highlights that do not match the shape of the Light source. Acts as a less resource-intensive method for faking spherical lighting. |
+| **Property** | **Description**                                              |
+| ------------ | ------------------------------------------------------------ |
+| **Radius**   | Defines the radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the smoothness of baked shadows and ray traced shadows. |
 
 #### Rectangle Light
 
@@ -219,12 +217,3 @@ In your [HDRP Asset](HDRP-Asset.html), select **High** from the **Filtering Qual
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
 | **Enable**   | Add [Contact Shadows](Override-Contact-Shadows.html) to this Light. Use the drop-down to select a quality mode for the Contact Shadows. Select **Custom** to expose a checkbox that allows you to enable or disable Contact Shadows at will. |
-
-##### Baked Shadows
-
-Set the **Mode**, under [General,](#GeneralProperties) to **Mixed** or **Baked** to expose the following properties.
-
-| **Property** | **Description**                                              |
-| ------------ | ------------------------------------------------------------ |
-| **Radius**   | The emission radius of the light for calculating baked shadows (shadowmask or fully baked light). Higher values simulate a bigger light source and result in softer shadows. Small values simulate a small light source and result in sharper shadows.<br />This property only appears when you select **Spot** or **Point** from the **Type** drop-down. |
-| **Angle**    | Use the slider to set the amount of artificial softening that the baking process applies to the edges of shadows cast by directional lights.<br />This property only appears when you select **Directional** from the **Type** drop-down. |
