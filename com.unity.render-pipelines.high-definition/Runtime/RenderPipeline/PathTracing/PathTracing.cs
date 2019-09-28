@@ -9,6 +9,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enables path tracing (thus disabling most other passes).")]
         public BoolParameter enable = new BoolParameter(false);
 
+        [Tooltip("Defines the layers that path tracing should include.")]
+        public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
         [Tooltip("Defines the maximum number of paths cast within each pixel.")]
         public ClampedIntParameter maxSamples = new ClampedIntParameter(256, 1, 512);
 
@@ -46,15 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public void PathTracingRender(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
-            HDRaytracingEnvironment rtEnvironment = m_RayTracingManager.CurrentEnvironment();
-            HDRenderPipeline renderPipeline = m_RayTracingManager.GetRenderPipeline();
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
 
             PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
             LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
+            RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
 
             // Check the validity of the state before computing the effect
-            bool invalidState = rtEnvironment == null || !pathTracingSettings.enable.value || pathTracingShader == null
+            bool invalidState = !pathTracingSettings.enable.value || pathTracingShader == null
                 || m_Asset.renderPipelineResources.textures.owenScrambled256Tex == null
                 || m_Asset.renderPipelineResources.textures.scramblingTex == null;
 
@@ -67,8 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
 
             // Grab the acceleration structure and the list of HD lights for the target camera
-            RayTracingAccelerationStructure accelerationStructure = m_RayTracingManager.RequestAccelerationStructure(rtEnvironment.raytracedLayerMask);
-            HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnvironment.raytracedLayerMask);
+            RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
+            HDRaytracingLightCluster lightCluster = RequestLightCluster();
 
             // Define the shader pass to use for the path tracing pass
             cmd.SetRayTracingShaderPass(pathTracingShader, "PathTracingDXR");
@@ -81,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
             // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtEnvironment.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, pathTracingSettings.maxSamples.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, pathTracingSettings.minDepth.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, pathTracingSettings.maxDepth.value);

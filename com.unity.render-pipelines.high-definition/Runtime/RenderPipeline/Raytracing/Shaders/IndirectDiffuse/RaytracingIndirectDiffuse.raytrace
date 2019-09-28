@@ -107,7 +107,7 @@ void RayGenFullRes()
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_GLOBAL_ILLUMINATION, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Compute the PDF
     float samplePDF = dot(sampleDir, normalData.normalWS);
@@ -201,7 +201,7 @@ void RayGenIntegration()
         rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_GLOBAL_ILLUMINATION, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Contribute to the pixel
         finalColor += rayIntersection.color;

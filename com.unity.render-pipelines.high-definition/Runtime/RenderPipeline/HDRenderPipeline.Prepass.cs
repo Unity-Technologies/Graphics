@@ -166,7 +166,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphResource rendererListDepthOnly;
 
 #if ENABLE_RAYTRACING
-            public HDRaytracingManager rayTracingManager;
             public RenderGraphResource renderListRayTracingOpaque;
             public RenderGraphResource renderListRayTracingTransparent;
 #endif
@@ -230,7 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     , context.resources.GetRendererList(data.rendererListMRT)
                                     , data.hasDepthOnlyPrepass
 #if ENABLE_RAYTRACING
-                                    , data.rayTracingManager
                                     , context.resources.GetRendererList(data.renderListRayTracingOpaque)
                                     , context.resources.GetRendererList(data.renderListRayTracingTransparent)
 #endif
