@@ -93,6 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracing = 92,
         [FrameSettingsField(0, autoName: RealtimePlanarReflection, customOrderInGroup: 11, tooltip: "When enabled, HDRP updates Planar Reflection Probes every frame for Cameras using these Frame Settings.")]
         RealtimePlanarReflection = 4,
+        [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
+        CustomPass = 6,
 
         [FrameSettingsField(0, autoName: MotionVectors, customOrderInGroup: 12, tooltip: "When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.")]
         MotionVectors = 10,
@@ -107,6 +109,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Distortion = 14,
         [FrameSettingsField(0, displayedName: "Post-process", tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         Postprocess = 15,
+        [FrameSettingsField(0, displayedName: "Custom Post-process", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP render user written post processes.")]
+        CustomPostProcess = 39,
         [FrameSettingsField(0, displayedName: "Stop NaN", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP replace NaN values with black pixels for Cameras using these Frame Settings.")]
         StopNaN = 80,
         [FrameSettingsField(0, autoName: DepthOfField, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP adds depth of field to Cameras affected by a Volume containing the Depth Of Field override.")]
@@ -158,9 +162,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
         MaterialQualityLevel = 66,
 
-        //lighting settings from 20 to 39
+        //lighting settings from 31 to 39
         [FrameSettingsField(1, autoName: ShadowMaps, customOrderInGroup: 1, tooltip: "When enabled, Cameras using these Frame Settings render shadows.")]
-        ShadowMaps = 20,
+        ShadowMaps = 31,
         [FrameSettingsField(1, autoName: ContactShadows, tooltip: "When enabled, Cameras using these Frame Settings render Contact Shadows.")]
         ContactShadows = 21,
         [FrameSettingsField(1, autoName: ScreenSpaceShadows, customOrderInGroup: 23, tooltip: "When enabled, Cameras using these Frame Settings render Screen Space Shadows.")]
@@ -262,12 +266,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
                 (uint)FrameSettingsField.TransparentPrepass,
                 (uint)FrameSettingsField.TransparentPostpass,
+                (uint)FrameSettingsField.CustomPass,
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
                 (uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 (uint)FrameSettingsField.Distortion,
                 (uint)FrameSettingsField.Postprocess,
+                (uint)FrameSettingsField.CustomPostProcess,
                 (uint)FrameSettingsField.StopNaN,
                 (uint)FrameSettingsField.DepthOfField,
                 (uint)FrameSettingsField.MotionBlur,
@@ -327,12 +333,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
                 (uint)FrameSettingsField.TransparentPrepass,
                 (uint)FrameSettingsField.TransparentPostpass,
+                (uint)FrameSettingsField.CustomPass,
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
                 //(uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 //(uint)FrameSettingsField.Distortion,
                 //(uint)FrameSettingsField.Postprocess,
+                //(uint)FrameSettingsField.CustomPostProcess,
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
@@ -376,12 +384,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.LitShaderMode, //deffered ; enum with only two value saved as a bool
                 (uint)FrameSettingsField.TransparentPrepass,
                 (uint)FrameSettingsField.TransparentPostpass,
+                (uint)FrameSettingsField.CustomPass,
                 //(uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 //(uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
                 (uint)FrameSettingsField.RoughRefraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 (uint)FrameSettingsField.Distortion,
                 //(uint)FrameSettingsField.Postprocess,
+                //(uint)FrameSettingsField.CustomPostProcess,
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
@@ -586,6 +596,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= async;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadowsAsync] &= async;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync] &= async;
+
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
 
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
