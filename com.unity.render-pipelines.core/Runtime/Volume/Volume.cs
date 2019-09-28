@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering
     //Volumes are documented in HDRP for now
     [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Volumes" + Documentation.endURL)]
     [ExecuteAlways]
+    [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour
     {
         [Tooltip("A global volume is applied to the whole scene.")]

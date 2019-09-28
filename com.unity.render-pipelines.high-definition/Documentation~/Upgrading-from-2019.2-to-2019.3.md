@@ -30,3 +30,13 @@ Before Unity 2019.3, HDRP synchronized the width and height of an area [Light](L
 When you upgrade your **High Definition RP** package, Unity now upgrades each of your Materials. This means adds a version number the first time it happens so, if a HDRP Shader change occurs, Unity is able to fix your Material so that it still works correctly with the new changes.
 
 To do this, Unity opens a prompt when you begin the upgrade, asking if you want to save your Project. It keeps attempting to upgrade old files until you agree to save your Project.
+
+## Max Smoothness, Emission Radius, Bake Shadows Radius and Bake Shadows Angle 
+
+Max Smoothness, Emission Radius, Bake Shadows Radius was separate control for Point and Spot Light. The UI have been updated to only display a single parameter: "Radius" that drive all the mentionned parameters.
+Max Smoothness, Angular Diameter, Bake Shadows Angle was separate control for Directional Light. The UI have been updated to only display a single parameter: "Angular Diameter" that drive all the mentionned parameters.
+
+When upgrading, it mean slight shift of highlight shape or shadow penumbra size can happens if the drived parameters was different from what our automatic conversion from "Radius" or "Angular Diameter" is doing.
+
+
+
