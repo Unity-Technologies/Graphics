@@ -4,19 +4,23 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// The different ray count values that can be asked for.
+    /// </summary>
+    [GenerateHLSL]
+    public enum RayCountValues
+    {
+        Visibility = 0,
+        Indirect = 1,
+        Forward = 2,
+        GBuffer = 3,
+        Count = 4,
+        Total = 5
+    }
+
     class RayCountManager
     {
-        // Indices of the values that we can query
-        [GenerateHLSL]
-        public enum RayCountValues
-        {
-            Visibility = 0,
-            Indirect = 1,
-            Forward = 2,
-            GBuffer = 3,
-            Count = 4,
-            Total = 5
-        }
+        
 #if ENABLE_RAYTRACING
         // Texture that holds the ray count per pixel
         RTHandle m_RayCountTexture = null;
@@ -38,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Given that the requests are guaranteed to be executed in order we use a queue to store it
         Queue<AsyncGPUReadbackRequest> rayCountReadbacks = new Queue<AsyncGPUReadbackRequest>();
 
-        public void Init(HDRenderPipelineRayTracingResources rayTracingResources, DebugDisplaySettings currentDebugDisplaySettings)
+        public void Init(HDRenderPipelineRayTracingResources rayTracingResources)
         {
             // Keep track of the compute shader we are going to use
             rayCountCS = rayTracingResources.countTracedRays;
@@ -191,11 +195,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public float GetRaysPerFrame(RayCountValues rayCountValue)
+        public uint GetRaysPerFrame(RayCountValues rayCountValue)
         {
             if (!m_IsActive)
             {
-                return 0.0f;
+                return 0;
             }
             else
             {

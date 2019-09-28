@@ -2,6 +2,7 @@
 #pragma kernel RaytracingAreaShadowNewSample
 #pragma kernel RaytracingDirectionalShadowSample
 #pragma kernel RaytracingPointShadowSample
+#pragma kernel RaytracingSpotShadowSample
 #pragma kernel ClearShadowTexture
 #pragma kernel OutputShadowTexture
 
@@ -32,6 +33,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalSphere.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalCone.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingMIS.hlsl"
 
 #pragma only_renderers d3d11
@@ -374,9 +376,6 @@ void ClearShadowTexture(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 }
 
-// Angle of the directional light
-float _DirectionalLightAngle;
-
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
 void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -414,7 +413,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     // Create the local ortho basis
     float3x3 localToWorld = GetLocalFrame(-lightData.forward);
 
-    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(_DirectionalLightAngle * 3.14 / 180.0));
+    float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter));
 
     float3 wsDir = mul(localDir, localToWorld); 
 
@@ -422,6 +421,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, 1.0f);
 }
 
+// Radius of the sphere used to case a soft shadow
 float _RaytracingLightRadius;
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -447,6 +447,16 @@ void RaytracingPointShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 g
 
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
+
+    // If the point is inside the sphere, it will be visible
+    float3 dir = (lightpositionWS - positionWS);
+    float dist2 = dot(dir, dir);
+    if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
+    {
+        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
+        return;
+    }
 
     // Compute the current sample index
     int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
@@ -460,7 +470,82 @@ void RaytracingPointShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 g
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
-        SampleSphericalSphere(GetAbsolutePositionWS(lightData.positionRWS), _RaytracingLightRadius, noiseValue.x, noiseValue.y,
+        SampleSphericalSphere(lightpositionWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y,
+        positionWS, normalData.normalWS, lightPosition, samplePDF);
+    }
+    else
+    {
+        lightPosition = lightpositionWS;
+    }
+
+    // Compute the ray length and ray direction
+    float3 rayDirection = lightPosition - positionWS;
+    float rayLength = length(rayDirection);
+    rayDirection = rayDirection / rayLength;
+
+    // If this ray is under the surface, no need to shoot it
+    if (dot(normalData.normalWS, rayDirection) < 0.0)
+    {
+       samplePDF = 1.0; 
+    }
+    
+    // Output the direction to the target uav
+    _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
+}
+
+float _RaytracingSpotAngle;
+
+[numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
+void RaytracingSpotShadowSample(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    // Compute the pixel position to process
+    uint2 currentCoord = groupId * RAYTRACING_SHADOW_TILE_SIZE + groupThreadId;
+
+    // Read the depth value
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    // Compute the position input structure
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord, normalData);
+
+    // Convert this to a world space position
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Fetch the data of the area light
+    LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
+    float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
+
+    // If the point is inside the sphere, it will be visible
+    float3 dir = (lightpositionWS - positionWS);
+    float dist2 = dot(dir, dir);
+    if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
+    {
+        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
+        return;
+    }
+
+    // Compute the current sample index
+    int globalSampleIndex = _RaytracingFrameIndex * _RaytracingNumSamples + _RaytracingSampleIndex;
+
+    // Generate the new sample (follwing values of the sequence)
+    float2 noiseValue;
+    noiseValue.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+    noiseValue.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+
+    // If the radius is big enough, generate a new sample
+    float3 lightPosition = float3(0.0, 0.0, 0.0);
+    float samplePDF = 1.0;
+    if (_RaytracingLightRadius > 0.001)
+    {
+        SampleSphericalCone(lightpositionWS, _RaytracingLightRadius, lightData.forward, 
+            _RaytracingSpotAngle,
+            noiseValue.x, noiseValue.y,
         positionWS, normalData.normalWS, lightPosition, samplePDF);
     }
     else

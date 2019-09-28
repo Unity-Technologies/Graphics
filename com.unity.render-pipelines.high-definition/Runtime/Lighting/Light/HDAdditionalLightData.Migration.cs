@@ -113,6 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
                 m_ShadowMapRenderedSinceLastRequest = false;
+            SetEmissiveMeshRendererEnabled(true);
         }
 
         void Awake()
