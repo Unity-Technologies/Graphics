@@ -201,16 +201,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorUtility.ClearProgressBar();
         }
 
-#if ENABLE_RAYTRACING
-        [MenuItem("GameObject/Rendering/Ray Tracing Environment", priority = CoreUtils.gameObjectMenuPriority)]
-        static void CreateRaytracingEnvironmentGameObject(MenuCommand menuCommand)
-        {
-            var parent = menuCommand.context as GameObject;
-            var raytracingEnvGameObject = CoreEditorUtils.CreateGameObject(parent, "Ray Tracing Environment");
-            raytracingEnvGameObject.AddComponent<HDRaytracingEnvironment>();
-        }
-#endif
-
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
         {
             public override void Action(int instanceId, string pathName, string resourceFile)

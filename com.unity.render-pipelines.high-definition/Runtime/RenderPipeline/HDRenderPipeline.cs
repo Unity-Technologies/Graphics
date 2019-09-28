@@ -75,35 +75,20 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly GBufferManager m_GbufferManager;
         readonly DBufferManager m_DbufferManager;
         readonly SharedRTManager m_SharedRTManager = new SharedRTManager();
+        internal SharedRTManager sharedRTManager { get { return m_SharedRTManager; } }
+
         readonly PostProcessSystem m_PostProcessSystem;
         readonly XRSystem m_XRSystem;
 
         bool m_FrameSettingsHistoryEnabled = false;
 
 #if ENABLE_RAYTRACING
-        HDRaytracingManager m_RayTracingManager = new HDRaytracingManager();
-
-        public void RegisterEnvironment(HDRaytracingEnvironment targetEnvironment)
-        {
-            m_RayTracingManager.RegisterEnvironment(targetEnvironment);
-        }
-
-        public void UnregisterEnvironment(HDRaytracingEnvironment targetEnvironment)
-        {
-            m_RayTracingManager.UnregisterEnvironment(targetEnvironment);
-        }
-
-        public void SetRayTracingSceneDirty()
-        {
-            m_RayTracingManager.SetDirty();
-        }
-
-        public void UpdateRayTracingSubScenes()
-        {
-            m_RayTracingManager.UpdateEnvironmentSubScenes();
-        }
-
-        internal float GetRaysPerFrame(RayCountManager.RayCountValues rayValues) { return m_RayTracingManager.rayCountManager.GetRaysPerFrame(rayValues); }
+        /// <summary>
+        /// This functions allows the user to have an approximation of the number of rays that were traced for a given frame.
+        /// </summary>
+        /// <param name="rayValues">Specifes which ray count value should be returned.</param>
+        /// <returns>The approximated ray count for a frame</returns>
+        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager.GetRaysPerFrame(rayValues); }
 #endif
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
@@ -444,14 +429,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 #if ENABLE_RAYTRACING
-            m_RayTracingManager.Init(m_Asset.currentPlatformRenderPipelineSettings, m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_BlueNoise, this, m_SharedRTManager, m_DebugDisplaySettings);
+            InitRayTracingManager();
             InitRayTracedReflections();
             InitRayTracedIndirectDiffuse();
             InitRaytracingDeferred();
             InitRecursiveRenderer();
             InitPathTracing();
 
-            m_AmbientOcclusionSystem.InitRaytracing(m_RayTracingManager, m_SharedRTManager);
+            m_AmbientOcclusionSystem.InitRaytracing(this);
 #endif
 
             // Initialize screen space shadows
@@ -484,6 +469,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+#else
+            // If ray tracing is not enabled we do not want to have ray tracing resources referenced
+            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources = null;
 #endif
 
             if (HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null)
@@ -789,7 +777,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRayTracedIndirectDiffuse();
             ReleaseRayTracedReflections();
             ReleasePathTracing();
-            m_RayTracingManager.Release();
+            ReleaseRayTracingManager();
 #endif
             m_DebugDisplaySettings.UnregisterDebug();
 
@@ -1131,13 +1119,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-			// TODO: Check with Fred if it make sense to put that here now that we have refactor the loop
+            // TODO: Check with Fred if it make sense to put that here now that we have refactor the loop
 #if ENABLE_RAYTRACING
-            // This call need to happen once per frame, it evaluates if we need to fetch the geometry/lights for some subscenes
-            m_RayTracingManager.CheckSubScenes();
-
-            // Before rendering any camera, we call this function to flag everything as not updated
-            m_RayTracingManager.UpdateFrameData();
+            // This call need to happen once per frame
+            BuildRayTracingAccelerationStructure();
 #endif
 
             var dynResHandler = DynamicResolutionHandler.instance;
@@ -1761,7 +1746,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             // Must update after getting DebugDisplaySettings
-            m_RayTracingManager.rayCountManager.ClearRayCount(cmd, hdCamera, m_CurrentDebugDisplaySettings.data.countRays);
+            m_RayCountManager.ClearRayCount(cmd, hdCamera, m_CurrentDebugDisplaySettings.data.countRays);
 #endif
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
@@ -1896,25 +1881,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             // Update the light clusters that we need to update
-            m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
-
-            HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
+            BuildRayTracingLightCluster(cmd, hdCamera);
 
             // We only request the light cluster if we are gonna use it for debug mode
-            if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
             {
-                var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-                var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-                if (rSettings.rayTracing.value && rtEnv != null)
-                {
-                    HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
-                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
-                }
-                else if (rrSettings.enable.value && rtEnv != null)
-                {
-                    HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
-                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
-                }
+                HDRaytracingLightCluster lightCluster = RequestLightCluster();
+                lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
             }
 
             bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
@@ -1925,8 +1898,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
-            var showGizmos = camera.cameraType == CameraType.Game
-                || camera.cameraType == CameraType.SceneView;
+            var showGizmos = camera.cameraType == CameraType.SceneView ||
+                            (camera.targetTexture == null && camera.cameraType == CameraType.Game);
 #endif
 
             RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
@@ -1937,7 +1910,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #if ENABLE_RAYTRACING
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                     rtEnv != null &&
                      VolumeManager.instance.stack.GetComponent<PathTracing>().enable.value)
             {
                 PathTracingRender(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
@@ -2774,10 +2746,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_RAYTRACING
-            HDRaytracingEnvironment currentEnv = m_RayTracingManager.CurrentEnvironment();
             RecursiveRendering recursiveRendering = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-
-            if (currentEnv != null && recursiveRendering.enable.value)
+            if (recursiveRendering.enable.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 result.rayTracingOpaqueRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaqueRaytracing);
                 result.rayTracingTransparentRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing);
@@ -2796,8 +2766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         in RendererList mrtRendererList,
                                         bool hasDepthOnlyPass
 #if ENABLE_RAYTRACING
-                                        , HDRaytracingManager       rayTracingManager,
-                                        in RendererList             rayTracingOpaqueRL,
+                                        , in RendererList             rayTracingOpaqueRL,
                                         in RendererList             rayTracingTransparentRL
 #endif
                                         )
@@ -2813,11 +2782,8 @@ namespace UnityEngine.Rendering.HighDefinition
             DrawOpaqueRendererList(renderContext, cmd, frameSettings, mrtRendererList);
 
 #if ENABLE_RAYTRACING
-            // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the prepass
-            HDRaytracingEnvironment currentEnv = rayTracingManager.CurrentEnvironment();
-            var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-            // We want the opaque objects to be in the prepass so that we avoid rendering uselessly the pixels before raytracing them
-            if (currentEnv != null && rrSettings.enable.value)
+            // We want the opaque objects to be in the prepass so that we avoid rendering uselessly the pixels before ray tracing them
+            if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && VolumeManager.instance.stack.GetComponent<RecursiveRendering>().enable.value)
             {
                 HDUtils.DrawRendererList(renderContext, cmd, rayTracingOpaqueRL);
                 HDUtils.DrawRendererList(renderContext, cmd, rayTracingTransparentRL);
@@ -2850,8 +2816,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     mrtDepthRendererList,
                                     depthPrepassParameters.hasDepthOnlyPass
 #if ENABLE_RAYTRACING
-                                    , m_RayTracingManager,
-                                    rayTracingOpaqueRendererList,
+                                    , rayTracingOpaqueRendererList,
                                     rayTracingTransparentRendererList
 #endif
                                     );
@@ -3394,9 +3359,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
                 // If there is a ray-tracing environment and the feature is enabled we want to push these objects to the transparent postpass (they are not rendered in the first call because they are not in the generic transparent render queue)
-                HDRaytracingEnvironment currentEnv = m_RayTracingManager.CurrentEnvironment();
                 var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-                if (currentEnv != null && rrSettings.enable.value)
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rrSettings.enable.value)
                 {
                     var rendererListRT = RendererList.Create(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_TransparentDepthPostpassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing));
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListRT);
@@ -3586,8 +3550,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_RAYTRACING
             var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.rayTracing.value)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
             {
                 hdCamera.xr.StartSinglePass(cmd, hdCamera.camera, renderContext);
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
@@ -3851,7 +3814,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material debugLatlongMaterial;
 
 #if ENABLE_RAYTRACING
-            public HDRaytracingManager rayTracingManager;
+            public RayCountManager rayCountManager;
 #endif
 
             // Lighting
@@ -3879,7 +3842,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.lightingOverlayParameters = PrepareLightLoopDebugOverlayParameters();
 
 #if ENABLE_RAYTRACING
-            parameters.rayTracingManager = m_RayTracingManager;
+            parameters.rayCountManager = m_RayCountManager;
 #endif
 
             parameters.colorPickerEnabled = NeedColorPickerDebug(parameters.debugDisplaySettings);
@@ -3946,7 +3909,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void RenderRayCountOverlay(in DebugParameters debugParameters, CommandBuffer cmd, ref float x, ref float y, float overlaySize)
         {
 #if ENABLE_RAYTRACING
-            debugParameters.rayTracingManager.rayCountManager.EvaluateRayCount(cmd, debugParameters.hdCamera);
+            debugParameters.rayCountManager.EvaluateRayCount(cmd, debugParameters.hdCamera);
 #endif
         }
 
@@ -4076,7 +4039,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // clear coat selection
                         if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR))
                         {
-                            CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffer(2), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.black);
+                            CoreUtils.SetRenderTarget(cmd, m_GbufferManager.GetBuffer(2), m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.Color, Color.clear);
                         }
                     }
                 }
@@ -4167,8 +4130,7 @@ namespace UnityEngine.Rendering.HighDefinition
             needNormalBuffer |= (neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0;
             needDepthBuffer |= (neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0;
             #if ENABLE_RAYTRACING
-            HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
-            if (rtEnv != null)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
             {
                 needNormalBuffer = true;
                 needDepthBuffer = true;

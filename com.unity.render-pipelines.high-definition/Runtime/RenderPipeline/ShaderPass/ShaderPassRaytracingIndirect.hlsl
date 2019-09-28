@@ -81,7 +81,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, reflectedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, rayDescriptor, reflectedIntersection);
 
         // Contribute to the pixel
         builtinData.bakeDiffuseLighting = reflectedIntersection.color;
@@ -117,7 +117,7 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
             reflectedIntersection.cone.width = rayIntersection.cone.width;
 
             // Evaluate the ray intersection
-            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, reflectedRay, reflectedIntersection);
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_OPAQUE, 0, 1, 0, reflectedRay, reflectedIntersection);
 
             // Override the transmitted color
             reflected = reflectedIntersection.color;

@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void NewFrame()
             {
+                areaLightCookieManager.NewFrame();
                 cookieTexArray.NewFrame();
                 cubeCookieTexArray.NewFrame();
                 reflectionProbeCache.NewFrame();
@@ -1149,9 +1150,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
 
             }
-
+            //Value of max smoothness is derived from AngularDiameter. Formula results from eyeballing. Angular diameter of 0 results in 1 and angular diameter of 80 results in 0.
+            float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f),2f)) - 0.11f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-            lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
+            lightData.minRoughness = (1.0f - maxSmoothness) * (1.0f - maxSmoothness);
 
             lightData.shadowMaskSelector = Vector4.zero;
 
@@ -1412,8 +1414,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
 #endif
+            //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
+            float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-            lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
+            lightData.minRoughness = (1.0f - maxSmoothness) * (1.0f - maxSmoothness);
 
             lightData.shadowMaskSelector = Vector4.zero;
 
@@ -1948,10 +1952,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
-#if ENABLE_RAYTRACING
-            HDRaytracingEnvironment raytracingEnv = m_RayTracingManager.CurrentEnvironment();
-#endif
-
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
@@ -1966,6 +1966,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
+                m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;
                 m_DebugSelectedLightShadowCount = 0;

@@ -85,7 +85,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         transmittedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, transmittedRay, transmittedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, transmittedRay, transmittedIntersection);
 
         // Override the transmitted color
         transmitted = transmittedIntersection.color;
@@ -125,7 +125,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         reflectedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, reflectedRay, reflectedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, reflectedRay, reflectedIntersection);
 
         // Override the transmitted color
         reflected = reflectedIntersection.color;
