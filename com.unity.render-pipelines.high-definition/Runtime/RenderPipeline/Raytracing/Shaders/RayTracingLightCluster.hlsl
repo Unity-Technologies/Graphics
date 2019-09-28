@@ -42,21 +42,20 @@ uint GetClusterCellIndex(float3 positionWS)
 
 void GetLightCountAndStartCluster(float3 positionWS, uint lightCategory, out uint lightStart, out uint lightEnd, out uint cellIndex)
 {
-    // If this point is outside the cluster, no lights
-    if(!PointInsideCluster(positionWS))
+    lightStart = 0;
+    lightEnd = 0;
+    cellIndex = 0;
+
+    // If this point is inside the cluster, get lights
+    if(PointInsideCluster(positionWS))
     {
-        lightStart = 0;
-        lightEnd = 0;
-        cellIndex = 0;
-        return;
+        // Deduce the cell index
+        cellIndex = GetClusterCellIndex(positionWS);
+
+        // Grab the light count
+        lightStart = lightCategory == 0 ? 0 : (lightCategory == 1 ? GetPunctualLightClusterCellCount(cellIndex) : GetAreaLightClusterCellCount(cellIndex));
+        lightEnd = lightCategory == 0 ? GetPunctualLightClusterCellCount(cellIndex) : (lightCategory == 1 ? GetAreaLightClusterCellCount(cellIndex) : GetEnvLightClusterCellCount(cellIndex));
     }
-
-    // Deduce the cell index
-    cellIndex = GetClusterCellIndex(positionWS);
-
-    // Grab the light count
-    lightStart = lightCategory == 0 ? 0 : (lightCategory == 1 ? GetPunctualLightClusterCellCount(cellIndex) : GetAreaLightClusterCellCount(cellIndex));
-    lightEnd = lightCategory == 0 ? GetPunctualLightClusterCellCount(cellIndex) : (lightCategory == 1 ? GetAreaLightClusterCellCount(cellIndex) : GetEnvLightClusterCellCount(cellIndex));
 }
 
 LightData FetchClusterLightIndex(int cellIndex, uint lightIndex)
