@@ -41,14 +41,14 @@ namespace UnityEditor.ShaderGraph.Internal
             this.index = index;
         }
 
-        public ConditionalDefine(KeywordDescriptor keyword, FieldCondition fieldCondition, int index)
+        public ConditionalDefine(KeywordDescriptor keyword, int index, FieldCondition fieldCondition)
         {
             this.keyword = keyword;
             this.fieldConditions = new FieldCondition[] { fieldCondition };
             this.index = index;
         }
 
-        public ConditionalDefine(KeywordDescriptor keyword, FieldCondition[] fieldConditions, int index)
+        public ConditionalDefine(KeywordDescriptor keyword, int index, FieldCondition[] fieldConditions)
         {
             this.keyword = keyword;
             this.fieldConditions = fieldConditions;

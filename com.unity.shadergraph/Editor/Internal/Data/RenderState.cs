@@ -78,6 +78,11 @@
             return new RenderState(Type.Blend, $"Blend {src} {dst}, {alphaSrc} {alphaDst}");
         }
 
+        public static RenderState Blend(string value)
+        {
+            return new RenderState(Type.Blend, value);
+        }
+
         public static RenderState BlendOp(BlendOp op)
         {
             return new RenderState(Type.BlendOp, $"BlendOp {op}");
