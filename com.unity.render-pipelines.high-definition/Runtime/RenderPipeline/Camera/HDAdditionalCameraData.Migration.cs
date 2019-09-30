@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UpgradingFrameSettingsToStruct,
             AddAfterPostProcessFrameSetting,
             AddFrameSettingSpecularLighting, // Not used anymore
-            AddReflectionSettings
+            AddReflectionSettings,
+            AddCustomPostprocessAndCustomPass,
         }
 
         [SerializeField, FormerlySerializedAs("version")]
@@ -53,7 +54,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.AddReflectionSettings, (HDAdditionalCameraData data) =>
                 FrameSettings.MigrateToDefaultReflectionSettings(ref data.renderingPathCustomFrameSettings)
-            )
+            ),
+            MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDAdditionalCameraData data) =>
+            {
+                FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.renderingPathCustomFrameSettings);
+            })
         );
 
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }

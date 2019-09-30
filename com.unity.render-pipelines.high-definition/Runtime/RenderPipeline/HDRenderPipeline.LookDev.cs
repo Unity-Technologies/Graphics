@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor.Rendering.HighDefinition;
-#endif
 using UnityEngine.Rendering.LookDev;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -28,6 +25,12 @@ namespace UnityEngine.Rendering.HighDefinition
             additionalCameraData.backgroundColorHDR = camera.backgroundColor;
             additionalCameraData.volumeAnchorOverride = camera.transform;
             additionalCameraData.volumeLayerMask = 1 << 31; //31 is the culling layer used in LookDev
+
+            additionalCameraData.customRenderingSettings = true;
+            additionalCameraData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.SSR, false);
+            // LookDev cameras are enabled/disabled all the time so history is destroyed each frame.
+            // In this case we know we want to keep history alive as long as the camera is.
+            additionalCameraData.hasPersistentHistory = true;
 
             Light light = SRI.sunLight;
             HDAdditionalLightData additionalLightData = light.gameObject.AddComponent<HDAdditionalLightData>();
@@ -62,15 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 sky = sky,
                 volume = volume
             };
-
-            //[TODO: remove]
-            //temp for debug: show component in scene hierarchy
-            //UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(camera.gameObject, GameObject.Find("Main Camera").scene);
-            //camera.gameObject.hideFlags = HideFlags.None;
-            //UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(volumeGO, GameObject.Find("Main Camera").scene);
-            //volumeGO.hideFlags = HideFlags.None;
-            //UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(light.gameObject, GameObject.Find("Main Camera").scene);
-            //light.gameObject.hideFlags = HideFlags.None;
         }
 
         void IDataProvider.UpdateSky(Camera camera, Sky sky, StageRuntimeInterface SRI)
