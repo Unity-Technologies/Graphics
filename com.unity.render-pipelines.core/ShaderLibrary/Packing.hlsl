@@ -537,4 +537,27 @@ float2 Unpack888ToFloat2(float3 x)
 }
 #endif // SHADER_API_GLES
 
+// Pack 2 float values from the [0, 1] range, to an 8 bits float from the [0, 1] range
+float PackFloat2To8(float2 f)
+{
+    float x_expanded = f.x * 15.0;                        // f.x encoded over 4 bits, can have 2^4 = 16 distinct values mapped to [0, 1, ..., 15]
+    float y_expanded = f.y * 15.0;                        // f.y encoded over 4 bits, can have 2^4 = 16 distinct values mapped to [0, 1, ..., 15]
+    float x_y_expanded = x_expanded * 16.0 + y_expanded;  // f.x encoded over higher bits, f.y encoded over the lower bits - x_y values in range [0, 1, ..., 255]
+    return x_y_expanded / 255.0;
+
+    // above 4 lines equivalent to:
+    //return (16.0 * f.x + f.y) / 17.0; 
+}
+
+// Unpack 2 float values from the [0, 1] range, packed in an 8 bits float from the [0, 1] range
+float2 Unpack8ToFloat2(float f)
+{
+    float x_y_expanded = 255.0 * f;
+    float x_expanded = floor(x_y_expanded / 16.0);
+    float y_expanded = x_y_expanded - 16.0 * x_expanded;
+    float x = x_expanded / 15.0;
+    float y = y_expanded / 15.0;
+    return float2(x, y);
+}
+
 #endif // UNITY_PACKING_INCLUDED

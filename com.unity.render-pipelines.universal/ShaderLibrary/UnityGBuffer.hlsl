@@ -16,12 +16,16 @@ FragmentOutput SurfaceDataAndGlobalIlluminationToGbuffer(SurfaceData surfaceData
 {
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
     half2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
+
+    half2 metallicAlpha = half2(surfaceData.metallic, surfaceData.alpha);
+    half packedMetallicAlpha = PackFloat2To8(metallicAlpha);
 
     FragmentOutput output;
-    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);                 // albedo          albedo          albedo       occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.smoothness);              // specular        specular        specular     smoothness   (sRGB rendertarget)
-    output.GBuffer2 = half4(remappedOctNormalWS, surfaceData.metallic, surfaceData.alpha);  // encoded-normal  encoded-normal  metallic     alpha
-    output.GBuffer3 = half4(surfaceData.emission.rgb + globalIllumination, 0);              // emission+GI     emission+GI     emission+GI  [unused]     (lighting buffer)
+    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo          albedo          albedo          occlusion    (sRGB rendertarget)
+    output.GBuffer1 = half4(surfaceData.specular.rgb, surfaceData.smoothness);  // specular        specular        specular        smoothness   (sRGB rendertarget)
+    output.GBuffer2 = half4(packedNormalWS, packedMetallicAlpha);               // encoded-normal  encoded-normal  encoded-normal  encoded-metallic+alpha
+    output.GBuffer3 = half4(surfaceData.emission.rgb + globalIllumination, 0);  // emission+GI     emission+GI     emission+GI     [unused]     (lighting buffer)
 
     return output;
 }
@@ -39,8 +43,9 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 
     surfaceData.normalTS = (half3)0; // Note: does this normalTS member need to be in SurfaceData? It looks like an intermediate value
 
-    surfaceData.metallic = gbuffer2.b;
-    surfaceData.alpha = gbuffer2.a;
+    half2 metallicAlpha = Unpack8ToFloat2(gbuffer2.z);
+    surfaceData.metallic = metallicAlpha.x;
+    surfaceData.alpha = metallicAlpha.y;
 
     surfaceData.emission = (half3)0; // Note: this is not made available at lighting pass in this renderer - emission contribution is included (with GI) in the value GBuffer3.rgb, that is used as a renderTarget during lighting
 
@@ -53,7 +58,8 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
 
     inputData.positionWS = wsPos;
 
-    half2 remappedOctNormalWS = gbuffer2.xy;                        // values between [ 0,  1]
+    half3 packedNormalWS = gbuffer2.xyz;
+    half2 remappedOctNormalWS = Unpack888ToFloat2(packedNormalWS);  // values between [ 0,  1]
     half2 octNormalWS = normalize(remappedOctNormalWS.xy * 2 - 1);  // values between [-1, +1]
     inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
 
