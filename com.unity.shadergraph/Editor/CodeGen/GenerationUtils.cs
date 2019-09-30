@@ -238,9 +238,40 @@ namespace UnityEditor.ShaderGraph
                     var packStruct = new StructDescriptor();
 
                     //generate packed functions 
-                    
-                        GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
+                    if (activeFields.permutationCount > 0)
+                    {
+                        var generatedPackedTypes = new Dictionary<string, (ShaderStringBuilder, List<int>)>();
+                        foreach (var instance in activeFields.allPermutations.instances)
+                        {
+                            var instanceGenerator = new ShaderStringBuilder();
+                            GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out instanceGenerator);
+                            var key = instanceGenerator.ToCodeBlack();
+                            if (generatedPackedTypes.TryGetValue(key, out var value))
+                                value.Item2.Add(instance.permutationIndex);
+                            else
+                                generatedPackedTypes.Add(key, (instanceGenerator, new List<int> { instance.permutationIndex }));
+                        }
 
+                        var isFirst = true;
+                        foreach (var generated in generatedPackedTypes)
+                        {
+                            if (isFirst)
+                            {
+                                isFirst = false;
+                                interpolatorBuilder.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2));
+                            }
+                            else
+                                interpolatorBuilder.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2).Replace("#if", "#elif"));
+
+                            interpolatorBuilder.Concat(generated.Value.Item1);
+                        }
+                        if (generatedPackedTypes.Count > 0)
+                            interpolatorBuilder.AppendLine("#endif");
+                    }
+                    else
+                    {
+                        GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
+                    }
                     //using interp index from functions, generate packed struct descriptor 
                     GeneratePackedStruct(shaderStruct, activeFields, out packStruct);
                     passStructs.Add(packStruct);
