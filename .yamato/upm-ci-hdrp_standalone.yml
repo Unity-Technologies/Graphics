@@ -30,7 +30,7 @@ projects:
     {% else %}
     type: Unity::VM::GPU
     {% endif %} 
-    image: sdet/gamecode_win10:stable      
+    image: sdet/gamecode_win10:stable
     flavor: b1.large
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
@@ -39,7 +39,8 @@ projects:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published    
 
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200"
+    # - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200"
+    - cd TestProjects/{{ project.folder }} && RunStandalone.bat {{ testplatform.args }}
     {% else %}
     - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
     {% endif %}

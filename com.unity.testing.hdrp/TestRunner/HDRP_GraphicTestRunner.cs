@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -11,6 +11,7 @@ using System.IO;
 public class HDRP_GraphicTestRunner
 {
     [PrebuildSetup("SetupGraphicsTestCases")]
+    [PostBuildCleanup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
     public IEnumerator Run(GraphicsTestCase testCase)
     {

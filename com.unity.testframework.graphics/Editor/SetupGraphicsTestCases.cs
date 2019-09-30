@@ -10,6 +10,7 @@ using System.Reflection;
 
 using UnityEditor;
 using EditorSceneManagement = UnityEditor.SceneManagement;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace UnityEditor.TestTools.Graphics
 {
@@ -34,10 +35,69 @@ namespace UnityEditor.TestTools.Graphics
                 return (bool)isRunningField.GetValue(null);
             }
         }
+        public const int DEFAULT_SCENES_PER_BUILD = 10;
+        public const string ITER_ENV_VAR_NAME = "GRAPHICS_TEST_ITERATOR";
+        public const string SCENES_PER_BUILD_ENV_VAR_NAME = "SCENES_PER_BUILD";
+        public const string TEMP_SCENE_LOCATION = "tempSceneStorage";
 
         public void Setup()
         {
             Setup(EditorGraphicsTestCaseProvider.ReferenceImagesRoot);
+        }
+
+        private void SelectIterativeScenesToBuild() {
+            int curIter = GetCurrentIteration();
+            string scenesPerBuildEnvVal = Environment.GetEnvironmentVariable(SCENES_PER_BUILD_ENV_VAR_NAME);
+            int scenesPerBuild = scenesPerBuildEnvVal != null ? int.Parse(scenesPerBuildEnvVal) : DEFAULT_SCENES_PER_BUILD;
+
+            string dataPath = Application.persistentDataPath;
+
+            List<EditorBuildSettingsScene> scenesToRun = (from scene in EditorBuildSettings.scenes where scene.enabled select scene).ToList();
+            // Write scene list to temp save location, so it can be restored at Cleanup()
+            System.IO.File.WriteAllLines(dataPath + "/" + TEMP_SCENE_LOCATION, from scene in scenesToRun select scene.guid.ToString());
+
+            // Handles the case of hitting the end of the scene list, and not having enough scenes do run the whole SCENES_PER_BUILD quantity
+            int scenesInBuild = scenesPerBuild;
+            if ((curIter + 1) * scenesPerBuild >= scenesToRun.Count) {
+                Environment.SetEnvironmentVariable("GRAPHICS_TESTS_DONE", "True");
+                scenesInBuild = scenesToRun.Count - (curIter + 1) * scenesPerBuild;
+            }
+            List<GUID> runSceneGuids = (from scene in scenesToRun.GetRange(curIter * scenesPerBuild, scenesInBuild) select scene.guid).ToList();
+            // Split the scene list
+            foreach (var scene in EditorBuildSettings.scenes) {
+                if (runSceneGuids.IndexOf(scene.guid) != -1 ) {
+                    scene.enabled = true;
+                    Debug.Log(scene.path);
+                } else {
+                    scene.enabled = false;
+                }
+            }
+        }
+
+        private int GetCurrentIteration() {
+            string curIterStr = Environment.GetEnvironmentVariable(ITER_ENV_VAR_NAME);
+            return curIterStr != null ? int.Parse(curIterStr) : 0;
+        }
+
+        public void Cleanup() {
+
+            string desktopPath = "C:/Users/jessica.thomson/Desktop/Cleanup.txt";
+            StreamWriter writer = new StreamWriter(desktopPath, true);
+            writer.WriteLine("Cleanup was called");
+            writer.Close();
+
+            List<string> oldActiveScenes = File.ReadAllLines(Application.persistentDataPath + "/" + TEMP_SCENE_LOCATION).ToList();
+
+            // Enable all scenes which were disabled for the build
+            Dictionary<string, EditorBuildSettingsScene> editorBuildScenes = new Dictionary<string, EditorBuildSettingsScene>();
+            foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes) {
+                if (oldActiveScenes.IndexOf( scene.guid.ToString() ) != -1) {
+                    scene.enabled = true;
+                }
+            }
+
+            int newIterationVal = GetCurrentIteration() + 1;
+            Environment.SetEnvironmentVariable(ITER_ENV_VAR_NAME, newIterationVal.ToString());
         }
 
         public void Setup(string rootImageTemplatePath)
@@ -47,11 +107,17 @@ namespace UnityEditor.TestTools.Graphics
             RuntimePlatform runtimePlatform;
             GraphicsDeviceType[] graphicsDevices;
 
+            string desktopPath = "C:/Users/jessica.thomson/Desktop/Setup.txt";
+            StreamWriter writer = new StreamWriter(desktopPath, true);
+            writer.WriteLine("Setup was called");
+            writer.Close();
+
             UnityEditor.EditorPrefs.SetBool("AsynchronousShaderCompilation", false);
 
             // Figure out if we're preparing to run in Editor playmode, or if we're building to run outside the Editor
             if (IsBuildingForEditorPlaymode)
             {
+                SelectIterativeScenesToBuild();
                 colorSpace = QualitySettings.activeColorSpace;
                 buildPlatform = BuildTarget.NoTarget;
                 runtimePlatform = Application.platform;
@@ -74,6 +140,7 @@ namespace UnityEditor.TestTools.Graphics
                 Utils.SetupReferenceImageImportSettings(images.Values);
 
                 if (buildPlatform == BuildTarget.NoTarget)
+
                     continue;
 
                 bundleBuilds.Add(new AssetBundleBuild
