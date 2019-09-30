@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ray tracing support for VR single-pass
 - Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
 - Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
+- Add check in wizard on SRP Batcher enabled.
 
 ### Fixed
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
