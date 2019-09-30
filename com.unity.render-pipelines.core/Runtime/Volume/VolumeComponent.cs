@@ -6,32 +6,69 @@ using System.Linq;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// This attribute allows you to add commands to the <strong>Add Override</strong> popup menu
+    /// on Volumes.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeComponentMenu : Attribute
     {
+        /// <summary>
+        /// The name of the entry in the override list. You can use slashes to create sub-menus.
+        /// </summary>
         public readonly string menu;
         // TODO: Add support for component icons
 
+        /// <summary>
+        /// Creates a new <seealso cref="VolumeComponentMenu"/> instance.
+        /// </summary>
+        /// <param name="menu">The name of the entry in the override list. You can use slashes to
+        /// create sub-menus.</param>
         public VolumeComponentMenu(string menu)
         {
             this.menu = menu;
         }
     }
 
+    // TODO: Do not document & remove this and use System.Obsolete instead
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeComponentDeprecated : Attribute
     {
     }
 
+    /// <summary>
+    /// The base class for all the components that can be part of a <see cref="VolumeProfile"/>.
+    /// The Volume framework automatically handles and interpolates any <see cref="VolumeParameter"/> members found in this class.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// 
+    /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
+    /// public class ExampleComponent : VolumeComponent
+    /// {
+    ///     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
+    /// }
+    /// </code>
+    /// </example>
     [Serializable]
     public class VolumeComponent : ScriptableObject
     {
-        // Used to control the state of this override - handy to quickly turn a volume override
-        // on & off in the editor
+        /// <summary>
+        /// The active state of the set of parameters defined in this class. You can use this to
+        /// quickly turn on or off all the overrides at once.
+        /// </summary>
         public bool active = true;
 
+        /// <summary>
+        /// The name displayed in the component header. If you do not set a name, Unity generates one from
+        /// the class name automatically.
+        /// </summary>
         public string displayName { get; protected set; } = "";
 
+        /// <summary>
+        /// A read-only collection of all the <see cref="VolumeParameter"/>s defined in this class.
+        /// </summary>
         public ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
 #pragma warning disable 414
@@ -39,6 +76,12 @@ namespace UnityEngine.Rendering
         bool m_AdvancedMode = false; // Editor-only
 #pragma warning restore 414
 
+        /// <summary>
+        /// Unity calls this method when it loads the class.
+        /// </summary>
+        /// <remarks>
+        /// If you want to override this method, you must call <c>base.OnEnable()</c>.
+        /// </remarks>
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
@@ -54,6 +97,9 @@ namespace UnityEngine.Rendering
                 parameter.OnEnable();
         }
 
+        /// <summary>
+        /// Unity calls this method when the object goes out of scope.
+        /// </summary>
         protected virtual void OnDisable()
         {
             if (parameters == null)
@@ -62,11 +108,41 @@ namespace UnityEngine.Rendering
             foreach (var parameter in parameters)
                 parameter.OnDisable();
         }
-
-        // You can override this to do your own blending. Either loop through the `parameters` list
-        // or reference direct fields (you'll need to cast `state` to your custom type and don't
-        // forget to use `SetValue` on parameters, do not assign directly to the state object - and
-        // of course you'll need to check for the `overrideState` manually).
+        /// <summary>
+        /// Interpolates a <see cref="VolumeComponent"/> with this component by an interpolation
+        /// factor and puts the result back into the given <see cref="VolumeComponent"/>.
+        /// </summary>
+        /// <remarks>
+        /// You can override this method to do your own blending. Either loop through the
+        /// <see cref="parameters"/> list or reference direct fields. You should only use
+        /// <see cref="VolumeParameter.SetValue"/> to set parameter values and not assign
+        /// directly to the state object. you should also manually check
+        /// <see cref="VolumeParameter.overrideState"/> before you set any values.
+        /// </remarks>
+        /// <param name="state">The internal component to interpolate from. You must store
+        /// the result of the interpolation in this same component.</param>
+        /// <param name="interpFactor">The interpolation factor in range [0,1].</param>
+        /// <example>
+        /// Below is the default implementation for blending:
+        /// <code>
+        /// public virtual void Override(VolumeComponent state, float interpFactor)
+        /// {
+        ///     int count = parameters.Count;
+        /// 
+        ///     for (int i = 0; i &lt; count; i++)
+        ///     {
+        ///         var stateParam = state.parameters[i];
+        ///         var toParam = parameters[i];
+        /// 
+        ///         // Keep track of the override state for debugging purpose
+        ///         stateParam.overrideState = toParam.overrideState;
+        /// 
+        ///         if (toParam.overrideState)
+        ///             stateParam.Interp(stateParam, toParam, interpFactor);
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         public virtual void Override(VolumeComponent state, float interpFactor)
         {
             int count = parameters.Count;
@@ -84,6 +160,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Sets the state of all the overrides on this component to a given value.
+        /// </summary>
+        /// <param name="state">The value to set the state of the overrides to.</param>
         public void SetAllOverridesTo(bool state)
         {
             SetAllOverridesTo(parameters, state);
@@ -109,9 +189,10 @@ namespace UnityEngine.Rendering
             }
         }
 
-        // Custom hashing function used to compare the state of settings (it's not meant to be
-        // unique but to be a quick way to check if two setting sets have the same state or not).
-        // Hash collision rate should be pretty low.
+        /// <summary>
+        /// A custom hashing function that Unity uses to compare the state of parameters.
+        /// </summary>
+        /// <returns>A computed hash code for the current instance.</returns>
         public override int GetHashCode()
         {
             unchecked
