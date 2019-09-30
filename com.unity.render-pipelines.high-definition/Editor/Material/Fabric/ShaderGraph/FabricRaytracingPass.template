@@ -206,6 +206,14 @@ Pass
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
         surfaceData.specularOcclusion = 1.0;
+        
+#if HAVE_DECALS
+        if (_EnableDecals)
+        {
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        }
+#endif
 
 #if defined(_SPECULAR_OCCLUSION_CUSTOM)
         // Just use the value passed through via the slot (not active otherwise)
@@ -216,14 +224,6 @@ Pass
         surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
         surfaceData.specularOcclusion = 1.0;
-#endif
-
-#if HAVE_DECALS
-        if (_EnableDecals)
-        {
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-        }
 #endif
 
 #ifdef DEBUG_DISPLAY
