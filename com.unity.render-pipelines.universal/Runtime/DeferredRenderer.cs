@@ -16,11 +16,15 @@ namespace UnityEngine.Rendering.Universal
         DeferredPass m_DeferredPass;
         FinalBlitPass m_FinalBlitPass;
 
+        public const int GBufferSlicesCount = 3;
+
+        // Attachments are like "binding points", internally they identify the texture shader properties declared with the same names
         RenderTargetHandle m_ActiveCameraColorAttachment;
         RenderTargetHandle m_ActiveCameraDepthAttachment;
         RenderTargetHandle m_CameraColorAttachment;
         RenderTargetHandle m_CameraDepthAttachment;
         RenderTargetHandle m_DepthTexture;
+        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[GBufferSlicesCount];
         RenderTargetHandle m_DepthCopyTexture;
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
@@ -66,9 +70,14 @@ namespace UnityEngine.Rendering.Universal
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
+            // string shaderProperty passed to Init() is use to refer to a texture from shader code
             m_CameraColorAttachment.Init("_CameraColorTexture");
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
             m_DepthTexture.Init("_CameraDepthTexture");
+            m_GBufferAttachments[0].Init("_GBuffer0");
+            m_GBufferAttachments[1].Init("_GBuffer1");
+            m_GBufferAttachments[2].Init("_GBuffer2");
+            //m_GBufferAttachments[3].Init("_GBuffer3"); // RenderTarget bound as output #3 during the GBuffer pass is the LightingGBuffer m_ActiveCameraColorAttachment, initialized as m_CameraColorAttachment above
             m_DepthCopyTexture.Init("_CameraDepthCopyTexture");
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
@@ -119,7 +128,11 @@ namespace UnityEngine.Rendering.Universal
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
 
-            m_GBufferPass.Setup(ref renderingData, m_DepthTexture, m_ActiveCameraColorAttachment);
+            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[GBufferSlicesCount + 1];
+            for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
+                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
+            gbufferColorAttachments[GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
+            m_GBufferPass.Setup(ref renderingData, m_DepthTexture, gbufferColorAttachments);
             EnqueuePass(m_GBufferPass);
 
             m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);

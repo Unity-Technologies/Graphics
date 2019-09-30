@@ -7,14 +7,10 @@ namespace UnityEngine.Rendering.Universal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        public const int GBufferSlicesCount = 3;
+        RenderTargetHandle[] m_ColorAttachments;
+        RenderTargetHandle m_DepthBufferAttachment;
 
-        // attachments are like "binding points", internally they identify the texture shader properties declared with the same names
-        public RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[GBufferSlicesCount];
-        public RenderTargetHandle m_DepthBufferAttachment;
-        RenderTargetHandle m_LightingGBufferAttachment;
-
-        RenderTextureDescriptor[] m_GBufferDescriptors = new RenderTextureDescriptor[GBufferSlicesCount];
+        RenderTextureDescriptor[] m_GBufferDescriptors = new RenderTextureDescriptor[DeferredRenderer.GBufferSlicesCount];
         RenderTextureDescriptor m_DepthBufferDescriptor;
 
         ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
@@ -24,11 +20,6 @@ namespace UnityEngine.Rendering.Universal
         public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange)
         {
             base.renderPassEvent = evt;
-
-            m_GBufferAttachments[0].Init("_GBuffer0"); // Use these strings to refer to the GBuffers in shaders
-            m_GBufferAttachments[1].Init("_GBuffer1");
-            m_GBufferAttachments[2].Init("_GBuffer2");
-            //m_GBufferAttachments[3].Init("_GBuffer3"); // Initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
 
             const int initialWidth = 1920;
             const int initialHeight = 1080;
@@ -40,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
         }
 
-        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle lightingGBufferAttachment)
+        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments)
         {
             for(int gbufferIndex = 0; gbufferIndex < m_GBufferDescriptors.Length ; ++gbufferIndex)
             {
@@ -54,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthBufferDescriptor.msaaSamples = 1;
 
             m_DepthBufferAttachment = depthTexture;
-            m_LightingGBufferAttachment = lightingGBufferAttachment;
+            m_ColorAttachments = colorAttachments;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
@@ -62,17 +53,17 @@ namespace UnityEngine.Rendering.Universal
             // Create and declare the render targets used in the pass
 
             cmd.GetTemporaryRT(m_DepthBufferAttachment.id, m_DepthBufferDescriptor, FilterMode.Point);
-            RenderTargetIdentifier[] colorAttachments = new RenderTargetIdentifier[GBufferSlicesCount + 1];
-            for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
-            {
-                cmd.GetTemporaryRT(m_GBufferAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
-                colorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex].Identifier();
-            }
 
-            // the last slice is the lighting buffer created in DeferredRenderer.cs
-            colorAttachments[GBufferSlicesCount] = m_LightingGBufferAttachment.Identifier();
+            // Only declare GBuffer 0, 1 and 2.
+            // GBuffer 3 has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
+            for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.GBufferSlicesCount; ++gbufferIndex)
+                cmd.GetTemporaryRT(m_ColorAttachments[gbufferIndex].id, m_GBufferDescriptors[gbufferIndex]);
 
-            ConfigureTarget(colorAttachments, m_DepthBufferAttachment.Identifier());
+            RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[m_ColorAttachments.Length];
+            for (int gbufferIndex = 0; gbufferIndex < m_ColorAttachments.Length; ++gbufferIndex)
+                colorAttachmentIdentifiers[gbufferIndex] = m_ColorAttachments[gbufferIndex].Identifier();
+
+            ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
 
             // TODO: if depth-prepass is enabled, do not clear depth here!
             ConfigureClear(ClearFlag.Depth, Color.black);
@@ -100,8 +91,8 @@ namespace UnityEngine.Rendering.Universal
         public override void FrameCleanup(CommandBuffer cmd)
         {
             // Release the render targets created during Configure()
-            for (int gbufferIndex = 0; gbufferIndex < m_GBufferAttachments.Length; ++gbufferIndex)
-                cmd.ReleaseTemporaryRT(m_GBufferAttachments[gbufferIndex].id);
+            for (int gbufferIndex = 0; gbufferIndex < DeferredRenderer.GBufferSlicesCount; ++gbufferIndex)
+                cmd.ReleaseTemporaryRT(m_ColorAttachments[gbufferIndex].id);
 
             cmd.ReleaseTemporaryRT(m_DepthBufferAttachment.id);
             // Note: a special case might be required if(m_CameraDepthTexture==RenderTargetHandle.CameraTarget) - see reference in DepthOnlyPass.Execute
