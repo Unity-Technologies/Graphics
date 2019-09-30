@@ -591,6 +591,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight * bsdfData.diffuseColor;
                     }
 
+                    probeVolumeDiffuseLighting *= _IndirectLightingMultiplier.x;
                     probeVolumeHierarchyWeight = probeVolumeHierarchyWeight + weight;
 
                 }
