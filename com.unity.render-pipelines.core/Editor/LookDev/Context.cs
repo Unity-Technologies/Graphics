@@ -37,14 +37,24 @@ namespace UnityEditor.Rendering.LookDev
     }
 
     /// <summary>
-    /// Statis of the side panel of the LookDev window
+    /// Status of the side panel of the LookDev window
     /// </summary>
     public enum SidePanel
     {
         None = -1,
         Environment,
-        Debug
+        Debug,
     }
+
+    /// <summary>
+    /// The target views of the debug panel
+    /// </summary>
+    public enum TargetDebugView
+    {
+        First,
+        Both,
+        Second
+    };
 
     /// <summary>
     /// Class containing all data used by the LookDev Window to render
@@ -196,10 +206,13 @@ namespace UnityEditor.Rendering.LookDev
         public ViewIndex lastFocusedView = ViewIndex.First;
         /// <summary>The state of the side panel</summary>
         public SidePanel showedSidePanel;
+        /// <summary>The view to change when manipulating the Debug side panel</summary>
+        [NonSerialized]
+        public TargetDebugView debugPanelSource = TargetDebugView.Both;
 
         [SerializeField]
         internal ComparisonGizmoState gizmoState = new ComparisonGizmoState();
-        
+
         internal bool isSimpleView => viewLayout == Layout.FullFirstView || viewLayout == Layout.FullSecondView;
         internal bool isMultiView => viewLayout == Layout.HorizontalSplit || viewLayout == Layout.VerticalSplit;
         internal bool isCombinedView => viewLayout == Layout.CustomSplit;
@@ -214,9 +227,8 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>The position and rotation of the camera</summary>
         [field: SerializeField]
         public CameraState camera { get; private set; } = new CameraState();
-        
+
         /// <summary>The currently viewed debugState</summary>
-        [field: SerializeField]
         public DebugContext debug { get; private set; } = new DebugContext();
 
         //Environment asset, sub-asset (under a library) or cubemap
@@ -286,7 +298,7 @@ namespace UnityEditor.Rendering.LookDev
             else //Cubemap
             {
                 environment = new Environment();
-                environment.sky.cubemap = environmentOrCubemapAsset as Cubemap;
+                environment.cubemap = environmentOrCubemapAsset as Cubemap;
             }
         }
 
@@ -325,7 +337,7 @@ namespace UnityEditor.Rendering.LookDev
             {
                 Cubemap cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
                 environment = new Environment();
-                environment.sky.cubemap = cubemap;
+                environment.cubemap = cubemap;
             }
         }
 
@@ -385,9 +397,14 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Class that will contain debug value used.
     /// </summary>
-    [System.Serializable]
     public class DebugContext
     {
+        /// <summary>Display shadows in view.</summary>
+        public bool shadow = true;
+
+        /// <summary>Debug mode displayed. -1 means none.</summary
+        public int viewMode = -1;
+
         ///// <summary>Display the debug grey balls</summary>
         //public bool greyBalls;
 

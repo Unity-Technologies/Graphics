@@ -24,11 +24,17 @@ namespace UnityEditor.Rendering.HighDefinition
         [SerializeField]
         GameObject m_DefaultScenePrefabSaved;
         [SerializeField]
+        GameObject m_DefaultDXRScenePrefabSaved;
+        [SerializeField]
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
         bool m_WizardPopupAtStart = false;
         [SerializeField]
-        string m_PackageVersionForMaterials = "";
+        int m_WizardActiveTab = 0;
+        [SerializeField]
+        string m_PackageVersionForMaterials = k_PackageFirstTimeVersionForMaterials;
+
+        internal const string k_PackageFirstTimeVersionForMaterials = "NeverSaved";
 
         public static GameObject defaultScenePrefab
         {
@@ -40,12 +46,32 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public static GameObject defaultDXRScenePrefab
+        {
+            get => instance.m_DefaultDXRScenePrefabSaved;
+            set
+            {
+                instance.m_DefaultDXRScenePrefabSaved = value;
+                Save();
+            }
+        }
+
         public static string projectSettingsFolderPath
         {
             get => instance.m_ProjectSettingFolderPath;
             set
             {
                 instance.m_ProjectSettingFolderPath = value;
+                Save();
+            }
+        }
+
+        internal static int wizardActiveTab
+        {
+            get => instance.m_WizardActiveTab;
+            set
+            {
+                instance.m_WizardActiveTab = value;
                 Save();
             }
         }

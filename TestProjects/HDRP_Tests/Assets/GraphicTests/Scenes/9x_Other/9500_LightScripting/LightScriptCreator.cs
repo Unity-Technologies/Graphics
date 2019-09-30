@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Rendering.HighDefinition;
@@ -121,10 +121,11 @@ public class LightScriptCreator : MonoBehaviour
                     occluder.transform.localScale = Vector3.one * 0.4f;
                     break;
                 case 9: // Contact Shadows
-                    hdLight.EnableContactShadows(true);
+                    hdLight.useContactShadow.useOverride = true;
+                    hdLight.useContactShadow.@override = true;
                     break;
                 case 10: // Light Layer
-                    hdLight.SetLightLayer(LightLayerEnum.LightLayer1);
+                    hdLight.lightlayersMask = LightLayerEnum.LightLayer1;
                     break;
                 case 11: // Affect diffuse
                     hdLight.affectDiffuse = false;

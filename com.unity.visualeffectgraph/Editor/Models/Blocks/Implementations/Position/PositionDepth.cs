@@ -156,7 +156,7 @@ float2 uvs = UVSpawn;
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
 				
-float depth = LoadTexture(Camera_depthBuffer,int3(uvs*Camera_pixelDimensions, 0)).r;
+float depth = LoadTexture(Camera_depthBuffer,int4(uvs*Camera_pixelDimensions, 0, 0)).r;
 #if UNITY_REVERSED_Z
 depth = 1.0f - depth; // reversed z
 #endif";
@@ -188,7 +188,7 @@ position = vfxPos.xyz / vfxPos.w;
 
                 if (inheritSceneColor)
                     source += @"
-color = LoadTexture(Camera_colorBuffer,int3(uvs*Camera_pixelDimensions, 0)).rgb;
+color = LoadTexture(Camera_colorBuffer,int4(uvs*Camera_pixelDimensions, 0, 0)).rgb;
 ";
 
                 return source;

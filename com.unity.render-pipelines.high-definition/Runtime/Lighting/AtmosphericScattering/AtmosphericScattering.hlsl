@@ -78,8 +78,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         float2 Z = R * n;
         float r0 = r, cosChi0 = cosChi;
 
-        float r1, cosChi1;
-        float3 N1;
+        float r1 = 1.0, cosChi1 = 1.0;
+        float3 N1 = 1.0;
 
         if (tFrag < tExit)
         {
@@ -234,7 +234,6 @@ float3 GetViewForwardDir1(float4x4 viewMatrix)
     return -viewMatrix[2].xyz;
 }
 
-// The color is premultiplied by the opacity.
 void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3 color, out float3 opacity)
 {
     color = opacity = 0;
@@ -250,131 +249,111 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
     // Note2: we do not adjust it anymore to account for the distance to the planet. This can lead to wrong results (since the planet does not write depth).
     float fogFragDist = distance(posInput.positionWS, GetCurrentViewPosition());
 
-    float3 skyColor = 0, skyOpacity = 0;
+    if (_FogEnabled)
+    {
+        float4 volFog = float4(0.0, 0.0, 0.0, 0.0);
 
-    bool hasPbrSkyAtmosphere = (_AtmosphericScatteringType & 128) == 128;
+        float expFogStart = 0.0f;
+
+        if (_EnableVolumetricFog != 0)
+        {
+            float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
+                posInput.positionNDC,
+                fogFragDist,
+                _VBufferResolution,
+                _VBufferUvScaleAndLimit.xy,
+                _VBufferUvScaleAndLimit.zw,
+                _VBufferDistanceEncodingParams,
+                _VBufferDistanceDecodingParams,
+                true, false);
+
+            // TODO: add some slowly animated noise (dither?) to the reconstructed value.
+            // TODO: re-enable tone mapping after implementing pre-exposure.
+            volFog = DelinearizeRGBA(float4(/*FastTonemapInvert*/(value.rgb), value.a));
+            expFogStart = _VBufferLastSliceDist;
+        }
+
+        // TODO: if 'posInput.linearDepth' is computed using 'posInput.positionWS',
+        // and the latter resides on the far plane, the computation will be numerically unstable.
+        float distDelta = fogFragDist - expFogStart;
+
+        if ((distDelta > 0))
+        {
+            // Apply the distant (fallback) fog.
+            float3 positionWS = GetCurrentViewPosition() - V * expFogStart;
+            float  startHeight = positionWS.y;
+            float  cosZenith = -V.y;
+
+            // For both homogeneous and exponential media,
+            // Integrate[Transmittance[x] * Scattering[x], {x, 0, t}] = Albedo * Opacity[t].
+            // Note that pulling the incoming radiance (which is affected by the fog) out of the
+            // integral is wrong, as it means that shadow rays are not volumetrically shadowed.
+            // This will result in fog looking overly bright.
+
+            float3 volAlbedo = _HeightFogBaseScattering / _HeightFogBaseExtinction;
+            float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                _HeightFogExponents, cosZenith, startHeight, distDelta);
+            float  trFallback = TransmittanceFromOpticalDepth(odFallback);
+            float  trCamera = 1 - volFog.a;
+
+            volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * volAlbedo * (1 - trFallback);
+            volFog.a = 1 - (trCamera * trFallback);
+        }
+
+        color = volFog.rgb; // Already pre-exposed
+        opacity = volFog.a;
+    }
 
     // We apply atmospheric scattering to all celestial bodies during the sky pass.
     // Unfortunately, they don't write depth.
-    if (hasPbrSkyAtmosphere && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
+    if (_PBRFogEnabled && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
     {
+        float3 skyColor = 0, skyOpacity = 0;
+
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir1(UNITY_MATRIX_V)));
 
         EvaluatePbrAtmosphere(_WorldSpaceCameraPos, V, tFrag, false, skyColor, skyOpacity);
-
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
-    }
 
-    float3 fogColor = 0, fogOpacity = 0;
-
-    int fogType = _AtmosphericScatteringType & 127;
-
-    switch (fogType)
-    {
-        case FOGTYPE_LINEAR:
-        {
-            fogColor   = GetFogColor(V, fogFragDist);
-            fogOpacity = _FogDensity * saturate((fogFragDist - _LinearFogStart) * _LinearFogOneOverRange) * saturate((_LinearFogHeightEnd - GetAbsolutePositionWS(posInput.positionWS).y) * _LinearFogHeightOneOverRange);
-            fogColor  *= fogOpacity;
-            break;
-        }
-        case FOGTYPE_EXPONENTIAL:
-        {
-            float fogHeight = max(0.0, GetAbsolutePositionWS(posInput.positionWS).y - _ExpFogBaseHeight);
-            fogColor   = GetFogColor(V, fogFragDist);
-            fogOpacity = _FogDensity * TransmittanceHomogeneousMedium(_ExpFogHeightAttenuation, fogHeight) * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, fogFragDist));
-            fogColor  *= fogOpacity;
-            break;
-        }
-        case FOGTYPE_VOLUMETRIC:
-        {
-            float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
-                                         posInput.positionNDC,
-                                         fogFragDist,
-                                         _VBufferResolution,
-                                         _VBufferUvScaleAndLimit.xy,
-                                         _VBufferUvScaleAndLimit.zw,
-                                         _VBufferDistanceEncodingParams,
-                                         _VBufferDistanceDecodingParams,
-                                         true, false);
-
-            // TODO: add some slowly animated noise (dither?) to the reconstructed value.
-            // TODO: re-enable tone mapping after implementing pre-exposure.
-            float4 volFog = DelinearizeRGBA(float4(/*FastTonemapInvert*/(value.rgb), value.a));
-
-            // TODO: if 'posInput.linearDepth' is computed using 'posInput.positionWS',
-            // and the latter resides on the far plane, the computation will be numerically unstable.
-            float distDelta = fogFragDist - _VBufferLastSliceDist;
-
-            if ((_EnableDistantFog != 0) && (distDelta > 0))
-            {
-                // Apply the distant (fallback) fog.
-                float3 positionWS  = GetCurrentViewPosition() - V * _VBufferLastSliceDist;
-                float  startHeight = positionWS.y;
-                float  cosZenith   = -V.y;
-
-                // For both homogeneous and exponential media,
-                // Integrate[Transmittance[x] * Scattering[x], {x, 0, t}] = Albedo * Opacity[t].
-                // Note that pulling the incoming radiance (which is affected by the fog) out of the
-                // integral is wrong, as it means that shadow rays are not volumetrically shadowed.
-                // This will result in fog looking overly bright.
-
-                float3 volAlbedo  = _HeightFogBaseScattering / _HeightFogBaseExtinction;
-                float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                                          _HeightFogExponents, cosZenith, startHeight, distDelta);
-                float  trFallback = TransmittanceFromOpticalDepth(odFallback);
-                float  trCamera   = 1 - volFog.a;
-
-                volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * volAlbedo * (1 - trFallback);
-                volFog.a    = 1 - (trCamera * trFallback);
-            }
-
-            fogColor   = volFog.rgb; // Pre-multiplied by design
-            fogOpacity = volFog.a;
-            break;
-        }
-    }
-
-    fogColor *= GetCurrentExposureMultiplier();
-
-    // Rendering of fog and atmospheric scattering cannot really be decoupled.
+        // Rendering of fog and atmospheric scattering cannot really be decoupled.
 #if 0
-    // The best workaround is to deep composite them.
-    float3 fogOD = OpticalDepthFromOpacity(fogOpacity);
+        // The best workaround is to deep composite them.
+        float3 fogOD = OpticalDepthFromOpacity(fogOpacity);
 
-    float3 fogRatio;
-           fogRatio.r = (fogOpacity.r >= FLT_EPS) ? (fogOD.r * rcp(fogOpacity.r)) : 1;
-           fogRatio.g = (fogOpacity.g >= FLT_EPS) ? (fogOD.g * rcp(fogOpacity.g)) : 1;
-           fogRatio.b = (fogOpacity.b >= FLT_EPS) ? (fogOD.b * rcp(fogOpacity.b)) : 1;
-    float3 skyRatio;
-           skyRatio.r = (skyOpacity.r >= FLT_EPS) ? (skyOD.r * rcp(skyOpacity.r)) : 1;
-           skyRatio.g = (skyOpacity.g >= FLT_EPS) ? (skyOD.g * rcp(skyOpacity.g)) : 1;
-           skyRatio.b = (skyOpacity.b >= FLT_EPS) ? (skyOD.b * rcp(skyOpacity.b)) : 1;
+        float3 fogRatio;
+        fogRatio.r = (fogOpacity.r >= FLT_EPS) ? (fogOD.r * rcp(fogOpacity.r)) : 1;
+        fogRatio.g = (fogOpacity.g >= FLT_EPS) ? (fogOD.g * rcp(fogOpacity.g)) : 1;
+        fogRatio.b = (fogOpacity.b >= FLT_EPS) ? (fogOD.b * rcp(fogOpacity.b)) : 1;
+        float3 skyRatio;
+        skyRatio.r = (skyOpacity.r >= FLT_EPS) ? (skyOD.r * rcp(skyOpacity.r)) : 1;
+        skyRatio.g = (skyOpacity.g >= FLT_EPS) ? (skyOD.g * rcp(skyOpacity.g)) : 1;
+        skyRatio.b = (skyOpacity.b >= FLT_EPS) ? (skyOD.b * rcp(skyOpacity.b)) : 1;
 
-    float3 logFogColor = fogRatio * fogColor;
-    float3 logSkyColor = skyRatio * skyColor;
+        float3 logFogColor = fogRatio * fogColor;
+        float3 logSkyColor = skyRatio * skyColor;
 
-    float3 logCompositeColor = logFogColor + logSkyColor;
-    float3 compositeOD       = fogOD + skyOD;
+        float3 logCompositeColor = logFogColor + logSkyColor;
+        float3 compositeOD = fogOD + skyOD;
 
-    opacity = OpacityFromOpticalDepth(compositeOD);
+        opacity = OpacityFromOpticalDepth(compositeOD);
 
-    float3 rcpCompositeRatio;
-           rcpCompositeRatio.r = (opacity.r >= FLT_EPS) ? (opacity.r * rcp(compositeOD.r)) : 1;
-           rcpCompositeRatio.g = (opacity.g >= FLT_EPS) ? (opacity.g * rcp(compositeOD.g)) : 1;
-           rcpCompositeRatio.b = (opacity.b >= FLT_EPS) ? (opacity.b * rcp(compositeOD.b)) : 1;
+        float3 rcpCompositeRatio;
+        rcpCompositeRatio.r = (opacity.r >= FLT_EPS) ? (opacity.r * rcp(compositeOD.r)) : 1;
+        rcpCompositeRatio.g = (opacity.g >= FLT_EPS) ? (opacity.g * rcp(compositeOD.g)) : 1;
+        rcpCompositeRatio.b = (opacity.b >= FLT_EPS) ? (opacity.b * rcp(compositeOD.b)) : 1;
 
-    color = rcpCompositeRatio * logCompositeColor;
+        color = rcpCompositeRatio * logCompositeColor;
 #else
-    // Deep compositing assumes that the fog spans the same range as the atmosphere.
-    // Our fog is short range, so deep compositing gives surprising results.
-    // Using the "shallow" over operator is more appropriate in our context.
-    // We could do something more clever with deep compositing, but this would
-    // probably be a waste in terms of perf.
-    CompositeOver(fogColor, fogOpacity, skyColor, skyOpacity,
-                  color, opacity);
+        // Deep compositing assumes that the fog spans the same range as the atmosphere.
+        // Our fog is short range, so deep compositing gives surprising results.
+        // Using the "shallow" over operator is more appropriate in our context.
+        // We could do something more clever with deep compositing, but this would
+        // probably be a waste in terms of perf.
+        CompositeOver(color, opacity, skyColor, skyOpacity, color, opacity);
 #endif
+    }
 }
+
 
 #endif

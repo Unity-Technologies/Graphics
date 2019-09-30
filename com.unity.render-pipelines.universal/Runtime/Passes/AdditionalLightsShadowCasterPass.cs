@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
-    internal class AdditionalLightsShadowCasterPass : ScriptableRenderPass
+    /// <summary>
+    /// Renders a shadow map atlas for additional shadow-casting Lights.
+    /// </summary>
+    public class AdditionalLightsShadowCasterPass : ScriptableRenderPass
     {
         private static class AdditionalShadowsConstantBuffer
         {
@@ -94,9 +97,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 VisibleLight shadowLight = visibleLights[i];
 
-                // Skip all directional lights as they are not baked into the additional
-                // shadowmap atlas.
-                if (shadowLight.lightType == LightType.Directional)
+                // Skip main directional light as it is not packed into the shadow atlas
+                if (i == renderingData.lightData.mainLightIndex)
                     continue;
 
                 int shadowCastingLightIndex = m_AdditionalShadowCastingLightIndices.Count;
@@ -372,8 +374,8 @@ namespace UnityEngine.Rendering.Universal
 
             VisibleLight shadowLight = lightData.visibleLights[i];
 
-            // Point light shadows are not supported
-            if (shadowLight.lightType == LightType.Point)
+            // Directional and Point light shadows are not supported in the shadow map atlas
+            if (shadowLight.lightType == LightType.Point || shadowLight.lightType == LightType.Directional)
                 return false;
 
             Light light = shadowLight.light;

@@ -253,9 +253,9 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
         {
-            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, -1);
+            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
             commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -287,10 +287,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
         public static bool IsRegularPreviewCamera(Camera camera)
         {
-            HDAdditionalCameraData additionalCameraData;
-            if (!camera.TryGetComponent<HDAdditionalCameraData>(out additionalCameraData))
-                return false;
-            return camera.cameraType == CameraType.Preview && (additionalCameraData && !additionalCameraData.isEditorCameraPreview);
+            if (camera.cameraType == CameraType.Preview)
+            {
+                camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
+                return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
+
+            }
+            return false;
         }
 
         // We need these at runtime for RenderPipelineResources upgrade

@@ -97,6 +97,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useExposureWeight = false;
 
+        protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
+
         // IVFXSubRenderer interface
         public virtual bool hasShadowCasting { get { return castShadows; } }
 
@@ -104,8 +106,8 @@ namespace UnityEditor.VFX
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
-        public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
-        public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
+        public bool HasIndirectDraw()   { return (indirectDraw || HasSorting()) && !HasStrips(true); }
+        public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
         int IVFXSubRenderer.sortPriority
         {
             get {
@@ -121,7 +123,7 @@ namespace UnityEditor.VFX
         }
         public bool NeedsDeadListCount() { return HasIndirectDraw() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
 
-        public bool HasStrips() { return ownedType == VFXDataType.ParticleStrip; }
+        public bool HasStrips(bool data = false) { return (data ? GetData().type : ownedType) == VFXDataType.ParticleStrip; }
 
         protected VFXAbstractParticleOutput(bool strip = false) : base(strip ? VFXDataType.ParticleStrip : VFXDataType.Particle) {}
 
@@ -136,9 +138,11 @@ namespace UnityEditor.VFX
 
         protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend || uvMode == UVMode.FlipbookMotionBlend); } }
 
+        public virtual bool exposeAlphaThreshold { get => useAlphaClipping; }
+
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            if (useAlphaClipping)
+            if (exposeAlphaThreshold)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
             if (colorMappingMode == ColorMappingMode.GradientMapped)
@@ -236,7 +240,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (useAlphaClipping)
+                if (exposeAlphaThreshold)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
 
                 if (supportSoftParticles)
@@ -320,13 +324,18 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (hasExposure && useExposureWeight)
-                    yield return "USE_EXPOSURE_WEIGHT";
+                if (hasExposure)
+                {
+                    if (useExposureWeight)
+                        yield return "USE_EXPOSURE_WEIGHT";
+                    else if (bypassExposure)
+                        yield return "VFX_BYPASS_EXPOSURE";
+                }
 
                 if (NeedsDeadListCount() && GetData().IsAttributeStored(VFXAttribute.Alive)) //Actually, there are still corner cases, e.g.: particles spawning immortal particles through GPU Event
                     yield return "USE_DEAD_LIST_COUNT";
 
-                if (HasStrips())
+                if (HasStrips(false))
                     yield return "HAS_STRIPS";
             }
         }
@@ -341,13 +350,20 @@ namespace UnityEditor.VFX
                 if (!implementsMotionVector || !subOutput.supportsMotionVector)
                     yield return "generateMotionVector";
 
-                if (isBlendModeOpaque)
+                if (isBlendModeOpaque || !supportSoftParticles)
                 {
                     yield return "useSoftParticle";
                 }
 
                 if (!hasExposure)
                     yield return "useExposureWeight";
+
+                // No indirect / sorting support now for strips
+                if (HasStrips(true))
+                {
+                    yield return "indirectDraw";
+                    yield return "sort";
+                }
             }
         }
 

@@ -146,6 +146,10 @@ Pass
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
+        // specularOcclusion need to be init ahead of decal to quiet the compiler that modify the SurfaceData struct
+        // however specularOcclusion can come from the graph, so need to be init here so it can be override.
+        surfaceData.specularOcclusion = 1.0;
+
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:                     surfaceData.baseColor =                 surfaceDescription.Albedo;
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
@@ -228,8 +232,6 @@ Pass
 #elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
         // If we have bent normal and ambient occlusion, process a specular occlusion
         surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
-#else
-        surfaceData.specularOcclusion = 1.0;
 #endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA

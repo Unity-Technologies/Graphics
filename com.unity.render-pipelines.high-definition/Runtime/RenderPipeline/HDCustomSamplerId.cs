@@ -65,8 +65,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingFilterReflection,
         RaytracingAmbientOcclusion,
         RaytracingFilterAO,
-        RaytracingShadowIntegration,
-        RaytracingShadowCombination,
+        RaytracingDirectionalLightShadow,
+        RaytracingLightShadow,
+        RaytracingIntegrateIndirectDiffuse,
         RaytracingFilterIndirectDiffuse,
         RaytracingDebug,
 
@@ -115,6 +116,9 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        CustomPostProcessBeforePP,
+        CustomPostProcessAfterPP,
+        CustomPostProcessBeforeTransparent,
 
         Max
     }

@@ -11,24 +11,26 @@ struct RayCone
 // Structure that defines the current state of the intersection
 struct RayIntersection
 {
-	// Origin of the current ray
+	// Origin of the current ray -- FIXME: can be obtained by WorldRayPosition(), should we remove it?
 	float3  origin;
-	// Direction of the current ray
+	// Direction of the current ray -- FIXME: can be obtained by WorldRayDirection(), should we remove it?
 	float3  incidentDirection;
 	// Distance of the intersection
-	float   t;
+	float t;
 	// Value that holds the color of the ray
-	float3  color;
+	float3 color;
 	// Cone representation of the ray
 	RayCone cone;
 	// The remaining available depth for the current Ray
-	uint    remainingDepth;
+	uint remainingDepth;
 	// Current sample index
 	uint sampleIndex;
 	// Ray counter (used for multibounce)
 	uint rayCount;
 	// Pixel coordinate from which the initial ray was launched
 	uint2 pixelCoord;
+	// Max roughness (encountered along the path, used in path tracing)
+	float maxRoughness;
 };
 
 struct AttributeData

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 #if ENABLE_RAYTRACING
         // Reflection
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingReflections.raytrace")]
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
         public RayTracingShader reflectionRaytracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.compute")]
         public ComputeShader reflectionRaytracingCS;
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Shadows/RaytracingShadowFilter.compute")]
         public ComputeShader shadowFilterCS;
 
-        // Primary visibility
+        // Recursive tracing
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
         public RayTracingShader forwardRaytracing;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
@@ -31,9 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Light cluster
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute")]
         public ComputeShader lightClusterBuildCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.shader")]
+        public Shader lightClusterDebugS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")]
         public ComputeShader lightClusterDebugCS;
-
+        
         // Indirect Diffuse
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.raytrace")]
         public RayTracingShader indirectDiffuseRaytracingRT;
@@ -57,6 +59,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayTracingShader gBufferRaytracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingDeferred.compute")]
         public ComputeShader deferredRaytracingCS;
+
+        // Path Tracing
+        [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMain.raytrace")]
+        public RayTracingShader pathTracing;
 
         // Ray Binning
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Common/RayBinning.compute")]

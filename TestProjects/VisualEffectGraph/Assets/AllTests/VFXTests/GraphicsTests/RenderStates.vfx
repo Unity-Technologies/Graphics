@@ -394,8 +394,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114750582010869080}
   - {fileID: 114150769821087122}
+  - {fileID: 114750582010869080}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 114880543442919454}
@@ -421,6 +421,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114125123753541676
@@ -544,6 +546,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114140183320049540
@@ -2811,8 +2815,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114622591053834604}
   - {fileID: 114401797691204532}
+  - {fileID: 114622591053834604}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 114880543442919454}
@@ -2838,6 +2842,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114671603926337860
@@ -3338,6 +3344,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &114774226291935560
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3561,6 +3569,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114819460324136256
@@ -4149,6 +4159,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &114924410589535930
 MonoBehaviour:
   m_ObjectHideFlags: 1

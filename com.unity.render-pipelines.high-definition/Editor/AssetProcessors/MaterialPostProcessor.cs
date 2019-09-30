@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrpVersion = hdrpInfo.version;
             var curUpgradeVersion = HDProjectSettings.packageVersionForMaterialUpgrade;
 
+            bool firstInstallOfHDRP = curUpgradeVersion == HDProjectSettings.k_PackageFirstTimeVersionForMaterials;
             if (curUpgradeVersion != hdrpVersion)
             {
                 string[] guids = AssetDatabase.FindAssets("t:material", null);
@@ -41,9 +42,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 string commandLineOptions = System.Environment.CommandLine;
                 bool inTestSuite = commandLineOptions.Contains("-testResults");
                 //prevent popup in test suite as there is no user to interact, no need to save in this case
-                if (!inTestSuite && EditorUtility.DisplayDialog("Material migrated",
-                    "The change on used High-Definition Render Pipeline's version can cause materials to update. You need to save your project to definitely apply the update. If you close without saving, you will need to reimport non-updated material for them to work correctly and save project.\nPlease note that downgrade is not supported.",
-                    "Save Project", "Not now"))
+                if (!inTestSuite && (firstInstallOfHDRP || EditorUtility.DisplayDialog("High Definition Materials Migration",
+                    "Your current High Definition Render Pipeline requires a change that will update your Materials. In order to apply this update automatically, you need to save your Project. If you choose not to save your Project, you will need to re-import Materials manually, then save the Project.\n\nPlease note that downgrading from the High Definition Render Pipeline is not supported.",
+                    "Save Project", "Not now")))
                 {
                     AssetDatabase.SaveAssets();
 

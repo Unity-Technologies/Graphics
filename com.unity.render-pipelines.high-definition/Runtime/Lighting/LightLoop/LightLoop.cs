@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //-----------------------------------------------------------------------------
 
     [GenerateHLSL]
-    enum LightVolumeType
+    internal enum LightVolumeType
     {
         Cone,
         Sphere,
@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    enum LightCategory
+    internal enum LightCategory
     {
         Punctual,
         Area,
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    enum LightFeatureFlags
+    internal enum LightFeatureFlags
     {
         // Light bit mask must match LightDefinitions.s_LightFeatureMaskFlags value
         Punctual    = 1 << 12,
@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void NewFrame()
             {
+                areaLightCookieManager.NewFrame();
                 cookieTexArray.NewFrame();
                 cubeCookieTexArray.NewFrame();
                 reflectionProbeCache.NewFrame();
@@ -400,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
-        // For now we don't use shadow cascade borders.
+        // This control if we use cascade borders for directional light by default
         static internal readonly bool s_UseCascadeBorders = true;
 
         // Keep sorting array around to avoid garbage
@@ -584,24 +585,31 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
 
+        // Directional light
         Light m_CurrentSunLight;
+        int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
-        int m_CurrentShadowSortedSunLightIndex = -1;
+        Light GetCurrentSunLight() { return m_CurrentSunLight; }
+
+        // Screen space shadow data
+        public struct ScreenSpaceShadowData
+        {
+            public HDAdditionalLightData additionalLightData;
+            public int lightDataIndex;
+            public bool valid;
+        }
+
         int m_ScreenSpaceShadowIndex = 0;
+        ScreenSpaceShadowData[] m_CurrentScreenSpaceShadowData;
+        public ScreenSpaceShadowData GetScreenSpaceShadowData(int screenSpaceShadowIndex) { return m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex]; }
+
         // Contact shadow index reseted at the beginning of each frame, used to generate the contact shadow mask
         int m_ContactShadowIndex;
 
-        Light GetCurrentSunLight() { return m_CurrentSunLight; }
-
         // shadow related stuff
-        HDShadowManager                     m_ShadowManager;
-        HDShadowInitParameters              m_ShadowInitParameters;
-
-#if ENABLE_RAYTRACING
-        HDAdditionalLightData[]             m_CurrentRayTracedShadows;
-        public HDAdditionalLightData GetCurrentRayTracedShadow(int rayTracedShadowIndex) { return m_CurrentRayTracedShadows[rayTracedShadowIndex]; }
-#endif
+        HDShadowManager m_ShadowManager;
+        HDShadowInitParameters m_ShadowInitParameters;
 
         Material m_CopyStencil;
         // We need a copy for SSR because setting render states through uniform constants does not work with MaterialPropertyBlocks so it would override values set for the regular copy
@@ -807,10 +815,9 @@ namespace UnityEngine.Rendering.HighDefinition
             s_lightVolumes = new DebugLightVolumes();
             s_lightVolumes.InitData(defaultResources);
 
-#if ENABLE_RAYTRACING
+            // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, 1);
-            m_CurrentRayTracedShadows = new HDAdditionalLightData[numMaxShadows];
-#endif
+            m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
 
             m_CopyStencil = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
             m_CopyStencilForSSR = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
@@ -1125,7 +1132,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
-            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.contactShadows);
+            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.useContactShadow.Value(HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset)));
             lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // fix up shadow information
@@ -1143,9 +1150,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
 
             }
-
+            //Value of max smoothness is derived from AngularDiameter. Formula results from eyeballing. Angular diameter of 0 results in 1 and angular diameter of 80 results in 0.
+            float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f),2f)) - 0.11f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-            lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
+            lightData.minRoughness = (1.0f - maxSmoothness) * (1.0f - maxSmoothness);
 
             lightData.shadowMaskSelector = Vector4.zero;
 
@@ -1376,7 +1384,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
             lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.volumetricShadowDimmer;
-            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.contactShadows);
+            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.useContactShadow.Value(HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset)));
             lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
 #if ENABLE_RAYTRACING
@@ -1385,9 +1393,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows
                 && additionalLightData.WillRenderScreenSpaceShadow())
             {
+                // Keep track of the shadow map (for indirect lighting and transparents)
+                lightData.shadowIndex = shadowIndex;
+                additionalLightData.shadowIndex = shadowIndex;
+
+                // Keep track of the screen space shadow data
                 lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
-                additionalLightData.shadowIndex = -1;
-                m_CurrentRayTracedShadows[screenSpaceShadowIndex] = additionalLightData;
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
+                m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
                 screenSpaceShadowIndex++;
             }
             else
@@ -1400,8 +1414,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
 #endif
+            //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
+            float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-            lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
+            lightData.minRoughness = (1.0f - maxSmoothness) * (1.0f - maxSmoothness);
 
             lightData.shadowMaskSelector = Vector4.zero;
 
@@ -1859,14 +1875,83 @@ namespace UnityEngine.Rendering.HighDefinition
             throw new ArgumentException();
         }
 
+        internal static void EvaluateGPULightType(LightType lightType, LightTypeExtent lightTypeExtent, SpotLightShape spotLightShape,
+            ref LightCategory lightCategory, ref GPULightType gpuLightType, ref LightVolumeType lightVolumeType)
+        {
+            lightCategory = LightCategory.Count;
+            gpuLightType = GPULightType.Point;
+            lightVolumeType = LightVolumeType.Count;
+
+            if (lightTypeExtent == LightTypeExtent.Punctual)
+            {
+                lightCategory = LightCategory.Punctual;
+
+                switch (lightType)
+                {
+                    case LightType.Spot:
+                        switch (spotLightShape)
+                        {
+                            case SpotLightShape.Cone:
+                                gpuLightType = GPULightType.Spot;
+                                lightVolumeType = LightVolumeType.Cone;
+                                break;
+                            case SpotLightShape.Pyramid:
+                                gpuLightType = GPULightType.ProjectorPyramid;
+                                lightVolumeType = LightVolumeType.Cone;
+                                break;
+                            case SpotLightShape.Box:
+                                gpuLightType = GPULightType.ProjectorBox;
+                                lightVolumeType = LightVolumeType.Box;
+                                break;
+                            default:
+                                Debug.Assert(false, "Encountered an unknown SpotLightShape.");
+                                break;
+            }
+                        break;
+
+                    case LightType.Directional:
+                        gpuLightType = GPULightType.Directional;
+                        // No need to add volume, always visible
+                        lightVolumeType = LightVolumeType.Count; // Count is none
+                        break;
+
+                    case LightType.Point:
+                        gpuLightType = GPULightType.Point;
+                        lightVolumeType = LightVolumeType.Sphere;
+                        break;
+
+                    default:
+                        Debug.Assert(false, "Encountered an unknown LightType.");
+                        break;
+                }
+            }
+            else
+            {
+                lightCategory = LightCategory.Area;
+
+                switch (lightTypeExtent)
+                {
+                    case LightTypeExtent.Rectangle:
+                        gpuLightType = GPULightType.Rectangle;
+                        lightVolumeType = LightVolumeType.Box;
+                        break;
+
+                    case LightTypeExtent.Tube:
+                        gpuLightType = GPULightType.Tube;
+                        lightVolumeType = LightVolumeType.Box;
+                        break;
+
+                    default:
+                        Debug.Assert(false, "Encountered an unknown LightType.");
+                        break;
+                }
+            }
+        }
+
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
-#if ENABLE_RAYTRACING
-            HDRaytracingEnvironment raytracingEnv = m_RayTracingManager.CurrentEnvironment();
-#endif
-
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
@@ -1881,6 +1966,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
+                m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;
                 m_DebugSelectedLightShadowCount = 0;
@@ -1893,6 +1979,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We must clear the shadow requests before checking if they are any visible light because we would have requests from the last frame executed in the case where we don't see any lights
                 m_ShadowManager.Clear();
+
+                m_ScreenSpaceShadowIndex = 0;
+                // Set all the light data to invalid
+                for (int i = 0; i < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows; ++i)
+                {
+                    m_CurrentScreenSpaceShadowData[i].additionalLightData = null;
+                    m_CurrentScreenSpaceShadowData[i].lightDataIndex = -1;
+                    m_CurrentScreenSpaceShadowData[i].valid = false;
+                }
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
@@ -1911,7 +2006,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var light = cullResults.visibleLights[lightIndex];
 
-                        if (!aovRequest.IsLightEnabled(light.light.gameObject))
+                        // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
+                        // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
+                        const int minimumPixelAreaOnScreen = 1;
+                        if ((light.screenRect.height * hdCamera.actualHeight) * (light.screenRect.width * hdCamera.actualWidth) < minimumPixelAreaOnScreen)
+                        {
+                            continue;
+                        }
+
+                        if (light.light != null && !aovRequest.IsLightEnabled(light.light.gameObject))
                             continue;
 
                         var lightComponent = light.light;
@@ -1931,84 +2034,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             additionalData.ReserveShadowMap(camera, m_ShadowManager, m_ShadowInitParameters, light.screenRect);
                         }
 
+                        // Evaluate the types that define the current light
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
-
-                        if (additionalData.lightTypeExtent == LightTypeExtent.Punctual)
-                        {
-                            lightCategory = LightCategory.Punctual;
-
-                            switch (light.lightType)
-                            {
-                                case LightType.Spot:
-                                    if (punctualLightcount >= m_MaxPunctualLightsOnScreen)
-                                        continue;
-                                    switch (additionalData.spotLightShape)
-                                    {
-                                        case SpotLightShape.Cone:
-                                            gpuLightType = GPULightType.Spot;
-                                            lightVolumeType = LightVolumeType.Cone;
-                                            break;
-                                        case SpotLightShape.Pyramid:
-                                            gpuLightType = GPULightType.ProjectorPyramid;
-                                            lightVolumeType = LightVolumeType.Cone;
-                                            break;
-                                        case SpotLightShape.Box:
-                                            gpuLightType = GPULightType.ProjectorBox;
-                                            lightVolumeType = LightVolumeType.Box;
-                                            break;
-                                        default:
-                                            Debug.Assert(false, "Encountered an unknown SpotLightShape.");
-                                            break;
-                                    }
-                                    break;
-
-                                case LightType.Directional:
-                                    if (directionalLightcount >= m_MaxDirectionalLightsOnScreen)
-                                        continue;
-                                    gpuLightType = GPULightType.Directional;
-                                    // No need to add volume, always visible
-                                    lightVolumeType = LightVolumeType.Count; // Count is none
-                                    break;
-
-                                case LightType.Point:
-                                    if (punctualLightcount >= m_MaxPunctualLightsOnScreen)
-                                        continue;
-                                    gpuLightType = GPULightType.Point;
-                                    lightVolumeType = LightVolumeType.Sphere;
-                                    break;
-
-                                default:
-                                    Debug.Assert(false, "Encountered an unknown LightType.");
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            lightCategory = LightCategory.Area;
-
-                            switch (additionalData.lightTypeExtent)
-                            {
-                                case LightTypeExtent.Rectangle:
-                                    if (areaLightCount >= m_MaxAreaLightsOnScreen)
-                                        continue;
-                                    gpuLightType = GPULightType.Rectangle;
-                                    lightVolumeType = LightVolumeType.Box;
-                                    break;
-
-                                case LightTypeExtent.Tube:
-                                    if (areaLightCount >= m_MaxAreaLightsOnScreen)
-                                        continue;
-                                    gpuLightType = GPULightType.Tube;
-                                    lightVolumeType = LightVolumeType.Box;
-                                    break;
-
-                                default:
-                                    Debug.Assert(false, "Encountered an unknown LightType.");
-                                    break;
-                            }
-                        }
+                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape, 
+                                                                ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                         if (hasDebugLightFilter
                             && !debugLightFilter.IsEnabledFor(gpuLightType, additionalData.spotLightShape))
@@ -2043,8 +2074,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     // 2. Go through all lights, convert them to GPU format.
                     // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
 
-                    m_ScreenSpaceShadowIndex = 0;
-
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
@@ -2056,6 +2085,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var light = cullResults.visibleLights[lightIndex];
                         var lightComponent = light.light;
+
+                        switch(lightCategory)
+                        {
+                            case LightCategory.Punctual:
+                                if (punctualLightcount >= m_MaxPunctualLightsOnScreen)
+                                    continue;
+                                break;
+                            case LightCategory.Area:
+                                if (areaLightCount >= m_MaxAreaLightsOnScreen)
+                                    continue;
+                                break;
+                            default:
+                                break;
+                        }
 
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
 
@@ -2927,7 +2970,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
-                cmd.SetGlobalInt(HDShaderIDs._ScreenSpaceShadowArraySize, param.maxScreenSpaceShadows);
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplX, GetNumTileFtplX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileFtplY, GetNumTileFtplY(param.hdCamera));
@@ -3325,7 +3367,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void CopyStencilBufferForMaterialClassification(CommandBuffer cmd, RTHandle depthStencilBuffer, RTHandle stencilCopyBuffer, Material copyStencilMaterial)
         {
-#if (UNITY_SWITCH || UNITY_IPHONE)
+#if (UNITY_SWITCH || UNITY_IPHONE || UNITY_STANDALONE_OSX)
             // Faster on Switch.
             CoreUtils.SetRenderTarget(cmd, stencilCopyBuffer, depthStencilBuffer, ClearFlag.Color, Color.clear);
 

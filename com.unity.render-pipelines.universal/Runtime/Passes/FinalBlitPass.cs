@@ -1,4 +1,4 @@
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given color target to the current camera target
@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// the camera target. The pass takes the screen viewport into
     /// consideration.
     /// </summary>
-    internal class FinalBlitPass : ScriptableRenderPass
+    public class FinalBlitPass : ScriptableRenderPass
     {
         const string m_ProfilerTag = "Final Blit Pass";
         RenderTargetHandle m_Source;
@@ -66,7 +66,9 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
-                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,     // color
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
                 cmd.Blit(m_Source.Identifier(), BuiltinRenderTextureType.CameraTarget, blitMaterial);
             }
             else

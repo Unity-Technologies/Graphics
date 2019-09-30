@@ -78,37 +78,6 @@ float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
     return s.t.SampleLevel(s.s,coords, level);
 }
 
-// Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
-// Inverts upper left by calculating its determinant and multiplying it to the symmetric
-// adjust matrix of each element. Finally deals with the translation by transforming the
-// original translation using by the calculated inverse.
-//https://github.com/erich666/GraphicsGems/blob/master/gemsii/inverse.c
-float4x4 VFXInverseTRSMatrix(float4x4 input)
-{
-    float4x4 output = (float4x4)0;
-
-    //Fill output with cofactor
-    output._m00 = input._m11 * input._m22 - input._m21 * input._m12;
-    output._m01 = input._m21 * input._m02 - input._m01 * input._m22;
-    output._m02 = input._m01 * input._m12 - input._m11 * input._m02;
-    output._m10 = input._m20 * input._m12 - input._m10 * input._m22;
-    output._m11 = input._m00 * input._m22 - input._m20 * input._m02;
-    output._m12 = input._m10 * input._m02 - input._m00 * input._m12;
-    output._m20 = input._m10 * input._m21 - input._m20 * input._m11;
-    output._m21 = input._m20 * input._m01 - input._m00 * input._m21;
-    output._m22 = input._m00 * input._m11 - input._m10 * input._m01;
-
-    //Multiply by reciprocal determinant
-    float det = determinant((float3x3)input);
-    output *= rcp(det);
-
-    // Do the translation part
-    output._m03_m13_m23 = -mul((float3x3)output, input._m03_m13_m23);
-    output._m33 = 1.0f;
-
-    return output;
-}
-
 float4 SampleTexture(VFXSampler2DArray s,float2 coords,float slice,float level = 0.0f)
 {
     return s.t.SampleLevel(s.s,float3(coords,slice),level);
@@ -130,6 +99,11 @@ float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level
 }
 
 float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
+{
+    return s.t.Load(pixelCoords);
+}
+
+float4 LoadTexture(VFXSampler2DArray s, int4 pixelCoords)
 {
     return s.t.Load(pixelCoords);
 }
@@ -373,6 +347,37 @@ float SampleCurve(float4 curveData,float u)
 // Utils //
 ///////////
 
+// Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
+// Inverts upper left by calculating its determinant and multiplying it to the symmetric
+// adjust matrix of each element. Finally deals with the translation by transforming the
+// original translation using by the calculated inverse.
+//https://github.com/erich666/GraphicsGems/blob/master/gemsii/inverse.c
+float4x4 VFXInverseTRSMatrix(float4x4 input)
+{
+    float4x4 output = (float4x4)0;
+
+    //Fill output with cofactor
+    output._m00 = input._m11 * input._m22 - input._m21 * input._m12;
+    output._m01 = input._m21 * input._m02 - input._m01 * input._m22;
+    output._m02 = input._m01 * input._m12 - input._m11 * input._m02;
+    output._m10 = input._m20 * input._m12 - input._m10 * input._m22;
+    output._m11 = input._m00 * input._m22 - input._m20 * input._m02;
+    output._m12 = input._m10 * input._m02 - input._m00 * input._m12;
+    output._m20 = input._m10 * input._m21 - input._m20 * input._m11;
+    output._m21 = input._m20 * input._m01 - input._m00 * input._m21;
+    output._m22 = input._m00 * input._m11 - input._m10 * input._m01;
+
+    //Multiply by reciprocal determinant
+    float det = determinant((float3x3)input);
+    output *= rcp(det);
+
+    // Do the translation part
+    output._m03_m13_m23 = -mul((float3x3)output, input._m03_m13_m23);
+    output._m33 = 1.0f;
+
+    return output;
+}
+
 float3x3 GetScaleMatrix(float3 scale)
 {
     return float3x3(scale.x,    0,          0,
@@ -517,66 +522,15 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
     return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex);
 }
 
-///////////////
-// Noise  //
-///////////////
+
+///////////
+// Noise //
+///////////
 
 #include "VFXNoise.hlsl"
 
-// TODO - delete this?
-float Mod289(float x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-float4 Mod289(float4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-float4 Perm(float4 x) { return Mod289(((x * 34.0) + 1.0) * x); }
+////////////
+// Strips //
+////////////
 
-float Noise(float3 p) {
-    float3 a = floor(p);
-    float3 d = p - a;
-    d = d * d * (3.0 - 2.0 * d);
-
-    float4 b = a.xxyy + float4(0.0, 1.0, 0.0, 1.0);
-    float4 k1 = Perm(b.xyxy);
-    float4 k2 = Perm(k1.xyxy + b.zzww);
-
-    float4 c = k2 + a.zzzz;
-    float4 k3 = Perm(c);
-    float4 k4 = Perm(c + 1.0);
-
-    float4 o1 = frac(k3 * (1.0 / 41.0));
-    float4 o2 = frac(k4 * (1.0 / 41.0));
-
-    float4 o3 = o2 * d.z + o1 * (1.0 - d.z);
-    float2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
-
-    return o4.y * d.y + o4.x * (1.0 - d.y);
-}
-
-float3 Noise3D(float3 p) {
-
-    float o = Noise(p);
-    float a = Noise(p + float3(0.0001f, 0.0f, 0.0f));
-    float b = Noise(p + float3(0.0f, 0.0001f, 0.0f));
-    float c = Noise(p + float3(0.0f, 0.0f, 0.0001f));
-
-    float3 grad = float3(o - a, o - b, o - c);
-    float3 other = abs(grad.zxy);
-    return normalize(cross(grad,other));
-
-}
-
-float3 Noise3D(float3 position, int octaves, float roughness) {
-
-    float weight = 0.0f;
-    float3 noise = float3(0.0, 0.0, 0.0);
-    float scale = 1.0f;
-
-    for (int i = 0; i < octaves; i++)
-    {
-        float curWeight = pow((1.0-((float)i / octaves)), lerp(2.0, 0.2, roughness));
-
-        noise += Noise3D(position * scale) * curWeight;
-        weight += curWeight;
-
-        scale *= 1.72531;
-    }
-    return noise / weight;
-}
+#include "VFXParticleStripCommon.hlsl"
