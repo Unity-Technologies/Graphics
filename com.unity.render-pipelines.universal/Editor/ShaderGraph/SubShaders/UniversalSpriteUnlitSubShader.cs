@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 subShader.AddShaderChunk(tagsBuilder.ToString());
 
                 GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.SpriteUnlit, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalShaderGraphResources.s_Dependencies, UniversalMeshTarget.fieldDependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+                    UniversalMeshTarget.fieldDependencies);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

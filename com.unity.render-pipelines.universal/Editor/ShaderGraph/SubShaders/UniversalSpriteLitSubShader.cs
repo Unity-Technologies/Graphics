@@ -35,13 +35,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 subShader.AddShaderChunk(tagsBuilder.ToString());
 
                 GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.SpriteLit, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalShaderGraphResources.s_Dependencies, UniversalMeshTarget.fieldDependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+                    UniversalMeshTarget.fieldDependencies);
 
                 GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.SpriteNormal, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalShaderGraphResources.s_Dependencies, UniversalMeshTarget.fieldDependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+                    UniversalMeshTarget.fieldDependencies);
 
                 GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.SpriteForward, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalShaderGraphResources.s_Dependencies, UniversalMeshTarget.fieldDependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
+                    UniversalMeshTarget.fieldDependencies);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

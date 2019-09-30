@@ -42,8 +42,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 
-            ShaderGenerator result, List<string> sourceAssetDependencyPaths,
-            List<Dependency[]> dependencies, List<FieldDependency[]> fieldDependencies, string resourceClassName, string assemblyName)
+            ShaderGenerator result, List<string> sourceAssetDependencyPaths, List<FieldDependency[]> fieldDependencies)
         {
             // Early exit if pass is not used in preview
             if(mode == GenerationMode.Preview && !pass.useInPreview)
@@ -307,10 +306,6 @@ namespace UnityEditor.ShaderGraph
                 var vertexGraphFunctionBuilder = new ShaderStringBuilder();
                 var vertexGraphOutputBuilder = new ShaderStringBuilder();
 
-                // Build vertex graph inputs
-                //ShaderSpliceUtil.BuildType(GetTypeForStruct("VertexDescriptionInputs", resourceClassName, assemblyName), activeFields, vertexGraphInputGenerator, isDebug);
-                //GenerateShaderStruct(, activeFields, vertexGraphInputGenerator);
-
                 // Build vertex graph outputs
                 // Add struct fields to active fields
                 SubShaderGenerator.GenerateVertexDescriptionStruct(vertexGraphOutputBuilder, vertexSlots, vertexGraphOutputName, activeFields.baseInstance);
@@ -354,9 +349,6 @@ namespace UnityEditor.ShaderGraph
             var pixelGraphInputGenerator = new ShaderGenerator();
             var pixelGraphOutputBuilder = new ShaderStringBuilder();
             var pixelGraphFunctionBuilder = new ShaderStringBuilder();
-
-            // Build pixel graph inputs
-            //ShaderSpliceUtil.BuildType(GetTypeForStruct("SurfaceDescriptionInputs", resourceClassName, assemblyName), activeFields, pixelGraphInputGenerator, isDebug);
 
             // Build pixel graph outputs
             // Add struct fields to active fields
@@ -583,18 +575,12 @@ namespace UnityEditor.ShaderGraph
             
             // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands, 
-                isDebug, sharedTemplateDirectory, sourceAssetDependencyPaths, assemblyName, resourceClassName);
+                isDebug, sharedTemplateDirectory, sourceAssetDependencyPaths);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
             return true;
         }
 
-        public static Type GetTypeForStruct(string structName, string resourceClassName, string assemblyName)
-        {
-            // 'C# qualified assembly type names' for $buildType() commands
-            string assemblyQualifiedTypeName = $"{resourceClassName}+{structName}, {assemblyName}";
-            return Type.GetType(assemblyQualifiedTypeName);
-        }
         static bool IsFieldActive(IField field, IActiveFields activeFields, bool isOptional)
         {
             bool fieldActive = true;

@@ -48,8 +48,6 @@ namespace UnityEditor.ShaderGraph
             Dictionary<string, string> namedFragments;
             string templatePath;
             bool isDebug;
-            string assemblyName;
-            string resourceClassName;
 
             // intermediates
             HashSet<string> includedFiles;
@@ -58,15 +56,13 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder result;
             List<string> sourceAssetDependencyPaths;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string templatePath, List<string> sourceAssetDependencyPaths, string assemblyName, string resourceClassName, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string templatePath, List<string> sourceAssetDependencyPaths, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
                 this.templatePath = templatePath;
                 this.sourceAssetDependencyPaths = sourceAssetDependencyPaths;
-                this.assemblyName = assemblyName;
-                this.resourceClassName = resourceClassName;
                 this.result = outShaderCodeResult ?? new ShaderStringBuilder();
                 includedFiles = new HashSet<string>();
             }
@@ -295,34 +291,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
                 return true;
-            }
-
-            private void ProcessBuildTypeCommand(Token command, int endLine)
-            {
-                if (Expect(command.s, command.end, '('))
-                {
-                    Token param = ParseUntil(command.s, command.end + 1, endLine, ')');
-                    if (!param.IsValid())
-                    {
-                        Error("ERROR: buildType command is missing a ')'", command.s, command.start);
-                    }
-                    else
-                    {
-                        string typeName = param.GetString();
-                        Type type = GenerationUtils.GetTypeForStruct(typeName, resourceClassName, assemblyName);
-                        if (type == null)
-                        {
-                            Error("ERROR: buildType could not find type : " + typeName, command.s, param.start);
-                        }
-                        else
-                        {
-                            ShaderGenerator temp = new ShaderGenerator();
-                            temp.Indent();
-                            temp.AddShaderChunk("// Generated Type: " + typeName);
-                            result.AppendLine(temp.GetShaderString(0, false));
-                        }
-                    }
-                }
             }
 
             private bool ProcessPredicate(Token predicate, int endLine, ref int cur, ref bool appendEndln)
