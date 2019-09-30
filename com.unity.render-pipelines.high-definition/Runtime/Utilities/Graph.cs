@@ -224,34 +224,45 @@ namespace UnityEditor.Rendering.HighDefinition
     /// This list grows its backend array when items are pushed.
     /// </summary>
     /// <typeparam name="T">Type of the array's item.</typeparam>
-    public struct ArrayList<T>
-        where T: struct
+    static class ArrayList
     {
-        // Use a class to store the array information on the heap
-        // So we can safely copy the ArrayList struct and still point
-        // to the same data.
-        class Data
+        internal unsafe struct Data
         {
             public int count;
-            public T[] storage;
+            public int length;
+            public void* storage;
         }
+    }
 
+    public unsafe struct ArrayList<T, A>
+        where T: struct
+        where A: IMemoryAllocator
+    {
         const float GrowFactor = 2.0f;
 
-        Data m_Data;
+        ArrayList.Data* m_Data;
+        A m_Allocator;
 
-        Data data => m_Data ?? (m_Data = new Data());
-
-        ReadOnlySpan<T> span => new ReadOnlySpan<T>(data.storage);
-        Span<T> spanMut => new Span<T>(data.storage);
+        ReadOnlySpan<T> span => new ReadOnlySpan<T>(m_Data->storage, m_Data->count);
+        Span<T> spanMut => new Span<T>(m_Data->storage, m_Data->count);
 
         /// <summary>Number of item in the list.</summary>
-        public int count => data.count;
+        public int count => m_Data->count;
 
         /// <summary>Iterate over the values of the list by reference.</summary>
-        public ArrayListRefEnumerator<T> values => new ArrayListRefEnumerator<T>(this);
+        public ArrayListRefEnumerator<T, A> values => new ArrayListRefEnumerator<T, A>(this);
         /// <summary>Iterate over the values of the list by mutable reference.</summary>
-        public ArrayListMutEnumerator<T> valuesMut => new ArrayListMutEnumerator<T>(this);
+        public ArrayListMutEnumerator<T, A> valuesMut => new ArrayListMutEnumerator<T, A>(this);
+
+        public ArrayList(A allocator)
+        {
+            m_Allocator = allocator;
+
+            m_Data = allocator.Allocate<ArrayList.Data, A>();
+            m_Data->storage = null;
+            m_Data->count = 0;
+            m_Data->length = 0;
+        }
 
         /// <summary>
         /// Add a value to the list.
@@ -262,12 +273,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The index of the added value.</returns>
         public int Add(in T value)
         {
-            var index = data.count;
-            data.count++;
+            var index = m_Data->count;
+            m_Data->count++;
 
-            unsafe { GrowIfRequiredFor(data.count); }
+            unsafe { GrowIfRequiredFor(m_Data->count); }
 
-            data.storage[index] = value;
+            spanMut[index] = value;
             return index;
         }
 
@@ -287,7 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <exception cref="ArgumentOutOfRangeException">When <paramref name="index"/> is out of bounds.</exception>
         public ref readonly T Get(int index)
         {
-            if (index < 0 || index >= data.count)
+            if (index < 0 || index >= m_Data->count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
             unsafe { return ref GetUnsafe(index); }
@@ -309,7 +320,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <exception cref="ArgumentOutOfRangeException">When <paramref name="index"/> is out of bounds.</exception>
         public ref T GetMut(int index)
         {
-            if (index < 0 || index >= data.count)
+            if (index < 0 || index >= m_Data->count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
             unsafe { return ref GetMutUnsafe(index); }
@@ -325,8 +336,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public unsafe void RemoveSwapBackAtUnsafe(int index)
         {
             var spanMut = this.spanMut;
-            spanMut[index] = spanMut[data.count - 1];
-            data.count--;
+            spanMut[index] = spanMut[m_Data->count - 1];
+            m_Data->count--;
         }
 
         /// <summary>/// Removes an item by copying the last entry at <paramref name="index"/> position.</summary>
@@ -334,10 +345,20 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of bounds.</exception>
         public void RemoveSwapBackAt(int index)
         {
-            if (index < 0 || index >= data.count)
+            if (index < 0 || index >= m_Data->count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
             unsafe { RemoveSwapBackAtUnsafe(index); }
+        }
+
+        /// <summary>
+        /// Grow the capacity of the current array.
+        /// </summary>
+        /// <param name="size">the capacity to reach.</param>
+        public void GrowCapacity(int size)
+        {
+            if (size > m_Data->length)
+                GrowIfRequiredFor(size);
         }
 
         /// <summary>
@@ -353,15 +374,20 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Assert.IsTrue(size > 0);
 
-            if (data.storage == null)
-                data.storage = new T[size];
-            else if (data.storage.Length < size)
+            if (m_Data->storage == null)
             {
-                var nextSize = (float)data.storage.Length;
+                m_Data->storage = m_Allocator.Allocate((ulong)Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<T>() * (ulong)size);
+                m_Data->length = size;
+            }
+            else if (m_Data->length < size)
+            {
+                var nextSize = (float)m_Data->length;
                 while (nextSize < size)
                     nextSize *= GrowFactor;
 
-                Array.Resize(ref data.storage, (int)nextSize + 1);
+                var byteSize = (ulong)Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<T>() * (ulong)nextSize;
+
+                m_Allocator.Reallocate(m_Data->storage, byteSize);
             }
         }
     }
@@ -370,18 +396,19 @@ namespace UnityEditor.Rendering.HighDefinition
     /// EXPERIMENTAL: An enumerator by reference over a <see cref="ArrayList{T}"/>.
     /// </summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
-    public struct ArrayListRefEnumerator<T> : IRefEnumerator<T>
+    public struct ArrayListRefEnumerator<T, A> : IRefEnumerator<T>
         where T : struct
+        where A : IMemoryAllocator
     {
         class Data
         {
-            public ArrayList<T> source;
+            public ArrayList<T, A> source;
             public int index;
         }
 
         Data m_Data;
 
-        public ArrayListRefEnumerator(ArrayList<T> source)
+        public ArrayListRefEnumerator(ArrayList<T, A> source)
         {
             m_Data = new Data
             {
@@ -429,18 +456,19 @@ namespace UnityEditor.Rendering.HighDefinition
     /// EXPERIMENTAL: An enumerator by mutable reference over a <see cref="ArrayList{T}"/>.
     /// </summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
-    public struct ArrayListMutEnumerator<T> : IMutEnumerator<T>
+    public struct ArrayListMutEnumerator<T, A> : IMutEnumerator<T>
         where T : struct
+        where A : IMemoryAllocator
     {
         class Data
         {
-            public ArrayList<T> source;
+            public ArrayList<T, A> source;
             public int index;
         }
 
         Data m_Data;
 
-        public ArrayListMutEnumerator(ArrayList<T> source)
+        public ArrayListMutEnumerator(ArrayList<T, A> source)
         {
             m_Data = new Data
             {
@@ -513,6 +541,14 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="pointer">The address that was allocated.</param>
         void Deallocate(void* pointer);
+    }
+
+    public unsafe static class AllocatorUtilities
+    {
+        public static T* Allocate<T, A>(this A allocator)
+            where T: unmanaged
+            where A : IMemoryAllocator
+            => (T*)allocator.Allocate((ulong)sizeof(T));
     }
 
     public static class MemoryUtilities
@@ -588,7 +624,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var requiredAllocationByteSize = MemoryUtilities.Pad(byteSize, k_MemoryPadding) + k_PaddedHeaderSize;
 
             // Check for out of memory
-            if (requiredAllocationByteSize < (ulong)bytesLeft)
+            if (requiredAllocationByteSize > (ulong)bytesLeft)
                 throw new Exception($"Out of memory, required {requiredAllocationByteSize}," +
                                     $" but only {bytesLeft} bytes are remaining.");
 

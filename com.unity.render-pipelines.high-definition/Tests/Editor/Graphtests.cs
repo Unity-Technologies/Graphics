@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     using Is = UnityEngine.TestTools.Constraints.Is;
 
-    class ArrayListTests
+    unsafe class ArrayListTests
     {
         static object[] k_ArrayListRefEnumerate =
         {
@@ -20,9 +20,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test, TestCaseSource(nameof(k_ArrayListRefEnumerate))]
         public void Values_Works(List<int> list)
         {
+            var buffer = stackalloc byte[1024];
+            var alloc = new FixedAllocator(buffer, 1024);
+
             Assert.That(() =>
             {
-                var arraylist = new ArrayList<int>();
+                var arraylist = new ArrayList<int, FixedAllocator>(alloc);
+                arraylist.GrowCapacity(list.Count);
                 foreach (var i in list)
                     arraylist.Add(i);
 
@@ -41,9 +45,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test, TestCaseSource(nameof(k_ArrayListRefEnumerate))]
         public void ValuesMut_Works(List<int> list)
         {
+            var buffer = stackalloc byte[1024];
+            var alloc = new FixedAllocator(buffer, 1024);
+
             Assert.That(() =>
             {
-                var arraylist = new ArrayList<int>();
+                var arraylist = new ArrayList<int, FixedAllocator>(alloc);
+                arraylist.GrowCapacity(list.Count);
                 foreach (var i in list)
                     arraylist.Add(i);
 
@@ -70,9 +78,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test, TestCaseSource(nameof(k_ArrayListRefEnumerate))]
         public void Get_Works(List<int> list)
         {
+            var buffer = stackalloc byte[1024];
+            var alloc = new FixedAllocator(buffer, 1024);
+
             Assert.That(() =>
             {
-                var arraylist = new ArrayList<int>();
+                var arraylist = new ArrayList<int, FixedAllocator>(alloc);
+                arraylist.GrowCapacity(list.Count);
                 foreach (var i in list)
                     arraylist.Add(i);
 
@@ -102,17 +114,22 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test, TestCaseSource(nameof(k_ArrayListRefEnumerate))]
         public void RemoveSwapBack_Works(List<int> list)
         {
+            var buffer = stackalloc byte[1024];
+            var alloc = new FixedAllocator(buffer, 1024);
+
             Assert.That(() =>
             {
                 for (var i = 0; i < list.Count; ++i)
                 {
                     var copy = new List<int>(list);
 
-                    var arrayList = new ArrayList<int>();
+                    var arrayList = new ArrayList<int, FixedAllocator>(alloc);
+                    arrayList.GrowCapacity(list.Count);
                     foreach (var v in list)
                         arrayList.Add(v);
 
-                    var arrayListUnsafe = new ArrayList<int>();
+                    var arrayListUnsafe = new ArrayList<int, FixedAllocator>(alloc);
+                    arrayListUnsafe.GrowCapacity(list.Count);
                     foreach (var v in list)
                         arrayListUnsafe.Add(v);
 
@@ -140,7 +157,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     }
                 }
 
-                var arraylist = new ArrayList<int>();
+                var arraylist = new ArrayList<int, FixedAllocator>(alloc);
+                arraylist.GrowCapacity(list.Count);
                 foreach (var i in list)
                     arraylist.Add(i);
 
