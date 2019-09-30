@@ -7,13 +7,7 @@ Pass
     }
 
     // Render State
-    $splice(Blending)
-    $splice(BlendingOp)
-    $splice(Culling)
-    $splice(ZTest)
-    $splice(ZWrite)
-    $splice(Stencil)
-    $splice(ColorMask)
+    $splice(RenderState)
 
     HLSLPROGRAM
     #pragma vertex Vert
@@ -33,7 +27,7 @@ Pass
     $splice(GraphKeywords)
 
     // Defines
-    $Material.SpecularColor:                #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
+    $SpecularSetup:                         #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
     $AlphaTest:                             #define _ALPHATEST 1
     $SurfaceType.Transparent:               #define _SURFACE_TYPE_TRANSPARENT 1
     $BlendMode.Alpha:                       #define _BLENDMODE_ALPHA 1

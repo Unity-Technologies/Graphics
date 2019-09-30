@@ -943,7 +943,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 
                 // Structs
                 new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDRPMeshTarget.Passes.HDLitMotionVectors)),
+                                                                                        !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
                 
                 // Material
                 new ConditionalField(HDRPShaderGraphFields.Anisotropy,                  materialType == MaterialType.Anisotropy),
@@ -969,9 +969,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Double Sided
                 new ConditionalField(HDRPShaderGraphFields.DoubleSided,                 doubleSidedMode != DoubleSidedMode.Disabled),
                 new ConditionalField(HDRPShaderGraphFields.DoubleSidedFlip,             doubleSidedMode == DoubleSidedMode.FlippedNormals &&
-                                                                                        !pass.Equals(HDRPMeshTarget.Passes.HDLitMotionVectors)),
+                                                                                        !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
                 new ConditionalField(HDRPShaderGraphFields.DoubleSidedMirror,           doubleSidedMode == DoubleSidedMode.MirroredNormals &&
-                                                                                        !pass.Equals(HDRPMeshTarget.Passes.HDLitMotionVectors)),
+                                                                                        !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
 
                 // Specular Occlusion
                 new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionFromAO,     specularOcclusionMode == SpecularOcclusionMode.FromAO),

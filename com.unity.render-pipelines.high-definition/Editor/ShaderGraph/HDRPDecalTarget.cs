@@ -10,8 +10,8 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDRPDecalTarget : ITargetVariant<MeshTarget>
     {
         public string displayName => "HDRP";
-        public string passTemplatePath => string.Empty;
-        public string sharedTemplateDirectory => string.Empty;
+        public string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
+        public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph";
 
         public bool Validate(RenderPipelineAsset pipelineAsset)
         {
@@ -31,18 +31,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        readonly static string[] s_ColorMasks = new string[8]
-        {
-            "ColorMask 0 2 ColorMask 0 3",      // nothing
-            "ColorMask R 2 ColorMask R 3",      // metal
-            "ColorMask G 2 ColorMask G 3",      // AO
-            "ColorMask RG 2 ColorMask RG 3",    // metal + AO
-            "ColorMask BA 2 ColorMask 0 3",     // smoothness
-            "ColorMask RBA 2 ColorMask R 3",    // metal + smoothness
-            "ColorMask GBA 2 ColorMask G 3",    // AO + smoothness
-            "ColorMask RGBA 2 ColorMask RG 3",  // metal + AO + smoothness
-        };
-
 #region Passes
         public static class Passes
         {
@@ -58,62 +46,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = new List<int>()
-                {
-                    DecalMasterNode.AlbedoSlotId,
-                    DecalMasterNode.BaseColorOpacitySlotId,
-                    DecalMasterNode.NormalSlotId,
-                    DecalMasterNode.NormaOpacitySlotId,
-                    DecalMasterNode.MetallicSlotId,
-                    DecalMasterNode.AmbientOcclusionSlotId,
-                    DecalMasterNode.SmoothnessSlotId,
-                    DecalMasterNode.MAOSOpacitySlotId,
-                },
+                pixelPorts = PixelPorts.Default,
 
-                // Render state overrides
-                renderStateOverrides = new RenderStateOverride[]
-                {
-                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha", 0),
-                    RenderStateOverride.Cull(Cull.Front, 0),
-                    RenderStateOverride.ZTest(ZTest.Greater, 0),
-                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
-                    RenderStateOverride.ColorMask(s_ColorMasks[4], 0),
-                    RenderStateOverride.Stencil(new Stencil()
-                    {
-                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Comp = "Always",
-                        Pass = "Replace",
-                    }, 0),
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing"
-                },
-                defines = new List<string>()
-                {
-                    "DECALS_3RT",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl",
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+                // Conditional State
+                renderStates = RenderStates.Projector3RT,
+                pragmas = Pragmas.Instanced,
+                defines = Defines.Decals3RT,
+                includes = Includes.Default,
             };
 
             public static ShaderPass Projector4RT = new ShaderPass()
@@ -126,71 +65,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = new List<int>()
-                {
-                    DecalMasterNode.AlbedoSlotId,
-                    DecalMasterNode.BaseColorOpacitySlotId,
-                    DecalMasterNode.NormalSlotId,
-                    DecalMasterNode.NormaOpacitySlotId,
-                    DecalMasterNode.MetallicSlotId,
-                    DecalMasterNode.AmbientOcclusionSlotId,
-                    DecalMasterNode.SmoothnessSlotId,
-                    DecalMasterNode.MAOSOpacitySlotId,
-                },
+                pixelPorts = PixelPorts.Default,
 
-                // Render state overrides
-                renderStateOverrides = new RenderStateOverride[]
-                {
-                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor", 0),
-                    RenderStateOverride.Cull(Cull.Front, 0),
-                    RenderStateOverride.ZTest(ZTest.Greater, 0),
-                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
-                    RenderStateOverride.ColorMask(s_ColorMasks[0], 0),
-                    RenderStateOverride.Stencil(new Stencil()
-                    {
-                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Comp = "Always",
-                        Pass = "Replace",
-                    }, 0),
-
-                    // Affects Channel Overrides
-                    RenderStateOverride.ColorMask(s_ColorMasks[1], 1, new IField[] { HDRPShaderGraphFields.AffectsMetal }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[2], 1, new IField[] { HDRPShaderGraphFields.AffectsAO }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[4], 1, new IField[] { HDRPShaderGraphFields.AffectsSmoothness }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[3], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[5], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsSmoothness }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[6], 2, new IField[] { HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[7], 3, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing"
-                },
-                defines = new List<string>()
-                {
-                    "DECALS_4RT",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl",
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+                // Conditional State
+                renderStates = RenderStates.Projector4RT,
+                pragmas = Pragmas.Instanced,
+                defines = Defines.Decals4RT,
+                includes = Includes.Default,
             };
 
             public static ShaderPass ProjectorEmissive = new ShaderPass()
@@ -203,43 +84,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = new List<int>()
-                {
-                    DecalMasterNode.EmissionSlotId
-                },
+                pixelPorts = PixelPorts.Emissive,
 
-                // Render state overrides
-                renderStateOverrides = new RenderStateOverride[]
-                {
-                    RenderStateOverride.Blend("Blend 0 SrcAlpha One", 0),
-                    RenderStateOverride.Cull(Cull.Front, 0),
-                    RenderStateOverride.ZTest(ZTest.Greater, 0),
-                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
-                },
-
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing"
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl",
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+                // Conditional State
+                renderStates = RenderStates.ProjectorEmissive,
+                pragmas = Pragmas.Instanced,
+                includes = Includes.Default,
             };
 
             public static ShaderPass Mesh3RT = new ShaderPass()
@@ -252,75 +102,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = new List<int>()
-                {
-                    DecalMasterNode.AlbedoSlotId,
-                    DecalMasterNode.BaseColorOpacitySlotId,
-                    DecalMasterNode.NormalSlotId,
-                    DecalMasterNode.NormaOpacitySlotId,
-                    DecalMasterNode.MetallicSlotId,
-                    DecalMasterNode.AmbientOcclusionSlotId,
-                    DecalMasterNode.SmoothnessSlotId,
-                    DecalMasterNode.MAOSOpacitySlotId,
-                },
-
-                // Render state overrides
-                renderStateOverrides = new RenderStateOverride[]
-                {
-                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha", 0),
-                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
-                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
-                    RenderStateOverride.ColorMask(s_ColorMasks[4], 0),
-                    RenderStateOverride.Stencil(new Stencil()
-                    {
-                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Comp = "Always",
-                        Pass = "Replace",
-                    }, 0),
-                },
+                pixelPorts = PixelPorts.Default,
 
                 // Required fields
-                requiredAttributes = new List<string>()
-                {
-                    "AttributesMesh.normalOS",
-                    "AttributesMesh.tangentOS",
-                    "AttributesMesh.uv0",
-                },
-                requiredVaryings = new List<string>()
-                {
-                    "FragInputs.tangentToWorld",
-                    "FragInputs.positionRWS",
-                    "FragInputs.texCoord0",
-                },
+                requiredFields = RequiredFields.Mesh,
 
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing"
-                },
-                defines = new List<string>()
-                {
-                    "DECALS_3RT",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl",
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+                // Conditional State
+                renderStates = RenderStates.Mesh3RT,
+                pragmas = Pragmas.Instanced,
+                defines = Defines.Decals3RT,
+                includes = Includes.Default,
             };
 
             public static ShaderPass Mesh4RT = new ShaderPass()
@@ -333,84 +124,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = new List<int>()
-                {
-                    DecalMasterNode.AlbedoSlotId,
-                    DecalMasterNode.BaseColorOpacitySlotId,
-                    DecalMasterNode.NormalSlotId,
-                    DecalMasterNode.NormaOpacitySlotId,
-                    DecalMasterNode.MetallicSlotId,
-                    DecalMasterNode.AmbientOcclusionSlotId,
-                    DecalMasterNode.SmoothnessSlotId,
-                    DecalMasterNode.MAOSOpacitySlotId,
-                },
-
-                // Render state overrides
-                renderStateOverrides = new RenderStateOverride[]
-                {
-                    RenderStateOverride.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor", 0),
-                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
-                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
-                    RenderStateOverride.ColorMask(s_ColorMasks[0], 0),
-                    RenderStateOverride.Stencil(new Stencil()
-                    {
-                        WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
-                        Comp = "Always",
-                        Pass = "Replace",
-                    }, 0),
-
-                    // Affects Channel Overrides
-                    RenderStateOverride.ColorMask(s_ColorMasks[1], 1, new IField[] { HDRPShaderGraphFields.AffectsMetal }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[2], 1, new IField[] { HDRPShaderGraphFields.AffectsAO }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[4], 1, new IField[] { HDRPShaderGraphFields.AffectsSmoothness }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[3], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[5], 2, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsSmoothness }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[6], 2, new IField[] { HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
-                    RenderStateOverride.ColorMask(s_ColorMasks[7], 3, new IField[] { HDRPShaderGraphFields.AffectsMetal, HDRPShaderGraphFields.AffectsAO, HDRPShaderGraphFields.AffectsSmoothness }),
-                },
+                pixelPorts = PixelPorts.Default,
 
                 // Required fields
-                requiredAttributes = new List<string>()
-                {
-                    "AttributesMesh.normalOS",
-                    "AttributesMesh.tangentOS",
-                    "AttributesMesh.uv0",
-                },
-                requiredVaryings = new List<string>()
-                {
-                    "FragInputs.tangentToWorld",
-                    "FragInputs.positionRWS",
-                    "FragInputs.texCoord0",
-                },
+                requiredFields = RequiredFields.Mesh,
 
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing"
-                },
-                defines = new List<string>()
-                {
-                    "DECALS_4RT",
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl",
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+                // Conditional State
+                renderStates = RenderStates.Mesh4RT,
+                pragmas = Pragmas.Instanced,
+                defines = Defines.Decals4RT,
+                includes = Includes.Default,
             };
 
             public static ShaderPass MeshEmissive = new ShaderPass()
@@ -423,64 +146,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 useInPreview = false,
 
                 // Port mask
-                pixelPorts = new List<int>()
-                {
-                    DecalMasterNode.AlbedoSlotId,
-                    DecalMasterNode.BaseColorOpacitySlotId,
-                    DecalMasterNode.NormalSlotId,
-                    DecalMasterNode.NormaOpacitySlotId,
-                    DecalMasterNode.MetallicSlotId,
-                    DecalMasterNode.AmbientOcclusionSlotId,
-                    DecalMasterNode.SmoothnessSlotId,
-                    DecalMasterNode.MAOSOpacitySlotId,
-                    DecalMasterNode.EmissionSlotId,
-                },
-
-                // Render state overrides
-                renderStateOverrides = new RenderStateOverride[]
-                {
-                    RenderStateOverride.Blend("Blend 0 SrcAlpha One", 0),
-                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
-                    RenderStateOverride.ZWrite(ZWrite.Off, 0),
-                },
+                pixelPorts = PixelPorts.MeshEmissive,
 
                 // Required fields
-                requiredAttributes = new List<string>()
-                {
-                    "AttributesMesh.normalOS",
-                    "AttributesMesh.tangentOS",
-                    "AttributesMesh.uv0",
-                },
-                requiredVaryings = new List<string>()
-                {
-                    "FragInputs.tangentToWorld",
-                    "FragInputs.positionRWS",
-                    "FragInputs.texCoord0",
-                },
+                requiredFields = RequiredFields.Mesh,
 
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing"
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl",
-                },
-
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+                // Conditional State
+                renderStates = RenderStates.MeshEmissive, 
+                pragmas = Pragmas.Instanced,
+                includes = Includes.Default,
             };
 
             public static ShaderPass Preview = new ShaderPass()
@@ -493,62 +167,298 @@ namespace UnityEditor.Rendering.HighDefinition
                 useInPreview = true,
 
                 // Port mask
-                pixelPorts = new List<int>()
-                {
-                    DecalMasterNode.AlbedoSlotId,
-                    DecalMasterNode.BaseColorOpacitySlotId,
-                    DecalMasterNode.NormalSlotId,
-                    DecalMasterNode.NormaOpacitySlotId,
-                    DecalMasterNode.MetallicSlotId,
-                    DecalMasterNode.AmbientOcclusionSlotId,
-                    DecalMasterNode.SmoothnessSlotId,
-                    DecalMasterNode.MAOSOpacitySlotId,
-                    DecalMasterNode.EmissionSlotId,
-                },
-
-                // Render state overrides
-                renderStateOverrides = new RenderStateOverride[]
-                {
-                    RenderStateOverride.ZTest(ZTest.LEqual, 0),
-                },
+                pixelPorts = PixelPorts.MeshEmissive,
 
                 // Required fields
-                requiredAttributes = new List<string>()
-                {
-                    "AttributesMesh.normalOS",
-                    "AttributesMesh.tangentOS",
-                    "AttributesMesh.uv0",
-                },
-                requiredVaryings = new List<string>()
-                {
-                    "FragInputs.tangentToWorld",
-                    "FragInputs.positionRWS",
-                    "FragInputs.texCoord0",
-                },
+                requiredFields = RequiredFields.Mesh,
 
-                // Pass setup
-                pragmas = new List<string>()
-                {
-                    "#pragma target 4.5",
-                    "only_renderers d3d11 ps4 xboxone vulkan metal switch",
-                    "multi_compile_instancing"
-                },
-                includes = new List<string>()
-                {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
-                    "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl",
-                },
+                // Render state overrides
+                renderStates = RenderStates.Preview,
+                pragmas = Pragmas.Instanced,
+                includes = Includes.Default,
+            };
+        }
+#endregion
 
-                // Custom template
-                passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template",
-                sharedTemplateDirectory = $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph",
+#region PortMasks
+        static class PixelPorts
+        {
+            public static int[] Default = new int[]
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+            };
+
+            public static int[] Emissive = new int[]
+            {
+                DecalMasterNode.EmissionSlotId
+            };
+
+            public static int[] MeshEmissive = new int[]
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+                DecalMasterNode.EmissionSlotId,
+            };
+        }
+#endregion
+
+#region RequiredFields
+        static class RequiredFields
+        {
+            public static string[] Mesh = new string[]
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",
+                "AttributesMesh.uv0",
+                "FragInputs.tangentToWorld",
+                "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+            };
+        }
+#endregion
+
+#region RenderStates
+        static class RenderStates
+        {
+            readonly static string[] s_ColorMasks = new string[8]
+            {
+                "ColorMask 0 2 ColorMask 0 3",      // nothing
+                "ColorMask R 2 ColorMask R 3",      // metal
+                "ColorMask G 2 ColorMask G 3",      // AO
+                "ColorMask RG 2 ColorMask RG 3",    // metal + AO
+                "ColorMask BA 2 ColorMask 0 3",     // smoothness
+                "ColorMask RBA 2 ColorMask R 3",    // metal + smoothness
+                "ColorMask GBA 2 ColorMask G 3",    // AO + smoothness
+                "ColorMask RGBA 2 ColorMask RG 3",  // metal + AO + smoothness
+            };
+
+            public static ConditionalRenderState[] Projector3RT = new ConditionalRenderState[]
+            {
+                new ConditionalRenderState(RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha")),
+                new ConditionalRenderState(RenderState.Cull(Cull.Front)),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.Greater)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[4])),
+                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                {
+                    WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Comp = "Always",
+                    Pass = "Replace",
+                })),
+            };
+
+            public static ConditionalRenderState[] Projector4RT = new ConditionalRenderState[]
+            {
+                new ConditionalRenderState(RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor")),
+                new ConditionalRenderState(RenderState.Cull(Cull.Front)),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.Greater)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
+                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                {
+                    WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Comp = "Always",
+                    Pass = "Replace",
+                })),
+
+                // ColorMask per Affects Channel
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[0]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[1]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[2]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[3]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[4]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[5]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[6]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[7]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+            };
+
+            public static ConditionalRenderState[] ProjectorEmissive = new ConditionalRenderState[]
+            {
+                new ConditionalRenderState(RenderState.Blend("Blend 0 SrcAlpha One")),
+                new ConditionalRenderState(RenderState.Cull(Cull.Front)),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.Greater)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
+            };
+
+            public static ConditionalRenderState[] Mesh3RT = new ConditionalRenderState[]
+            {
+                new ConditionalRenderState(RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha")),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[4])),
+                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                {
+                    WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Comp = "Always",
+                    Pass = "Replace",
+                })),
+            };
+
+            public static ConditionalRenderState[] Mesh4RT = new ConditionalRenderState[]
+            {
+                new ConditionalRenderState(RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor")),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
+                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                {
+                    WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
+                    Comp = "Always",
+                    Pass = "Replace",
+                })),
+                
+                // ColorMask per Affects Channel
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[0]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[1]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[2]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[3]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, false) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[4]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[5]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[6]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, false), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+                new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[7]), new FieldCondition[] { 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsMetal, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsAO, true), 
+                    new FieldCondition(HDRPShaderGraphFields.AffectsSmoothness, true) }),
+            };
+
+            public static ConditionalRenderState[] MeshEmissive = new ConditionalRenderState[]
+            {
+                new ConditionalRenderState(RenderState.Blend("Blend 0 SrcAlpha One")),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
+            };
+
+            public static ConditionalRenderState[] Preview = new ConditionalRenderState[]
+            {
+                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
+            };
+        }
+#endregion
+
+#region Pragmas
+        static class Pragmas
+        {
+            public static ConditionalPragma[] Instanced = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
+            };
+        }
+#endregion
+
+#region Defines
+        static class Defines
+        {
+            public static ConditionalDefine[] Decals3RT = new ConditionalDefine[]
+            {
+                new ConditionalDefine(KeywordDescriptors.Decals3RT, 1),
+            };
+
+            public static ConditionalDefine[] Decals4RT = new ConditionalDefine[]
+            {
+                new ConditionalDefine(KeywordDescriptors.Decals4RT, 1),
+            };
+        }
+#endregion
+
+#region Includes
+        static class Includes
+        {
+            public static ConditionalInclude[] Default = new ConditionalInclude[]
+            {
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl")),
+            };
+        }
+#endregion
+
+#region KeywordDescriptors
+        static class KeywordDescriptors
+        {
+            public static KeywordDescriptor Decals3RT = new KeywordDescriptor()
+            {
+                displayName = "Decals 3RT",
+                referenceName = "DECALS_3RT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Global,
+            };
+
+            public static KeywordDescriptor Decals4RT = new KeywordDescriptor()
+            {
+                displayName = "Decals 4RT",
+                referenceName = "DECALS_4RT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Global,
             };
         }
 #endregion

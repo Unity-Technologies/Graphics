@@ -16,41 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if(mode == GenerationMode.Preview && !pass.useInPreview)
                 return false;
             
-            // Render state
-            if(pass.Equals(HDRPMeshTarget.Passes.HDLitDistortion))
-            {
-                if (masterNode.distortionDepthTest.isOn)
-                {
-                    pass.ZTestOverride = "ZTest LEqual";
-                }
-                else
-                {
-                    pass.ZTestOverride = "ZTest Always";
-                }
-                if (masterNode.distortionMode == DistortionMode.Add)
-                {
-                    pass.BlendOverride = "Blend One One, One One";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-                else if (masterNode.distortionMode == DistortionMode.Multiply)
-                {
-                    pass.BlendOverride = "Blend DstColor Zero, DstAlpha Zero";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-                else // (masterNode.distortionMode == DistortionMode.Replace)
-                {
-                    pass.BlendOverride = "Blend One Zero, One Zero";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-            }
-            else if(pass.Equals(HDRPMeshTarget.Passes.HDLitForwardOpaque) || pass.Equals(HDRPMeshTarget.Passes.HDLitForwardOpaque))
-            {
-                if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
-                {
-                    pass.ZTestOverride = "ZTest Equal";
-                }
-            }
-
             // Instancing options
             if (masterNode.dotsInstancing.isOn)
             {
@@ -72,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
             
             // Generate
-            return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
+            return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, result, sourceAssetDependencyPaths,
                 HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
         }
 
@@ -98,10 +63,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     subShader.AddShaderChunk("{", false);
                     subShader.Indent();
                     {
-                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitIndirect, mode, subShader, sourceAssetDependencyPaths);
-                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitVisibility, mode, subShader, sourceAssetDependencyPaths);
-                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitForward, mode, subShader, sourceAssetDependencyPaths);
-                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.Passes.HDLitGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.HDLitPasses.Indirect, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.HDLitPasses.Visibility, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.HDLitPasses.Forward, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPRaytracingMeshTarget.HDLitPasses.GBuffer, mode, subShader, sourceAssetDependencyPaths);
                     }
                     subShader.Deindent();
                     subShader.AddShaderChunk("}", false);
@@ -150,40 +115,33 @@ namespace UnityEditor.Rendering.HighDefinition
                     bool transparentDepthPrepassActive = !opaque && masterNode.alphaTestDepthPrepass.isOn;
                     bool transparentDepthPostpassActive = !opaque && masterNode.alphaTestDepthPostpass.isOn;
 
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitMETA, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitSceneSelection, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitDepthOnly, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitGBuffer, mode, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.META, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.DepthOnly, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.GBuffer, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                     if (distortionActive)
                     {
-                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitDistortion, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.DistortionVectors, mode, subShader, sourceAssetDependencyPaths);
                     }
 
                     if (transparentBackfaceActive)
                     {
-                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentBackface, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.TransparentBackface, mode, subShader, sourceAssetDependencyPaths);
                     }
 
-                    if(opaque)
-                    {
-                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitForwardOpaque, mode, subShader, sourceAssetDependencyPaths);
-                    }
-                    else
-                    {
-                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitForwardTransparent, mode, subShader, sourceAssetDependencyPaths);
-                    }
+                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.Forward, mode, subShader, sourceAssetDependencyPaths);
                     
                     if (transparentDepthPrepassActive)
                     {
-                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentDepthPrepass, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.TransparentDepthPrepass, mode, subShader, sourceAssetDependencyPaths);
                     }
 
                     if (transparentDepthPostpassActive)
                     {
-                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.HDLitTransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
+                        GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.HDLitPasses.TransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
                     }
                 }
                 subShader.Deindent();

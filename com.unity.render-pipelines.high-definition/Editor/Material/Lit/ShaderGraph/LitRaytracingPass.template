@@ -6,6 +6,9 @@ Pass
         $splice(LightMode)
     }
 
+    // Render State
+    $splice(RenderState)
+
     HLSLPROGRAM
     #pragma raytracing test
 

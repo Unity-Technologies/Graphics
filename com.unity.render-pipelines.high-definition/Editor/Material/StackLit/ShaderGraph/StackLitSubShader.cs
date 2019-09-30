@@ -12,54 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitSubShader")]
     class StackLitSubShader : ISubShader
     {
-        private static bool GenerateShaderPassLit(StackLitMasterNode masterNode, ITarget target, ShaderPass pass, GenerationMode mode, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
-        {
-            if(mode == GenerationMode.Preview && !pass.useInPreview)
-                return false;
-            
-            // Render state
-            if(pass.Equals(HDRPMeshTarget.Passes.StackLitDistortion))
-            {
-                if (masterNode.distortionDepthTest.isOn)
-                {
-                    pass.ZTestOverride = "ZTest LEqual";
-                }
-                else
-                {
-                    pass.ZTestOverride = "ZTest Always";
-                }
-                if (masterNode.distortionMode == DistortionMode.Add)
-                {
-                    pass.BlendOverride = "Blend One One, One One";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-                else if (masterNode.distortionMode == DistortionMode.Multiply)
-                {
-                    pass.BlendOverride = "Blend DstColor Zero, DstAlpha Zero";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-                else // (masterNode.distortionMode == DistortionMode.Replace)
-                {
-                    pass.BlendOverride = "Blend One Zero, One Zero";
-                    pass.BlendOpOverride = "BlendOp Add, Add";
-                }
-            }
-            else if(pass.Equals(HDRPMeshTarget.Passes.StackLitForwardOnlyOpaque) || pass.Equals(HDRPMeshTarget.Passes.StackLitForwardOnlyTransparent))
-            {
-                if (masterNode.surfaceType == SurfaceType.Opaque && masterNode.alphaTest.isOn)
-                {
-                    pass.ZTestOverride = "ZTest Equal";
-                }
-            }
-
-            // Active Fields
-            var activeFields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-            
-            // Generate
-            return GenerationUtils.GenerateShaderPass(masterNode, target, pass, mode, activeFields, result, sourceAssetDependencyPaths,
-                HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
-        }
-
         public string GetSubshader(AbstractMaterialNode outputNode, ITarget target, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
@@ -86,26 +38,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
                 bool distortionActive = !opaque && masterNode.distortion.isOn;
 
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitShadowCaster, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitMETA, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitSceneSelection, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitDepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitMotionVectors, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.META, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
 
                 if (distortionActive)
                 {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitDistortion, mode, subShader, sourceAssetDependencyPaths);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.Distortion, mode, subShader, sourceAssetDependencyPaths,
+                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
                 }
 
-                // Assign define here based on opaque or transparent to save some variant
-                if(opaque)
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitForwardOnlyOpaque, mode, subShader, sourceAssetDependencyPaths);
-                }
-                else
-                {
-                    GenerateShaderPassLit(masterNode, target, HDRPMeshTarget.Passes.StackLitForwardOnlyTransparent, mode, subShader, sourceAssetDependencyPaths);
-                }
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths,
+                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
             }
 
             subShader.Deindent();

@@ -680,9 +680,13 @@ namespace UnityEditor.Rendering.HighDefinition
                                                                                         IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
                 new ConditionalField(DefaultFields.GraphPixel,                          true),
                 
+                // Surface Type
+                new ConditionalField(DefaultFields.SurfaceOpaque,                       surfaceType == SurfaceType.Opaque),
+                new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
+                
                 // Structs
                 new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDRPMeshTarget.Passes.FabricMotionVectors)),
+                                                                                        !pass.Equals(HDRPMeshTarget.FabricPasses.MotionVectors)),
                 // Material
                 new ConditionalField(HDRPShaderGraphFields.CottonWool,                  materialType == MaterialType.CottonWool),
                 new ConditionalField(HDRPShaderGraphFields.Silk,                        materialType == MaterialType.Silk),
