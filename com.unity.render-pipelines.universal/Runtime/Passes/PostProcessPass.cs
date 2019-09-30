@@ -233,7 +233,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             void Swap() => CoreUtils.Swap(ref source, ref destination);
 
             // Optional NaN killer before post-processing kicks in
-            if (cameraData.isStopNaNEnabled)
+            // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
+            if (cameraData.isStopNaNEnabled && m_Materials.stopNaN != null)
             {
                 using (new ProfilingSample(cmd, "Stop NaN"))
                 {
@@ -1021,6 +1022,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (shader == null)
                 {
                     Debug.LogErrorFormat($"Missing shader. {GetType().DeclaringType.Name} render pass will not execute. Check for missing reference in the renderer resources.");
+                    return null;
+                }
+                else if (!shader.isSupported)
+                {
                     return null;
                 }
 
