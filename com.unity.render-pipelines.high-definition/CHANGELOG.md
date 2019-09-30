@@ -53,7 +53,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light and shadow layer sync when setting the HDAdditionalLightData.lightlayersMask property
 - Fixed a nullref when a custom post process component that was in the HDRP PP list is removed from the project
 - Fixed issue that prevented decals from modifying specular occlusion (case 1178272).
-- Fixed issue with rectangular area light when seen from the back
 - Fixed exposure of volumetric reprojection
 
 ### Changed
