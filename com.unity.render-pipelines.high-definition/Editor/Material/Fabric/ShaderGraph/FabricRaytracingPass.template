@@ -146,6 +146,10 @@ Pass
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
+        // specularOcclusion need to be init ahead of decal to quiet the compiler that modify the SurfaceData struct
+        // however specularOcclusion can come from the graph, so need to be init here so it can be override.
+        surfaceData.specularOcclusion = 1.0;
+
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:                     surfaceData.baseColor =                 surfaceDescription.Albedo;
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
@@ -203,8 +207,6 @@ Pass
         $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-        surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
-        
 #if HAVE_DECALS
         if (_EnableDecals)
         {
