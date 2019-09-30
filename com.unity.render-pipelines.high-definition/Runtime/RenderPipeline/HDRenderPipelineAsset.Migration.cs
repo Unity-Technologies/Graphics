@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddPostProcessFrameSettings,
             AddRayTracingFrameSettings,
             AddFrameSettingDirectSpecularLighting,
+            AddCustomPostprocessAndCustomPass,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -54,7 +55,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateToDirectSpecularLighting(ref data.m_RenderingPathDefaultCameraFrameSettings);
                 FrameSettings.MigrateToNoDirectSpecularLighting(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
                 FrameSettings.MigrateToDirectSpecularLighting(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
-            })            
+            }),
+            MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            })
         );
 
         [SerializeField]
