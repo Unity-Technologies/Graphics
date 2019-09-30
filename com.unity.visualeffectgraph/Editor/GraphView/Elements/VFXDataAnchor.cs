@@ -190,10 +190,12 @@ namespace UnityEditor.VFX.UI
 
             if (controller.expandedInHierachy)
             {
+                style.display = DisplayStyle.Flex;
                 RemoveFromClassList("hidden");
             }
             else
             {
+                style.display = DisplayStyle.None;
                 AddToClassList("hidden");
             }
 
