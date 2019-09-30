@@ -235,7 +235,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out instanceGenerator);
+                            GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlack();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
