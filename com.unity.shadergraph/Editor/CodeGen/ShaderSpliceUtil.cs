@@ -325,17 +325,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            private List<string> ActiveFieldstoString(IActiveFieldsSet activeFields)
-            {
-                List<string> fieldStrings = new List<string>();
-                foreach(var instance in activeFields.instances)
-                {
-                    foreach(var field in instance.fields)
-                        fieldStrings.Add(field.ToFieldString());
-                }
-                return fieldStrings;
-            }
-
             private bool ProcessPredicate(Token predicate, int endLine, ref int cur, ref bool appendEndln)
             {
                 // eval if(param)
@@ -344,30 +333,30 @@ namespace UnityEditor.ShaderGraph
 
                 if (!fieldName.StartsWith("features") && activeFields.permutationCount > 0)
                 {
-                    //var activeFieldStrings = ActiveFieldstoString(activeFields.allPermutations);
-                    //var passedPermutations = activeFieldStrings.Where(i => i.Contains(fieldName)).ToList();
-//
-                    //if (passedPermutations.Count > 0)
-                    //{
-                    //    var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
-                    //        passedPermutations.Select(i => i.permutationIndex).ToList()
-                    //    );
-                    //    result.AppendLine(ifdefs);
-                    //    //Append the rest of the line
-                    //    AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
-                    //    result.AppendLine("");
-                    //    result.AppendLine("#endif");
-//
-                    //    return false;
-                    //}
+                    var passedPermutations = activeFields.allPermutations.instances
+                        .Where(i => i.Contains(fieldName))
+                        .ToList();
+
+                    if (passedPermutations.Count > 0)
+                    {
+                        var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
+                            passedPermutations.Select(i => i.permutationIndex).ToList()
+                        );
+                        result.AppendLine(ifdefs);
+                        //Append the rest of the line
+                        AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
+                        result.AppendLine("");
+                        result.AppendLine("#endif");
+
+                        return false;
+                    }
 
                     return false;
                 }
                 else
                 {
                     // eval if(param)
-                    var activeFieldStrings = ActiveFieldstoString(activeFields.baseInstance);
-                    if (activeFieldStrings.Contains(fieldName))
+                    if (activeFields.baseInstance.Contains(fieldName))
                     {
                         // predicate is active
                         // append everything before the beginning of the escape sequence

@@ -8,4 +8,15 @@ namespace UnityEditor.ShaderGraph.Internal
         string name { get; }
         string define { get; }
     }
+
+    public static class FieldUtilities
+    {
+        public static string ToFieldString(this IField field)
+        {
+            if(!string.IsNullOrEmpty(field.tag))
+                return $"{field.tag}.{field.name}";
+            else
+                return field.name;
+        }
+    }    
 }

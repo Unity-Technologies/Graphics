@@ -41,14 +41,6 @@ namespace UnityEditor.ShaderGraph
             return activeFields;
         }
 
-        public static string ToFieldString(this IField field)
-        {
-            if(!string.IsNullOrEmpty(field.tag))
-                return $"{field.tag}.{field.name}";
-            else
-                return field.name;
-        }
-
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 
             ShaderGenerator result, List<string> sourceAssetDependencyPaths,
             List<Dependency[]> dependencies, List<FieldDependency[]> fieldDependencies, string resourceClassName, string assemblyName)

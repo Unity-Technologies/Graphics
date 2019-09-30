@@ -10,6 +10,7 @@ namespace Data.Util
 
         bool Add(IField field);
         bool Contains(IField field);
+        bool Contains(string value);
     }
 
     public interface IActiveFieldsSet: KeywordDependentCollection.ISet<IActiveFields>
@@ -52,6 +53,8 @@ namespace Data.Util
                 m_Source.baseStorage.Contains(field)
                 || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Contains(field);
 
+            public bool Contains(string value) => m_Source.baseStorage.Where(x => x.ToFieldString() == value).Any()
+                || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Where(x => x.ToFieldString() == value).Any();
             public void AddAll(IField field) => Add(field);
         }
 
@@ -72,7 +75,7 @@ namespace Data.Util
 
             public bool Add(IField field) => m_Source.baseStorage.Add(field);
             public bool Contains(IField field) => m_Source.baseStorage.Contains(field);
-
+            public bool Contains(string value) => m_Source.baseStorage.Where(x => x.ToFieldString() == value).Any();
             public void AddAll(IField field) => Add(field);
         }
 
@@ -148,7 +151,7 @@ namespace Data.Util
 
             public bool Add(IField field) => m_Source.baseInstance.Add(field);
             public bool Contains(IField field) => m_Source.baseStorage.Contains(field);
-
+            public bool Contains(string value) => m_Source.baseStorage.Where(x => x.ToFieldString() == value).Any();
             public void AddAll(IField field) => Add(field);
             public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
         }
