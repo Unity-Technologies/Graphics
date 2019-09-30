@@ -199,9 +199,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
             );
             area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
-                overridedDefaultValue: ScalableSetting.Level.Low,
-                customGetter: () => (ScalableSetting.Level)serialized.lodBiasQualityLevel.enumValueIndex,
-                customSetter: v => serialized.lodBiasQualityLevel.enumValueIndex = (int)v,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
+                customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
                 customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.LODBias,
@@ -218,9 +218,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
             );
             area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
-                overridedDefaultValue: ScalableSetting.Level.Low,
-                customGetter: () => (ScalableSetting.Level)serialized.maximumLODLevelQualityLevel.enumValueIndex,
-                customSetter: v => serialized.maximumLODLevelQualityLevel.enumValueIndex = (int)v,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
+                customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
                 customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
@@ -237,6 +237,15 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             area.Draw(withOverride);
+        }
+
+        // Use an enum to have appropriate UI enum field in the frame setting api
+        // Do not use anywhere else
+        enum ScalableLevel3ForFrameSettingsUIOnly
+        {
+            Low,
+            Medium,
+            High
         }
 
         static void Drawer_SectionLightingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
