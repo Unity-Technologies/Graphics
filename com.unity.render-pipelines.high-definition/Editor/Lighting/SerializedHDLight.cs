@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedScalableSettingValue contactShadows;
             public SerializedProperty shadowTint;
             public SerializedProperty shadowUpdateMode;
-            public SerializedShadowResolutionSettingValue shadowResolution;
+            public SerializedScalableSettingValue shadowResolution;
 
             // Bias control
             public SerializedProperty constantBias;
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow)),
                     shadowTint = o.Find("m_ShadowTint"),
                     shadowUpdateMode = o.Find("m_ShadowUpdateMode"),
-                    shadowResolution = new SerializedShadowResolutionSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),
+                    shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution)),
 
                     constantBias = o.Find("m_ConstantBias"),
                     normalBias = o.Find("m_NormalBias"),
@@ -184,6 +184,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void Update()
         {
+            // Case 1182968
+            // For some reasons, the is different cache is not updated while we actually have different
+            // values for shadowResolution.level
+            // So we force the update here as a workaround
+            serializedLightDatas.SetIsDifferentCacheDirty();
+
             serializedLightDatas.Update();
             settings.Update();
 
