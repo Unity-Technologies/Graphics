@@ -1061,7 +1061,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((diffusionProfileSlot.diffusionProfile) != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfileSlot.diffusionProfile))
             {
-                Debug.LogWarning($"Diffusion profile '{diffusionProfileSlot.diffusionProfile.name}' is not referenced in the current HDRP asset");
+                // Debug.LogWarning($"Diffusion profile '{diffusionProfileSlot.diffusionProfile.name}' is not referenced in the current HDRP asset");
             }
 
             base.ValidateNode();
