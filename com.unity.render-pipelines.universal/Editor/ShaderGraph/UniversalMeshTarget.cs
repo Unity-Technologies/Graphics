@@ -1003,6 +1003,7 @@ namespace UnityEditor.Rendering.Universal
                 MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpacePosition,
                 MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpacePosition,
                 MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpacePosition,
                 MeshTarget.ShaderStructs.VertexDescriptionInputs.AbsoluteWorldSpacePosition,
 
                 MeshTarget.ShaderStructs.VertexDescriptionInputs.ScreenPosition,
@@ -1044,6 +1045,7 @@ namespace UnityEditor.Rendering.Universal
                 MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpacePosition,
                 MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpacePosition,
                 MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpacePosition,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpacePosition,
                 MeshTarget.ShaderStructs.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,
 
                 MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ScreenPosition,
