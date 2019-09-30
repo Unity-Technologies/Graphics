@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LODBiasMode lodBiasMode;
         /// <summary>The quality level to use when fetching the quality setting value.</summary>
         [SerializeField]
-        public ScalableSetting.Level lodBiasQualityLevel;
+        public int lodBiasQualityLevel;
         /// <summary>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.FromQualitySettings</c>, then this value will overwrite <c>QualitySettings.maximumLODLevel</c>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.OffsetQualitySettings</c>, then this value will offset <c>QualitySettings.maximumLODLevel</c>
@@ -445,7 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public MaximumLODLevelMode maximumLODLevelMode;
         /// <summary>The quality level to use when fetching the quality setting value.</summary>
         [SerializeField]
-        public ScalableSetting.Level maximumLODLevelQualityLevel;
+        public int maximumLODLevelQualityLevel;
 
         /// <summary>
         /// The material quality level to use for this rendering.
