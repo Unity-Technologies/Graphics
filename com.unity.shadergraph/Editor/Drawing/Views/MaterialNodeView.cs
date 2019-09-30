@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
         // Remove this after updated to the correct API call has landed in trunk. ------------
+        VisualElement m_Border;
         VisualElement m_TitleContainer;
         new VisualElement m_ButtonContainer;
 
@@ -158,6 +159,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PortInputContainer.SendToBack();
 
             m_TitleContainer = this.Q("title");
+            m_Border = this.Q("selection-border");
 
             var masterNode = node as IMasterNode;
             if (masterNode != null)
@@ -240,7 +242,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         static readonly StyleColor noColor = new StyleColor(StyleKeyword.Null);
         public void SetColor(Color color)
         {
-            m_TitleContainer.style.borderBottomColor = color;
+            //m_TitleContainer.style.borderBottomColor = color;
+            m_Border.style.borderBottomColor = color;
+            m_Border.style.borderTopColor = color;
+            m_Border.style.borderLeftColor = color;
+            m_Border.style.borderRightColor = color;
+            m_Border.style.borderBottomWidth = 2;
+            m_Border.style.borderTopWidth = 2;
+            m_Border.style.borderLeftWidth = 2;
+            m_Border.style.borderRightWidth = 2;
+//            m_Border.style.borderBottomColor = color;
+//            m_Border.style.borderLeftColor = color;
+//            m_Border.style.borderRightColor = color;
+//            m_Border.style.borderTopColor = color;
         }
 
         public void ResetColor()
@@ -642,7 +656,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = (ShaderPort)evt.target;
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-            
+
             // Ensure PortInputViews are initialized correctly
             // Dynamic port lists require one update to validate before init
             if(inputViews.Count() != 0)
@@ -650,7 +664,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
-            
+
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 
@@ -732,6 +746,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+
+            if (graphView.colorManager.activeIndex == 3)
+            {
+                AddToClassList("CategoryColor");
+            }
+
         }
 
         void UpdatePreviewTexture()
