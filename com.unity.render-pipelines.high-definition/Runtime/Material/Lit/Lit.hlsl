@@ -1461,7 +1461,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #else
     float3 unL = lightData.positionRWS - positionWS;
 
-    if (dot(lightData.forward, unL) < FLT_EPS)
+    if (dot(lightData.forward, unL) < 0.0001)
     {
 
         // Rotate the light direction into the light space.
@@ -1506,10 +1506,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             float4x3 lightVerts;
 
             // TODO: some of this could be precomputed.
-            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
-            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
-            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
-            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
+            lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+            lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+            lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+            lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
 
             // Rotate the endpoints into the local coordinate system.
             lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
