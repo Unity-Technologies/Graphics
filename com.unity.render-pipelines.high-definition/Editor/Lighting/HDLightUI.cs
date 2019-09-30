@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public static class ScalableSettings
         {
-            public static ShadowResolutionSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
+            public static IntScalableSetting ShadowResolution(LightShape shape, HDRenderPipelineAsset hdrp)
             {
                 switch (shape)
                 {
@@ -648,14 +648,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     using (var change = new EditorGUI.ChangeCheckScope())
                     {
-                        var defaultResolution = new SerializedShadowResolutionSettingValueUI.FromScalableSetting(
-                            ScalableSettings.ShadowResolution(serialized.editorLightShape, hdrp),
-                            hdrp
-                        );
-                        serialized.serializedLightData.shadowResolution.LevelAndIntGUILayout(s_Styles.shadowResolution, defaultResolution);
+                        var hasEditorLightShapeMultipleValues = serialized.editorLightShape == (LightShape)(-1);
+                        if (hasEditorLightShapeMultipleValues)
+                        {
+                            serialized.serializedLightData.shadowResolution.LevelAndIntGUILayout(
+                                s_Styles.shadowResolution, null, null
+                            );
+                        }
+                        else
+                        {
+                            var scalableSetting = ScalableSettings.ShadowResolution(serialized.editorLightShape, hdrp);
 
+                            serialized.serializedLightData.shadowResolution.LevelAndIntGUILayout(
+                                s_Styles.shadowResolution, scalableSetting, hdrp.name
+                            );
+                        }
 
-                            if (change.changed)
+                        if (change.changed)
                             serialized.serializedLightData.shadowResolution.@override.intValue = Mathf.Max(HDShadowManager.k_MinShadowMapResolution, serialized.serializedLightData.shadowResolution.@override.intValue);
                         }
 
@@ -812,10 +821,8 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedScalableSettingValueUI.LevelAndToggleGUILayout(
                 serialized.serializedLightData.contactShadows,
                 s_Styles.contactShadows,
-                new SerializedScalableSettingValueUI.FromScalableSetting<bool>(
-                    HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
-                    hdrp
-                )
+                HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
+                hdrp.name
             );
         }
 
