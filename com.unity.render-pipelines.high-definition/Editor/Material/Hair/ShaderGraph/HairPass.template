@@ -178,6 +178,10 @@ $include("SharedCode.template.hlsl")
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
+        // specularOcclusion need to be init ahead of decal to quiet the compiler that modify the SurfaceData struct
+        // however specularOcclusion can come from the graph, so need to be init here so it can be override.
+        surfaceData.specularOcclusion = 1.0;
+
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:                         surfaceData.diffuseColor =                  surfaceDescription.Albedo;
         $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
@@ -260,8 +264,6 @@ $include("SharedCode.template.hlsl")
         bentNormalWS = N;
 
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-
-        surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
 
 #if HAVE_DECALS
         if (_EnableDecals)
