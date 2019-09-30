@@ -300,7 +300,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             volFog.a = 1 - (trCamera * trFallback);
         }
 
-        color = volFog.rgb * GetCurrentExposureMultiplier();
+        color = volFog.rgb; // Already pre-exposed
         opacity = volFog.a;
     }
 

@@ -14,6 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  rayTracing:
+    m_OverrideState: 1
+    m_Value: 1
+  minSmoothness:
+    m_OverrideState: 1
+    m_Value: 0.38
+    min: 0
+    max: 1
+  smoothnessFadeStart:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 1
+  reflectSky:
+    m_OverrideState: 0
+    m_Value: 1
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.01
@@ -24,25 +40,9 @@ MonoBehaviour:
     m_Value: 0.1
     min: 0
     max: 1
-  minSmoothness:
-    m_OverrideState: 1
-    m_Value: 0.38
-    min: 0
-    max: 1
-  smoothnessFadeStart:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-    max: 1
-  reflectSky:
-    m_OverrideState: 0
-    m_Value: 1
   rayMaxIterations:
     m_OverrideState: 0
     m_Value: 32
-  enableRaytracing:
-    m_OverrideState: 1
-    m_Value: 1
   rayLength:
     m_OverrideState: 1
     m_Value: 10
@@ -53,27 +53,36 @@ MonoBehaviour:
     m_Value: 0.7
     min: 0.001
     max: 10
-  temporalAccumulationWeight:
+  denoise:
     m_OverrideState: 0
-    m_Value: 0.1
-    min: 0.001
-    max: 1
-  spatialFilterRadius:
+    m_Value: 0
+  denoiserRadius:
+    m_OverrideState: 0
+    m_Value: 16
+    min: 1
+    max: 32
+  upscaleRadius:
     m_OverrideState: 0
     m_Value: 4
-  numSamples:
-    m_OverrideState: 1
-    m_Value: 8
-    min: 1
-    max: 32
-  enableFilter:
-    m_OverrideState: 1
+  fullResolution:
+    m_OverrideState: 0
+    m_Value: 0
+  deferredMode:
+    m_OverrideState: 0
+    m_Value: 0
+  rayBinning:
+    m_OverrideState: 0
+    m_Value: 0
+  sampleCount:
+    m_OverrideState: 0
     m_Value: 1
-  filterRadius:
-    m_OverrideState: 1
-    m_Value: 27
     min: 1
     max: 32
+  bounceCount:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 1
+    max: 31
 --- !u!114 &-5988877546997805337
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -222,10 +231,81 @@ MonoBehaviour:
   components:
   - {fileID: 3232150948915288773}
   - {fileID: 8436036751141806562}
-  - {fileID: -5988877546997805337}
   - {fileID: -4511052311202327914}
   - {fileID: -6268733361362008648}
   - {fileID: 5224583816479116611}
+--- !u!114 &1096948277615296340
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d08ce26990eb1a4a9177b860541e702, type: 3}
+  m_Name: Exposure
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  mode:
+    m_OverrideState: 0
+    m_Value: 0
+  meteringMode:
+    m_OverrideState: 0
+    m_Value: 2
+  luminanceSource:
+    m_OverrideState: 0
+    m_Value: 1
+  fixedExposure:
+    m_OverrideState: 0
+    m_Value: 0
+  compensation:
+    m_OverrideState: 0
+    m_Value: 0
+  limitMin:
+    m_OverrideState: 0
+    m_Value: -10
+  limitMax:
+    m_OverrideState: 0
+    m_Value: 20
+  curveMap:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -10
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 20
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  adaptationMode:
+    m_OverrideState: 0
+    m_Value: 1
+  adaptationSpeedDarkToLight:
+    m_OverrideState: 0
+    m_Value: 3
+    min: 0.001
+  adaptationSpeedLightToDark:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0.001
 --- !u!114 &3232150948915288773
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -284,57 +364,55 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  rayTracing:
+    m_OverrideState: 0
+    m_Value: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.5
     min: 0
     max: 4
-  thicknessModifier:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 1
-    max: 10
   directLightingStrength:
     m_OverrideState: 0
     m_Value: 0
     min: 0
     max: 1
-  enableRaytracing:
+  stepCount:
+    m_OverrideState: 0
+    m_Value: 6
+    min: 2
+    max: 32
+  radius:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 0.25
+    max: 5
+  fullResolution:
     m_OverrideState: 0
     m_Value: 0
+  maximumRadiusInPixels:
+    m_OverrideState: 0
+    m_Value: 40
+    min: 16
+    max: 256
   rayLength:
     m_OverrideState: 0
     m_Value: 0.5
     min: 0
     max: 50
-  enableFilter:
-    m_OverrideState: 0
-    m_Value: 0
-  numSamples:
+  sampleCount:
     m_OverrideState: 0
     m_Value: 4
     min: 1
     max: 64
-  filterRadius:
-    m_OverrideState: 0
-    m_Value: 16
-    min: 1
-    max: 32
-  noiseFilterTolerance:
+  denoise:
     m_OverrideState: 0
     m_Value: 0
-    min: -8
-    max: 0
-  blurTolerance:
+  denoiserRadius:
     m_OverrideState: 0
-    m_Value: -4.6
-    min: -8
+    m_Value: 0.5
+    min: 0.001
     max: 1
-  upsampleTolerance:
-    m_OverrideState: 0
-    m_Value: -12
-    min: -12
-    max: -1
 --- !u!114 &8436036751141806562
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -351,7 +429,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 4
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 0

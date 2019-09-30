@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public abstract class VolumeComponentWithQuality : VolumeComponent
     {
         [Tooltip("Specifies the quality level to be used for performance relevant parameters.")]
-        public ScalableSettingLevelParameter quality = new ScalableSettingLevelParameter(ScalableSetting.Level.Medium, true);
+        public ScalableSettingLevelParameter quality = new ScalableSettingLevelParameter((int)ScalableSettingLevelParameter.Level.Medium, true);
 
         static protected GlobalPostProcessingQualitySettings GetPostProcessingQualitySettings()
         {

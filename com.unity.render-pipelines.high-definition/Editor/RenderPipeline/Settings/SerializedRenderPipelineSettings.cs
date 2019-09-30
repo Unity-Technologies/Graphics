@@ -29,6 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
+        public SerializedProperty supportCustomPass;
+        public SerializedProperty customBufferFormat;
 
         public SerializedProperty supportDecals;
         public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
@@ -71,6 +73,8 @@ namespace UnityEditor.Rendering.HighDefinition
             increaseResolutionOfVolumetrics = root.Find((RenderPipelineSettings s) => s.increaseResolutionOfVolumetrics);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
+            customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
+            supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
             supportedLitShaderMode          = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
