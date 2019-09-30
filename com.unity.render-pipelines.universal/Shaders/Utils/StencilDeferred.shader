@@ -98,21 +98,28 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             struct Attributes
             {
-                float4 vertex : POSITION;
+                float4 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vertex(Attributes input)
             {
-                float4 csPos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.vertex));
-                
+                Varyings output = (Varyings)0;
 
-                Varyings output;
-                output.positionCS = csPos;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.positionCS = vertexInput.positionCS;
+
                 return output;
             }
 
@@ -127,6 +134,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 PointLightData light;
                 light.wsPos = _LightWsPos;
                 light.radius = _LightRadius;
