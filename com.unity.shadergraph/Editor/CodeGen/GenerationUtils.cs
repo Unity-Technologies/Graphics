@@ -581,6 +581,13 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
+        public static Type GetTypeForStruct(string structName, string resourceClassName, string assemblyName)
+        {
+            // 'C# qualified assembly type names' for $buildType() commands
+            string assemblyQualifiedTypeName = $"{resourceClassName}+{structName}, {assemblyName}";
+            return Type.GetType(assemblyQualifiedTypeName);
+        }
+
         static bool IsFieldActive(IField field, IActiveFields activeFields, bool isOptional)
         {
             bool fieldActive = true;
