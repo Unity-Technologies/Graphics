@@ -211,6 +211,9 @@ namespace UnityEngine.Rendering.Universal
 
             NativeArray<int> blockRanges = new NativeArray<int>(blockEventLimits.Length + 1, Allocator.Temp);
             // Fill blockRanges with indices of the RenderPasses stored in m_ActiveRenderPassQueue
+            // blockRanges[0] is always 0
+            // blockRanges[i] is the index of the first RenderPass found in m_ActiveRenderPassQueue that has a ScriptableRenderPass.renderPassEvent higher than blockEventLimits[i] (i.e, should be executed after blockEventLimits[i])
+            // blockRanges[blockEventLimits.Length] is m_ActiveRenderPassQueue.Count
             FillBlockRanges(blockEventLimits, blockRanges);
             blockEventLimits.Dispose();
 
@@ -378,8 +381,18 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers > 1;
         }
 
+        static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            foreach (var identifier in source)
+            {
+                if (identifier == value)
+                    return true;
+            }
+            return false;
+        }
+
         // return true if "left" and "right" are the same
-        static bool SameColorAttachments(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
+        static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
         {
             if (left.Length != right.Length)
                 return false;
@@ -398,8 +411,27 @@ namespace UnityEngine.Rendering.Universal
 
             if(IsMRT(renderPass.colorAttachment))
             {
+                ref CameraData cameraData = ref renderingData.cameraData;
+
+                if( Contains(renderPass.colorAttachment, m_CameraColorTarget) && !m_FirstCameraRenderPassExecuted)
+                {
+                    m_FirstCameraRenderPassExecuted = true;
+
+                    Camera camera = cameraData.camera;
+                    ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+
+                    // Overlay cameras composite on top of previous ones. They don't clear.
+                    // MTT: Commented due to not implemented yet
+//                    if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
+//                        clearFlag = ClearFlag.None;
+
+                    //SetRenderTarget(cmd, renderPass.colorAttachment, m_CameraDepthTarget, clearFlag,
+                    SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, clearFlag,
+                        CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+                }
+
                 // Only setup render target if current render pass attachments are different from the active ones
-                if ( !SameColorAttachments(renderPass.colorAttachment, m_ActiveColorAttachment)  || renderPass.depthAttachment != m_ActiveDepthAttachment)
+                else if ( !SequenceEqual(renderPass.colorAttachment, m_ActiveColorAttachment)  || renderPass.depthAttachment != m_ActiveDepthAttachment)
                     SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
             }
             else
@@ -428,6 +460,8 @@ namespace UnityEngine.Rendering.Universal
 //                    if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
 //                        clearFlag = ClearFlag.None;
 
+                    // TODO: what if passDepthAttachment!=m_CameraDepthTarget?? should we not use the followin line instead??
+                    //SetRenderTarget(cmd, m_CameraColorTarget, passDepthAttachment, clearFlag,
                     SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
                         CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
