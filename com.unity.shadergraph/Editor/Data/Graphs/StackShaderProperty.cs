@@ -11,25 +11,17 @@ namespace UnityEditor.ShaderGraph
     // Node a StackShaderProperty has no user settable values it is only used to ensure correct data is emitted into the shader. So we use a dummy value of  "int" type.
     class StackShaderProperty : AbstractShaderProperty<int>
     {
-        [SerializeField]
-        private bool m_Modifiable = false;
-
         public StackShaderProperty()
         {
             displayName = "Stack";
             slotNames = new List<string>();
             slotNames.Add("Dummy");
+            generatePropertyBlock = false;
         }
 
         public override PropertyType propertyType
         {
             get { return PropertyType.Vector1; }
-        }
-
-        public bool modifiable
-        {
-            get { return m_Modifiable; }
-            set { m_Modifiable = value; }
         }
 
         internal override bool isBatchable
@@ -39,12 +31,12 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool isRenamable
         {
-            get { return true; }
+            get { return false; }
         }
 
         internal override bool isExposable
         {
-            get { return true; }
+            get { return false; }
         }
 
         public List<string> slotNames;
@@ -64,12 +56,13 @@ namespace UnityEditor.ShaderGraph
 
         internal override string GetPropertyBlockString()
         {
-            return ""; //A stack only has variables declared in the actual shader not in the shaderlab wrapper code
+            return "";
         }
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            // This node needs to generate some properties both in batched as in unbatched mode
+            // This just emits a define which declares several property variables. We split here over things that fit in a constant buffer
+            // (i.e. float arrays) and thing that don't (texture samplers).
             int numSlots = slotNames.Count;
 
             if (referenceName.EndsWith("_cb"))
