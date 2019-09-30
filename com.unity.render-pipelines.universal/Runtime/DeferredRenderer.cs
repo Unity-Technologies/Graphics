@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
         TileDepthRangePass m_TileDepthRangeExtraPass; // TODO use subpass API to hide this pass
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DeferredPass m_DeferredPass;
+        DrawSkyboxPass m_DrawSkyboxPass;
         FinalBlitPass m_FinalBlitPass;
 
         public const int GBufferSlicesCount = 3;
@@ -65,7 +66,8 @@ namespace UnityEngine.Rendering.Universal
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 3, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
-            m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingSkybox, RenderQueueRange.opaque, m_DeferredLights);
+            m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, RenderQueueRange.opaque, m_DeferredLights);
+            m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -147,6 +149,14 @@ namespace UnityEngine.Rendering.Universal
             }
 
             EnqueuePass(m_DeferredPass);
+
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+            {
+                // Previous pass configured different CameraTargets, restore main color and depth to be used as targets by the DrawSkybox pass:
+                m_DrawSkyboxPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
+
+                EnqueuePass(m_DrawSkyboxPass);
+            }
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||
                                      hasAfterRendering;
