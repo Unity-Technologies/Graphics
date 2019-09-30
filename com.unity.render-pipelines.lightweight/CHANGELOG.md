@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.10.0] - 2019-XX-XX
 ### Fixed
+- [XR] Add Android/Oculus Go support for Postprocessing v2 using single-pass double-wide stereo mode (multiview is still disabled for postprocessing).
+
+## [6.10.0] - 2019-XX-XX
+### Fixed
 - Fixed fp16 overflow in Switch in specular calculation
 - Fixed shader compilation errors for Android XR projects.
 - Fixed garbage collection spikes caused by LWRP allocating heap memory every frame.
@@ -13,6 +17,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused scene to render darker in GLES3 and linear color space. [case 1169789](https://issuetracker.unity3d.com/issues/lwrp-android-scene-is-rendered-darker-in-build-when-graphics-api-set-to-gles3-and-color-space-set-to-linear)
 - Fixed an issue where Sprite Masks didn't function properly when using the 2D Renderer. [case 1163474](https://issuetracker.unity3d.com/issues/lwrp-sprite-renderer-ignores-sprite-mask-when-lightweight-render-pipeline-asset-data-is-set-to-2d-renderer-experimental)
 - Fixed memory leaks when using the Frame Debugger with the 2D Renderer.
+- Fixed an issue that caused incorrect lighting when you had more than 16 visible Lights in your Scene. [case 1177487](https://issuetracker.unity3d.com/issues/ios-2019-dot-1-lwrp-additionlightsposition-index-out-of-boundary-due-to-invalid-value-of-unity-lightindices)
+- Fixed an issue that caused Orthographic camera with far plane set to 0 to span Unity console with errors. [case 1172269](https://issuetracker.unity3d.com/issues/orthographic-camera-with-far-plane-set-to-0-results-in-assertions)
+- Fixed an issue that caused specular highlights to disappear when the smoothness value was set to 1.0. [case 1161827](https://issuetracker.unity3d.com/issues/lwrp-hdrp-lit-shader-max-smoothness-value-is-incosistent-between-pipelines)
+- Fixed an issue in the Material upgrader that caused transparent Materials to not upgrade correctly to Universal RP. [case 1170419](https://issuetracker.unity3d.com/issues/shader-conversion-upgrading-project-materials-causes-standard-transparent-materials-to-flicker-when-moving-the-camera).
 
 ## [6.9.0] - 2019-07-02
 ### Fixed

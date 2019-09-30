@@ -232,6 +232,14 @@ namespace UnityEditor.Rendering.LWRP
 
     public class StandardUpgrader : MaterialUpgrader
     {
+        enum LegacyRenderingMode
+        {
+            Opaque,
+            Cutout,
+            Fade,   // Old school alpha-blending mode, fresnel does not affect amount of transparency
+            Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
+        }
+
         public static void UpdateStandardMaterialKeywords(Material material)
         {
             if (material == null)
@@ -245,6 +253,8 @@ namespace UnityEditor.Rendering.LWRP
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
+            UpdateSurfaceTypeAndBlendMode(material);
+            BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
         public static void UpdateStandardSpecularMaterialKeywords(Material material)
@@ -261,6 +271,29 @@ namespace UnityEditor.Rendering.LWRP
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_SpecGlossMap"));
             CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", true);
+            UpdateSurfaceTypeAndBlendMode(material);
+            BaseShaderGUI.SetupMaterialBlendMode(material);
+        }
+
+        // Converts from legacy RenderingMode to new SurfaceType and BlendMode
+        static void UpdateSurfaceTypeAndBlendMode(Material material)
+        {
+            // Property _Mode is already renamed to _Surface at this point
+            var legacyRenderingMode = (LegacyRenderingMode)material.GetFloat("_Surface");
+            if (legacyRenderingMode == LegacyRenderingMode.Transparent)
+            {
+                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Transparent);
+                material.SetInt("_Blend", (int)BaseShaderGUI.BlendMode.Premultiply);
+            }
+            else if (legacyRenderingMode == LegacyRenderingMode.Fade)
+            {
+                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Transparent);
+                material.SetInt("_Blend", (int)BaseShaderGUI.BlendMode.Alpha);
+            }
+            else
+            {
+                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Opaque);
+            }
         }
 
         public StandardUpgrader(string oldShaderName)
@@ -279,6 +312,7 @@ namespace UnityEditor.Rendering.LWRP
                 RenameShader(oldShaderName, standardShaderPath, UpdateStandardMaterialKeywords);
             }
 
+            RenameFloat("_Mode", "_Surface");
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_GlossyReflections", "_EnvironmentReflections");
