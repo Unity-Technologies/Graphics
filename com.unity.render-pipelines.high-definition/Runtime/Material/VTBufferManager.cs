@@ -63,9 +63,10 @@ namespace  UnityEngine.Rendering.HighDefinition
         void ResolveVTDispatch(CommandBuffer cmd, RTHandle buffer, int width, int height)
         {
             string mainFunction = (buffer.enableMSAA) ? "KMainMSAA" : "KMain";
+            int inputID = (buffer.enableMSAA) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
 
             int kernel = downSampleCS.FindKernel(mainFunction);
-            cmd.SetComputeTextureParam(downSampleCS, kernel, HDShaderIDs._InputTexture, buffer.nameID);
+            cmd.SetComputeTextureParam(downSampleCS, kernel, inputID, buffer.nameID);
             cmd.SetComputeTextureParam(downSampleCS, kernel, HDShaderIDs._OutputTexture, lowresResolver.nameID);
             var resolveCounter = 0;
             var startOffsetX = (resolveCounter % resolveScale);

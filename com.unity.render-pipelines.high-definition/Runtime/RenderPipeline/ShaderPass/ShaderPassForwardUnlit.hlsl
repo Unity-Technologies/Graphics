@@ -2,6 +2,10 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#ifdef UNITY_VIRTUAL_TEXTURING
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
+#endif
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
@@ -26,7 +30,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 void Frag(PackedVaryingsToPS packedInput,
     out float4 outResult : SV_Target0
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
     ,out float4 outVTFeedback : SV_Target1
 #endif
 )
@@ -79,7 +83,7 @@ void Frag(PackedVaryingsToPS packedInput,
             GetBuiltinDataDebug(indexMaterialProperty, builtinData, result, needLinearToSRGB);
             GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
             GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-            
+
             // TEMP!
             // For now, the final blit in the backbuffer performs an sRGB write
             // So in the meantime we apply the inverse transform to linear data to compensate.
@@ -97,10 +101,10 @@ void Frag(PackedVaryingsToPS packedInput,
     }
 
 #endif
-    
+
     outResult = outColor;
 
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
     outVTFeedback = GetPackedVTFeedback(builtinData.vtFeedback);
 #endif
 }

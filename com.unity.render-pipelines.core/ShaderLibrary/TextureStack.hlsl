@@ -62,19 +62,8 @@
     pass in the result of the PrepareStack for the correct stack the texture belongs to.
 
 */
-// A note about the on/off defines
-// UNITY_VIRTUAL_TEXTURING current project is configured to use VT this is something even non vt materials may need to be aware of (e.g. different gbuffer layout used etc...)
-// VIRTUAL_TEXTURES_ACTIVE vt data is built and enabled so the current shader should actively use VT sampling
 
-#if UNITY_VIRTUAL_TEXTURING
-#define VIRTUAL_TEXTURES_ACTIVE 1
-#else
-#define VIRTUAL_TEXTURES_ACTIVE 0
-#endif
-
-
-
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
 
 struct StackInfo
 {
