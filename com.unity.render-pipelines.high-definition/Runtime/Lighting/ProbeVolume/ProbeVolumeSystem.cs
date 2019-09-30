@@ -71,16 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Count
         }
 
-        public struct ProbeVolumeSystemParameters
-        {
-            // TODO: Create Probe Volume Rendering global parameters here.
-
-            public void ZeroInitialize()
-            {
-                // TODO: Clear all parameters to neutral values.
-            }
-        }
-
         public ProbeVolumeSystemPreset preset = ProbeVolumeSystemPreset.Off;
 
         List<OrientedBBox> m_VisibleProbeVolumeBounds = null;
@@ -173,43 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeAtlas = new Texture2DAtlas(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
         }
 
-        // For the initial allocation, no suballocation happens (the texture is full size).
-        ProbeVolumeSystemParameters ComputeParameters(HDCamera hdCamera)
-        {
-            var controller = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
-
-            // TODO: Assign probe volume rendering parameters from values returned from ProbeVolumeController (camera activated volume).
-            return new ProbeVolumeSystemParameters();
-        }
-
-        public void InitializePerCameraData(HDCamera hdCamera)
-        {
-            // Note: Here we can't test framesettings as they are not initialize yet
-            if (!m_SupportProbeVolume)
-                return;
-
-            hdCamera.probeVolumeSystemParams = ComputeParameters(hdCamera);
-        }
-
-        public void DeinitializePerCameraData(HDCamera hdCamera)
-        {
-            if (!m_SupportProbeVolume)
-                return;
-
-            hdCamera.probeVolumeSystemParams.ZeroInitialize();
-        }
-
-        // This function relies on being called once per camera per frame.
-        // The results are undefined otherwise.
-        public void UpdatePerCameraData(HDCamera hdCamera)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
-                return;
-
-            // Currently the same as initialize. We just compute the settings.
-            this.InitializePerCameraData(hdCamera);
-        }
-
         void DestroyBuffers()
         {
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBufferDefault);
@@ -240,8 +193,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ProbeVolumeSystem.PushGlobalParamsDefault(hdCamera, cmd, frameIndex);
                 return;
             }
-
-            var currFrameParams = hdCamera.probeVolumeSystemParams;
 
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBuffer);

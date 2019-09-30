@@ -64,7 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool volumetricHistoryIsValid   = false; // Contains garbage otherwise
         public int  colorPyramidHistoryMipCount = 0;
         public VBufferParameters[] vBufferParams; // Double-buffered?
-        public ProbeVolumeSystem.ProbeVolumeSystemParameters probeVolumeSystemParams;
 
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
 
