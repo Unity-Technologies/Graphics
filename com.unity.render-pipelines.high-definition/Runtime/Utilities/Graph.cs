@@ -3,259 +3,6 @@ namespace UnityEditor.Rendering.HighDefinition
     using System;
     using System.Collections;
     using UnityEngine.Assertions;
-    using static IndexGraph;
-
-    /// <summary>EXPERIMENTAL: Class to provide static API for <see cref="IndexGraph{N, E}"/>.</summary>
-    public static class IndexGraph
-    {
-        /// <summary>
-        /// EXPERIMENTAL: Index of a node in an <see cref="IndexGraph{N, E}"/>.
-        /// </summary>
-        public struct NodeIndex: IEquatable<NodeIndex>
-        {
-            internal NodeIndex(int index) => this.index = index;
-
-            internal int index;
-
-            public bool Equals(NodeIndex other) => other.index == index;
-            public override bool Equals(object obj) => (obj is NodeIndex node) && node.Equals(this);
-            public override int GetHashCode() => index.GetHashCode();
-
-            public static bool operator==(in NodeIndex l, in NodeIndex r) => l.Equals(r);
-            public static bool operator!=(in NodeIndex l, in NodeIndex r) => l.Equals(r);
-        }
-
-        /// <summary>
-        /// EXPERIMENTAL: Index of an edge in an <see cref="IndexGraph{N, E}"/>.
-        /// </summary>
-        public struct EdgeIndex : IEquatable<EdgeIndex>
-        {
-            public EdgeIndex(int index) => this.index = index;
-
-            internal int index;
-
-            public bool Equals(EdgeIndex other) => other.index == index;
-            public override bool Equals(object obj) => (obj is EdgeIndex edge) && edge.Equals(this);
-            public override int GetHashCode() => index.GetHashCode();
-
-            public static bool operator ==(in EdgeIndex l, in EdgeIndex r) => l.Equals(r);
-            public static bool operator !=(in EdgeIndex l, in EdgeIndex r) => l.Equals(r);
-        }
-
-        //
-        // Enumerators
-        //
-
-        /// <summary>EXPERIMENTAL: Enumerate edges by reference of <see cref="IndexGraph{N, E}"/>.</summary>
-        /// <typeparam name="E">The type of the edges.</typeparam>
-        public struct EdgeRefEnumerator<E> : IRefEnumerator<E>
-            where E: struct
-        {
-            ArrayListRefEnumerator<E> m_En;
-
-            internal EdgeRefEnumerator(ArrayList<E> source)
-                => m_En = new ArrayListRefEnumerator<E>(source);
-
-            public ref readonly E current => ref m_En.current;
-            public bool MoveNext() => m_En.MoveNext();
-            public void Reset() => m_En.Reset();
-        }
-
-        /// <summary>EXPERIMENTAL: Enumerate edges by mutable reference of <see cref="IndexGraph{N, E}"/>.</summary>
-        /// <typeparam name="E">The type of the edges.</typeparam>
-        public struct EdgeMutEnumerator<E> : IMutEnumerator<E> 
-            where E : struct
-        {
-            ArrayListMutEnumerator<E> m_En;
-
-            internal EdgeMutEnumerator(ArrayList<E> source)
-                => m_En = new ArrayListMutEnumerator<E>(source);
-
-            public ref E current => ref m_En.current;
-            public bool MoveNext() => m_En.MoveNext();
-            public void Reset() => m_En.Reset();
-        }
-
-        /// <summary>EXPERIMENTAL: Enumerate nodes by reference of <see cref="IndexGraph{N, E}"/>.</summary>
-        /// <typeparam name="E">The type of the nodes.</typeparam>
-        public struct NodeRefEnumerator<N> : IRefEnumerator<N>
-            where N: struct
-        {
-            ArrayListRefEnumerator<N> m_En;
-
-            internal NodeRefEnumerator(ArrayList<N> source)
-                => m_En = new ArrayListRefEnumerator<N>(source);
-
-            public ref readonly N current => ref m_En.current;
-            public bool MoveNext() => m_En.MoveNext();
-            public void Reset() => m_En.Reset();
-        }
-
-        /// <summary>EXPERIMENTAL: Enumerate nodes by mutable reference of <see cref="IndexGraph{N, E}"/>.</summary>
-        /// <typeparam name="E">The type of the nodes.</typeparam>
-        public struct NodeMutEnumerator<N> : IMutEnumerator<N>
-            where N : struct
-        {
-            ArrayListMutEnumerator<N> m_En;
-
-            internal NodeMutEnumerator(ArrayList<N> source)
-                => m_En = new ArrayListMutEnumerator<N>(source);
-
-            public ref N current => ref m_En.current;
-            public bool MoveNext() => m_En.MoveNext();
-            public void Reset() => m_En.Reset();
-        }
-
-        /// <summary>EXPERIMENTAL: Enumerate node indices of nodes leaving a node index in an <see cref="IndexGraph{N, E}"/>.</summary>
-        public struct NodeIndexFromEnumerator : IRefEnumerator<NodeIndex>
-        {
-            struct FromIndex : IInFunc<(NodeIndex from, NodeIndex to), bool>
-            {
-                NodeIndex m_From;
-
-                public FromIndex(NodeIndex from) => m_From = from;
-
-                public bool Execute(in (NodeIndex from, NodeIndex to) edgeNodes) => m_From == edgeNodes.from;
-            }
-
-            internal NodeIndexFromEnumerator(NodeIndex from, ArrayList<(NodeIndex, NodeIndex)> source)
-            {
-                m_Enumerator = new WhereRefIterator<(NodeIndex from, NodeIndex to), ArrayListRefEnumerator<(NodeIndex from, NodeIndex to)>, FromIndex>(
-                    new ArrayListRefEnumerator<(NodeIndex, NodeIndex)>(source),
-                    new FromIndex(from)
-                );
-            }
-
-            WhereRefIterator<(NodeIndex from, NodeIndex to), ArrayListRefEnumerator<(NodeIndex from, NodeIndex to)>, FromIndex> m_Enumerator;
-
-            public ref readonly NodeIndex current => ref m_Enumerator.current.to;
-
-            public bool MoveNext() => m_Enumerator.MoveNext();
-
-            public void Reset() => m_Enumerator.Reset();
-        }
-
-        /// <summary>EXPERIMENTAL: Enumerate node indices of nodes coming at a node index in an <see cref="IndexGraph{N, E}"/>.</summary>
-        public struct NodeIndexToEnumerator : IRefEnumerator<NodeIndex>
-        {
-            struct ToIndex : IInFunc<(NodeIndex from, NodeIndex to), bool>
-            {
-                NodeIndex m_To;
-
-                public ToIndex(NodeIndex to) => m_To = to;
-
-                public bool Execute(in (NodeIndex from, NodeIndex to) edgeNodes) => m_To == edgeNodes.from;
-            }
-
-            internal NodeIndexToEnumerator(NodeIndex to, ArrayList<(NodeIndex, NodeIndex)> source)
-            {
-                m_Enumerator = new WhereRefIterator<(NodeIndex To, NodeIndex to), ArrayListRefEnumerator<(NodeIndex from, NodeIndex to)>, ToIndex>(
-                    new ArrayListRefEnumerator<(NodeIndex, NodeIndex)>(source),
-                    new ToIndex(to)
-                );
-            }
-
-            WhereRefIterator<(NodeIndex from, NodeIndex to), ArrayListRefEnumerator<(NodeIndex from, NodeIndex to)>, ToIndex> m_Enumerator;
-
-            public ref readonly NodeIndex current => ref m_Enumerator.current.from;
-
-            public bool MoveNext() => m_Enumerator.MoveNext();
-
-            public void Reset() => m_Enumerator.Reset();
-        }
-    }
-
-
-    /// <summary>
-    /// EXPERIMENTAL: Graph stored as index based nodes and edges.
-    ///
-    /// Remove operations are not conservative: <see cref="NodeIndex"/> and <see cref="EdgeIndex"/> may change.
-    /// </summary>
-    /// <typeparam name="N"></typeparam>
-    /// <typeparam name="E"></typeparam>
-    public class IndexGraph<N, E>
-        where N: struct
-        where E: struct
-    {
-        ArrayList<N> m_Nodes;
-        ArrayList<E> m_Edges;
-        ArrayList<(NodeIndex from, NodeIndex to)> m_EdgeNodes;
-
-        /// <summary>An iterator on all edges by reference.</summary>
-        public EdgeRefEnumerator<E> edges => new EdgeRefEnumerator<E>(m_Edges);
-        /// <summary>An iterator on all edges by mutable reference.</summary>
-        public EdgeMutEnumerator<E> edgesMut => new EdgeMutEnumerator<E>(m_Edges);
-        /// <summary>An iterator on all nodes by reference.</summary>
-        public NodeRefEnumerator<N> nodes => new NodeRefEnumerator<N>(m_Nodes);
-        /// <summary>An iterator on all nodes by mutable reference.</summary>
-        public NodeMutEnumerator<N> nodesMut => new NodeMutEnumerator<N>(m_Nodes);
-
-        /// <summary>Add a node to the graph.</summary>
-        /// <param name="node">The node to add.</param>
-        /// <returns>The index of the added node.</returns>
-        public NodeIndex AddNode(in N node)
-        {
-            var index = m_Nodes.count;
-            m_Nodes.Add(node);
-            return new NodeIndex(index);
-        }
-
-        /// <summary>Get a node by reference.</summary>
-        /// <param name="index">The index of the node.</param>
-        /// <returns>A reference to the node.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of range.</exception>
-        public ref readonly N GetNode(in NodeIndex index)
-            => ref m_Nodes.Get(index.index);
-
-        /// <summary>Get a node by mutable reference.</summary>
-        /// <param name="index">The index of the node.</param>
-        /// <returns>A mutable reference to the node.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of range.</exception>
-        public ref N GetMutNode(in NodeIndex index)
-            => ref m_Nodes.GetMut(index.index);
-
-        /// <summary>
-        /// Add an edge to the graph.
-        /// </summary>
-        /// <param name="from">The starting node index.</param>
-        /// <param name="to">The ending node index.</param>
-        /// <param name="edge">The edge to add.</param>
-        /// <returns>The index of the node.</returns>
-        public EdgeIndex AddEdge(in NodeIndex from, in NodeIndex to, in E edge)
-        {
-            var index = m_Edges.count;
-            m_Edges.Add(edge);
-            m_EdgeNodes.Add((from, to));
-            return new EdgeIndex(index);
-        }
-
-        /// <summary>Get an edge by reference.</summary>
-        /// <param name="index">The index of the edge.</param>
-        /// <returns>A reference to the edge.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of range.</exception>
-        public ref readonly E GetEdge(in EdgeIndex index) => ref m_Edges.Get(index.index);
-        /// <summary>Get an edge by mutable reference.</summary>
-        /// <param name="index">The index of the edge.</param>
-        /// <returns>A mutable reference to the edge.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of range.</exception>
-        public ref E GetMutEdge(in EdgeIndex index) => ref m_Edges.GetMut(index.index);
-
-        /// <summary>Get the node indices of the starting node and ending node for an edge index.</summary>
-        /// <param name="index">The index of the edge.</param>
-        /// <returns>The starting and ending node indices for the edge.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of range.</exception>
-        public ref readonly (NodeIndex from, NodeIndex to) GetEdgeNodes(in EdgeIndex index)
-            => ref m_EdgeNodes.Get(index.index);
-
-        /// <summary>Get an enumerator of the node indices leaving <paramref name="index"/>.</summary>
-        /// <param name="index">The node index of the nodes to search.</param>
-        /// <returns>The enumerator of the node indices of edges leaving the provided node.</returns>
-        public NodeIndexFromEnumerator GetNodeIndicesFrom(in NodeIndex index) => new NodeIndexFromEnumerator(index, m_EdgeNodes);
-        /// <summary>Get an enumerator of the node indices arriving at <paramref name="index"/>.</summary>
-        /// <param name="index">The node index of the nodes to search.</param>
-        /// <returns>The enumerator of the node indices of edges arriving at the provided node.</returns>
-        public NodeIndexToEnumerator GetNodeIndicesTo(in NodeIndex index) => new NodeIndexToEnumerator(index, m_EdgeNodes);
-    }
 
     //
     // Enumerator Utilities
@@ -735,5 +482,139 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Data.index = 0;
         }
+    }
+
+    /// <summary>Memory allocator interface.</summary>
+    public unsafe interface IMemoryAllocator
+    {
+        /// <summary>
+        /// Allocate <paramref name="byteSize"/> bytes of memory.
+        /// </summary>
+        /// <param name="byteSize">The number of bytes to allocate.</param>
+        /// <returns>The address of the allocated memory.</returns>
+        void* Allocate(ulong byteSize);
+
+        /// <summary>
+        /// Rellocate the memory from <paramref name="pointer"/> to have the size <paramref name="byteSize"/> in bytes.
+        ///
+        /// If the memory address can be kept, then <paramref name="pointer"/> is returned.
+        /// Otherwise, the data from <paramref name="pointer"/>
+        /// will be copied up to <paramref name="byteSize"/> bytes.
+        ///
+        /// <paramref name="pointer"/> must have been allocated by this allocator before.
+        /// </summary>
+        /// <param name="pointer">The address that was previously allocated.</param>
+        /// <param name="byteSize">The number of bytes to allocate.</param>
+        /// <returns></returns>
+        void* Reallocate(void* pointer, ulong byteSize);
+
+        /// <summary>
+        /// Deallocate a memory allocated by this allocator.
+        /// </summary>
+        /// <param name="pointer">The address that was allocated.</param>
+        void Deallocate(void* pointer);
+    }
+
+    public static class MemoryUtilities
+    {
+        public static uint Pad(uint byteSize, uint padding) => ((byteSize + padding - 1) / padding) * padding;
+        public static ulong Pad(ulong byteSize, uint padding) => ((byteSize + padding - 1) / padding) * padding;
+        public unsafe static void* Pad(void* pointer, uint padding) => (void*)((((ulong)pointer + padding - 1) / padding) * padding);
+    }
+
+    /// <summary>
+    /// Allocate memory in a provided buffer.
+    /// This allocator is not thread safe.
+    /// </summary>
+    public unsafe struct FixedAllocator : IMemoryAllocator
+    {
+        const uint k_MemoryPadding = 4;
+        static readonly uint k_PaddedDataSize = MemoryUtilities.Pad((uint)sizeof(Data), k_MemoryPadding);
+        static readonly uint k_PaddedHeaderSize = MemoryUtilities.Pad((uint)sizeof(AllocationHeader), k_MemoryPadding);
+
+        unsafe struct Data
+        {
+            /// <summary>Initial provided buffer pointer.</summary>
+            public void* buffer;
+            /// <summary>Initial provided buffer byte size.</summary>
+            public ulong byteSize;
+            /// <summary>Next address to use to allocate memory.</summary>
+            public void* tail;
+            /// <summary>The thread used to create this allocator.</summary>
+            public int threadId;
+        }
+
+        unsafe struct AllocationHeader
+        {
+            public ulong byteSize;
+        }
+
+        Data* m_Data;
+
+        ulong bytesLeft {
+            get
+            {
+                var bufferEnd = (long*)m_Data->buffer + m_Data->byteSize;
+                var bufferStart = (long*)m_Data->tail;
+                if (bufferEnd < bufferStart)
+                    throw new InvalidOperationException($"buffer overflow, this must never happen.");
+
+                return (ulong)(bufferEnd - bufferStart);
+            }
+        }
+
+        public FixedAllocator(void* buffer, ulong byteSize)
+        {
+            m_Data = null;
+
+            // Take memory for the allocator data
+            if (byteSize < k_PaddedDataSize)
+                throw new ArgumentException($"{nameof(byteSize)} must be greater than {k_PaddedDataSize} to hold allocator's data.");
+
+            m_Data = (Data*)buffer;
+            // Initialize the data memory
+            m_Data->buffer = buffer;
+            m_Data->byteSize = byteSize;
+            // Initialize tail
+            m_Data->tail = (void*)((uint*)buffer + k_PaddedDataSize);
+            // Get the allowed thread for this allocator
+            m_Data->threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+        }
+
+        public unsafe void* Allocate(ulong byteSize)
+        {
+            // We need space to store the AllocationHeader before the allocated space
+            // And we also need to pad it to k_MemoryPadding.
+            var requiredAllocationByteSize = MemoryUtilities.Pad(byteSize, k_MemoryPadding) + k_PaddedHeaderSize;
+
+            // Check for out of memory
+            if (requiredAllocationByteSize < (ulong)bytesLeft)
+                throw new Exception($"Out of memory, required {requiredAllocationByteSize}," +
+                                    $" but only {bytesLeft} bytes are remaining.");
+
+            // We can now allocate
+            // We need to compute the address of both the allocated memory and the allocation header
+            // Pad the tail
+            var headerPtr = (AllocationHeader*)MemoryUtilities.Pad(m_Data->tail, k_MemoryPadding);
+            headerPtr->byteSize = requiredAllocationByteSize;
+            var bufferPtr = (void*)((byte*)headerPtr + k_PaddedHeaderSize);
+
+            // Move the tail of the allocator
+            m_Data->tail = (void*)((byte*)headerPtr + requiredAllocationByteSize);
+
+            return bufferPtr;
+        }
+
+        public unsafe void Deallocate(void* pointer)
+        {
+        }
+
+        public unsafe void* Reallocate(void* pointer, ulong byteSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        void AssertThread() 
+            => Assert.AreEqual(m_Data->threadId, System.Threading.Thread.CurrentThread.ManagedThreadId);
     }
 }
