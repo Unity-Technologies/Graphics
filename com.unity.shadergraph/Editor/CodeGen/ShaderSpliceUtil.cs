@@ -10,91 +10,6 @@ namespace UnityEditor.ShaderGraph
 {
     static class ShaderSpliceUtil
     {
-        enum BaseFieldType
-        {
-            Invalid,
-            Float,
-            Uint,
-        };
-
-        private static BaseFieldType GetBaseFieldType(string typeName)
-        {
-            if (typeName.StartsWith("Vector") || typeName.Equals("Single"))
-            {
-                return BaseFieldType.Float;
-            }
-            if (typeName.StartsWith("UInt32")) // We don't have proper support for uint (Uint, Uint2, Uint3, Uint4). Need these types, for now just supporting instancing via a single uint.
-            {
-                return BaseFieldType.Uint;
-            }
-            return BaseFieldType.Invalid;
-        }
-
-        private static int GetComponentCount(string typeName)
-        {
-            switch (GetBaseFieldType(typeName))
-            {
-                case BaseFieldType.Float:
-                    return GetFloatVectorCount(typeName);
-                case BaseFieldType.Uint:
-                    return GetUintCount(typeName);
-                default:
-                    return 0;
-            }
-        }
-
-        private static int GetFloatVectorCount(string typeName)
-        {
-            if (typeName.Equals("Vector4"))
-            {
-                return 4;
-            }
-            else if (typeName.Equals("Vector3"))
-            {
-                return 3;
-            }
-            else if (typeName.Equals("Vector2"))
-            {
-                return 2;
-            }
-            else if (typeName.Equals("Single"))
-            {
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        // Need uint types
-        private static int GetUintCount(string typeName)
-        {
-            if (typeName.Equals("UInt32"))
-            {
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        private static string[] vectorTypeNames =
-        {
-            "unknown",
-            "float",
-            "float2",
-            "float3",
-            "float4"
-        };
-
-        private static string[] uintTypeNames =
-        {
-            "unknown",
-            "uint",
-        };
-
         private static char[] channelNames =
         { 'x', 'y', 'z', 'w' };
 
@@ -107,336 +22,6 @@ namespace UnityEditor.ShaderGraph
                 result.Append(channelNames[index]);
             }
             return result.ToString();
-        }
-
-        private static bool ShouldSpliceField(System.Type parentType, FieldInfo field, IActiveFields activeFields, out bool isOptional)
-        {
-            bool fieldActive = true;
-            isOptional = field.IsDefined(typeof(Optional), false);
-            if (isOptional)
-            {
-                string fullName = parentType.Name + "." + field.Name;
-            }
-            return fieldActive;
-        }
-
-        private static string GetFieldSemantic(FieldInfo field)
-        {
-            string semanticString = null;
-            object[] semantics = field.GetCustomAttributes(typeof(Semantic), false);
-            if (semantics.Length > 0)
-            {
-                Semantic firstSemantic = (Semantic)semantics[0];
-                semanticString = " : " + firstSemantic.semantic;
-            }
-            return semanticString;
-        }
-
-        private static string GetFieldType(FieldInfo field, out int componentCount)
-        {
-            string fieldType;
-            object[] overrideType = field.GetCustomAttributes(typeof(OverrideType), false);
-            if (overrideType.Length > 0)
-            {
-                OverrideType first = (OverrideType)overrideType[0];
-                fieldType = first.typeName;
-                componentCount = 0;
-            }
-            else
-            {
-                // TODO: handle non-float types
-                componentCount = GetComponentCount(field.FieldType.Name);
-                switch (GetBaseFieldType(field.FieldType.Name))
-                {
-                    case BaseFieldType.Float:
-                        fieldType = vectorTypeNames[componentCount];
-                        break;
-                    case BaseFieldType.Uint:
-                        fieldType = uintTypeNames[componentCount];
-                        break;
-                    default:
-                        fieldType = "unknown";
-                        break;
-                }
-            }
-            return fieldType;
-        }
-
-        private static bool IsFloatVectorType(string type)
-        {
-            return GetFloatVectorCount(type) != 0;
-        }
-
-        private static string GetFieldConditional(FieldInfo field)
-        {
-            string conditional = null;
-            object[] overrideType = field.GetCustomAttributes(typeof(PreprocessorIf), false);
-            if (overrideType.Length > 0)
-            {
-                PreprocessorIf first = (PreprocessorIf)overrideType[0];
-                conditional = first.conditional;
-            }
-            return conditional;
-        }
-
-        public static void BuildType(System.Type t, ActiveFields activeFields, ShaderGenerator result, bool isDebug)
-        {
-            result.AddShaderChunk("struct " + t.Name);
-            result.AddShaderChunk("{");
-            result.Indent();
-
-            foreach (FieldInfo field in t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
-            {
-                if (field.MemberType == MemberTypes.Field)
-                {
-                    bool isOptional = false;
-
-                    var fieldIsActive = false;
-                    var keywordIfdefs = string.Empty;
-
-                    if (activeFields.permutationCount > 0)
-                    {
-                        // Evaluate all activeFields instance
-                        var instances = activeFields
-                            .allPermutations.instances
-                            .Where(i => ShouldSpliceField(t, field, i, out isOptional))
-                            .ToList();
-
-                        fieldIsActive = instances.Count > 0;
-                        if (fieldIsActive)
-                            keywordIfdefs = KeywordUtil.GetKeywordPermutationSetConditional(instances
-                                .Select(i => i.permutationIndex).ToList());
-                    }
-                    else
-                    {
-                        fieldIsActive = ShouldSpliceField(t, field, activeFields.baseInstance, out isOptional);
-                    }
-
-
-                    if (fieldIsActive)
-                    {
-                        // The field is used, so generate it
-                        var semanticString = GetFieldSemantic(field);
-                        int componentCount;
-                        var fieldType = GetFieldType(field, out componentCount);
-                        var conditional = GetFieldConditional(field);
-
-                        if (conditional != null)
-                            result.AddShaderChunk("#if " + conditional);
-                        if (!string.IsNullOrEmpty(keywordIfdefs))
-                            result.AddShaderChunk(keywordIfdefs);
-
-                        var fieldDecl = fieldType + " " + field.Name + semanticString + ";" + (isOptional & isDebug ? " // optional" : string.Empty);
-                        result.AddShaderChunk(fieldDecl);
-
-                        if (!string.IsNullOrEmpty(keywordIfdefs))
-                            result.AddShaderChunk("#endif" + (isDebug ? " // Shader Graph Keywords" : string.Empty));
-                        if (conditional != null)
-                            result.AddShaderChunk("#endif" + (isDebug ? $" // {conditional}" : string.Empty));
-                    }
-                }
-            }
-            result.Deindent();
-            result.AddShaderChunk("};");
-
-            object[] packAttributes = t.GetCustomAttributes(typeof(InterpolatorPack), false);
-            if (packAttributes.Length > 0)
-            {
-                result.AddNewLine();
-
-                if (activeFields.permutationCount > 0)
-                {
-                    var generatedPackedTypes = new Dictionary<string, (ShaderGenerator, List<int>)>();
-                    foreach (var instance in activeFields.allPermutations.instances)
-                    {
-                        var instanceGenerator = new ShaderGenerator();
-                        BuildPackedType(t, instance, instanceGenerator, isDebug);
-                        var key = instanceGenerator.GetShaderString(0);
-                        if (generatedPackedTypes.TryGetValue(key, out var value))
-                            value.Item2.Add(instance.permutationIndex);
-                        else
-                            generatedPackedTypes.Add(key, (instanceGenerator, new List<int> { instance.permutationIndex }));
-                    }
-
-                    var isFirst = true;
-                    foreach (var generated in generatedPackedTypes)
-                    {
-                        if (isFirst)
-                        {
-                            isFirst = false;
-                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2));
-                        }
-                        else
-                            result.AddShaderChunk(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2).Replace("#if", "#elif"));
-
-                        result.AddGenerator(generated.Value.Item1);
-                    }
-                    if (generatedPackedTypes.Count > 0)
-                        result.AddShaderChunk("#endif");
-                }
-                else
-                {
-                    BuildPackedType(t, activeFields.baseInstance, result, isDebug);
-                }
-            }
-        }
-
-        public static void BuildPackedType(System.Type unpacked, IActiveFields activeFields, ShaderGenerator result, bool isDebug)
-        {
-            // for each interpolator, the number of components used (up to 4 for a float4 interpolator)
-            List<int> packedCounts = new List<int>();
-            ShaderGenerator packingStruct = new ShaderGenerator();
-            ShaderGenerator packer = new ShaderGenerator();
-            ShaderGenerator unpacker = new ShaderGenerator();
-            ShaderGenerator systemGenerated = new ShaderGenerator();
-
-            string unpackedStruct = unpacked.Name.ToString();
-            string packedStruct = "Packed" + unpacked.Name;
-            string packerFunction = "Pack" + unpacked.Name;
-            string unpackerFunction = "Unpack" + unpacked.Name;
-
-            // declare struct header:
-            //   struct packedStruct {
-            packingStruct.AddShaderChunk("// Generated Type: Packed" + unpacked.Name);
-            packingStruct.AddShaderChunk("struct " + packedStruct);
-            packingStruct.AddShaderChunk("{");
-            packingStruct.Indent();
-
-            // declare function headers:
-            //   packedStruct packerFunction(unpackedStruct input)
-            //   {
-            //      packedStruct output;
-            packer.AddShaderChunk("// Packed Type: " + unpacked.Name);
-            packer.AddShaderChunk(packedStruct + " " + packerFunction + "(" + unpackedStruct + " input)");
-            packer.AddShaderChunk("{");
-            packer.Indent();
-            packer.AddShaderChunk(packedStruct + " output;");
-
-            //   unpackedStruct unpackerFunction(packedStruct input)
-            //   {
-            //      unpackedStruct output;
-            unpacker.AddShaderChunk("// Unpacked Type: " + unpacked.Name);
-            unpacker.AddShaderChunk(unpackedStruct + " " + unpackerFunction + "(" + packedStruct + " input)");
-            unpacker.AddShaderChunk("{");
-            unpacker.Indent();
-            unpacker.AddShaderChunk(unpackedStruct + " output;");
-
-            // TODO: this could do a better job packing
-            // especially if we allowed breaking up fields across multiple interpolators (to pack them into remaining space...)
-            // though we would want to only do this if it improves final interpolator count, and is worth it on the target machine
-            foreach (FieldInfo field in unpacked.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
-            {
-                if (field.MemberType == MemberTypes.Field)
-                {
-                    bool isOptional;
-                    if (ShouldSpliceField(unpacked, field, activeFields, out isOptional))
-                    {
-                        string semanticString = GetFieldSemantic(field);
-                        int floatVectorCount;
-                        string fieldType = GetFieldType(field, out floatVectorCount);
-                        string conditional = GetFieldConditional(field);
-
-                        // System generated fields must appear last in struct definitions
-                        bool isSystemGenerated = field.IsDefined(typeof(SystemGenerated), false);
-
-                        if (conditional != null)
-                        {
-                            if(isSystemGenerated)
-                            {
-                                systemGenerated.AddShaderChunk("#if " + conditional);
-                            }
-                            else
-                            {
-                                packingStruct.AddShaderChunk("#if " + conditional);
-                            }
-                            packer.AddShaderChunk("#if " + conditional);
-                            unpacker.AddShaderChunk("#if " + conditional);
-                        }
-                        if ((semanticString != null) || (floatVectorCount == 0))
-                        {
-                            if(isSystemGenerated)
-                            {
-                                systemGenerated.AddShaderChunk(fieldType + " " + field.Name + semanticString + ";" + (isDebug ? " // unpacked" : string.Empty));
-                            }
-                            else
-                            {
-                                packingStruct.AddShaderChunk(fieldType + " " + field.Name + semanticString + ";" + (isDebug ? " // unpacked" : string.Empty));
-                            }
-                            packer.AddShaderChunk("output." + field.Name + " = input." + field.Name + ";");
-                            unpacker.AddShaderChunk("output." + field.Name + " = input." + field.Name + ";");
-                        }
-                        else
-                        {
-                            // pack float field
-
-                            // super simple packing: use the first interpolator that has room for the whole value
-                            int interpIndex = packedCounts.FindIndex(x => (x + floatVectorCount <= 4));
-                            int firstChannel;
-                            if (interpIndex < 0)
-                            {
-                                // allocate a new interpolator
-                                interpIndex = packedCounts.Count;
-                                firstChannel = 0;
-                                packedCounts.Add(floatVectorCount);
-                            }
-                            else
-                            {
-                                // pack into existing interpolator
-                                firstChannel = packedCounts[interpIndex];
-                                packedCounts[interpIndex] += floatVectorCount;
-                            }
-
-                            // add code to packer and unpacker -- packed data declaration is handled later
-                            string packedChannels = GetChannelSwizzle(firstChannel, floatVectorCount);
-                            packer.AddShaderChunk(string.Format("output.interp{0:00}.{1} = input.{2};", interpIndex, packedChannels, field.Name));
-                            unpacker.AddShaderChunk(string.Format("output.{0} = input.interp{1:00}.{2};", field.Name, interpIndex, packedChannels));
-                        }
-                        if (conditional != null)
-                        {
-                            if(isSystemGenerated)
-                            {
-                                systemGenerated.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
-                            }
-                            else
-                            {
-                                packingStruct.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
-                            }
-                            packer.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
-                            unpacker.AddShaderChunk("#endif" + (isDebug ? $" // conditional" : string.Empty));
-                        }
-                    }
-                }
-            }
-
-            // add packed data declarations to struct, using the packedCounts
-            for (int index = 0; index < packedCounts.Count; index++)
-            {
-                int count = packedCounts[index];
-                packingStruct.AddShaderChunk(string.Format("{0} interp{1:00} : TEXCOORD{1};" + (isDebug ? " // auto-packed" : string.Empty), vectorTypeNames[count], index));
-            }
-
-            // Add system generated fields at the end
-            if(systemGenerated.numberOfChunks > 0)
-            {
-                packingStruct.AddGenerator(systemGenerated);
-            }
-
-            // close declarations
-            packingStruct.Deindent();
-            packingStruct.AddShaderChunk("};");
-            packingStruct.AddNewLine();
-            packer.AddShaderChunk("return output;");
-            packer.Deindent();
-            packer.AddShaderChunk("}");
-            packer.AddNewLine();
-            unpacker.AddShaderChunk("return output;");
-            unpacker.Deindent();
-            unpacker.AddShaderChunk("}");
-
-            // combine all of the code into the result
-            result.AddGenerator(packingStruct);
-            result.AddGenerator(packer);
-            result.AddGenerator(unpacker);
         }
 
         // returns the offset of the first non-whitespace character, in the range [start, end] inclusive ... will return end if none found
@@ -740,38 +325,49 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            private List<string> ActiveFieldstoString(IActiveFieldsSet activeFields)
+            {
+                List<string> fieldStrings = new List<string>();
+                foreach(var instance in activeFields.instances)
+                {
+                    foreach(var field in instance.fields)
+                        fieldStrings.Add(field.ToFieldString());
+                }
+                return fieldStrings;
+            }
+
             private bool ProcessPredicate(Token predicate, int endLine, ref int cur, ref bool appendEndln)
             {
                 // eval if(param)
-                var fieldName = new FieldDescriptor(predicate.GetString(), "", "");
+                var fieldName = predicate.GetString();
                 var nonwhitespace = SkipWhitespace(predicate.s, predicate.end + 1, endLine);
 
-                if (!fieldName.tag.StartsWith("features") && activeFields.permutationCount > 0)
+                if (!fieldName.StartsWith("features") && activeFields.permutationCount > 0)
                 {
-                    var passedPermutations = activeFields.allPermutations.instances
-                        .Where(i => i.Contains(fieldName))
-                        .ToList();
-
-                    if (passedPermutations.Count > 0)
-                    {
-                        var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
-                            passedPermutations.Select(i => i.permutationIndex).ToList()
-                        );
-                        result.AppendLine(ifdefs);
-                        // Append the rest of the line
-                        AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
-                        result.AppendLine("");
-                        result.AppendLine("#endif");
-
-                        return false;
-                    }
+                    //var activeFieldStrings = ActiveFieldstoString(activeFields.allPermutations);
+                    //var passedPermutations = activeFieldStrings.Where(i => i.Contains(fieldName)).ToList();
+//
+                    //if (passedPermutations.Count > 0)
+                    //{
+                    //    var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
+                    //        passedPermutations.Select(i => i.permutationIndex).ToList()
+                    //    );
+                    //    result.AppendLine(ifdefs);
+                    //    //Append the rest of the line
+                    //    AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
+                    //    result.AppendLine("");
+                    //    result.AppendLine("#endif");
+//
+                    //    return false;
+                    //}
 
                     return false;
                 }
                 else
                 {
                     // eval if(param)
-                    if (activeFields.baseInstance.Contains(fieldName))
+                    var activeFieldStrings = ActiveFieldstoString(activeFields.baseInstance);
+                    if (activeFieldStrings.Contains(fieldName))
                     {
                         // predicate is active
                         // append everything before the beginning of the escape sequence
