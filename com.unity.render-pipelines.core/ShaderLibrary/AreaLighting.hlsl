@@ -10,7 +10,7 @@ real3 ComputeEdgeFactor(real3 V1, real3 V2)
     real  V1oV2 = dot(V1, V2);
     real3 V1xV2 = cross(V1, V2);
 #if 0
-    return V1xV2 * (rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2));
+    return normalize(V1xV2) * acos(V1oV2));
 #else
     // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
     // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].
@@ -36,7 +36,7 @@ real IntegrateEdge(real3 V1, real3 V2)
     return ComputeEdgeFactor(V1, V2).z;
 }
 
-// 'sinSqSigma' is the sine^2 of the real of the opening angle of the sphere as seen from the shaded point.
+// 'sinSqSigma' is the sine^2 of the half-angle subtended by the sphere (aperture) as seen from the shaded point.
 // 'cosOmega' is the cosine of the angle between the normal and the direction to the center of the light.
 // N.b.: this function accounts for horizon clipping.
 real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
@@ -123,49 +123,50 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 #endif
 }
 
+// This function does not check whether light's contribution is 0.
 real3 PolygonFormFactor(real4x3 L)
 {
-    UNITY_UNROLL
-    for (uint i = 0; i < 4; i++)
-    {
-        L[i] = normalize(L[i]);
-    }
+    L[0] = normalize(L[0]);
+    L[1] = normalize(L[1]);
+    L[2] = normalize(L[2]);
+    L[3] = normalize(L[3]);
 
-    real3 F  = ComputeEdgeFactor( L[0], L[1] );
-          F += ComputeEdgeFactor( L[1], L[2] );
-          F += ComputeEdgeFactor( L[2], L[3] );
-          F += ComputeEdgeFactor( L[3], L[0] );
+    real3 F  = ComputeEdgeFactor(L[0], L[1]);
+          F += ComputeEdgeFactor(L[1], L[2]);
+          F += ComputeEdgeFactor(L[2], L[3]);
+          F += ComputeEdgeFactor(L[3], L[0]);
 
     return INV_TWO_PI * F;
+}
+
+// See "Real-Time Area Lighting: a Journey from Research to Production", slide 102.
+// Turns out, despite the authors claiming that this function "calculates an approximation of
+// the clipped sphere form factor", that is simply not true.
+// First of all, above horizon, the function should then just return 'F.z', which it does not.
+// Secondly, if we use the correct function called DiffuseSphereLightIrradiance(), it results
+// in severe light leaking if the light is placed vertically behind the camera.
+// So this function is clearly a hack designed to work around these problems.
+real PolygonIrradianceFromVectorFormFactor(float3 F)
+{
+#if 1
+    float l = length(F);
+    return max(0, (l * l + F.z) / (l + 1));
+#else
+    real sff               = saturate(dot(F, F));
+    real sinSqAperture     = sqrt(sff);
+    real cosElevationAngle = F.z * rsqrt(sff);
+
+    return DiffuseSphereLightIrradiance(sinSqAperture, cosElevationAngle);
+#endif
 }
 
 // Expects non-normalized vertex positions.
 real PolygonIrradiance(real4x3 L)
 {
 #ifdef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
-    UNITY_UNROLL
-    for (uint i = 0; i < 4; i++)
-    {
-        L[i] = normalize(L[i]);
-    }
+    real3 F = PolygonFormFactor(L);
 
-    real3 F = real3(0, 0, 0);
-
-    UNITY_UNROLL
-    for (uint edge = 0; edge < 4; edge++)
-    {
-        real3 V1 = L[edge];
-        real3 V2 = L[(edge + 1) % 4];
-
-        F += INV_TWO_PI * ComputeEdgeFactor(V1, V2);
-    }
-
-    // Clamp invalid values to avoid visual artifacts.
-    real f2         = saturate(dot(F, F));
-    real sinSqSigma = min(sqrt(f2), 0.999);
-    real cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
-
-    return DiffuseSphereLightIrradiance(sinSqSigma, cosOmega);
+    return PolygonIrradianceFromVectorFormFactor(F);
 #else
     // 1. ClipQuadToHorizon
 
