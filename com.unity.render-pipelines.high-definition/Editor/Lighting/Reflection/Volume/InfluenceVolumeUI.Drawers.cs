@@ -17,7 +17,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var provider = new TProvider();
 
-            Drawer_InfluenceAdvancedSwitch(serialized, owner);
+            //small piece of init logic previously in the removed Drawer_InfluenceAdvancedSwitch
+            bool advanced = serialized.editorAdvancedModeEnabled.boolValue;
+            s_BoxBaseHandle.monoHandle = false;
+            s_BoxInfluenceHandle.monoHandle = !advanced;
+            s_BoxInfluenceNormalHandle.monoHandle = !advanced;
+            
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serialized.shape, shapeContent);
             switch ((InfluenceShape)serialized.shape.intValue)
@@ -31,49 +36,28 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_InfluenceAdvancedSwitch(SerializedInfluenceVolume serialized, Editor owner)
+        public static void SetInfluenceAdvancedControlSwitch(SerializedInfluenceVolume serialized, Editor owner, bool advancedControl)
         {
-            using (new EditorGUILayout.HorizontalScope())
+            if (advancedControl == serialized.editorAdvancedModeEnabled.boolValue)
+                return;
+
+            serialized.editorAdvancedModeEnabled.boolValue = advancedControl;
+            if (advancedControl)
             {
-                GUILayout.FlexibleSpace();
-
-                if (serialized.shape.intValue == (int)InfluenceShape.Sphere)
-                {
-                    GUI.enabled = false;
-                }
-
-                bool advanced = serialized.editorAdvancedModeEnabled.boolValue;
-                advanced = !GUILayout.Toggle(!advanced, normalModeContent, EditorStyles.miniButtonLeft, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
-                advanced = GUILayout.Toggle(advanced, advancedModeContent, EditorStyles.miniButtonRight, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
-                s_BoxBaseHandle.monoHandle = false;
-                s_BoxInfluenceHandle.monoHandle = !advanced;
-                s_BoxInfluenceNormalHandle.monoHandle = !advanced;
-                if (serialized.editorAdvancedModeEnabled.boolValue ^ advanced)
-                {
-                    serialized.editorAdvancedModeEnabled.boolValue = advanced;
-                    if (advanced)
-                    {
-                        serialized.boxBlendDistancePositive.vector3Value = serialized.editorAdvancedModeBlendDistancePositive.vector3Value;
-                        serialized.boxBlendDistanceNegative.vector3Value = serialized.editorAdvancedModeBlendDistanceNegative.vector3Value;
-                        serialized.boxBlendNormalDistancePositive.vector3Value = serialized.editorAdvancedModeBlendNormalDistancePositive.vector3Value;
-                        serialized.boxBlendNormalDistanceNegative.vector3Value = serialized.editorAdvancedModeBlendNormalDistanceNegative.vector3Value;
-                        serialized.boxSideFadePositive.vector3Value = serialized.editorAdvancedModeFaceFadePositive.vector3Value;
-                        serialized.boxSideFadeNegative.vector3Value = serialized.editorAdvancedModeFaceFadeNegative.vector3Value;
-                    }
-                    else
-                    {
-                        serialized.boxBlendDistanceNegative.vector3Value = serialized.boxBlendDistancePositive.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendDistance.floatValue;
-                        serialized.boxBlendNormalDistanceNegative.vector3Value = serialized.boxBlendNormalDistancePositive.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendNormalDistance.floatValue;
-                        serialized.boxSideFadeNegative.vector3Value = serialized.boxSideFadePositive.vector3Value = Vector3.one;
-                    }
-                    serialized.Apply();
-                }
-
-                if (serialized.shape.intValue == (int)InfluenceShape.Sphere)
-                {
-                    GUI.enabled = true;
-                }
+                serialized.boxBlendDistancePositive.vector3Value = serialized.editorAdvancedModeBlendDistancePositive.vector3Value;
+                serialized.boxBlendDistanceNegative.vector3Value = serialized.editorAdvancedModeBlendDistanceNegative.vector3Value;
+                serialized.boxBlendNormalDistancePositive.vector3Value = serialized.editorAdvancedModeBlendNormalDistancePositive.vector3Value;
+                serialized.boxBlendNormalDistanceNegative.vector3Value = serialized.editorAdvancedModeBlendNormalDistanceNegative.vector3Value;
+                serialized.boxSideFadePositive.vector3Value = serialized.editorAdvancedModeFaceFadePositive.vector3Value;
+                serialized.boxSideFadeNegative.vector3Value = serialized.editorAdvancedModeFaceFadeNegative.vector3Value;
             }
+            else
+            {
+                serialized.boxBlendDistanceNegative.vector3Value = serialized.boxBlendDistancePositive.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendDistance.floatValue;
+                serialized.boxBlendNormalDistanceNegative.vector3Value = serialized.boxBlendNormalDistancePositive.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendNormalDistance.floatValue;
+                serialized.boxSideFadeNegative.vector3Value = serialized.boxSideFadePositive.vector3Value = Vector3.one;
+            }
+            serialized.Apply();
         }
 
         static void Drawer_SectionShapeBox(SerializedInfluenceVolume serialized, Editor owner, bool drawOffset, bool drawNormal, bool drawFace)
@@ -156,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.boxSideFadePositive.vector3Value = serialized.editorAdvancedModeFaceFadePositive.vector3Value;
                     serialized.boxSideFadeNegative.vector3Value = serialized.editorAdvancedModeFaceFadeNegative.vector3Value;
                 }
-                GUILayout.Space(28f + 9f); //add right margin for alignment
+                GUILayout.Space(30f); //add right margin for alignment
                 EditorGUILayout.EndHorizontal();
 
                 GUILayout.Space(EditorGUIUtility.standardVerticalSpacing * 2f);

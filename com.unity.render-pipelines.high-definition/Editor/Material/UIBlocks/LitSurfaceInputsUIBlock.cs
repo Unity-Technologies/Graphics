@@ -477,9 +477,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 // UI only updates intermediate values, this will update the values actually used by the shader.
                 if (EditorGUI.EndChangeCheck())
                 {
+                    SurfaceOptionUIBlock    surfaceOption;
+
                     // Fetch the surface option block which contains the function to update the displacement datas
-                    var surfaceOptionUIBlock = FetchUIBlockInCurrentList< SurfaceOptionUIBlock >();
-                    surfaceOptionUIBlock.UpdateDisplacement(m_LayerIndex);
+                    if (m_LayerCount == 1)
+                        surfaceOption = parent.FetchUIBlock< SurfaceOptionUIBlock >();
+                    else
+                        surfaceOption = parent.parent.FetchUIBlock< SurfaceOptionUIBlock >();
+
+                    surfaceOption.UpdateDisplacement(m_LayerIndex);
                 }
             }
 

@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected Material[]            materials;
         protected MaterialProperty[]    properties;
 
-        MaterialUIBlockList             parent;
+        protected MaterialUIBlockList   parent;
 
         [Flags]
         public enum Expandable : uint
@@ -97,11 +97,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return properties;
-        }
-
-        protected T FetchUIBlockInCurrentList< T >() where T : MaterialUIBlock
-        {
-            return parent.FetchUIBlock< T >();
         }
 
         public abstract void LoadMaterialProperties();

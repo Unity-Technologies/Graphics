@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Graphing;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -10,7 +12,10 @@ namespace UnityEditor.ShaderGraph
             for(int i = 0; i < 8; i++)
             {
                 if(i < gradient.colorKeys.Length)
-                    colorKeys += $"$precision4({gradient.colorKeys[i].color.r}, {gradient.colorKeys[i].color.g}, {gradient.colorKeys[i].color.b}, {gradient.colorKeys[i].time})";
+                    colorKeys += $"$precision4({NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.r)}, " +
+                                $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.g)}, " +
+                                $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].color.b)}, " +
+                                $"{NodeUtils.FloatToShaderValue(gradient.colorKeys[i].time)})";
                 else
                     colorKeys += "$precision4(0, 0, 0, 0)";
                 if(i < 7)
@@ -21,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             for(int i = 0; i < 8; i++)
             {
                 if(i < gradient.alphaKeys.Length)
-                    alphaKeys += $"$precision2({gradient.alphaKeys[i].alpha}, {gradient.alphaKeys[i].time})";
+                    alphaKeys += $"$precision2({NodeUtils.FloatToShaderValue(gradient.alphaKeys[i].alpha)}, {NodeUtils.FloatToShaderValue(gradient.alphaKeys[i].time)})";
                 else
                     alphaKeys += "$precision2(0, 0)";
                 if(i < 7)

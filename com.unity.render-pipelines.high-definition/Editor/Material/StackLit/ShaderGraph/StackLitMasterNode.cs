@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 
 // Include material common properties names
@@ -25,7 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
     class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
-        public const string PositionSlotName = "Position";
+        public const string PositionSlotName = "Vertex Position";
+        public const string PositionSlotDisplayName = "Vertex Position";
 
         public const string BaseColorSlotName = "BaseColor";
 
@@ -83,6 +85,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public const string DepthOffsetSlotName = "DepthOffset";
 
+        public const string VertexNormalSlotName = "Vertex Normal";
+        public const string VertexTangentSlotName = "Vertex Tangent";
+
         public const int PositionSlotId = 0;
         public const int BaseColorSlotId = 1;
         public const int NormalSlotId = 2;
@@ -132,6 +137,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int IridescenceCoatFixupTIRClampSlotId = 41;
 
         public const int DepthOffsetSlotId = 42;
+
+        public const int VertexNormalSlotId = 44;
+        public const int VertexTangentSlotId = 45;
 
         // TODO: we would ideally need one value per lobe
         public const int SpecularOcclusionSlotId = 43; // for custom (external) SO replacing data based SO (which normally comes from some func of DataBasedSOMode(dataAO, optional bent normal))
@@ -596,16 +604,16 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_AddVelocityChange = false;
+        bool m_AddPrecomputedVelocity = false;
 
-        public ToggleData addVelocityChange
+        public ToggleData addPrecomputedVelocity
         {
-            get { return new ToggleData(m_AddVelocityChange); }
+            get { return new ToggleData(m_AddPrecomputedVelocity); }
             set
             {
-                if (m_AddVelocityChange == value.isOn)
+                if (m_AddPrecomputedVelocity == value.isOn)
                     return;
-                m_AddVelocityChange = value.isOn;
+                m_AddPrecomputedVelocity = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -980,8 +988,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             List<int> validSlots = new List<int>();
 
-            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotDisplayName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
             validSlots.Add(PositionSlotId);
+
+            AddSlot(new NormalMaterialSlot(VertexNormalSlotId, VertexNormalSlotName, VertexNormalSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexNormalSlotId);
+
+            AddSlot(new TangentMaterialSlot(VertexTangentSlotId, VertexTangentSlotName, VertexTangentSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            validSlots.Add(VertexTangentSlotId);
 
             AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
             validSlots.Add(NormalSlotId);
@@ -1306,13 +1320,13 @@ namespace UnityEditor.Rendering.HighDefinition
             });
 
             //See SG-ADDITIONALVELOCITY-NOTE
-            if (addVelocityChange.isOn)
+            if (addPrecomputedVelocity.isOn)
             {
                 collector.AddShaderProperty(new BooleanShaderProperty
                 {
                     value = true,
                     hidden = true,
-                    overrideReferenceName = kAdditionalVelocityChange,
+                    overrideReferenceName = kAddPrecomputedVelocity,
                 });
             }
 

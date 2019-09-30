@@ -18,14 +18,6 @@ struct Varyings
     float2 texcoord   : TEXCOORD0;
 };
 
-Varyings Vert(Attributes input)
-{
-    Varyings output;
-    output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-    output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
-    return output;
-}
-
 Varyings VertQuad(Attributes input)
 {
     Varyings output;

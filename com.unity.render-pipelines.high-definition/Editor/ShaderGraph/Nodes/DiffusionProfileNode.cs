@@ -42,7 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [NonSerialized]
         DiffusionProfileSettings    m_DiffusionProfileAsset;
 
-        [ObjectControl]
+        //Hide name to be consistent with Texture2DAsset node
+        [ObjectControl("")]
         public DiffusionProfileSettings diffusionProfile
         {
             get
@@ -99,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning restore 618
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             uint hash = 0;
 

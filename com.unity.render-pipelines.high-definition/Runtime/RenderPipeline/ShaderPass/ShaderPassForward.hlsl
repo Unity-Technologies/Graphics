@@ -60,25 +60,38 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
+#ifdef UNITY_VIRTUAL_TEXTURING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-#if VIRTUAL_TEXTURES_ACTIVE
-[earlydepthstencil]
 #endif
+
+#ifdef UNITY_VIRTUAL_TEXTURING
+#define VT_BUFFER_TARGET SV_Target1
+#define EXTRA_BUFFER_TARGET SV_Target2
+#else
+#define EXTRA_BUFFER_TARGET SV_Target1
+#endif
+
 void Frag(PackedVaryingsToPS packedInput,
         #ifdef OUTPUT_SPLIT_LIGHTING
             out float4 outColor : SV_Target0,  // outSpecularLighting
-            out float4 outDiffuseLighting : SV_Target1,
+            #ifdef UNITY_VIRTUAL_TEXTURING
+                out float4 outVTFeedback : VT_BUFFER_TARGET,
+            #endif
+            out float4 outDiffuseLighting : EXTRA_BUFFER_TARGET,
             OUTPUT_SSSBUFFER(outSSSBuffer)
         #else
             out float4 outColor : SV_Target0
+            #ifdef UNITY_VIRTUAL_TEXTURING
+                ,out float4 outVTFeedback : VT_BUFFER_TARGET
+            #endif
         #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-          , out float4 outMotionVec : SV_Target1
+          , out float4 outMotionVec : EXTRA_BUFFER_TARGET
         #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
         #endif
-          )
+)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
@@ -109,12 +122,15 @@ void Frag(PackedVaryingsToPS packedInput,
     outColor = float4(0.0, 0.0, 0.0, 0.0);
 
     // We need to skip lighting when doing debug pass because the debug pass is done before lighting so some buffers may not be properly initialized potentially causing crashes on PS4.
+
 #ifdef DEBUG_DISPLAY
     // Init in debug display mode to quiet warning
-    #ifdef OUTPUT_SPLIT_LIGHTING
+#ifdef OUTPUT_SPLIT_LIGHTING
     outDiffuseLighting = 0;
     ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
-    #endif
+#endif
+
+
 
     // Same code in ShaderPassForwardUnlit.shader
     // Reminder: _DebugViewMaterialArray[i]
@@ -168,6 +184,11 @@ void Frag(PackedVaryingsToPS packedInput,
 
             outColor = float4(result, 1.0f);
         }
+        else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+        {
+            float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
+            outColor = result;
+        }
         else
 #endif
         {
@@ -216,6 +237,7 @@ void Frag(PackedVaryingsToPS packedInput,
             }
 #endif
         }
+
 #ifdef DEBUG_DISPLAY
     }
 #endif
@@ -224,7 +246,7 @@ void Frag(PackedVaryingsToPS packedInput,
     outputDepth = posInput.deviceDepth;
 #endif
 
-#if VIRTUAL_TEXTURES_ACTIVE
-    StoreVTFeedback(builtinData.vtFeedback, posInput.positionSS);
+#ifdef UNITY_VIRTUAL_TEXTURING
+    outVTFeedback = GetPackedVTFeedback(builtinData.vtFeedback);
 #endif
 }

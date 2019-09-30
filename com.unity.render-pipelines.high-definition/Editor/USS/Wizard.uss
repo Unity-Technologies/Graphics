@@ -1,0 +1,156 @@
+#StatusOK, #StatusError
+{
+    width: 12px;
+    height: 12px;
+    position: absolute;
+    left: 180px;
+}
+
+#TestLabel
+{
+    width: 180px;
+}
+
+#Resolver
+{
+    position: absolute;
+    right: 0px;
+    width: 100px;
+    margin-top: -4px;
+}
+
+#HelpBox
+{
+    margin: 10px;
+    margin-top: 5px;
+    padding: 10px;
+    border-width: 1px;
+    border-radius: 3px;
+    flex-direction:row;
+    flex-shrink: 1;
+}
+
+#HelpBox > Image
+{
+    margin-top: -7px;
+    margin-bottom: -7px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    align-self: center;
+}
+
+#HelpBox > Label
+{
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+#TestRow
+{
+    flex-direction:row;
+    margin-top: 5px;
+}
+
+#FixAll
+{
+    margin-top: 10px;
+}
+
+HiddableUpdatableContainer
+{
+    margin-top: 10px;
+}
+
+#OuterBox
+{
+    margin: 10px;
+    margin-top: 0px;
+    margin-bottom: 15px;
+    border-radius: 3px;
+}
+
+#InnerBox
+{
+    padding: 10px;
+    padding-top: 5px;
+    border-radius: 3px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+.Radio
+{
+    margin: 0px;
+    flex: 1;
+    border-left-width: 0px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+}
+
+.SelectedRadio
+{
+    border-bottom-width: 0px;
+}
+
+.LastRadio
+{
+    border-right-width: 0px;
+    margin-right: -1px;
+}
+
+.Radio > * > Label
+{
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+}
+
+ToolbarRadio
+{
+    border-width: 1px;
+    border-bottom-width: 0px;
+    border-radius: 0px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+#ResourceRow
+{
+    flex-direction:row;
+}
+
+#DefaultResourceFolder
+{
+    flex: 1;
+    margin-right: 130px;
+}
+
+#Repopulate
+{
+    position: absolute;
+    right: 0px;
+    width: 120px;
+}
+
+#MigrationButton
+{
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+
+/* spacing between categories */
+
+#NewDXRScene
+{
+    margin-bottom: 15px;
+}
+
+#WizardCheckbox
+{
+    margin-top: 15px;
+}

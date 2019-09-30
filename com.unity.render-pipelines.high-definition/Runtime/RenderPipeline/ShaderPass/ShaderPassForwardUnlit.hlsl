@@ -2,6 +2,10 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#ifdef UNITY_VIRTUAL_TEXTURING
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
+#endif
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
@@ -24,12 +28,11 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
-#if VIRTUAL_TEXTURES_ACTIVE
-[earlydepthstencil]
-#endif
 void Frag(PackedVaryingsToPS packedInput,
     out float4 outResult : SV_Target0
+#ifdef UNITY_VIRTUAL_TEXTURING
+    ,out float4 outVTFeedback : SV_Target1
+#endif
 )
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
@@ -90,11 +93,18 @@ void Frag(PackedVaryingsToPS packedInput,
             outColor = float4(result, 1.0);
         }
     }
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    {
+        float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
+        outColor = result;
+    }
+
 #endif
 
     outResult = outColor;
 
-#if VIRTUAL_TEXTURES_ACTIVE
-    StoreVTFeedback(builtinData.vtFeedback, posInput.positionSS);
+#ifdef UNITY_VIRTUAL_TEXTURING
+    outVTFeedback = GetPackedVTFeedback(builtinData.vtFeedback);
 #endif
 }

@@ -9,29 +9,29 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
+
 /*
-	This header adds the following pseudo definitions. Actual types etc may vary depending
-	on vt- being on or off.
+    This header adds the following pseudo definitions. Actual types etc may vary depending
+    on vt- being on or off.
 
-	    struct StackInfo { opaque struct ... }
-	    StackInfo PrepareStack(float2 uv, Stack object);
-	    float4 SampleStack(StackInfo info, Texture tex);
+        struct StackInfo { opaque struct ... }
+        StackInfo PrepareStack(float2 uv, Stack object);
+        float4 SampleStack(StackInfo info, Texture tex);
 
-	To use this in your materials add the following to various locations in the shader:
+    To use this in your materials add the following to various locations in the shader:
 
-	In shaderlab "Properties" section add:
+    In shaderlab "Properties" section add:
 
-	    MyFancyStack ("Fancy Stack", Stack ) = { TextureSlot1, TextureSlot2, ... }
+        [TextureStack.MyFancyStack] DiffuseTexture ("DiffuseTexture", 2D) = "white" {}
+        [TextureStack.MyFancyStack] NormalTexture ("NormalTexture", 2D) = "white" {}
 
-	In your CGPROGRAM code for each of the passes add:
-
-	    #pragma shader_feature_local VIRTUAL_TEXTURES_BUILT
+    This will declare a texture stack with two shaders.
 
     Then add the following to the PerMaterial constant buffer:
 
         CBUFFER_START(UnityPerMaterial)
         ...
-        DECLARE_STACK_CB
+        DECLARE_STACK_CB(MyFancyStack)
         ...
         CBUFFER_END
 
@@ -39,43 +39,31 @@
 
         ...
 
-	    DECLARE_STACK(MyFancyStack, TextureSlot1)
-	    or
-	    DECLARE_STACK2(MyFancyStack, TextureSlot1, TextureSlot2)
-	    or
-	    DECLARE_STACK3(MyFancyStack, TextureSlot1, TextureSlot2, TextureSlot2)
-	    etc...
+        DECLARE_STACK(MyFancyStack, DiffuseTexture)
+        or
+        DECLARE_STACK2(MyFancyStack, DiffuseTexture, NormalTexture)
+        or
+        DECLARE_STACK3(MyFancyStack, TextureSlot1, TextureSlot2, TextureSlot2)
+        etc...
 
-	NOTE: The Stack shaderlab property and DECLARE_STACKn define need to match i.e. the same name and same texture slots.
+    NOTE: The Stack shaderlab property and DECLARE_STACKn define need to match i.e. the same name and same texture slots.
 
-	Then in the pixel shader function (likely somewhere at the beginning) do a call:
+    Then in the pixel shader function (likely somewhere at the beginning) do a call:
 
-	    StackInfo info = PrepareStack(MyFancyStack, uvs);
+        StackInfo info = PrepareStack(uvs, MyFancyStack);
 
-	Then later on when you want to sample the actual texture do a call(s):
+    Then later on when you want to sample the actual texture do a call(s):
 
-	    float4 color = SampleStack(info, TextureSlot1);
-	    float4 color2 = SampleStack(info, TextureSlot2);
-	    ...
+        float4 color = SampleStack(info, TextureSlot1);
+        float4 color2 = SampleStack(info, TextureSlot2);
+        ...
 
-	The above steps can be repeated for multiple stacks. But be sure that when using the SampleStack you always
-	pass in the result of the PrepareStack for the correct stack the texture belongs to.
+    The above steps can be repeated for multiple stacks. But be sure that when using the SampleStack you always
+    pass in the result of the PrepareStack for the correct stack the texture belongs to.
 
 */
 
-// A note about the on/off defines
-// UNITY_VIRTUAL_TEXTURING current project is configured to use VT this is something even non vt materials may need to be aware of (e.g. different gbuffer layout used etc...)
-// VIRTUAL_TEXTURES_ACTIVE vt data is built and enabled so the current shader should actively use VT sampling
-
-#if UNITY_VIRTUAL_TEXTURING
-#define VIRTUAL_TEXTURES_ACTIVE 1
-#else
-#define VIRTUAL_TEXTURES_ACTIVE 0
-#endif
-
-
-
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
 
 struct StackInfo
 {
@@ -222,17 +210,9 @@ float4 ResolveVT_##stackName(float2 uv)\
 #define GetResolveOutput(info) info.resolveOutput
 #define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
-RW_TEXTURE2D(float4, VTFeedback) : register(u7);
-#define VTFeedbackScale 16
-void StoreVTFeedback(float4 feedback, uint2 positionSS)
+float4 GetPackedVTFeedback(float4 feedback)
 {
-    [branch]
-    if ( (positionSS.x & (VTFeedbackScale - 1)) == 0 && (positionSS.y & (VTFeedbackScale - 1)) == 0)
-    {
-
-        const uint2 vt_pos = positionSS / VTFeedbackScale;
-        VTFeedback[vt_pos] = Granite_PackTileId(feedback);
-    }
+    return Granite_PackTileId(feedback);
 }
 
 #else
@@ -269,7 +249,7 @@ StackInfo MakeStackInfo(float2 uv)
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
 #define ResolveStack(uv, stackName) float4(1,1,1,1)
-#define StoreVTFeedback(feedback, positionSS)
+#define GetPackedVTFeedback(feedback)
 
 #endif
 

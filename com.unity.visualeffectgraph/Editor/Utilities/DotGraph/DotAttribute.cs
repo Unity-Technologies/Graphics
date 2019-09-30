@@ -1,6 +1,6 @@
 namespace UnityEditor.Dot
 {
-    public static class DotAttribute
+    static class DotAttribute
     {
         public static readonly string Label         = "label";
         public static readonly string HeadLabel     = "headlabel";
@@ -10,7 +10,7 @@ namespace UnityEditor.Dot
         public static readonly string Style         = "style";
     }
 
-    public static class DotShape
+    static class DotShape
     {
         public static readonly string None          = "plaintext";
         public static readonly string Box           = "box";
@@ -18,7 +18,7 @@ namespace UnityEditor.Dot
         public static readonly string Square        = "square";
     }
 
-    public static class DotColor
+    static class DotColor
     {
         public static readonly string Black         = "black";
         public static readonly string White         = "white";
@@ -34,7 +34,7 @@ namespace UnityEditor.Dot
         public static readonly string SteelBlue     = "steelblue";
     }
 
-    public static class DotStyle
+    static class DotStyle
     {
         public static readonly string Filled        = "filled";
         public static readonly string Solid         = "solid";

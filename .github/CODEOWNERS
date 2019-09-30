@@ -10,12 +10,15 @@
 /com.unity.render-pipelines.universal/Shaders/2D @Unity-Technologies/2d-graphics
 /com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
 
-# Shadergraph
+# Shader Graph
+/com.unity.shadergraph/ @Unity-Technologies/shader-graph
 /com.unity.shadergraph/CHANGELOG.md @Unity-Technologies/gfx-docs
+/com.unity.shadergraph/Documentation~/ @Unity-Technologies/gfx-docs
 
-# Test systems - disabled for now till better solution is found
-# /.yamato/ @Unity-Technologies/gfx-sdets
-# /katana-ci/ @Unity-Technologies/gfx-sdets
+# Test systems
+/.yamato/ @Unity-Technologies/gfx-sdets
+/katana-ci/ @Unity-Technologies/gfx-sdets
+/com.unity.testframework.graphics/ @Unity-Technologies/gfx-sdets
 
 # LWRP (Legacy)
 /com.unity.render-pipelines.lightweight/ @Unity-Technologies/universal-rp-team
