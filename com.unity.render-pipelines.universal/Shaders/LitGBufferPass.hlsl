@@ -140,17 +140,22 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     //half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
 
 
-    // in LitForwardPass GlobalIllumination is called inside UniversalFragmentPBR
-    // in Deferred rendering we store this value in the GBuffer, and add emission as well
+    // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
+    // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-    half3 globalIllumination = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    
+    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
-    // Forward also has this step (TODO: support equivalent in Deferred)
+    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS); // TODO move this to a separate full-screen single gbuffer pass?
+
+    // Forward also has this step (TODO: support equivalent in Deferred?)
     //color.rgb = MixFog(color.rgb, inputData.fogCoord);
 
-    return SurfaceDataAndGlobalIlluminationToGbuffer(surfaceData, inputData, globalIllumination);
+    return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color);
 }
 
 #endif

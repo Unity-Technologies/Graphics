@@ -12,7 +12,7 @@ struct FragmentOutput
 };
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput SurfaceDataAndGlobalIlluminationToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination)
+FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination)
 {
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
     half2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]

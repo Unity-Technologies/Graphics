@@ -36,7 +36,7 @@ struct PointLightData
     float4 color;
 };
 
-#define TEST_WIP_DEFERRED_POINT_LIGHTING 0
+#define TEST_WIP_DEFERRED_POINT_LIGHTING 1
 
 Light UnityLightFromPointLightDataAndWorldSpacePosition(PointLightData pointLightData, float3 wsPos)
 {

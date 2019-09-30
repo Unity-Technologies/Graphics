@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalBlitPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment);
 
                 // Comment out this debug line to visualize GBuffer
-                //m_FinalBlitPass.Setup(cameraTargetDescriptor, m_GBufferPass.m_GBufferAttachments[2]);
+                //m_FinalBlitPass.Setup(cameraTargetDescriptor, m_GBufferAttachments[2]);
 
                 EnqueuePass(m_FinalBlitPass);
             }
