@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor viewDirectionWS = new SubscriptDescriptor(Varyings.name, "viewDirectionWS", "VARYINGS_NEED_VIEWDIRECTION_WS", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor bitangentWS = new SubscriptDescriptor(Varyings.name, "bitengentWS", "VARYINGS_NEED_BITANGENT_WS", ShaderValueType.Float3,
+                public static SubscriptDescriptor bitangentWS = new SubscriptDescriptor(Varyings.name, "bitangentWS", "VARYINGS_NEED_BITANGENT_WS", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
                 public static SubscriptDescriptor screenPosition = new SubscriptDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
