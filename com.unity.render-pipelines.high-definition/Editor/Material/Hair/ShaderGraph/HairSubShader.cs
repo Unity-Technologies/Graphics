@@ -41,40 +41,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool transparentDepthPrepassActive = transparent && masterNode.alphaTestDepthPrepass.isOn;
                 bool transparentDepthPostpassActive = transparent && masterNode.alphaTestDepthPostpass.isOn;
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.META, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.META, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                 if (transparentBackfaceActive)
                 {
-                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.TransparentBackface, mode, subShader, sourceAssetDependencyPaths,
-                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.TransparentBackface, mode, subShader, sourceAssetDependencyPaths);
                 }
 
                 if (transparentDepthPrepassActive)
                 {
-                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.TransparentDepthPrepass, mode, subShader, sourceAssetDependencyPaths,
-                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.TransparentDepthPrepass, mode, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths);
 
                 if (transparentDepthPostpassActive)
                 {
-                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.TransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths,
-                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.HairPasses.TransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
                 }
             }
             subShader.Deindent();

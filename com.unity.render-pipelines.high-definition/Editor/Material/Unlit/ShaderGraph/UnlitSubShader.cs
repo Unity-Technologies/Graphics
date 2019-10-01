@@ -36,26 +36,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 // generate the necessary shader passes
                 bool opaque = (masterNode.surfaceType == ShaderGraph.SurfaceType.Opaque);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.META, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.META, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths);
 
                 if (opaque)
                 {
-                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
                     
-                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths,
-                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.UnlitPasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

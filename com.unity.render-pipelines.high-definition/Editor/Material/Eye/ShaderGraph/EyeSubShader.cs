@@ -36,23 +36,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 int queue = HDRenderQueue.ChangeType(renderingPass, masterNode.sortPriority, masterNode.alphaTest.isOn);
                 HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.HDLitShader, queue);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.META, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.META, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.EyePasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

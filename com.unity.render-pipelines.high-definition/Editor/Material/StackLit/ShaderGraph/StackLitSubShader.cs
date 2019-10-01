@@ -38,29 +38,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
                 bool distortionActive = !opaque && masterNode.distortion.isOn;
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.META, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.META, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.SceneSelection, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.DepthForwardOnly, mode, subShader, sourceAssetDependencyPaths);
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.MotionVectors, mode, subShader, sourceAssetDependencyPaths);
 
                 if (distortionActive)
                 {
-                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.Distortion, mode, subShader, sourceAssetDependencyPaths,
-                        HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                    GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.Distortion, mode, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths,
-                    HDRPShaderStructs.s_Dependencies, HDRPShaderStructs.s_ResourceClassName, HDRPShaderStructs.s_AssemblyName);
+                GenerationUtils.GenerateShaderPass(masterNode, target, HDRPMeshTarget.StackLitPasses.ForwardOnly, mode, subShader, sourceAssetDependencyPaths);
             }
 
             subShader.Deindent();

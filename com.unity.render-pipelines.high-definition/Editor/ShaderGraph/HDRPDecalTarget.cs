@@ -218,14 +218,14 @@ namespace UnityEditor.Rendering.HighDefinition
 #region RequiredFields
         static class RequiredFields
         {
-            public static string[] Mesh = new string[]
-            {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",
-                "AttributesMesh.uv0",
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
+            public static IField[] Mesh = new IField[]
+            {   
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.normalOS,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.tangentOS,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv0,
+                HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld,
+                HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS,
+                HDRPMeshTarget.ShaderStructs.FragInputs.texCoord0,
             };
         }
 #endregion
