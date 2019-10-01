@@ -211,12 +211,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
     float3 bentNormalWS = surfaceData.normalWS;
 
-    // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
-#ifdef _MASKMAP
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#else
-    surfaceData.specularOcclusion = 1.0;
-#endif
+    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
 
 #if HAVE_DECALS
     if (_EnableDecals)
@@ -225,6 +220,11 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
+#endif
+
+    // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
+#ifdef _MASKMAP
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #endif
 
 #ifdef DEBUG_DISPLAY

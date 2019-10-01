@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    public static class VolumeMenuItems
+    static class VolumeMenuItems
     {
         const string k_VolumeRootMenu = "GameObject/Volume/";
 

@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI() =>PropertyField(m_QualitySetting);
 
-        protected bool useCustomValue => m_QualitySetting.value.intValue == ScalableSetting.LevelCount;
+        protected bool useCustomValue => m_QualitySetting.value.intValue == ScalableSettingLevelParameter.LevelCount;
     }
 
 }

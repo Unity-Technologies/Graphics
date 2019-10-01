@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
     [ExecuteAlways]
-    [AddComponentMenu("Rendering/Density Volume", 1100)]
+    [AddComponentMenu("Rendering/Density Volume")]
     public partial class DensityVolume : MonoBehaviour
     {
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);

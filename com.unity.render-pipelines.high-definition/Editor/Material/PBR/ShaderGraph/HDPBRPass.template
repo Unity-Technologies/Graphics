@@ -168,9 +168,7 @@ $include("SharedCode.template.hlsl")
         surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
-        // If user provide bent normal then we process a better term
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+        surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
 
 #if HAVE_DECALS
         if (_EnableDecals)
@@ -179,6 +177,9 @@ $include("SharedCode.template.hlsl")
             ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
         }
 #endif
+
+        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion as PBR master node don't have any option
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 
 #ifdef DEBUG_DISPLAY
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
