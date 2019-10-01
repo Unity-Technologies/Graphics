@@ -113,7 +113,7 @@ mac_apis:
    - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
    - unity-downloader-cli -b {{ editor.version }} -p MacEditor -c editor -c {{ mobile.name }} --wait
-   - utr/utr --suite=playmode --platform={{ mobile.name }} --testproject=TestProjects/{{ project.folder }} --editor-location=MacEditor --artifacts_path=upm-ci~/test-results --scripting-backend=il2cpp --open-report
+   - utr/utr --suite=playmode --platform={{ mobile.name }} --testproject=TestProjects/{{ project.folder }} --editor-location=MacEditor --extra-editor-arg="-force-metal" --artifacts_path=upm-ci~/test-results --scripting-backend=il2cpp --open-report
   artifacts:
     logs:
       paths:
