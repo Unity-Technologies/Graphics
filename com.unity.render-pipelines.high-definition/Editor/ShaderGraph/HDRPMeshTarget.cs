@@ -73,8 +73,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.UnlitDefault,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Meta,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.Meta,
@@ -98,6 +100,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.UnlitDefault,
                 pixelPorts = PixelPorts.UnlitOnlyAlpha,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.ShadowCasterUnlit,
                 pragmas = Pragmas.Instanced,
@@ -119,6 +125,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.UnlitDefault,
                 pixelPorts = PixelPorts.UnlitOnlyAlpha,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.SceneSelection,
@@ -143,6 +153,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.UnlitDefault,
                 pixelPorts = PixelPorts.UnlitOnlyAlpha,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.DepthForwardOnly,
                 pragmas = Pragmas.Instanced,
@@ -166,9 +180,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.UnlitDefault,
                 pixelPorts = PixelPorts.UnlitOnlyAlpha,
 
-                // Required fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.PositionRWS,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.UnlitMotionVectors,
                 pragmas = Pragmas.Instanced,
@@ -191,6 +207,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.UnlitDefault,
                 pixelPorts = PixelPorts.UnlitDefault,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.UnlitForward,
@@ -220,8 +240,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.PBRDefault,
                 pixelPorts = PixelPorts.PBRDefault,
 
-                // Required fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitMinimal,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.PBRGBuffer,
@@ -245,8 +267,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.PBRDefault,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Meta,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.Meta,
@@ -271,6 +295,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.PBRDefault,
                 pixelPorts = PixelPorts.PBROnlyAlpha,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.ShadowCasterPBR,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -293,6 +321,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.PBRDefault,
                 pixelPorts = PixelPorts.PBROnlyAlpha,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.SceneSelection,
@@ -318,9 +350,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.PBRDefault,
                 pixelPorts = PixelPorts.PBRDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.DepthOnly,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -345,9 +379,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.PBRDefault,
                 pixelPorts = PixelPorts.PBRDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.PositionRWS,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.PBRMotionVectors,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -372,9 +408,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.PBRDefault,
                 pixelPorts = PixelPorts.PBRDefault,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitMinimal,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.PBRForward,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -403,9 +441,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.HDUnlitDefault,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Meta,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.Meta,
                 pragmas = Pragmas.Instanced,
@@ -429,6 +469,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDUnlitDefault,
                 pixelPorts = PixelPorts.HDUnlitOnlyAlpha,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDShadowCaster,
                 pragmas = Pragmas.Instanced,
@@ -451,6 +495,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDUnlitDefault,
                 pixelPorts = PixelPorts.HDUnlitOnlyAlpha,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDUnlitSceneSelection,
@@ -476,6 +524,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDUnlitDefault,
                 pixelPorts = PixelPorts.HDUnlitOnlyAlpha,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDDepthForwardOnly,
                 pragmas = Pragmas.Instanced,
@@ -499,9 +551,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDUnlitDefault,
                 pixelPorts = PixelPorts.HDUnlitOnlyAlpha,
 
-                // Required fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.PositionRWS,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDUnlitMotionVectors,
                 pragmas = Pragmas.Instanced,
@@ -525,6 +579,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDUnlitDefault,
                 pixelPorts = PixelPorts.HDUnlitDistortion,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDUnlitDistortion,
                 pragmas = Pragmas.Instanced,
@@ -547,6 +605,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDUnlitDefault,
                 pixelPorts = PixelPorts.HDUnlitForward,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDUnlitForward,
@@ -576,9 +638,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitDefault,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitMinimal,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDLitGBuffer,
                 pragmas = Pragmas.Instanced,
@@ -602,9 +666,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.HDLitMeta,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Meta,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.Meta,
                 pragmas = Pragmas.Instanced,
@@ -628,6 +694,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitShadowCaster,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDShadowCaster,
@@ -653,6 +723,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitSceneSelection,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDSceneSelection,
                 pragmas = Pragmas.InstancedEditorSync,
@@ -677,9 +751,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDDepthOnly,
                 pragmas = Pragmas.Instanced,
@@ -704,9 +780,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDMotionVectors,
                 pragmas = Pragmas.Instanced,
@@ -730,6 +808,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port mask
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitDistortion,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates= RenderStates.HDLitDistortion,
@@ -755,6 +837,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitTransparentDepthPrepass,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDTransparentDepthPrePostPass,
                 pragmas = Pragmas.Instanced,
@@ -778,6 +864,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitTransparentBackface,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDTransparentBackface,
@@ -803,8 +893,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitDefault,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitMinimal,
+                fieldDependencies = FieldDependencies.Default,
                 
                 // Conditional State
                 renderStates = RenderStates.HDForwardColorMask,
@@ -829,6 +921,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDLitDefault,
                 pixelPorts = PixelPorts.HDLitTransparentDepthPostpass,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDTransparentDepthPrePostPass,
@@ -858,9 +954,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.EyeMETA,
 
-                // Required Fields
-                requiredFields = RequiredFields.Meta,            
-
+                // Fields
+                structs = StructDescriptors.Default,
+                requiredFields = RequiredFields.Meta,  
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.Meta,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -884,6 +982,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.EyeDefault,
                 pixelPorts = PixelPorts.EyeAlphaDepth,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDBlendShadowCaster,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -906,6 +1008,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.EyeDefault,
                 pixelPorts = PixelPorts.EyeAlphaDepth,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDSceneSelection,
@@ -931,9 +1037,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.EyeDefault,
                 pixelPorts = PixelPorts.EyeDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDDepthOnly,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -958,9 +1066,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.EyeDefault,
                 pixelPorts = PixelPorts.EyeDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDMotionVectors,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -985,9 +1095,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.EyeDefault,
                 pixelPorts = PixelPorts.EyeForward,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDForward,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1016,9 +1128,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.FabricMETA,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Meta,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.Meta,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1042,6 +1156,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.FabricDefault,
                 pixelPorts = PixelPorts.FabricAlphaDepth,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDBlendShadowCaster,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1064,6 +1182,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.FabricDefault,
                 pixelPorts = PixelPorts.FabricAlphaDepth,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDShadowCaster,
@@ -1089,9 +1211,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.FabricDefault,
                 pixelPorts = PixelPorts.FabricDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDDepthOnly,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1116,9 +1240,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.FabricDefault,
                 pixelPorts = PixelPorts.FabricDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDMotionVectors,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1143,9 +1269,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.FabricDefault,
                 pixelPorts = PixelPorts.FabricForward,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDForward,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1174,9 +1302,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.HairMETA,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Meta,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.Meta,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1200,6 +1330,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairShadowCaster,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.HDBlendShadowCaster,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1222,6 +1356,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairAlphaDepth,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDSceneSelection,
@@ -1247,9 +1385,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HairDepthOnly,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1274,9 +1414,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HairMotionVectors,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1300,6 +1442,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairTransparentDepthPrepass,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDTransparentDepthPrePostPass,
@@ -1325,9 +1471,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairTransparentBackface,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitMinimal,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDTransparentBackface,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1352,9 +1500,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairForward,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDForwardColorMask,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1378,6 +1528,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HairDefault,
                 pixelPorts = PixelPorts.HairTransparentDepthPostpass,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDTransparentDepthPrePostPass,
@@ -1407,9 +1561,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 pixelPorts = PixelPorts.StackLitMETA,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Meta,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.Meta,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1433,6 +1589,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.StackLitPosition,
                 pixelPorts = PixelPorts.StackLitAlphaDepth,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.StackLitShadowCaster,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1455,6 +1615,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.StackLitDefault,
                 pixelPorts = PixelPorts.StackLitAlphaDepth,
+
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.HDSceneSelection,
@@ -1487,9 +1651,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.StackLitDefault,
                 pixelPorts = PixelPorts.StackLitDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDDepthOnly,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1514,9 +1680,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.StackLitDefault,
                 pixelPorts = PixelPorts.StackLitDepthMotionVectors,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDMotionVectors,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1541,6 +1709,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.StackLitDefault,
                 pixelPorts = PixelPorts.StackLitDistortion,
 
+                // Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.StackLitDistortion,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -1564,9 +1736,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.StackLitDefault,
                 pixelPorts = PixelPorts.StackLitForward,
 
-                // Required Fields
+                // Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.LitFull,
-
+                fieldDependencies = FieldDependencies.Default,
+                
                 // Conditional State
                 renderStates = RenderStates.HDForward,
                 pragmas = Pragmas.InstancedRenderingPlayer,
@@ -2197,45 +2371,57 @@ namespace UnityEditor.Rendering.HighDefinition
 #region RequiredFields
         static class RequiredFields
         {
-            public static string[] Meta = new string[]
+            public static IField[] Meta = new IField[]
             {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of anisotropic lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.normalOS,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.tangentOS,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv0,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv1,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.color,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv2,
             };
 
-            public static string[] PositionRWS = new string[]
+            public static IField[] PositionRWS = new IField[]
             {
-                "VaryingsMeshToPS.positionRWS",
+                HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.positionRWS,
             };
 
-            public static string[] LitMinimal = new string[]
+            public static IField[] LitMinimal = new IField[]
             {
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
+                HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld,
+                HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS,
+                HDRPMeshTarget.ShaderStructs.FragInputs.texCoord1,
+                HDRPMeshTarget.ShaderStructs.FragInputs.texCoord2,
             };
 
-            public static string[] LitFull = new string[]
+            public static IField[] LitFull = new IField[]
             {
-                "AttributesMesh.normalOS",
-                "AttributesMesh.tangentOS",     // Always present as we require it also in case of Variants lighting
-                "AttributesMesh.uv0",
-                "AttributesMesh.uv1",
-                "AttributesMesh.color",
-                "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-                "AttributesMesh.uv3",           // DEBUG_DISPLAY
-                "FragInputs.tangentToWorld",
-                "FragInputs.positionRWS",
-                "FragInputs.texCoord0",
-                "FragInputs.texCoord1",
-                "FragInputs.texCoord2",
-                "FragInputs.texCoord3",
-                "FragInputs.color",
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.normalOS,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.tangentOS,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv0,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv1,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.color,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv2,
+                HDRPMeshTarget.ShaderStructs.AttributesMesh.uv3,
+                HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld,
+                HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS,
+                HDRPMeshTarget.ShaderStructs.FragInputs.texCoord1,
+                HDRPMeshTarget.ShaderStructs.FragInputs.texCoord2,
+                HDRPMeshTarget.ShaderStructs.FragInputs.texCoord3,
+                HDRPMeshTarget.ShaderStructs.FragInputs.color,
+            };
+        }
+#endregion
+
+#region StructDescriptors
+        static class StructDescriptors
+        {
+            public static StructDescriptor[] Default = new StructDescriptor[]
+            {
+                HDRPMeshTarget.AttributesMesh,
+                HDRPMeshTarget.VaryingsMeshToPS,
+                HDRPMeshTarget.SurfaceDescriptionInputs,
+                HDRPMeshTarget.VertexDescriptionInputs,
             };
         }
 #endregion
@@ -3336,75 +3522,76 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 #endregion
+
 #region ShaderStructs
         public static class ShaderStructs
         {
             public struct AttributesMesh
             {
                 public static string name = "AttributesMesh";
-                public static SubscriptDescriptor positionOS = new SubscriptDescriptor(Attributes.name, "positionOS", "", ShaderValueType.Float3, "POSITION");
-                public static SubscriptDescriptor normalOS = new SubscriptDescriptor(Attributes.name, "normalOS", "ATTRIBUTES_NEED_NORMAL", ShaderValueType.Float3,
+                public static SubscriptDescriptor positionOS = new SubscriptDescriptor(AttributesMesh.name, "positionOS", "", ShaderValueType.Float3, "POSITION");
+                public static SubscriptDescriptor normalOS = new SubscriptDescriptor(AttributesMesh.name, "normalOS", "ATTRIBUTES_NEED_NORMAL", ShaderValueType.Float3,
                     "NORMAL", subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor tangentOS = new SubscriptDescriptor(Attributes.name, "tangentOS", "ATTRIBUTES_NEED_TANGENT", ShaderValueType.Float4,
+                public static SubscriptDescriptor tangentOS = new SubscriptDescriptor(AttributesMesh.name, "tangentOS", "ATTRIBUTES_NEED_TANGENT", ShaderValueType.Float4,
                     "TANGENT", subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor uv0 = new SubscriptDescriptor(Attributes.name, "uv0", "ATTRIBUTES_NEED_TEXCOORD0", ShaderValueType.Float4,
+                public static SubscriptDescriptor uv0 = new SubscriptDescriptor(AttributesMesh.name, "uv0", "ATTRIBUTES_NEED_TEXCOORD0", ShaderValueType.Float4,
                     "TEXCOORD0", subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor uv1 = new SubscriptDescriptor(Attributes.name, "uv1", "ATTRIBUTES_NEED_TEXCOORD1", ShaderValueType.Float4,
+                public static SubscriptDescriptor uv1 = new SubscriptDescriptor(AttributesMesh.name, "uv1", "ATTRIBUTES_NEED_TEXCOORD1", ShaderValueType.Float4,
                     "TEXCOORD1", subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor uv2 = new SubscriptDescriptor(Attributes.name, "uv2", "ATTRIBUTES_NEED_TEXCOORD2", ShaderValueType.Float4,
+                public static SubscriptDescriptor uv2 = new SubscriptDescriptor(AttributesMesh.name, "uv2", "ATTRIBUTES_NEED_TEXCOORD2", ShaderValueType.Float4,
                     "TEXCOORD2", subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor uv3 = new SubscriptDescriptor(Attributes.name, "uv3", "ATTRIBUTES_NEED_TEXCOORD3", ShaderValueType.Float4,
+                public static SubscriptDescriptor uv3 = new SubscriptDescriptor(AttributesMesh.name, "uv3", "ATTRIBUTES_NEED_TEXCOORD3", ShaderValueType.Float4,
                     "TEXCOORD3", subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor color = new SubscriptDescriptor(Attributes.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
+                public static SubscriptDescriptor color = new SubscriptDescriptor(AttributesMesh.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
                     "COLOR", subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(Attributes.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(AttributesMesh.name, "instanceID", "", ShaderValueType.UnsignedInteger,
                     "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             }
 
             public struct VaryingsMeshToPS
             {
                 public static string name = "VaryingsMeshToPS";
-                public static SubscriptDescriptor positionCS = new SubscriptDescriptor(Varyings.name, "positionCS", "", ShaderValueType.Float4, "Sv_Position");
-                public static SubscriptDescriptor positionRWS = new SubscriptDescriptor(Varyings.name, "positionRWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3,
+                public static SubscriptDescriptor positionCS = new SubscriptDescriptor(VaryingsMeshToPS.name, "positionCS", "", ShaderValueType.Float4, "Sv_Position");
+                public static SubscriptDescriptor positionRWS = new SubscriptDescriptor(VaryingsMeshToPS.name, "positionRWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor normalWS = new SubscriptDescriptor(Varyings.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3,
+                public static SubscriptDescriptor normalWS = new SubscriptDescriptor(VaryingsMeshToPS.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor tangentWS = new SubscriptDescriptor(Varyings.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
+                public static SubscriptDescriptor tangentWS = new SubscriptDescriptor(VaryingsMeshToPS.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord0 = new SubscriptDescriptor(Varyings.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord0 = new SubscriptDescriptor(VaryingsMeshToPS.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord1 = new SubscriptDescriptor(Varyings.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord1 = new SubscriptDescriptor(VaryingsMeshToPS.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord2 = new SubscriptDescriptor(Varyings.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord2 = new SubscriptDescriptor(VaryingsMeshToPS.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord3 = new SubscriptDescriptor(Varyings.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord3 = new SubscriptDescriptor(VaryingsMeshToPS.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor color = new SubscriptDescriptor(Varyings.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
+                public static SubscriptDescriptor color = new SubscriptDescriptor(VaryingsMeshToPS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(Varyings.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(VaryingsMeshToPS.name, "instanceID", "", ShaderValueType.UnsignedInteger,
                     "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
-                public static SubscriptDescriptor cullFace = new SubscriptDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
+                public static SubscriptDescriptor cullFace = new SubscriptDescriptor(VaryingsMeshToPS.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
                     "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", SubscriptOptions.Generated & SubscriptOptions.Optional);
             }
 
             public struct VaryingsMeshToDS
             {
                 public static string name = "VaryingsMeshToDS";
-                public static SubscriptDescriptor positionWS = new SubscriptDescriptor(Varyings.name, "positionWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3);
-                public static SubscriptDescriptor normalWS = new SubscriptDescriptor(Varyings.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3);
-                public static SubscriptDescriptor tangentWS = new SubscriptDescriptor(Varyings.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
+                public static SubscriptDescriptor positionRWS = new SubscriptDescriptor(VaryingsMeshToDS.name, "positionWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3);
+                public static SubscriptDescriptor normalWS = new SubscriptDescriptor(VaryingsMeshToDS.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3);
+                public static SubscriptDescriptor tangentWS = new SubscriptDescriptor(VaryingsMeshToDS.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord0 = new SubscriptDescriptor(Varyings.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord0 = new SubscriptDescriptor(VaryingsMeshToDS.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord1 = new SubscriptDescriptor(Varyings.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord1 = new SubscriptDescriptor(VaryingsMeshToDS.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord2 = new SubscriptDescriptor(Varyings.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord2 = new SubscriptDescriptor(VaryingsMeshToDS.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor texCoord3 = new SubscriptDescriptor(Varyings.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
+                public static SubscriptDescriptor texCoord3 = new SubscriptDescriptor(VaryingsMeshToDS.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor color = new SubscriptDescriptor(Varyings.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
+                public static SubscriptDescriptor color = new SubscriptDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
                     subscriptOptions : SubscriptOptions.Optional);
-                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(Varyings.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.UnsignedInteger,
                     "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             }
             public struct FragInputs
@@ -3470,7 +3657,7 @@ namespace UnityEditor.Rendering.HighDefinition
             interpolatorPack = true,
             subscripts = new SubscriptDescriptor[]
             {
-                ShaderStructs.VaryingsMeshToDS.positionWS,
+                ShaderStructs.VaryingsMeshToDS.positionRWS,
                 ShaderStructs.VaryingsMeshToDS.normalWS,
                 ShaderStructs.VaryingsMeshToDS.tangentWS,
                 ShaderStructs.VaryingsMeshToDS.texCoord0,
@@ -3569,11 +3756,11 @@ namespace UnityEditor.Rendering.HighDefinition
 #endregion
 
 #region Dependencies
-        public static List<FieldDependency[]> fieldDependencies = new List<FieldDependency[]>()
+        static class FieldDependencies
         {
-            //Standard Varying Dependencies
-            new FieldDependency[]
+            public static FieldDependency[] Default = new FieldDependency[]
             {
+                //Standard Varying Dependencies
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.positionRWS,   ShaderStructs.AttributesMesh.positionOS),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.normalWS,      ShaderStructs.AttributesMesh.normalOS),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.tangentWS,     ShaderStructs.AttributesMesh.tangentOS),
@@ -3583,11 +3770,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord3,     ShaderStructs.AttributesMesh.uv3),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.color,         ShaderStructs.AttributesMesh.color),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.instanceID,    ShaderStructs.AttributesMesh.instanceID),
-            }, 
 
-            //Tessellation Varying Dependencies
-            new FieldDependency[]
-            {
+                //Tessellation Varying Dependencies
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.positionRWS,   ShaderStructs.VaryingsMeshToDS.positionRWS),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.normalWS,      ShaderStructs.VaryingsMeshToDS.normalWS),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.tangentWS,     ShaderStructs.VaryingsMeshToDS.tangentWS),
@@ -3597,11 +3781,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord3,     ShaderStructs.VaryingsMeshToDS.texCoord3),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.color,         ShaderStructs.VaryingsMeshToDS.color),
                 new FieldDependency(ShaderStructs.VaryingsMeshToPS.instanceID,    ShaderStructs.VaryingsMeshToDS.instanceID),
-            },
-
-            //Tessellation Varying Dependencies, TODO: Why is this loop created?
-            new FieldDependency[]
-            {
+                
+                //Tessellation Varying Dependencies, TODO: Why is this loop created?
                 new FieldDependency(ShaderStructs.VaryingsMeshToDS.tangentWS,     ShaderStructs.VaryingsMeshToPS.tangentWS),
                 new FieldDependency(ShaderStructs.VaryingsMeshToDS.texCoord0,     ShaderStructs.VaryingsMeshToPS.texCoord0),
                 new FieldDependency(ShaderStructs.VaryingsMeshToDS.texCoord1,     ShaderStructs.VaryingsMeshToPS.texCoord1),
@@ -3609,11 +3790,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new FieldDependency(ShaderStructs.VaryingsMeshToDS.texCoord3,     ShaderStructs.VaryingsMeshToPS.texCoord3),
                 new FieldDependency(ShaderStructs.VaryingsMeshToDS.color,         ShaderStructs.VaryingsMeshToPS.color),
                 new FieldDependency(ShaderStructs.VaryingsMeshToDS.instanceID,    ShaderStructs.VaryingsMeshToPS.instanceID),
-            },
-
-            //FragInput dependencies
-            new FieldDependency[]
-            {
+                
+                //FragInput dependencies
                 new FieldDependency(ShaderStructs.FragInputs.positionRWS,        ShaderStructs.VaryingsMeshToPS.positionRWS),
                 new FieldDependency(ShaderStructs.FragInputs.tangentToWorld,     ShaderStructs.VaryingsMeshToPS.tangentWS),
                 new FieldDependency(ShaderStructs.FragInputs.tangentToWorld,     ShaderStructs.VaryingsMeshToPS.normalWS),
@@ -3623,11 +3801,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new FieldDependency(ShaderStructs.FragInputs.texCoord3,          ShaderStructs.VaryingsMeshToPS.texCoord3),
                 new FieldDependency(ShaderStructs.FragInputs.color,              ShaderStructs.VaryingsMeshToPS.color),
                 new FieldDependency(ShaderStructs.FragInputs.IsFrontFace,        ShaderStructs.VaryingsMeshToPS.cullFace),
-            },
-
-            //Vertex Description Dependencies
-            new FieldDependency[]
-            {
+                
+                //Vertex Description Dependencies
                 new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceNormal,            ShaderStructs.AttributesMesh.normalOS),
                 new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal,             ShaderStructs.AttributesMesh.normalOS),
                 new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceNormal,              MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal),
@@ -3660,11 +3835,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv2,                          ShaderStructs.AttributesMesh.uv2),
                 new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv3,                          ShaderStructs.AttributesMesh.uv3),
                 new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.VertexColor,                  ShaderStructs.AttributesMesh.color),
-            },
 
-            //Surface Description Dependencies
-            new FieldDependency[]
-            {
+                //Surface Description Dependencies
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal,             ShaderStructs.FragInputs.tangentToWorld),
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceNormal,            MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceNormal,              MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
@@ -3697,8 +3869,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv3,                          ShaderStructs.FragInputs.texCoord3),
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.VertexColor,                  ShaderStructs.FragInputs.color),
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.FaceSign,                     ShaderStructs.FragInputs.IsFrontFace),
-            }
-        };
+            };
+        }
 #endregion
 
     }
