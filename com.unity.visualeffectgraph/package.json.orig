@@ -13,7 +13,11 @@
         "particles"
   ],
   "dependencies": {
+<<<<<<< HEAD
     "com.unity.shadergraph": "7.2.0"
+  }
+=======
+    "com.unity.shadergraph": "8.0.0"
   },    
   "samples" : [
      {
@@ -22,4 +26,5 @@
        "path" : "Samples~/VFXGraphAdditions"
      }
   ]
+>>>>>>> 399abade09... Added VFXGraphAdditions Samples package (#4680)
 }
