@@ -54,13 +54,13 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlbedoSlotId,
                     PBRMasterNode.NormalSlotId,
@@ -74,14 +74,9 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.uv1", //needed for meta vertex position
-                },
-
-                // Required fields
-                requiredVaryings = new List<string>()
-                {
                     "Varyings.positionWS",
                     "Varyings.normalWS",
                     "Varyings.tangentWS", //needed for vertex lighting
@@ -106,38 +101,29 @@ namespace UnityEditor.Rendering.Universal
                     UniversalMeshTarget.ShaderStructs.Varyings.shadowCoord,
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
-
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = RenderStates.Default,
+                pragmas = Pragmas.Forward,
+                keywords = new ConditionalKeyword[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl",
+                    new ConditionalKeyword(Keywords.Lightmap),
+                    new ConditionalKeyword(Keywords.DirectionalLightmapCombined),
+                    new ConditionalKeyword(Keywords.MainLightShadows),
+                    new ConditionalKeyword(Keywords.MainLightShadowsCascade),
+                    new ConditionalKeyword(Keywords.AdditionalLights),
+                    new ConditionalKeyword(Keywords.AdditionalLightShadows),
+                    new ConditionalKeyword(Keywords.ShadowsSoft),
+                    new ConditionalKeyword(Keywords.MixedLightingSubtractive),
                 },
-                pragmas = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_fog",
-                    "multi_compile_instancing",
-                },
-                keywords = new KeywordDescriptor[]
-                {
-                    Keywords.Lightmap,
-                    Keywords.DirectionalLightmapCombined,
-                    Keywords.MainLightShadows,
-                    Keywords.MainLightShadowsCascade,
-                    Keywords.AdditionalLights,
-                    Keywords.AdditionalLightShadows,
-                    Keywords.ShadowsSoft,
-                    Keywords.MixedLightingSubtractive,
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -159,36 +145,28 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlphaSlotId,
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.DepthOnly,
-
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
+                pragmas = Pragmas.Instanced,
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -209,20 +187,20 @@ namespace UnityEditor.Rendering.Universal
                 varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlphaSlotId,
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.normalOS",
                 },
@@ -231,25 +209,17 @@ namespace UnityEditor.Rendering.Universal
                     MeshTarget.ShaderStructs.Attributes.normalOS,
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
-
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
+                pragmas = Pragmas.Instanced,
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
-                },
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -270,13 +240,13 @@ namespace UnityEditor.Rendering.Universal
                 varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlbedoSlotId,
                     PBRMasterNode.EmissionSlotId,
@@ -285,7 +255,7 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.uv1", //needed for meta vertex position
                     "Attributes.uv2", //needed for meta vertex position
@@ -296,27 +266,20 @@ namespace UnityEditor.Rendering.Universal
                     MeshTarget.ShaderStructs.Attributes.uv2,
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
-
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
+                pragmas = Pragmas.Default,
+                keywords = new ConditionalKeyword[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl",
+                    new ConditionalKeyword(Keywords.SmoothnessChannel),
                 },
-                pragmas = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
-                keywords = new KeywordDescriptor[]
-                {
-                    Keywords.SmoothnessChannel,
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -336,37 +299,28 @@ namespace UnityEditor.Rendering.Universal
                 varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     PBRMasterNode.PositionSlotId,
                     PBRMasterNode.VertNormalSlotId,
                     PBRMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>()
+                pixelPorts = new int[]
                 {
                     PBRMasterNode.AlbedoSlotId,
                     PBRMasterNode.AlphaSlotId,
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
-
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = UniversalMeshTarget.RenderStates.Default,
+                pragmas = Pragmas.Instanced,
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                },
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -387,42 +341,34 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     UnlitMasterNode.PositionSlotId,
                     UnlitMasterNode.VertNormalSlotId,
                     UnlitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     UnlitMasterNode.ColorSlotId,
                     UnlitMasterNode.AlphaSlotId,
                     UnlitMasterNode.AlphaThresholdSlotId
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
-
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = UniversalMeshTarget.RenderStates.Default,
+                pragmas = Pragmas.Instanced,
+                keywords = new ConditionalKeyword[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalKeyword(Keywords.Lightmap),
+                    new ConditionalKeyword(Keywords.DirectionalLightmapCombined),
+                    new ConditionalKeyword(Keywords.SampleGI),
                 },
-                pragmas = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                    "multi_compile_instancing",
-                },
-                keywords = new KeywordDescriptor[]
-                {
-                    Keywords.Lightmap,
-                    Keywords.DirectionalLightmapCombined,
-                    Keywords.SampleGI,
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -444,20 +390,20 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteLitMasterNode.PositionSlotId,
                     SpriteLitMasterNode.VertNormalSlotId,
                     SpriteLitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteLitMasterNode.ColorSlotId,
                     SpriteLitMasterNode.MaskSlotId,
                 },
 
                 // Required fields
-                requiredVaryings = new List<string>()
+                requiredFields = new string[]
                 {
                     "Varyings.color",
                     "Varyings.texCoord0",
@@ -470,31 +416,24 @@ namespace UnityEditor.Rendering.Universal
                     MeshTarget.ShaderStructs.Varyings.screenPosition,
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
-                
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = UniversalMeshTarget.RenderStates.Default,
+                pragmas = Pragmas.Default,
+                keywords = new ConditionalKeyword[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl",
+                    new ConditionalKeyword(Keywords.ETCExternalAlpha),
+                    new ConditionalKeyword(Keywords.ShapeLightType0),
+                    new ConditionalKeyword(Keywords.ShapeLightType1),
+                    new ConditionalKeyword(Keywords.ShapeLightType2),
+                    new ConditionalKeyword(Keywords.ShapeLightType3),
                 },
-                pragmas = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
-                keywords = new KeywordDescriptor[]
-                {
-                    Keywords.ETCExternalAlpha,
-                    Keywords.ShapeLightType0,
-                    Keywords.ShapeLightType1,
-                    Keywords.ShapeLightType2,
-                    Keywords.ShapeLightType3,
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -516,20 +455,20 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteLitMasterNode.PositionSlotId,
                     SpriteLitMasterNode.VertNormalSlotId,
                     SpriteLitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteLitMasterNode.ColorSlotId,
                     SpriteLitMasterNode.NormalSlotId
                 },
 
                 // Required fields
-                requiredVaryings = new List<string>()
+                requiredFields = new string[]
                 {
                     "Varyings.normalWS",
                     "Varyings.tangentWS",
@@ -542,23 +481,16 @@ namespace UnityEditor.Rendering.Universal
                     MeshTarget.ShaderStructs.Varyings.bitangentWS,
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
-
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = UniversalMeshTarget.RenderStates.Default,
+                pragmas = Pragmas.Default,
+                includes = new ConditionalInclude[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
-                },
-                pragmas = new List<string>()
-                {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -580,20 +512,20 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteLitMasterNode.PositionSlotId,
                     SpriteLitMasterNode.VertNormalSlotId,
                     SpriteLitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteLitMasterNode.ColorSlotId,
                     SpriteLitMasterNode.NormalSlotId
                 },
 
                 // Required fields
-                requiredVaryings = new List<string>()
+                requiredFields = new string[]
                 {
                     "Varyings.color",
                     "Varyings.texCoord0",
@@ -604,26 +536,19 @@ namespace UnityEditor.Rendering.Universal
                     MeshTarget.ShaderStructs.Varyings.texCoord0,
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
-                
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = RenderStates.Default,
+                pragmas = Pragmas.Default,
+                keywords = new ConditionalKeyword[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalKeyword(Keywords.ETCExternalAlpha),
                 },
-                pragmas = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
-                keywords = new KeywordDescriptor[]
-                {
-                    Keywords.ETCExternalAlpha,
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -643,25 +568,22 @@ namespace UnityEditor.Rendering.Universal
                 useInPreview = true,
 
                 // Port mask
-                vertexPorts = new List<int>()
+                vertexPorts = new int[]
                 {
                     SpriteUnlitMasterNode.PositionSlotId,
                     SpriteUnlitMasterNode.VertNormalSlotId,
                     SpriteUnlitMasterNode.VertTangentSlotId
                 },
-                pixelPorts = new List<int>
+                pixelPorts = new int[]
                 {
                     SpriteUnlitMasterNode.ColorSlotId,
                 },
 
                 // Required fields
-                requiredAttributes = new List<string>()
+                requiredFields = new string[]
                 {
                     "Attributes.color",
                     "Attributes.uv0",
-                },
-                requiredVaryings = new List<string>()
-                {
                     "Varyings.color",
                     "Varyings.texCoord0",
                 },
@@ -673,26 +595,19 @@ namespace UnityEditor.Rendering.Universal
                     MeshTarget.ShaderStructs.Varyings.texCoord0,
                 },
 
-                // Render State
-                renderStateOverrides = UniversalMeshTarget.RenderStates.Default,
-                
-                // Pass setup
-                includes = new List<string>()
+                // Conditional State
+                renderStates = RenderStates.Default,
+                pragmas = Pragmas.Default,
+                keywords = new ConditionalKeyword[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
-                    "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                    new ConditionalKeyword(Keywords.ETCExternalAlpha),
                 },
-                pragmas = new List<string>()
+                includes = new ConditionalInclude[]
                 {
-                    "prefer_hlslcc gles",
-                    "exclude_renderers d3d11_9x",
-                    "target 2.0",
-                },
-                keywords = new KeywordDescriptor[]
-                {
-                    Keywords.ETCExternalAlpha,
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -852,64 +767,82 @@ namespace UnityEditor.Rendering.Universal
 #endregion
 
 #region RenderStates
-        public static class RenderStates
+        static class RenderStates
         {
-            public static readonly RenderStateOverride[] Default = new RenderStateOverride[]
+            public static readonly ConditionalRenderState[] Default = new ConditionalRenderState[]
             {
-                // Opaque
-                RenderStateOverride.ZTest(ZTest.LEqual, 0),
-                RenderStateOverride.ZWrite(ZWrite.On, 0),
-                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
-                RenderStateOverride.Cull(Cull.Back, 0),
-
-                // Alpha Test
-                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
-
-                // Transparent
-                RenderStateOverride.ZWrite(ZWrite.Off, 1, new IField[] { DefaultFields.SurfaceTransparent }),
-
-                // Blend Mode
-                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
-                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
-                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
-                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(DefaultFields.SurfaceTransparent, true)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true)),
             };
 
-            public static readonly RenderStateOverride[] ShadowCasterMeta = new RenderStateOverride[]
+            public static readonly ConditionalRenderState[] ShadowCasterMeta = new ConditionalRenderState[]
             {
-                // Opaque
-                RenderStateOverride.ZTest(ZTest.LEqual, 0),
-                RenderStateOverride.ZWrite(ZWrite.On, 0),
-                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
-                RenderStateOverride.Cull(Cull.Back, 0),
-
-                // Alpha Test
-                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
-
-                // Blend Mode
-                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
-                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
-                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
-                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true)),
             };
 
-            public static readonly RenderStateOverride[] DepthOnly = new RenderStateOverride[]
+            public static readonly ConditionalRenderState[] DepthOnly = new ConditionalRenderState[]
             {
-                // Opaque
-                RenderStateOverride.ZTest(ZTest.LEqual, 0),
-                RenderStateOverride.ZWrite(ZWrite.On, 0),
-                RenderStateOverride.Blend(Blend.One, Blend.Zero, 0),
-                RenderStateOverride.Cull(Cull.Back, 0),
-                RenderStateOverride.ColorMask("0", 0),
+                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.ColorMask("ColorMask 0")),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true)),
+            };
+        }
+#endregion
 
-                // Alpha Test
-                RenderStateOverride.Cull(Cull.Off, 1, new IField[] {DefaultFields.DoubleSided}),
+#region Pragmas
+        static class Pragmas
+        {
+            public static readonly ConditionalPragma[] Default = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(2.0)),
+                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
+                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
+                new ConditionalPragma(Pragma.Vertex("vert")),
+                new ConditionalPragma(Pragma.Fragment("frag")),
+            };
 
-                // Blend Mode
-                RenderStateOverride.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAlpha }),
-                RenderStateOverride.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendPremultiply }),
-                RenderStateOverride.Blend(Blend.One, Blend.One, Blend.One, Blend.One, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
-                RenderStateOverride.Blend(Blend.DstColor, Blend.Zero, 1, new IField[] { DefaultFields.SurfaceTransparent, DefaultFields.BlendAdd }),
+            public static readonly ConditionalPragma[] Instanced = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(2.0)),
+                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
+                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
+                new ConditionalPragma(Pragma.Vertex("vert")),
+                new ConditionalPragma(Pragma.Fragment("frag")),
+            };
+
+            public static readonly ConditionalPragma[] Forward = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(2.0)),
+                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
+                new ConditionalPragma(Pragma.MultiCompileFog),
+                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
+                new ConditionalPragma(Pragma.Vertex("vert")),
+                new ConditionalPragma(Pragma.Fragment("frag")),
             };
         }
 #endregion

@@ -95,8 +95,6 @@ namespace UnityEditor.ShaderGraph
             // GET CUSTOM ACTIVE FIELDS HERE!
 
             // Get active fields from ShaderPass
-            //AddRequiredFields(pass.requiredAttributes, activeFields.baseInstance);
-            //AddRequiredFields(pass.requiredVaryings, activeFields.baseInstance);
             AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
 
             // Get Port references from ShaderPass
@@ -158,25 +156,50 @@ namespace UnityEditor.ShaderGraph
                 spliceCommands.Add("LightMode", "// LightMode: <None>");
             }
 
-            // Render state
-            BuildRenderStatesFromPass(pass, fields, ref spliceCommands);
-
             // --------------------------------------------------
             // Pass Code
+
+            // Render State
+            using (var renderStateBuilder = new ShaderStringBuilder())
+            {
+                // Render states need to be separated by RenderState.Type
+                // The first passing ConditionalRenderState of each type is inserted 
+                foreach(RenderState.Type type in Enum.GetValues(typeof(RenderState.Type)))
+                {
+                    var renderStates = pass.renderStates?.Where(x => x.renderState.type == type);
+                    if(renderStates != null)
+                    {
+                        foreach(ConditionalRenderState renderState in renderStates)
+                        {
+                            string value = null;
+                            if(renderState.TestActive(fields, out value))
+                            {
+                                renderStateBuilder.AppendLine(value);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                string command = GetSpliceCommand(renderStateBuilder.ToCodeBlack(), "RenderState");
+                spliceCommands.Add("RenderState", command);
+            }
 
             // Pragmas
             using (var passPragmaBuilder = new ShaderStringBuilder())
             {
                 if(pass.pragmas != null)
                 {
-                    foreach(string pragma in pass.pragmas)
+                    foreach(ConditionalPragma pragma in pass.pragmas)
                     {
-                        passPragmaBuilder.AppendLine($"#pragma {pragma}");
+                        string value = null;
+                        if(pragma.TestActive(fields, out value))
+                            passPragmaBuilder.AppendLine(value);
                     }
                 }
-                if(passPragmaBuilder.length == 0)
-                    passPragmaBuilder.AppendLine("// PassPragmas: <None>");
-                spliceCommands.Add("PassPragmas", passPragmaBuilder.ToCodeBlack());
+
+                string command = GetSpliceCommand(passPragmaBuilder.ToCodeBlack(), "PassPragmas");
+                spliceCommands.Add("PassPragmas", command);
             }
 
             // Includes
@@ -184,14 +207,16 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.includes != null)
                 {
-                    foreach(string include in pass.includes)
+                    foreach(ConditionalInclude include in pass.includes)
                     {
-                        passIncludeBuilder.AppendLine($"#include \"{include}\"");
+                        string value = null;
+                        if(include.TestActive(fields, out value))
+                            passIncludeBuilder.AppendLine(value);
                     }
                 }
-                if(passIncludeBuilder.length == 0)
-                    passIncludeBuilder.AppendLine("// PassIncludes: <None>");
-                spliceCommands.Add("PassIncludes", passIncludeBuilder.ToCodeBlack());
+
+                string command = GetSpliceCommand(passIncludeBuilder.ToCodeBlack(), "PassIncludes");
+                spliceCommands.Add("PassIncludes", command);
             }
 
             // Keywords
@@ -199,14 +224,16 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.keywords != null)
                 {
-                    foreach(KeywordDescriptor keyword in pass.keywords)
+                    foreach(ConditionalKeyword keyword in pass.keywords)
                     {
-                        passKeywordBuilder.AppendLine(keyword.ToDeclarationString());
+                        string value = null;
+                        if(keyword.TestActive(fields, out value))
+                            passKeywordBuilder.AppendLine(value);
                     }
                 }
-                if(passKeywordBuilder.length == 0)
-                    passKeywordBuilder.AppendLine("// PassKeywords: <None>");
-                spliceCommands.Add("PassKeywords", passKeywordBuilder.ToCodeBlack());
+
+                string command = GetSpliceCommand(passKeywordBuilder.ToCodeBlack(), "PassKeywords");
+                spliceCommands.Add("PassKeywords", command);
             }
 
             // -----------------------------
@@ -461,10 +488,14 @@ namespace UnityEditor.ShaderGraph
             using (var graphDefines = new ShaderStringBuilder())
             {
                 graphDefines.AppendLine("#define {0}", pass.referenceName);
-                if (pass.defines != null)
+                if(pass.defines != null)
                 {
-                    foreach (var define in pass.defines)
-                        graphDefines.AppendLine($"#define {define}");
+                    foreach(ConditionalDefine define in pass.defines)
+                    {
+                        string value = null;
+                        if(define.TestActive(fields, out value))
+                            graphDefines.AppendLine(value);
+                    }
                 }
 
                 if (graphRequirements.permutationCount > 0)
@@ -1015,75 +1046,9 @@ namespace UnityEditor.ShaderGraph
             return activeSlots;
         }
 
-        static void BuildRenderStatesFromPass(ShaderPass pass, List<IField> fields, ref Dictionary<string, string> spliceCommands)
+        static string GetSpliceCommand(string command, string token)
         {
-            // Split overrides by type and sort by priority
-            var cullOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Cull).OrderByDescending(x => x.priority).ToList();
-            var blendOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Blend).OrderByDescending(x => x.priority).ToList();
-            var blendOpOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.BlendOp).OrderByDescending(x => x.priority).ToList();
-            var zTestOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZTest).OrderByDescending(x => x.priority).ToList();
-            var zWriteOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZWrite).OrderByDescending(x => x.priority).ToList();
-            var zClipOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ZClip).OrderByDescending(x => x.priority).ToList();
-            var colorMaskOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.ColorMask).OrderByDescending(x => x.priority).ToList();
-            var stencilOverrides = pass.renderStateOverrides?.Where(x => x.type == RenderStateOverride.Type.Stencil).OrderByDescending(x => x.priority).ToList();
-
-            // Evaulate stacks to value strings
-            var cullCommand = EvaluateRenderStateOverrideStack(cullOverrides, fields);
-            var blendCommand = EvaluateRenderStateOverrideStack(blendOverrides, fields);
-            var blendOpCommand = EvaluateRenderStateOverrideStack(blendOpOverrides, fields);
-            var zTestCommand = EvaluateRenderStateOverrideStack(zTestOverrides, fields);
-            var zWriteCommand = EvaluateRenderStateOverrideStack(zWriteOverrides, fields);
-            var zClipCommand = EvaluateRenderStateOverrideStack(zClipOverrides, fields);
-            var colorMaskCommand = EvaluateRenderStateOverrideStack(colorMaskOverrides, fields);
-            var stencilCommand = EvaluateRenderStateOverrideStack(stencilOverrides, fields);
-
-            // Splice commands
-            spliceCommands.Add("Cull", cullCommand != string.Empty ? cullCommand : "// Cull: <None>");
-            spliceCommands.Add("Blend", blendCommand != string.Empty ? blendCommand : "// Blend: <None>");
-            spliceCommands.Add("BlendOp", blendOpCommand != string.Empty ? blendOpCommand : "// BlendOp: <None>");
-            spliceCommands.Add("ZTest", zTestCommand != string.Empty ? zTestCommand : "// ZTest: <None>");
-            spliceCommands.Add("ZWrite", zWriteCommand != string.Empty ? zWriteCommand : "// ZWrite: <None>");
-            spliceCommands.Add("ZClip", zClipCommand != string.Empty ? zClipCommand : "// ZClip: <None>");
-            spliceCommands.Add("ColorMask", colorMaskCommand != string.Empty ? colorMaskCommand : "// ColorMask: <None>");
-            spliceCommands.Add("Stencil", stencilCommand != string.Empty ? stencilCommand : "// Stencil: <None>");
-        }
-
-        static string EvaluateRenderStateOverrideStack(List<RenderStateOverride> overrides, List<IField> fields)
-        {
-            if(overrides == null)
-                return string.Empty;
-            
-            for(int i = 0; i < overrides.Count; i++)
-            {
-                if(overrides[i].requiredFields == null)
-                {
-                    // Valid override, end stack evaluation
-                    return overrides[i].value;
-                }
-                else
-                {
-                    bool requirementsMet = true;
-                    foreach(IField requiredField in overrides[i].requiredFields)
-                    {
-                        // Required field is not active
-                        // Fail requirementsMet and end evaluation
-                        if(!fields.Contains(requiredField))
-                        {
-                            requirementsMet = false;
-                            break;
-                        }
-                    }
-
-                    // If all requirements met valid override
-                    // End stack evaluation
-                    if(requirementsMet)
-                        return overrides[i].value;
-                }
-            }   
-            
-            // No valid override
-            // Handle outside evaluate method
-            return string.Empty;
+            return !string.IsNullOrEmpty(command) ? command : $"// {token}: <None>";
         }
 
         public static string GetDefaultTemplatePath(string templateName)

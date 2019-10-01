@@ -7,24 +7,15 @@ Pass
     }
    
     // Render State
-    $splice(Blend)
-    $splice(BlendOp)
-    $splice(Cull)
-    $splice(ZTest)
-    $splice(ZWrite)
-    $splice(ZClip)
-    $splice(ColorMask)
-    $splice(Stencil)
-
-    HLSLPROGRAM
-    #pragma vertex vert
-    #pragma fragment frag
+    $splice(RenderState)
 
     // Debug
     $splice(Debug)
 
     // --------------------------------------------------
     // Pass
+
+    HLSLPROGRAM
 
     // Pragmas
     $splice(PassPragmas)

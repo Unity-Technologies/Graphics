@@ -32,21 +32,26 @@ namespace UnityEditor.ShaderGraph.Internal
                 useInPreview = true,
 
                 // Pass setup
-                includes = new List<string>()
+                pragmas = new ConditionalPragma[]
                 {
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
-                    "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl",
-                    "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl",
+                    new ConditionalPragma(Pragma.Vertex("vert")),
+                    new ConditionalPragma(Pragma.Fragment("frag")),
                 },
-                defines = new List<string>()
+                defines = new ConditionalDefine[]
                 {
-                    "SHADERGRAPH_PREVIEW 1",
+                    new ConditionalDefine(Keywords.Preview, 1),
+                },
+                includes = new ConditionalInclude[]
+                {
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl")),
+                    new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
                 },
                 structs = new StructDescriptor[]
                 {
@@ -55,6 +60,20 @@ namespace UnityEditor.ShaderGraph.Internal
                     PreviewTarget.SurfaceDescriptionInputs,
                     PreviewTarget.VertexDescriptionInputs,
                 }
+            };
+        }
+#endregion
+
+#region Keywords
+        public static class Keywords
+        {
+            public static KeywordDescriptor Preview = new KeywordDescriptor()
+            {
+                displayName = "Preview",
+                referenceName = "SHADERGRAPH_PREVIEW",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
             };
         }
 #endregion
