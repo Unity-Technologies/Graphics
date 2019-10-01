@@ -231,7 +231,7 @@ namespace UnityEditor.VFX.UI
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                if (CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
+                if (!CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
                     return;
                 CopyPasteNodes();
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
@@ -344,7 +344,11 @@ namespace UnityEditor.VFX.UI
                     targetSubgraphPath += extension;
                 }
 
-                
+                if(File.Exists(targetSubgraphPath))
+                {
+                    Debug.LogError("Can't overwrite a subgraph");
+                    return false;
+                }
 
                 m_TargetSubgraph = createFunc(targetSubgraphPath);
 
@@ -566,20 +570,25 @@ namespace UnityEditor.VFX.UI
                         targetNode = m_TargetControllers[m_SourceControllers.IndexOf(newSourceOutputs[i].sourceNode)];
                     }
 
-                    VFXDataAnchorController targetAnchor = targetNode.outputPorts.First(t => t.path == newSourceOutputs[i].path);
+                    VFXDataAnchorController targetAnchor = targetNode.outputPorts.FirstOrDefault(t => t.path == newSourceOutputs[i].path);
 
-                    VFXNodeController parameterNode = m_TargetController.AddVFXParameter(targetNode.position + new Vector2(400, 0), newTargetParamController, null);
+                    if(targetAnchor != null)
+                    {
+                        VFXNodeController parameterNode = m_TargetController.AddVFXParameter(targetNode.position + new Vector2(400, 0), newTargetParamController, null);
 
-                    // Link the parameternode and the input in the target
-                    m_TargetController.CreateLink(parameterNode.inputPorts[0], targetAnchor);
+                        // Link the parameternode and the input in the target
+                        m_TargetController.CreateLink(parameterNode.inputPorts[0], targetAnchor);
 
-                    if (m_SourceSlotContainer is VFXOperator)
-                        (m_SourceSlotContainer as VFXOperator).ResyncSlots(true);
-                    m_SourceNodeController.ApplyChanges();
+                        if (m_SourceSlotContainer is VFXOperator)
+                            (m_SourceSlotContainer as VFXOperator).ResyncSlots(true);
+                        m_SourceNodeController.ApplyChanges();
+                    }
                     //Link all the outputs to the matching input of the subgraph
                     foreach (var input in inputs)
                     {
-                        m_SourceController.CreateLink(input, m_SourceNodeController.outputPorts.First(t => t.model == m_SourceSlotContainer.outputSlots.Last()));
+                        var port = m_SourceNodeController.outputPorts.FirstOrDefault(t => t.model == m_SourceSlotContainer.outputSlots.Last());
+                        if( port != null)
+                            m_SourceController.CreateLink(input, port);
                     }
                 }
             }
