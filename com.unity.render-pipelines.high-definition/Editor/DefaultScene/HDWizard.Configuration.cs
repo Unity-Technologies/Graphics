@@ -157,20 +157,19 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixHDRPAll()
         {
             m_Fixer.Add(
-                () => { if (!IsColorSpaceCorrect())                 FixColorSpace();                    },
-                () => { if (!IsLightmapCorrect())                   FixLightmap();                      },
-                () => { if (!IsShadowmaskCorrect())                 FixShadowmask();                    },
-                () => { if (!IsHdrpAssetUsedCorrect())              FixHdrpAssetUsed(fromAsync: true);  },
-                () => { if (!IsHdrpAssetRuntimeResourcesCorrect())  FixHdrpAssetRuntimeResources();     },
-                () => { if (!IsHdrpAssetEditorResourcesCorrect())   FixHdrpAssetEditorResources();      },
-                () => { if (!IsHdrpAssetDiffusionProfileCorrect())  FixHdrpAssetDiffusionProfile();     },
-                () => { if (!IsDefaultSceneCorrect())               FixDefaultScene(fromAsync: true);   });
+                () => { if (!IsColorSpaceCorrect())     FixColorSpace();                    },
+                () => { if (!IsLightmapCorrect())       FixLightmap();                      },
+                () => { if (!IsShadowmaskCorrect())     FixShadowmask();                    });
+            FixHdrpAsset();
+            m_Fixer.Add(
+                () => { if (!IsDefaultSceneCorrect())   FixDefaultScene(fromAsync: true);   });
         }
 
         bool IsHdrpAssetCorrect() =>
             IsHdrpAssetUsedCorrect()
             && IsHdrpAssetRuntimeResourcesCorrect()
             && IsHdrpAssetEditorResourcesCorrect()
+            && IsSRPBatcherCorrect()
             && IsHdrpAssetDiffusionProfileCorrect();
         void FixHdrpAsset() 
         {
@@ -178,6 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 () => { if (!IsHdrpAssetUsedCorrect())              FixHdrpAssetUsed(fromAsync: true);  },
                 () => { if (!IsHdrpAssetRuntimeResourcesCorrect())  FixHdrpAssetRuntimeResources();     },
                 () => { if (!IsHdrpAssetEditorResourcesCorrect())   FixHdrpAssetEditorResources();      },
+                () => { if (!IsSRPBatcherCorrect())                 FixSRPBatcher();                    },
                 () => { if (!IsHdrpAssetDiffusionProfileCorrect())  FixHdrpAssetDiffusionProfile();     });
         }
         
@@ -251,6 +251,16 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipeline.defaultAsset.renderPipelineEditorResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources, HDUtils.GetHDRenderPipelinePath());
+        }
+
+        bool IsSRPBatcherCorrect()
+            => (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher;
+        void FixSRPBatcher()
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                FixHdrpAssetUsed(fromAsync: false);
+
+            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher = true;
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
