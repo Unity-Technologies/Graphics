@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string GenerateSubShader(AbstractMaterialNode outputNode, ITarget target, TargetSetupContext context, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public static string GenerateSubShader(AbstractMaterialNode outputNode, ITargetImplementation target, TargetSetupContext context, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             var subShader = new ShaderGenerator();
 
@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
             return subShader.GetShaderString(0);
         }
 
-        public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 
+        public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITargetImplementation target, ShaderPass pass, GenerationMode mode, 
             ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             // Early exit if pass is not used in preview
@@ -1167,7 +1167,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    PreviewTarget target = new PreviewTarget();
+                    DefaultPreviewTargetImplementation target = new DefaultPreviewTargetImplementation();
                     TargetSetupContext context = new TargetSetupContext();
                     context.SetMasterNode(null);
                     target.SetupTarget(ref context); 

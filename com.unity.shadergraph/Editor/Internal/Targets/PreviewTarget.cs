@@ -6,18 +6,6 @@ namespace UnityEditor.ShaderGraph.Internal
     class PreviewTarget : ITarget
     {
         public string displayName => "PREVIEW";
-        public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
-        public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
-
-        public bool IsValid(IMasterNode masterNode)
-        {
-            return false;
-        }
-
-        public void SetupTarget(ref TargetSetupContext context)
-        {
-            context.SetupSubShader(SubShaders.Preview);
-        }
 
 #region SubShaders
         public static class SubShaders

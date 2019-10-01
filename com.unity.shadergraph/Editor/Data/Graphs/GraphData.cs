@@ -316,9 +316,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
-        List<ITarget> m_Targets = new List<ITarget>();
+        List<ITargetImplementation> m_Targets = new List<ITargetImplementation>();
 
-        public List<ITarget> targets => m_Targets;
+        public List<ITargetImplementation> targets => m_Targets;
 
         public bool didActiveOutputNodeChange { get; set; }
 
@@ -1359,12 +1359,12 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var type in assembly.GetTypesOrNothing())
                 {
-                    var isValid = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
+                    var isValid = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
                     if (isValid && !targets.Any(s => s.GetType() == type))
                     {
                         try
                         {
-                            var target = (ITarget)Activator.CreateInstance(type);
+                            var target = (ITargetImplementation)Activator.CreateInstance(type);
                             var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
                             if(target.IsValid(masterNode))
                             {

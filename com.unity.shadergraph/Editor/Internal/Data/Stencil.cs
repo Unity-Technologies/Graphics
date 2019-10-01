@@ -7,7 +7,7 @@
         public string Comp;
         public string Pass;
 
-        public string ToString()
+        public string ToShaderString()
         {
             ShaderStringBuilder builder = new ShaderStringBuilder();
             builder.AppendLine("Stencil");
