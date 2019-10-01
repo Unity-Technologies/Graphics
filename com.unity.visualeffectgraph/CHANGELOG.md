@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modifying a shader used by an output mesh context now automatically updates the currently edited VFX
 - Possible loss of shadergraph reference in unlit output
 - Selection Pass for Universal and High Definition Render Pipeline
+- ui : toolbar item wrap instead of overlapping.
 
 ### Added
 - Custom Inspector for Spawn context, delay settings are more user friendly.
