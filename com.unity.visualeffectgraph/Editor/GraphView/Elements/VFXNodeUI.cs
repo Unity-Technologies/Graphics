@@ -458,9 +458,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public const int DefaultLabelWidth = 116;
+
         protected void AddSetting(VFXSettingController setting)
         {
-            var rm = PropertyRM.Create(setting, 100);
+            var rm = PropertyRM.Create(setting, DefaultLabelWidth);
             if (rm != null)
             {
                 m_Settings.Add(rm);

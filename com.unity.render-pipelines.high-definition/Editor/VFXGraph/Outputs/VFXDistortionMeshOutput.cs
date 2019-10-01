@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXDistortionMeshOutput : VFXAbstractDistortionOutput
     {
-        public override string name { get { return "Distortion Mesh Output"; } }
+        public override string name { get { return "Output Particle Distortion Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return true; } }
