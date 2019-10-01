@@ -331,6 +331,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // (to support multiple stars in space, moons with moon phases, etc).
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
+
+            float r = Vector3.Distance(builtinParams.worldSpaceCameraPos, m_Settings.planetCenterPosition.value);
+            float R = m_Settings.planetaryRadius.value;
+
+            bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
+
             CommandBuffer cmd = builtinParams.commandBuffer;
 
             // Precomputation is done, shading is next.
@@ -392,7 +398,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
-            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, renderForCubemap ? 0 : 1);
+            int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
+
+            CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
         }
     }
 }
