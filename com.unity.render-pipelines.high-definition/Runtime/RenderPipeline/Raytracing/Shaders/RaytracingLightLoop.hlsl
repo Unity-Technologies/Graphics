@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
 
-// #define USE_LIGHT_CLUSTER 
+#define USE_LIGHT_CLUSTER 
 
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, 
             float reflectionHierarchyWeight, float refractionHierarchyWeight, float3 reflection, float3 transmission,

@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.LookDev
             };
             environmentListCreationToolbar.Add(libraryField);
             environmentListCreationToolbar.Add(new ToolbarButton(()
-                => EnvironmentLibraryCreator.Create())
+                => EnvironmentLibraryCreator.CreateAndAssignTo(libraryField))
             {
                 text = "New",
                 tooltip = "Create a new EnvironmentLibrary"

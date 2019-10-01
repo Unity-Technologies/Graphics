@@ -4,19 +4,23 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// The different ray count values that can be asked for.
+    /// </summary>
+    [GenerateHLSL]
+    public enum RayCountValues
+    {
+        Visibility = 0,
+        Indirect = 1,
+        Forward = 2,
+        GBuffer = 3,
+        Count = 4,
+        Total = 5
+    }
+
     class RayCountManager
     {
-        // Indices of the values that we can query
-        [GenerateHLSL]
-        public enum RayCountValues
-        {
-            Visibility = 0,
-            Indirect = 1,
-            Forward = 2,
-            GBuffer = 3,
-            Count = 4,
-            Total = 5
-        }
+        
 #if ENABLE_RAYTRACING
         // Texture that holds the ray count per pixel
         RTHandle m_RayCountTexture = null;
@@ -38,13 +42,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Given that the requests are guaranteed to be executed in order we use a queue to store it
         Queue<AsyncGPUReadbackRequest> rayCountReadbacks = new Queue<AsyncGPUReadbackRequest>();
 
-        public void Init(HDRenderPipelineRayTracingResources rayTracingResources, DebugDisplaySettings currentDebugDisplaySettings)
+        public void Init(HDRenderPipelineRayTracingResources rayTracingResources)
         {
             // Keep track of the compute shader we are going to use
             rayCountCS = rayTracingResources.countTracedRays;
 
             // Allocate the texture that will hold the ray count
-            m_RayCountTexture = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_UInt, enableRandomWrite: true, useMipMap: false, name: "RayCountTextureDebug");
+            m_RayCountTexture = RTHandles.Alloc(Vector2.one, slices: TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: false, name: "RayCountTextureDebug");
 
             // We only require 3 buffers (this supports a maximal size of 8192x8192)
             m_ReducedRayCountBuffer0 = new ComputeBuffer((int)RayCountValues.Count * 256 * 256, sizeof(uint));
@@ -191,11 +195,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public float GetRaysPerFrame(RayCountValues rayCountValue)
+        public uint GetRaysPerFrame(RayCountValues rayCountValue)
         {
             if (!m_IsActive)
             {
-                return 0.0f;
+                return 0;
             }
             else
             {
