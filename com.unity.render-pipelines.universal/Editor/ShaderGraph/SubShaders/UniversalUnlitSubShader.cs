@@ -38,14 +38,9 @@ namespace UnityEditor.Rendering.Universal
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
 
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Unlit, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
-
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
-
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.DepthOnly, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Unlit, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.DepthOnly, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
