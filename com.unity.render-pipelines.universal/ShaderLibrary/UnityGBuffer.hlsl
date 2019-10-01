@@ -11,12 +11,18 @@ struct FragmentOutput
     half4 GBuffer3 : SV_Target3; // maps to DeferredPass.m_CameraColorAttachment on C# side
 };
 
+#define PACK_NORMALS_OCT 0  // TODO Debug OCT packing
+
 // This will encode SurfaceData into GBuffer
 FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination)
 {
+#if PACK_NORMALS_OCT
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
     half2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
+#else
+    half3 packedNormalWS = inputData.normalWS * 0.5 + 0.5;   // values between [ 0,  1]
+#endif
 
     half2 metallicAlpha = half2(surfaceData.metallic, surfaceData.alpha);
     half packedMetallicAlpha = PackFloat2To8(metallicAlpha);
@@ -59,9 +65,13 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     inputData.positionWS = wsPos;
 
     half3 packedNormalWS = gbuffer2.xyz;
+#if PACK_NORMALS_OCT
     half2 remappedOctNormalWS = Unpack888ToFloat2(packedNormalWS);  // values between [ 0,  1]
     half2 octNormalWS = normalize(remappedOctNormalWS.xy * 2 - 1);  // values between [-1, +1]
     inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);
+#else
+    inputData.normalWS = packedNormalWS * 2 - 1;  // values between [-1, +1]
+#endif
 
     inputData.viewDirectionWS = GetCameraPositionWS() - wsPos.xyz;
 
