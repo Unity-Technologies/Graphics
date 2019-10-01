@@ -413,7 +413,7 @@ MonoBehaviour:
   cullMode: 2
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 3
@@ -538,7 +538,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 2
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: -1
@@ -2834,7 +2834,7 @@ MonoBehaviour:
   cullMode: 1
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 2
@@ -3336,7 +3336,7 @@ MonoBehaviour:
   cullMode: 1
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -3561,7 +3561,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 1
@@ -4151,7 +4151,7 @@ MonoBehaviour:
   cullMode: 2
   zWriteMode: 2
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: -1
