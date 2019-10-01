@@ -74,19 +74,6 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new string[]
-                {
-                    "Attributes.uv1", //needed for meta vertex position
-                    "Varyings.positionWS",
-                    "Varyings.normalWS",
-                    "Varyings.tangentWS", //needed for vertex lighting
-                    "Varyings.bitangentWS",
-                    "Varyings.viewDirectionWS",
-                    "Varyings.lightmapUV",
-                    "Varyings.sh",
-                    "Varyings.fogFactorAndVertexLight", //fog and vertex lighting, vert input is dependency
-                    "Varyings.shadowCoord", //shadow coord, vert input is dependency
-                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.uv1,
@@ -200,10 +187,6 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new string[]
-                {
-                    "Attributes.normalOS",
-                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.normalOS,
@@ -255,11 +238,6 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new string[]
-                {
-                    "Attributes.uv1", //needed for meta vertex position
-                    "Attributes.uv2", //needed for meta vertex position
-                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.uv1,
@@ -403,12 +381,6 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new string[]
-                {
-                    "Varyings.color",
-                    "Varyings.texCoord0",
-                    "Varyings.screenPosition",
-                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Varyings.color,
@@ -468,12 +440,6 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new string[]
-                {
-                    "Varyings.normalWS",
-                    "Varyings.tangentWS",
-                    "Varyings.bitangentWS",
-                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Varyings.normalWS,
@@ -525,11 +491,6 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new string[]
-                {
-                    "Varyings.color",
-                    "Varyings.texCoord0",
-                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Varyings.color,
@@ -580,13 +541,6 @@ namespace UnityEditor.Rendering.Universal
                 },
 
                 // Required fields
-                requiredFields = new string[]
-                {
-                    "Attributes.color",
-                    "Attributes.uv0",
-                    "Varyings.color",
-                    "Varyings.texCoord0",
-                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.color,
