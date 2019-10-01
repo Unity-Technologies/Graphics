@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.LookDev
     }
 
     /// <summary>
-    /// The target views of the debug panel 
+    /// The target views of the debug panel
     /// </summary>
     public enum TargetDebugView
     {
@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>The position and rotation of the camera</summary>
         [field: SerializeField]
         public CameraState camera { get; private set; } = new CameraState();
-        
+
         /// <summary>The currently viewed debugState</summary>
         public DebugContext debug { get; private set; } = new DebugContext();
 
@@ -298,7 +298,7 @@ namespace UnityEditor.Rendering.LookDev
             else //Cubemap
             {
                 environment = new Environment();
-                environment.sky.cubemap = environmentOrCubemapAsset as Cubemap;
+                environment.cubemap = environmentOrCubemapAsset as Cubemap;
             }
         }
 
@@ -337,7 +337,7 @@ namespace UnityEditor.Rendering.LookDev
             {
                 Cubemap cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
                 environment = new Environment();
-                environment.sky.cubemap = cubemap;
+                environment.cubemap = cubemap;
             }
         }
 

@@ -213,7 +213,7 @@ void RayGenAreaShadows()
         rayIntersection.incidentDirection = rayDescriptor.Direction;
 
         // Evaluate the ray visibility term and PDF
-        TraceRay(_RaytracingAccelerationStructure, rayFlag, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, rayFlag | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Evaluate the lighting
         CBSDF cbsdf = EvaluateBSDF(viewWS, misOutput.dir, preLightData, bsdfData);
@@ -333,7 +333,7 @@ void RayGenAreaShadowSingle()
     rayIntersection.incidentDirection = rayDescriptor.Direction;
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
     _RaytracedAreaShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = float2(rayIntersection.color.x * currentSample.x + previousValue.x, currentSample.y + previousValue.y);
@@ -393,14 +393,14 @@ void RayGenDirectionalShadowSingle()
     rayIntersection.color = float3(0.0, 0.0, 0.0);
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
     _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + rayIntersection.color.x / (float)_RaytracingNumSamples;
 }
 
 [shader("raygeneration")]
-void RayGenPointShadowSingle()
+void RayGenShadowSegmentSingle()
 {
     // Grab the dimensions of the current raytrace shader
     uint3 LaunchIndex = DispatchRaysIndex();
@@ -418,8 +418,22 @@ void RayGenPointShadowSingle()
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
-    // If the ray is invalid, no need to shoot it
+    // Read the ray distance
+    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+
+    // If the distance is negative, it means the rays is a visible intersection.
+    if (rayDistance < 0.0)
+    {
+        // Read the previous value and add one
+        float previousValue = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+        _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
+        return;
+    }
+
+    // Fetch the ray direction
     float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
+
+    // If the PDF is negative, means the ray means a hit (no need to shoot it)
     if (rayDirection.w < 0.0) return;
 
     // Make sure it is taken into account in the ray conters
@@ -433,9 +447,6 @@ void RayGenPointShadowSingle()
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
-
-    // Read the ray distance
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
 
     // Recompute the ray parameters
     float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias; 
@@ -458,7 +469,7 @@ void RayGenPointShadowSingle()
     rayIntersection.incidentDirection = rayDescriptor.Direction;
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACING_CAST_SHADOW_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
     float previousValue = _RaytracedDirectionalShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];

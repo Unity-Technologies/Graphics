@@ -85,18 +85,18 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
     {
         // Fetch the noise value for the current sample
-        float2 sample;
-        sample.x = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 0);
-        sample.y = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 1);
+        float2 newSample;
+        newSample.x = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 0);
+        newSample.y = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 1);
         
         // Convert the sample to a local unit disk
-        sample = SampleDiskUniform(sample.x * sample.x, sample.y);
+        newSample = SampleDiskUniform(newSample.x * newSample.x, newSample.y);
 
         // Distribute them according a square profile
-        sample *= _DenoiserFilterRadius * _DenoiserFilterRadius;
+        newSample *= _DenoiserFilterRadius * _DenoiserFilterRadius;
 
         // Convert the point to hemogenous clip space
-        float3 wsPos = center.position + localToWorld[0] * sample.x + localToWorld[1] * sample.y;
+        float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
         float4 hClip = TransformWorldToHClip(wsPos);
         hClip.xyz /= hClip.w;
 
@@ -119,7 +119,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
             continue;
 
         // Compute the radius of the sample
-        float r = length(sample);
+        float r = length(newSample);
 
         // Compute the weight (skip computation for the center)
         const float w = r > 0.001f ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;

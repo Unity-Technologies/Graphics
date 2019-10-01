@@ -13,12 +13,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Generic attributes
             public bool rayBinning;
             public LayerMask layerMask;
+            public float rayBias;
             public float maxRayLength;
             public float clampValue;
             public bool includeSky;
             public bool diffuseLightingOnly;
             public bool halfResolution;
-            public HDRaytracingEnvironment rtEnv;
             public int rayCountFlag;
             public bool preExpose;
 
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredResources.distanceBuffer = m_RaytracingDistanceBuffer;
 
             // Debug textures
-            deferredResources.rayCountTexture = m_RayTracingManager.rayCountManager.GetRayCountTexture();
+            deferredResources.rayCountTexture = m_RayCountManager.GetRayCountTexture();
 
             // Output Buffer
             deferredResources.litBuffer = ouputBuffer;
@@ -216,7 +216,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, buffers.rayCountTexture);
             
             // Bind all input parameter
-            cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayBias, parameters.rtEnv.rayBias);
+            cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayBias, parameters.rayBias);
+            cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, HDShaderIDs._RayTracingLayerMask, parameters.layerMask);
             cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayMaxLength, parameters.maxRayLength);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._DepthTexture, buffers.depthStencilBuffer);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._NormalBufferTexture, buffers.normalBuffer);

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
+    [AddComponentMenu("Rendering/Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);

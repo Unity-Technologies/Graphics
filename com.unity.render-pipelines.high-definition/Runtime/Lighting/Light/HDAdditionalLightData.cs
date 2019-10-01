@@ -121,65 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool oldDisplayAreaLightEmissiveMesh;
         public float oldLightColorTemperature;
         public float oldIntensity;
-    }
-
-
-    [Serializable]
-    public class ShadowResolutionSettingValue
-    {
-        [SerializeField]
-        private int m_Override;
-        [SerializeField]
-        private bool m_UseOverride;
-        [SerializeField]
-        private int m_Level;
-
-        public int level
-        {
-            get => m_Level;
-            set => m_Level = value;
-        }
-
-        public bool useOverride
-        {
-            get => m_UseOverride;
-            set => m_UseOverride = value;
-        }
-
-        public int @override
-        {
-            get => m_Override;
-            set => m_Override = value;
-        }
-
-        public int Value(ShadowResolutionSetting source) => m_UseOverride ? m_Override : source[m_Level];
-
-        public void CopyTo(ShadowResolutionSettingValue target)
-        {
-            target.m_Override = m_Override;
-            target.m_UseOverride = m_UseOverride;
-            target.m_Level = m_Level;
-        }
-    }
-
-
-    [Serializable]
-    public class ShadowResolutionSetting: ISerializationCallbackReceiver
-    {
-        [SerializeField] private int[] m_Values;
-
-        public ShadowResolutionSetting(int[] values) => m_Values = values;
-
-        public int this[int index] => m_Values != null && index >= 0 && index < m_Values.Length  ? m_Values[index] : 0;
-
-        public void OnBeforeSerialize()
-        {
-            Array.Resize(ref m_Values, 4);
-        }
-
-        public void OnAfterDeserialize()
-        {
-        }
+        public bool lightEnabled;
     }
 
     //@TODO: We should continuously move these values
@@ -191,11 +133,11 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal static class ScalableSettings
         {
-            public static ShadowResolutionSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
+            public static IntScalableSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionArea;
-            public static ShadowResolutionSetting ShadowResolutionPunctual(HDRenderPipelineAsset hdrp) =>
+            public static IntScalableSetting ShadowResolutionPunctual(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual;
-            public static ShadowResolutionSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
+            public static IntScalableSetting ShadowResolutionDirectional(HDRenderPipelineAsset hdrp) =>
                 hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional;
 
             public static BoolScalableSetting UseContactShadow(HDRenderPipelineAsset hdrp) =>
@@ -595,9 +537,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Only for Punctual/Sphere/Disc
+        // Only for Punctual/Sphere/Disc. Default shape radius is not 0 so that specular highlight is visible by default, it matches the previous default of 0.99 for MaxSmoothness.
         [SerializeField, FormerlySerializedAs("shapeRadius")]
-        float m_ShapeRadius = 0.0f;
+        float m_ShapeRadius = 0.025f;
         /// <summary>
         /// Get/Set the radius of a light
         /// </summary>
@@ -784,7 +726,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_InteractsWithSky = value;
             }
         }
-
         [SerializeField, FormerlySerializedAs("angularDiameter")]
         float m_AngularDiameter = 0;
         /// <summary>
@@ -799,7 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_AngularDiameter == value)
                     return;
 
-                m_AngularDiameter = value;
+                m_AngularDiameter = Mathf.Clamp(value, 0, 360);
             }
         }
 
@@ -1003,7 +944,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("lightlayersMask")]
         LightLayerEnum m_LightlayersMask = LightLayerEnum.LightLayerDefault;
         /// <summary>
-        /// Light Layers used for shadows only, for default Light Layers use Light.renderingLayerMask
+        /// Controls which layer will be affected by this light
         /// </summary>
         /// <value></value>
         public LightLayerEnum lightlayersMask
@@ -1011,10 +952,10 @@ namespace UnityEngine.Rendering.HighDefinition
             get => linkShadowLayers ? (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask) : m_LightlayersMask;
             set
             {
-                if (m_LightlayersMask == value)
-                    return;
-
                 m_LightlayersMask = value;
+
+                if (linkShadowLayers)
+                    legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)m_LightlayersMask, legacyLight.renderingLayerMask);
             }
         }
 
@@ -1026,13 +967,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool linkShadowLayers
         {
             get => m_LinkShadowLayers;
-            set
-            {
-                if (m_LinkShadowLayers == value)
-                    return;
-
-                m_LinkShadowLayers = value;
-            }
+            set => m_LinkShadowLayers = value;
         }
 
         /// <summary>
@@ -1219,12 +1154,12 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region HDShadow Properties API (from AdditionalShadowData)
-        [SerializeField] private ShadowResolutionSettingValue m_ShadowResolution = new ShadowResolutionSettingValue
+        [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
             @override = k_DefaultShadowResolution,
             useOverride = true,
         };
-        public ShadowResolutionSettingValue shadowResolution => m_ShadowResolution;
+        public IntScalableSettingValue shadowResolution => m_ShadowResolution;
 
         [Range(0.0f, 1.0f)]
         [SerializeField]
@@ -1456,9 +1391,36 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (m_Light == null)
-                    m_Light = GetComponent<Light>();
+                TryGetComponent<Light>(out m_Light);
                 return m_Light;
+            }
+        }
+        
+        MeshRenderer m_EmissiveMeshRenderer;
+        internal MeshRenderer emissiveMeshRenderer
+        {
+            get
+            {
+                if (m_EmissiveMeshRenderer == null)
+                {
+                    TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
+                }
+                
+                return m_EmissiveMeshRenderer;
+            }
+        }
+
+        MeshFilter m_EmissiveMeshFilter;
+        internal MeshFilter emissiveMeshFilter
+        {
+            get
+            {
+                if (m_EmissiveMeshFilter == null)
+                {
+                    TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
+                }
+                
+                return m_EmissiveMeshFilter;
             }
         }
 
@@ -1477,9 +1439,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DisableCachedShadowSlot();
         }
+
         void OnDisable()
         {
             DisableCachedShadowSlot();
+            SetEmissiveMeshRendererEnabled(false);
+        }
+
+        void SetEmissiveMeshRendererEnabled(bool enabled)
+        {
+            if (displayAreaLightEmissiveMesh && emissiveMeshRenderer)
+            {
+                emissiveMeshRenderer.enabled = enabled;
+            }
         }
 
         int GetShadowRequestCount()
@@ -1541,7 +1513,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRenderPipeline.EvaluateGPULightType(legacyLight.type, lightTypeExtent, spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
             // Flag the ray tracing only shadows
-            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point))
+            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone)))
             {
                 m_WillRenderScreenSpaceShadow = true;
                 m_WillRenderRayTracedShadow = true;
@@ -1985,6 +1957,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector3 shape = new Vector3(shapeWidth, m_ShapeHeight, shapeRadius);
 
+            if (legacyLight.enabled != timelineWorkaround.lightEnabled)
+            {
+                SetEmissiveMeshRendererEnabled(legacyLight.enabled);
+                timelineWorkaround.lightEnabled = legacyLight.enabled;
+            }
+
             // Check if the intensity have been changed by the inspector or an animator
             if (timelineWorkaround.oldLossyScale != transform.lossyScale
                 || intensity != timelineWorkaround.oldIntensity
@@ -2216,18 +2194,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAreaLightEmissiveMesh()
         {
-            MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
-            MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
-
             bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && displayAreaLightEmissiveMesh;
 
             // Ensure that the emissive mesh components are here
             if (displayEmissiveMesh)
             {
                 if (emissiveMeshRenderer == null)
-                    emissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
+                    m_EmissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
                 if (emissiveMeshFilter == null)
-                    emissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
+                    m_EmissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
             }
             else // Or remove them if the option is disabled
             {
@@ -2660,12 +2635,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="lightLayerMask"></param>
         /// <param name="shadowLightLayerMask"></param>
-        public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLightLayerMask)
+        public void SetLightLayer(LightLayerEnum lightLayerMask, LightLayerEnum shadowLayerMask)
         {
             // disable the shadow / light layer link
             linkShadowLayers = false;
-            legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayerMask, (int)legacyLight.renderingLayerMask);
-            lightlayersMask = shadowLightLayerMask;
+            legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
+            lightlayersMask = lightLayerMask;
         }
 
         /// <summary>
@@ -2707,10 +2682,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetRange(float range) => legacyLight.range = range;
 
         /// <summary>
-        /// Set the light layer and shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
+        /// Set the shadow map light layer masks. The feature must be enabled in the HDRP asset in norder to work.
         /// </summary>
         /// <param name="lightLayerMask"></param>
-        public void SetLightLayer(LightLayerEnum lightLayerMask) => legacyLight.renderingLayerMask = (int)lightLayerMask;
+        public void SetShadowLightLayer(LightLayerEnum shadowLayerMask) => legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)shadowLayerMask, (int)legacyLight.renderingLayerMask);
 
         /// <summary>
         /// Set the light culling mask.

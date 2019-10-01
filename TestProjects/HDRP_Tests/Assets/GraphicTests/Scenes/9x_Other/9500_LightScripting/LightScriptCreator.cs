@@ -125,7 +125,7 @@ public class LightScriptCreator : MonoBehaviour
                     hdLight.useContactShadow.@override = true;
                     break;
                 case 10: // Light Layer
-                    hdLight.SetLightLayer(LightLayerEnum.LightLayer1);
+                    hdLight.lightlayersMask = LightLayerEnum.LightLayer1;
                     break;
                 case 11: // Affect diffuse
                     hdLight.affectDiffuse = false;

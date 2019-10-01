@@ -2,32 +2,63 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
-    //Volumes are documented in HDRP for now
+    /// <summary>
+    /// A generic Volume component holding a <see cref="VolumeProfile"/>.
+    /// </summary>
     [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Volumes" + Documentation.endURL)]
     [ExecuteAlways]
+    [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour
     {
-        [Tooltip("A global volume is applied to the whole scene.")]
+        /// <summary>
+        /// Specifies whether to apply the Volume to the entire Scene or not.
+        /// </summary>
+        [Tooltip("When enabled, HDRP applies this Volume to the entire Scene.")]
         public bool isGlobal = true;
 
-        [Tooltip("Volume priority in the stack. Higher number means higher priority. Negative values are supported.")]
+        /// <summary>
+        /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
+        /// </summary>
+        [Tooltip("Sets the Volume priority in the stack. A higher value means higher priority. You can use negative values.")]
         public float priority = 0f;
 
-        [Tooltip("Outer distance to start blending from. A value of 0 means no blending and the volume overrides will be applied immediately upon entry.")]
+        /// <summary>
+        /// The outer distance to start blending from. A value of 0 means no blending and Unity applies
+        /// the Volume overrides immediately upon entry.
+        /// </summary>
+        [Tooltip("Sets the outer distance to start blending from. A value of 0 means no blending and Unity applies the Volume overrides immediately upon entry.")]
         public float blendDistance = 0f;
 
-        [Range(0f, 1f), Tooltip("Total weight of this volume in the scene. 0 means it won't do anything, 1 means full effect.")]
+        /// <summary>
+        /// The total weight of this volume in the Scene. 0 means no effect and 1 means full effect.
+        /// </summary>
+        [Range(0f, 1f), Tooltip("Sets the total weight of this Volume in the Scene. 0 means no effect and 1 means full effect.")]
         public float weight = 1f;
-        
-        // Modifying sharedProfile will change the behavior of all volumes using this profile, and
-        // change profile settings that are stored in the project too
+
+        /// <summary>
+        /// The shared Profile that this Volume uses.
+        /// Modifying <c>sharedProfile</c> changes every Volumes that uses this Profile and also changes
+        /// the Profile settings stored in the Project.
+        /// </summary>
+        /// <remarks>
+        /// You should not modify Profiles that <c>sharedProfile</c> returns. If you want
+        /// to modify the Profile of a Volume, use <see cref="profile"/> instead.
+        /// </remarks>
+        /// <seealso cref="profile"/>
         public VolumeProfile sharedProfile = null;
 
-        // This property automatically instantiates the profile and makes it unique to this volume
-        // so you can safely edit it via scripting at runtime without changing the original asset
-        // in the project.
-        // Note that if you pass in your own profile, it is your responsibility to destroy it once
-        // it's not in use anymore.
+        /// <summary>
+        /// Gets the first instantiated <see cref="VolumeProfile"/> assigned to the Volume.
+        /// Modifying <c>profile</c> changes the Profile for this Volume only. If another Volume
+        /// uses the same Profile, this clones the shared Profile and starts using it from now on.
+        /// </summary>
+        /// <remarks>
+        /// This property automatically instantiates the Profile and make it unique to this Volume
+        /// so you can safely edit it via scripting at runtime without changing the original Asset
+        /// in the Project.
+        /// Note that if you pass your own Profile, you must destroy it when you finish using it.
+        /// </remarks>
+        /// <seealso cref="sharedProfile"/>
         public VolumeProfile profile
         {
             get
@@ -53,6 +84,12 @@ namespace UnityEngine.Rendering
 
         internal VolumeProfile profileRef => m_InternalProfile == null ? sharedProfile : m_InternalProfile;
 
+        /// <summary>
+        /// Checks if the Volume has an instantiated Profile or if it uses a shared Profile.
+        /// </summary>
+        /// <returns><c>true</c> if the profile has been instantiated.</returns>
+        /// <seealso cref="profile"/>
+        /// <seealso cref="sharedProfile"/>
         public bool HasInstantiatedProfile() => m_InternalProfile != null;
 
         // Needed for state tracking (see the comments in Update)

@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enable ray traced global illumination.")]
         public BoolParameter rayTracing = new BoolParameter(false);
 
+        [Tooltip("Defines the layers that GI should include.")]
+        public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
         [Tooltip("Controls the length of GI rays.")]
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0.001f, 50f);
 
@@ -20,6 +23,12 @@ namespace UnityEngine.Rendering.HighDefinition
         
         [Tooltip("Enables ray binning")]
         public BoolParameter rayBinning = new BoolParameter(false);
+
+        [Tooltip("Full Resolution")]
+        public BoolParameter fullResolution = new BoolParameter(false);
+
+        [Tooltip("Upscale Radius")]
+        public ClampedIntParameter upscaleRadius = new ClampedIntParameter(2, 2, 4);
 
         // Tier 2
         [Tooltip("Number of samples for GI.")]
