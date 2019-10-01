@@ -73,7 +73,7 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     inputData.normalWS = packedNormalWS * 2 - 1;  // values between [-1, +1]
 #endif
 
-    inputData.viewDirectionWS = GetCameraPositionWS() - wsPos.xyz;
+    inputData.viewDirectionWS = normalize(GetCameraPositionWS() - wsPos.xyz);
 
     // TODO: pass this info?
     inputData.shadowCoord     = (float4)0;
