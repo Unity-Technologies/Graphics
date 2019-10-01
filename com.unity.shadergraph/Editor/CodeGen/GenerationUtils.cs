@@ -4,9 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using Data.Util;
 
