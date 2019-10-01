@@ -1,27 +1,31 @@
 Pass
 {
-    // based on HDLitPass.template
-    Name "$splice(PassName)"
-    Tags { "LightMode" = "$splice(LightMode)" }
+    $splice(PassName)
+    Tags 
+    { 
+        $splice(LightMode)
+    }
 
-    //-------------------------------------------------------------------------------------
-    // End Render Modes
-    //-------------------------------------------------------------------------------------
+    // Render State
+    $splice(RenderState)
 
     HLSLPROGRAM
+    #pragma raytracing test
 
-    #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    // Debug
+    $splice(Debug)
+    
+    // --------------------------------------------------
+    // Pass
 
-    //#pragma enable_d3d11_debug_symbols
+    // Pragmas
+    $splice(PassPragmas)
 
-    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _DOUBLESIDED_ON
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
 
-    //-------------------------------------------------------------------------------------
-    // Variant Definitions (active field translations to HDRP defines)
-    //-------------------------------------------------------------------------------------
+    // Defines
     $Material.SubsurfaceScattering:      #define _MATERIAL_FEATURE_SUBSURFACE_SCATTERING 1
     $Material.Transmission:              #define _MATERIAL_FEATURE_TRANSMISSION 1
     $Material.Anisotropy:                #define _MATERIAL_FEATURE_ANISOTROPY 1
@@ -40,69 +44,29 @@ Pass
     $RefractionSphere:                   #define _REFRACTION_SPHERE 1
     $DisableDecals:                      #define _DISABLE_DECALS 1
     $DisableSSR:                         #define _DISABLE_SSR 1
+    $splice(GraphDefines)
 
-    //-------------------------------------------------------------------------------------
-    // End Variant Definitions
-    //-------------------------------------------------------------------------------------
+    // Includes
+    $splice(PassIncludes)
 
-    #pragma raytracing test
+    // --------------------------------------------------
+    // Graph
 
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    // Graph Properties
+    $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
 
-    // define FragInputs structure
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    // Graph Functions
+    $splice(GraphFunctions)
 
-    //-------------------------------------------------------------------------------------
-    // Defines
-    //-------------------------------------------------------------------------------------
-    $splice(Defines)
-    //-------------------------------------------------------------------------------------
-    // End Defines
-    //-------------------------------------------------------------------------------------
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
-
-#if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl"
-#else
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
-#endif
-
-#if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-    #define HAS_LIGHTLOOP
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-#endif
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl"
-#if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
-#endif
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl"
+    // Graph Vertex
+    $splice(GraphVertex)
     
-#if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
-#endif
+    // Graph Pixel
+    $splice(GraphPixel)
 
-
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl"
-
-    //-------------------------------------------------------------------------------------
-    // Graph generated code
-    //-------------------------------------------------------------------------------------
-    $splice(Graph)
-    //-------------------------------------------------------------------------------------
-    // End graph generated code
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Build Graph Inputs
 
     SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, float3 viewWS)
     {
@@ -141,6 +105,9 @@ Pass
         return output;
     }
 
+    // --------------------------------------------------
+    // Build Surface Data
+
     void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDescription, float3 V, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out float3 bentNormalWS)
     {
         // setup defaults -- these are used if the graph doesn't output a value
@@ -161,31 +128,30 @@ Pass
         surfaceData.materialFeatures = 0;
 
         // Transform the preprocess macro into a material feature (note that silk flag is deduced from the abscence of this one)
-#ifdef _MATERIAL_FEATURE_COTTON_WOOL
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
-        $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      lerp(0.0, 0.6, surfaceDescription.Smoothness);
-#endif
+        #ifdef _MATERIAL_FEATURE_COTTON_WOOL
+            surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
+            $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      lerp(0.0, 0.6, surfaceDescription.Smoothness);
+        #endif
 
-#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING;
-#endif
+        #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+            surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING;
+        #endif
 
-#ifdef _MATERIAL_FEATURE_TRANSMISSION
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION;
-#endif
+        #ifdef _MATERIAL_FEATURE_TRANSMISSION
+            surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION;
+        #endif
 
+        #if defined (_ENERGY_CONSERVING_SPECULAR)
+            // Require to have setup baseColor
+            // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
+            surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
+        #endif
 
-#if defined (_ENERGY_CONSERVING_SPECULAR)
-        // Require to have setup baseColor
-        // Reproduce the energy conservation done in legacy Unity. Not ideal but better for compatibility and users can unchek it
-        surfaceData.baseColor *= (1.0 - Max3(surfaceData.specularColor.r, surfaceData.specularColor.g, surfaceData.specularColor.b));
-#endif
-
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+        #ifdef _DOUBLESIDED_ON
+            float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        #else
+            float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        #endif
 
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
@@ -207,44 +173,44 @@ Pass
         // If user provide bent normal then we process a better term
         surfaceData.specularOcclusion = 1.0;
 
-#if defined(_SPECULAR_OCCLUSION_CUSTOM)
-        // Just use the value passed through via the slot (not active otherwise)
-#elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
-        // If we have bent normal and ambient occlusion, process a specular occlusion
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
-#elif defined(_AMBIENT_OCCLUSION) && defined(_SPECULAR_OCCLUSION_FROM_AO)
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#else
-        surfaceData.specularOcclusion = 1.0;
-#endif
+        #if defined(_SPECULAR_OCCLUSION_CUSTOM)
+            // Just use the value passed through via the slot (not active otherwise)
+        #elif defined(_SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL)
+            // If we have bent normal and ambient occlusion, process a specular occlusion
+            surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+        #elif defined(_AMBIENT_OCCLUSION) && defined(_SPECULAR_OCCLUSION_FROM_AO)
+            surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+        #else
+            surfaceData.specularOcclusion = 1.0;
+        #endif
 
-#if HAVE_DECALS
-        if (_EnableDecals)
-        {
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-        }
-#endif
+        #if HAVE_DECALS
+            if (_EnableDecals)
+            {
+                DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+                ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+            }
+        #endif
 
-#ifdef DEBUG_DISPLAY
-        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-        {
-            // TODO: need to update mip info
-        }
+        #ifdef DEBUG_DISPLAY
+            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+            {
+                // TODO: need to update mip info
+            }
 
-        // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-        // as it can modify attribute use for static lighting
-        ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
-#endif
+            // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+            // as it can modify attribute use for static lighting
+            ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
+        #endif
     }
 
     bool GetSurfaceDataFromIntersection(FragInputs fragInputs, float3 V, PositionInputs posInput, IntersectionVertex intersectionVertex, RayCone rayCone, out SurfaceData surfaceData, out BuiltinData builtinData)
     {
-#ifdef _DOUBLESIDED_ON
-    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
-#else
-    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
-#endif
+        #ifdef _DOUBLESIDED_ON
+            float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        #else
+            float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        #endif
 
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants);
 
@@ -278,13 +244,10 @@ Pass
         return true;
     }
 
-    //-------------------------------------------------------------------------------------
-    // Pass Includes
-    //-------------------------------------------------------------------------------------
-$splice(Includes)
-    //-------------------------------------------------------------------------------------
-    // End Pass Includes
-    //-------------------------------------------------------------------------------------
+    // --------------------------------------------------
+    // Main
+
+    $splice(MainInclude)
 
     ENDHLSL
 }

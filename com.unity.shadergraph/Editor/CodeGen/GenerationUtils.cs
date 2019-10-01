@@ -487,7 +487,12 @@ namespace UnityEditor.ShaderGraph
 
             using (var graphDefines = new ShaderStringBuilder())
             {
-                graphDefines.AppendLine("#define {0}", pass.referenceName);
+                // TODO: Solve inconsistency
+                // URP: #define PASSNAME
+                // HDRP: #define SHADERPASS PASSNAME
+                graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
+                // graphDefines.AppendLine("#define {0}", pass.referenceName);
+                
                 if(pass.defines != null)
                 {
                     foreach(ConditionalDefine define in pass.defines)

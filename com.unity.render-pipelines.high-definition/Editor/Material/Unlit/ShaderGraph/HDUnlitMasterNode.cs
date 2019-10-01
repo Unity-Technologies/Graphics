@@ -350,7 +350,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
-            return null;
+            return new ConditionalField[]
+            {
+                // Features
+                new ConditionalField(DefaultFields.GraphVertex,                         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphPixel,                          true),
+
+                // Distortion
+                new ConditionalField(HDRPShaderGraphFields.DistortionDepthTest,         distortionDepthTest.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DistortionAdd,               distortionMode == DistortionMode.Add),
+                new ConditionalField(HDRPShaderGraphFields.DistortionMultiply,          distortionMode == DistortionMode.Multiply),
+                new ConditionalField(HDRPShaderGraphFields.DistortionReplace,           distortionMode == DistortionMode.Replace),
+                
+                // Misc
+                new ConditionalField(DefaultFields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.AlphaFog,                    surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
+                new ConditionalField(DefaultFields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
+            };
         }
 
         public void ProcessPreviewMaterial(Material material)
