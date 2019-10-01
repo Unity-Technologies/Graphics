@@ -3336,5 +3336,370 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 #endregion
+#region ShaderStructs
+        public static class ShaderStructs
+        {
+            public struct AttributesMesh
+            {
+                public static string name = "AttributesMesh";
+                public static SubscriptDescriptor positionOS = new SubscriptDescriptor(Attributes.name, "positionOS", "", ShaderValueType.Float3, "POSITION");
+                public static SubscriptDescriptor normalOS = new SubscriptDescriptor(Attributes.name, "normalOS", "ATTRIBUTES_NEED_NORMAL", ShaderValueType.Float3,
+                    "NORMAL", subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor tangentOS = new SubscriptDescriptor(Attributes.name, "tangentOS", "ATTRIBUTES_NEED_TANGENT", ShaderValueType.Float4,
+                    "TANGENT", subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor uv0 = new SubscriptDescriptor(Attributes.name, "uv0", "ATTRIBUTES_NEED_TEXCOORD0", ShaderValueType.Float4,
+                    "TEXCOORD0", subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor uv1 = new SubscriptDescriptor(Attributes.name, "uv1", "ATTRIBUTES_NEED_TEXCOORD1", ShaderValueType.Float4,
+                    "TEXCOORD1", subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor uv2 = new SubscriptDescriptor(Attributes.name, "uv2", "ATTRIBUTES_NEED_TEXCOORD2", ShaderValueType.Float4,
+                    "TEXCOORD2", subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor uv3 = new SubscriptDescriptor(Attributes.name, "uv3", "ATTRIBUTES_NEED_TEXCOORD3", ShaderValueType.Float4,
+                    "TEXCOORD3", subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor color = new SubscriptDescriptor(Attributes.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
+                    "COLOR", subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(Attributes.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+                    "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+            }
+
+            public struct VaryingsMeshToPS
+            {
+                public static string name = "VaryingsMeshToPS";
+                public static SubscriptDescriptor positionCS = new SubscriptDescriptor(Varyings.name, "positionCS", "", ShaderValueType.Float4, "Sv_Position");
+                public static SubscriptDescriptor positionRWS = new SubscriptDescriptor(Varyings.name, "positionRWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor normalWS = new SubscriptDescriptor(Varyings.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor tangentWS = new SubscriptDescriptor(Varyings.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord0 = new SubscriptDescriptor(Varyings.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord1 = new SubscriptDescriptor(Varyings.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord2 = new SubscriptDescriptor(Varyings.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord3 = new SubscriptDescriptor(Varyings.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor color = new SubscriptDescriptor(Varyings.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(Varyings.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+                    "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+                public static SubscriptDescriptor cullFace = new SubscriptDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
+                    "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", SubscriptOptions.Generated & SubscriptOptions.Optional);
+            }
+
+            public struct VaryingsMeshToDS
+            {
+                public static string name = "VaryingsMeshToDS";
+                public static SubscriptDescriptor positionWS = new SubscriptDescriptor(Varyings.name, "positionWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3);
+                public static SubscriptDescriptor normalWS = new SubscriptDescriptor(Varyings.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3);
+                public static SubscriptDescriptor tangentWS = new SubscriptDescriptor(Varyings.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord0 = new SubscriptDescriptor(Varyings.name, "texCoord0", "VARYINGS_NEED_TEXCOORD0", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord1 = new SubscriptDescriptor(Varyings.name, "texCoord1", "VARYINGS_NEED_TEXCOORD1", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord2 = new SubscriptDescriptor(Varyings.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord3 = new SubscriptDescriptor(Varyings.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor color = new SubscriptDescriptor(Varyings.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor instanceID = new SubscriptDescriptor(Varyings.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+                    "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+            }
+            public struct FragInputs
+            {
+                public static string name = "FragInputs";
+                public static SubscriptDescriptor positionRWS = new SubscriptDescriptor(FragInputs.name, "positionRWS", "", ShaderValueType.Float3, 
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor tangentToWorld = new SubscriptDescriptor(FragInputs.name, "tangentToWorld", "", ShaderValueType.Float4, 
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord0 = new SubscriptDescriptor(FragInputs.name, "texCoord0", "", ShaderValueType.Float4, 
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord1 = new SubscriptDescriptor(FragInputs.name, "texCoord1", "", ShaderValueType.Float4, 
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord2 = new SubscriptDescriptor(FragInputs.name, "texCoord2", "", ShaderValueType.Float4, 
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor texCoord3 = new SubscriptDescriptor(FragInputs.name, "texCoord3", "", ShaderValueType.Float4, 
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor color = new SubscriptDescriptor(FragInputs.name, "color", "", ShaderValueType.Float4, 
+                    subscriptOptions : SubscriptOptions.Optional);
+                public static SubscriptDescriptor IsFrontFace = new SubscriptDescriptor(FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean, 
+                    subscriptOptions : SubscriptOptions.Optional);
+            }
+        }
+        public static StructDescriptor AttributesMesh = new StructDescriptor()
+        {
+            name = "AttributesMesh",
+            interpolatorPack = false,
+            subscripts = new SubscriptDescriptor[]
+            {
+                ShaderStructs.AttributesMesh.positionOS,
+                ShaderStructs.AttributesMesh.normalOS,
+                ShaderStructs.AttributesMesh.tangentOS,
+                ShaderStructs.AttributesMesh.uv0,
+                ShaderStructs.AttributesMesh.uv1,
+                ShaderStructs.AttributesMesh.uv2,
+                ShaderStructs.AttributesMesh.uv3,
+                ShaderStructs.AttributesMesh.color,
+                ShaderStructs.AttributesMesh.instanceID,
+            }
+        };
+        public static StructDescriptor VaryingsMeshToPS = new StructDescriptor()
+        {
+            name = "VaryingsMeshToPS",
+            interpolatorPack = true,
+            subscripts = new SubscriptDescriptor[]
+            {
+                ShaderStructs.VaryingsMeshToPS.positionCS,
+                ShaderStructs.VaryingsMeshToPS.positionRWS,
+                ShaderStructs.VaryingsMeshToPS.normalWS,
+                ShaderStructs.VaryingsMeshToPS.tangentWS,
+                ShaderStructs.VaryingsMeshToPS.texCoord0,
+                ShaderStructs.VaryingsMeshToPS.texCoord1,
+                ShaderStructs.VaryingsMeshToPS.texCoord2,
+                ShaderStructs.VaryingsMeshToPS.texCoord3,
+                ShaderStructs.VaryingsMeshToPS.color,
+                ShaderStructs.VaryingsMeshToPS.instanceID,
+                ShaderStructs.VaryingsMeshToPS.cullFace,
+            }
+        };
+        public static StructDescriptor VaryingsMeshToDS = new StructDescriptor()
+        {
+            name = "VaryingsMeshToDS",
+            interpolatorPack = true,
+            subscripts = new SubscriptDescriptor[]
+            {
+                ShaderStructs.VaryingsMeshToDS.positionWS,
+                ShaderStructs.VaryingsMeshToDS.normalWS,
+                ShaderStructs.VaryingsMeshToDS.tangentWS,
+                ShaderStructs.VaryingsMeshToDS.texCoord0,
+                ShaderStructs.VaryingsMeshToDS.texCoord1,
+                ShaderStructs.VaryingsMeshToDS.texCoord2,
+                ShaderStructs.VaryingsMeshToDS.texCoord3,
+                ShaderStructs.VaryingsMeshToDS.color,
+                ShaderStructs.VaryingsMeshToDS.instanceID,
+            }
+        };
+
+        public static StructDescriptor VertexDescriptionInputs = new StructDescriptor()
+        {
+            name = "VertexDescriptionInputs",
+            interpolatorPack = false,
+            subscripts = new SubscriptDescriptor[]
+            {
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceNormal,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceNormal,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceNormal,
+
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceTangent,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceTangent,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceTangent,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceTangent,
+
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceBiTangent,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceBiTangent,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceBiTangent,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceBiTangent,
+
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceViewDirection,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceViewDirection,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,
+
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpacePosition,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpacePosition,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpacePosition,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.AbsoluteWorldSpacePosition,
+
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.ScreenPosition,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.uv0,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.uv1,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.uv2,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.uv3,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.VertexColor,
+                MeshTarget.ShaderStructs.VertexDescriptionInputs.TimeParameters,
+            }
+        };
+
+        public static StructDescriptor SurfaceDescriptionInputs = new StructDescriptor()
+        {
+            name = "SurfaceDescriptionInputs",
+            interpolatorPack = false,
+            subscripts = new SubscriptDescriptor[]
+            {
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceNormal,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceNormal,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceNormal,
+
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceTangent,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceTangent,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceTangent,
+
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceBiTangent,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceBiTangent,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceBiTangent,
+
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceViewDirection,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceViewDirection,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,
+
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpacePosition,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpacePosition,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpacePosition,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpacePosition,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,
+
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ScreenPosition,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv0,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv1,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv2,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv3,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.VertexColor,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TimeParameters,
+                MeshTarget.ShaderStructs.SurfaceDescriptionInputs.FaceSign,
+            }
+        };
+#endregion
+
+#region Dependencies
+        public static List<FieldDependency[]> fieldDependencies = new List<FieldDependency[]>()
+        {
+            //Standard Varying Dependencies
+            new FieldDependency[]
+            {
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.positionRWS,   ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.normalWS,      ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.tangentWS,     ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord0,     ShaderStructs.AttributesMesh.uv0),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord1,     ShaderStructs.AttributesMesh.uv1),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord2,     ShaderStructs.AttributesMesh.uv2),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord3,     ShaderStructs.AttributesMesh.uv3),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.color,         ShaderStructs.AttributesMesh.color),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.instanceID,    ShaderStructs.AttributesMesh.instanceID),
+            }, 
+
+            //Tessellation Varying Dependencies
+            new FieldDependency[]
+            {
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.positionRWS,   ShaderStructs.VaryingsMeshToDS.positionRWS),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.normalWS,      ShaderStructs.VaryingsMeshToDS.normalWS),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.tangentWS,     ShaderStructs.VaryingsMeshToDS.tangentWS),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord0,     ShaderStructs.VaryingsMeshToDS.texCoord0),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord1,     ShaderStructs.VaryingsMeshToDS.texCoord1),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord2,     ShaderStructs.VaryingsMeshToDS.texCoord2),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.texCoord3,     ShaderStructs.VaryingsMeshToDS.texCoord3),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.color,         ShaderStructs.VaryingsMeshToDS.color),
+                new FieldDependency(ShaderStructs.VaryingsMeshToPS.instanceID,    ShaderStructs.VaryingsMeshToDS.instanceID),
+            },
+
+            //Tessellation Varying Dependencies, TODO: Why is this loop created?
+            new FieldDependency[]
+            {
+                new FieldDependency(ShaderStructs.VaryingsMeshToDS.tangentWS,     ShaderStructs.VaryingsMeshToPS.tangentWS),
+                new FieldDependency(ShaderStructs.VaryingsMeshToDS.texCoord0,     ShaderStructs.VaryingsMeshToPS.texCoord0),
+                new FieldDependency(ShaderStructs.VaryingsMeshToDS.texCoord1,     ShaderStructs.VaryingsMeshToPS.texCoord1),
+                new FieldDependency(ShaderStructs.VaryingsMeshToDS.texCoord2,     ShaderStructs.VaryingsMeshToPS.texCoord2),
+                new FieldDependency(ShaderStructs.VaryingsMeshToDS.texCoord3,     ShaderStructs.VaryingsMeshToPS.texCoord3),
+                new FieldDependency(ShaderStructs.VaryingsMeshToDS.color,         ShaderStructs.VaryingsMeshToPS.color),
+                new FieldDependency(ShaderStructs.VaryingsMeshToDS.instanceID,    ShaderStructs.VaryingsMeshToPS.instanceID),
+            },
+
+            //FragInput dependencies
+            new FieldDependency[]
+            {
+                new FieldDependency(ShaderStructs.FragInputs.positionRWS,        ShaderStructs.VaryingsMeshToPS.positionRWS),
+                new FieldDependency(ShaderStructs.FragInputs.tangentToWorld,     ShaderStructs.VaryingsMeshToPS.tangentWS),
+                new FieldDependency(ShaderStructs.FragInputs.tangentToWorld,     ShaderStructs.VaryingsMeshToPS.normalWS),
+                new FieldDependency(ShaderStructs.FragInputs.texCoord0,          ShaderStructs.VaryingsMeshToPS.texCoord0),
+                new FieldDependency(ShaderStructs.FragInputs.texCoord1,          ShaderStructs.VaryingsMeshToPS.texCoord1),
+                new FieldDependency(ShaderStructs.FragInputs.texCoord2,          ShaderStructs.VaryingsMeshToPS.texCoord2),
+                new FieldDependency(ShaderStructs.FragInputs.texCoord3,          ShaderStructs.VaryingsMeshToPS.texCoord3),
+                new FieldDependency(ShaderStructs.FragInputs.color,              ShaderStructs.VaryingsMeshToPS.color),
+                new FieldDependency(ShaderStructs.FragInputs.IsFrontFace,        ShaderStructs.VaryingsMeshToPS.cullFace),
+            },
+
+            //Vertex Description Dependencies
+            new FieldDependency[]
+            {
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceNormal,            ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal,             ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceNormal,              MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceTangent,           ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceTangent,            ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceTangent,             MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceBiTangent,         ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceBiTangent,         ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceBiTangent,          MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceBiTangent,           MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceBiTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpacePosition,          ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition,           ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.AbsoluteWorldSpacePosition,   ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpacePosition,            MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition),
+
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection,      MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceViewDirection,     MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceViewDirection,       MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal),
+
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ScreenPosition,               MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv0,                          ShaderStructs.AttributesMesh.uv0),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv1,                          ShaderStructs.AttributesMesh.uv1),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv2,                          ShaderStructs.AttributesMesh.uv2),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv3,                          ShaderStructs.AttributesMesh.uv3),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.VertexColor,                  ShaderStructs.AttributesMesh.color),
+            },
+
+            //Surface Description Dependencies
+            new FieldDependency[]
+            {
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal,             ShaderStructs.FragInputs.tangentToWorld),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceNormal,            MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceNormal,              MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
+
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent,            ShaderStructs.FragInputs.tangentToWorld),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceTangent,           MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceTangent,             MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent,          ShaderStructs.FragInputs.tangentToWorld),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceBiTangent,         MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceBiTangent,           MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpacePosition,           ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,   ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpacePosition,          ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpacePosition,            ShaderStructs.FragInputs.positionRWS),
+
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection,      ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceViewDirection,     MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceViewDirection,       MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
+
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ScreenPosition,               MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpacePosition),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv0,                          ShaderStructs.FragInputs.texCoord0),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv1,                          ShaderStructs.FragInputs.texCoord1),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv2,                          ShaderStructs.FragInputs.texCoord2),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv3,                          ShaderStructs.FragInputs.texCoord3),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.VertexColor,                  ShaderStructs.FragInputs.color),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.FaceSign,                     ShaderStructs.FragInputs.IsFrontFace),
+            }
+        };
+#endregion
+
     }
 }
