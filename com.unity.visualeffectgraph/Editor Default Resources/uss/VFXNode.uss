@@ -59,14 +59,12 @@
 
 .VFXNodeUI.collapsed #settings
 {
-    margin-top:0;
-    margin-bottom:0;
+    display:none;
 }
 
 .VFXNodeUI #settings.nosettings
 {
-    margin-top:0;
-    margin-bottom:0;
+    display:none;
 }
 
 .VFXNodeUI.collapsed #settings

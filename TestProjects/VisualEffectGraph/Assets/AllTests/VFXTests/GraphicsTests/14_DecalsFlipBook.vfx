@@ -3244,7 +3244,7 @@ MonoBehaviour:
   cullMode: 2
   zWriteMode: 1
   zTestMode: 3
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 2
   useSoftParticle: 0
   sortPriority: 0

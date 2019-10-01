@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXLineOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Line Output"; } }
+        public override string name { get { return "Output Particle Line"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate(useNativeLines ? "VFXParticleLinesHW" : "VFXParticleLinesSW"); } }
         public override VFXTaskType taskType { get { return useNativeLines ? VFXTaskType.ParticleLineOutput : VFXTaskType.ParticleQuadOutput; } }
 
@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 yield return "cullMode";
-                yield return "colorMappingMode";
+                yield return "colorMapping";
             }
         }
 

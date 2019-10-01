@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 - Removed debug menu in non development build.
 
+
 ## [7.0.1] - 2019-07-25
 
 ### Fixed
