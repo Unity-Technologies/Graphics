@@ -37,20 +37,11 @@ namespace UnityEditor.Rendering.Universal
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
 
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Forward, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
-
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.ShadowCaster, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
-
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.DepthOnly, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
-
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Meta, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
-
-                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes._2D, mode, subShader, sourceAssetDependencyPaths,
-                    UniversalMeshTarget.fieldDependencies);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Forward, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.ShadowCaster, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.DepthOnly, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes.Meta, mode, subShader, sourceAssetDependencyPaths);
+                GenerationUtils.GenerateShaderPass(outputNode, target, UniversalMeshTarget.Passes._2D, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);

@@ -16,11 +16,10 @@ namespace UnityEditor.ShaderGraph.Internal
         public int[] vertexPorts;
         public int[] pixelPorts;
 
-        // Required fields
-        public List<IField> requiredFields;
-
-        //struct definitions
-        public IEnumerable<StructDescriptor> structs;
+        // Fields
+        public StructDescriptor[] structs;
+        public IField[] requiredFields;
+        public FieldDependency[] fieldDependencies;
 
         // Conditional State
         public ConditionalRenderState[] renderStates;

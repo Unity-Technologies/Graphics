@@ -21,8 +21,7 @@ namespace UnityEditor.ShaderGraph
 
                 // use standard shader pass generation
                 ShaderGenerator result = new ShaderGenerator();
-                ShaderGraph.GenerationUtils.GenerateShaderPass(outputNode, target, PreviewTarget.Passes.Preview, mode, result, sourceAssetDependencyPaths,
-                    PreviewTarget.fieldDependencies); 
+                ShaderGraph.GenerationUtils.GenerateShaderPass(outputNode, target, PreviewTarget.Passes.Preview, mode, result, sourceAssetDependencyPaths); 
                 subShader.AppendLines(result.GetShaderString(0));
             }
 
