@@ -12,3 +12,9 @@ VFXView
     margin-top: -2px;
     background-color: rgb(210, 152, 0);
 }
+
+VFXView .unity-toolbar
+{
+    flex-wrap:wrap;
+    height:auto;
+}
