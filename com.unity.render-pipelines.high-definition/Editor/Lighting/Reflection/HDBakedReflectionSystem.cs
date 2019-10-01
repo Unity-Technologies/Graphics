@@ -369,6 +369,22 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             AssetDatabase.StopAssetEditing();
 
+            // case 1158677
+            // The AssetPipeline will destroy and recreate the textures
+            // So all transient data will be lost after the call to `AssetDatabase.StopAssetEditing`
+            // Here, we increment the updateCount to with an arbitrary number to force the reflection probe cache
+            // to update the texture.
+            // updateCount is a transient data, so don't execute this code before the asset reload.
+            {
+                UnityEngine.Random.InitState((int)Time.realtimeSinceStartup);
+                for (int i = 0; i < bakedProbes.Count; ++i)
+                {
+                    var probe = bakedProbes[i];
+                    var c = UnityEngine.Random.Range(2, 10);
+                    while (probe.texture.updateCount < c) probe.texture.IncrementUpdateCount();
+                }
+            }
+
             cubeRT.Release();
             planarRT.Release();
 
