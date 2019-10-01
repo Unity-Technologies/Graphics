@@ -111,8 +111,13 @@ namespace UnityEngine.Rendering.Universal
     public struct PointLightData
     {
         public Vector3 wsPos;
-        public float radius;
+        public float radius; // TODO remove? included in attenuation
+
         public Vector4 color;
+
+        public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+
+        // public Vector3 spotDirection; // TODO for spotLights
     }
 
     public struct PostProcessingData

@@ -851,8 +851,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                         );
 
                         cmd.SetGlobalVector("_LightWsPos", wsPos);
-                        cmd.SetGlobalFloat("_LightRadius", vl.light.range);
-                        cmd.SetGlobalVector("_LightColor", vl.light.color);
+                        cmd.SetGlobalFloat("_LightRadius", vl.light.range);  // TODO is this still needed?
+                        cmd.SetGlobalVector("_LightColor", /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+
+                        Vector4 lightAttenuation;
+                        Vector4 lightSpotDir;
+                        ForwardLights.GetLightAttenuationAndSpotDirection(
+                            vl.light.type, vl.range /*vl.light.range*/, vl.localToWorldMatrix,
+                            vl.spotAngle, vl.light?.innerSpotAngle,
+                            out lightAttenuation, out lightSpotDir);
+                        cmd.SetGlobalVector("_LightAttenuation", lightAttenuation);
+                        //cmd.SetGlobalVector("_LightSpotDirection", lightSpotDir); // TODO
 
                         // stencil pass
                         cmd.DrawMesh(m_SphereMesh, sphereMatrix, m_StencilDeferredMaterial, 0, 0);
@@ -882,8 +891,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         void StorePointLightData(ref NativeArray<Vector4UInt> pointLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
             Vector3 wsPos = visibleLights[index].light.transform.position;
-            pointLightBuffer[storeIndex * 2 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range));
-            pointLightBuffer[storeIndex * 2 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].light.color.r), FloatToUInt(visibleLights[index].light.color.g), FloatToUInt(visibleLights[index].light.color.b), 0);
+            pointLightBuffer[storeIndex * 3 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range));
+            pointLightBuffer[storeIndex * 3 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
+
+            Vector4 lightAttenuation;
+            Vector4 lightSpotDir;
+            ForwardLights.GetLightAttenuationAndSpotDirection(
+                visibleLights[index].lightType, visibleLights[index].range, visibleLights[index].localToWorldMatrix,
+                visibleLights[index].spotAngle, visibleLights[index].light?.innerSpotAngle,
+                out lightAttenuation, out lightSpotDir);
+            pointLightBuffer[storeIndex * 3 + 2] = new Vector4UInt(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
+            //pointLightBuffer[storeIndex * 4 + 3] = new Vector4UInt(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), FloatToUInt(lightSpotDir.w)); // TODO for spotLights
         }
 
         void StoreTileData(ref NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)

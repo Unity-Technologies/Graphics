@@ -130,6 +130,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                     pl.wsPos  = asfloat(_PointLightBuffer[i + 0].xyz);
                     pl.radius = asfloat(_PointLightBuffer[i + 0].w);
                     pl.color.rgb = asfloat(_PointLightBuffer[i + 1].rgb);
+                    pl.attenuation.xyzw = asfloat(_PointLightBuffer[i + 2].xyzw);
                     return pl;
                 }
 

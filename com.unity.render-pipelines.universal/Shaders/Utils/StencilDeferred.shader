@@ -131,6 +131,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             float3 _LightWsPos;
             float _LightRadius;
             float3 _LightColor;
+            float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
+            //float3 _LightSpotDirection; // TODO add for spotLights support
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
@@ -141,6 +143,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 light.wsPos = _LightWsPos;
                 light.radius = _LightRadius;
                 light.color = float4(_LightColor, 0.0);
+                light.attenuation = _LightAttenuation;
 
                 float2 clipCoord = input.positionCS.xy * _ScreenSize.zw * 2.0 - 1.0;
 

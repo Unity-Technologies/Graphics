@@ -7,7 +7,7 @@
 
 #define PREFERRED_CBUFFER_SIZE (64 * 1024)
 #define SIZEOF_VEC4_TILEDATA 1 // uint4
-#define SIZEOF_VEC4_POINTLIGHTDATA 2 // 2 float4
+#define SIZEOF_VEC4_POINTLIGHTDATA 3 // 3 float4
 #define MAX_DEPTHRANGE_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 #define MAX_TILES_PER_CBUFFER_PATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_TILEDATA))
 #define MAX_POINTLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHTDATA))
@@ -33,18 +33,35 @@ struct PointLightData
 {
     float3 wsPos;
     float radius;
+
     float4 color;
+
+    float4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+
+    //float3 spotDirection; // TODO spotLights support
 };
 
 #define TEST_WIP_DEFERRED_POINT_LIGHTING 1
 
-Light UnityLightFromPointLightDataAndWorldSpacePosition(PointLightData pointLightData, float3 wsPos)
+Light UnityLightFromPointLightDataAndWorldSpacePosition(PointLightData pointLightData, float3 positionWS)
 {
+    // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
+
     Light light;
-    light.direction = pointLightData.wsPos - wsPos.xyz; // TODO adjust direction
-    light.color = pointLightData.color.rgb;             // TODO adjust color
-    light.distanceAttenuation = pointLightData.radius;  // TODO adjust attenuation
-    light.shadowAttenuation = 0.1;                      // TODO adjust shadowAttenuation
+
+    float3 lightVector = pointLightData.wsPos - positionWS.xyz;
+    float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
+
+    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
+    
+    half attenuation = DistanceAttenuation(distanceSqr, pointLightData.attenuation.xy);
+    // TODO spot lights support:
+    //half attenuation = DistanceAttenuation(distanceSqr, pointLightData.attenuation.xy) * AngleAttenuation(pointLightData.spotDirection.xyz, lightDirection, pointLightData.attenuation.zw);
+
+    light.direction = lightDirection;
+    light.color = pointLightData.color.rgb;
+    light.distanceAttenuation = attenuation;
+    light.shadowAttenuation = 1.0;            // TODO fill with AdditionalLightRealtimeShadow
     return light;
 }
 
