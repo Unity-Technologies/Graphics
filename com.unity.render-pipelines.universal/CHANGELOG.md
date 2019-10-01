@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.3] - 2019-09-XX
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 
 ## [7.1.2] - 2019-09-19
 ### Added
