@@ -587,7 +587,7 @@ class VisualEffectAssetEditor : Editor
 
             VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
 
-            var shaderSources = resource.shaderSources;
+            var shaderSources = VFXExternalShaderProcessor.allowExternalization?resource.shaderSources:null;
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
@@ -600,16 +600,16 @@ class VisualEffectAssetEditor : Editor
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
-                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 250:200;
+                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 250:160;
 
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;
                     GUI.Label(labelR, shader.name);
                     int index = resource.GetShaderIndex(shader);
-                    if (index >= 0 && index < shaderSources.Length)
+                    if (index >= 0)
                     {
-                        if (VFXExternalShaderProcessor.allowExternalization)
+                        if (VFXExternalShaderProcessor.allowExternalization && index <shaderSources.Length)
                         {
                             string externalPath = directory + shaderSources[index].name;
                             if (!shaderSources[index].compute)
@@ -652,6 +652,7 @@ class VisualEffectAssetEditor : Editor
                             resource.ShowGeneratedShaderFile(index);
                         }
                     }
+
                     Rect selectButtonR = r;
                     selectButtonR.xMin = labelR.xMax;
                     selectButtonR.width = 50;

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Lit Mesh Output"; } }
+        public override string name { get { return "Output Particle Lit Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return shaderGraph == null; } }
