@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Internal
         string passTemplatePath { get; }
         string sharedTemplateDirectory { get; }
 
-        bool Validate(RenderPipelineAsset pipelineAsset);
-        bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader);
+        bool IsValid(IMasterNode masterNode);
+        void SetupTarget(ref TargetSetupContext context);
     }
 }

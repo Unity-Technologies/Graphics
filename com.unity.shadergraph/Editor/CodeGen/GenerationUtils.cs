@@ -39,8 +39,64 @@ namespace UnityEditor.ShaderGraph
             return activeFields;
         }
 
+        static void GenerateSubShaderTags(IMasterNode masterNode, TargetSetupContext context, ShaderGenerator generator)
+        {
+            using(ShaderStringBuilder builder = new ShaderStringBuilder())
+            {
+                builder.AppendLine("Tags");
+                using (builder.BlockScope())
+                {
+                    // Pipeline tag
+                    if(!string.IsNullOrEmpty(context.descriptor.pipelineTag))
+                        builder.AppendLine($"\"RenderPipeline\"=\"{context.descriptor.pipelineTag}\"");
+                    else
+                        builder.AppendLine("// RenderPipeline: <None>");
+
+                    // Render Type
+                    string renderType = !string.IsNullOrEmpty(context.descriptor.renderTypeOverride) ? 
+                        context.descriptor.renderTypeOverride : masterNode?.renderTypeTag;
+                    if(!string.IsNullOrEmpty(renderType))
+                        builder.AppendLine($"\"RenderType\"=\"{renderType}\"");
+                    else
+                        builder.AppendLine("// RenderType: <None>");
+
+                    // Render Queue
+                    string renderQueue = !string.IsNullOrEmpty(context.descriptor.renderQueueOverride) ? 
+                        context.descriptor.renderQueueOverride : masterNode?.renderQueueTag;
+                    if(!string.IsNullOrEmpty(renderQueue))
+                        builder.AppendLine($"\"Queue\"=\"{renderQueue}\"");
+                    else
+                        builder.AppendLine("// Queue: <None>");
+                }
+
+                generator.AddShaderChunk(builder.ToString());
+            }
+        }
+
+        public static string GenerateSubShader(AbstractMaterialNode outputNode, ITarget target, TargetSetupContext context, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        {
+            var subShader = new ShaderGenerator();
+
+            subShader.AddShaderChunk("SubShader", true);
+            subShader.AddShaderChunk("{", true);
+            subShader.Indent();
+            {
+                var tagsBuilder = new ShaderStringBuilder();
+                GenerateSubShaderTags(outputNode as IMasterNode, context, subShader);
+
+                foreach(ShaderPass pass in context.descriptor.passes)
+                {
+                    GenerationUtils.GenerateShaderPass(outputNode, target, pass, mode, subShader, sourceAssetDependencyPaths);
+                }
+            }
+            subShader.Deindent();
+            subShader.AddShaderChunk("}", true);
+
+            return subShader.GetShaderString(0);
+        }
+
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITarget target, ShaderPass pass, GenerationMode mode, 
-            ShaderGenerator result, List<string> sourceAssetDependencyPaths, List<FieldDependency[]> fieldDependencies)
+            ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             // Early exit if pass is not used in preview
             if(mode == GenerationMode.Preview && !pass.useInPreview)
@@ -130,7 +186,7 @@ namespace UnityEditor.ShaderGraph
             // Must be executed before types are built
             foreach (var instance in activeFields.all.instances)
             {
-                ApplyFieldDependencies(instance, fieldDependencies);
+                ApplyFieldDependencies(instance, pass.fieldDependencies);
             }                
 
             // --------------------------------------------------
@@ -490,8 +546,8 @@ namespace UnityEditor.ShaderGraph
                 // TODO: Solve inconsistency
                 // URP: #define PASSNAME
                 // HDRP: #define SHADERPASS PASSNAME
-                graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
-                // graphDefines.AppendLine("#define {0}", pass.referenceName);
+                // graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
+                graphDefines.AppendLine("#define {0}", pass.referenceName);
                 
                 if(pass.defines != null)
                 {
@@ -1106,19 +1162,19 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach (var target in node.owner.targets)
                     {
-                        ISubShader subShader;
-                        if(target.TryGetSubShader(masterNode, out subShader))
-                        {
-                            if (mode != GenerationMode.Preview || target.Validate(GraphicsSettings.renderPipelineAsset))
-                                finalShader.AppendLines(subShader.GetSubshader(node, target, mode, sourceAssetDependencyPaths));
-                        }
+                        TargetSetupContext context = new TargetSetupContext();
+                        context.SetMasterNode(masterNode);
+                        target.SetupTarget(ref context); 
+                        finalShader.AppendLines(GenerationUtils.GenerateSubShader(node, target, context, mode, sourceAssetDependencyPaths));
                     }
                 }
                 else
                 {
-                    PreviewSubShader subShader = new PreviewSubShader();
                     PreviewTarget target = new PreviewTarget();
-                    finalShader.AppendLines(subShader.GetSubshader(node, target, mode, sourceAssetDependencyPaths));
+                    TargetSetupContext context = new TargetSetupContext();
+                    context.SetMasterNode(null);
+                    target.SetupTarget(ref context); 
+                    finalShader.AppendLines(GenerationUtils.GenerateSubShader(node, target, context, mode, sourceAssetDependencyPaths));
                 }
 
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");

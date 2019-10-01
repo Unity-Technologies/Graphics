@@ -53,14 +53,6 @@ namespace UnityEditor.ShaderGraph
             m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel, s));
         }
 
-        public void AddGenerator(ShaderGenerator generator)
-        {
-            foreach (ShaderChunk chunk in generator.m_ShaderChunks)
-            {
-                m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel + chunk.chunkIndentLevel, chunk.chunkString));
-            }
-        }
-
         public void Indent()
         {
             m_IndentLevel++;
@@ -195,11 +187,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public int numberOfChunks
-        {
-            get { return m_ShaderChunks.Count; }
-        }
-
         public static void GenerateSpaceTranslationSurfaceInputs(
             NeededCoordinateSpace neededSpaces,
             InterpolatorType interpolatorType,
@@ -220,24 +207,6 @@ namespace UnityEditor.ShaderGraph
             
             if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
-        }
-
-        public static SurfaceMaterialTags BuildMaterialTags(SurfaceType surfaceType)
-        {
-            SurfaceMaterialTags materialTags = new SurfaceMaterialTags();
-
-            if (surfaceType == SurfaceType.Opaque)
-            {
-                materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Geometry;
-                materialTags.renderType = SurfaceMaterialTags.RenderType.Opaque;
-            }
-            else
-            {
-                materialTags.renderQueue = SurfaceMaterialTags.RenderQueue.Transparent;
-                materialTags.renderType = SurfaceMaterialTags.RenderType.Transparent;
-            }
-
-            return materialTags;
         }
     }
 }

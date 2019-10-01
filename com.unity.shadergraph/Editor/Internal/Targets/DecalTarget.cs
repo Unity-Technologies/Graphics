@@ -9,15 +9,11 @@ namespace UnityEditor.ShaderGraph.Internal
         public string passTemplatePath => string.Empty;
         public string sharedTemplateDirectory => string.Empty;
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+        public bool IsValid(IMasterNode masterNode)
         {
             return false;
         }
 
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
-        {
-            subShader = null;
-            return false;
-        }
+        public void SetupTarget(ref TargetSetupContext context) {}
     }
 }

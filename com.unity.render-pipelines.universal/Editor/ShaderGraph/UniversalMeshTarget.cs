@@ -13,32 +13,91 @@ namespace UnityEditor.Rendering.Universal
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+        public bool IsValid(IMasterNode masterNode)
         {
-            return pipelineAsset is UniversalRenderPipelineAsset;
+            if(GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset)
+            {
+                if (masterNode is PBRMasterNode ||
+                    masterNode is UnlitMasterNode ||
+                    masterNode is SpriteLitMasterNode ||
+                    masterNode is SpriteUnlitMasterNode)
+                {
+                    return true;
+                }   
+            }
+
+            return false;
         }
 
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
+        public void SetupTarget(ref TargetSetupContext context)
         {
-            switch(masterNode)
+            switch(context.masterNode)
             {
                 case PBRMasterNode pbrMasterNode:
-                    subShader = new UniversalPBRSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.PBR);
+                    break;
                 case UnlitMasterNode unlitMasterNode:
-                    subShader = new UniversalUnlitSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.Unlit);
+                    break;
                 case SpriteLitMasterNode spriteLitMasterNode:
-                    subShader = new UniversalSpriteLitSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.SpriteLit);
+                    break;
                 case SpriteUnlitMasterNode spriteUnlitMasterNode:
-                    subShader = new UniversalSpriteUnlitSubShader();
-                    return true;
-                default:
-                    subShader = null;
-                    return false;
+                    context.SetupSubShader(SubShaders.SpriteUnlit);
+                    break;
             }
         }
+
+#region SubShaders
+        public static class SubShaders
+        {
+            const string kPipelineTag = "UniversalPipeline";
+
+            public static SubShaderDescriptor PBR = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.Forward,
+                    Passes.ShadowCaster,
+                    Passes.DepthOnly,
+                    Passes.Meta,
+                    Passes._2D,
+                },
+            };
+
+            public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.Unlit,
+                    Passes.ShadowCaster,
+                    Passes.DepthOnly,
+                },
+            };
+
+            public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.SpriteLit,
+                    Passes.SpriteNormal,
+                    Passes.SpriteForward,
+                },
+            };
+
+            public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.SpriteUnlit,
+                },
+            };
+        }
+#endregion
 
 #region Passes
         public static class Passes
@@ -73,7 +132,14 @@ namespace UnityEditor.Rendering.Universal
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Required fields
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.uv1,
@@ -87,6 +153,7 @@ namespace UnityEditor.Rendering.Universal
                     UniversalMeshTarget.ShaderStructs.Varyings.fogFactorAndVertexLight,
                     UniversalMeshTarget.ShaderStructs.Varyings.shadowCoord,
                 },
+                fieldDependencies = fieldDependencies,
 
                 // Conditional State
                 renderStates = RenderStates.Default,
@@ -112,13 +179,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass DepthOnly = new ShaderPass()
@@ -144,6 +204,16 @@ namespace UnityEditor.Rendering.Universal
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
+                fieldDependencies = fieldDependencies,
+
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
                 pragmas = Pragmas.Instanced,
@@ -155,13 +225,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass ShadowCaster = new ShaderPass()
@@ -186,11 +249,19 @@ namespace UnityEditor.Rendering.Universal
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Required fields
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.normalOS,
                 },
+                fieldDependencies = fieldDependencies,
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
@@ -204,13 +275,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass Meta = new ShaderPass()
@@ -237,12 +301,20 @@ namespace UnityEditor.Rendering.Universal
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
-                // Required fields
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.uv1,
                     MeshTarget.ShaderStructs.Attributes.uv2,
                 },
+                fieldDependencies = fieldDependencies,
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
@@ -259,13 +331,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass _2D = new ShaderPass()
@@ -290,6 +355,16 @@ namespace UnityEditor.Rendering.Universal
                     PBRMasterNode.AlphaThresholdSlotId
                 },
 
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
+                fieldDependencies = fieldDependencies,
+
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
@@ -300,13 +375,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass Unlit = new ShaderPass
@@ -332,6 +400,16 @@ namespace UnityEditor.Rendering.Universal
                     UnlitMasterNode.AlphaThresholdSlotId
                 },
 
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
+                fieldDependencies = fieldDependencies,
+
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
@@ -348,13 +426,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass SpriteLit = new ShaderPass
@@ -380,13 +451,21 @@ namespace UnityEditor.Rendering.Universal
                     SpriteLitMasterNode.MaskSlotId,
                 },
 
-                // Required fields
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Varyings.color,
                     MeshTarget.ShaderStructs.Varyings.texCoord0,
                     MeshTarget.ShaderStructs.Varyings.screenPosition,
                 },
+                fieldDependencies = fieldDependencies,
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
@@ -407,13 +486,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass SpriteNormal = new ShaderPass
@@ -439,13 +511,21 @@ namespace UnityEditor.Rendering.Universal
                     SpriteLitMasterNode.NormalSlotId
                 },
 
-                // Required fields
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Varyings.normalWS,
                     MeshTarget.ShaderStructs.Varyings.tangentWS,
                     MeshTarget.ShaderStructs.Varyings.bitangentWS,
                 },
+                fieldDependencies = fieldDependencies,                
 
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
@@ -458,13 +538,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass SpriteForward = new ShaderPass
@@ -490,12 +563,20 @@ namespace UnityEditor.Rendering.Universal
                     SpriteLitMasterNode.NormalSlotId
                 },
 
-                // Required fields
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Varyings.color,
                     MeshTarget.ShaderStructs.Varyings.texCoord0,
                 },
+                fieldDependencies = fieldDependencies,
 
                 // Conditional State
                 renderStates = RenderStates.Default,
@@ -511,13 +592,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
 
             public static ShaderPass SpriteUnlit = new ShaderPass
@@ -539,8 +613,15 @@ namespace UnityEditor.Rendering.Universal
                 {
                     SpriteUnlitMasterNode.ColorSlotId,
                 },
-
-                // Required fields
+                
+                // Fields
+                structs = new StructDescriptor[]
+                {
+                    UniversalMeshTarget.Attributes,
+                    UniversalMeshTarget.Varyings,
+                    UniversalMeshTarget.SurfaceDescriptionInputs,
+                    UniversalMeshTarget.VertexDescriptionInputs,
+                },
                 requiredFields = new List<IField>()
                 {
                     MeshTarget.ShaderStructs.Attributes.color,
@@ -548,6 +629,7 @@ namespace UnityEditor.Rendering.Universal
                     MeshTarget.ShaderStructs.Varyings.color,
                     MeshTarget.ShaderStructs.Varyings.texCoord0,
                 },
+                fieldDependencies = fieldDependencies,
 
                 // Conditional State
                 renderStates = RenderStates.Default,
@@ -563,13 +645,6 @@ namespace UnityEditor.Rendering.Universal
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
                     new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 },
-                structs = new StructDescriptor[]
-                {
-                    UniversalMeshTarget.Attributes,
-                    UniversalMeshTarget.Varyings,
-                    UniversalMeshTarget.SurfaceDescriptionInputs,
-                    UniversalMeshTarget.VertexDescriptionInputs,
-                }
             };
         }
 #endregion

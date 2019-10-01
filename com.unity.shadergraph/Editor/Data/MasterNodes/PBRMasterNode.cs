@@ -159,6 +159,30 @@ namespace UnityEditor.ShaderGraph
             return new PBRSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{RenderQueue.Transparent}";
+                else if(IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f)
+                    return $"{RenderQueue.AlphaTest}";
+                else
+                    return $"{RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{RenderType.Transparent}";
+                else
+                    return $"{RenderType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             return new ConditionalField[]
