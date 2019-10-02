@@ -22,7 +22,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal readonly XRPass emptyPass = new XRPass();
 
         // Display layout override property
-        internal XRLayoutOverride layoutOverride { get; set; } = XRLayoutOverride.None;
+        internal static XRLayoutOverride layoutOverride { get; set; } = XRLayoutOverride.None;
+
+        // Used by test framework
+        internal static bool testModeEnabled { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
 
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
@@ -82,14 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
                     maxViews = 2;
 
-#if UNITY_EDITOR
-                // Apply XR layout override if required
-                if (System.Array.Exists(System.Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"))
-                {
-                    layoutOverride = XRLayoutOverride.TestSinglePassOneEye;
+                if (testModeEnabled)
                     maxViews = 2;
-                }
-#endif
             }
 
             return maxViews;
