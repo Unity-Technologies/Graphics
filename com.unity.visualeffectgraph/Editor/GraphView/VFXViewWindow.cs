@@ -222,6 +222,11 @@ namespace  UnityEditor.VFX.UI
             rootVisualElement.RemoveManipulator(m_ShortcutHandler);
         }
 
+        void OnFocus()
+        {
+            graphView.OnFocus();
+        }
+
         public bool autoCompile {get; set; }
 
         public bool autoCompileDependent { get; set; }
