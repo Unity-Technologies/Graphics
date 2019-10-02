@@ -21,10 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPyramid,
         FinalColorPyramid,
 
-        // Raytracing
+        // Raytracing Only
         LightCluster,
-        IndirectDiffuse,
-        RecursiveTracing,
+        RayTracedGlobalIllumination,
+        RecursiveRayTracing,
         MaxLightingFullScreenDebug,
 
         // Rendering
@@ -358,7 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog);
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.RayTracedGlobalIllumination;
         }
 
         void RegisterDisplayStatsDebug()
@@ -374,11 +374,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     children =
                     {
-                        new DebugUI.Value { displayName = "Visibility (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Visibility)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Indirect (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Indirect)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Forward (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Forward)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "GBuffer (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.GBuffer)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Total (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountManager.RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Visibility (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Visibility)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Indirect (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Indirect)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Forward (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Forward)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "GBuffer (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.GBuffer)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Total (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f },
                         new DebugUI.BoolField { displayName = "Display Ray Count", getter = () => data.showRaysPerFrame, setter = value => data.showRaysPerFrame = value, onValueChanged = RefreshDisplayStatsDebug },
                         new DebugUI.ColorField { displayName = "Ray Count Font Color", getter = () => data.raysPerFrameFontColor, setter = value => data.raysPerFrameFontColor = value },
                     }
@@ -704,7 +704,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            if (DebugNeedsExposure())
+            if (DebugNeedsExposure() || data.lightingDebugSettings.displaySkyReflection)
                 list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
 
 

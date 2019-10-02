@@ -45,7 +45,7 @@
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
         float2 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xy;
 
-        return float4(outColor.y, 0, outColor.x, 1);
+        return float4(outColor.y, 0, outColor.x, _Intensity);
     }
 
     ENDHLSL
@@ -58,7 +58,7 @@
 
             ZWrite Off
             ZTest Always
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend Off
             Cull Off
 
             HLSLPROGRAM

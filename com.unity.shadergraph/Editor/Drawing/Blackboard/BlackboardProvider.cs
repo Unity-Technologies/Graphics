@@ -4,8 +4,8 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
-using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -205,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent($"Vector3"), false, () => AddInputRow(new Vector3ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Vector4"), false, () => AddInputRow(new Vector4ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Color"), false, () => AddInputRow(new ColorShaderProperty(), true));
-            gm.AddItem(new GUIContent($"Texture2D"), false, () => AddInputRow(new TextureShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Texture2D"), false, () => AddInputRow(new Texture2DShaderProperty(), true));
             gm.AddItem(new GUIContent($"Texture2D Array"), false, () => AddInputRow(new Texture2DArrayShaderProperty(), true));
             gm.AddItem(new GUIContent($"Texture3D"), false, () => AddInputRow(new Texture3DShaderProperty(), true));
             gm.AddItem(new GUIContent($"Cubemap"), false, () => AddInputRow(new CubemapShaderProperty(), true));
@@ -338,7 +338,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             if(field == null || row == null)
                 return;
 

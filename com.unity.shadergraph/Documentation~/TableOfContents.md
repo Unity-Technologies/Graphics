@@ -10,6 +10,7 @@
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
     * [Custom Function Node](Custom-Function-Node)
+    * [Samples](ShaderGraph-Samples.md)
 * Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
 	* [Sub Graph Asset](Sub-graph-Asset)
@@ -198,6 +199,7 @@
             * [Ellipse](Ellipse-Node)  
             * [Polygon](Polygon-Node)  
             * [Rectangle](Rectangle-Node)  
+            * [Rounded Polygon](Rounded-Polygon-Node) 
             * [Rounded Rectangle](Rounded-Rectangle-Node) 
         * [Checkerboard](Checkerboard-Node) 
     * [Utility](Utility-Nodes)

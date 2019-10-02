@@ -745,9 +745,9 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614545}
   - {fileID: 8926484042661614546}
   - {fileID: 8926484042661614562}
+  - {fileID: 8926484042661614545}
   m_OutputSlots: []
   m_Label: Quad
   m_Data: {fileID: 114428730288789306}
@@ -765,7 +765,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 1
+  colorMapping: 1
   uvMode: 0
   useSoftParticle: 1
   sortPriority: 1
@@ -773,6 +773,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614540
@@ -2996,7 +2998,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 1
+  colorMapping: 1
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 2
@@ -3504,7 +3506,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 1
+  colorMapping: 1
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 3
@@ -4405,7 +4407,7 @@ MonoBehaviour:
   cullMode: 2
   zWriteMode: 1
   zTestMode: 3
-  colorMappingMode: 1
+  colorMapping: 1
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -4698,7 +4700,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 1
+  colorMapping: 1
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 4
@@ -4965,7 +4967,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 1
+  colorMapping: 1
   uvMode: 0
   useSoftParticle: 1
   sortPriority: 5
@@ -4973,6 +4975,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &8926484042661614920
 MonoBehaviour:
   m_ObjectHideFlags: 0

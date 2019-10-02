@@ -187,8 +187,7 @@ CBUFFER_START(UnityGlobal)
     float4 _ShadowFrustumPlanes[6];     // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
     // TAA Frame Index ranges from 0 to 7.
-    // First two channels of this gives you two rotations per cycle.
-    float4 _TaaFrameInfo;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), taaFrame, taaEnabled ? 1 : 0 }
+    float4 _TaaFrameInfo;               // { taaSharpenStrength, unused, taaFrameIndex, taaEnabled ? 1 : 0 }
 
     // Current jitter strength (0 if TAA is disabled)
     float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
@@ -303,14 +302,14 @@ float3 SampleCameraColor(float2 uv)
     return SampleCameraColor(uv, 0);
 }
 
-float3 SampleCustomColor(float2 uv)
+float4 SampleCustomColor(float2 uv)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_CustomColorTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0);
 }
 
-float3 LoadCustomColor(uint2 pixelCoords)
+float4 LoadCustomColor(uint2 pixelCoords)
 {
-    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0).rgb;
+    return LOAD_TEXTURE2D_X_LOD(_CustomColorTexture, pixelCoords, 0);
 }
 
 float LoadCustomDepth(uint2 pixelCoords)

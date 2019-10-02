@@ -296,9 +296,9 @@ MonoBehaviour:
   uiBounds:
     serializedVersion: 2
     x: 4141
-    y: -580
-    width: 3566
-    height: 2095
+    y: -588
+    width: 3556
+    height: 2170
 --- !u!114 &114122360804666982
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1709,7 +1709,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: VFXGraph
+  m_Name: 15_CubeAndMesh
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children:
@@ -2442,7 +2442,7 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 114811204679409306}
-  shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
+  m_Shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
 --- !u!114 &114782034906201374
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3078,7 +3078,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0

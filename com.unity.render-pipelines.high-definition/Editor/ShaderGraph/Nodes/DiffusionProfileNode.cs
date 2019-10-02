@@ -5,6 +5,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering.HighDefinition;
 using System;
+using System.Linq;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -70,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SerializedDiffusionProfile = EditorJsonUtility.ToJson(serializedProfile, true);
                 m_DiffusionProfileAsset = value;
                 Dirty(ModificationScope.Node);
+                ValidateNode();
             }
         }
 
@@ -100,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning restore 618
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             uint hash = 0;
 
@@ -109,6 +111,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Note: we don't use the auto precision here because we need a 32 bit to store this value
             sb.AppendLine(string.Format("float {0} = asfloat(uint({1}));", GetVariableNameForSlot(0), hash));
+        }
+
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+
+            var hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+
+            if (hdPipelineAsset == null)
+                return;
+
+            if (diffusionProfile != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
+            {
+                // Debug.LogWarning($"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset");
+            }
         }
     }
 }

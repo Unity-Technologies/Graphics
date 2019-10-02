@@ -30,7 +30,9 @@ namespace UnityEditor.Rendering.Universal
             // Port mask
             vertexPorts = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             pixelPorts = new List<int>
             {
@@ -43,6 +45,12 @@ namespace UnityEditor.Rendering.Universal
                 PBRMasterNode.OcclusionSlotId,
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
+            },
+
+            // Required fields
+            requiredAttributes = new List<string>()
+            {
+                "Attributes.uv1", //needed for meta vertex position
             },
 
             // Required fields
@@ -104,7 +112,9 @@ namespace UnityEditor.Rendering.Universal
             // Port mask
             vertexPorts = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             pixelPorts = new List<int>()
             {
@@ -146,7 +156,9 @@ namespace UnityEditor.Rendering.Universal
             // Port mask
             vertexPorts = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             pixelPorts = new List<int>()
             {
@@ -194,7 +206,9 @@ namespace UnityEditor.Rendering.Universal
             // Port mask
             vertexPorts = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             pixelPorts = new List<int>()
             {
@@ -208,6 +222,7 @@ namespace UnityEditor.Rendering.Universal
             requiredAttributes = new List<string>()
             {
                 "Attributes.uv1", //needed for meta vertex position
+                "Attributes.uv2", //needed for meta vertex position
             },
 
             // Render State Overrides
@@ -246,7 +261,9 @@ namespace UnityEditor.Rendering.Universal
             // Port mask
             vertexPorts = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
             },
             pixelPorts = new List<int>()
             {
@@ -380,7 +397,9 @@ namespace UnityEditor.Rendering.Universal
             var baseActiveFields = activeFields.baseInstance;
 
             // Graph Vertex
-            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId))
+            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+               masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
             {
                 baseActiveFields.Add("features.graphVertex");
             }
@@ -396,6 +415,11 @@ namespace UnityEditor.Rendering.Universal
             
             if (masterNode.model == PBRMasterNode.Model.Specular)
                 baseActiveFields.Add("SpecularSetup");
+
+            if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
+            {
+                baseActiveFields.Add("Normal");
+            }
 
             // Keywords for transparent
             // #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

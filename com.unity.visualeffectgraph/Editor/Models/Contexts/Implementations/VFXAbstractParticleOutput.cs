@@ -73,8 +73,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected ZTestMode zTestMode = ZTestMode.Default;
 
-        [VFXSetting, SerializeField, Tooltip("Determines how the color is handled at pixel shader"), Header("Particle Options")]
-        protected ColorMappingMode colorMappingMode;
+        [VFXSetting, SerializeField, Tooltip("Determines how the color is handled at pixel shader"), Header("Particle Options"), FormerlySerializedAs("colorMappingMode")]
+        protected ColorMappingMode colorMapping;
 
         [VFXSetting, SerializeField, Tooltip("Determines how the particle UV are handled"), FormerlySerializedAs("flipbookMode")]
         protected UVMode uvMode;
@@ -106,8 +106,8 @@ namespace UnityEditor.VFX
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
-        public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
-        public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
+        public bool HasIndirectDraw()   { return (indirectDraw || HasSorting()) && !HasStrips(true); }
+        public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
         int IVFXSubRenderer.sortPriority
         {
             get {
@@ -123,7 +123,7 @@ namespace UnityEditor.VFX
         }
         public bool NeedsDeadListCount() { return HasIndirectDraw() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
 
-        public bool HasStrips() { return ownedType == VFXDataType.ParticleStrip; }
+        public bool HasStrips(bool data = false) { return (data ? GetData().type : ownedType) == VFXDataType.ParticleStrip; }
 
         protected VFXAbstractParticleOutput(bool strip = false) : base(strip ? VFXDataType.ParticleStrip : VFXDataType.Particle) {}
 
@@ -134,21 +134,25 @@ namespace UnityEditor.VFX
         public virtual CullMode defaultCullMode { get { return CullMode.Off; } }
         public virtual ZTestMode defaultZTestMode { get { return ZTestMode.LEqual; } }
 
-        public virtual bool supportSoftParticles { get { return useSoftParticle && !isBlendModeOpaque; } }
+        public virtual bool supportSoftParticles { get { return !isBlendModeOpaque; } }
+
+        private bool hasSoftParticles => supportSoftParticles && useSoftParticle;
 
         protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend || uvMode == UVMode.FlipbookMotionBlend); } }
 
+        public virtual bool exposeAlphaThreshold { get => useAlphaClipping; }
+
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
-            if (useAlphaClipping)
+            if (exposeAlphaThreshold)
                 yield return slotExpressions.First(o => o.name == "alphaThreshold");
 
-            if (colorMappingMode == ColorMappingMode.GradientMapped)
+            if (colorMapping == ColorMappingMode.GradientMapped)
             {
                 yield return slotExpressions.First(o => o.name == "gradient");
             }
 
-            if (supportSoftParticles)
+            if (hasSoftParticles)
             {
                 var softParticleFade = slotExpressions.First(o => o.name == "softParticlesFadeDistance");
                 var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
@@ -210,7 +214,7 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if(colorMappingMode == ColorMappingMode.GradientMapped)
+                if(colorMapping == ColorMappingMode.GradientMapped)
                 {
                     foreach(var property in PropertiesFromType("InputPropertiesGradientMapped"))
                         yield return property;
@@ -238,10 +242,10 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (useAlphaClipping)
+                if (exposeAlphaThreshold)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
 
-                if (supportSoftParticles)
+                if (hasSoftParticles)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
 
                 if (hasExposure && useExposureWeight)
@@ -253,7 +257,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                switch(colorMappingMode)
+                switch(colorMapping)
                 {
                     case ColorMappingMode.Default:
                         yield return "VFX_COLORMAPPING_DEFAULT";
@@ -270,7 +274,7 @@ namespace UnityEditor.VFX
 
                 if (useAlphaClipping)
                     yield return "USE_ALPHA_TEST";
-                if (supportSoftParticles)
+                if (hasSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
                 switch (blendMode)
@@ -333,7 +337,7 @@ namespace UnityEditor.VFX
                 if (NeedsDeadListCount() && GetData().IsAttributeStored(VFXAttribute.Alive)) //Actually, there are still corner cases, e.g.: particles spawning immortal particles through GPU Event
                     yield return "USE_DEAD_LIST_COUNT";
 
-                if (HasStrips())
+                if (HasStrips(false))
                     yield return "HAS_STRIPS";
             }
         }
@@ -348,13 +352,20 @@ namespace UnityEditor.VFX
                 if (!implementsMotionVector || !subOutput.supportsMotionVector)
                     yield return "generateMotionVector";
 
-                if (isBlendModeOpaque)
+                if (!supportSoftParticles)
                 {
                     yield return "useSoftParticle";
                 }
 
                 if (!hasExposure)
                     yield return "useExposureWeight";
+
+                // No indirect / sorting support now for strips
+                if (HasStrips(true))
+                {
+                    yield return "indirectDraw";
+                    yield return "sort";
+                }
             }
         }
 

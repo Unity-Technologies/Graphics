@@ -1707,7 +1707,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -1715,6 +1715,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114222089427741568
@@ -1945,7 +1947,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -1953,6 +1955,8 @@ MonoBehaviour:
   indirectDraw: 1
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114268286058138816
@@ -3216,7 +3220,7 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 114386246048190870}
-  shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
+  m_Shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
 --- !u!114 &114510100479681034
 MonoBehaviour:
   m_ObjectHideFlags: 1

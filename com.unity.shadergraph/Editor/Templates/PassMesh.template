@@ -28,10 +28,12 @@ Pass
 
     // Keywords
     $splice(PassKeywords)
+    $splice(GraphKeywords)
     
     // Defines
     $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
     $AlphaClip:                         #define _AlphaClip 1
+    $Normal:                            #define _NORMALMAP 1
     $SpecularSetup:                     #define _SPECULAR_SETUP
     $BlendMode.Add:                     #define _BLENDMODE_ADD 1
     $BlendMode.Premultiply:             #define _ALPHAPREMULTIPLY_ON 1
@@ -63,9 +65,6 @@ Pass
 
     // --------------------------------------------------
     // Graph
-
-    // Graph Keywords
-    $splice(GraphKeywords)
 
     // Graph Properties
     $splice(GraphProperties)

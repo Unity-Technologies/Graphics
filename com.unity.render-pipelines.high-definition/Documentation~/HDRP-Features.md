@@ -49,7 +49,7 @@ The HDRP Shaders allow you to use the following features:
 
   - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
   - Iridescence, for surfaces that appear to change color as you view them from different angles, like soap bubbles or insect wings.
-  - Metallic, for surfaces that appear smooth, reflective, and have specular highlights.
+  - Metallic, for surfaces only lit by specular lighting and take the base color input for specular color. For example, aluminum, copper, and steel.
   - Specular Color, for surfaces that you want to have a colored specular highlight.
   - Subsurface Scattering, for translucent surfaces that simulate light interaction and scattering, like skin or plant leaves.
   - Translucent, for surfaces that simulate light interaction, but do not blur light that transmits through the Material.
@@ -202,11 +202,7 @@ In HDRP, you set up the sky inside a [Volume](Volumes.html), so you can change s
 
 ![](Images/HDRPFeatures-Fog.png)
 
-In HDRP, you set up fog, inside a [Volume](Volumes.html),so you can change fog settings, or even the fog type itself, depending on the position of the Camera in the Scene. You can set the color of the fog yourself or use the color of the sky. HDRP fog affects Materials with both opaque and transparent surfaces. HDRP includes the following built-in fog types for you to use in your Unity Project:
-
-- [Exponential Fog](Override-Exponential-Fog.html): Increases fog density exponentially with view distance and world space height. This fog type offers a more realistic fog effect than linear fog, but is more resource intensive. 
-- [Linear Fog](Override-Linear-Fog.html): Increases fog density linearly with view distance and world space height. This is useful for applying fog to rendering large low-priority areas of your Scene because it is less resource intensive than the other fog types. 
-- [Volumetric Fog](Override-Volumetric-Fog.html): Volumetric fog realistically simulates lights that interact with fog, such as glow and crepuscular rays. Volumetric fog works with Directional, Point, and Spot lights.
+In HDRP, you set up fog, inside a [Volume](Volumes.html),so you can change fog settings, or even the fog type itself, depending on the position of the Camera in the Scene. You can set the color of the fog yourself or use the color of the sky. HDRP fog affects Materials with both opaque and transparent surfaces. HDRP implements an exponential [fog](Override-Fog.html) with optional volumetric effects.
 
 
 ### Light Layers 

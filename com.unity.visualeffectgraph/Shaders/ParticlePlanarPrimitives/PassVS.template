@@ -10,31 +10,27 @@ struct vs_input
 #if HAS_STRIPS
 #define PARTICLE_IN_EDGE (id & 1)
 
-uint GetParticleIndex(uint relativeIndex, uint stripIndex)
-{
-	return PARTICLE_PER_STRIP_COUNT * stripIndex + (relativeIndex + STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT;
-}
-
 float3 GetParticlePosition(uint index)
 {
+	struct Attributes attributes = (Attributes)0;
 	${VFXLoadAttributes:{position}}
-	return position;
+	return attributes.position;
 }
 
-float3 GetStripTangent(float3 currentPos, uint relativeIndex, uint stripIndex)
+float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
 {
 	float3 prevTangent = (float3)0.0f;
 	if (relativeIndex > 0)
 	{
-		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripIndex);
+		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
 		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
 	}
 	
 	float3 nextTangent = (float3)0.0f;
-	if (relativeIndex < STRIP_DATA(STRIP_NEXT_INDEX) - 1)
+	if (relativeIndex < stripData.nextIndex - 1)
 	{
-		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripIndex);
-		prevTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
+		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
+		nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
 	}
 	
 	return normalize(prevTangent + nextTangent);
@@ -55,14 +51,14 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #if HAS_STRIPS
 	id += VFX_GET_INSTANCE_ID(i) * 8192;
 	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 2;
-	uint stripIndex = id / vertexPerStripCount;
+	const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
 	uint currentIndex = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
 	
 	uint maxEdgeIndex = currentIndex - PARTICLE_IN_EDGE + 1;
-	if (maxEdgeIndex >= STRIP_DATA(STRIP_NEXT_INDEX))
+	if (maxEdgeIndex >= stripData.nextIndex)
 		return o;
 	
-	uint index = GetParticleIndex(currentIndex, stripIndex);
+	uint index = GetParticleIndex(currentIndex, stripData);
 #else
 	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 #endif
@@ -74,7 +70,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXProcessBlocks}
 	
 #if !HAS_STRIPS
-	if (!alive)
+	if (!attributes.alive)
 		return o;
 #endif
 	
@@ -82,7 +78,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 #if HAS_STRIPS
 #if VFX_STRIPS_UV_STRECHED
-	o.VFX_VARYING_UV.x = (float)(currentIndex) / (STRIP_DATA(STRIP_NEXT_INDEX) - 1);
+	o.VFX_VARYING_UV.x = (float)(currentIndex) / (stripData.nextIndex - 1);
 #else
 	o.VFX_VARYING_UV.x = PARTICLE_IN_EDGE;
 #endif
@@ -91,10 +87,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	const float2 vOffsets = float2(0.0f,o.VFX_VARYING_UV.y - 0.5f);
 	
 	// Orient strips along their tangents
-	axisX = GetStripTangent(position, currentIndex, stripIndex);
-	axisZ = position - GetViewVFXPosition();
-	axisY = normalize(cross(axisZ, axisX));
-	axisZ = normalize(cross(axisX, axisY));
+	attributes.axisX = GetStripTangent(attributes.position, currentIndex, stripData);
+	attributes.axisZ = attributes.position - GetViewVFXPosition();
+	attributes.axisY = normalize(cross(attributes.axisZ, attributes.axisX));
+	attributes.axisZ = normalize(cross(attributes.axisX, attributes.axisY));
 	
 #else
 	o.VFX_VARYING_UV.x = float(id & 1);
@@ -138,11 +134,25 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	
 	${VFXLoadSize}
 	
-	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
+	const float4x4 elementToVFX = GetElementToVFXMatrix(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		size3,
+		attributes.position);
+		
 	float3 inputVertexPosition = float3(vOffsets, 0.0f);
 	float3 vPos = mul(elementToVFX,float4(inputVertexPosition, 1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+    
+    float3 vPosWS = TransformPositionVFXToWorld(vPos);
+	
+    #ifdef VFX_VARYING_POSWS
+        o.VFX_VARYING_POSWS = vPosWS;
+    #endif
 
 	float3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
 	#ifdef VFX_VARYING_NORMAL
@@ -169,6 +179,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXVertexSetFlipbooksInterpolants}
 
 	${VFXVertexAdditionalProcess}
+    
+    ${VFXAdditionalInterpolantsGeneration}
 
 	return o;
 }

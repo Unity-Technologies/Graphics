@@ -4,7 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.2.0] - 2019-XX-XX
+## [8.0.0] - 2019-XX-XX
+
+### Changed
+- Restored usage of ENABLE_VR to fix compilation errors on some platforms.
+- Only call SetDirty on an object when actually modifying it in SRP updater utility 
 
 ## [7.1.1] - 2019-09-05
 
@@ -14,8 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Replaced usage of ENABLE_VR in XRGraphics.cs by a version define (ENABLE_VR_MODULE) based on the presence of the built-in VR module
 - `ResourceReloader` now works on non-public fields.
+- Removed `normalize` from `UnpackNormalRGB` to match `UnpackNormalAG`.
 - Fixed shadow routines compilation errors when "real" type is a typedef on "half".
 - Removed debug menu in non development build.
+
 
 ## [7.0.1] - 2019-07-25
 

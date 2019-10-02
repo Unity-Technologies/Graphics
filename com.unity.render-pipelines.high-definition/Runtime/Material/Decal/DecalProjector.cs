@@ -8,12 +8,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
+    [AddComponentMenu("Rendering/Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
 
         [SerializeField]
         private Material m_Material = null;
+        /// <summary>
+        /// The material used by the decal. It should be of type HDRP/Decal if you want to have transparency.
+        /// </summary>
         public Material material
         {
             get
@@ -29,6 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         private float m_DrawDistance = 1000.0f;
+        /// <summary>
+        /// Distance from camera at which the Decal is not rendered anymore.
+        /// </summary>
         public float drawDistance
         {
             get
@@ -45,6 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [Range(0,1)]
         private float m_FadeScale = 0.9f;
+        /// <summary>
+        /// Percent of the distance from the camera at which this Decal start to fade off.
+        /// </summary>
         public float fadeScale
         {
             get
@@ -60,6 +70,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         private Vector2 m_UVScale = new Vector2(1, 1);
+        /// <summary>
+        /// Tilling of the UV of the projected texture.
+        /// </summary>
         public Vector2 uvScale
         {
             get
@@ -75,6 +88,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         private Vector2 m_UVBias = new Vector2(0, 0);
+        /// <summary>
+        /// Offset of the UV of the projected texture.
+        /// </summary>
         public Vector2 uvBias
         {
             get
@@ -90,6 +106,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         private bool m_AffectsTransparency = false;
+        /// <summary>
+        /// Change the transparency. It is only compatible when using HDRP/Decal shader.
+        /// </summary>
         public bool affectsTransparency
         {
             get
@@ -104,8 +123,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = Vector3.zero;
-        public Vector3 offset
+        private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
+        /// <summary>
+        /// Change the offset position. 
+        /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
+        /// </summary>
+        internal Vector3 offset
         {
             get
             {
@@ -120,6 +143,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         Vector3 m_Size = new Vector3(1, 1, 1);
+        /// <summary>
+        /// The size of the projection volume.
+        /// </summary>
         public Vector3 size
         {
             get
@@ -136,6 +162,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [Range(0, 1)]
         private float m_FadeFactor = 1.0f;
+        /// <summary>
+        /// Controls the transparency of the decal.
+        /// </summary>
         public float fadeFactor
         {
             get
@@ -176,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void OnEnable()
+        void OnEnable()
         {
             if (m_Material == null)
             {
@@ -198,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
         }
 
-        public void OnDisable()
+        void OnDisable()
         {
             if (m_Handle != null)
             {
@@ -206,14 +235,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Handle = null;
             }
         }
+        
+        /// <summary>
+        /// Event called each time the used material change.
+        /// </summary>
+        public event Action OnMaterialChange;
 
-        // Declare the method signature of the delegate to call.
-        public delegate void OnMaterialChangeDelegate();
-
-        // Declare the event to which editor code will hook itself.
-        public event OnMaterialChangeDelegate OnMaterialChange;
-
-        public void OnValidate()
+        internal void OnValidate()
         {
             if (m_Handle != null) // don't do anything if OnEnable hasn't been called yet when scene is loading.
             {
@@ -243,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void LateUpdate()
+        void LateUpdate()
         {
             if (m_Handle != null)
             {
@@ -256,6 +284,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Check if the material is set and if it is different than the default one
+        /// </summary>
+        /// <returns>True: the material is set and is not the default one</returns>
         public bool IsValid()
         {
             // don't draw if no material or if material is the default decal material (empty)

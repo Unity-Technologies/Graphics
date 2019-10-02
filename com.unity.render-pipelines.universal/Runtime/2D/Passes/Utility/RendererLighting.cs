@@ -17,10 +17,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static readonly string[] k_UseBlendStyleKeywords =
         {
-            "USE_SHAPE_LIGHT_TYPE_0",
-            "USE_SHAPE_LIGHT_TYPE_1",
-            "USE_SHAPE_LIGHT_TYPE_2",
-            "USE_SHAPE_LIGHT_TYPE_3"
+            "USE_SHAPE_LIGHT_TYPE_0", "USE_SHAPE_LIGHT_TYPE_1", "USE_SHAPE_LIGHT_TYPE_2", "USE_SHAPE_LIGHT_TYPE_3"
+        };
+
+        static readonly string[] k_BlendFactorsPropNames =
+        {
+            "_ShapeLightBlendFactors0", "_ShapeLightBlendFactors1", "_ShapeLightBlendFactors2", "_ShapeLightBlendFactors3"
+        };
+
+        static readonly string[] k_MaskFilterPropNames =
+        {
+            "_ShapeLightMaskFilter0", "_ShapeLightMaskFilter1", "_ShapeLightMaskFilter2", "_ShapeLightMaskFilter3"
+        };
+
+        static readonly string[] k_InvertedFilterPropNames =
+        {
+            "_ShapeLightInvertedFilter0", "_ShapeLightInvertedFilter1", "_ShapeLightInvertedFilter2", "_ShapeLightInvertedFilter3"
         };
 
         static Renderer2DData s_RendererData;
@@ -34,6 +46,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static Material[] s_LightMaterials;
         static Material[] s_ShadowMaterials;
         static Material[] s_RemoveSelfShadowMaterials;
+
+        static RenderTextureFormat s_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
+        static bool s_HasSetupRenderTextureFormatToUse;
 
         static public void Setup(Renderer2DData rendererData)
         {
@@ -73,14 +88,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static public void CreateRenderTextures(CommandBuffer cmd, int width, int height)
         {
-            var renderTextureFormatToUse = RenderTextureFormat.ARGB32;
-            if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                renderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-            else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                renderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+            if (!s_HasSetupRenderTextureFormatToUse)
+            {
+                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
+                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
+                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
+                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+
+                s_HasSetupRenderTextureFormatToUse = true;
+            }
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.colorFormat = renderTextureFormatToUse;
+            descriptor.colorFormat = s_RenderTextureFormatToUse;
             descriptor.sRGB = false;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
@@ -339,13 +358,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     cmdBuffer.DisableShaderKeyword(keyword);
                     continue;
-                } 
+                }
                 else
                 {
                     cmdBuffer.EnableShaderKeyword(keyword);
-                    cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_BlendStyles[i].blendFactors);
-                    cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.mask);
-                    cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.inverted);
+                    cmdBuffer.SetGlobalVector(k_BlendFactorsPropNames[i], s_BlendStyles[i].blendFactors);
+                    cmdBuffer.SetGlobalVector(k_MaskFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.mask);
+                    cmdBuffer.SetGlobalVector(k_InvertedFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.inverted);
                 }
             }
 
