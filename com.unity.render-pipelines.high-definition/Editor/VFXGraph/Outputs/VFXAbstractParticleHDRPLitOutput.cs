@@ -357,7 +357,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "colorMappingMode";
+                yield return "colorMapping";
 
                 if (materialType != MaterialType.Translucent && materialType != MaterialType.SimpleLitTranslucent)
                 {
@@ -393,7 +393,7 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            colorMappingMode = ColorMappingMode.Default;
+            colorMapping = ColorMappingMode.Default;
             base.OnEnable();
         }
 
