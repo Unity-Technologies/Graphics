@@ -1,4 +1,5 @@
 using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -230,7 +231,8 @@ namespace UnityEngine.Rendering.Universal
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                 //var colorDescriptor = descriptor;
                 // keep in sync with UnityGBuffer.hlsl
-                var colorDescriptor = new RenderTextureDescriptor(descriptor.width, descriptor.height, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);  // emission+GI     emission+GI     emission+GI  [unused]     (lighting buffer)
+                GraphicsFormat colorFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // Project Settings -> Graphics -> Tier Settings -> HDR Mode : FP16 / R11G11B10
+                var colorDescriptor = new RenderTextureDescriptor(descriptor.width, descriptor.height, colorFormat, 0);  // emission+GI     emission+GI     emission+GI  [unused]     (lighting buffer)
                 colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }
