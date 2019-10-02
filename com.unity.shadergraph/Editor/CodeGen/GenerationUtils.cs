@@ -1157,21 +1157,21 @@ namespace UnityEditor.ShaderGraph
                 
                 if(node is IMasterNode masterNode)
                 {
-                    foreach (var target in node.owner.targets)
+                    foreach (var targetImplementation in node.owner.activeTargetImplementations)
                     {
                         TargetSetupContext context = new TargetSetupContext();
                         context.SetMasterNode(masterNode);
-                        target.SetupTarget(ref context); 
-                        finalShader.AppendLines(GenerationUtils.GenerateSubShader(node, target, context, mode, sourceAssetDependencyPaths));
+                        targetImplementation.SetupTarget(ref context); 
+                        finalShader.AppendLines(GenerationUtils.GenerateSubShader(node, targetImplementation, context, mode, sourceAssetDependencyPaths));
                     }
                 }
                 else
                 {
-                    DefaultPreviewTargetImplementation target = new DefaultPreviewTargetImplementation();
+                    DefaultPreviewTargetImplementation targetImplementation = new DefaultPreviewTargetImplementation();
                     TargetSetupContext context = new TargetSetupContext();
                     context.SetMasterNode(null);
-                    target.SetupTarget(ref context); 
-                    finalShader.AppendLines(GenerationUtils.GenerateSubShader(node, target, context, mode, sourceAssetDependencyPaths));
+                    targetImplementation.SetupTarget(ref context); 
+                    finalShader.AppendLines(GenerationUtils.GenerateSubShader(node, targetImplementation, context, mode, sourceAssetDependencyPaths));
                 }
 
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");

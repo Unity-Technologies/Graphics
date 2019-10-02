@@ -315,10 +315,30 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        #region Targets
         [NonSerialized]
-        List<ITargetImplementation> m_Targets = new List<ITargetImplementation>();
+        List<ITarget> m_ValidTargets = new List<ITarget>();
+        
+        [SerializeField]
+        int m_ActiveTargetIndex;
 
-        public List<ITargetImplementation> targets => m_Targets;
+        public ITarget activeTarget => m_ValidTargets[m_ActiveTargetIndex];
+
+        [NonSerialized]
+        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
+
+        [SerializeField]
+        int m_ActiveTargetImplementationBitmask;
+
+        public List<ITargetImplementation> activeTargetImplementations
+        {
+            get
+            {
+                return m_ValidImplementations.Where(s => (m_ValidImplementations.IndexOf(s) & 
+                    m_ActiveTargetImplementationBitmask) == m_ValidImplementations.IndexOf(s)).ToList();
+            }
+        }
+        #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
 
@@ -1354,28 +1374,79 @@ namespace UnityEditor.ShaderGraph
 
         void UpdateTargets()
         {
-            targets.Clear();
+            // First get all valid TargetImplementations that are valid with the current graph
+            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypesOrNothing())
                 {
-                    var isValid = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
-                    if (isValid && !targets.Any(s => s.GetType() == type))
+                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
+                    if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
                     {
-                        try
+                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
+                        if(implementation.IsValid(masterNode))
                         {
-                            var target = (ITargetImplementation)Activator.CreateInstance(type);
-                            var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                            if(target.IsValid(masterNode))
-                            {
-                                m_Targets.Add(target);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
+                            foundImplementations.Add(implementation);
                         }
                     }
+                }
+            }
+
+            // Next we get all Targets that have valid TargetImplementations
+            List<ITarget> foundTargets = new List<ITarget>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
+                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
+                    {
+                        var target = (ITarget)Activator.CreateInstance(type);
+                        if(foundImplementations.Where(s => s.targetType == type).Any())
+                            foundTargets.Add(target);
+                    }
+                }
+            }
+
+            // Active Target is no longer valid
+            // Reset all Target selections and return
+            if(m_ValidTargets.Count == 0 || !foundTargets.Contains(m_ValidTargets[m_ActiveTargetIndex]))
+            {
+                m_ActiveTargetIndex = 0; // Default
+                m_ActiveTargetImplementationBitmask = -1; // Everything
+                m_ValidTargets = foundTargets;
+                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
+                return;
+            }
+
+            // Active Target index has changed
+            // Still need to validate TargetImplementation bitmask
+            if(foundTargets[m_ActiveTargetIndex].GetType() != activeTarget.GetType())
+            {
+                var activeTargetInFoundList = foundTargets.Where(s => s.GetType() == activeTarget.GetType()).FirstOrDefault();
+                m_ActiveTargetIndex = foundTargets.IndexOf(activeTargetInFoundList);
+            }
+
+            // Update valid Targets and TargetImplementations
+            m_ValidTargets = foundTargets;
+            m_ValidImplementations = foundImplementations.Where(s => s.targetType == activeTarget.GetType()).ToList();
+            
+            // Nothing or Everything. No need to update bitmask.
+            if(m_ActiveTargetImplementationBitmask == 0 || m_ActiveTargetImplementationBitmask == -1)
+                return;
+
+            // Current ITargetImplementation bitmask is set to Mixed...
+            // We need to build a new bitmask from the indicies in the new Implementation list
+            m_ActiveTargetImplementationBitmask = 0;
+            foreach(ITargetImplementation implementation in activeTargetImplementations)
+            {
+                var implementationInFound = foundImplementations.Where(s => s.GetType() == implementation.GetType()).FirstOrDefault();
+                if(implementationInFound != null)
+                {
+                    // If the new Implementation list contains this Implementation
+                    // add its new index to the bitmask
+                    m_ActiveTargetImplementationBitmask = m_ActiveTargetImplementationBitmask | foundImplementations.IndexOf(implementationInFound);
                 }
             }
         }
