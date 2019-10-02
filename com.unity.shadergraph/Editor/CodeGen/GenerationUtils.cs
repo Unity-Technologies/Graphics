@@ -927,6 +927,19 @@ namespace UnityEditor.ShaderGraph
                                                                                                                 activeFields.Contains(DefaultFields.GraphVertex)),
                 new ConditionalField(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0 &&
                                                                                                                 activeFields.Contains(DefaultFields.GraphVertex)),
+                
+                new ConditionalField(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0 &&
+                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                new ConditionalField(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceViewDirection,   (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0 &&
+                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                new ConditionalField(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0 &&
+                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                new ConditionalField(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0 &&
+                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
 
                 new ConditionalField(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0),
                 new ConditionalField(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceTangent,        (requirements.requiresTangent & NeededCoordinateSpace.View) > 0),
