@@ -69,6 +69,12 @@ namespace UnityEditor.VFX
         {
         }
 
+        public virtual void AddDependentAssets(HashSet<string> dependencies)
+        {
+            var monoScript = MonoScript.FromScriptableObject(this);
+            dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
+        }
+
         public virtual void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
         {
             foreach (var child in children)

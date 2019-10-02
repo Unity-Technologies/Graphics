@@ -33,7 +33,15 @@ namespace UnityEditor.VFX
 
         public VFXSubgraphContext():base(VFXContextType.Subgraph, VFXDataType.SpawnEvent, VFXDataType.None)
         {
-            
+
+        }
+
+        public override void AddDependentAssets(HashSet<string> dependencies)
+        {
+            base.AddDependentAssets(dependencies);
+
+            if (m_Subgraph != null)
+                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
         }
 
         void GraphParameterChanged(VFXGraph graph)

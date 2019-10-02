@@ -60,6 +60,14 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
+        public override void AddDependentAssets(HashSet<string> dependencies)
+        {
+            base.AddDependentAssets(dependencies);
+
+            if (shader != null)
+                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shader)));
+        }
+
         public void RefreshShader(Shader shader)
         {
             if( this.shader == shader)
@@ -72,7 +80,7 @@ namespace UnityEditor.VFX
                 data.RefreshShader();
             }
         }
-            
+
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

@@ -96,6 +96,16 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void AddDependentAssets(HashSet<string> dependencies)
+        {
+            base.AddDependentAssets(dependencies);
+
+            if (m_Subgraph != null)
+            {
+                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Subgraph)));
+            }
+        }
+
         protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             if( cause == InvalidationCause.kSettingChanged)

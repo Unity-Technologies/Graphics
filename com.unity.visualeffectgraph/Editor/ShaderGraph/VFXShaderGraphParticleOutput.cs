@@ -37,7 +37,13 @@ namespace UnityEditor.VFX
                 shaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(AssetDatabase.GUIDToAssetPath(shadergraphGUID));
         }
 
+        public override void AddDependentAssets(HashSet<string> dependencies)
+        {
+            base.AddDependentAssets(dependencies);
 
+            if( shaderGraph != null)
+                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(shaderGraph)));
+        }
         protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
         {

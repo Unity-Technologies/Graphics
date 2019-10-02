@@ -604,7 +604,7 @@ namespace UnityEditor.VFX
             outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.playSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
         }
 
-        private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode)
+        private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode, HashSet<string> dependencies)
         {
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
@@ -622,7 +622,8 @@ namespace UnityEditor.VFX
 
                     if (context.doesGenerateShader)
                     {
-                        var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData);
+                        
+                        var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData, dependencies);
 
                         if(generatedContent!= null)
                         {
@@ -636,6 +637,9 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
+
+                var resource = m_Graph.GetResource();
+
             }
             finally
             {
@@ -816,6 +820,15 @@ namespace UnityEditor.VFX
                 var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models,false);
 
+                var resource = m_Graph.GetResource();
+                resource.ClearDependencies();
+
+                HashSet<string> dependencies = new HashSet<string>();
+                foreach(VFXModel model in models.Where(t=> t is IVFXSlotContainer))
+                {
+                    model.AddDependentAssets(dependencies);
+                }
+
                 var contexts = models.OfType<VFXContext>().ToArray();
 
                 foreach (var c in contexts) // Unflag all contexts
@@ -905,7 +918,7 @@ namespace UnityEditor.VFX
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 7 / nbSteps);
-                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode);
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, dependencies);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 8 / nbSteps);
                 SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
@@ -947,8 +960,8 @@ namespace UnityEditor.VFX
                 }
 
                 // Update renderer settings
-                VFXRendererSettings rendererSettings = GetRendererSettings(m_Graph.visualEffectResource.rendererSettings, compilableContexts.OfType<IVFXSubRenderer>());
-                m_Graph.visualEffectResource.rendererSettings = rendererSettings;
+                VFXRendererSettings rendererSettings = GetRendererSettings(resource.rendererSettings, compilableContexts.OfType<IVFXSubRenderer>());
+                resource.rendererSettings = rendererSettings;
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 10 / nbSteps);
                 var expressionSheet = new VFXExpressionSheet();
@@ -956,8 +969,12 @@ namespace UnityEditor.VFX
                 expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
                 expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
 
-                m_Graph.visualEffectResource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray());
+
+                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray());
                 m_ExpressionValues = expressionSheet.values;
+
+                foreach (var dep in dependencies)
+                    resource.AddDependency(dep);
 
                 if (k_FnVFXResource_SetCompileInitialVariants != null)
                 {
