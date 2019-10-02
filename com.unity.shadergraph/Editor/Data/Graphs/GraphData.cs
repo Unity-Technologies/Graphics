@@ -318,24 +318,41 @@ namespace UnityEditor.ShaderGraph
         #region Targets
         [NonSerialized]
         List<ITarget> m_ValidTargets = new List<ITarget>();
+
+        public List<ITarget> validTargets => m_ValidTargets;
         
         [SerializeField]
         int m_ActiveTargetIndex;
+
+        public int activeTargetIndex
+        {
+            get => m_ActiveTargetIndex;
+            set => m_ActiveTargetIndex = value;
+        }
 
         public ITarget activeTarget => m_ValidTargets[m_ActiveTargetIndex];
 
         [NonSerialized]
         List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
 
+        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
+
         [SerializeField]
-        int m_ActiveTargetImplementationBitmask;
+        int m_ActiveTargetImplementationBitmask = -1;
+
+        public int activeTargetImplementationBitmask
+        {
+            get => m_ActiveTargetImplementationBitmask;
+            set => m_ActiveTargetImplementationBitmask = value;
+        }
 
         public List<ITargetImplementation> activeTargetImplementations
         {
             get
             {
-                return m_ValidImplementations.Where(s => (m_ValidImplementations.IndexOf(s) & 
-                    m_ActiveTargetImplementationBitmask) == m_ValidImplementations.IndexOf(s)).ToList();
+                // Return a list of all valid TargetImplementations enabled in the bitmask
+                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) & 
+                    m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
             }
         }
         #endregion
@@ -1372,11 +1389,11 @@ namespace UnityEditor.ShaderGraph
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
         }
 
-        void UpdateTargets()
+        public void UpdateTargets()
         {
             // First get all valid TargetImplementations that are valid with the current graph
             List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())//
             {
                 foreach (var type in assembly.GetTypesOrNothing())
                 {
@@ -1409,9 +1426,16 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // Assembly reload, just rebuild the non-serialized lists
+            if(m_ValidTargets.Count == 0)
+            {
+                m_ValidTargets = foundTargets;
+                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
+            }
+
             // Active Target is no longer valid
             // Reset all Target selections and return
-            if(m_ValidTargets.Count == 0 || !foundTargets.Contains(m_ValidTargets[m_ActiveTargetIndex]))
+            if(!foundTargets.Select(s => s.GetType()).Contains(m_ValidTargets[m_ActiveTargetIndex].GetType()))
             {
                 m_ActiveTargetIndex = 0; // Default
                 m_ActiveTargetImplementationBitmask = -1; // Everything
