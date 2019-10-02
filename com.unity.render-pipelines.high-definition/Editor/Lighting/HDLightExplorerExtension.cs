@@ -567,7 +567,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionX, "parameters", 75, (r, prop, dep) =>      // 3: Resolution X
                 {
                     SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
+
+                    EditorGUI.BeginChangeCheck();
                     EditorGUI.PropertyField(r, resolutionX, GUIContent.none);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, resolutionX.intValue);
+                        resolutionX.intValue = Mathf.Clamp(resolutionX.intValue, 1, maxX);
+                    }
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionX").intValue.CompareTo(rhs.FindPropertyRelative("resolutionX").intValue);
@@ -575,7 +583,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionY, "parameters", 75, (r, prop, dep) =>      // 4: Resolution Y
                 {
                     SerializedProperty resolutionY = prop.FindPropertyRelative("resolutionY");
+
+                    EditorGUI.BeginChangeCheck();
                     EditorGUI.PropertyField(r, resolutionY, GUIContent.none);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
+                        ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, resolutionX.intValue);
+                        resolutionY.intValue = Mathf.Clamp(resolutionY.intValue, 1, maxY);
+                    }
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionY").intValue.CompareTo(rhs.FindPropertyRelative("resolutionY").intValue);
@@ -583,7 +600,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionZ, "parameters", 75, (r, prop, dep) =>      // 5: Resolution Z
                 {
                     SerializedProperty resolutionZ = prop.FindPropertyRelative("resolutionZ");
+                    
+                    EditorGUI.BeginChangeCheck();
                     EditorGUI.PropertyField(r, resolutionZ, GUIContent.none);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
+                        ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, resolutionX.intValue);
+                        resolutionZ.intValue = Mathf.Clamp(resolutionZ.intValue, 1, maxZ);
+                    }
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionZ").intValue.CompareTo(rhs.FindPropertyRelative("resolutionZ").intValue);
