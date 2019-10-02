@@ -1140,7 +1140,8 @@ namespace UnityEditor.VFX.UI
         {
             var graph = controller.graph;
             graph.SetExpressionGraphDirty();
-            graph.RecompileIfNeeded(false, false);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
         }
 
 

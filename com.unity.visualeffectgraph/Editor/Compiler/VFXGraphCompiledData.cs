@@ -982,11 +982,6 @@ namespace UnityEditor.VFX
             }
             finally
             {
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Importing VFX", 11 / nbSteps);
-                Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");
-                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
-                Profiler.EndSample();
-
                 Profiler.EndSample();
                 EditorUtility.ClearProgressBar();
             }

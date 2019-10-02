@@ -2,16 +2,34 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
+
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    class VFXGraphgPreprocessor : AssetPostprocessor
+    {
+        void OnPreprocessAsset()
+        {
+            if( Path.GetExtension(assetPath) == VisualEffectResource.Extension)
+            {
+                var resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                if( resource != null)
+                {
+                    Debug.Log("Recompiling before import: "+assetPath);
+                    resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
+                }
+            }
+        }
+    }
     class VFXCacheManager : EditorWindow
     {
         private static List<VisualEffectAsset> GetAllVisualEffectAssets()
@@ -40,28 +58,11 @@ namespace UnityEditor.VFX
                     Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
 
                 VFXExpression.ClearCache();
-                vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
-                vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
-            }
-            AssetDatabase.SaveAssets();
-        }
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(vfxAsset));
 
-        [MenuItem("Edit/Visual Effects//Clear All Visual Effect Runtime Data", /* validate = */false, /*priority =*/ 321, /* internalMenu = */ true)]
-        public static void ClearRuntime()
-        {
-            var vfxAssets = GetAllVisualEffectAssets();
-            foreach (var vfxAsset in vfxAssets)
-            {
-                if (VFXViewPreference.advancedLogs)
-                    Debug.Log(string.Format("Clear VFX asset Runtime Data: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+                var resource = vfxAsset.GetResource();
 
-                //Prevent possible automatic compilation afterwards ClearRuntimeData
-                VFXExpression.ClearCache();
-                vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
-                vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
-
-                //Now effective clear runtime data
-                vfxAsset.GetResource().ClearRuntimeData();
+                EditorUtility.SetDirty(resource);
             }
             AssetDatabase.SaveAssets();
         }
