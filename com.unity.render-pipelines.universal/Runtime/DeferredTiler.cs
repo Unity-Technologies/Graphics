@@ -1,6 +1,9 @@
 using Unity.Collections;
+using System.Runtime.CompilerServices;
+using Unity.Mathematics;
+using static Unity.Mathematics.math;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
     internal class DeferredTiler
     {
@@ -8,11 +11,11 @@ namespace UnityEngine.Rendering.Universal
         internal struct PrePointLight
         {
             // view-space position.
-            public Vector3 vsPos;
+            public float3 vsPos;
             // Radius in world unit.
             public float radius;
             // Projected position of the sphere centre on the screen (near plane).
-            public Vector2 screenPos;
+            public float2 screenPos;
             // Index into renderingData.lightData.visibleLights native array.
             public ushort visLightIndex;
         }
@@ -57,51 +60,61 @@ namespace UnityEngine.Rendering.Universal
             m_TilerLevel = tilerLevel;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTileXCount()
         {
             return m_TileXCount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTileYCount()
         {
             return m_TileYCount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTilePixelWidth()
         {
             return m_TilePixelWidth;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTilePixelHeight()
         {
             return m_TilePixelHeight;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTileXStride()
         {
             return m_TileSize;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTileYStride()
         {
             return m_TileSize * m_TileXCount;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetMaxLightPerTile()
         {
             return m_TileSize * m_TileHeader;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTileHeader()
         {
             return m_TileHeader;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref NativeArray<ushort> GetTiles()
         {
             return ref m_Tiles;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetTileOffset(int i, int j)
         { return (i + j * m_TileXCount) * m_TileSize; }
 
@@ -152,10 +165,10 @@ namespace UnityEngine.Rendering.Universal
                         // Camera view space is always OpenGL RH coordinates system.
                         // In view space with perspective projection, all planes pass by (0,0,0).
                         PreTile preTile;
-                        preTile.planeLeft = MakePlane(new Vector3(tileLeft, tileBottom, -m_FrustumPlanes.zNear), new Vector3(tileLeft, tileTop, -m_FrustumPlanes.zNear));
-                        preTile.planeRight = MakePlane(new Vector3(tileRight, tileTop, -m_FrustumPlanes.zNear), new Vector3(tileRight, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeBottom = MakePlane(new Vector3(tileRight, tileBottom, -m_FrustumPlanes.zNear), new Vector3(tileLeft, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeTop = MakePlane(new Vector3(tileLeft, tileTop, -m_FrustumPlanes.zNear), new Vector3(tileRight, tileTop, -m_FrustumPlanes.zNear));
+                        preTile.planeLeft = MakePlane(new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear), new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear));
+                        preTile.planeRight = MakePlane(new float3(tileRight, tileTop, -m_FrustumPlanes.zNear), new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear));
+                        preTile.planeBottom = MakePlane(new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear), new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear));
+                        preTile.planeTop = MakePlane(new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear), new float3(tileRight, tileTop, -m_FrustumPlanes.zNear));
 
                         m_PreTiles[i + j * m_TileXCount] = preTile;
                     }
@@ -175,10 +188,10 @@ namespace UnityEngine.Rendering.Universal
 
                         // Camera view space is always OpenGL RH coordinates system.
                         PreTile preTile;
-                        preTile.planeLeft = MakePlane(new Vector3(tileLeft, tileBottom, -m_FrustumPlanes.zNear), new Vector3(tileLeft, tileBottom, -m_FrustumPlanes.zNear - 1.0f), new Vector3(tileLeft, tileTop, -m_FrustumPlanes.zNear));
-                        preTile.planeRight = MakePlane(new Vector3(tileRight, tileTop, -m_FrustumPlanes.zNear), new Vector3(tileRight, tileTop, -m_FrustumPlanes.zNear - 1.0f), new Vector3(tileRight, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeBottom = MakePlane(new Vector3(tileRight, tileBottom, -m_FrustumPlanes.zNear), new Vector3(tileRight, tileBottom, -m_FrustumPlanes.zNear - 1.0f), new Vector3(tileLeft, tileBottom, -m_FrustumPlanes.zNear));
-                        preTile.planeTop = MakePlane(new Vector3(tileLeft, tileTop, -m_FrustumPlanes.zNear), new Vector3(tileLeft, tileTop, -m_FrustumPlanes.zNear - 1.0f), new Vector3(tileRight, tileTop, -m_FrustumPlanes.zNear));
+                        preTile.planeLeft = MakePlane(new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear), new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear - 1.0f), new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear));
+                        preTile.planeRight = MakePlane(new float3(tileRight, tileTop, -m_FrustumPlanes.zNear), new float3(tileRight, tileTop, -m_FrustumPlanes.zNear - 1.0f), new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear));
+                        preTile.planeBottom = MakePlane(new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear), new float3(tileRight, tileBottom, -m_FrustumPlanes.zNear - 1.0f), new float3(tileLeft, tileBottom, -m_FrustumPlanes.zNear));
+                        preTile.planeTop = MakePlane(new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear), new float3(tileLeft, tileTop, -m_FrustumPlanes.zNear - 1.0f), new float3(tileRight, tileTop, -m_FrustumPlanes.zNear));
 
                         m_PreTiles[i + j * m_TileXCount] = preTile;
                     }
@@ -190,11 +203,11 @@ namespace UnityEngine.Rendering.Universal
         // - tile-frustums/light intersection use different algorithm
         // - depth range of the light shape intersecting the tile-frustums is output in the tile list header section
         // - light indices written out are indexing visible_lights, rather than the array of PrePointLights.
-        public void CullFinalLights(ref NativeArray<PrePointLight> pointLights,
-                                    ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
-                                    int istart, int iend, int jstart, int jend)
+        unsafe public void CullFinalLights(ref NativeArray<PrePointLight> pointLights,
+                                           ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
+                                           int istart, int iend, int jstart, int jend)
         {
-            Assertions.Assert.IsTrue(m_TileHeader >= 5, "not enough space to store min&max depth information for light list ");
+//            Assertions.Assert.IsTrue(m_TileHeader >= 5, "not enough space to store min&max depth information for light list ");
 
             int tileXStride = m_TileSize;
             int tileYStride = m_TileSize * m_TileXCount;
@@ -203,13 +216,13 @@ namespace UnityEngine.Rendering.Universal
             int lightEndIndex = lightStartIndex + lightCount;
             bool isOrthographic = m_IsOrthographic;
 
-            Vector2 tileSize = new Vector2((m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount,
-                                           (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount);
-            Vector2 tileExtents = tileSize * 0.5f;
-            Vector2 tileExtentsInv = new Vector2(1.0f / tileExtents.x, 1.0f / tileExtents.y);
+            float2 tileSize = new float2((m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount,
+                                         (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount);
+            float2 tileExtents = tileSize * 0.5f;
+            float2 tileExtentsInv = new float2(1.0f / tileExtents.x, 1.0f / tileExtents.y);
 
             // Store min&max depth range for each light in a tile.
-            Vector2[] minMax = new Vector2[maxLightPerTile];
+            float2* minMax = stackalloc float2[maxLightPerTile];
 
             for (int j = jstart; j < jend; ++j)
             {
@@ -234,22 +247,23 @@ namespace UnityEngine.Rendering.Universal
 
                         // Offset tileCentre toward the light to calculate a more conservative minMax depth bound,
                         // but it must remains inside the tile and must not pass further than the light centre.
-                        Vector2 tileCentre = new Vector3(tileXCentre, tileYCentre);
-                        Vector2 dir = ppl.screenPos - tileCentre;
-                        Vector2 d = Abs(dir * tileExtentsInv);
-                        float s = Max(d.x, d.y, 1.0f);
-                        Vector3 tileOffCentre;
-                        Vector3 tileOrigin;
+                        float2 tileCentre = new float2(tileXCentre, tileYCentre);
+                        float2 dir = ppl.screenPos - tileCentre;
+                        float2 d = abs(dir * tileExtentsInv);
 
-                        if (isOrthographic)
+                        float sInv = 1.0f / max3(d.x, d.y, 1.0f);
+                        float3 tileOffCentre;
+                        float3 tileOrigin;
+
+                        if (!isOrthographic)
                         {
-                            tileOrigin = new Vector3(tileCentre.x + dir.x / s, tileCentre.y + dir.y / s, 0.0f);
-                            tileOffCentre = new Vector3(0, 0, -m_FrustumPlanes.zNear);
+                            tileOrigin = new float3(0.0f);
+                            tileOffCentre = new float3(tileCentre.x + dir.x * sInv, tileCentre.y + dir.y * sInv, -m_FrustumPlanes.zNear);
                         }
                         else
                         {
-                            tileOrigin = Vector3.zero;
-                            tileOffCentre = new Vector3(tileCentre.x + dir.x / s, tileCentre.y + dir.y / s, -m_FrustumPlanes.zNear);
+                            tileOrigin = new float3(tileCentre.x + dir.x * sInv, tileCentre.y + dir.y * sInv, 0.0f);
+                            tileOffCentre = new float3(0, 0, -m_FrustumPlanes.zNear);
                         }
 
                         float t0, t1;
@@ -278,16 +292,16 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     // Clamp our light list depth range.
-                    listMinDepth = Mathf.Max(listMinDepth, m_FrustumPlanes.zNear);
-                    listMaxDepth = Mathf.Min(listMaxDepth, m_FrustumPlanes.zFar);
+                    listMinDepth = max2(listMinDepth, m_FrustumPlanes.zNear);
+                    listMaxDepth = min2(listMaxDepth, m_FrustumPlanes.zFar);
 
                     // Calculate bitmask for 2.5D culling.
                     uint bitMask = 0;
                     float depthRangeInv = 1.0f / (listMaxDepth - listMinDepth);
                     for (int tileLightIndex = 0; tileLightIndex < tileLightCount; ++tileLightIndex)
                     {
-                        float lightMinDepth = Mathf.Max(minMax[tileLightIndex].x, m_FrustumPlanes.zNear);
-                        float lightMaxDepth = Mathf.Min(minMax[tileLightIndex].y, m_FrustumPlanes.zFar);
+                        float lightMinDepth = max2(minMax[tileLightIndex].x, m_FrustumPlanes.zNear);
+                        float lightMaxDepth = min2(minMax[tileLightIndex].y, m_FrustumPlanes.zFar);
                         int firstBit = (int)((lightMinDepth - listMinDepth) * 32.0f * depthRangeInv);
                         int lastBit = (int)((lightMaxDepth - listMinDepth) * 32.0f * depthRangeInv);
                         int bitCount = lastBit - firstBit + 1;
@@ -303,16 +317,44 @@ namespace UnityEngine.Rendering.Universal
                     //   b = -listMinDepth * 32.0 / (listMaxDepth - listMinDepth)
                     //   int bitIndex = geoDepth * a + b;
                     //
-                    float a = 32.0f / (listMaxDepth - listMinDepth);
+                    float a = 32.0f * depthRangeInv;
                     float b = -listMinDepth * a;
 
                     m_Tiles[tileOffset] = tileLightCount;
-                    m_Tiles[tileOffset + 1] = Mathf.FloatToHalf(a);
-                    m_Tiles[tileOffset + 2] = Mathf.FloatToHalf(b);
+                    m_Tiles[tileOffset + 1] = (ushort)_f32tof16(a);
+                    m_Tiles[tileOffset + 2] = (ushort)_f32tof16(b);
                     m_Tiles[tileOffset + 3] = (ushort)(bitMask & 0xFFFF);
                     m_Tiles[tileOffset + 4] = (ushort)((bitMask >> 16) & 0xFFFF);
                 }
             }
+        }
+
+        // Unity.Mathematics.max() function calls Single_IsNan() which significantly slow down the code (up to 20% of CullFinalLights())!
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float min2(float a, float b)
+        {
+            return a < b ? a : b;
+        }
+
+        // Unity.Mathematics.min() function calls Single_IsNan() which significantly slow down the code (up to 20% of CullFinalLights())!
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float max2(float a, float b)
+        {
+            return a > b ? a : b;
+        }
+
+        // This is copy-pasted from Unity.Mathematics.math.f32tof16(), but use min2() function that does not check for NaN (which would consume 10% of the execution time of CullFinalLights()).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint _f32tof16(float x)
+        {
+            const int infinity_32 = 255 << 23;
+            const uint msk = 0x7FFFF000u;
+
+            uint ux = asuint(x);
+            uint uux = ux & msk;
+            uint h = (uint)(asuint(min2(asfloat(uux) * 1.92592994e-34f, 260042752.0f)) + 0x1000) >> 13;   // Clamp to signed infinity if overflowed
+            h = select(h, select(0x7c00u, 0x7e00u, (int)uux > infinity_32), (int)uux >= infinity_32);   // NaN->qNaN and Inf->Inf
+            return h | (ux & ~msk) >> 16;
         }
 
         public void CullIntermediateLights(ref NativeArray<PrePointLight> pointLights,
@@ -361,18 +403,23 @@ namespace UnityEngine.Rendering.Universal
         // The intersections points P0 and P1 are:
         // P0 = raySource + rayDirection * t0.
         // P1 = raySource + rayDirection * t1.
-        static bool IntersectionLineSphere(Vector3 centre, float radius, Vector3 raySource, Vector3 rayDirection, out float t0, out float t1)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe static bool IntersectionLineSphere(float3 centre, float radius, float3 raySource, float3 rayDirection, out float t0, out float t1)
         {
-            float A = Vector3.Dot(rayDirection, rayDirection); // always >= 0
-            float B = Vector3.Dot(raySource - centre, rayDirection);
-            float C = Vector3.Dot(raySource, raySource)
-                    + Vector3.Dot(centre, centre)
+            float3 _centre = *(float3*)&centre;
+            float3 _raySource = *(float3*)&raySource;
+            float3 _rayDirection = *(float3*)&rayDirection;
+
+            float A = dot(_rayDirection, _rayDirection); // always >= 0
+            float B = dot(_raySource - _centre, _rayDirection);
+            float C = dot(_raySource, _raySource)
+                    + dot(_centre, _centre)
                     - (radius * radius)
-                    - 2 * Vector3.Dot(raySource, centre);
-            float discriminant = (B*B) - A * C;
+                    - 2 * dot(_raySource, _centre);
+            float discriminant = (B * B) - A * C;
             if (discriminant > 0)
             {
-                float sqrt_discriminant = Mathf.Sqrt(discriminant);
+                float sqrt_discriminant = sqrt(discriminant);
                 float A_inv = 1.0f / A;
                 t0 = (-B - sqrt_discriminant) * A_inv;
                 t1 = (-B + sqrt_discriminant) * A_inv;
@@ -387,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Clip a sphere against a 2D tile. Near and far planes are ignored (already tested).
-        static bool Clip(ref PreTile tile, Vector3 vsPos, float radius)
+        static bool Clip(ref PreTile tile, float3 vsPos, float radius)
         {
             // Simplified clipping code, only deals with 4 clipping planes.
             // zNear and zFar clipping planes are ignored as presumably the light is already visible to the camera frustum.
@@ -416,14 +463,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Internal function to clip against 1 plane of a cube, with additional 2 side planes for false-positive detection (normally 4 planes, but near and far planes are ignored).
-        static ClipResult ClipPartial(Vector4 plane, Vector4 sidePlaneA, Vector4 sidePlaneB, Vector3 vsPos, float radius, float radiusSq, ref int insideCount)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static ClipResult ClipPartial(float4 plane, float4 sidePlaneA, float4 sidePlaneB, float3 vsPos, float radius, float radiusSq, ref int insideCount)
         {
             float d = DistanceToPlane(plane, vsPos);
             if (d + radius <= 0.0f) // completely outside
                 return ClipResult.Out;
             else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
             {
-                Vector3 p = vsPos - (Vector3)plane * d;
+                float3 p = vsPos - plane.xyz * d;
                 float rSq = radiusSq - d * d;
                 if (SignedSq(DistanceToPlane(sidePlaneA, p)) >= -rSq
                  && SignedSq(DistanceToPlane(sidePlaneB, p)) >= -rSq)
@@ -435,32 +483,36 @@ namespace UnityEngine.Rendering.Universal
             return ClipResult.Unknown;
         }
 
-        static Vector4 MakePlane(Vector3 pb, Vector3 pc)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float4 MakePlane(float3 pb, float3 pc)
         {
-            Vector3 v0 = pb;
-            Vector3 v1 = pc;
-            Vector3 n = Vector3.Cross(v0, v1);
-            n = Vector3.Normalize(n);
+            float3 v0 = pb;
+            float3 v1 = pc;
+            float3 n = cross(v0, v1);
+            n = normalize(n);
 
             // The planes pass all by the origin.
-            return new Vector4(n.x, n.y, n.z, 0.0f);
+            return new float4(n.x, n.y, n.z, 0.0f);
         }
 
-        static Vector4 MakePlane(Vector3 pa, Vector3 pb, Vector3 pc)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float4 MakePlane(float3 pa, float3 pb, float3 pc)
         {
-            Vector3 v0 = pb - pa;
-            Vector3 v1 = pc - pa;
-            Vector3 n = Vector3.Cross(v0, v1);
-            n = Vector3.Normalize(n);
+            float3 v0 = pb - pa;
+            float3 v1 = pc - pa;
+            float3 n = cross(v0, v1);
+            n = normalize(n);
 
-            return new Vector4(n.x, n.y, n.z, -Vector3.Dot(n, pa));
+            return new float4(n.x, n.y, n.z, -dot(n, pa));
         }
 
-        static float DistanceToPlane(Vector4 plane, Vector3 p)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float DistanceToPlane(float4 plane, float3 p)
         {
             return plane.x * p.x + plane.y * p.y + plane.z * p.z + plane.w;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static float SignedSq(float f)
         {
             // slower!
@@ -468,16 +520,13 @@ namespace UnityEngine.Rendering.Universal
             return (f < 0.0f ? -1.0f : 1.0f) * (f * f);
         }
 
-        static float Max(float a, float b, float c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static float max3(float a, float b, float c)
         {
             return a > b ? (a > c ? a : c) : (b > c ? b : c);
         }
 
-        static Vector2 Abs(Vector2 v)
-        {
-            return new Vector2(v.x < 0.0f ? -v.x : v.x, v.y < 0.0f ? -v.y : v.y);
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static int Align(int s, int alignment)
         {
             return ((s + alignment - 1) / alignment) * alignment;

@@ -258,19 +258,22 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     DeferredTiler fineTiler = m_Tilers[t];
                     DeferredTiler coarseTiler = m_Tilers[t + 1];
+                    int fineTileXCount = fineTiler.GetTileXCount();
+                    int fineTileYCount = fineTiler.GetTileYCount();
+                    int coarseTileXCount = coarseTiler.GetTileXCount();
+                    int coarseTileYCount = coarseTiler.GetTileYCount();
                     ref NativeArray<ushort> coarseTiles = ref coarseTiler.GetTiles();
                     int coarseTileHeader = coarseTiler.GetTileHeader();
-
                     int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
                     int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
 
-                    for (int j = 0; j < coarseTiler.GetTileYCount(); ++j)
-                    for (int i = 0; i < coarseTiler.GetTileXCount(); ++i)
+                    for (int j = 0; j < coarseTileYCount; ++j)
+                    for (int i = 0; i < coarseTileXCount; ++i)
                     {
                         int fine_istart = i * fineStepX;
                         int fine_jstart = j * fineStepY;
-                        int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTiler.GetTileXCount());
-                        int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTiler.GetTileYCount());
+                        int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
+                        int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
                         int coarseTileOffset = coarseTiler.GetTileOffset(i, j);
                         int coarseVisLightCount = coarseTiles[coarseTileOffset];
 

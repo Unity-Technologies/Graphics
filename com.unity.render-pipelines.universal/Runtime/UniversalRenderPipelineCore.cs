@@ -92,10 +92,10 @@ namespace UnityEngine.Rendering.Universal
     {
         // Tile left, right, bottom and top plane equations in view space.
         // Normals are pointing out.
-        public Vector4 planeLeft;
-        public Vector4 planeRight;
-        public Vector4 planeBottom;
-        public Vector4 planeTop;
+        public Unity.Mathematics.float4 planeLeft;
+        public Unity.Mathematics.float4 planeRight;
+        public Unity.Mathematics.float4 planeBottom;
+        public Unity.Mathematics.float4 planeTop;
     }
 
     // Actual tile data passed to the deferred shaders.
