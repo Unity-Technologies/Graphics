@@ -48,6 +48,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port mask
                 pixelPorts = PixelPorts.Default,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.Projector3RT,
                 pragmas = Pragmas.Instanced,
@@ -66,6 +70,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Port mask
                 pixelPorts = PixelPorts.Default,
+
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.Projector4RT,
@@ -86,6 +94,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port mask
                 pixelPorts = PixelPorts.Emissive,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = FieldDependencies.Default,
+
                 // Conditional State
                 renderStates = RenderStates.ProjectorEmissive,
                 pragmas = Pragmas.Instanced,
@@ -104,8 +116,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port mask
                 pixelPorts = PixelPorts.Default,
 
-                // Required fields
+                //Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Mesh,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.Mesh3RT,
@@ -126,8 +140,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port mask
                 pixelPorts = PixelPorts.Default,
 
-                // Required fields
+                //Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Mesh,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.Mesh4RT,
@@ -148,8 +164,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port mask
                 pixelPorts = PixelPorts.MeshEmissive,
 
-                // Required fields
+                //Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Mesh,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
                 renderStates = RenderStates.MeshEmissive, 
@@ -169,8 +187,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port mask
                 pixelPorts = PixelPorts.MeshEmissive,
 
-                // Required fields
+                //Fields
+                structs = StructDescriptors.Default,
                 requiredFields = RequiredFields.Mesh,
+                fieldDependencies = FieldDependencies.Default,
 
                 // Render state overrides
                 renderStates = RenderStates.Preview,
@@ -226,6 +246,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld,
                 HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS,
                 HDRPMeshTarget.ShaderStructs.FragInputs.texCoord0,
+            };
+        }
+#endregion
+
+#region StructDescriptors
+        static class StructDescriptors
+        {
+            public static StructDescriptor[] Default = new StructDescriptor[]
+            {
+                HDRPMeshTarget.AttributesMesh,
+                HDRPMeshTarget.VaryingsMeshToPS,
+                HDRPMeshTarget.SurfaceDescriptionInputs,
+                HDRPMeshTarget.VertexDescriptionInputs,
             };
         }
 #endregion
@@ -459,6 +492,124 @@ namespace UnityEditor.Rendering.HighDefinition
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Global,
+            };
+        }
+#endregion
+
+#region Dependencies
+        static class FieldDependencies
+        {
+            public static FieldDependency[] Default = new FieldDependency[]
+            {
+                //Standard Varying Dependencies
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.positionRWS,   HDRPMeshTarget.ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.normalWS,      HDRPMeshTarget.ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.tangentWS,     HDRPMeshTarget.ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord0,     HDRPMeshTarget.ShaderStructs.AttributesMesh.uv0),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord1,     HDRPMeshTarget.ShaderStructs.AttributesMesh.uv1),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord2,     HDRPMeshTarget.ShaderStructs.AttributesMesh.uv2),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord3,     HDRPMeshTarget.ShaderStructs.AttributesMesh.uv3),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.color,         HDRPMeshTarget.ShaderStructs.AttributesMesh.color),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.instanceID,    HDRPMeshTarget.ShaderStructs.AttributesMesh.instanceID),
+
+                //Tessellation Varying Dependencies
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.positionRWS,   HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.positionRWS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.normalWS,      HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.normalWS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.tangentWS,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.tangentWS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord0,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord0),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord1,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord1),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord2,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord2),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord3,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord3),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.color,         HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.color),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.instanceID,    HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.instanceID),
+                
+                //Tessellation Varying Dependencies, TODO: Why is this loop created?
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.tangentWS,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.tangentWS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord0,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord0),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord1,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord1),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord2,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord2),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.texCoord3,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord3),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.color,         HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.color),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.VaryingsMeshToDS.instanceID,    HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.instanceID),
+                
+                //FragInput dependencies
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS,        HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.positionRWS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.tangentWS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld,     HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.normalWS),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.texCoord0,          HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord0),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.texCoord1,          HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord1),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.texCoord2,          HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord2),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.texCoord3,          HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.texCoord3),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.color,              HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.color),
+                new FieldDependency(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,        HDRPMeshTarget.ShaderStructs.VaryingsMeshToPS.cullFace),
+                
+                //Vertex Description Dependencies
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceNormal,            HDRPMeshTarget.ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal,             HDRPMeshTarget.ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceNormal,              MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceTangent,           HDRPMeshTarget.ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceTangent,            HDRPMeshTarget.ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceTangent,             MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceBiTangent,         HDRPMeshTarget.ShaderStructs.AttributesMesh.normalOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceBiTangent,         HDRPMeshTarget.ShaderStructs.AttributesMesh.tangentOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceBiTangent,          MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceBiTangent,           MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceBiTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpacePosition,          HDRPMeshTarget.ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition,           HDRPMeshTarget.ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.AbsoluteWorldSpacePosition,   HDRPMeshTarget.ShaderStructs.AttributesMesh.positionOS),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpacePosition,            MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition),
+
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection,      MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceViewDirection,     MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ViewSpaceViewDirection,       MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpaceNormal),
+
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.ScreenPosition,               MeshTarget.ShaderStructs.VertexDescriptionInputs.WorldSpacePosition),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv0,                          HDRPMeshTarget.ShaderStructs.AttributesMesh.uv0),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv1,                          HDRPMeshTarget.ShaderStructs.AttributesMesh.uv1),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv2,                          HDRPMeshTarget.ShaderStructs.AttributesMesh.uv2),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.uv3,                          HDRPMeshTarget.ShaderStructs.AttributesMesh.uv3),
+                new FieldDependency(MeshTarget.ShaderStructs.VertexDescriptionInputs.VertexColor,                  HDRPMeshTarget.ShaderStructs.AttributesMesh.color),
+
+                //Surface Description Dependencies
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal,             HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceNormal,            MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceNormal,              MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
+
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent,            HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceTangent,           MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceTangent,             MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent,          HDRPMeshTarget.ShaderStructs.FragInputs.tangentToWorld),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceBiTangent,         MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceBiTangent,           MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+    
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpacePosition,           HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,   HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpacePosition,          HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpacePosition,            HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS),
+
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection,      HDRPMeshTarget.ShaderStructs.FragInputs.positionRWS),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceViewDirection,     MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ViewSpaceViewDirection,       MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.TangentSpaceViewDirection,    MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpaceNormal),
+
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ScreenPosition,               MeshTarget.ShaderStructs.SurfaceDescriptionInputs.WorldSpacePosition),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv0,                          HDRPMeshTarget.ShaderStructs.FragInputs.texCoord0),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv1,                          HDRPMeshTarget.ShaderStructs.FragInputs.texCoord1),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv2,                          HDRPMeshTarget.ShaderStructs.FragInputs.texCoord2),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv3,                          HDRPMeshTarget.ShaderStructs.FragInputs.texCoord3),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.VertexColor,                  HDRPMeshTarget.ShaderStructs.FragInputs.color),
+                new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.FaceSign,                     HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace),
             };
         }
 #endregion

@@ -106,6 +106,14 @@ Pass
     int _PassValue;
 
     // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+
+    // --------------------------------------------------
     // Graph
 
     // Graph Properties
@@ -120,15 +128,6 @@ Pass
     
     // Graph Pixel
     $splice(GraphPixel)
-
-    // --------------------------------------------------
-    // Structs and Packing
-
-    $buildType(AttributesMesh)
-
-    $buildType(VaryingsMeshToPS)
-
-    $buildType(VaryingsMeshToDS)
 
     // --------------------------------------------------
     // Build Graph Inputs

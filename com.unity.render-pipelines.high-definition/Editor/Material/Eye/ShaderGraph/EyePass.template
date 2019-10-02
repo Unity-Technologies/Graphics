@@ -89,6 +89,13 @@ Pass
     // Used by SceneSelectionPass
     int _ObjectId;
     int _PassValue;
+    
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
 
     // --------------------------------------------------
     // Graph
@@ -105,15 +112,6 @@ Pass
     
     // Graph Pixel
     $splice(GraphPixel)
-
-    // --------------------------------------------------
-    // Structs and Packing
-
-    $buildType(AttributesMesh)
-
-    $buildType(VaryingsMeshToPS)
-
-    $buildType(VaryingsMeshToDS)
 
     // --------------------------------------------------
     // Build Graph Inputs
