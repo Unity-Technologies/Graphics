@@ -549,41 +549,68 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     SerializedProperty drawProbes = prop.FindPropertyRelative("drawProbes");
                     EditorGUI.PropertyField(r, drawProbes, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("drawProbes").boolValue.CompareTo(rhs.FindPropertyRelative("drawProbes").boolValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.DebugColor, "parameters", 75, (r, prop, dep) =>       // 2: Debug Color
                 {
                     SerializedProperty debugColor = prop.FindPropertyRelative("debugColor");
                     EditorGUI.PropertyField(r, debugColor, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    float lh, ls, lv, rh, rs, rv;
+                    Color.RGBToHSV(lhs.FindPropertyRelative("debugColor").colorValue, out lh, out ls, out lv);
+                    Color.RGBToHSV(rhs.FindPropertyRelative("debugColor").colorValue, out rh, out rs, out rv);
+                    return lh.CompareTo(rh);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionX, "parameters", 75, (r, prop, dep) =>      // 3: Resolution X
                 {
                     SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
                     EditorGUI.PropertyField(r, resolutionX, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("resolutionX").intValue.CompareTo(rhs.FindPropertyRelative("resolutionX").intValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionY, "parameters", 75, (r, prop, dep) =>      // 4: Resolution Y
                 {
                     SerializedProperty resolutionY = prop.FindPropertyRelative("resolutionY");
                     EditorGUI.PropertyField(r, resolutionY, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("resolutionY").intValue.CompareTo(rhs.FindPropertyRelative("resolutionY").intValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionZ, "parameters", 75, (r, prop, dep) =>      // 5: Resolution Z
                 {
                     SerializedProperty resolutionZ = prop.FindPropertyRelative("resolutionZ");
                     EditorGUI.PropertyField(r, resolutionZ, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("resolutionZ").intValue.CompareTo(rhs.FindPropertyRelative("resolutionZ").intValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.BlendDistance, "parameters", 85, (r, prop, dep) =>    // 6: Blend Distance
                 {
                     SerializedProperty uniformFade = prop.FindPropertyRelative("m_UniformFade");
                     EditorGUI.PropertyField(r, uniformFade, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("m_UniformFade").floatValue.CompareTo(rhs.FindPropertyRelative("m_UniformFade").floatValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.FadeStart, "parameters", 60, (r, prop, dep) =>        // 7: Distance Fade Start
                 {
                     SerializedProperty distanceFadeStart = prop.FindPropertyRelative("distanceFadeStart");
                     EditorGUI.PropertyField(r, distanceFadeStart, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("distanceFadeStart").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeStart").floatValue);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.FadeEnd, "parameters", 60, (r, prop, dep) =>          // 8: Distance Fade End
                 {
                     SerializedProperty distanceFadeEnd = prop.FindPropertyRelative("distanceFadeEnd");
                     EditorGUI.PropertyField(r, distanceFadeEnd, GUIContent.none);
+                }, (lhs, rhs) =>
+                {
+                    return lhs.FindPropertyRelative("distanceFadeEnd").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeEnd").floatValue);
                 })
             };
         }
