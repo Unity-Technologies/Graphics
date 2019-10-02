@@ -104,12 +104,9 @@ namespace UnityEditor
                 }
 
                 AssetDatabase.ImportAsset(pathName);
-                VisualEffectAsset vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(pathName);
-                var graph = vfxAsset.GetResource().GetOrCreateGraph();
-                graph.SetExpressionGraphDirty();
-                graph.RecompileIfNeeded();
 
-                ProjectWindowUtil.FrameObjectInProjectWindow(vfxAsset.GetInstanceID());
+                var resource = VisualEffectResource.GetResourceAtPath(pathName);
+                ProjectWindowUtil.FrameObjectInProjectWindow(resource.asset.GetInstanceID());
             }
         }
 

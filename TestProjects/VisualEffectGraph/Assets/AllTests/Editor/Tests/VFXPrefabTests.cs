@@ -141,7 +141,8 @@ namespace UnityEditor.VFX.Test
                 parameter.value = i + 1;
                 graph.AddChild(parameter);
             }
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var mainObject = MakeTemporaryGameObject();
             var vfx = mainObject.AddComponent<VisualEffect>();
@@ -240,7 +241,8 @@ namespace UnityEditor.VFX.Test
             parameter.SetSettingValue("m_Exposed", true);
             parameter.value = new Vector3(0, 0, 0);
             graph.AddChild(parameter);
-            graph.RecompileIfNeeded();
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             var mainObject = MakeTemporaryGameObject();
 
