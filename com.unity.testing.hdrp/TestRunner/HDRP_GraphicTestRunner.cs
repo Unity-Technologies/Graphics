@@ -1,9 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System.IO;
@@ -31,6 +32,9 @@ public class HDRP_GraphicTestRunner
         }
 
         Time.captureFramerate = settings.captureFramerate;
+
+        if (XRSystem.testModeEnabled)
+            XRSystem.layoutOverride = settings.xrLayout;
 
         if (settings.doBeforeTest != null)
         {

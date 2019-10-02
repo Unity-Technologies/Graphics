@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter screenFadeDistance = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
         public IntParameter rayMaxIterations = new IntParameter(32);
 
+        public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0.001f, 50f);
         public ClampedFloatParameter clampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
         public BoolParameter denoise = new BoolParameter(false);
