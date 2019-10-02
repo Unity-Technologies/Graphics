@@ -37,8 +37,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public const int kTilePixelWidth = 16;
         public const int kTilePixelHeight = 16;
-        // Levels of hierachical tiling. Each level process 4x4 finer tiles.
-        public const int kTilerDepth = 3;
+        // Levels of hierarchical tiling. Each level process 4x4 finer tiles 
+        public const int kTilerDepth = 3;  // 16x16px tiles grid, 64x64px tiles grid, and 256x256px tiles grid
 
         public const int kMaxLightPerTile = 31;
 
@@ -203,6 +203,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             DeferredShaderData.instance.ResetBuffers();
 
+            // if(tiledDeferredShading) // <- could below code be skipped during stencil-only deferred shading?
+            // { ...
+
             // Precompute tile data again if the camera projection or the screen resolution has changed.
             if (m_RenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
              || m_RenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
@@ -226,6 +229,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Will hold point lights that will be rendered using tiles.
             NativeArray<DeferredTiler.PrePointLight> prePointLights;
 
+            // inspect lights in renderingData.lightData.visibleLights and convert them to entries in prePointLights OR m_stencilVisLights
             PrecomputeLights(
                 out prePointLights,
                 out m_stencilVisLights,
@@ -243,6 +247,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             DeferredTiler coarsestTiler = m_Tilers[m_Tilers.Length - 1];
             if (m_Tilers.Length != 1)
             {
+                // Fill coarsestTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
                 coarsestTiler.CullIntermediateLights(ref prePointLights,
                     ref defaultIndices, 0, prePointLights.Length,
                     0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
@@ -271,6 +276,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                         if (t != 0)
                         {
+                            // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                            // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
                             fineTiler.CullIntermediateLights(ref prePointLights,
                                 ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
                                 fine_istart, fine_iend, fine_jstart, fine_jend
@@ -278,6 +285,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                         }
                         else
                         {
+                            // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                            // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
+                            // Also fills additional per-tile "m_TileHeader" data
                             fineTiler.CullFinalLights(ref prePointLights,
                                 ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
                                 fine_istart, fine_iend, fine_jstart, fine_jend

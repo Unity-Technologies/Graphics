@@ -38,7 +38,11 @@ namespace UnityEngine.Rendering.Universal
         bool m_IsOrthographic;
 
         // Store all visible light indices for all tiles.
-        NativeArray<ushort> m_Tiles;
+        NativeArray<ushort> m_Tiles;    // (currently) Contains sequential blocks of ushort values (light count, light indices and optionally additional per-tile "header" values), for each tile
+                                        // For example: in a finest       tiler DeferredLights.m_Tilers[0] ( 16x16px  tiles), each tile will use a block of  1 *  1 * 32 (DeferredConfig.kMaxLightPerTile + 1) - 1 + 5 (fine m_TileHeader) =   36 ushort values
+                                        //              in a intermediate tiler DeferredLights.m_Tilers[1] ( 64x64px  tiles), each tile will use a block of  4 *  4 * 32 (DeferredConfig.kMaxLightPerTile + 1) - 1 + 1 (     m_TileHeader) =  512 ushort values
+                                        //              in a coarsest     tiler DeferredLights.m_Tilers[2] (256x256px tiles), each tile will use a block of 16 * 16 * 32 (DeferredConfig.kMaxLightPerTile + 1) - 1 + 1 (     m_TileHeader) = 8192 ushort values
+
         // Precompute tile data.
         NativeArray<PreTile> m_PreTiles;
 

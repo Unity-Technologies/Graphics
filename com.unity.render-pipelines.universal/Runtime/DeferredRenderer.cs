@@ -141,9 +141,20 @@ namespace UnityEngine.Rendering.Universal
             EnqueuePass(m_CopyDepthPass);
 
             m_DeferredLights.Setup(ref renderingData, m_DepthCopyTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_DepthTexture, m_ActiveCameraColorAttachment);
+            // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
+            // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles.
+            // If no there are no lights intersecting tiles, we could skip several following passes.
+            // However this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
             if (m_DeferredLights.HasTileLights())
             {
+                // Compute for each tile a 32bits bitmask in which a raised bit means "this 1/32th depth slice contains geometry that could intersect with lights".
+                // Per-tile bitmasks are obtained by merging together the per-pixel bitmasks computed for each individual pixel of the tile.
                 EnqueuePass(m_TileDepthRangePass);
+
+                // On some platform, splitting the bitmasks computation into two passes:
+                //   1/ Compute bitmasks for individual or small blocks of pixels
+                //   2/ merge those individual bitmasks into per-tile bitmasks
+                // provides better performance that doing it in a single above pass.
                 if (m_DeferredLights.HasTileDepthRangeExtraPass())
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
@@ -182,6 +193,7 @@ namespace UnityEngine.Rendering.Universal
 //            if (!renderingData.cameraData.isSceneViewCamera)
 //                return;
 
+            // Perform per-tile light culling on CPU
             m_DeferredLights.SetupLights(context, ref renderingData);
         }
 
