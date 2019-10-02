@@ -175,19 +175,15 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             // Allocate the array and set its values
             ArrayList<int, FixedAllocator> arraylist = default;
-            Assert.That(() =>
-            {
-                arraylist = ArrayList<int>.New(alloc);
-                arraylist.GrowCapacity(list.Count);
-                foreach (var i in list)
-                    arraylist.Add(i);
-            }, Is.Not.AllocatingGCMemory());
+            Assert.That(() => { arraylist = ArrayList<int>.New(alloc); }, Is.Not.AllocatingGCMemory());
+            Assert.That(() => { arraylist.GrowCapacity(list.Count); }, Is.Not.AllocatingGCMemory());
+            Assert.That(() => { foreach (var i in list) arraylist.Add(i); }, Is.Not.AllocatingGCMemory());
 
             // Get the enumerators
             Assert.AreEqual(arraylist.count, list.Count);
             var l = list.GetEnumerator();
             ArrayListRefEnumerator<int, FixedAllocator> a = default;
-            Assert.That(() => a = arraylist.values, Is.Not.AllocatingGCMemory());
+            Assert.That(() => { a = arraylist.values; }, Is.Not.AllocatingGCMemory());
 
             // Compare the values of the enumerator to its baseline
             for (int c = arraylist.count, i = 0; i < c; ++i)
@@ -209,13 +205,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             // Allocate and push values in the list
             ArrayList<int, FixedAllocator> arraylist = default;
-            Assert.That(() =>
-            {
-                arraylist = ArrayList<int>.New(alloc);
-                arraylist.GrowCapacity(list.Count);
-                foreach (var i in list)
-                    arraylist.Add(i);
-            }, Is.Not.AllocatingGCMemory());
+            Assert.That(() => { arraylist = ArrayList<int>.New(alloc); }, Is.Not.AllocatingGCMemory());
+            Assert.That(() => { arraylist.GrowCapacity(list.Count); }, Is.Not.AllocatingGCMemory());
+            Assert.That(() => { foreach (var i in list) arraylist.Add(i); }, Is.Not.AllocatingGCMemory());
 
             // Increment values in the list
             Assert.AreEqual(arraylist.count, list.Count);
@@ -229,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             {
                 ArrayListRefEnumerator<int, FixedAllocator> a = default;
                 var l = list.GetEnumerator();
-                Assert.That(() => a = arraylist.values, Is.Not.AllocatingGCMemory());
+                Assert.That(() => { a = arraylist.values; }, Is.Not.AllocatingGCMemory());
 
                 for (int c = arraylist.count, i = 0; i < c; ++i)
                 {
@@ -239,7 +231,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     Assert.AreEqual(a.current, l.Current + 1);
                 }
             }
-            
         }
 
         [Test, TestCaseSource(nameof(k_ArrayListRefEnumerate))]
