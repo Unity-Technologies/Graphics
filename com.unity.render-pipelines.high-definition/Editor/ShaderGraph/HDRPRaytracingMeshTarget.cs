@@ -59,6 +59,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLit,
                 pixelPorts = PixelPorts.HDLit,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
+
                 // Pass setup
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
                 defines = Defines.LitForwardIndirect,
@@ -82,6 +86,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDLit,
                 pixelPorts = PixelPorts.HDLit,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
+
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
                 defines = Defines.LitVisibility,
@@ -103,6 +111,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDLit,
                 pixelPorts = PixelPorts.HDLit,
+
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
@@ -126,6 +138,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDLit,
                 pixelPorts = PixelPorts.HDLit,
+
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
@@ -155,6 +171,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDUnlit,
                 pixelPorts = PixelPorts.HDUnlit,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
+
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Basic,
                 keywords = Keywords.Basic,
@@ -176,6 +196,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDUnlit,
                 pixelPorts = PixelPorts.HDUnlit,
+
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Basic,
@@ -199,6 +223,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.HDUnlit,
                 pixelPorts = PixelPorts.HDUnlit,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
+
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Basic,
                 keywords = Keywords.Basic,
@@ -220,6 +248,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.HDUnlit,
                 pixelPorts = PixelPorts.HDUnlit,
+
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Basic,
@@ -248,6 +280,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.Fabric,
                 pixelPorts = PixelPorts.Fabric,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
+
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
                 defines = Defines.FabricForwardIndirect,
@@ -271,6 +307,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 vertexPorts = VertexPorts.Fabric,
                 pixelPorts = PixelPorts.Fabric,
 
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
+
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
                 keywords = Keywords.Basic,
@@ -292,6 +332,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.Fabric,
                 pixelPorts = PixelPorts.Fabric,
+
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
@@ -315,6 +359,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Port Mask
                 vertexPorts = VertexPorts.Fabric,
                 pixelPorts = PixelPorts.Fabric,
+
+                //Fields
+                structs = StructDescriptors.Default,
+                fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
                 pragmas = HDRPMeshTarget.Pragmas.Instanced,
@@ -411,6 +459,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 FabricMasterNode.LightingSlotId,
                 FabricMasterNode.BackLightingSlotId,
                 FabricMasterNode.DepthOffsetSlotId,
+            };
+        }
+#endregion
+
+#region StructDescriptors
+        static class StructDescriptors
+        {
+            public static StructDescriptor[] Default = new StructDescriptor[]
+            {
+                HDRPMeshTarget.AttributesMesh,
+                HDRPMeshTarget.VaryingsMeshToPS,
+                HDRPMeshTarget.SurfaceDescriptionInputs,
+                HDRPMeshTarget.VertexDescriptionInputs,
             };
         }
 #endregion

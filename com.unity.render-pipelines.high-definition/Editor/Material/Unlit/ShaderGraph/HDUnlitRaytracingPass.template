@@ -32,6 +32,13 @@ Pass
     $splice(PassIncludes)
 
     // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+    // --------------------------------------------------
     // Graph
 
     // Graph Properties

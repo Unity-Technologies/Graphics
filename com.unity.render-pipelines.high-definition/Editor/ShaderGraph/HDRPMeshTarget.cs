@@ -3756,7 +3756,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #endregion
 
 #region Dependencies
-        static class FieldDependencies
+        public static class FieldDependencies
         {
             public static FieldDependency[] Default = new FieldDependency[]
             {

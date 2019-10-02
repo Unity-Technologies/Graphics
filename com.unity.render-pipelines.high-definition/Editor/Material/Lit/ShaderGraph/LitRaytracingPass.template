@@ -46,6 +46,13 @@ Pass
     $DisableSSR:                         #define _DISABLE_SSR 1
 
     // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+    
+    // --------------------------------------------------
     // Graph
 
     // Graph Properties
