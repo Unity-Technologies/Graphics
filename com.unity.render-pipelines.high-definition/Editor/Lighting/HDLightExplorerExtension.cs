@@ -100,6 +100,15 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ParallaxCorrection = EditorGUIUtility.TrTextContent("Parallax Correction");
             public static readonly GUIContent ReflectionProbeWeight = EditorGUIUtility.TrTextContent("Weight");
 
+            public static readonly GUIContent DrawProbes = EditorGUIUtility.TrTextContent("Draw");
+            public static readonly GUIContent DebugColor = EditorGUIUtility.TrTextContent("Debug Color");
+            public static readonly GUIContent ResolutionX = EditorGUIUtility.TrTextContent("Resolution X");
+            public static readonly GUIContent ResolutionY = EditorGUIUtility.TrTextContent("Resolution Y");
+            public static readonly GUIContent ResolutionZ = EditorGUIUtility.TrTextContent("Resolution Z");
+            public static readonly GUIContent BlendDistance = EditorGUIUtility.TrTextContent("Blend Distance");
+            public static readonly GUIContent FadeStart = EditorGUIUtility.TrTextContent("Fade Start");
+            public static readonly GUIContent FadeEnd = EditorGUIUtility.TrTextContent("Fade End");
+
             public static readonly GUIContent[] LightmapBakeTypeTitles = { EditorGUIUtility.TrTextContent("Realtime"), EditorGUIUtility.TrTextContent("Mixed"), EditorGUIUtility.TrTextContent("Baked") };
             public static readonly int[] LightmapBakeTypeValues = { (int)LightmapBakeType.Realtime, (int)LightmapBakeType.Mixed, (int)LightmapBakeType.Baked };
         }
@@ -112,7 +121,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTab("Volumes", GetVolumes, GetVolumeColumns),
                 new LightingExplorerTab("Reflection Probes", GetHDReflectionProbes, GetHDReflectionProbeColumns),
                 new LightingExplorerTab("Planar Reflection Probes", GetPlanarReflections, GetPlanarReflectionColumns),
-                new LightingExplorerTab("LightProbes", GetLightProbes, GetLightProbeColumns),
+                new LightingExplorerTab("Light Probes", GetLightProbes, GetLightProbeColumns),
+                new LightingExplorerTab("Probe Volumes", GetProbeVolumes, GetProbeVolumeColumns),
                 new LightingExplorerTab("Emissive Materials", GetEmissives, GetEmissivesColumns)
             };
         }
@@ -163,6 +173,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     : new VolumeData(volume.isGlobal, volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile, hasStaticLightingSky);
             }
             return volumes;
+        }
+
+        protected virtual UnityEngine.Object[] GetProbeVolumes()
+        {
+            return UnityEngine.Object.FindObjectsOfType<ProbeVolume>();
         }
 
         protected virtual LightingExplorerTableColumn[] GetHDLightColumns()
@@ -522,6 +537,54 @@ namespace UnityEditor.Rendering.HighDefinition
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                               // 0: Name
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.On, "m_Enabled", 25),                                       // 1: Enabled
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ReflectionProbeWeight, "m_ProbeSettings.lighting.weight", 50), // 2: Weight
+            };
+        }
+
+        protected virtual LightingExplorerTableColumn[] GetProbeVolumeColumns()
+        {
+            return new[]
+            {
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                       // 0: Name
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.DrawProbes, "parameters", 35, (r, prop, dep) =>       // 1: Draw Probes
+                {
+                    SerializedProperty drawProbes = prop.FindPropertyRelative("drawProbes");
+                    EditorGUI.PropertyField(r, drawProbes, GUIContent.none);
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.DebugColor, "parameters", 75, (r, prop, dep) =>       // 2: Debug Color
+                {
+                    SerializedProperty debugColor = prop.FindPropertyRelative("debugColor");
+                    EditorGUI.PropertyField(r, debugColor, GUIContent.none);
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionX, "parameters", 75, (r, prop, dep) =>      // 3: Resolution X
+                {
+                    SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
+                    EditorGUI.PropertyField(r, resolutionX, GUIContent.none);
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionY, "parameters", 75, (r, prop, dep) =>      // 4: Resolution Y
+                {
+                    SerializedProperty resolutionY = prop.FindPropertyRelative("resolutionY");
+                    EditorGUI.PropertyField(r, resolutionY, GUIContent.none);
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.ResolutionZ, "parameters", 75, (r, prop, dep) =>      // 5: Resolution Z
+                {
+                    SerializedProperty resolutionZ = prop.FindPropertyRelative("resolutionZ");
+                    EditorGUI.PropertyField(r, resolutionZ, GUIContent.none);
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.BlendDistance, "parameters", 85, (r, prop, dep) =>    // 6: Blend Distance
+                {
+                    SerializedProperty uniformFade = prop.FindPropertyRelative("m_UniformFade");
+                    EditorGUI.PropertyField(r, uniformFade, GUIContent.none);
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.FadeStart, "parameters", 60, (r, prop, dep) =>        // 7: Distance Fade Start
+                {
+                    SerializedProperty distanceFadeStart = prop.FindPropertyRelative("distanceFadeStart");
+                    EditorGUI.PropertyField(r, distanceFadeStart, GUIContent.none);
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.FadeEnd, "parameters", 60, (r, prop, dep) =>          // 8: Distance Fade End
+                {
+                    SerializedProperty distanceFadeEnd = prop.FindPropertyRelative("distanceFadeEnd");
+                    EditorGUI.PropertyField(r, distanceFadeEnd, GUIContent.none);
+                })
             };
         }
 
