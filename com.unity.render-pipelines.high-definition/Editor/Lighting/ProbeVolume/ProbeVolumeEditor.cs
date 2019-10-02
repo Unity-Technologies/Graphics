@@ -98,6 +98,8 @@ namespace UnityEditor.Rendering.HighDefinition
             HierarchicalBox shapeBox = shapeBoxes[probeVolume];
             HierarchicalBox blendBox = blendBoxes[probeVolume];
 
+            probeVolume.DrawSelectedProbes();
+
             switch (EditMode.editMode)
             {
                 case k_EditBlend:

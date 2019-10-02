@@ -216,12 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        protected void Update()
-        {
-            if (parameters.drawProbes)
-                DrawProbes();
-        }
-        
+
         protected void OnValidate()
         {
             parameters.Constrain();
@@ -390,10 +385,39 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), positions);
         }
 
-        public void DrawProbes()
+        protected static bool ShouldDrawGizmos()
         {
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.lastActiveSceneView;
             if (sceneView != null && !sceneView.drawGizmos)
+                return false;
+
+            return true;
+        }
+
+        [UnityEditor.DrawGizmo(UnityEditor.GizmoType.NotInSelectionHierarchy)]
+        protected static void DrawProbes(ProbeVolume probeVolume, UnityEditor.GizmoType gizmoType)
+        {
+            if (!ShouldDrawGizmos())
+                return;
+
+            if (!probeVolume.parameters.drawProbes)
+                return;
+
+            probeVolume.SetupPositions();
+
+            var pointMeshList = probeVolume.m_DebugProbePointMeshList;
+
+            probeVolume.m_DebugMaterial.SetPass(8);
+            foreach (Mesh debugMesh in pointMeshList)
+                Graphics.DrawMeshNow(debugMesh, Matrix4x4.identity);
+        }
+
+        public void DrawSelectedProbes()
+        {
+            if (!ShouldDrawGizmos())
+                return;
+
+            if (!parameters.drawProbes)
                 return;
 
             SetupPositions();
@@ -407,32 +431,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             material.enableInstancing = true;
 
-            if (!UnityEditor.Selection.Contains(this.gameObject))
-            {
-                foreach (Mesh debugMesh in m_DebugProbePointMeshList)
-                    Graphics.DrawMesh(debugMesh, Matrix4x4.identity, material, layer);
-            }
-            else
-            {
-                Mesh mesh = m_DebugMesh;
+            Mesh mesh = m_DebugMesh;
 
-                if (!mesh)
-                    return;
+            if (!mesh)
+                return;
 
-                int submeshIndex = 0;
-                MaterialPropertyBlock properties = null;
-                ShadowCastingMode castShadows = ShadowCastingMode.Off;
-                bool receiveShadows = false;
+            int submeshIndex = 0;
+            MaterialPropertyBlock properties = null;
+            ShadowCastingMode castShadows = ShadowCastingMode.Off;
+            bool receiveShadows = false;
 
-                Camera emptyCamera = null;
-                LightProbeUsage lightProbeUsage = LightProbeUsage.Off;
-                LightProbeProxyVolume lightProbeProxyVolume = null;
+            Camera emptyCamera = null;
+            LightProbeUsage lightProbeUsage = LightProbeUsage.Off;
+            LightProbeProxyVolume lightProbeProxyVolume = null;
 
-                foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
-                {
-                    Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
-                }
-            }
+            foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
+                Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
         }
     }
 #endif
