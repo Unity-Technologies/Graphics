@@ -241,6 +241,7 @@ namespace UnityEditor.ShaderGraph
                 finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl""");
+                finalShader.AppendLine(@"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl""");
                 finalShader.AppendLine(@"#include ""Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl""");
