@@ -94,6 +94,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected void OnSceneGUI()
         {
+            if (Event.current.type != EventType.Layout)
+                return;
+
             ProbeVolume probeVolume = target as ProbeVolume;
             HierarchicalBox shapeBox = shapeBoxes[probeVolume];
             HierarchicalBox blendBox = blendBoxes[probeVolume];
