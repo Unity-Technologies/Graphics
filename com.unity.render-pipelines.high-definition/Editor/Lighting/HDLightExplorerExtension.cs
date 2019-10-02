@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetProbeVolumes()
         {
-            return UnityEngine.Object.FindObjectsOfType<ProbeVolume>();
+            return Resources.FindObjectsOfTypeAll<ProbeVolume>();
         }
 
         protected virtual LightingExplorerTableColumn[] GetHDLightColumns()
