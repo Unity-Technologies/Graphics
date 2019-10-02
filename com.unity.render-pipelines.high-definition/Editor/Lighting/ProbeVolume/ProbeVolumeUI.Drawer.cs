@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 GUILayout.FlexibleSpace();
 
                 bool advanced = serialized.advancedFade.boolValue;
-                advanced = GUILayout.Toggle(advanced, Styles.s_AdvancedModeContent, EditorStyles.miniButton, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
+                advanced = GUILayout.Toggle(advanced, Styles.s_AdvancedModeContent, EditorStyles.miniButton, GUILayout.Width(70f), GUILayout.ExpandWidth(false));
                 foreach (var containedBox in ProbeVolumeEditor.blendBoxes.Values)
                 {
                     containedBox.monoHandle = !advanced;
