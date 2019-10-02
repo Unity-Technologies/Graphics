@@ -643,7 +643,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (UnityEditor.PlayerSettings.colorSpace == ColorSpace.Gamma)
             {
-                Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode");
+                Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
             }
 #endif
 
@@ -2261,7 +2261,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new BlitFinalCameraTextureParameters();
 
             // Blit only the last slice if specified by layout override
-            parameters.srcTexArraySlice = (m_XRSystem.layoutOverride == XRLayoutOverride.TestSinglePassOneEye) ? (hdCamera.viewCount - 1) : -1;
+            parameters.srcTexArraySlice = (XRSystem.layoutOverride == XRLayoutOverride.TestSinglePassOneEye) ? (hdCamera.viewCount - 1) : -1;
 
             // Blit to the requested array slice or bind them all (-1)
             parameters.dstTexArraySlice = hdCamera.xr.enabled ? hdCamera.xr.dstSliceIndex : -1;
