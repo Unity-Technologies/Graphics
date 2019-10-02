@@ -105,7 +105,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ResolutionX = EditorGUIUtility.TrTextContent("Resolution X");
             public static readonly GUIContent ResolutionY = EditorGUIUtility.TrTextContent("Resolution Y");
             public static readonly GUIContent ResolutionZ = EditorGUIUtility.TrTextContent("Resolution Z");
-            public static readonly GUIContent BlendDistance = EditorGUIUtility.TrTextContent("Blend Distance");
             public static readonly GUIContent FadeStart = EditorGUIUtility.TrTextContent("Fade Start");
             public static readonly GUIContent FadeEnd = EditorGUIUtility.TrTextContent("Fade End");
 
@@ -614,15 +613,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     return lhs.FindPropertyRelative("resolutionZ").intValue.CompareTo(rhs.FindPropertyRelative("resolutionZ").intValue);
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.BlendDistance, "parameters", 85, (r, prop, dep) =>    // 6: Blend Distance
-                {
-                    SerializedProperty uniformFade = prop.FindPropertyRelative("m_UniformFade");
-                    EditorGUI.PropertyField(r, uniformFade, GUIContent.none);
-                }, (lhs, rhs) =>
-                {
-                    return lhs.FindPropertyRelative("m_UniformFade").floatValue.CompareTo(rhs.FindPropertyRelative("m_UniformFade").floatValue);
-                }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeStart, "parameters", 65, (r, prop, dep) =>        // 7: Distance Fade Start
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeStart, "parameters", 65, (r, prop, dep) =>        // 6: Distance Fade Start
                 {
                     SerializedProperty distanceFadeStart = prop.FindPropertyRelative("distanceFadeStart");
                     EditorGUI.PropertyField(r, distanceFadeStart, GUIContent.none);
@@ -630,7 +621,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     return lhs.FindPropertyRelative("distanceFadeStart").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeStart").floatValue);
                 }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeEnd, "parameters", 65, (r, prop, dep) =>          // 8: Distance Fade End
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeEnd, "parameters", 65, (r, prop, dep) =>          // 7: Distance Fade End
                 {
                     SerializedProperty distanceFadeEnd = prop.FindPropertyRelative("distanceFadeEnd");
                     EditorGUI.PropertyField(r, distanceFadeEnd, GUIContent.none);
