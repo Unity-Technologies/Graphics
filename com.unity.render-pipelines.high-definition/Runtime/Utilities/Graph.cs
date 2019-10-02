@@ -234,6 +234,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+    public static class ArrayList<T>
+        where T : struct
+    {
+        public static ArrayList<T, A> New<A>(A allocator)
+        where A : IMemoryAllocator
+            => new ArrayList<T, A>(allocator);
+    }
+
     public unsafe struct ArrayList<T, A>
         where T: struct
         where A: IMemoryAllocator
