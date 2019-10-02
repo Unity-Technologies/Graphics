@@ -315,10 +315,47 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        #region Targets
         [NonSerialized]
-        List<ITarget> m_Targets = new List<ITarget>();
+        List<ITarget> m_ValidTargets = new List<ITarget>();
 
-        public List<ITarget> targets => m_Targets;
+        public List<ITarget> validTargets => m_ValidTargets;
+        
+        [SerializeField]
+        int m_ActiveTargetIndex;
+
+        public int activeTargetIndex
+        {
+            get => m_ActiveTargetIndex;
+            set => m_ActiveTargetIndex = value;
+        }
+
+        public ITarget activeTarget => m_ValidTargets[m_ActiveTargetIndex];
+
+        [NonSerialized]
+        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
+
+        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
+
+        [SerializeField]
+        int m_ActiveTargetImplementationBitmask = -1;
+
+        public int activeTargetImplementationBitmask
+        {
+            get => m_ActiveTargetImplementationBitmask;
+            set => m_ActiveTargetImplementationBitmask = value;
+        }
+
+        public List<ITargetImplementation> activeTargetImplementations
+        {
+            get
+            {
+                // Return a list of all valid TargetImplementations enabled in the bitmask
+                return m_ValidImplementations.Where(s => ((1 << m_ValidImplementations.IndexOf(s)) & 
+                    m_ActiveTargetImplementationBitmask) == (1 << m_ValidImplementations.IndexOf(s))).ToList();
+            }
+        }
+        #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
 
@@ -1352,31 +1389,88 @@ namespace UnityEditor.ShaderGraph
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
         }
 
-        void UpdateTargets()
+        public void UpdateTargets()
         {
-            targets.Clear();
+            // First get all valid TargetImplementations that are valid with the current graph
+            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())//
+            {
+                foreach (var type in assembly.GetTypesOrNothing())
+                {
+                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
+                    if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
+                    {
+                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
+                        if(implementation.IsValid(masterNode))
+                        {
+                            foundImplementations.Add(implementation);
+                        }
+                    }
+                }
+            }
+
+            // Next we get all Targets that have valid TargetImplementations
+            List<ITarget> foundTargets = new List<ITarget>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypesOrNothing())
                 {
-                    var isValid = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
-                    if (isValid && !targets.Any(s => s.GetType() == type))
+                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
+                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
                     {
-                        try
-                        {
-                            var target = (ITarget)Activator.CreateInstance(type);
-                            var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                            ISubShader subShader;
-                            if(target.TryGetSubShader(masterNode, out subShader))
-                            {
-                                m_Targets.Add(target);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
-                        }
+                        var target = (ITarget)Activator.CreateInstance(type);
+                        if(foundImplementations.Where(s => s.targetType == type).Any())
+                            foundTargets.Add(target);
                     }
+                }
+            }
+
+            // Assembly reload, just rebuild the non-serialized lists
+            if(m_ValidTargets.Count == 0)
+            {
+                m_ValidTargets = foundTargets;
+                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
+            }
+
+            // Active Target is no longer valid
+            // Reset all Target selections and return
+            if(!foundTargets.Select(s => s.GetType()).Contains(m_ValidTargets[m_ActiveTargetIndex].GetType()))
+            {
+                m_ActiveTargetIndex = 0; // Default
+                m_ActiveTargetImplementationBitmask = -1; // Everything
+                m_ValidTargets = foundTargets;
+                m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
+                return;
+            }
+
+            // Active Target index has changed
+            // Still need to validate TargetImplementation bitmask
+            if(foundTargets[m_ActiveTargetIndex].GetType() != activeTarget.GetType())
+            {
+                var activeTargetInFoundList = foundTargets.Where(s => s.GetType() == activeTarget.GetType()).FirstOrDefault();
+                m_ActiveTargetIndex = foundTargets.IndexOf(activeTargetInFoundList);
+            }
+
+            // Update valid Targets and TargetImplementations
+            m_ValidTargets = foundTargets;
+            m_ValidImplementations = foundImplementations.Where(s => s.targetType == activeTarget.GetType()).ToList();
+            
+            // Nothing or Everything. No need to update bitmask.
+            if(m_ActiveTargetImplementationBitmask == 0 || m_ActiveTargetImplementationBitmask == -1)
+                return;
+
+            // Current ITargetImplementation bitmask is set to Mixed...
+            // We need to build a new bitmask from the indicies in the new Implementation list
+            m_ActiveTargetImplementationBitmask = 0;
+            foreach(ITargetImplementation implementation in activeTargetImplementations)
+            {
+                var implementationInFound = foundImplementations.Where(s => s.GetType() == implementation.GetType()).FirstOrDefault();
+                if(implementationInFound != null)
+                {
+                    // If the new Implementation list contains this Implementation
+                    // add its new index to the bitmask
+                    m_ActiveTargetImplementationBitmask = m_ActiveTargetImplementationBitmask | foundImplementations.IndexOf(implementationInFound);
                 }
             }
         }

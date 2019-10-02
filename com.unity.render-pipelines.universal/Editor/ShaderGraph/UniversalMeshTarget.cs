@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.Experimental.Rendering.Universal;
@@ -7,38 +8,98 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class UniversalMeshTarget : ITargetVariant<MeshTarget>
+    class UniversalMeshTargetImplementation : ITargetImplementation
     {
+        public Type targetType => typeof(MeshTarget);
         public string displayName => "Universal";
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+        public bool IsValid(IMasterNode masterNode)
         {
-            return pipelineAsset is UniversalRenderPipelineAsset;
+            if(GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset)
+            {
+                if (masterNode is PBRMasterNode ||
+                    masterNode is UnlitMasterNode ||
+                    masterNode is SpriteLitMasterNode ||
+                    masterNode is SpriteUnlitMasterNode)
+                {
+                    return true;
+                }   
+            }
+
+            return false;
         }
 
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
+        public void SetupTarget(ref TargetSetupContext context)
         {
-            switch(masterNode)
+            switch(context.masterNode)
             {
                 case PBRMasterNode pbrMasterNode:
-                    subShader = new UniversalPBRSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.PBR);
+                    break;
                 case UnlitMasterNode unlitMasterNode:
-                    subShader = new UniversalUnlitSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.Unlit);
+                    break;
                 case SpriteLitMasterNode spriteLitMasterNode:
-                    subShader = new UniversalSpriteLitSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.SpriteLit);
+                    break;
                 case SpriteUnlitMasterNode spriteUnlitMasterNode:
-                    subShader = new UniversalSpriteUnlitSubShader();
-                    return true;
-                default:
-                    subShader = null;
-                    return false;
+                    context.SetupSubShader(SubShaders.SpriteUnlit);
+                    break;
             }
         }
+
+#region SubShaders
+        public static class SubShaders
+        {
+            const string kPipelineTag = "UniversalPipeline";
+
+            public static SubShaderDescriptor PBR = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.Forward,
+                    Passes.ShadowCaster,
+                    Passes.DepthOnly,
+                    Passes.Meta,
+                    Passes._2D,
+                },
+            };
+
+            public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.Unlit,
+                    Passes.ShadowCaster,
+                    Passes.DepthOnly,
+                },
+            };
+
+            public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.SpriteLit,
+                    Passes.SpriteNormal,
+                    Passes.SpriteForward,
+                },
+            };
+
+            public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    Passes.SpriteUnlit,
+                },
+            };
+        }
+#endregion
 
 #region Passes
         public static class Passes
@@ -88,7 +149,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
+                renderStates = UniversalMeshTargetImplementation.RenderStates.DepthOnly,
                 pragmas = Pragmas.Instanced,
                 includes = Includes.PBRDepthOnly,
             };
@@ -112,7 +173,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
+                renderStates = UniversalMeshTargetImplementation.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Instanced,
                 includes = Includes.PBRShadowCaster,
             };
@@ -136,7 +197,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
+                renderStates = UniversalMeshTargetImplementation.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.PBRMeta,
                 includes = Includes.PBRMeta,
@@ -159,7 +220,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.Default,
+                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
                 includes = Includes.PBR2D,
             };
@@ -182,7 +243,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.Default,
+                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
                 keywords = Keywords.Unlit,
                 includes = Includes.Basic,
@@ -208,7 +269,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.Default,
+                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.SpriteLit,
                 includes = Includes.SpriteLit,
@@ -234,7 +295,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.Default,
+                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
                 pragmas = Pragmas.Default,
                 includes = Includes.SpriteNormal,
             };
@@ -390,10 +451,10 @@ namespace UnityEditor.Rendering.Universal
         {
             public static StructDescriptor[] Default = new StructDescriptor[]
             {
-                UniversalMeshTarget.Attributes,
-                UniversalMeshTarget.Varyings,
-                UniversalMeshTarget.SurfaceDescriptionInputs,
-                UniversalMeshTarget.VertexDescriptionInputs,
+                UniversalMeshTargetImplementation.Attributes,
+                UniversalMeshTargetImplementation.Varyings,
+                UniversalMeshTargetImplementation.SurfaceDescriptionInputs,
+                UniversalMeshTargetImplementation.VertexDescriptionInputs,
             };
         }
 #endregion
@@ -409,10 +470,10 @@ namespace UnityEditor.Rendering.Universal
                 MeshTarget.ShaderStructs.Varyings.tangentWS,                        // needed for vertex lighting
                 MeshTarget.ShaderStructs.Varyings.bitangentWS,
                 MeshTarget.ShaderStructs.Varyings.viewDirectionWS,
-                UniversalMeshTarget.ShaderStructs.Varyings.lightmapUV,
-                UniversalMeshTarget.ShaderStructs.Varyings.sh,
-                UniversalMeshTarget.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                UniversalMeshTarget.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.lightmapUV,
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.sh,
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
             public static IField[] PBRShadowCaster = new IField[]

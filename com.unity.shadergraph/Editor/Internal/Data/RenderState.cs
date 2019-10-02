@@ -135,7 +135,7 @@
 
         public static RenderState Stencil(Stencil value)
         {
-            return new RenderState(Type.Stencil, value.ToString());
+            return new RenderState(Type.Stencil, value.ToShaderString());
         }
     }
 }

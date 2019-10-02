@@ -57,6 +57,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             });
         }
 
+        public string renderQueueTag => $"{RenderQueue.Transparent}";
+        public string renderTypeTag => $"{RenderType.Transparent}";
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             return new ConditionalField[]

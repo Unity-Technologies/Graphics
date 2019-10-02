@@ -6,19 +6,18 @@ namespace UnityEditor.ShaderGraph.Internal
     class PreviewTarget : ITarget
     {
         public string displayName => "PREVIEW";
-        public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
-        public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+#region SubShaders
+        public static class SubShaders
         {
-            return false;
+            public static SubShaderDescriptor Preview = new SubShaderDescriptor()
+            {
+                renderQueueOverride = "Geometry",
+                renderTypeOverride = "Opaque",
+                passes = new ShaderPass[] { Passes.Preview },
+            };
         }
-
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
-        {
-            subShader = null;
-            return false;
-        }
+#endregion
 
 #region Passes
         public static class Passes
