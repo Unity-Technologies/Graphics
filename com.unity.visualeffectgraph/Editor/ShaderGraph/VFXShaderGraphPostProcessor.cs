@@ -61,9 +61,6 @@ namespace UnityEditor.VFX
 
                             sgOutput.ResyncSlots(true);
                         }
-
-                        graph.SetExpressionGraphDirty();
-                        graph.RecompileIfNeeded();
                     }
                 }
 

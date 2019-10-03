@@ -230,8 +230,6 @@ namespace  UnityEditor.VFX.UI
 
         public bool autoCompile {get; set; }
 
-        public bool autoCompileDependent { get; set; }
-
         void Update()
         {
             if (graphView == null)
@@ -259,8 +257,8 @@ namespace  UnityEditor.VFX.UI
                             filename += "*";
                         }
 
-
-                        graph.RecompileIfNeeded(!autoCompile,!autoCompileDependent);
+                        if (autoCompile && graph.IsExpressionGraphDirty())
+                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
                         controller.RecompileExpressionGraphIfNeeded();
                     }
                 }
