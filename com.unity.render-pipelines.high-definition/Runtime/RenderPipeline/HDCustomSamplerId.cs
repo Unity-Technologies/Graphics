@@ -90,6 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
+        AlphaCopy,
         StopNaNs,
         Exposure,
         TemporalAntialiasing,
