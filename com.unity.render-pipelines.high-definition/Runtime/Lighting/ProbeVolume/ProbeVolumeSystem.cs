@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             maxY = s_ProbeVolumeAtlasHeight;
             maxX = s_ProbeVolumeAtlasWidth;
-            maxZ = s_ProbeVolumeAtlasWidth / Mathf.Min(maxX, requestedX);
+            maxZ = s_ProbeVolumeAtlasWidth / Mathf.Clamp(requestedX, 1, maxX);
         }
 
         public void Build(HDRenderPipelineAsset asset)
