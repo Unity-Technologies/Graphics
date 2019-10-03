@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -73,6 +73,10 @@ namespace UnityEditor.ShaderGraph
             {
                 return 1;
             }
+            if(typeName.Equals("UInt32_4"))
+            {
+                return 4;
+            }
             else
             {
                 return 0;
@@ -92,6 +96,9 @@ namespace UnityEditor.ShaderGraph
         {
             "unknown",
             "uint",
+            "uint2",
+            "uint3",
+            "uint4",
         };
 
         private static char[] channelNames =
