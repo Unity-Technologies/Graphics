@@ -548,16 +548,6 @@ namespace UnityEditor.ShaderGraph
                     dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_DOTS_INSTANCING_ENABLED");
                     dotsInstancingOptionsBuilder.AppendLine("#endif");
-                    dotsInstancingOptionsBuilder.AppendLine("#pragma instancing_options nolightprobe");
-                    dotsInstancingOptionsBuilder.AppendLine("#pragma instancing_options nolodfade");
-                }
-                else
-                {
-                    if (pass.defaultDotsInstancingOptions != null)
-                    {
-                        foreach (var instancingOption in pass.defaultDotsInstancingOptions)
-                            dotsInstancingOptionsBuilder.AppendLine(instancingOption);
-                    }
                 }
                 if(dotsInstancingOptionsBuilder.length == 0)
                     dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");

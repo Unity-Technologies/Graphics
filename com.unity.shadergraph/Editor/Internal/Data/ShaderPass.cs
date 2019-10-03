@@ -84,7 +84,6 @@ namespace UnityEditor.ShaderGraph.Internal
         public ConditionalDefine[] defines;
         public ConditionalKeyword[] keywords;
         public ConditionalInclude[] includes;
-        public IEnumerable<string> defaultDotsInstancingOptions;
 
         // Custom Template
         public string passTemplatePath;

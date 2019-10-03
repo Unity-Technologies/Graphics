@@ -932,19 +932,25 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                HDRenderQueue.RenderQueueType renderPass;
                 if(renderingPass == HDRenderQueue.RenderQueueType.Unknown)
                 {
                     switch(surfaceType)
                     {
                         case SurfaceType.Opaque:
-                            renderPass = HDRenderQueue.RenderQueueType.Opaque;
+                            renderingPass = HDRenderQueue.RenderQueueType.Opaque;
                             break;
                         case SurfaceType.Transparent:
+                        #pragma warning disable CS0618 // Type or member is obsolete
                             if (m_DrawBeforeRefraction)
-                                renderPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            {
+                                m_DrawBeforeRefraction = false;
+                        #pragma warning restore CS0618 // Type or member is obsolete
+                                renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            }
                             else 
-                                renderPass = HDRenderQueue.RenderQueueType.Transparent;
+                            {
+                                renderingPass = HDRenderQueue.RenderQueueType.Transparent;
+                            }
                             break;
                     }
                 }
@@ -969,6 +975,12 @@ namespace UnityEditor.Rendering.HighDefinition
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
             var coatMaskSlot = FindSlot<Vector1MaterialSlot>(CoatMaskSlotId);
 
+            // We need this to know if there are any Dots properties active
+            // Ideally we do this another way but HDLit needs this for conditional pragmas
+            var shaderProperties = new PropertyCollector();
+            owner.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
+            bool hasDotsProperties = shaderProperties.GetDotsInstancingPropertiesCount(GenerationMode.ForReals) > 0;
+
             return new ConditionalField[]
             {
                 // Features
@@ -981,6 +993,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
                 
+                // Dots
+                new ConditionalField(HDRPShaderGraphFields.DotsInstancing,              dotsInstancing.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DotsProperties,              hasDotsProperties),
+
                 // Material
                 new ConditionalField(HDRPShaderGraphFields.Anisotropy,                  materialType == MaterialType.Anisotropy),
                 new ConditionalField(HDRPShaderGraphFields.Iridescence,                 materialType == MaterialType.Iridescence),

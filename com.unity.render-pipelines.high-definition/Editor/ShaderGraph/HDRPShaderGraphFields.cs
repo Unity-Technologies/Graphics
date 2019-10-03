@@ -6,6 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
 #region Tags
         const string kMaterial = "Material";
+        const string kDots = "Dots";
         const string kSpecular = "Specular";
         const string kDoubleSided = "DoubleSided";
         const string kDistortion = "Distortion";
@@ -44,6 +45,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor AffectsSmoothness =       new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
         public static FieldDescriptor AffectsMaskMap =          new FieldDescriptor(kMaterial, "AffectsMaskMap", "_MATERIAL_AFFECTS_MASKMAP 1");
         public static FieldDescriptor DecalDefault =            new FieldDescriptor(kMaterial, "DecalDefault", "");
+
+        // Dots
+        public static FieldDescriptor DotsInstancing =          new FieldDescriptor(kDots, "Instancing", "");
+        public static FieldDescriptor DotsProperties =          new FieldDescriptor(kDots, "Properties", "");
 
         // Specular
         public static FieldDescriptor EnergyConservingSpecular = new FieldDescriptor(kSpecular, "EnergyConserving", "_ENERGY_CONSERVING_SPECULAR 1");

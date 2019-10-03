@@ -773,7 +773,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 
                 // Conditional State
                 renderStates = RenderStates.HDLitGBuffer,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.ShaderGraphRaytracingHigh,
                 keywords = Keywords.HDGBuffer,
                 includes = Includes.Lit,
@@ -801,7 +801,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 
                 // Conditional State
                 renderStates = RenderStates.Meta,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.ShaderGraphRaytracingHigh,
                 keywords = Keywords.HDBase,
                 includes = Includes.Lit,
@@ -829,7 +829,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Conditional State
                 renderStates = RenderStates.HDShadowCaster,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.ShaderGraphRaytracingHigh,
                 keywords = Keywords.HDBase,
                 includes = Includes.Lit,
@@ -857,7 +857,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Conditional State
                 renderStates = RenderStates.HDSceneSelection,
-                pragmas = Pragmas.InstancedEditorSync,
+                pragmas = Pragmas.DotsInstancedEditorSync,
                 defines = Defines.SceneSelection,
                 keywords = Keywords.HDBase,
                 includes = Includes.Lit,
@@ -886,7 +886,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 
                 // Conditional State
                 renderStates = RenderStates.HDDepthOnly,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.ShaderGraphRaytracingHigh,
                 keywords = Keywords.HDLitDepthMotionVectors,
                 includes = Includes.Lit,
@@ -915,7 +915,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 
                 // Conditional State
                 renderStates = RenderStates.HDMotionVectors,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.ShaderGraphRaytracingHigh,
                 keywords = Keywords.HDLitDepthMotionVectors,
                 includes = Includes.Lit,
@@ -943,7 +943,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Conditional State
                 renderStates= RenderStates.HDLitDistortion,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.ShaderGraphRaytracingHigh,
                 keywords = Keywords.HDBase,
                 includes = Includes.Lit,
@@ -971,7 +971,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Conditional State
                 renderStates = RenderStates.HDTransparentDepthPrePostPass,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.TransparentDepthPrepass,
                 keywords = Keywords.HDBase,
                 includes = Includes.Lit,
@@ -999,7 +999,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Conditional State
                 renderStates = RenderStates.HDTransparentBackface,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.Forward,
                 keywords = Keywords.HDForward,
                 includes = Includes.LitForward,
@@ -1028,7 +1028,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 
                 // Conditional State
                 renderStates = RenderStates.HDForwardColorMask,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.Forward,
                 keywords = Keywords.HDForward,
                 includes = Includes.LitForward,
@@ -1056,7 +1056,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Conditional State
                 renderStates = RenderStates.HDTransparentDepthPrePostPass,
-                pragmas = Pragmas.Instanced,
+                pragmas = Pragmas.DotsInstanced,
                 defines = Defines.TransparentDepthPostpass,
                 keywords = Keywords.HDBase,
                 includes = Includes.Lit,
@@ -3079,6 +3079,91 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
                 new ConditionalPragma(Pragma.Custom("instancing_options renderinglayer")),
                 new ConditionalPragma(Pragma.Custom("editor_sync_compilation")),
+            };
+
+            public static ConditionalPragma[] DotsInstanced = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolightprobe"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolightprobe"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, false),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolightprobe"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, false), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolodfade"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolodfade"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, false),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolodfade"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, false), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options renderinglayer"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, false), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, false),
+                }),
+            };
+
+            public static ConditionalPragma[] DotsInstancedEditorSync = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
+                new ConditionalPragma(Pragma.Custom("editor_sync_compilation")),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolightprobe"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolightprobe"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, false),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolightprobe"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, false), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolodfade"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolodfade"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, true), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, false),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options nolodfade"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, false), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, true),
+                }),
+                new ConditionalPragma(Pragma.Custom("instancing_options renderinglayer"), new FieldCondition[] 
+                { 
+                    new FieldCondition(HDRPShaderGraphFields.DotsInstancing, false), 
+                    new FieldCondition(HDRPShaderGraphFields.DotsProperties, false),
+                }),
             };
         }
 #endregion
