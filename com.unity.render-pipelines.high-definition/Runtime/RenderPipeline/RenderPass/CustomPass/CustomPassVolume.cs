@@ -15,7 +15,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Whether or not the volume is global. If true, the component will ignore all colliders attached to it
         /// </summary>
-        public bool isGlobal;
+        public bool isGlobal = true;
+
+        /// <summary>
+        /// Distance where the volume start to be rendered, the fadeValue field in C# will be updated to the normalized blend factor for your custom C# passes
+        /// In the fullscreen shader pass and DrawRenderers shaders you can access the _FadeValue
+        /// </summary>
+        [Min(0)]
+        public float fadeRadius;
 
         /// <summary>
         /// List of custom passes to execute
@@ -29,6 +36,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Where the custom passes are going to be injected in HDRP
         /// </summary>
         public CustomPassInjectionPoint injectionPoint;
+
+        /// <summary>
+        /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.  
+        /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
+        /// </summary>
+        /// <value>The fade value that should be applied to the custom pass effect</value>
+        protected float fadeValue { get; private set; }
 
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
@@ -47,16 +61,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
-        internal void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CustomPass.RenderTargets targets)
+        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CustomPass.RenderTargets targets)
         {
+            bool executed = false;
+
             Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
 
             foreach (var pass in customPasses)
             {
                 if (pass != null && pass.enabled)
                     using (new ProfilingSample(cmd, pass.name))
-                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, targets);
+                    {
+                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, targets, fadeValue);
+                        executed = true;
+                    }
             }
+
+            return executed;
         }
 
         internal void CleanupPasses()
@@ -82,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
+                    volume.fadeValue = 1.0f;
                     m_OverlappingPassVolumes.Add(volume);
                     continue;
                 }
@@ -95,6 +117,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 volume.m_OverlappingColliders.Clear();
 
+                float sqrFadeRadius = volume.fadeRadius * volume.fadeRadius;
+                float minSqrDistance = 1e20f;
+
                 foreach (var collider in volume.m_Colliders)
                 {
                     if (!collider || !collider.enabled)
@@ -106,11 +131,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var closestPoint = collider.ClosestPoint(triggerPos);
                     var d = (closestPoint - triggerPos).sqrMagnitude;
+                    
+                    minSqrDistance = Mathf.Min(minSqrDistance, d);
 
                     // Update the list of overlapping colliders
-                    if (d <= 0)
+                    if (d <= sqrFadeRadius)
                         volume.m_OverlappingColliders.Add(collider);
                 }
+                
+                // update the fade value:
+                volume.fadeValue = 1.0f - Mathf.Clamp01(Mathf.Sqrt(minSqrDistance / sqrFadeRadius));
 
                 if (volume.m_OverlappingColliders.Count > 0)
                     m_OverlappingPassVolumes.Add(volume);
@@ -168,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDrawGizmos()
         {
-            if (isGlobal || m_Colliders.Count == 0)
+            if (isGlobal || m_Colliders.Count == 0 || !enabled)
                 return;
 
             var scale = transform.localScale;
@@ -193,12 +223,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     case BoxCollider c:
                         Gizmos.DrawCube(c.center, c.size);
+                        if (fadeRadius > 0)
+                        {
+                            // invert te scale for the fade radius because it's in fixed units
+                            Vector3 s = new Vector3(
+                                (fadeRadius * 2) / scale.x,
+                                (fadeRadius * 2) / scale.y,
+                                (fadeRadius * 2) / scale.z
+                            );
+                            Gizmos.DrawWireCube(c.center, c.size + s);
+                        }
                         break;
                     case SphereCollider c:
                         // For sphere the only scale that is used is the transform.x
                         Matrix4x4 oldMatrix = Gizmos.matrix;
                         Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * scale.x);
                         Gizmos.DrawSphere(c.center, c.radius);
+                        if (fadeRadius > 0)
+                            Gizmos.DrawWireSphere(c.center, c.radius + fadeRadius / scale.x);
                         Gizmos.matrix = oldMatrix;
                         break;
                     case MeshCollider c:
@@ -208,6 +250,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Mesh pivot should be centered or this won't work
                         Gizmos.DrawMesh(c.sharedMesh);
+
+                        // We don't display the Gizmo for fade distance mesh because the distances would be wrong
                         break;
                     default:
                         // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and

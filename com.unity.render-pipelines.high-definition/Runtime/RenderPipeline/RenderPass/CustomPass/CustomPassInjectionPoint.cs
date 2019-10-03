@@ -9,5 +9,6 @@ namespace UnityEngine.Rendering.HighDefinition
         BeforeRendering,
         BeforeTransparent,
         BeforePostProcess,
+        AfterPostProcess,
     }
 }
