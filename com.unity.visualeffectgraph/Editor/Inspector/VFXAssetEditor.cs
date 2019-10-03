@@ -83,7 +83,7 @@ class VFXExternalShaderProcessor : AssetPostprocessor
             }
         }
     }
-
+#if false
     static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
         foreach (var assetPath in deletedAssets)
@@ -140,6 +140,7 @@ class VFXExternalShaderProcessor : AssetPostprocessor
             AssetDatabase.ImportAsset(assetPath);
         }
     }
+#endif
 }
 
 [CustomEditor(typeof(VisualEffectAsset))]
