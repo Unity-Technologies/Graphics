@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
             using (m_Builder.BlockScope())
             {
-                SubShaderGenerator.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
+                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
                 
                 for(int i = 0; i < m_TargetImplementations.Length; i++)
                 {
@@ -405,16 +405,15 @@ namespace UnityEditor.ShaderGraph
                 string vertexGraphInputName = "VertexDescriptionInputs";
                 string vertexGraphOutputName = "VertexDescription";
                 string vertexGraphFunctionName = "VertexDescriptionFunction";
-                var vertexGraphInputGenerator = new ShaderGenerator();
                 var vertexGraphFunctionBuilder = new ShaderStringBuilder();
                 var vertexGraphOutputBuilder = new ShaderStringBuilder();
 
                 // Build vertex graph outputs
                 // Add struct fields to active fields
-                SubShaderGenerator.GenerateVertexDescriptionStruct(vertexGraphOutputBuilder, vertexSlots, vertexGraphOutputName, activeFields.baseInstance);
+                GenerationUtils.GenerateVertexDescriptionStruct(vertexGraphOutputBuilder, vertexSlots, vertexGraphOutputName, activeFields.baseInstance);
 
                 // Build vertex graph functions from ShaderPass vertex port mask
-                SubShaderGenerator.GenerateVertexDescriptionFunction(
+                GenerationUtils.GenerateVertexDescriptionFunction(
                     m_GraphData,
                     vertexGraphFunctionBuilder,
                     functionRegistry,
@@ -430,8 +429,6 @@ namespace UnityEditor.ShaderGraph
                     vertexGraphOutputName);
 
                 // Generate final shader strings
-                vertexBuilder.AppendLines(vertexGraphInputGenerator.GetShaderString(0, false));
-                vertexBuilder.AppendNewLine();
                 vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
                 vertexBuilder.AppendNewLine();
                 vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
@@ -449,16 +446,15 @@ namespace UnityEditor.ShaderGraph
             string pixelGraphInputName = "SurfaceDescriptionInputs";
             string pixelGraphOutputName = "SurfaceDescription";
             string pixelGraphFunctionName = "SurfaceDescriptionFunction";
-            var pixelGraphInputGenerator = new ShaderGenerator();
             var pixelGraphOutputBuilder = new ShaderStringBuilder();
             var pixelGraphFunctionBuilder = new ShaderStringBuilder();
 
             // Build pixel graph outputs
             // Add struct fields to active fields
-            SubShaderGenerator.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
+            GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
 
             // Build pixel graph functions from ShaderPass pixel port mask
-            SubShaderGenerator.GenerateSurfaceDescriptionFunction(
+            GenerationUtils.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 pixelNodePermutations,
                 m_OutputNode,
@@ -477,8 +473,6 @@ namespace UnityEditor.ShaderGraph
             using (var pixelBuilder = new ShaderStringBuilder())
             {
                 // Generate final shader strings
-                pixelBuilder.AppendLines(pixelGraphInputGenerator.GetShaderString(0, false));
-                pixelBuilder.AppendNewLine();
                 pixelBuilder.AppendLines(pixelGraphOutputBuilder.ToString());
                 pixelBuilder.AppendNewLine();
                 pixelBuilder.AppendLines(pixelGraphFunctionBuilder.ToString());

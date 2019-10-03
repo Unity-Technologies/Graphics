@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     static class GenerationUtils
     {
-        
+        const string kErrorString = @"ERROR!";
 
         internal static List<IField> GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
         {
@@ -505,6 +505,423 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             return activeSlots;
+        }
+
+        internal static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
+        {
+            var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
+
+            if (outputSlot == null)
+                return kErrorString;
+
+            var convertFromType = outputSlot.concreteValueType;
+            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            if (convertFromType == convertToType)
+                return rawOutput;
+
+            switch (convertToType)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return string.Format("({0}).x", rawOutput);
+                case ConcreteSlotValueType.Vector2:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("({0}.xx)", rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("({0}.xy)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                case ConcreteSlotValueType.Vector3:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("({0}.xxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("($precision3({0}, 0.0))", rawOutput);
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("({0}.xyz)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                case ConcreteSlotValueType.Vector4:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("({0}.xxxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("($precision4({0}, 0.0, 1.0))", rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                            return string.Format("($precision4({0}, 1.0))", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                case ConcreteSlotValueType.Matrix3:
+                    return rawOutput;
+                case ConcreteSlotValueType.Matrix2:
+                    return rawOutput;
+                default:
+                    return kErrorString;
+            }
+        }
+
+        internal static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)
+        {
+            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            return AdaptNodeOutputForPreview(node, outputSlotId, rawOutput);
+        }
+
+        internal static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int slotId, string variableName)
+        {
+            var slot = node.FindSlot<MaterialSlot>(slotId);
+
+            if (slot == null)
+                return kErrorString;
+
+            var convertFromType = slot.concreteValueType;
+
+            // preview is always dimension 4
+            switch (convertFromType)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
+                case ConcreteSlotValueType.Vector2:
+                    return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", variableName);
+                case ConcreteSlotValueType.Vector3:
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
+                case ConcreteSlotValueType.Vector4:
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
+                case ConcreteSlotValueType.Boolean:
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
+                default:
+                    return "half4(0, 0, 0, 0)";
+            }
+        }
+
+        static void GenerateSpaceTranslationSurfaceInputs(
+            NeededCoordinateSpace neededSpaces,
+            InterpolatorType interpolatorType,
+            ShaderStringBuilder builder,
+            string format = "float3 {0};")
+        {
+            if ((neededSpaces & NeededCoordinateSpace.Object) > 0)
+                builder.AppendLine(format, CoordinateSpace.Object.ToVariableName(interpolatorType));
+
+            if ((neededSpaces & NeededCoordinateSpace.World) > 0)
+                builder.AppendLine(format, CoordinateSpace.World.ToVariableName(interpolatorType));
+
+            if ((neededSpaces & NeededCoordinateSpace.View) > 0)
+                builder.AppendLine(format, CoordinateSpace.View.ToVariableName(interpolatorType));
+
+            if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
+                builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
+            
+            if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
+        }
+
+        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode)
+        {
+            sb.AppendLine("Properties");
+            using (sb.BlockScope())
+            {
+                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(prop.GetPropertyBlockString());
+                }
+
+                // Keywords use hardcoded state in preview
+                // Do not add them to the Property Block
+                if(mode == GenerationMode.Preview)
+                    return;
+
+                foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(key.GetPropertyBlockString());
+                }
+            }
+        }
+
+        internal static void GenerateSurfaceInputStruct(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName)
+        {
+            sb.AppendLine($"struct {structName}");
+            using (sb.BlockSemicolonScope())
+            {
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb);
+
+                if (requirements.requiresVertexColor)
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
+
+                if (requirements.requiresScreenPosition)
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                if (requirements.requiresFaceSign)
+                    sb.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
+                foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                    sb.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (requirements.requiresTime)
+                {
+                    sb.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
+            }
+        }
+
+        internal static void GenerateSurfaceInputTransferCode(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName, string variableName)
+        {
+            sb.AppendLine($"{structName} {variableName};");
+
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb, $"{variableName}.{{0}} = IN.{{0}};");
+
+            if (requirements.requiresVertexColor)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexColor} = IN.{ShaderGeneratorNames.VertexColor};");
+
+            if (requirements.requiresScreenPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.ScreenPosition} = IN.{ShaderGeneratorNames.ScreenPosition};");
+
+            if (requirements.requiresFaceSign)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.FaceSign} = IN.{ShaderGeneratorNames.FaceSign};");
+
+            foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                sb.AppendLine($"{variableName}.{channel.GetUVName()} = IN.{channel.GetUVName()};");
+
+            if (requirements.requiresTime)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
+            }
+        }
+
+        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool useIdsInNames = false)
+        {
+            surfaceDescriptionStruct.AppendLine("struct {0}", structName);
+            using (surfaceDescriptionStruct.BlockSemicolonScope())
+            {
+                if(slots != null)
+                {
+                    foreach (var slot in slots)
+                    {
+                        string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                        if (useIdsInNames)
+                        {
+                            hlslName = $"{hlslName}_{slot.id}";
+                        }
+
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
+
+                        if (activeFields != null)
+                        {
+                            var structField = new FieldDescriptor(structName, hlslName, "");
+                            activeFields.AddAll(structField);
+                        }
+                    }
+                }
+            }
+        }
+
+        internal static void GenerateSurfaceDescriptionFunction(
+            List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
+            AbstractMaterialNode rootNode,
+            GraphData graph,
+            ShaderStringBuilder surfaceDescriptionFunction,
+            FunctionRegistry functionRegistry,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GenerationMode mode,
+            string functionName = "PopulateSurfaceData",
+            string surfaceDescriptionName = "SurfaceDescription",
+            Vector1ShaderProperty outputIdProperty = null,
+            IEnumerable<MaterialSlot> slots = null,
+            string graphInputStructName = "SurfaceDescriptionInputs")
+        {
+            if (graph == null)
+                return;
+
+            graph.CollectShaderProperties(shaderProperties, mode);
+
+            surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
+            using (surfaceDescriptionFunction.BlockScope())
+            {
+                surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
+                for(int i = 0; i < nodes.Count; i++)
+                {
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                        shaderProperties, shaderKeywords,
+                        graph, mode);
+                }
+
+                functionRegistry.builder.currentNode = null;
+                surfaceDescriptionFunction.currentNode = null;
+
+                GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
+                    surfaceDescriptionFunction, mode);
+
+                surfaceDescriptionFunction.AppendLine("return surface;");
+            }
+        }
+
+        static void GenerateDescriptionForNode(
+            AbstractMaterialNode activeNode,
+            List<int> keywordPermutations,
+            FunctionRegistry functionRegistry,
+            ShaderStringBuilder descriptionFunction,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GraphData graph,
+            GenerationMode mode)
+        {
+            if (activeNode is IGeneratesFunction functionNode)
+            {
+                functionRegistry.builder.currentNode = activeNode;
+                functionNode.GenerateNodeFunction(functionRegistry, mode);
+                functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+            }
+
+            if (activeNode is IGeneratesBodyCode bodyNode)
+            {
+                if(keywordPermutations != null)
+                    descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
+
+                descriptionFunction.currentNode = activeNode;
+                bodyNode.GenerateNodeCode(descriptionFunction, mode);
+                descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+
+                if(keywordPermutations != null)
+                    descriptionFunction.AppendLine("#endif");
+            }
+
+            activeNode.CollectShaderProperties(shaderProperties, mode);
+
+            if (activeNode is SubGraphNode subGraphNode)
+            {
+                subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
+            }
+        }
+
+        static void GenerateSurfaceDescriptionRemap(
+            GraphData graph,
+            AbstractMaterialNode rootNode,
+            IEnumerable<MaterialSlot> slots,
+            ShaderStringBuilder surfaceDescriptionFunction,
+            GenerationMode mode)
+        {
+            if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
+            {
+                var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
+                foreach (var input in usedSlots)
+                {
+                    if (input != null)
+                    {
+                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                        var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
+                        if (rootNode is SubGraphOutputNode)
+                        {
+                            hlslName = $"{hlslName}_{input.id}";
+                        }
+                        if (foundEdges.Any())
+                        {
+                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                hlslName,
+                                rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
+                        }
+                        else
+                        {
+                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
+                        }
+                    }
+                }
+            }
+            else if (rootNode.hasPreview)
+            {
+                var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                if (slot != null)
+                {
+                    var slotValue = rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision);
+                    surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite({slotValue})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
+                }
+            }
+        }
+
+        const string k_VertexDescriptionStructName = "VertexDescription";
+        internal static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots, string structName = k_VertexDescriptionStructName, IActiveFieldsSet activeFields = null)
+        {
+            builder.AppendLine("struct {0}", structName);
+            using (builder.BlockSemicolonScope())
+            {
+                foreach (var slot in slots)
+                {
+                    string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    builder.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
+
+                    if (activeFields != null)
+                    {
+                        var structField = new FieldDescriptor(structName, hlslName, "");
+                        activeFields.AddAll(structField);
+                    }
+                }
+            }
+        }
+
+        internal static void GenerateVertexDescriptionFunction(
+            GraphData graph,
+            ShaderStringBuilder builder,
+            FunctionRegistry functionRegistry,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GenerationMode mode,
+            AbstractMaterialNode rootNode,
+            List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
+            List<MaterialSlot> slots,
+            string graphInputStructName = "VertexDescriptionInputs",
+            string functionName = "PopulateVertexData",
+            string graphOutputStructName = k_VertexDescriptionStructName)
+        {
+            if (graph == null)
+                return;
+
+            graph.CollectShaderProperties(shaderProperties, mode);
+
+            builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
+            using (builder.BlockScope())
+            {
+                builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
+                for(int i = 0; i < nodes.Count; i++)
+                {
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                        shaderProperties, shaderKeywords,
+                        graph, mode);
+                }
+
+                functionRegistry.builder.currentNode = null;
+                builder.currentNode = null;
+
+                if(slots.Count != 0)
+                {
+                    foreach (var slot in slots)
+                    {
+                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                        var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                        var slotValue = isSlotConnected ?
+                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                        builder.AppendLine("description.{0} = {1};", slotName, slotValue);
+                    }
+                }
+
+                builder.AppendLine("return description;");
+            }
         }
 
         internal static string GetSpliceCommand(string command, string token)
