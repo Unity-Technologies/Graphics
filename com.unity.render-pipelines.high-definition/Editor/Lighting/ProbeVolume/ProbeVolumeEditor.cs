@@ -94,14 +94,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected void OnSceneGUI()
         {
-            if (Event.current.type != EventType.Layout)
-                return;
-
             ProbeVolume probeVolume = target as ProbeVolume;
+
+            if (Event.current.type == EventType.Layout)
+                probeVolume.DrawSelectedProbes();
+
             HierarchicalBox shapeBox = shapeBoxes[probeVolume];
             HierarchicalBox blendBox = blendBoxes[probeVolume];
-
-            probeVolume.DrawSelectedProbes();
 
             switch (EditMode.editMode)
             {

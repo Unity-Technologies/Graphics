@@ -385,22 +385,22 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), positions);
         }
 
-        protected static bool ShouldDrawGizmos()
+        protected static bool ShouldDrawGizmos(ProbeVolume probeVolume)
         {
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.lastActiveSceneView;
             if (sceneView != null && !sceneView.drawGizmos)
                 return false;
 
-            return true;
+            if (!probeVolume.enabled)
+                return false;
+
+            return probeVolume.parameters.drawProbes;
         }
 
         [UnityEditor.DrawGizmo(UnityEditor.GizmoType.NotInSelectionHierarchy)]
         protected static void DrawProbes(ProbeVolume probeVolume, UnityEditor.GizmoType gizmoType)
         {
-            if (!ShouldDrawGizmos())
-                return;
-
-            if (!probeVolume.parameters.drawProbes)
+            if (!ShouldDrawGizmos(probeVolume))
                 return;
 
             probeVolume.SetupPositions();
@@ -414,10 +414,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DrawSelectedProbes()
         {
-            if (!ShouldDrawGizmos())
-                return;
-
-            if (!parameters.drawProbes)
+            if (!ShouldDrawGizmos(this))
                 return;
 
             SetupPositions();
