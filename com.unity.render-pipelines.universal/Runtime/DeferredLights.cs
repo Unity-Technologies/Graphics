@@ -37,8 +37,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public const int kTilePixelWidth = 16;
         public const int kTilePixelHeight = 16;
-        // Levels of hierarchical tiling. Each level process 4x4 finer tiles 
-        public const int kTilerDepth = 3;  // 16x16px tiles grid, 64x64px tiles grid, and 256x256px tiles grid
+        // Levels of hierarchical tiling. Each level process 4x4 finer tiles. For example:
+        // For platforms using 16x16 px tiles, we use a 16x16px tiles grid, a 64x64px tiles grid, and a 256x256px tiles grid
+        // For platforms using  8x8  px tiles, we use a  8x8px  tiles grid, a 32x32px tiles grid, and a 128x128px tiles grid
+        public const int kTilerDepth = 3;
+                                           
 
         public const int kMaxLightPerTile = 31;
 
@@ -203,28 +206,31 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             DeferredShaderData.instance.ResetBuffers();
 
-            // if(tiledDeferredShading) // <- could below code be skipped during stencil-only deferred shading?
-            // { ...
-
             // Precompute tile data again if the camera projection or the screen resolution has changed.
             if (m_RenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
-             || m_RenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
-             || m_CachedProjectionMatrix != renderingData.cameraData.camera.projectionMatrix)
+                || m_RenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
+                || m_CachedProjectionMatrix != renderingData.cameraData.camera.projectionMatrix)
             {
                 m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
                 m_RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
                 m_CachedProjectionMatrix = renderingData.cameraData.camera.projectionMatrix;
 
-                foreach (DeferredTiler tiler in m_Tilers)
+                if (tiledDeferredShading)
                 {
-                    tiler.PrecomputeTiles(renderingData.cameraData.camera.projectionMatrix,
-                        renderingData.cameraData.camera.orthographic, m_RenderWidth, m_RenderHeight);
+                    foreach (DeferredTiler tiler in m_Tilers)
+                    {
+                        tiler.PrecomputeTiles(renderingData.cameraData.camera.projectionMatrix,
+                            renderingData.cameraData.camera.orthographic, m_RenderWidth, m_RenderHeight);
+                    }
                 }
             }
 
-            // Allocate temporary resources for each hierarchical tiler.
-            foreach (DeferredTiler tiler in m_Tilers)
-                tiler.Setup();
+            if (tiledDeferredShading)
+            {
+                // Allocate temporary resources for each hierarchical tiler.
+                foreach (DeferredTiler tiler in m_Tilers)
+                    tiler.Setup();
+            }
 
             // Will hold point lights that will be rendered using tiles.
             NativeArray<DeferredTiler.PrePointLight> prePointLights;
@@ -239,75 +245,78 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.camera.nearClipPlane
             );
 
-            NativeArray<ushort> defaultIndices = new NativeArray<ushort>(prePointLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            for (int i = 0; i < prePointLights.Length; ++i)
-                defaultIndices[i] = (ushort)i;
-
-            // Cull tile-friendly lights into the coarse tile structure.
-            DeferredTiler coarsestTiler = m_Tilers[m_Tilers.Length - 1];
-            if (m_Tilers.Length != 1)
+            if(tiledDeferredShading)
             {
-                // Fill coarsestTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
-                coarsestTiler.CullIntermediateLights(ref prePointLights,
-                    ref defaultIndices, 0, prePointLights.Length,
-                    0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
-                );
+                NativeArray<ushort> defaultIndices = new NativeArray<ushort>(prePointLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                for (int i = 0; i < prePointLights.Length; ++i)
+                    defaultIndices[i] = (ushort)i;
 
-                // Filter to fine tile structure.
-                for (int t = m_Tilers.Length - 2; t >= 0; --t)
+                // Cull tile-friendly lights into the coarse tile structure.
+                DeferredTiler coarsestTiler = m_Tilers[m_Tilers.Length - 1];
+                if (m_Tilers.Length != 1)
                 {
-                    DeferredTiler fineTiler = m_Tilers[t];
-                    DeferredTiler coarseTiler = m_Tilers[t + 1];
-                    int fineTileXCount = fineTiler.GetTileXCount();
-                    int fineTileYCount = fineTiler.GetTileYCount();
-                    int coarseTileXCount = coarseTiler.GetTileXCount();
-                    int coarseTileYCount = coarseTiler.GetTileYCount();
-                    ref NativeArray<ushort> coarseTiles = ref coarseTiler.GetTiles();
-                    int coarseTileHeader = coarseTiler.GetTileHeader();
-                    int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
-                    int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
+                    // Fill coarsestTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                    coarsestTiler.CullIntermediateLights(ref prePointLights,
+                        ref defaultIndices, 0, prePointLights.Length,
+                        0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
+                    );
 
-                    for (int j = 0; j < coarseTileYCount; ++j)
-                    for (int i = 0; i < coarseTileXCount; ++i)
+                    // Filter to fine tile structure.
+                    for (int t = m_Tilers.Length - 2; t >= 0; --t)
                     {
-                        int fine_istart = i * fineStepX;
-                        int fine_jstart = j * fineStepY;
-                        int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
-                        int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
-                        int coarseTileOffset = coarseTiler.GetTileOffset(i, j);
-                        int coarseVisLightCount = coarseTiles[coarseTileOffset];
+                        DeferredTiler fineTiler = m_Tilers[t];
+                        DeferredTiler coarseTiler = m_Tilers[t + 1];
+                        int fineTileXCount = fineTiler.GetTileXCount();
+                        int fineTileYCount = fineTiler.GetTileYCount();
+                        int coarseTileXCount = coarseTiler.GetTileXCount();
+                        int coarseTileYCount = coarseTiler.GetTileYCount();
+                        ref NativeArray<ushort> coarseTiles = ref coarseTiler.GetTiles();
+                        int coarseTileHeader = coarseTiler.GetTileHeader();
+                        int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
+                        int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
 
-                        if (t != 0)
-                        {
-                            // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
-                            // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
-                            fineTiler.CullIntermediateLights(ref prePointLights,
-                                ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
-                                fine_istart, fine_iend, fine_jstart, fine_jend
-                            );
-                        }
-                        else
-                        {
-                            // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
-                            // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
-                            // Also fills additional per-tile "m_TileHeader" data
-                            fineTiler.CullFinalLights(ref prePointLights,
-                                ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
-                                fine_istart, fine_iend, fine_jstart, fine_jend
-                            );
-                        }
+                        for (int j = 0; j < coarseTileYCount; ++j)
+                            for (int i = 0; i < coarseTileXCount; ++i)
+                            {
+                                int fine_istart = i * fineStepX;
+                                int fine_jstart = j * fineStepY;
+                                int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
+                                int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
+                                int coarseTileOffset = coarseTiler.GetTileOffset(i, j);
+                                int coarseVisLightCount = coarseTiles[coarseTileOffset];
+
+                                if (t != 0)
+                                {
+                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                                    // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
+                                    fineTiler.CullIntermediateLights(ref prePointLights,
+                                        ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
+                                        fine_istart, fine_iend, fine_jstart, fine_jend
+                                    );
+                                }
+                                else
+                                {
+                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                                    // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
+                                    // Also fills additional per-tile "m_TileHeader" data
+                                    fineTiler.CullFinalLights(ref prePointLights,
+                                        ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
+                                        fine_istart, fine_iend, fine_jstart, fine_jend
+                                    );
+                                }
+                            }
                     }
                 }
-            }
-            else
-            {
-                coarsestTiler.CullFinalLights(ref prePointLights,
-                    ref defaultIndices, 0, prePointLights.Length,
-                    0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
-                );
-            }
+                else
+                {
+                    coarsestTiler.CullFinalLights(ref prePointLights,
+                        ref defaultIndices, 0, prePointLights.Length,
+                        0, coarsestTiler.GetTileXCount(), 0, coarsestTiler.GetTileYCount()
+                    );
+                }
 
-            defaultIndices.Dispose();
+                defaultIndices.Dispose();
+            }
 
             // We don't need this array anymore as all the lights have been inserted into the tile-grid structures.
             prePointLights.Dispose();
