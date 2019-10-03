@@ -625,6 +625,27 @@ namespace UnityEditor.Rendering.HighDefinition
             return new EyeSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
@@ -642,7 +663,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.EyePasses.MotionVectors)),
                 
                 // Material

@@ -751,6 +751,27 @@ namespace UnityEditor.Rendering.HighDefinition
             return new HairSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
@@ -768,7 +789,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
                 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.HairPasses.MotionVectors)),
                 // Material
                 new ConditionalField(HDRPShaderGraphFields.KajiyaKay,                   materialType == MaterialType.KajiyaKay),
@@ -811,6 +832,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.RimTransmissionIntensity,    IsSlotConnected(RimTransmissionIntensitySlotId) && 
                                                                                         pass.pixelPorts.Contains(RimTransmissionIntensitySlotId)),
                 new ConditionalField(HDRPShaderGraphFields.UseLightFacingNormal,        useLightFacingNormal.isOn),                                                                                                                                             
+                new ConditionalField(HDRPShaderGraphFields.TransparentBackFace,         surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPrePass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPostPass,    surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
             };
         }
 

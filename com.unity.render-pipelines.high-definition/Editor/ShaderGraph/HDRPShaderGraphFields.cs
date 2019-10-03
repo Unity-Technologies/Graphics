@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor AffectsAO =               new FieldDescriptor(kMaterial, "AffectsAO", "");
         public static FieldDescriptor AffectsSmoothness =       new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
         public static FieldDescriptor AffectsMaskMap =          new FieldDescriptor(kMaterial, "AffectsMaskMap", "_MATERIAL_AFFECTS_MASKMAP 1");
+        public static FieldDescriptor DecalDefault =            new FieldDescriptor(kMaterial, "DecalDefault", "");
 
         // Specular
         public static FieldDescriptor EnergyConservingSpecular = new FieldDescriptor(kSpecular, "EnergyConserving", "_ENERGY_CONSERVING_SPECULAR 1");
@@ -65,6 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor DistortionAdd =           new FieldDescriptor(kDistortion, "Add", "");
         public static FieldDescriptor DistortionMultiply =      new FieldDescriptor(kDistortion, "Multiply", "");
         public static FieldDescriptor DistortionReplace =       new FieldDescriptor(kDistortion, "Replace", "");
+        public static FieldDescriptor TransparentDistortion =    new FieldDescriptor(kDistortion, "TransparentDistortion", "");
 
         // Refraction
         public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "_HAS_REFRACTION 1");
@@ -100,6 +102,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor RimTransmissionIntensity = new FieldDescriptor(string.Empty, "RimTransmissionIntensity", "_RIM_TRANSMISSION_INTENSITY 1");
         public static FieldDescriptor UseLightFacingNormal =    new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
         public static FieldDescriptor CapHazinessIfNotMetallic = new FieldDescriptor(string.Empty, "CapHazinessIfNotMetallic", "");
+        public static FieldDescriptor TransparentBackFace =     new FieldDescriptor(string.Empty, "TransparentBackFace", string.Empty);
+        public static FieldDescriptor TransparentDepthPrePass = new FieldDescriptor(string.Empty, "TransparentDepthPrePass", string.Empty);
+        public static FieldDescriptor TransparentDepthPostPass = new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);
         
         // Advanced
         public static FieldDescriptor AnisotropyForAreaLights = new FieldDescriptor(string.Empty, "AnisotropyForAreaLights", "_ANISOTROPY_FOR_AREA_LIGHTS");
@@ -142,9 +147,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostBSDFRoughness = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostBSDFRoughness", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS");
         public static FieldDescriptor SpecularOcclusionConeFixupMethodTiltDirectionToGeomNormal = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "TiltDirectionToGeomNormal", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM");
         public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostAndTilt = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostAndTilt", "_BENT_VISIBILITY_FIXUP_FLAGS (BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS|BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)");
-
-        // TODO: ALEX - Move this...
-        public static FieldDescriptor IsFrontFace =             new FieldDescriptor("FragInputs", "isFrontFace", "");
 #endregion
     }
 }

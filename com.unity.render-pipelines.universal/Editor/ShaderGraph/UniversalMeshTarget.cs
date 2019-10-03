@@ -61,44 +61,44 @@ namespace UnityEditor.Rendering.Universal
             public static SubShaderDescriptor PBR = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.Forward,
-                    Passes.ShadowCaster,
-                    Passes.DepthOnly,
-                    Passes.Meta,
-                    Passes._2D,
+                    new ConditionalShaderPass(Passes.Forward),
+                    new ConditionalShaderPass(Passes.ShadowCaster),
+                    new ConditionalShaderPass(Passes.DepthOnly),
+                    new ConditionalShaderPass(Passes.Meta),
+                    new ConditionalShaderPass(Passes._2D),
                 },
             };
 
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.Unlit,
-                    Passes.ShadowCaster,
-                    Passes.DepthOnly,
+                    new ConditionalShaderPass(Passes.Unlit),
+                    new ConditionalShaderPass(Passes.ShadowCaster),
+                    new ConditionalShaderPass(Passes.DepthOnly),
                 },
             };
 
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.SpriteLit,
-                    Passes.SpriteNormal,
-                    Passes.SpriteForward,
+                    new ConditionalShaderPass(Passes.SpriteLit),
+                    new ConditionalShaderPass(Passes.SpriteNormal),
+                    new ConditionalShaderPass(Passes.SpriteForward),
                 },
             };
 
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.SpriteUnlit,
+                    new ConditionalShaderPass(Passes.SpriteUnlit),
                 },
             };
         }
@@ -454,10 +454,10 @@ namespace UnityEditor.Rendering.Universal
         {
             public static StructDescriptor[] Default = new StructDescriptor[]
             {
-                UniversalMeshTarget.Attributes,
-                UniversalMeshTarget.Varyings,
-                UniversalMeshTarget.SurfaceDescriptionInputs,
-                UniversalMeshTarget.VertexDescriptionInputs,
+                UniversalMeshTargetImplementation.Attributes,
+                UniversalMeshTargetImplementation.Varyings,
+                UniversalMeshTargetImplementation.SurfaceDescriptionInputs,
+                UniversalMeshTargetImplementation.VertexDescriptionInputs,
             };
         }
 #endregion
@@ -473,10 +473,10 @@ namespace UnityEditor.Rendering.Universal
                 MeshTarget.ShaderStructs.Varyings.tangentWS,                        // needed for vertex lighting
                 MeshTarget.ShaderStructs.Varyings.bitangentWS,
                 MeshTarget.ShaderStructs.Varyings.viewDirectionWS,
-                UniversalMeshTarget.ShaderStructs.Varyings.lightmapUV,
-                UniversalMeshTarget.ShaderStructs.Varyings.sh,
-                UniversalMeshTarget.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                UniversalMeshTarget.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.lightmapUV,
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.sh,
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalMeshTargetImplementation.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
             public static IField[] PBRShadowCaster = new IField[]

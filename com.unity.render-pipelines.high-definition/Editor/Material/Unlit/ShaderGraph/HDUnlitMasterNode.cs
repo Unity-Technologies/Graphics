@@ -348,6 +348,26 @@ namespace UnityEditor.Rendering.HighDefinition
             return new HDUnlitSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             return new ConditionalField[]
@@ -363,6 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.DistortionAdd,               distortionMode == DistortionMode.Add),
                 new ConditionalField(HDRPShaderGraphFields.DistortionMultiply,          distortionMode == DistortionMode.Multiply),
                 new ConditionalField(HDRPShaderGraphFields.DistortionReplace,           distortionMode == DistortionMode.Replace),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
                 
                 // Misc
                 new ConditionalField(DefaultFields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),

@@ -928,6 +928,42 @@ namespace UnityEditor.Rendering.HighDefinition
             return new HDLitSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                HDRenderQueue.RenderQueueType renderPass;
+                if(renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                {
+                    switch(surfaceType)
+                    {
+                        case SurfaceType.Opaque:
+                            renderPass = HDRenderQueue.RenderQueueType.Opaque;
+                            break;
+                        case SurfaceType.Transparent:
+                            if (m_DrawBeforeRefraction)
+                                renderPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            else 
+                                renderPass = HDRenderQueue.RenderQueueType.Transparent;
+                            break;
+                    }
+                }
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
@@ -942,7 +978,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.GraphPixel,                          true),
                 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
                 
                 // Material
@@ -977,6 +1013,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionFromAO,     specularOcclusionMode == SpecularOcclusionMode.FromAO),
                 new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionFromAOBentNormal, specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal),
                 new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionCustom,     specularOcclusionMode == SpecularOcclusionMode.Custom),
+
+                //Distortion
+                new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
 
                 // Refraction
                 new ConditionalField(HDRPShaderGraphFields.Refraction,                  HasRefraction()),
@@ -1013,6 +1052,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.BackLightingGI,              IsSlotConnected(BackLightingSlotId) && 
                                                                                         pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.DepthOffset,                 depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.TransparentBackFace,         surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPrePass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPostPass,    surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
             };
         }
 

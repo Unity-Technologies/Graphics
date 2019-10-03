@@ -62,6 +62,21 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string VertexTangentSlotName = "Vertex Tangent";
         public const int VertexTangentSlotID = 11;
 
+        [SerializeField]
+        SurfaceType m_SurfaceType;
+
+        public SurfaceType surfaceType
+        {
+            get { return m_SurfaceType; }
+            set
+            {
+                if (m_SurfaceType == value)
+                    return;
+
+                m_SurfaceType = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
@@ -207,6 +222,26 @@ namespace UnityEditor.Rendering.HighDefinition
             return new DecalSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                return HDRenderQueue.GetShaderTagValue(
+                    HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, drawOrder, false));
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             return new ConditionalField[]
@@ -225,6 +260,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.AffectsAO,           affectsAO.isOn),
                 new ConditionalField(HDRPShaderGraphFields.AffectsSmoothness,   affectsSmoothness.isOn),
                 new ConditionalField(HDRPShaderGraphFields.AffectsMaskMap,      affectsSmoothness.isOn || affectsMetal.isOn || affectsAO.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DecalDefault,        affectsAlbedo.isOn || affectsNormal.isOn || affectsMetal.isOn ||
+                                                                                affectsAO.isOn || affectsSmoothness.isOn ),
             };
         }
 

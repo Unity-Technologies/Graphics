@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -7,34 +8,42 @@ using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class HDRPRaytracingMeshTarget : ITargetVariant<MeshTarget>
+    class HDRPRaytracingMeshTarget : ITargetImplementation
     {
+        public Type targetType => typeof(MeshTarget);
         public string displayName => "HDRP Raytracing";
         public string passTemplatePath => string.Empty;
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph";
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+        public bool IsValid(IMasterNode masterNode)
         {
             #if ENABLE_RAYTRACING
-            return pipelineAsset is HDRenderPipelineAsset;
+            if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
+            {
+                if (masterNode is FabricMasterNode ||
+                    masterNode is HDLitMasterNode ||
+                    masterNode is HDUnlitMasterNode)
+                {
+                    return true;
+                }
+            }
             #endif
-
             return false;
         }
 
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
+        public void SetupTarget(ref TargetSetupContext context)
         {
-            switch(masterNode)
+            switch(context.masterNode)
             {
                 case FabricMasterNode fabricMasterNode:
-                    subShader = new FabricSubShader();
-                    return true;
-                case HDLitMasterNode hdLitMasterNode:
-                    subShader = new HDLitSubShader();
-                    return true;
-                default:
-                    subShader = null;
-                    return false;
+                    context.SetupSubShader(SubShaders.HDFabric);
+                    break;
+                case HDLitMasterNode hDLitMasterNode:
+                    context.SetupSubShader(SubShaders.HDLit);
+                    break;
+                case HDUnlitMasterNode hDUnlitMasterNode:
+                    context.SetupSubShader(SubShaders.HDUnlit);
+                    break;
             }
         }
 
@@ -42,6 +51,45 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/{materialName}/ShaderGraph/{materialName}RaytracingPass.template";
         }
+
+#region SubShaders
+        public static class SubShaders
+        {
+            public static SubShaderDescriptor HDFabric = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(FabricPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(FabricPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(FabricPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(FabricPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                },
+            };
+            public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(HDLitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDLitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDLitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDLitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                },
+            };
+            public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(HDUnlitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDUnlitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDUnlitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDUnlitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                },
+            };
+        }
+#endregion
 
 #region HD Lit Passes
         public static class HDLitPasses

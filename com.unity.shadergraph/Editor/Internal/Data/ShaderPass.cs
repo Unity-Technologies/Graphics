@@ -2,6 +2,28 @@
 
 namespace UnityEditor.ShaderGraph.Internal
 {
+    public class ConditionalShaderPass : IConditionalShaderPass
+    {
+        public ShaderPass shaderPass { get; }
+        public FieldCondition[] fieldConditions { get; }
+        public ConditionalShaderPass(ShaderPass shaderPass)
+        {
+            this.shaderPass = shaderPass;
+            this.fieldConditions = null;
+        }
+
+        public ConditionalShaderPass(ShaderPass shaderPass, FieldCondition fieldCondition)
+        {
+            this.shaderPass = shaderPass;
+            this.fieldConditions = new FieldCondition[] { fieldCondition };
+        }
+
+        public ConditionalShaderPass(ShaderPass shaderPass, FieldCondition[] fieldConditions)
+        {
+            this.shaderPass = shaderPass;
+            this.fieldConditions = fieldConditions;
+        }
+    }
     public struct ShaderPass
     {
         // Definition

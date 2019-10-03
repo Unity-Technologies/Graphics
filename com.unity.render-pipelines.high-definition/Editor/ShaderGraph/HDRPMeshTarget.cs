@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -8,48 +8,60 @@ using BlendOp = UnityEditor.ShaderGraph.Internal.BlendOp;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class HDRPMeshTarget : ITargetVariant<MeshTarget>
+    class HDRPMeshTarget : ITargetImplementation
     {
+        public Type targetType => typeof(MeshTarget);
         public string displayName => "HDRP";
         public string passTemplatePath => string.Empty;
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph";
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+        public bool IsValid(IMasterNode masterNode)
         {
-            return pipelineAsset is HDRenderPipelineAsset;
+            if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
+            {
+                if (masterNode is PBRMasterNode ||
+                    masterNode is UnlitMasterNode ||
+                    masterNode is HDUnlitMasterNode ||
+                    masterNode is HDLitMasterNode ||
+                    masterNode is StackLitMasterNode ||
+                    masterNode is HairMasterNode ||
+                    masterNode is FabricMasterNode ||
+                    masterNode is EyeMasterNode)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
+        public void SetupTarget(ref TargetSetupContext context)
         {
-            switch(masterNode)
+            switch(context.masterNode)
             {
+                case PBRMasterNode pBRMasterNode:
+                    context.SetupSubShader(SubShaders.PBR);
+                    break;
                 case UnlitMasterNode unlitMasterNode:
-                    subShader = new UnlitSubShader();
-                    return true;
-                case PBRMasterNode pbrMasterNode:
-                    subShader = new HDPBRSubShader();
-                    return true;
-                case HDUnlitMasterNode hdUnlitMasterNode:
-                    subShader = new HDUnlitSubShader();
-                    return true;
-                case HDLitMasterNode hdLitMasterNode:
-                    subShader = new HDLitSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.Unlit);
+                    break;
+                case HDUnlitMasterNode hDUnlitMasterNode:
+                    context.SetupSubShader(SubShaders.HDUnlit);
+                    break;
+                case HDLitMasterNode hDLitMasterNode:
+                    context.SetupSubShader(SubShaders.HDLit);
+                    break;
                 case EyeMasterNode eyeMasterNode:
-                    subShader = new EyeSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.HDEye);
+                    break;
                 case FabricMasterNode fabricMasterNode:
-                    subShader = new FabricSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.HDFabric);
+                    break;
                 case HairMasterNode hairMasterNode:
-                    subShader = new HairSubShader();
-                    return true;
+                    context.SetupSubShader(SubShaders.HDHair);
+                    break;
                 case StackLitMasterNode stackLitMasterNode:
-                    subShader = new StackLitSubShader();
-                    return true;
-                default:
-                    subShader = null;
-                    return false;
+                    context.SetupSubShader(SubShaders.HDStackLit);
+                    break;
             }
         }
 
@@ -57,6 +69,129 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/{materialName}/ShaderGraph/{materialName}Pass.template";
         }
+
+#region SubShaders
+        public static class SubShaders
+        {
+            public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                renderTypeOverride = HDRenderTypeTags.HDUnlitShader.ToString(),
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(UnlitPasses.ShadowCaster),
+                    new ConditionalShaderPass(UnlitPasses.META),
+                    new ConditionalShaderPass(UnlitPasses.SceneSelection),
+                    new ConditionalShaderPass(UnlitPasses.DepthForwardOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalShaderPass(UnlitPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalShaderPass(UnlitPasses.ForwardOnly),
+                },
+            };
+            public static SubShaderDescriptor PBR = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                renderTypeOverride = HDRenderTypeTags.HDUnlitShader.ToString(),
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(PBRPasses.ShadowCaster),
+                    new ConditionalShaderPass(PBRPasses.META),
+                    new ConditionalShaderPass(PBRPasses.SceneSelection),
+                    new ConditionalShaderPass(PBRPasses.DepthOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalShaderPass(PBRPasses.GBuffer, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalShaderPass(PBRPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalShaderPass(PBRPasses.Forward),
+                }
+            };
+            public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(HDUnlitPasses.ShadowCaster),
+                    new ConditionalShaderPass(HDUnlitPasses.META),
+                    new ConditionalShaderPass(HDUnlitPasses.SceneSelection),
+                    new ConditionalShaderPass(HDUnlitPasses.DepthForwardOnly),
+                    new ConditionalShaderPass(HDUnlitPasses.MotionVectors),
+                    new ConditionalShaderPass(HDUnlitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
+                    new ConditionalShaderPass(HDUnlitPasses.ForwardOnly),
+                },
+            };
+            public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(HDLitPasses.ShadowCaster),
+                    new ConditionalShaderPass(HDLitPasses.META),
+                    new ConditionalShaderPass(HDLitPasses.SceneSelection),
+                    new ConditionalShaderPass(HDLitPasses.DepthOnly),
+                    new ConditionalShaderPass(HDLitPasses.GBuffer),
+                    new ConditionalShaderPass(HDLitPasses.MotionVectors),
+                    new ConditionalShaderPass(HDLitPasses.DistortionVectors, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
+                    new ConditionalShaderPass(HDLitPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
+                    new ConditionalShaderPass(HDLitPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
+                    new ConditionalShaderPass(HDLitPasses.Forward),
+                    new ConditionalShaderPass(HDLitPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
+                    }
+            };
+            public static SubShaderDescriptor HDEye = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(EyePasses.ShadowCaster),
+                    new ConditionalShaderPass(EyePasses.META),
+                    new ConditionalShaderPass(EyePasses.SceneSelection),
+                    new ConditionalShaderPass(EyePasses.DepthForwardOnly),
+                    new ConditionalShaderPass(EyePasses.MotionVectors),
+                    new ConditionalShaderPass(EyePasses.ForwardOnly),
+                }
+            };
+            public static SubShaderDescriptor HDFabric = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(FabricPasses.ShadowCaster),
+                    new ConditionalShaderPass(FabricPasses.META),
+                    new ConditionalShaderPass(FabricPasses.SceneSelection),
+                    new ConditionalShaderPass(FabricPasses.DepthForwardOnly),
+                    new ConditionalShaderPass(FabricPasses.MotionVectors),
+                    new ConditionalShaderPass(FabricPasses.FabricForwardOnly),
+                }
+            };
+            public static SubShaderDescriptor HDHair = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(HairPasses.ShadowCaster),
+                    new ConditionalShaderPass(HairPasses.META),
+                    new ConditionalShaderPass(HairPasses.SceneSelection),
+                    new ConditionalShaderPass(HairPasses.DepthForwardOnly),
+                    new ConditionalShaderPass(HairPasses.MotionVectors),
+                    new ConditionalShaderPass(HairPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
+                    new ConditionalShaderPass(HairPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
+                    new ConditionalShaderPass(HairPasses.ForwardOnly),
+                    new ConditionalShaderPass(HairPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
+                }
+            };
+            public static SubShaderDescriptor HDStackLit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(StackLitPasses.ShadowCaster),
+                    new ConditionalShaderPass(StackLitPasses.META),
+                    new ConditionalShaderPass(StackLitPasses.SceneSelection),
+                    new ConditionalShaderPass(StackLitPasses.DepthForwardOnly),
+                    new ConditionalShaderPass(StackLitPasses.MotionVectors),
+                    new ConditionalShaderPass(StackLitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
+                    new ConditionalShaderPass(StackLitPasses.ForwardOnly),
+                }
+            };
+        }
+#endregion
 
 #region Unlit Passes
         public static class UnlitPasses
@@ -3869,6 +4004,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.uv3,                          ShaderStructs.FragInputs.texCoord3),
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.VertexColor,                  ShaderStructs.FragInputs.color),
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.FaceSign,                     ShaderStructs.FragInputs.IsFrontFace),
+
+                new FieldDependency(HDRPShaderGraphFields.DepthOffset,                                              ShaderStructs.FragInputs.positionRWS),
             };
         }
 #endregion

@@ -1192,6 +1192,27 @@ namespace UnityEditor.Rendering.HighDefinition
             return new StackLitSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         // Reference for GetConditionalFields
         // -------------------------------------------
         //
@@ -1319,7 +1340,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.StackLitPasses.MotionVectors)),
 
                 // Material
@@ -1338,6 +1359,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.SubsurfaceScattering,        subsurfaceScattering.isOn && surfaceType != SurfaceType.Transparent),
                 new ConditionalField(HDRPShaderGraphFields.Transmission,                transmission.isOn),
                 new ConditionalField(HDRPShaderGraphFields.DualSpecularLobe,            dualSpecularLobe.isOn),
+
+                // Distortion
+                new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
 
                 // Base Parametrization
                 // Even though we can just always transfer the present (check with $SurfaceDescription.*) fields like specularcolor
