@@ -84,9 +84,10 @@ namespace UnityEditor.ShaderGraph
                 var tagsBuilder = new ShaderStringBuilder();
                 GenerateSubShaderTags(outputNode as IMasterNode, context, subShader);
 
-                foreach(ShaderPass pass in context.descriptor.passes)
+                foreach(var pass in context.descriptor.passes)
                 {
-                    GenerationUtils.GenerateShaderPass(outputNode, target, pass, mode, subShader, sourceAssetDependencyPaths);
+                    if(pass.TestActive()) //TODO: check masternode fields for valid passes 
+                        GenerationUtils.GenerateShaderPass(outputNode, target, pass.shaderPass, mode, subShader, sourceAssetDependencyPaths);
                 }
             }
             subShader.Deindent();

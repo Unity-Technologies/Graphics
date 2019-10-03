@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -8,48 +8,39 @@ using BlendOp = UnityEditor.ShaderGraph.Internal.BlendOp;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class HDRPMeshTarget : ITargetVariant<MeshTarget>
+    class HDRPMeshTarget : ITargetImplementation
     {
+        public Type targetType => typeof(MeshTarget);
         public string displayName => "HDRP";
         public string passTemplatePath => string.Empty;
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph";
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+        public bool IsValid(IMasterNode masterNode)
         {
-            return pipelineAsset is HDRenderPipelineAsset;
+            if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
+            {
+                if (masterNode is PBRMasterNode ||
+                    masterNode is UnlitMasterNode ||
+                    masterNode is HDUnlitMasterNode ||
+                    masterNode is HDLitMasterNode ||
+                    masterNode is StackLitMasterNode ||
+                    masterNode is HairMasterNode ||
+                    masterNode is FabricMasterNode ||
+                    masterNode is EyeMasterNode)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
+        public void SetupTarget(ref TargetSetupContext context)
         {
-            switch(masterNode)
+            switch(context.masterNode)
             {
-                case UnlitMasterNode unlitMasterNode:
-                    subShader = new UnlitSubShader();
-                    return true;
-                case PBRMasterNode pbrMasterNode:
-                    subShader = new HDPBRSubShader();
-                    return true;
-                case HDUnlitMasterNode hdUnlitMasterNode:
-                    subShader = new HDUnlitSubShader();
-                    return true;
-                case HDLitMasterNode hdLitMasterNode:
-                    subShader = new HDLitSubShader();
-                    return true;
-                case EyeMasterNode eyeMasterNode:
-                    subShader = new EyeSubShader();
-                    return true;
-                case FabricMasterNode fabricMasterNode:
-                    subShader = new FabricSubShader();
-                    return true;
-                case HairMasterNode hairMasterNode:
-                    subShader = new HairSubShader();
-                    return true;
-                case StackLitMasterNode stackLitMasterNode:
-                    subShader = new StackLitSubShader();
-                    return true;
-                default:
-                    subShader = null;
-                    return false;
+                case PBRMasterNode pBRMasterNode:
+                    context.SetupSubShader(SubShaderDescriptor.PBR);
+                    break;
             }
         }
 
@@ -57,6 +48,24 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/{materialName}/ShaderGraph/{materialName}Pass.template";
         }
+
+#region SubShaders
+        public static class SubShaders
+        {
+            const string kPipelineTag = "HDPipeline";
+            public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ShaderPass[]
+                {
+                    new ConditionalShaderPass(UnlitPasses.ShadowCaster),
+                    UnlitPasses.META,
+                    UnlitPasses.SceneSelection,
+
+                },
+            };
+        }
+#endregion
 
 #region Unlit Passes
         public static class UnlitPasses

@@ -58,44 +58,44 @@ namespace UnityEditor.Rendering.Universal
             public static SubShaderDescriptor PBR = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.Forward,
-                    Passes.ShadowCaster,
-                    Passes.DepthOnly,
-                    Passes.Meta,
-                    Passes._2D,
+                    new ConditionalShaderPass(Passes.Forward),
+                    new ConditionalShaderPass(Passes.ShadowCaster),
+                    new ConditionalShaderPass(Passes.DepthOnly),
+                    new ConditionalShaderPass(Passes.Meta),
+                    new ConditionalShaderPass(Passes._2D),
                 },
             };
 
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.Unlit,
-                    Passes.ShadowCaster,
-                    Passes.DepthOnly,
+                    new ConditionalShaderPass(Passes.Unlit),
+                    new ConditionalShaderPass(Passes.ShadowCaster),
+                    new ConditionalShaderPass(Passes.DepthOnly),
                 },
             };
 
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.SpriteLit,
-                    Passes.SpriteNormal,
-                    Passes.SpriteForward,
+                    new ConditionalShaderPass(Passes.SpriteLit),
+                    new ConditionalShaderPass(Passes.SpriteNormal),
+                    new ConditionalShaderPass(Passes.SpriteForward),
                 },
             };
 
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ShaderPass[]
+                passes = new ConditionalShaderPass[]
                 {
-                    Passes.SpriteUnlit,
+                    new ConditionalShaderPass(Passes.SpriteUnlit),
                 },
             };
         }
