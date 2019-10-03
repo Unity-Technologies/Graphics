@@ -17,18 +17,10 @@ namespace UnityEditor.Rendering.Universal
 
         public bool IsValid(IMasterNode masterNode)
         {
-            if(GraphicsSettings.renderPipelineAsset is UniversalRenderPipelineAsset)
-            {
-                if (masterNode is PBRMasterNode ||
+            return (masterNode is PBRMasterNode ||
                     masterNode is UnlitMasterNode ||
                     masterNode is SpriteLitMasterNode ||
-                    masterNode is SpriteUnlitMasterNode)
-                {
-                    return true;
-                }   
-            }
-
-            return false;
+                    masterNode is SpriteUnlitMasterNode);
         }
 
         public void SetupTarget(ref TargetSetupContext context)

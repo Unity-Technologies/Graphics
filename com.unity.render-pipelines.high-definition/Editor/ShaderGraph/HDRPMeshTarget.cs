@@ -17,21 +17,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public bool IsValid(IMasterNode masterNode)
         {
-            if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
-            {
-                if (masterNode is PBRMasterNode ||
+            return (masterNode is PBRMasterNode ||
                     masterNode is UnlitMasterNode ||
                     masterNode is HDUnlitMasterNode ||
                     masterNode is HDLitMasterNode ||
                     masterNode is StackLitMasterNode ||
                     masterNode is HairMasterNode ||
                     masterNode is FabricMasterNode ||
-                    masterNode is EyeMasterNode)
-                {
-                    return true;
-                }
-            }
-            return false;
+                    masterNode is EyeMasterNode);
         }
 
         public void SetupTarget(ref TargetSetupContext context)

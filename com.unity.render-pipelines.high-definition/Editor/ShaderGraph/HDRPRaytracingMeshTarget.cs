@@ -18,15 +18,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public bool IsValid(IMasterNode masterNode)
         {
             #if ENABLE_RAYTRACING
-            if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
-            {
-                if (masterNode is FabricMasterNode ||
+            return (masterNode is FabricMasterNode ||
                     masterNode is HDLitMasterNode ||
-                    masterNode is HDUnlitMasterNode)
-                {
-                    return true;
-                }
-            }
+                    masterNode is HDUnlitMasterNode);
             #endif
             return false;
         }

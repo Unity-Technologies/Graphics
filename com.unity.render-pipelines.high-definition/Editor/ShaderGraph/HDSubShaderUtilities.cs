@@ -24,20 +24,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class HDSubShaderUtilities
     {
-        public static void AddTags(ShaderGenerator generator, string pipeline, HDRenderTypeTags renderType, int queue)
-        {
-            ShaderStringBuilder builder = new ShaderStringBuilder();
-            builder.AppendLine("Tags");
-            using (builder.BlockScope())
-            {
-                builder.AppendLine("\"RenderPipeline\"=\"{0}\"", pipeline);
-                builder.AppendLine("\"RenderType\"=\"{0}\"", renderType);
-                builder.AppendLine("\"Queue\" = \"{0}\"", HDRenderQueue.GetShaderTagValue(queue));
-            }
-
-            generator.AddShaderChunk(builder.ToString());
-        }
-
         // Utils property to add properties to the collector, all hidden because we use a custom UI to display them
         static void AddIntProperty(this PropertyCollector collector, string referenceName, int defaultValue)
         {

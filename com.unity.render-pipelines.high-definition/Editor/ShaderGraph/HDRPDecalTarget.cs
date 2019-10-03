@@ -10,21 +10,14 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class HDRPDecalTarget : ITargetImplementation
     {
-        public Type targetType => typeof(MeshTarget);
+        public Type targetType => typeof(DecalTarget);
         public string displayName => "HDRP";
         public string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph";
 
         public bool IsValid(IMasterNode masterNode)
         {
-            if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
-            {
-                if (masterNode is DecalMasterNode)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return (masterNode is DecalMasterNode);
         }
 
         public void SetupTarget(ref TargetSetupContext context)
