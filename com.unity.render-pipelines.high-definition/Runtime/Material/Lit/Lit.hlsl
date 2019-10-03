@@ -1745,9 +1745,14 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     // This is an empirically set hack/modifier to reduce haloes of objects visible in the refraction.
     float refractionOffsetMultiplier = max(0.0f, 1.0f - preLightData.transparentSSMipLevel * 0.08f);
 
+    // using LoadCameraDepth() here instead of hit.hitLinearDepth allow to fix an issue with VR single path instancing
+    // as it use the macro LOAD_TEXTURE2D_X_LOD
+    float hitDeviceDepth = LoadCameraDepth(hit.positionSS);
+    float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+
     // If the hit object is in front of the refracting object, we use posInput.positionNDC to sample the color pyramid
-    // This is equivalent of setting samplingPositionNDC = posInput.positionNDC when hit.linearDepth <= posInput.linearDepth
-    refractionOffsetMultiplier *= (hit.linearDepth > posInput.linearDepth);
+    // This is equivalent of setting samplingPositionNDC = posInput.positionNDC when hitLinearDepth <= posInput.linearDepth
+    refractionOffsetMultiplier *= (hitLinearDepth > posInput.linearDepth);
 
     float2 samplingPositionNDC = lerp(posInput.positionNDC, hit.positionNDC, refractionOffsetMultiplier);
     float3 preLD = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler,

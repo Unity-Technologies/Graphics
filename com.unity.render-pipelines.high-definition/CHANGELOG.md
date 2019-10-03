@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed refresh of baked cubemap by incrementing updateCount at the end of the bake (case 1158677).
 - Fixed issue with rectangular area light when seen from the back
 - Fixed decals not affecting lightmap/lightprobe
+- Fixed zBufferParams with XR single-pass rendering
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
