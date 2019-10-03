@@ -163,9 +163,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterNode != null)
             {
                 AddToClassList("master");
-                if(!node.owner.targets.Where(x => x.Validate(GraphicsSettings.renderPipelineAsset)).Any())
+                if(!node.owner.activeTargetImplementations.Any())
                 {
-                    AttachMessage("The current render pipeline is not compatible with this master node.", ShaderCompilerMessageSeverity.Error);
+                    AttachMessage("There are no active Target Implementations. Either enable Implementations from the toolbar or select a Render Pipeline that is compatible with this Master Node.", ShaderCompilerMessageSeverity.Error);
                 }
             }
 

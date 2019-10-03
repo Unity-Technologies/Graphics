@@ -5,8 +5,10 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    interface IMasterNode
+    public interface IMasterNode
     {
+        string renderQueueTag { get; }
+        string renderTypeTag { get; }
         ConditionalField[] GetConditionalFields(ShaderPass pass);
         void ProcessPreviewMaterial(Material material);
     }
