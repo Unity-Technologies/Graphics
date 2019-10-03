@@ -357,8 +357,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string ConvertToShader(GenerationMode mode)
         {
-            List<PropertyCollector.TextureInfo> textureInfo;
-            return GenerationUtils.GetShaderForNode(node, mode, node.name, out textureInfo);
+            var generator = new Generator(node.owner, node, mode, node.name);
+            return generator.generatedShader;
         }
 
         void AddDefaultSettings()
