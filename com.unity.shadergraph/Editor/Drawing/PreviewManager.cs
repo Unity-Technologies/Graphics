@@ -450,9 +450,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ShaderUtil.ClearCachedData(renderData.shaderData.shader);
                 
                 // Get shader code and compile
-                List<PropertyCollector.TextureInfo> textureInfo;
-                var shader = GenerationUtils.GetShaderForNode(node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}", out textureInfo);
-                BeginCompile(renderData, shader);
+                var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
+                BeginCompile(renderData, generator.generatedShader);
 
                 // Calculate the PreviewMode from upstream nodes
                 // If any upstream node is 3D that trickles downstream
@@ -555,9 +554,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (masterNode == null)
                 return;
-
-            List<PropertyCollector.TextureInfo> configuredTextures;
-            shaderData.shaderString = GenerationUtils.GetShaderForNode(shaderData?.node, GenerationMode.Preview, shaderData.node.name, out configuredTextures);
+            
+            var generator = new Generator(m_Graph, shaderData?.node, GenerationMode.Preview, shaderData?.node.name);
+            shaderData.shaderString = generator.generatedShader;
 
             if (string.IsNullOrEmpty(shaderData.shaderString))
             {
