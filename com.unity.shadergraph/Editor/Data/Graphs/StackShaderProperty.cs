@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
             displayName = "Stack";
             slotNames = new List<string>();
             slotNames.Add("Dummy");
-            generatePropertyBlock = false;
+            generatePropertyBlock = true;
         }
 
         public override PropertyType propertyType
