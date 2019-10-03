@@ -182,6 +182,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     float3 normalTS = ConvertToNormalTS(terrainLitSurfaceData.normalData, input.tangentToWorld[0], input.tangentToWorld[1]);
     GetNormalWS(input, normalTS, surfaceData.normalWS, float3(1.0, 1.0, 1.0));
 #endif
+
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
     surfaceData.baseColor = terrainLitSurfaceData.albedo;
@@ -209,18 +210,19 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    float3 bentNormalWS = surfaceData.normalWS;
-
     surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
 
 #if HAVE_DECALS
     if (_EnableDecals)
     {
         float alpha = 1.0; // unused
+                           // Both uses and modifies 'surfaceData.normalWS'.
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
 #endif
+
+    float3 bentNormalWS = surfaceData.normalWS;
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
 #ifdef _MASKMAP

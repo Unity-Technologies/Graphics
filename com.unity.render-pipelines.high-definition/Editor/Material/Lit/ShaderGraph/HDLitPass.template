@@ -249,22 +249,25 @@ $include("SharedCode.template.hlsl")
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-        bentNormalWS = surfaceData.normalWS;
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
         surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
         $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
-        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
 #if HAVE_DECALS
         if (_EnableDecals)
         {
+            // Both uses and modifies 'surfaceData.normalWS'.
             DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
         }
 #endif
+
+        bentNormalWS = surfaceData.normalWS;
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
+
+        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
 
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term

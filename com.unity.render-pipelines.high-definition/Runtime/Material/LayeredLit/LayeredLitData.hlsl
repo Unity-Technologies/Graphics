@@ -750,14 +750,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.transmittanceMask = 0.0;
 
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
-    // Use bent normal to sample GI if available
-    // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)
-    // Note: the code in LitDataInternal ensure that we fallback on normal map for layer that have no bentnormal
-#if defined(_BENTNORMALMAP0) || defined(_BENTNORMALMAP1) || defined(_BENTNORMALMAP2) || defined(_BENTNORMALMAP3)
-    GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
-#else // if no bent normal are available at all just keep the calculation fully
-    bentNormalWS = surfaceData.normalWS;
-#endif
 
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
@@ -766,9 +758,19 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if HAVE_DECALS
     if (_EnableDecals)
     {
+        // Both uses and modifies 'surfaceData.normalWS'.
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
+#endif
+
+    // Use bent normal to sample GI if available
+    // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)
+    // Note: the code in LitDataInternal ensure that we fallback on normal map for layer that have no bentnormal
+#if defined(_BENTNORMALMAP0) || defined(_BENTNORMALMAP1) || defined(_BENTNORMALMAP2) || defined(_BENTNORMALMAP3)
+    GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
+#else // if no bent normal are available at all just keep the calculation fully
+    bentNormalWS = surfaceData.normalWS;
 #endif
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.

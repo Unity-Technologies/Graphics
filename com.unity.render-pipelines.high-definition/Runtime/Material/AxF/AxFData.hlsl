@@ -122,6 +122,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.clearcoatColor = 0;
 #endif
 
+    // Propagate the geometry normal
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
+
     // Finalize tangent space
     surfaceData.tangentWS = input.tangentToWorld[0];
     if (_Flags & 1) // IsAnisotropic
@@ -132,6 +135,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         sincos(surfaceData.anisotropyAngle, tangentTS.y, tangentTS.x);
         surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.tangentToWorld);
     }
+
+    #if HAVE_DECALS
+        if (_EnableDecals)
+        {
+            // Both uses and modifies 'surfaceData.normalWS'.
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        }
+    #endif
+
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
     // Instead of
@@ -141,20 +154,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // the handedness of the world space (tangentToWorld can be passed right handed while
     // Unity's WS is left handed, so this makes a difference here).
 
-    // Propagate the geometry normal
-    surfaceData.geomNormalWS = input.tangentToWorld[2];
-
 #ifdef _ALPHATEST_ON
     DoAlphaTest(alpha, _AlphaCutoff);
 #endif
 
-#if HAVE_DECALS
-    if (_EnableDecals)
-    {
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-    }
-#endif
 
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
