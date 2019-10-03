@@ -581,14 +581,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     {
                         probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weight;
                     }
-                    else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DIFFUSE_GIONLY)
-                    {
-                        probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight;
-                    }
                     else
 #endif
                     {
-                        probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight * bsdfData.diffuseColor;
+                        probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight;
                     }
 
                     probeVolumeDiffuseLighting *= _IndirectLightingMultiplier.x;
@@ -598,12 +594,17 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             }
         }
 
-    #ifdef DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
         {
             builtinData.bakeDiffuseLighting = 0.0;
+            builtinData.backBakeDiffuseLighting = 0.0;
         }
-    #endif
+        else
+#endif
+        { 
+            probeVolumeDiffuseLighting *= bsdfData.diffuseColor;
+        }
 
         // Lerp down any baked diffuse lighting where probe volume lighting data is present.
         // This allows us to fallback to lightmaps and / or legacy probes for distant features (such as terrain).

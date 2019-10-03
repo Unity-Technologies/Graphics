@@ -94,7 +94,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         None,
         VisualizeAtlas,
-        VisualizeDiffuseGIOnly,
         VisualizeDebugColors,
     }
 
