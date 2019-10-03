@@ -124,7 +124,7 @@ MonoBehaviour:
     max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.187
+    m_Value: 0.066
   cascadeShadowSplit1:
     m_OverrideState: 1
     m_Value: 0.148
