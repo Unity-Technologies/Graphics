@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    class DefaultPreviewTargetImplementation : ITargetImplementation
+    class DefaultPreviewTarget : ITargetImplementation
     {
         public Type targetType => typeof(PreviewTarget);
         public string displayName => null;
@@ -18,6 +18,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public void SetupTarget(ref TargetSetupContext context)
         {
+            context.AddAssetDependencyPath("7464b9fcde08e5645a16b9b8ae1e573c"); // PreviewTarget
+            context.AddAssetDependencyPath("17beeb3de0d148c4091315e2775a46e3"); // DefaultPreviewTarget
+
             context.SetupSubShader(PreviewTarget.SubShaders.Preview);
         }
     }

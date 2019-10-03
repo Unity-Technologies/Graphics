@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class UniversalMeshTargetImplementation : ITargetImplementation
+    class UniversalMeshTarget : ITargetImplementation
     {
         public Type targetType => typeof(MeshTarget);
         public string displayName => "Universal";
@@ -33,6 +33,9 @@ namespace UnityEditor.Rendering.Universal
 
         public void SetupTarget(ref TargetSetupContext context)
         {
+            context.AddAssetDependencyPath("7395c9320da217b42b9059744ceb1de6"); // MeshTarget
+            context.AddAssetDependencyPath("ac9e1a400a9ce404c8f26b9c1238417e"); // UniversalMeshTarget
+            
             switch(context.masterNode)
             {
                 case PBRMasterNode pbrMasterNode:
@@ -149,7 +152,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTargetImplementation.RenderStates.DepthOnly,
+                renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
                 pragmas = Pragmas.Instanced,
                 includes = Includes.PBRDepthOnly,
             };
@@ -173,7 +176,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTargetImplementation.RenderStates.ShadowCasterMeta,
+                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Instanced,
                 includes = Includes.PBRShadowCaster,
             };
@@ -197,7 +200,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTargetImplementation.RenderStates.ShadowCasterMeta,
+                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.PBRMeta,
                 includes = Includes.PBRMeta,
@@ -220,7 +223,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
+                renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
                 includes = Includes.PBR2D,
             };
@@ -243,7 +246,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
+                renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
                 keywords = Keywords.Unlit,
                 includes = Includes.Basic,
@@ -269,7 +272,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
+                renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.SpriteLit,
                 includes = Includes.SpriteLit,
@@ -295,7 +298,7 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTargetImplementation.RenderStates.Default,
+                renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
                 includes = Includes.SpriteNormal,
             };
@@ -451,10 +454,10 @@ namespace UnityEditor.Rendering.Universal
         {
             public static StructDescriptor[] Default = new StructDescriptor[]
             {
-                UniversalMeshTargetImplementation.Attributes,
-                UniversalMeshTargetImplementation.Varyings,
-                UniversalMeshTargetImplementation.SurfaceDescriptionInputs,
-                UniversalMeshTargetImplementation.VertexDescriptionInputs,
+                UniversalMeshTarget.Attributes,
+                UniversalMeshTarget.Varyings,
+                UniversalMeshTarget.SurfaceDescriptionInputs,
+                UniversalMeshTarget.VertexDescriptionInputs,
             };
         }
 #endregion
@@ -470,10 +473,10 @@ namespace UnityEditor.Rendering.Universal
                 MeshTarget.ShaderStructs.Varyings.tangentWS,                        // needed for vertex lighting
                 MeshTarget.ShaderStructs.Varyings.bitangentWS,
                 MeshTarget.ShaderStructs.Varyings.viewDirectionWS,
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.lightmapUV,
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.sh,
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                UniversalMeshTarget.ShaderStructs.Varyings.lightmapUV,
+                UniversalMeshTarget.ShaderStructs.Varyings.sh,
+                UniversalMeshTarget.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalMeshTarget.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
             public static IField[] PBRShadowCaster = new IField[]

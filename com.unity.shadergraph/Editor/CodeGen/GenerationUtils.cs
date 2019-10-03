@@ -1180,7 +1180,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    DefaultPreviewTargetImplementation targetImplementation = new DefaultPreviewTargetImplementation();
+                    DefaultPreviewTarget targetImplementation = new DefaultPreviewTarget();
                     TargetSetupContext context = new TargetSetupContext();
                     context.SetMasterNode(null);
                     targetImplementation.SetupTarget(ref context); 
