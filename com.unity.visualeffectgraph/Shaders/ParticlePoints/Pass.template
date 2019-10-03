@@ -23,6 +23,8 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 
 	${VFXVertexCommonProcess}
 	${VFXVertexAdditionalProcess}
+    
+    o.pointSize = 1;
 			
 	return o;
 }

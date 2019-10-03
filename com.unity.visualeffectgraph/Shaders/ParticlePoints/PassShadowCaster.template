@@ -11,10 +11,12 @@ Pass
 	
 	struct ps_input
 	{
-		float4 pos : SV_POSITION;
-		#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
-		nointerpolation float2 builtInInterpolants : TEXCOORD0;
-		#endif
+	    float4 pos : SV_POSITION;
+	    #if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
+	    nointerpolation float2 builtInInterpolants : TEXCOORD0;
+	    #endif
+        
+        float pointSize : PSIZE;
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input

@@ -52,21 +52,24 @@ namespace UnityEditor.VFX
                 case VFXValueType.Boolean:
                     value = value.ToString().ToLower();
                     break;
+                case VFXValueType.Float:
+                    value = ((float)value).ToString("G9", CultureInfo.InvariantCulture);
+                    break;
                 case VFXValueType.Float2:
-                    value = string.Format(CultureInfo.InvariantCulture, "({0},{1})", ((Vector2)value).x, ((Vector2)value).y);
+                    value = $"({((Vector2)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector2)value).y.ToString("G9", CultureInfo.InvariantCulture)})";
                     break;
                 case VFXValueType.Float3:
-                    value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2})", ((Vector3)value).x, ((Vector3)value).y, ((Vector3)value).z);
+                    value = $"({((Vector3)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector3)value).y.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector3)value).z.ToString("G9", CultureInfo.InvariantCulture)})";
                     break;
                 case VFXValueType.Float4:
-                    value = string.Format(CultureInfo.InvariantCulture, "({0},{1},{2},{3})", ((Vector4)value).x, ((Vector4)value).y, ((Vector4)value).z, ((Vector4)value).w);
+                    value = $"({((Vector4)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).y.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).z.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).w.ToString("G9", CultureInfo.InvariantCulture)})";
                     break;
                 case VFXValueType.Matrix4x4:
                 {
                     var matrix = ((Matrix4x4)value).transpose;
                     value = "(";
                     for (int i = 0; i < 16; ++i)
-                        value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", matrix[i]);
+                        value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", matrix[i].ToString("G9", CultureInfo.InvariantCulture));
                     value += ")";
                 }
                 break;

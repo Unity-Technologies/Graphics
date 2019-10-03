@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
             Init(mapper);
         }
 
-        private void CollectAndAddUniforms(VFXExpression exp, IEnumerable<string> names)
+        private void CollectAndAddUniforms(VFXExpression exp, IEnumerable<string> names, HashSet<VFXExpression> processedExp)
         {
             if (!exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
             {
@@ -59,8 +59,16 @@ namespace UnityEditor.VFX
                     previousNames.AddRange(names);
             }
             else
+            {
                 foreach (var parent in exp.parents)
-                    CollectAndAddUniforms(parent, null);
+                {
+                    if (processedExp.Contains(parent))
+                        continue;
+
+                    processedExp.Add(parent);
+                    CollectAndAddUniforms(parent, null, processedExp);
+                }
+            }
         }
 
         private void Init(VFXExpressionMapper mapper)
@@ -68,8 +76,13 @@ namespace UnityEditor.VFX
             m_UniformToName = new Dictionary<VFXExpression, List<string>>();
             m_TextureToName = new Dictionary<VFXExpression, List<string>>();
 
+            var processedExp = new HashSet<VFXExpression>();
             foreach (var exp in mapper.expressions)
-                CollectAndAddUniforms(exp, mapper.GetData(exp).Select(d => d.fullName));
+            {
+                processedExp.Clear();
+                var initialNames = mapper.GetData(exp).Select(d => d.fullName);
+                CollectAndAddUniforms(exp, initialNames, processedExp);
+            }
         }
 
         public IEnumerable<VFXExpression> uniforms { get { return m_UniformToName.Keys; } }
