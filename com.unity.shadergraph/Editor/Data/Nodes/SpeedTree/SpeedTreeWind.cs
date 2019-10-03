@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -19,16 +20,19 @@ namespace UnityEditor.ShaderGraph
 	}
 
 	[Title("SpeedTree", "SpeedTreeWind")]
-	class SpeedTreeNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireVertexColor, IMayRequireMeshUV, IGeneratesFunction
+	class SpeedTreeWindNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireVertexColor, IMayRequireMeshUV, IGeneratesFunction
 	{
 		public const int OutPosSlotId = 0;
 		private const string kOutPosSlotName = "OutPosition";
         public const int OutNormSlotId = 1;
         private const string kOutNormSlotName = "OutNormal";
-        public const int OutUVSlotId = 2;
+        public const int OutTanSlotId = 2;
+        private const string kOutTanSlotName = "OutTangent";
+        public const int OutUVSlotId = 3;
         private const string kOutUVSlotName = "OutUV0";
-        public const int OutAlphaSlotId = 3;
+        public const int OutAlphaSlotId = 4;
         private const string kOutAlphaSlotName = "OutAlphaMultiplier";
+
 
         [SerializeField]
         private SpeedTreeWindQuality m_WindQuality = SpeedTreeWindQuality.NoOverride;
@@ -49,7 +53,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return false; } }
 
-		public SpeedTreeNode()
+		public SpeedTreeWindNode()
 		{
 			name = "SpeedTree Wind";
 			UpdateNodeAfterDeserialization();
@@ -59,21 +63,23 @@ namespace UnityEditor.ShaderGraph
 		{
 			AddSlot(new Vector3MaterialSlot(OutPosSlotId, kOutPosSlotName, kOutPosSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(OutNormSlotId, kOutNormSlotName, kOutNormSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector3MaterialSlot(OutTanSlotId, kOutTanSlotName, kOutTanSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector2MaterialSlot(OutUVSlotId, kOutUVSlotName, kOutUVSlotName, SlotType.Output, Vector2.zero));
             AddSlot(new Vector1MaterialSlot(OutAlphaSlotId, kOutAlphaSlotName, kOutAlphaSlotName, SlotType.Output, 1.0f));
 
-            RemoveSlotsNameNotMatching(new[] { OutPosSlotId, OutNormSlotId, OutUVSlotId, OutAlphaSlotId });
+            RemoveSlotsNameNotMatching(new[] { OutPosSlotId, OutNormSlotId, OutTanSlotId, OutUVSlotId, OutAlphaSlotId });
         }
 
-		public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+		public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
 		{
             // Declare the output variables with their respective types
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutPosSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutPosSlotId));
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutNormSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutNormSlotId));
+            sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutTanSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutTanSlotId));
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutUVSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutUVSlotId));
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutAlphaSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutAlphaSlotId));
             // Call the Wind Transformation function
-            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, IN.{7}, (int){8}, {9}, {10}, {11}, {12});",
+            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, IN.{7}, (int){8}, {9}, {10}, {11}, {12}, {13});",
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Position),
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal),
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Tangent),
@@ -85,23 +91,24 @@ namespace UnityEditor.ShaderGraph
                             (int)m_WindQuality,
                             GetVariableNameForSlot(OutPosSlotId),
                             GetVariableNameForSlot(OutNormSlotId),
+                            GetVariableNameForSlot(OutTanSlotId),
                             GetVariableNameForSlot(OutUVSlotId),
                             GetVariableNameForSlot(OutAlphaSlotId));
         }
 
 		public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
 		{
-			return CoordinateSpace.Object.ToNeededCoordinateSpace();
+			return NeededCoordinateSpace.Object;
 		}
 
 		public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
 		{
-			return CoordinateSpace.Object.ToNeededCoordinateSpace();
+            return NeededCoordinateSpace.Object;
 		}
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.Object.ToNeededCoordinateSpace();
+            return NeededCoordinateSpace.Object;
         }
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
@@ -114,7 +121,7 @@ namespace UnityEditor.ShaderGraph
 			return true;
 		}
 
-		public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+		public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
 		{
             // Inject SpeedTree wind code at global scope
             registry.ProvideFunction("ApplyWindTransformation", sb => { sb.AppendLines("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTreeCommonWind.hlsl\""); });

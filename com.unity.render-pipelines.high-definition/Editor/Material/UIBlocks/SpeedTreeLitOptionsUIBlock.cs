@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent windQualityText = new GUIContent("Wind Quality", "Detail level of the wind effect");
             public static GUIContent billboardText = new GUIContent("Billboard", "This surface is a billboard");
             public static GUIContent billboardFacingText = new GUIContent("Billboard Camera Facing", "Factor which affects billboard's impact on shadows");
+            public static GUIContent zBiasText = new GUIContent("Depth-Only Bias", "Depth bias used on depth-only passes; clears z-fighting artifacts");
         }
 
         Expandable m_ExpandableBit;
@@ -32,11 +33,14 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty windQuality = null;
         const string kWindQuality = "_WindQuality";
         const string kWindQuality8 = "_WindQualityVer8";
-        MaterialProperty isBillboard = null;
 
+        MaterialProperty isBillboard = null;
         const string kIsBillboard = "_Billboard";
         MaterialProperty billboardFacesCam = null;
         const string kBillboardFacing = "_BillboardFacing";
+
+        MaterialProperty depthBias = null;
+        const string kDepthBias = "_ZBias";
 
         public SpeedTreeLitOptionsUIBlock(Expandable expandableBit)
         {
@@ -54,6 +58,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             isBillboard = FindProperty(kIsBillboard);
             billboardFacesCam = FindProperty(kBillboardFacing);
+
+            depthBias = FindProperty(kDepthBias);
         }
 
         void DrawSpeedTreeInputsGUI()
@@ -75,6 +81,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(billboardFacesCam, Styles.billboardFacingText);
                 }
             }
+
+            if (depthBias != null)
+                materialEditor.ShaderProperty(depthBias, Styles.zBiasText);
         }
 
         public override void OnGUI()

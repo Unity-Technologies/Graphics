@@ -21,10 +21,11 @@ CBUFFER_END
 
 #endif
 
-void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float2 finalUV, out float finalAlpha)
+void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float3 finalTangent, out float2 finalUV, out float finalAlpha)
 {
     finalPosition = vertex.xyz;
     finalNormal = normal.xyz;
+    finalTangent = tangent.xyz;
     finalUV = texcoord0.xy;     // Billboard UVs might overwrite this.
     finalAlpha = 1.0;
 
@@ -163,7 +164,7 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
     //finalPosition.xyz += billboardPos;
     finalPosition.xyz = billboardPos;
     finalNormal = billboardNormal.xyz;
-    //input.tangent = float4(billboardTangent.xyz, -1);     // can't write to the tangent vector yet.
+    finalTangent = billboardTangent.xyz;
 
     float slices = unity_BillboardInfo.x;
     float invDelta = unity_BillboardInfo.y;
@@ -307,13 +308,15 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
     if (topDown)
     {
         finalNormal += cameraDir;
+        float3 binormal = -cross(finalNormal, finalTangent.xyz);
+        finalTangent = normalize(cross(finalNormal, binormal));
     }
     else
     {
         // We do normally have the ability to use the w component in the tangent to denote flip/no-flip, but
         // within shadergraph, we apparently cannot access that.
         //float3 binormal = cross(finalNormal, tangent.xyz) * tangent.w;
-        float3 binormal = cross(finalNormal, tangent.xyz);
+        float3 binormal = -cross(finalNormal, finalTangent.xyz);        // Assuming that billboards always have a -1 in the w
         float3 right = cross(cameraDir, binormal);
         finalNormal = cross(binormal, right);
     }

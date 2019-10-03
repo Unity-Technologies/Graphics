@@ -4,11 +4,15 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using Data.Util;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     class SpeedTreeLitSubShader : ISpeedTreeLitSubShader
     {
+        internal static string DefineRaytracingKeyword(RayTracingNode.RaytracingVariant variant)
+            => $"#define {RayTracingNode.RaytracingVariantKeyword(variant)}";
+
         Pass m_PassGBuffer = new Pass()
         {
             Name = "GBuffer",
@@ -30,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ LOD_FADE_CROSSFADE",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
                 // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
                 // Don't do it with debug display mode as it is possible there is no depth prepass in this case
                 // This remove is required otherwise the code generate several time the define...
@@ -82,8 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
-                SpeedTreeLitMasterNode.NormalSlotId,
-                SpeedTreeLitMasterNode.TangentSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID,
             },
             UseInPreview = true,
 
@@ -108,6 +113,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl\"",
             },
+            ExtraDefines = new List<string>()
+            {
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
+                "#define EFFECT_BACKSIDE_NORMALS",
+                "#define SPEEDTREE_Y_UP",
+            },
             RequiredFields = new List<string>()
             {
                 "AttributesMesh.normalOS",
@@ -118,21 +129,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
                 "AttributesMesh.uv3",           // Wind animation can potentially use uv3
             },
-
-            ExtraDefines = new List<string>()
-            {
-                "#define EFFECT_BACKSIDE_NORMALS",
-                "#define SPEEDTREE_Y_UP",
-            },
             PixelShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.AlbedoSlotId,
                 SpeedTreeLitMasterNode.NormalSlotId,
                 SpeedTreeLitMasterNode.BentNormalSlotId,
                 SpeedTreeLitMasterNode.TangentSlotId,
-                //SpeedTreeLitMasterNode.SubsurfaceMaskSlotId,
-                //SpeedTreeLitMasterNode.ThicknessSlotId,
-                //SpeedTreeLitMasterNode.DiffusionProfileHashSlotId,
+                SpeedTreeLitMasterNode.SubsurfaceMaskSlotId,
+                SpeedTreeLitMasterNode.ThicknessSlotId,
+                SpeedTreeLitMasterNode.DiffusionProfileHashSlotId,
                 SpeedTreeLitMasterNode.IridescenceMaskSlotId,
                 SpeedTreeLitMasterNode.IridescenceThicknessSlotId,
                 SpeedTreeLitMasterNode.SpecularColorSlotId,
@@ -162,13 +167,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as SpeedTreeLitMasterNode;
 
                 masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
-
-                if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree8)
-                {
-                    pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.SubsurfaceMaskSlotId);
-                    pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.ThicknessSlotId);
-                    pass.PixelShaderSlots.Add(SpeedTreeLitMasterNode.DiffusionProfileHashSlotId);
-                }
             }
         };
 
@@ -189,6 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             ExtraDefines = new List<string>()
             {
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
@@ -199,11 +198,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.AlphaThresholdSlotId,
                 SpeedTreeLitMasterNode.AlphaThresholdShadowSlotId,
                 SpeedTreeLitMasterNode.DepthOffsetSlotId,
-                SpeedTreeLitMasterNode.DepthBiasSlotId,
             },
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false,
 
@@ -230,6 +230,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
+                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -244,6 +245,8 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false,
 
@@ -278,7 +281,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.AlphaSlotId,
                 SpeedTreeLitMasterNode.AlphaThresholdSlotId,
                 SpeedTreeLitMasterNode.DepthOffsetSlotId,
-                SpeedTreeLitMasterNode.DepthBiasSlotId,
             },
 
             RequiredFields = new List<string>()
@@ -301,7 +303,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -358,7 +362,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false,
 
@@ -413,6 +419,8 @@ namespace UnityEditor.Rendering.HighDefinition
             VertexShaderSlots = new List<int>()
             {
                 SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -464,6 +472,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#define CUTOFF_TRANSPARENT_DEPTH_PREPASS",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -474,11 +483,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 SpeedTreeLitMasterNode.AlphaSlotId,
                 SpeedTreeLitMasterNode.AlphaThresholdDepthPrepassSlotId,
                 SpeedTreeLitMasterNode.DepthOffsetSlotId,
-                SpeedTreeLitMasterNode.DepthBiasSlotId
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -510,8 +520,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 "FragInputs.tangentToWorld",
                 "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
                 "FragInputs.texCoord1",
-                "FragInputs.texCoord2"
+                "FragInputs.texCoord2",
+                "FragInputs.texCoord3"
             },
             PixelShaderSlots = new List<int>()
             {
@@ -543,7 +555,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -568,11 +582,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // ExtraDefines are set when the pass is generated
             ExtraDefines = new List<string>()
             {
+                "#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
-                // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-                // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-                "#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif"
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -620,7 +633,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -631,13 +646,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDSubShaderUtilities.SetBlendModeForForward(ref pass);
 
                 masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
-
-                if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree8)
+                if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree7)
                 {
-                    pass.ExtraDefines.Add("#ifdef GEOM_TYPE_LEAF\n#define _SURFACE_TYPE_TRANSPARENT\n#endif");
-                    pass.ExtraDefines.Add("#ifndef _SURFACE_TYPE_TRANSPARENT\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif");
+                    pass.ExtraDefines.Add("#if defined(GEOM_TYPE_LEAF) || defined(GEOM_TYPE_FROND)\n#define _SURFACE_TYPE_TRANSPARENT\n#endif");
                 }
-
                 pass.ColorMaskOverride = "ColorMask [_ColorMaskTransparentVel] 1";
                 pass.ZTestOverride = "ZTest Equal";
             }
@@ -659,6 +671,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#define CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
                 "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
+                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
             Includes = new List<string>()
             {
@@ -672,7 +685,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -700,7 +715,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#pragma multi_compile _ DIFFUSE_LIGHTING_ONLY",
                 "#define SHADOW_LOW",
-                "#define SKIP_RASTERIZED_SHADOWS",
+                "#define EFFECT_BACKSIDE_NORMALS",
+                "#define SPEEDTREE_Y_UP",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
             },
             Includes = new List<string>()
             {
@@ -735,7 +752,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -750,6 +769,12 @@ namespace UnityEditor.Rendering.HighDefinition
             Includes = new List<string>()
             {
                 "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl\"",
+            },
+            ExtraDefines = new List<string>()
+            {
+                "#define EFFECT_BACKSIDE_NORMALS",
+                "#define SPEEDTREE_Y_UP",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
             },
             PixelShaderSlots = new List<int>()
             {
@@ -780,7 +805,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -798,7 +825,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#define SHADOW_LOW",
-                "#define SKIP_RASTERIZED_SHADOWS",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },
             Includes = new List<string>()
             {
@@ -833,7 +860,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -851,6 +880,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#define SHADOW_LOW",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },
             Includes = new List<string>()
             {
@@ -885,7 +915,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                SpeedTreeLitMasterNode.PositionSlotId
+                SpeedTreeLitMasterNode.PositionSlotId,
+                SpeedTreeLitMasterNode.VertexNormalSlotID,
+                SpeedTreeLitMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -917,9 +949,10 @@ namespace UnityEditor.Rendering.HighDefinition
             return instancingOption;
         }
 
-        private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
+        private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
+            var activeFields = new ActiveFields();
+            var baseActiveFields = activeFields.baseInstance;
 
             SpeedTreeLitMasterNode masterNode = iMasterNode as SpeedTreeLitMasterNode;
             if (masterNode == null)
@@ -929,53 +962,53 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.doubleSidedMode != DoubleSidedMode.Disabled)
             {
-                activeFields.Add("DoubleSided");
+                baseActiveFields.AddAll("DoubleSided");
                 if (pass.ShaderPassName != "SHADERPASS_MOTION_VECTORS")   // HACK to get around lack of a good interpolator dependency system
                 {                                                   // we need to be able to build interpolators using multiple input structs
                                                                     // also: should only require isFrontFace if Normals are required...
                     if (masterNode.doubleSidedMode == DoubleSidedMode.FlippedNormals)
                     {
-                        activeFields.Add("DoubleSided.Flip");
+                        baseActiveFields.AddAll("DoubleSided.Flip");
                     }
                     else if (masterNode.doubleSidedMode == DoubleSidedMode.MirroredNormals)
                     {
-                        activeFields.Add("DoubleSided.Mirror");
+                        baseActiveFields.AddAll("DoubleSided.Mirror");
                     }
                     // Important: the following is used in SharedCode.template.hlsl for determining the normal flip mode
-                    activeFields.Add("FragInputs.isFrontFace");
+                    baseActiveFields.AddAll("FragInputs.isFrontFace");
                 }
             }
 
             switch (masterNode.materialType)
             {
                 case SpeedTreeLitMasterNode.MaterialType.Anisotropy:
-                    activeFields.Add("Material.Anisotropy");
+                    baseActiveFields.AddAll("Material.Anisotropy");
                     break;
                 case SpeedTreeLitMasterNode.MaterialType.Iridescence:
-                    activeFields.Add("Material.Iridescence");
+                    baseActiveFields.AddAll("Material.Iridescence");
                     break;
                 case SpeedTreeLitMasterNode.MaterialType.SpecularColor:
-                    activeFields.Add("Material.SpecularColor");
+                    baseActiveFields.AddAll("Material.SpecularColor");
                     break;
                 case SpeedTreeLitMasterNode.MaterialType.Standard:
-                    activeFields.Add("Material.Standard");
+                    baseActiveFields.AddAll("Material.Standard");
                     break;
                 case SpeedTreeLitMasterNode.MaterialType.SubsurfaceScattering:
                     {
                         if (masterNode.surfaceType != SurfaceType.Transparent)
                         {
-                            activeFields.Add("Material.SubsurfaceScattering");
+                            baseActiveFields.AddAll("Material.SubsurfaceScattering");
                         }
                         if (masterNode.sssTransmission.isOn)
                         {
-                            activeFields.Add("Material.Transmission");
+                            baseActiveFields.AddAll("Material.Transmission");
                         }
                     }
                     break;
                 case SpeedTreeLitMasterNode.MaterialType.Translucent:
                     {
-                        activeFields.Add("Material.Translucent");
-                        activeFields.Add("Material.Transmission");
+                        baseActiveFields.AddAll("Material.Translucent");
+                        baseActiveFields.AddAll("Material.Transmission");
                     }
                     break;
                 default:
@@ -988,23 +1021,23 @@ namespace UnityEditor.Rendering.HighDefinition
             // If alpha test shadow is enable, we use it, otherwise we use the regular test
             if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdShadowSlotId) && masterNode.alphaTestShadow.isOn)
             {
-                activeFields.Add("AlphaTestShadow");
+                baseActiveFields.AddAll("AlphaTestShadow");
                 ++AlphaCount;
             }
             else if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdSlotId))
             {
-                activeFields.Add("AlphaTest");
+                baseActiveFields.AddAll("AlphaTest");
                 ++AlphaCount;
             }
 
             if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdDepthPrepassSlotId))
             {
-                activeFields.Add("AlphaTestPrepass");
+                baseActiveFields.AddAll("AlphaTestPrepass");
                 ++AlphaCount;
             }
             if (pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.AlphaThresholdDepthPostpassSlotId))
             {
-                activeFields.Add("AlphaTestPostpass");
+                baseActiveFields.AddAll("AlphaTestPostpass");
                 ++AlphaCount;
             }
             UnityEngine.Debug.Assert(AlphaCount == 1, "Alpha test value not set correctly");
@@ -1014,56 +1047,57 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (masterNode.transparencyFog.isOn)
                 {
-                    activeFields.Add("AlphaFog");
+                    baseActiveFields.AddAll("AlphaFog");
                 }
 
                 if (masterNode.transparentWritesMotionVec.isOn)
                 {
-                    activeFields.Add("TransparentWritesMotionVec");
+                    baseActiveFields.AddAll("TransparentWritesMotionVec");
                 }
 
                 if (masterNode.blendPreserveSpecular.isOn)
                 {
-                    activeFields.Add("BlendMode.PreserveSpecular");
+                    baseActiveFields.AddAll("BlendMode.PreserveSpecular");
                 }
             }
 
             if (!masterNode.receiveDecals.isOn)
             {
-                activeFields.Add("DisableDecals");
+                baseActiveFields.AddAll("DisableDecals");
             }
 
             if (!masterNode.receiveSSR.isOn)
             {
-                activeFields.Add("DisableSSR");
+                baseActiveFields.AddAll("DisableSSR");
             }
 
-            if (masterNode.addVelocityChange.isOn)
+            if (masterNode.addPrecomputedVelocity.isOn)
             {
-                activeFields.Add("AdditionalVelocityChange");
+                baseActiveFields.Add("AddPrecomputedVelocity");
             }
+
 
             if (masterNode.specularAA.isOn && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.SpecularAAThresholdSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.SpecularAAScreenSpaceVarianceSlotId))
             {
-                activeFields.Add("Specular.AA");
+                baseActiveFields.AddAll("Specular.AA");
             }
 
             if (masterNode.energyConservingSpecular.isOn)
             {
-                activeFields.Add("Specular.EnergyConserving");
+                baseActiveFields.AddAll("Specular.EnergyConserving");
             }
 
             if (masterNode.HasRefraction())
             {
-                activeFields.Add("Refraction");
+                baseActiveFields.AddAll("Refraction");
                 switch (masterNode.refractionModel)
                 {
                     case ScreenSpaceRefraction.RefractionModel.Box:
-                        activeFields.Add("RefractionBox");
+                        baseActiveFields.AddAll("RefractionBox");
                         break;
 
                     case ScreenSpaceRefraction.RefractionModel.Sphere:
-                        activeFields.Add("RefractionSphere");
+                        baseActiveFields.AddAll("RefractionSphere");
                         break;
 
                     default:
@@ -1074,12 +1108,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.BentNormalSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.BentNormalSlotId))
             {
-                activeFields.Add("BentNormal");
+                baseActiveFields.AddAll("BentNormal");
             }
 
             if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.TangentSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.TangentSlotId))
             {
-                activeFields.Add("Tangent");
+                baseActiveFields.AddAll("Tangent");
             }
 
             switch (masterNode.specularOcclusionMode)
@@ -1087,13 +1121,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SpecularOcclusionMode.Off:
                     break;
                 case SpecularOcclusionMode.FromAO:
-                    activeFields.Add("SpecularOcclusionFromAO");
+                    baseActiveFields.AddAll("SpecularOcclusionFromAO");
                     break;
                 case SpecularOcclusionMode.FromAOAndBentNormal:
-                    activeFields.Add("SpecularOcclusionFromAOBentNormal");
+                    baseActiveFields.AddAll("SpecularOcclusionFromAOBentNormal");
                     break;
                 case SpecularOcclusionMode.Custom:
-                    activeFields.Add("SpecularOcclusionCustom");
+                    baseActiveFields.AddAll("SpecularOcclusionCustom");
                     break;
 
                 default:
@@ -1107,7 +1141,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool connected = masterNode.IsSlotConnected(SpeedTreeLitMasterNode.AmbientOcclusionSlotId);
                 if (connected || occlusionSlot.value != occlusionSlot.defaultValue)
                 {
-                    activeFields.Add("AmbientOcclusion");
+                    baseActiveFields.AddAll("AmbientOcclusion");
                 }
             }
 
@@ -1118,21 +1152,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool connected = masterNode.IsSlotConnected(SpeedTreeLitMasterNode.CoatMaskSlotId);
                 if (connected || coatMaskSlot.value > 0.0f)
                 {
-                    activeFields.Add("CoatMask");
+                    baseActiveFields.AddAll("CoatMask");
                 }
             }
 
             if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.LightingSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.LightingSlotId))
             {
-                activeFields.Add("LightingGI");
+                baseActiveFields.AddAll("LightingGI");
             }
             if (masterNode.IsSlotConnected(SpeedTreeLitMasterNode.BackLightingSlotId) && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.LightingSlotId))
             {
-                activeFields.Add("BackLightingGI");
+                baseActiveFields.AddAll("BackLightingGI");
             }
 
             if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(SpeedTreeLitMasterNode.DepthOffsetSlotId))
-                activeFields.Add("DepthOffset");
+                baseActiveFields.AddAll("DepthOffset");
+
+            // Speedtree-specific stuff
+            if (masterNode.speedTreeAssetVersion == SpeedTreeLitMasterNode.SpeedTreeVersion.SpeedTree7)
+            {
+                baseActiveFields.AddAll("SpeedtreeVersion7");
+            }
+            else
+            {
+                baseActiveFields.AddAll("SpeedtreeVersion8");
+            }
 
             return activeFields;
 
@@ -1145,12 +1189,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 pass.OnGeneratePass(masterNode);
 
                 // apply master node options to active fields
-                HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
+                var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 pass.ExtraInstancingOptions = GetInstancingOptionsFromMasterNode(masterNode);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(SpeedTreeLitMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(HDLitMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(HDLitMasterNode.VertexNormalSlotID) || 
+                    masterNode.IsSlotConnected(HDLitMasterNode.VertexTangentSlotID))
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else
@@ -1172,7 +1222,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", false);
             subShader.AddShaderChunk("{", false);
-            // TODO
             subShader.Indent();
             {
                 //Handle data migration here as we need to have a renderingPass already set with accurate data at this point.
@@ -1248,6 +1297,26 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);
+
+            // TODO
+            /*
+#if ENABLE_RAYTRACING
+            if(mode == GenerationMode.ForReals)
+            {
+                subShader.AddShaderChunk("SubShader", false);
+                subShader.AddShaderChunk("{", false);
+                subShader.Indent();
+                {
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingForward, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
+                }
+                subShader.Deindent();
+                subShader.AddShaderChunk("}", false);
+            }
+#endif
+            */
 
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.SpeedTreeLitGUI""");
 
