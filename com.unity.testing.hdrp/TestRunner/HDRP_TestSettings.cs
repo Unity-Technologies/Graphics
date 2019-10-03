@@ -59,6 +59,7 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
     void ReplaceBuiltinFontShaders()
     {
+#if UNITY_EDITOR
         var fontMaterialSG = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.testing.hdrp/Fonts/Font Material SG.mat");
         if (fontMaterialSG != null)
         {
@@ -78,5 +79,6 @@ public class HDRP_TestSettings : GraphicsTestSettings
                 }
             }
         }
+#endif
     }
 }
