@@ -28,17 +28,6 @@ namespace UnityEditor.ShaderGraph
             return fields;
         }
 
-        internal static ActiveFields ToActiveFields(this List<IField> fields)
-        {
-            var activeFields = new ActiveFields();
-            var baseFields = activeFields.baseInstance;
-
-            foreach(IField field in fields)
-                baseFields.Add(field);
-            
-            return activeFields;
-        }
-
         internal static void GenerateSubShaderTags(IMasterNode masterNode, SubShaderDescriptor descriptor, ShaderStringBuilder builder)
         {
             builder.AppendLine("Tags");
@@ -448,9 +437,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        internal static void AddRequiredFields(
-            IField[] passRequiredFields,            // fields the pass requires
-            IActiveFieldsSet activeFields)
+        internal static void AddRequiredFields(IField[] passRequiredFields,IActiveFieldsSet activeFields)
         {
             if (passRequiredFields != null)
             {

@@ -311,10 +311,14 @@ namespace UnityEditor.ShaderGraph
                         result.AppendLine(ifdefs);
                         //Append the rest of the line
                         AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
-                        result.AppendLine("");
+                        result.AppendNewLine();
                         result.AppendLine("#endif");
 
                         return false;
+                    }
+                    else
+                    {
+                        appendEndln = false; //if line isn't active, remove whitespace 
                     }
 
                     return false;
