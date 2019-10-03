@@ -348,6 +348,30 @@ namespace UnityEditor.Rendering.HighDefinition
             return new HDUnlitSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
+                else if(IsSlotConnected(HDUnlitMasterNode.AlphaThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f)
+                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
+                else
+                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             return new ConditionalField[]

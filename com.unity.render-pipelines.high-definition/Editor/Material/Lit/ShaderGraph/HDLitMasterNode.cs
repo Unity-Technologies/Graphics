@@ -928,6 +928,30 @@ namespace UnityEditor.Rendering.HighDefinition
             return new HDLitSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
+                else if(IsSlotConnected(HDLitMasterNode.AlphaThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f)
+                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
+                else
+                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
@@ -942,7 +966,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.GraphPixel,                          true),
                 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
                 
                 // Material
@@ -990,6 +1014,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.AlphaTestPrepass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AlphaTestPostpass,           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AlphaFog,                    surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
+                new ConditionalField(HDRPShaderGraphFields.BackThenFrontRendering,      surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
                 new ConditionalField(HDRPShaderGraphFields.BlendPreserveSpecular,       surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDRPShaderGraphFields.TransparentWritesMotionVec,  surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
                 new ConditionalField(HDRPShaderGraphFields.DisableDecals,               !receiveDecals.isOn),

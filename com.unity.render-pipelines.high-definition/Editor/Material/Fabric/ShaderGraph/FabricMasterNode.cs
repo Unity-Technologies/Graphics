@@ -668,6 +668,30 @@ namespace UnityEditor.Rendering.HighDefinition
             return new FabricSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
+                else if(IsSlotConnected(FabricMasterNode.AlphaClipThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaClipThresholdSlotId).value > 0.0f)
+                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
+                else
+                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
@@ -685,7 +709,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
                 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.FabricPasses.MotionVectors)),
                 // Material
                 new ConditionalField(HDRPShaderGraphFields.CottonWool,                  materialType == MaterialType.CottonWool),

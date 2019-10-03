@@ -751,6 +751,30 @@ namespace UnityEditor.Rendering.HighDefinition
             return new HairSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
+                else if(IsSlotConnected(HairMasterNode.AlphaClipThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaClipThresholdSlotId).value > 0.0f)
+                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
+                else
+                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         public ConditionalField[] GetConditionalFields(ShaderPass pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
@@ -768,7 +792,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
                 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.HairPasses.MotionVectors)),
                 // Material
                 new ConditionalField(HDRPShaderGraphFields.KajiyaKay,                   materialType == MaterialType.KajiyaKay),

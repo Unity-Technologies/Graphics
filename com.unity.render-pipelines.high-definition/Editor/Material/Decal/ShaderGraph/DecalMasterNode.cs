@@ -62,6 +62,21 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string VertexTangentSlotName = "Vertex Tangent";
         public const int VertexTangentSlotID = 11;
 
+        [SerializeField]
+        SurfaceType m_SurfaceType;
+
+        public SurfaceType surfaceType
+        {
+            get { return m_SurfaceType; }
+            set
+            {
+                if (m_SurfaceType == value)
+                    return;
+
+                m_SurfaceType = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
@@ -205,6 +220,30 @@ namespace UnityEditor.Rendering.HighDefinition
         public VisualElement CreateSettingsElement()
         {
             return new DecalSettingsView(this);
+        }
+
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{RenderQueue.Transparent}";
+                else if(IsSlotConnected(DecalMasterNode.BaseColorOpacitySlotId) || FindSlot<Vector1MaterialSlot>(BaseColorOpacitySlotId).value > 0.0f)
+                    return $"{RenderQueue.AlphaTest}";
+                else
+                    return $"{RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
         }
 
         public ConditionalField[] GetConditionalFields(ShaderPass pass)

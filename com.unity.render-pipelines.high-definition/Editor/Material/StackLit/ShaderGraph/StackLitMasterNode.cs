@@ -1192,6 +1192,30 @@ namespace UnityEditor.Rendering.HighDefinition
             return new StackLitSettingsView(this);
         }
 
+        public string renderQueueTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
+                else if(IsSlotConnected(StackLitMasterNode.AlphaClipThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaClipThresholdSlotId).value > 0.0f)
+                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
+                else
+                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+            }
+        }
+
+        public string renderTypeTag
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{HDRenderQueue.RenderQueueType.Transparent}";
+                else
+                    return $"{HDRenderQueue.RenderQueueType.Opaque}";
+            }
+        }
+
         // Reference for GetConditionalFields
         // -------------------------------------------
         //
@@ -1319,7 +1343,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
 
                 // Structs
-                new ConditionalField(HDRPShaderGraphFields.IsFrontFace,                 doubleSidedMode != DoubleSidedMode.Disabled &&
+                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
                                                                                         !pass.Equals(HDRPMeshTarget.StackLitPasses.MotionVectors)),
 
                 // Material

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -7,29 +8,55 @@ using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class HDRPDecalTarget : ITargetVariant<MeshTarget>
+    class HDRPDecalTarget : ITargetImplementation
     {
+        public Type targetType => typeof(MeshTarget);
         public string displayName => "HDRP";
         public string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
         public string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph";
 
-        public bool Validate(RenderPipelineAsset pipelineAsset)
+        public bool IsValid(IMasterNode masterNode)
         {
-            return pipelineAsset is HDRenderPipelineAsset;
+            if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
+            {
+                if (masterNode is DecalMasterNode)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        public bool TryGetSubShader(IMasterNode masterNode, out ISubShader subShader)
+        public void SetupTarget(ref TargetSetupContext context)
         {
-            switch(masterNode)
+            switch(context.masterNode)
             {
                 case DecalMasterNode decalMasterNode:
-                    subShader = new DecalSubShader();
-                    return true;
-                default:
-                    subShader = null;
-                    return false;
+                    context.SetupSubShader(SubShaders.Decal);
+                    break;
             }
         }
+
+#region SubShaders
+        public static class SubShaders
+        {
+            const string kPipelineTag = "HDPipeline";
+            public static SubShaderDescriptor Decal = new SubShaderDescriptor()
+            {
+                pipelineTag = kPipelineTag,
+                passes = new ConditionalShaderPass[]
+                {
+                    //projector3RT
+                    //projector4RT
+                    new ConditionalShaderPass(Passes.ProjectorEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
+                    //mesh3RT
+                    //mesh4RT
+                    new ConditionalShaderPass(Passes.MeshEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
+                    //preview
+                },
+            };
+        }
+#endregion
 
 #region Passes
         public static class Passes

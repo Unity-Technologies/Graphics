@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 renderQueueOverride = "Geometry",
                 renderTypeOverride = "Opaque",
-                passes = new ShaderPass[] { Passes.Preview },
+                passes = new ConditionalShaderPass[] { new ConditionalShaderPass(Passes.Preview) },
             };
         }
 #endregion

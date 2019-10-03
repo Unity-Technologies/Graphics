@@ -73,6 +73,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static List<IField> GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, ShaderPass pass) //TODO: clean up this active field gathering 
+        {
+            List<IField> fields;
+            if(outputNode is IMasterNode masterNode)
+            {
+                fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
+            }
+            // Preview shader
+            else
+            {
+                fields = new List<IField>() { DefaultFields.GraphPixel };
+            }
+            return fields;
+        }
+
         public static string GenerateSubShader(AbstractMaterialNode outputNode, ITargetImplementation target, TargetSetupContext context, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             var subShader = new ShaderGenerator();
@@ -86,8 +101,9 @@ namespace UnityEditor.ShaderGraph
 
                 foreach(var pass in context.descriptor.passes)
                 {
-                    if(pass.TestActive()) //TODO: check masternode fields for valid passes 
-                        GenerationUtils.GenerateShaderPass(outputNode, target, pass.shaderPass, mode, subShader, sourceAssetDependencyPaths);
+                    var fields = GatherActiveFieldsFromNode(outputNode, pass.shaderPass);
+                    if(pass.TestActive(fields)) //check masternode fields for valid passes 
+                        GenerationUtils.GenerateShaderPass(outputNode, target, pass.shaderPass, mode, fields, subShader, sourceAssetDependencyPaths);
                 }
             }
             subShader.Deindent();
@@ -97,27 +113,14 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static bool GenerateShaderPass(AbstractMaterialNode outputNode, ITargetImplementation target, ShaderPass pass, GenerationMode mode, 
-            ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+            List<IField> fields, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             // Early exit if pass is not used in preview
             if(mode == GenerationMode.Preview && !pass.useInPreview)
                 return false;
 
-            // Get base active fields from MasterNode
-            // TODO: ActiveFields should be refactored to work on IFields and convert to string as late as possible
-            // After this change we can read List<IField> for conditionals directly from ActiveFields.baseInstance
-            List<IField> fields;
-            if(outputNode is IMasterNode masterNode)
-            {
-                fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-            }
-            // Peeview shader
-            else
-            {
-                fields = new List<IField>() { DefaultFields.GraphPixel };
-            }
             var activeFields = fields.ToActiveFields();
-
+            
             // --------------------------------------------------
             // Debug
 
@@ -547,8 +550,8 @@ namespace UnityEditor.ShaderGraph
                 // TODO: Solve inconsistency
                 // URP: #define PASSNAME
                 // HDRP: #define SHADERPASS PASSNAME
-                // graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
-                graphDefines.AppendLine("#define {0}", pass.referenceName);
+                graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
+                // graphDefines.AppendLine("#define {0}", pass.referenceName);
                 
                 if(pass.defines != null)
                 {
