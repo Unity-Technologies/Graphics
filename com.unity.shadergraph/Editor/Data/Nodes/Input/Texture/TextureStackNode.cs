@@ -205,17 +205,19 @@ namespace UnityEditor.ShaderGraph
 
             string stackName = GetVariableNameForSlot(OutputSlotIds[0]) + "_texturestack";
 
-            // Add attributes to any connected textures
+            // Add texture stack attributes to any connected textures
             int found = 0;
             foreach (var prop in properties.properties.OfType<Texture2DShaderProperty>())
             {
+                int layerIdx = 0;
                 foreach (var inputTex in slotNames)
                 {
                     if (string.Compare(inputTex, prop.referenceName) == 0)
                     {
-                        prop.textureStack = stackName;
+                        prop.textureStack = stackName + "(" + layerIdx + ")" ;
                         found++;
                     }
+                    layerIdx++;
                 }
             }
 
