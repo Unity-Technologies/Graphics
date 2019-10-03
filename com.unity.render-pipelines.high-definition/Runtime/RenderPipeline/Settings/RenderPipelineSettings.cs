@@ -108,13 +108,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDecals;
 
         public MSAASamples msaaSampleCount;
-        public bool supportMSAA
-        {
-            get
-            {
-                return msaaSampleCount != MSAASamples.None;
-            }
-        }
+        public bool supportMSAA => msaaSampleCount != MSAASamples.None;
+
+        public bool keepAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
 
         public bool supportMotionVectors;
         public bool supportRuntimeDebugDisplay;
