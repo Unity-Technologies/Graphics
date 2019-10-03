@@ -61,6 +61,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static List<IField> GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, ShaderPass pass) //TODO: clean up this active field gathering 
+        {
+            if(outputNode is IMasterNode masterNode)
+            {
+                return GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
+            }
+            // Preview shader
+            else
+            {
+                return new List<IField>() { DefaultFields.GraphPixel };
+            }
+        }
+
         void BuildShader()
         {
             var activeNodeList = ListPool<AbstractMaterialNode>.Get();
@@ -111,32 +124,27 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GenerateSubShaderTags(m_OutputNode as IMasterNode, descriptor, m_Builder);
 
-                foreach(ShaderPass pass in descriptor.passes)
+                foreach(ConditionalShaderPass pass in descriptor.passes)
                 {
-                    GenerateShaderPass(targetIndex, pass);
+                    var fields = GatherActiveFieldsFromNode(m_OutputNode, pass.shaderPass);
+
+                    // TODO: cleanup this preview check, needed for HD decal preview pass
+                    if(m_Mode == GenerationMode.Preview) 
+                        fields.Add(DefaultFields.IsPreview);
+
+                    // Check masternode fields for valid passes
+                    if(pass.TestActive(fields)) 
+                        GenerateShaderPass(targetIndex, pass.shaderPass, fields);
                 }
             }
         }
 
-        void GenerateShaderPass(int targetIndex, ShaderPass pass)
+        void GenerateShaderPass(int targetIndex, ShaderPass pass, List<IField> fields)
         {
             // Early exit if pass is not used in preview
             if(m_Mode == GenerationMode.Preview && !pass.useInPreview)
                 return;
 
-            // Get base active fields from MasterNode
-            // TODO: ActiveFields should be refactored to work on IFields and convert to string as late as possible
-            // After this change we can read List<IField> for conditionals directly from ActiveFields.baseInstance
-            List<IField> fields;
-            if(m_OutputNode is IMasterNode masterNode)
-            {
-                fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-            }
-            // Peeview shader
-            else
-            {
-                fields = new List<IField>() { DefaultFields.GraphPixel };
-            }
             var activeFields = fields.ToActiveFields();
 
             // --------------------------------------------------
