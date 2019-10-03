@@ -226,12 +226,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if(surfaceType == SurfaceType.Transparent)
-                    return $"{RenderQueue.Transparent}";
-                else if(IsSlotConnected(DecalMasterNode.BaseColorOpacitySlotId) || FindSlot<Vector1MaterialSlot>(BaseColorOpacitySlotId).value > 0.0f)
-                    return $"{RenderQueue.AlphaTest}";
-                else
-                    return $"{RenderQueue.Geometry}";
+                return HDRenderQueue.GetShaderTagValue(
+                    HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, drawOrder, false));
             }
         }
 
@@ -264,6 +260,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.AffectsAO,           affectsAO.isOn),
                 new ConditionalField(HDRPShaderGraphFields.AffectsSmoothness,   affectsSmoothness.isOn),
                 new ConditionalField(HDRPShaderGraphFields.AffectsMaskMap,      affectsSmoothness.isOn || affectsMetal.isOn || affectsAO.isOn),
+                new ConditionalField(HDRPShaderGraphFields.DecalDefault,        affectsAlbedo.isOn || affectsNormal.isOn || affectsMetal.isOn ||
+                                                                                affectsAO.isOn || affectsSmoothness.isOn ),
             };
         }
 

@@ -17,14 +17,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public bool IsValid(IMasterNode masterNode)
         {
+            #if ENABLE_RAYTRACING
             if(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset)
             {
                 if (masterNode is FabricMasterNode ||
-                    masterNode is HDLitMasterNode)
+                    masterNode is HDLitMasterNode ||
+                    masterNode is HDUnlitMasterNode)
                 {
                     return true;
                 }
             }
+            #endif
             return false;
         }
 
@@ -38,6 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 case HDLitMasterNode hDLitMasterNode:
                     context.SetupSubShader(SubShaders.HDLit);
                     break;
+                case HDUnlitMasterNode hDUnlitMasterNode:
+                    context.SetupSubShader(SubShaders.HDUnlit);
+                    break;
             }
         }
 
@@ -49,29 +55,37 @@ namespace UnityEditor.Rendering.HighDefinition
 #region SubShaders
         public static class SubShaders
         {
-            const string kPipelineTag = "HDPipeline";
             public static SubShaderDescriptor HDFabric = new SubShaderDescriptor()
             {
-                pipelineTag = kPipelineTag,
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 passes = new ConditionalShaderPass[]
                 {
-                    //TODO: all passes need to condition against gnereation mode forreals
-                    new ConditionalShaderPass(FabricPasses.Indirect),
-                    new ConditionalShaderPass(FabricPasses.Visibility),
-                    new ConditionalShaderPass(FabricPasses.Forward),
-                    new ConditionalShaderPass(FabricPasses.GBuffer),
+                    new ConditionalShaderPass(FabricPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(FabricPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(FabricPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(FabricPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
                 },
             };
             public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
             {
-                pipelineTag = kPipelineTag,
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 passes = new ConditionalShaderPass[]
                 {
-                    //TODO: all passes need to condition against gnereation mode forreals
-                    new ConditionalShaderPass(HDLitPasses.Indirect),
-                    new ConditionalShaderPass(HDLitPasses.Visibility),
-                    new ConditionalShaderPass(HDLitPasses.Forward),
-                    new ConditionalShaderPass(HDLitPasses.GBuffer),
+                    new ConditionalShaderPass(HDLitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDLitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDLitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDLitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                },
+            };
+            public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                passes = new ConditionalShaderPass[]
+                {
+                    new ConditionalShaderPass(HDUnlitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDUnlitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDUnlitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalShaderPass(HDUnlitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
                 },
             };
         }

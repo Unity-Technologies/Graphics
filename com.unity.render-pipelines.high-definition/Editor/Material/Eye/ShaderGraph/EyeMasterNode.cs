@@ -629,12 +629,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if(surfaceType == SurfaceType.Transparent)
-                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
-                else if(IsSlotConnected(EyeMasterNode.AlphaClipThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaClipThresholdSlotId).value > 0.0f)
-                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
-                else
-                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+                var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
             }
         }
 

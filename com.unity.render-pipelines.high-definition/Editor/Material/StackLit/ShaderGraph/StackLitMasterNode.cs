@@ -1196,12 +1196,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if(surfaceType == SurfaceType.Transparent)
-                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
-                else if(IsSlotConnected(StackLitMasterNode.AlphaClipThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaClipThresholdSlotId).value > 0.0f)
-                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
-                else
-                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+                var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
             }
         }
 
@@ -1362,6 +1359,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.SubsurfaceScattering,        subsurfaceScattering.isOn && surfaceType != SurfaceType.Transparent),
                 new ConditionalField(HDRPShaderGraphFields.Transmission,                transmission.isOn),
                 new ConditionalField(HDRPShaderGraphFields.DualSpecularLobe,            dualSpecularLobe.isOn),
+
+                // Distortion
+                new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
 
                 // Base Parametrization
                 // Even though we can just always transfer the present (check with $SurfaceDescription.*) fields like specularcolor

@@ -755,12 +755,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if(surfaceType == SurfaceType.Transparent)
-                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
-                else if(IsSlotConnected(HairMasterNode.AlphaClipThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaClipThresholdSlotId).value > 0.0f)
-                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
-                else
-                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+                var renderingPass = surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
             }
         }
 
@@ -835,6 +832,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.RimTransmissionIntensity,    IsSlotConnected(RimTransmissionIntensitySlotId) && 
                                                                                         pass.pixelPorts.Contains(RimTransmissionIntensitySlotId)),
                 new ConditionalField(HDRPShaderGraphFields.UseLightFacingNormal,        useLightFacingNormal.isOn),                                                                                                                                             
+                new ConditionalField(HDRPShaderGraphFields.TransparentBackFace,         surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPrePass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPostPass,    surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
             };
         }
 

@@ -102,6 +102,8 @@ namespace UnityEditor.ShaderGraph
                 foreach(var pass in context.descriptor.passes)
                 {
                     var fields = GatherActiveFieldsFromNode(outputNode, pass.shaderPass);
+                    if(mode == GenerationMode.Preview) //TODO: cleanup this preview check, needed for HD decal preview pass
+                        fields.Add(DefaultFields.IsPreview);
                     if(pass.TestActive(fields)) //check masternode fields for valid passes 
                         GenerationUtils.GenerateShaderPass(outputNode, target, pass.shaderPass, mode, fields, subShader, sourceAssetDependencyPaths);
                 }

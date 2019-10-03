@@ -40,19 +40,19 @@ namespace UnityEditor.Rendering.HighDefinition
 #region SubShaders
         public static class SubShaders
         {
-            const string kPipelineTag = "HDPipeline";
+            const string kPipelineTag = HDRenderPipeline.k_ShaderTagName;
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
                 passes = new ConditionalShaderPass[]
                 {
-                    //projector3RT
-                    //projector4RT
+                    new ConditionalShaderPass(Passes.Projector3RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
+                    new ConditionalShaderPass(Passes.Projector4RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
                     new ConditionalShaderPass(Passes.ProjectorEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
-                    //mesh3RT
-                    //mesh4RT
+                    new ConditionalShaderPass(Passes.Mesh3RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
+                    new ConditionalShaderPass(Passes.Mesh4RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
                     new ConditionalShaderPass(Passes.MeshEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
-                    //preview
+                    new ConditionalShaderPass(Passes.Preview, new FieldCondition(DefaultFields.IsPreview, true)),
                 },
             };
         }

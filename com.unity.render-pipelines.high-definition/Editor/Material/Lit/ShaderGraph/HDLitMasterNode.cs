@@ -932,12 +932,24 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if(surfaceType == SurfaceType.Transparent)
-                    return $"{ShaderGraph.Internal.RenderQueue.Transparent}";
-                else if(IsSlotConnected(HDLitMasterNode.AlphaThresholdSlotId) || FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f)
-                    return $"{ShaderGraph.Internal.RenderQueue.AlphaTest}";
-                else
-                    return $"{ShaderGraph.Internal.RenderQueue.Geometry}";
+                HDRenderQueue.RenderQueueType renderPass;
+                if(renderingPass == HDRenderQueue.RenderQueueType.Unknown)
+                {
+                    switch(surfaceType)
+                    {
+                        case SurfaceType.Opaque:
+                            renderPass = HDRenderQueue.RenderQueueType.Opaque;
+                            break;
+                        case SurfaceType.Transparent:
+                            if (m_DrawBeforeRefraction)
+                                renderPass = HDRenderQueue.RenderQueueType.PreRefraction;
+                            else 
+                                renderPass = HDRenderQueue.RenderQueueType.Transparent;
+                            break;
+                    }
+                }
+                int queue = HDRenderQueue.ChangeType(renderingPass, sortPriority, alphaTest.isOn);
+                return HDRenderQueue.GetShaderTagValue(queue);
             }
         }
 
@@ -1002,6 +1014,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionFromAOBentNormal, specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal),
                 new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionCustom,     specularOcclusionMode == SpecularOcclusionMode.Custom),
 
+                //Distortion
+                new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
+
                 // Refraction
                 new ConditionalField(HDRPShaderGraphFields.Refraction,                  HasRefraction()),
                 new ConditionalField(HDRPShaderGraphFields.RefractionBox,               HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Box),
@@ -1014,7 +1029,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.AlphaTestPrepass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AlphaTestPostpass,           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AlphaFog,                    surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
-                new ConditionalField(HDRPShaderGraphFields.BackThenFrontRendering,      surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
                 new ConditionalField(HDRPShaderGraphFields.BlendPreserveSpecular,       surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDRPShaderGraphFields.TransparentWritesMotionVec,  surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
                 new ConditionalField(HDRPShaderGraphFields.DisableDecals,               !receiveDecals.isOn),
@@ -1038,6 +1052,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.BackLightingGI,              IsSlotConnected(BackLightingSlotId) && 
                                                                                         pass.pixelPorts.Contains(BackLightingSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.DepthOffset,                 depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
+                new ConditionalField(HDRPShaderGraphFields.TransparentBackFace,         surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPrePass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPostPass,    surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
             };
         }
 

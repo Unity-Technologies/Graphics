@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     new ConditionalShaderPass(HDUnlitPasses.SceneSelection),
                     new ConditionalShaderPass(HDUnlitPasses.DepthForwardOnly),
                     new ConditionalShaderPass(HDUnlitPasses.MotionVectors),
-                    //distortion
+                    new ConditionalShaderPass(HDUnlitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
                     new ConditionalShaderPass(HDUnlitPasses.ForwardOnly),
                 },
             };
@@ -127,11 +127,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     new ConditionalShaderPass(HDLitPasses.DepthOnly),
                     new ConditionalShaderPass(HDLitPasses.GBuffer),
                     new ConditionalShaderPass(HDLitPasses.MotionVectors),
-                    //distortion
-                    //transparent backface
-                    //transparent depth prepass
+                    new ConditionalShaderPass(HDLitPasses.DistortionVectors, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
+                    new ConditionalShaderPass(HDLitPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
+                    new ConditionalShaderPass(HDLitPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
                     new ConditionalShaderPass(HDLitPasses.Forward),
-                    //transparent depth postpass
+                    new ConditionalShaderPass(HDLitPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
                     }
             };
             public static SubShaderDescriptor HDEye = new SubShaderDescriptor()
@@ -170,10 +170,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     new ConditionalShaderPass(HairPasses.SceneSelection),
                     new ConditionalShaderPass(HairPasses.DepthForwardOnly),
                     new ConditionalShaderPass(HairPasses.MotionVectors),
-                    //transparent backface
-                    //transparent depth prepass
+                    new ConditionalShaderPass(HairPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
+                    new ConditionalShaderPass(HairPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
                     new ConditionalShaderPass(HairPasses.ForwardOnly),
-                    //transparent depth postpass
+                    new ConditionalShaderPass(HairPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
                 }
             };
             public static SubShaderDescriptor HDStackLit = new SubShaderDescriptor()
@@ -186,7 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     new ConditionalShaderPass(StackLitPasses.SceneSelection),
                     new ConditionalShaderPass(StackLitPasses.DepthForwardOnly),
                     new ConditionalShaderPass(StackLitPasses.MotionVectors),
-                    //distortion
+                    new ConditionalShaderPass(StackLitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
                     new ConditionalShaderPass(StackLitPasses.ForwardOnly),
                 }
             };
