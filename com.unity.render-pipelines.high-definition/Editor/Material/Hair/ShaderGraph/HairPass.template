@@ -254,9 +254,18 @@ $include("SharedCode.template.hlsl")
         // compute world space (user-provided) normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
+#if HAVE_DECALS
+        if (_EnableDecals)
+        {
+            // Both uses and modifies 'surfaceData.normalWS'.
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        }
+#endif
+
     #if (_USE_LIGHT_FACING_NORMAL)
         float3 viewFacingNormalWS = ComputeViewFacingNormal(V, surfaceData.hairStrandDirectionWS);
-        float3 N = viewFacingNormalWS;
+        float3 N = viewFacingNormalWS; // Not affected by decals
     #else
         float3 N = surfaceData.normalWS;
     #endif
@@ -264,14 +273,6 @@ $include("SharedCode.template.hlsl")
         bentNormalWS = N;
 
         $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-
-#if HAVE_DECALS
-        if (_EnableDecals)
-        {
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-        }
-#endif
 
 #if defined(_SPECULAR_OCCLUSION_CUSTOM)
         // Just use the value passed through via the slot (not active otherwise)

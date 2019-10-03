@@ -229,18 +229,19 @@ $include("SharedCode.template.hlsl")
          // compute world space normal
         GetNormalWS(fragInputs, irisNormalTS, surfaceData.irisNormalWS, doubleSidedConstants);
 
-        bentNormalWS = surfaceData.irisNormalWS; // Use diffuse normal (iris) to fetch GI, unless users provide explicit bent normal
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
+        surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
-         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
-  
 #if HAVE_DECALS
         if (_EnableDecals)
         {
+            // Both uses and modifies 'surfaceData.normalWS'.
             DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
         }
 #endif
+
+        bentNormalWS = surfaceData.irisNormalWS; // Use diffuse normal (iris) to fetch GI, unless users provide explicit bent normal (not affected by decals)
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
 
 #if defined(_SPECULAR_OCCLUSION_CUSTOM)
         // Just use the value passed through via the slot (not active otherwise)
@@ -297,7 +298,7 @@ $include("SharedCode.template.hlsl")
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
-        
+
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
