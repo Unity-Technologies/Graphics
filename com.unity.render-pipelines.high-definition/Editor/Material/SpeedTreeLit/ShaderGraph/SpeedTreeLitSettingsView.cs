@@ -329,12 +329,12 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Additional Velocity Change", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Add Precomputed Velocity", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
-                    toggle.value = m_Node.addVelocityChange.isOn;
-                    toggle.OnToggleChanged(ChangeAddVelocityChange);
+                    toggle.value = m_Node.addPrecomputedVelocity.isOn;
+                    toggle.OnToggleChanged(ChangeAddPrecomputedVelocity);
                 });
             });
 
@@ -391,15 +391,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 {
                     e.value = m_Node.speedTreeAssetVersion;
                     e.RegisterValueChangedCallback(ChangeSpeedTreeVersion);
-                });
-            });
-
-            ps.Add(new PropertyRow(CreateLabel("LOD Crossfading", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.lodFadeCrossFade.isOn;
-                    toggle.OnToggleChanged(ChangeLODCrossfade);
                 });
             });
 
@@ -626,12 +617,12 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.receiveSSR = td;
         }
 
-        void ChangeAddVelocityChange(ChangeEvent<bool> evt)
+        void ChangeAddPrecomputedVelocity(ChangeEvent<bool> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Velocity Change");
-            ToggleData td = m_Node.addVelocityChange;
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
+            ToggleData td = m_Node.addPrecomputedVelocity;
             td.isOn = evt.newValue;
-            m_Node.addVelocityChange = td;
+            m_Node.addPrecomputedVelocity = td;
         }
 
         void ChangeSpecularAA(ChangeEvent<bool> evt)
@@ -753,14 +744,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("SpeedTree Version Change");
             m_Node.speedTreeAssetVersion = (SpeedTreeLitMasterNode.SpeedTreeVersion)evt.newValue;
-        }
-
-        void ChangeLODCrossfade(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("LOD Crossfade Change");
-            ToggleData td = m_Node.lodFadeCrossFade;
-            td.isOn = evt.newValue;
-            m_Node.lodFadeCrossFade = td;
         }
 
         void ChangeLODPercentageFade(ChangeEvent<bool> evt)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -58,15 +59,15 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.Object.ToNeededCoordinateSpace();
+            return NeededCoordinateSpace.Object;
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.Object.ToNeededCoordinateSpace();
+            return NeededCoordinateSpace.Object;
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             // This node is fortunately, one of those which is the same for both SpeedTree7 and SpeedTree8
             registry.ProvideFunction(GetFunctionName(), s =>
@@ -100,7 +101,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var positionValue = GetSlotValue(PositionSlotId, generationMode);
             var normalValue = GetSlotValue(NormalSlotId, generationMode);
