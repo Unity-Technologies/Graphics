@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (camera.TryGetCullingParameters(false, out var cullingParams))
             {
-                cullingParams.stereoProjectionMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+                cullingParams.stereoProjectionMatrix = camera.projectionMatrix;
                 cullingParams.stereoViewMatrix = camera.worldToCameraMatrix;
             }
             else
