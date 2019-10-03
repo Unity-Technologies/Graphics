@@ -454,10 +454,10 @@ namespace UnityEditor.Rendering.Universal
         {
             public static StructDescriptor[] Default = new StructDescriptor[]
             {
-                UniversalMeshTargetImplementation.Attributes,
-                UniversalMeshTargetImplementation.Varyings,
-                UniversalMeshTargetImplementation.SurfaceDescriptionInputs,
-                UniversalMeshTargetImplementation.VertexDescriptionInputs,
+                UniversalMeshTarget.Attributes,
+                UniversalMeshTarget.Varyings,
+                UniversalMeshTarget.SurfaceDescriptionInputs,
+                UniversalMeshTarget.VertexDescriptionInputs,
             };
         }
 #endregion
@@ -473,10 +473,10 @@ namespace UnityEditor.Rendering.Universal
                 MeshTarget.ShaderStructs.Varyings.tangentWS,                        // needed for vertex lighting
                 MeshTarget.ShaderStructs.Varyings.bitangentWS,
                 MeshTarget.ShaderStructs.Varyings.viewDirectionWS,
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.lightmapUV,
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.sh,
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                UniversalMeshTargetImplementation.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                UniversalMeshTarget.ShaderStructs.Varyings.lightmapUV,
+                UniversalMeshTarget.ShaderStructs.Varyings.sh,
+                UniversalMeshTarget.ShaderStructs.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalMeshTarget.ShaderStructs.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
             public static IField[] PBRShadowCaster = new IField[]
