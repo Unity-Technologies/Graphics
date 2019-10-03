@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Data.Util;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
@@ -11,17 +12,17 @@ namespace UnityEditor.ShaderGraph.Internal
 
     static class IConditionalShaderStringExtensions
     {
-        public static bool TestActive(this IConditionalShaderString conditionalShaderString, List<IField> fields, out string value)
+        public static bool TestActive(this IConditionalShaderString conditionalShaderString, ActiveFields fields, out string value)
         {
             // Test FieldCondition against current active Fields
             bool TestFieldCondition(FieldCondition fieldCondition)
             {
                 // Required active field is not active
-                if(fieldCondition.condition == true && !fields.Contains(fieldCondition.field))
+                if(fieldCondition.condition == true && !fields.baseInstance.Contains(fieldCondition.field))
                     return false;
 
                 // Required non-active field is active
-                else if(fieldCondition.condition == false && fields.Contains(fieldCondition.field))
+                else if(fieldCondition.condition == false && fields.baseInstance.Contains(fieldCondition.field))
                     return false;
 
                 return true;

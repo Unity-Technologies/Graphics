@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Data.Util;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public class ConditionalShaderPass : IConditionalShaderPass
+    public class ConditionalShaderPass
     {
         public ShaderPass shaderPass { get; }
         public FieldCondition[] fieldConditions { get; }
@@ -23,7 +25,40 @@ namespace UnityEditor.ShaderGraph.Internal
             this.shaderPass = shaderPass;
             this.fieldConditions = fieldConditions;
         }
+
+        public bool TestActive(ActiveFields fields)
+        {
+            // Test FieldCondition against current active Fields
+            bool TestFieldCondition(FieldCondition fieldCondition)
+            {
+                // Required active field is not active
+                if(fieldCondition.condition == true && !fields.baseInstance.Contains(fieldCondition.field))
+                    return false;
+
+                // Required non-active field is active
+                else if(fieldCondition.condition == false && fields.baseInstance.Contains(fieldCondition.field))
+                    return false;
+
+                return true;
+            }
+
+            // No FieldConditions is always true
+            if(fieldConditions == null)
+            {
+                return true;
+            }
+
+            // One or more FieldConditions failed
+            if(fieldConditions.Where(x => !TestFieldCondition(x)).Any())
+            {
+                return false;
+            }
+
+            // All FieldConditions passed
+            return true;
+        }
     }
+
     public struct ShaderPass
     {
         // Definition

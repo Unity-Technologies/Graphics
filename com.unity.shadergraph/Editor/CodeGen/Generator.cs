@@ -61,17 +61,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static List<IField> GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, ShaderPass pass) //TODO: clean up this active field gathering 
+        public static ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, ShaderPass pass)
         {
+            var activeFields = new ActiveFields();
             if(outputNode is IMasterNode masterNode)
             {
-                return GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
+                var fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
+                foreach(IField field in fields)
+                    activeFields.baseInstance.Add(field);
             }
             // Preview shader
             else
             {
-                return new List<IField>() { DefaultFields.GraphPixel };
+                activeFields.baseInstance.Add(DefaultFields.GraphPixel);
             }
+            return activeFields;
         }
 
         void BuildShader()
@@ -126,26 +130,24 @@ namespace UnityEditor.ShaderGraph
 
                 foreach(ConditionalShaderPass pass in descriptor.passes)
                 {
-                    var fields = GatherActiveFieldsFromNode(m_OutputNode, pass.shaderPass);
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.shaderPass);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview) 
-                        fields.Add(DefaultFields.IsPreview);
+                        activeFields.baseInstance.Add(DefaultFields.IsPreview);
 
                     // Check masternode fields for valid passes
-                    if(pass.TestActive(fields)) 
-                        GenerateShaderPass(targetIndex, pass.shaderPass, fields);
+                    if(pass.TestActive(activeFields)) 
+                        GenerateShaderPass(targetIndex, pass.shaderPass, activeFields);
                 }
             }
         }
 
-        void GenerateShaderPass(int targetIndex, ShaderPass pass, List<IField> fields)
+        void GenerateShaderPass(int targetIndex, ShaderPass pass, ActiveFields activeFields)
         {
             // Early exit if pass is not used in preview
             if(m_Mode == GenerationMode.Preview && !pass.useInPreview)
                 return;
-
-            var activeFields = fields.ToActiveFields();
 
             // --------------------------------------------------
             // Debug
@@ -258,7 +260,7 @@ namespace UnityEditor.ShaderGraph
                         foreach(ConditionalRenderState renderState in renderStates)
                         {
                             string value = null;
-                            if(renderState.TestActive(fields, out value))
+                            if(renderState.TestActive(activeFields, out value))
                             {
                                 renderStateBuilder.AppendLine(value);
                                 break;
@@ -279,7 +281,7 @@ namespace UnityEditor.ShaderGraph
                     foreach(ConditionalPragma pragma in pass.pragmas)
                     {
                         string value = null;
-                        if(pragma.TestActive(fields, out value))
+                        if(pragma.TestActive(activeFields, out value))
                             passPragmaBuilder.AppendLine(value);
                     }
                 }
@@ -296,7 +298,7 @@ namespace UnityEditor.ShaderGraph
                     foreach(ConditionalInclude include in pass.includes)
                     {
                         string value = null;
-                        if(include.TestActive(fields, out value))
+                        if(include.TestActive(activeFields, out value))
                             passIncludeBuilder.AppendLine(value);
                     }
                 }
@@ -313,7 +315,7 @@ namespace UnityEditor.ShaderGraph
                     foreach(ConditionalKeyword keyword in pass.keywords)
                     {
                         string value = null;
-                        if(keyword.TestActive(fields, out value))
+                        if(keyword.TestActive(activeFields, out value))
                             passKeywordBuilder.AppendLine(value);
                     }
                 }
@@ -578,7 +580,7 @@ namespace UnityEditor.ShaderGraph
                     foreach(ConditionalDefine define in pass.defines)
                     {
                         string value = null;
-                        if(define.TestActive(fields, out value))
+                        if(define.TestActive(activeFields, out value))
                             graphDefines.AppendLine(value);
                     }
                 }
