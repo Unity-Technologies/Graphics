@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty realtimeMode;
         internal SerializedProperty lightingMultiplier;
         internal SerializedProperty lightingWeight;
+        internal SerializedProperty lightingFadeDistance;
         internal SerializedProperty lightingLightLayer;
         internal SerializedProperty proxyUseInfluenceVolumeAsProxyVolume;
         internal SerializedProperty proxyCapturePositionProxySpace;
@@ -51,6 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
             realtimeMode = root.Find((ProbeSettings p) => p.realtimeMode);
             lightingMultiplier = root.FindPropertyRelative("lighting.multiplier");
             lightingWeight = root.FindPropertyRelative("lighting.weight");
+            lightingFadeDistance = root.FindPropertyRelative("lighting.fadeDistance");
             lightingLightLayer = root.FindPropertyRelative("lighting.lightLayer");
             proxyUseInfluenceVolumeAsProxyVolume = root.FindPropertyRelative("proxySettings.useInfluenceVolumeAsProxyVolume");
             proxyCapturePositionProxySpace = root.FindPropertyRelative("proxySettings.capturePositionProxySpace");
