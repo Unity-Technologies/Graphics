@@ -175,12 +175,15 @@ namespace UnityEditor.VFX
         public void RefreshInputFlowSlots()
         {
             //Unlink all existing links. It is up to the user of this method to backup and restore links.
-            for (int slot = 0; slot < m_InputFlowSlot.Length; slot++)
+            if (m_InputFlowSlot != null)
             {
-                while (m_InputFlowSlot[slot].link.Count > 0)
+                for (int slot = 0; slot < m_InputFlowSlot.Length; slot++)
                 {
-                    var clean = m_InputFlowSlot[slot].link.Last();
-                    InnerUnlink(clean.context, this, clean.slotIndex, slot);
+                    while (m_InputFlowSlot[slot].link.Count > 0)
+                    {
+                        var clean = m_InputFlowSlot[slot].link.Last();
+                        InnerUnlink(clean.context, this, clean.slotIndex, slot);
+                    }
                 }
             }
 
