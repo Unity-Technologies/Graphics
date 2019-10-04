@@ -1,0 +1,40 @@
+#pragma target 4.5
+
+struct ps_input
+{
+	float4 pos : SV_POSITION;
+	#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
+	VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants : TEXCOORD0;
+	#endif
+
+	UNITY_VERTEX_OUTPUT_STEREO
+};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_ALPHA builtInInterpolants.y
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+			
+${VFXInclude("Shaders/ParticleLines/Pass.template")}	
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
+
+#pragma fragment frag
+float4 frag(ps_input i) : SV_TARGET
+{
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+	VFXTransformPSInputs(i);
+	float alpha = VFXGetFragmentColor(i);
+	VFXClipFragmentColor(alpha,i);
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+	return float4(_ObjectId, _PassValue, 1.0, 1.0);
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+	return (float4)0;
+#else
+#error VFX_PASSDEPTH undefined 
+#endif
+	
+}
