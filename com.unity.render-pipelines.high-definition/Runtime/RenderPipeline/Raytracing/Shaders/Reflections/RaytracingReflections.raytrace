@@ -33,8 +33,8 @@ TEXTURE2D_X(_SsrClearCoatMaskTexture);
 // int                                       _SsrStencilExclusionValue;
 
 // Output structure of the reflection raytrace shader
-RWTexture2D<float4>                     _SsrLightingTextureRW;
-RWTexture2D<float4>                     _SsrHitPointTexture;
+RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
+RW_TEXTURE2D_X(float4, _SsrHitPointTexture);
 
 [shader("miss")]
 void MissShaderReflections(inout RayIntersection rayIntersection : SV_RayPayload)
@@ -53,6 +53,8 @@ void RayGenReflectionHalfRes()
     uint3 LaunchIndex = DispatchRaysIndex();
     uint3 LaunchDim = DispatchRaysDimensions();
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
     // Compute the pixel coordinate (which matches the half res of the effect)
     uint2 halfResCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
@@ -68,8 +70,8 @@ void RayGenReflectionHalfRes()
     uint2 sourceCoord = outputCoord + shift;
 
     // Clear the textures (in case the sample that we generate does doesn't generate any )
-    _SsrLightingTextureRW[outputCoord] = float4(0.0, 0.0, 0.0, 0.0);
-    _SsrHitPointTexture[outputCoord] = float4(0.0, 0.0, 0.0, 1.0);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _SsrHitPointTexture[COORD_TEXTURE2D_X(outputCoord)] = float4(0.0, 0.0, 0.0, 1.0);
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).r;
@@ -79,7 +81,7 @@ void RayGenReflectionHalfRes()
         return;
 
     // Convert this to a world space position 
-    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -150,11 +152,11 @@ void RayGenReflectionHalfRes()
 
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[outputCoord][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[outputCoord][RAYCOUNTVALUES_INDIRECT] + 1;
+        _RayCountTexture[COORD_TEXTURE2D_X(outputCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(outputCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
     }
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
     float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
@@ -163,10 +165,10 @@ void RayGenReflectionHalfRes()
     float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
 
     // We store the clamped, pre-exposed value and the index of the target pixel in the first texture
-    _SsrLightingTextureRW[outputCoord] = float4(exposedValue, subPixelSample);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(outputCoord)] = float4(exposedValue, subPixelSample);
 
     // In the second texture, we store the sampled direction and the invPDF of the sample
-    _SsrHitPointTexture[outputCoord] = float4(sampleDir, 1.0 / samplePDF);
+    _SsrHitPointTexture[COORD_TEXTURE2D_X(outputCoord)] = float4(sampleDir, 1.0 / samplePDF);
 }
 
 [shader("raygeneration")]
@@ -176,12 +178,14 @@ void RayGenReflectionFullRes()
     uint3 LaunchIndex = DispatchRaysIndex();
     uint3 LaunchDim = DispatchRaysDimensions();
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
     // Compute the pixel coordinate (which matches the half res of the effect)
     uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
     // Clear the textures (in case the sample that we generate does doesn't generate any )
-    _SsrLightingTextureRW[currentCoord] = float4(0.0, 0.0, 0.0, 0.0);
-    _SsrHitPointTexture[currentCoord] = float4(0.0, 0.0, 0.0, 1.0);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _SsrHitPointTexture[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 1.0);
 
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).r;
@@ -191,7 +195,7 @@ void RayGenReflectionFullRes()
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
@@ -263,11 +267,11 @@ void RayGenReflectionFullRes()
 
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] + 1;
+        _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
     }
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Compute the PDF
     float samplePDF = 1.0;
@@ -282,9 +286,9 @@ void RayGenReflectionFullRes()
     float3 exposedValue = clamp(rayIntersection.color * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
 
     // We store the clamped, pre-exposed value and the index of the target pixel in the first texture
-    _SsrLightingTextureRW[currentCoord] = float4(exposedValue, 0.0);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(exposedValue, 0.0);
     // In the second texture, we store the sampled direction and the invPDF of the sample
-    _SsrHitPointTexture[currentCoord] = float4(sampleDir, 1.0 / samplePDF);
+    _SsrHitPointTexture[COORD_TEXTURE2D_X(currentCoord)] = float4(sampleDir, 1.0 / samplePDF);
 }
 
 [shader("raygeneration")]
@@ -294,11 +298,13 @@ void RayGenIntegration()
     uint3 LaunchIndex = DispatchRaysIndex();
     uint3 LaunchDim = DispatchRaysDimensions();
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
     // Compute the pixel coordinate to evaluate
     uint2 currentCoord = uint2(LaunchIndex.x, LaunchDim.y - LaunchIndex.y - 1);
 
     // Clear the output color texture
-    _SsrLightingTextureRW[currentCoord] = float4(0.0, 0.0, 0.0, 0.0);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
 
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).r;
@@ -308,7 +314,7 @@ void RayGenIntegration()
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, 1.0/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float distanceToCamera = length(posInput.positionWS);
 
     float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
@@ -361,7 +367,7 @@ void RayGenIntegration()
 
         if (_RayCountEnabled > 0)
         {
-            _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[currentCoord][RAYCOUNTVALUES_INDIRECT] + 1;
+            _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
         }
 
         // Create the ray descriptor for this pixel
@@ -386,7 +392,7 @@ void RayGenIntegration()
         rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Contribute to the pixel
         finalColor += rayIntersection.color;
@@ -399,7 +405,7 @@ void RayGenIntegration()
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * GetInverseCurrentExposureMultiplier();
 
     // We store the sampled color and the weight that shall be used for it (1.0)
-    _SsrLightingTextureRW[currentCoord] = float4(finalColor, 1.0);
+    _SsrLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
 }
 
 [shader("closesthit")]

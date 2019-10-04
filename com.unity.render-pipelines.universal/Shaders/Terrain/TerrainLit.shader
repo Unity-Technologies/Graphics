@@ -34,10 +34,18 @@ Shader "Universal Render Pipeline/Terrain/Lit"
         // used in fallback on old cards & base map
         [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
         [HideInInspector] _BaseColor("Main Color", Color) = (1,1,1,1)
+		
+		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {} 
 
         [ToggleUI] _EnableInstancedPerPixelNormal("Enable Instanced per-pixel normal", Float) = 1.0
     }
 
+	HLSLINCLUDE
+	
+	#pragma multi_compile __ _ALPHATEST_ON
+	
+	ENDHLSL 
+	
     SubShader
     {
         Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "False"}

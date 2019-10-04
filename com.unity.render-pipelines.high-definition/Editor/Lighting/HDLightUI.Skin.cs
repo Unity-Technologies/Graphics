@@ -46,8 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent areaIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the Light in Lumen.");
             public readonly GUIContent lightIntensity = new GUIContent("Intensity", "Sets the strength of the Light. Use the drop-down to select the light units to use.");
 
-            public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Controls the roughness of the Material and is useful when the specular highlight is either too small or too sharp. Very low cost way of faking spherical area lighting.");
-            public readonly GUIContent lightRadius = new GUIContent("Emission Radius", "Sets the softness of the core of the Punctual Light to create fill lighting.");
+            public readonly GUIContent lightRadius = new GUIContent("Radius", "Sets the radius of the light source. This affects the falloff of diffuse lighting, the spread of the specular highligt, and the softness of Ray Traced shadows.");
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "When disabled, HDRP does not calculate diffuse lighting for this Light. Does not increase performance as HDRP still calculates the diffuse lighting.");
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "When disabled, HDRP does not calculate specular lighting for this Light. Does not increase performance as HDRP still calculates the specular lighting.");
             public readonly GUIContent nonLightmappedOnly = new GUIContent("Shadowmask Mode", "Species the behavior of  the shadowmask when using Mixed lighting. Distance Shadowmask: HDRP uses real-time shadows to Shadow Distance and baked shadows after. Shadowmask: Static shadow casters always use baked shadows.");
@@ -108,8 +107,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent numRayTracingSamples = new GUIContent("Sample Count", "This defines the number of samples that will be used to evaluate this shadow.");
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
-            public readonly GUIContent sunLightConeAngle = new GUIContent("Sun Angle", "This defines the size of the sun in the sky.");
-            public readonly GUIContent lightShadowRadius = new GUIContent("Radius", "This defines the radius of the light for evaluating ray traced shadows.");
 #endif
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");

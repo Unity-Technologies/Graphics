@@ -5,7 +5,7 @@
 #ifndef RAYCOUNTMANAGER_CS_HLSL
 #define RAYCOUNTMANAGER_CS_HLSL
 //
-// UnityEngine.Rendering.HighDefinition.RayCountManager+RayCountValues:  static fields
+// UnityEngine.Rendering.HighDefinition.RayCountValues:  static fields
 //
 #define RAYCOUNTVALUES_VISIBILITY (0)
 #define RAYCOUNTVALUES_INDIRECT (1)

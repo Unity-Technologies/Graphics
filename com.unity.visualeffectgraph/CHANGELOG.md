@@ -6,10 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.0.0] - 2019-XX-XX
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
+- Correct VFXSettings display in Shader Graph compatible outputs
+- No more NullReference on sub-outputs after domain reload
+- Fix typo in strip tangent computation
+- Infinite recompilation using subgraph [Case 1186191] (https://issuetracker.unity3d.com/product/unity/issues/guid/1186191/)
+- Modifying a shader used by an output mesh context now automatically updates the currently edited VFX
+- Possible loss of shadergraph reference in unlit output
+- ui : toolbar item wrap instead of overlapping.
+
+### Added
+- Custom Inspector for Spawn context, delay settings are more user friendly.
+- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
 
 ## [7.1.1] - 2019-09-05
 ### Added
