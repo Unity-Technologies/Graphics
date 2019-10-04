@@ -616,7 +616,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var data = allocator.Allocate<ArrayListEnumerator.Data, A>();
                 data->source = arrayList.ptr;
-                data->index = 0;
+                data->index = -1;
 
                 return new ArrayListRefEnumerator<T, A>
                 {
@@ -704,7 +704,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var data = allocator.Allocate<ArrayListEnumerator.Data, A>();
                 data->source = arrayList.ptr;
-                data->index = 0;
+                data->index = -1;
 
                 return new ArrayListMutEnumerator<T, A>
                 {
