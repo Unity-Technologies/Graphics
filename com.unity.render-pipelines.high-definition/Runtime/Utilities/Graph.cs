@@ -218,19 +218,253 @@ namespace UnityEditor.Rendering.HighDefinition
 
     /// <summary>
     /// EXPERIMENTAL: A list based on an array with reference access.
-    ///
+    /// </summary>
+    /// <remarks>
     /// If the array does not have any values, it does not allocate memory on the heap.
     ///
     /// This list grows its backend array when items are pushed.
-    /// </summary>
+    /// </remarks>
     /// <typeparam name="T">Type of the array's item.</typeparam>
-    static class ArrayList
+    public unsafe struct ArrayList
     {
-        internal unsafe struct Data
+        unsafe struct Data
         {
             public int count;
             public int length;
             public void* storage;
+        }
+
+        const float GrowFactor = 2.0f;
+
+        Data* m_Data;
+
+        /// <summary>Get an immutable span over the items.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * <typeparamref name="T"/> must be the type of the items in the collection.</remarks>
+        /// <typeparam name="T">The type of the items in the collections.</typeparam>
+        /// <returns>The immutable span over the items.</returns>
+        ReadOnlySpan<T> GetSpan<T>() where T: struct => new ReadOnlySpan<T>(m_Data->storage, m_Data->count);
+        /// <summary>Get a mutable span over the items.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * <typeparamref name="T"/> must be the type of the items in the collection.</remarks>
+        /// <typeparam name="T">The type of the items in the collections.</typeparam>
+        /// <returns>The mutable span over the items.</returns>
+        Span<T> GetSpanMut<T>() where T: struct => new Span<T>(m_Data->storage, m_Data->count);
+
+        /// <summary>Number of item in the list.</summary>
+        public int count => m_Data->count;
+
+        /// <summary>Iterate over the values of the list by reference.</summary>
+        public ArrayListRefEnumerator<T, A> GetValues<T, A>()
+            where T: struct
+            where A: IMemoryAllocator => new ArrayListRefEnumerator<T, A>(this);
+        /// <summary>Iterate over the values of the list by mutable reference.</summary>
+        public ArrayListMutEnumerator<T, A> GetValuesMut<T, A>()
+            where T: struct
+            where A: IMemoryAllocator => new ArrayListMutEnumerator<T, A>(this);
+
+        public static ArrayList New<A>(A allocator)
+            where A: IMemoryAllocator
+        {
+            var list = new ArrayList();
+            list.m_Data = allocator.Allocate<Data, A>();
+            list.m_Data->storage = null;
+            list.m_Data->count = 0;
+            list.m_Data->length = 0;
+
+            return list;
+        }
+
+        /// <summary>Add a value to the list.</summary>
+        /// <remarks>
+        /// If the backend don't have enough memory, the list will increase the allocated memory.
+        ///
+        /// Safety:
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// * <paramref name="allocator"/> must be the allocator of this collection.
+        /// </remarks>
+        /// <param name="value">The value to add.</param>
+        /// <param name="allocator">The allocator for this collection.</param>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <typeparam name="A">The type of the allocator.</typeparam>
+        /// <returns>The index of the added value.</returns>
+        public unsafe int Add<T, A>(in T value, A allocator)
+            where T: struct
+            where A: IMemoryAllocator
+        {
+            var index = m_Data->count;
+            m_Data->count++;
+
+            GrowIfRequiredFor<T, A>(m_Data->count, allocator);
+
+            GetSpanMut<T>()[index] = value;
+            return index;
+        }
+
+        /// <summary>Get a reference to an item's value.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * If the index is out of bounds, the behaviour is undefined.
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <param name="index">The index of the item.</param>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <returns>A reference to the item.</returns>
+        public unsafe ref readonly T GetUnchecked<T>(int index) where T: struct => ref GetSpan<T>()[index];
+
+        /// <summary>Get a reference to an item's value.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <param name="index">The index of the item.</param>
+        /// <returns>A reference to the item.</returns>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <exception cref="ArgumentOutOfRangeException">When <paramref name="index"/> is out of bounds.</exception>
+        public unsafe ref readonly T Get<T>(int index)
+            where T: struct
+        {
+            if (index < 0 || index >= m_Data->count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            return ref GetUnchecked<T>(index);
+        }
+
+        /// <summary>Get a mutable reference to an item's value.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * If the index is out of bounds, the behaviour is undefined.
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <param name="index">The index of the item.</param>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <returns>A reference to the item.</returns>
+        public unsafe ref T GetMutUnchecked<T>(int index) where T: struct => ref GetSpanMut<T>()[index];
+
+        /// <summary>Get a mutable reference to an item's value.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <param name="index">The index of the item.</param>
+        /// <returns>A mutable reference to the item.</returns>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <exception cref="ArgumentOutOfRangeException">When <paramref name="index"/> is out of bounds.</exception>
+        public unsafe ref T GetMut<T>(int index)
+            where T: struct
+        {
+            if (index < 0 || index >= m_Data->count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            return ref GetMutUnchecked<T>(index);
+        }
+
+        /// <summary>Removes an item by copying the last entry at <paramref name="index"/> position.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * Behaviour is undefined when <paramref name="index"/> is out of bounds.
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <param name="index">The index of the item to remove.</param>
+        public unsafe void RemoveSwapBackAtUnchecked<T>(int index)
+            where T: struct
+        {
+            var spanMut = this.GetSpanMut<T>();
+            spanMut[index] = spanMut[m_Data->count - 1];
+            m_Data->count--;
+        }
+
+        /// <summary>Removes an item by copying the last entry at <paramref name="index"/> position.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <param name="index">The index of the item to remove.</param>
+        /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of bounds.</exception>
+        public unsafe void RemoveSwapBackAt<T>(int index)
+            where T: struct
+        {
+            if (index < 0 || index >= m_Data->count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            RemoveSwapBackAtUnchecked<T>(index);
+        }
+
+        /// <summary>Grow the capacity of the current array.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * <paramref name="allocator"/> must be the allocator used for this collection.
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <param name="size">the capacity to reach.</param>
+        /// <param name="allocator">The allocator used for this collection.</param>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <typeparam name="A">The type of the allocator.</typeparam>
+        public unsafe void GrowCapacity<T, A>(int size, A allocator)
+            where T : struct
+            where A: IMemoryAllocator
+        {
+            if (size > m_Data->length)
+                GrowIfRequiredFor<T, A>(size, allocator);
+        }
+
+        /// <summary>Dispose the allocated memory.</summary>
+        /// <remarks>
+        /// Safety:
+        /// * <paramref name="allocator"/> must be the allocator used for this collection.
+        /// </remarks>
+        /// <typeparam name="A">The type of the allocator.</typeparam>
+        /// <param name="allocator">The allocator used for this collection.</param>
+        public unsafe void Dispose<A>(A allocator)
+            where A: IMemoryAllocator
+        {
+            var ptr = m_Data->storage;
+            m_Data->storage = null;
+            m_Data->length = 0;
+            m_Data->count = 0;
+            allocator.Deallocate(ptr);
+            allocator.Deallocate(m_Data);
+            m_Data = null;
+        }
+
+        /// <summary>Grow the current backend to have at least <paramref name="size"/> item in memory.</summary>
+        /// <remarks>
+        /// If the current backend is null, <paramref name="size"/> items will be allocated.
+        ///
+        /// Safety:
+        /// * Behaviour is undefined if <paramref name="size"/> is negative or 0.
+        /// * <paramref name="allocator"/> must be the allocator used for this collection.
+        /// * <typeparamref name="T"/> must be the exact type of the collection's item.
+        /// </remarks>
+        /// <typeparam name="A">The type of the memory allocator.</typeparam>
+        /// <typeparam name="T">The type of the items in the collection.</typeparam>
+        /// <param name="allocator">The allocator used for this collection.</param>
+        /// <param name="size">The requested size.</param>
+        unsafe void GrowIfRequiredFor<T, A>(int size, A allocator)
+            where T: struct
+            where A: IMemoryAllocator
+        {
+            Assert.IsTrue(size > 0);
+
+            if (m_Data->storage == null)
+            {
+                m_Data->storage = allocator.Allocate((ulong)Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<T>() * (ulong)size);
+                m_Data->length = size;
+            }
+            else if (m_Data->length < size)
+            {
+                var nextSize = (float)m_Data->length;
+                while (nextSize < size)
+                    nextSize *= GrowFactor;
+
+                var byteSize = (ulong)Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<T>() * (ulong)nextSize;
+
+                allocator.Reallocate(m_Data->storage, byteSize);
+            }
         }
     }
 
@@ -242,34 +476,26 @@ namespace UnityEditor.Rendering.HighDefinition
             => new ArrayList<T, A>(allocator);
     }
 
-    public unsafe struct ArrayList<T, A>
+    public unsafe struct ArrayList<T, A> : IDisposable
         where T: struct
         where A: IMemoryAllocator
     {
-        const float GrowFactor = 2.0f;
-
-        ArrayList.Data* m_Data;
+        ArrayList m_ArrayList;
         A m_Allocator;
 
-        ReadOnlySpan<T> span => new ReadOnlySpan<T>(m_Data->storage, m_Data->count);
-        Span<T> spanMut => new Span<T>(m_Data->storage, m_Data->count);
-
         /// <summary>Number of item in the list.</summary>
-        public int count => m_Data->count;
+        public int count => m_ArrayList.count;
 
         /// <summary>Iterate over the values of the list by reference.</summary>
-        public ArrayListRefEnumerator<T, A> values => new ArrayListRefEnumerator<T, A>(this);
+        public ArrayListRefEnumerator<T, A> values => m_ArrayList.GetValues<T, A>();
         /// <summary>Iterate over the values of the list by mutable reference.</summary>
-        public ArrayListMutEnumerator<T, A> valuesMut => new ArrayListMutEnumerator<T, A>(this);
+        public ArrayListMutEnumerator<T, A> valuesMut => m_ArrayList.GetValuesMut<T, A>();
 
         public ArrayList(A allocator)
         {
             m_Allocator = allocator;
 
-            m_Data = allocator.Allocate<ArrayList.Data, A>();
-            m_Data->storage = null;
-            m_Data->count = 0;
-            m_Data->length = 0;
+            m_ArrayList = ArrayList.New(allocator);
         }
 
         /// <summary>
@@ -279,16 +505,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The value to add.</param>
         /// <returns>The index of the added value.</returns>
-        public int Add(in T value)
-        {
-            var index = m_Data->count;
-            m_Data->count++;
-
-            unsafe { GrowIfRequiredFor(m_Data->count); }
-
-            spanMut[index] = value;
-            return index;
-        }
+        public int Add(in T value) => m_ArrayList.Add(value, m_Allocator);
 
         /// <summary>
         /// Get a reference to an item's value.
@@ -298,19 +515,13 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="index">The index of the item.</param>
         /// <returns>A reference to the item.</returns>
-        public unsafe ref readonly T GetUnsafe(int index) => ref span[index];
+        public unsafe ref readonly T GetUnsafe(int index) => ref m_ArrayList.GetUnchecked<T>(index);
 
         /// <summary>Get a reference to an item's value.</summary>
         /// <param name="index">The index of the item.</param>
         /// <returns>A reference to the item.</returns>
         /// <exception cref="ArgumentOutOfRangeException">When <paramref name="index"/> is out of bounds.</exception>
-        public ref readonly T Get(int index)
-        {
-            if (index < 0 || index >= m_Data->count)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            unsafe { return ref GetUnsafe(index); }
-        }
+        public ref readonly T Get(int index) => ref m_ArrayList.Get<T>(index);
 
         /// <summary>
         /// Get a mutable reference to an item's value.
@@ -320,19 +531,13 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="index">The index of the item.</param>
         /// <returns>A reference to the item.</returns>
-        public unsafe ref T GetMutUnsafe(int index) => ref spanMut[index];
+        public unsafe ref T GetMutUnsafe(int index) => ref m_ArrayList.GetMutUnchecked<T>(index);
 
         /// <summary>Get a mutable reference to an item's value.</summary>
         /// <param name="index">The index of the item.</param>
         /// <returns>A mutable reference to the item.</returns>
         /// <exception cref="ArgumentOutOfRangeException">When <paramref name="index"/> is out of bounds.</exception>
-        public ref T GetMut(int index)
-        {
-            if (index < 0 || index >= m_Data->count)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            unsafe { return ref GetMutUnsafe(index); }
-        }
+        public ref T GetMut(int index) => ref m_ArrayList.GetMut<T>(index);
 
         /// <summary>
         /// Removes an item by copying the last entry at <paramref name="index"/> position.
@@ -341,82 +546,45 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Behaviour is undefined when <paramref name="index"/> is out of bounds.
         /// </summary>
         /// <param name="index">The index of the item to remove.</param>
-        public unsafe void RemoveSwapBackAtUnsafe(int index)
-        {
-            var spanMut = this.spanMut;
-            spanMut[index] = spanMut[m_Data->count - 1];
-            m_Data->count--;
-        }
+        public unsafe void RemoveSwapBackAtUnsafe(int index) => m_ArrayList.RemoveSwapBackAtUnchecked<T>(index);
 
         /// <summary>/// Removes an item by copying the last entry at <paramref name="index"/> position.</summary>
         /// <param name="index">The index of the item to remove.</param>
         /// <exception cref="ArgumentOutOfRangeException">When the <paramref name="index"/> is out of bounds.</exception>
-        public void RemoveSwapBackAt(int index)
-        {
-            if (index < 0 || index >= m_Data->count)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            unsafe { RemoveSwapBackAtUnsafe(index); }
-        }
+        public void RemoveSwapBackAt(int index) => m_ArrayList.RemoveSwapBackAt<T>(index);
 
         /// <summary>
         /// Grow the capacity of the current array.
         /// </summary>
         /// <param name="size">the capacity to reach.</param>
-        public void GrowCapacity(int size)
+        public void GrowCapacity(int size) => m_ArrayList.GrowCapacity<T, A>(size, m_Allocator);
+
+        /// <summary>Dispose the collection.</summary>
+        public void Dispose()
         {
-            if (size > m_Data->length)
-                GrowIfRequiredFor(size);
-        }
-
-        /// <summary>
-        /// Grow the current backend to have at least <paramref name="size"/> item in memory.
-        ///
-        /// If the current backend is null, <paramref name="size"/> items will be allocated.
-        ///
-        /// Safety:
-        /// Behaviour is undefined if <paramref name="size"/> is negative or 0.
-        /// </summary>
-        /// <param name="size"></param>
-        unsafe void GrowIfRequiredFor(int size)
-        {
-            Assert.IsTrue(size > 0);
-
-            if (m_Data->storage == null)
-            {
-                m_Data->storage = m_Allocator.Allocate((ulong)Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<T>() * (ulong)size);
-                m_Data->length = size;
-            }
-            else if (m_Data->length < size)
-            {
-                var nextSize = (float)m_Data->length;
-                while (nextSize < size)
-                    nextSize *= GrowFactor;
-
-                var byteSize = (ulong)Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<T>() * (ulong)nextSize;
-
-                m_Allocator.Reallocate(m_Data->storage, byteSize);
-            }
+            m_ArrayList.Dispose(m_Allocator);
         }
     }
 
-    /// <summary>
-    /// EXPERIMENTAL: An enumerator by reference over a <see cref="ArrayList{T}"/>.
-    /// </summary>
-    /// <typeparam name="T">Type of the enumerated values.</typeparam>
-    public struct ArrayListRefEnumerator<T, A> : IRefEnumerator<T>
-        where T : struct
-        where A : IMemoryAllocator
+    public static class ArrayListEnumerator
     {
-        class Data
+        internal unsafe struct Data
         {
-            public ArrayList<T, A> source;
+            public ArrayList* source;
             public int index;
         }
+    }
 
-        Data m_Data;
+    /// <summary>EXPERIMENTAL: An enumerator by reference over a <see cref="ArrayList{T}"/>.</summary>
+    /// <typeparam name="T">Type of the enumerated values.</typeparam>
+    public unsafe struct ArrayListRefEnumerator<T, A> : IRefEnumerator<T>
+        where A : IMemoryAllocator
+        where T : struct
+    {
+        ArrayListEnumerator.Data* m_Data;
+        A m_Allocator;
 
-        public ArrayListRefEnumerator(ArrayList<T, A> source)
+        public ArrayListRefEnumerator(ArrayList* source)
         {
             m_Data = new Data
             {
@@ -429,16 +597,16 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             get
             {
-                if (m_Data == null || m_Data.index < 0 || m_Data.index >= m_Data.source.count)
+                if (m_Data.source == null || m_Data.index < 0 || m_Data.index >= m_Data.source->count)
                     throw new InvalidOperationException("Enumerator was not initialized");
 
-                return ref m_Data.source.Get(m_Data.index);
+                return ref m_Data.source->GetUnchecked<T>(m_Data.index);
             }
         }
 
         public bool MoveNext()
         {
-            if (m_Data == null)
+            if (m_Data.source == null)
                 return false;
 
             var next = m_Data.index + 1;
