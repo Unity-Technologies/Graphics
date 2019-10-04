@@ -33,11 +33,14 @@ The ambient Light Probe can be static (generated only once) or dynamic (updated 
 HDRP uses the ambient Reflection Probe as a fallback for indirect specular lighting. This means that it only affects areas that local Reflection Probes, Screen Space Reflection, and raytraced reflections do not affect.
 
 <a name="LightingEnvironment"></a>
+
 ## Lighting environment
 
 The **Environment (HDRP)** is a section in the Lighting window that allows you to specify which sky to use for Global Illumination. To open the window, select **Window > Lighting Settings**.
 
-![](Images/EnvironmentLighting1.png)The **Environment (HDRP)** section is at the top and has two settings that you can edit:
+![](Images/EnvironmentLighting1.png)
+
+The **Environment (HDRP)** section is at the top and has two settings that you can edit:
 
 | **Setting**             | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
