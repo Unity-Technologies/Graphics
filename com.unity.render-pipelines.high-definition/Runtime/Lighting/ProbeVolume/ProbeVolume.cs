@@ -231,6 +231,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Hash = Hash128.Compute(inputString);
 
+            if (probeVolumeAsset)
+                dataUpdated = true;
+
             SetupPositions();
         }
 
