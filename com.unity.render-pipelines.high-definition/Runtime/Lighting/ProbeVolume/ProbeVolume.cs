@@ -237,6 +237,19 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupPositions();
         }
 
+        protected void OnLightingDataCleared()
+        {
+            probeVolumeAsset = null;
+            dataUpdated = true;
+        }
+
+        protected void OnLightingDataAssetCleared()
+        {
+            string assetPath = UnityEditor.AssetDatabase.GetAssetPath(probeVolumeAsset);
+            UnityEditor.AssetDatabase.DeleteAsset(assetPath);
+            UnityEditor.AssetDatabase.Refresh();
+        }
+
         protected void OnBakeCompleted()
         {
             if (!this.gameObject.activeInHierarchy)
@@ -273,6 +286,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
 
+            UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
+            UnityEditor.Lightmapping.lightingDataAssetCleared -= OnLightingDataAssetCleared;
+
             if (GetID() != -1)
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetID(), null);
         }
@@ -280,6 +296,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public void EnableBaking()
         {
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
+
+            UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
+            UnityEditor.Lightmapping.lightingDataAssetCleared += OnLightingDataAssetCleared;
 
             // Reset matrices hash to recreate all positions
             m_DebugProbeInputHash = new Hash128();

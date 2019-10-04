@@ -25,9 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CreateAsset();
         }
 
-        public static ProbeVolumeAsset CreateAsset(int id = -1)
+        public static string GetFileName(int id = -1)
         {
-            ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
             string assetName = "ProbeVolumeData";
 
             String assetFileName;
@@ -46,6 +45,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             assetFileName = System.IO.Path.Combine(assetPath, assetFileName);
+
+            return assetFileName;
+        }
+
+        public static ProbeVolumeAsset CreateAsset(int id = -1)
+        {
+            ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
+            string assetFileName = GetFileName(id);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
             UnityEditor.AssetDatabase.SaveAssets();

@@ -240,6 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var data = volume.GetData();
 
                     if (data == null || data.Length == 0)
+                        // TODO: Implement clear/removal from atlas
                         return false;
 
                     //Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
@@ -263,8 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)m_ProbeVolumeAtlasSHRTHandle.rt.height
                     ));
 
-                    //Debug.Log("data[0] = " + data[0]);
                     Debug.Assert(data.Length == size, "Error: ProbeVolumeSystem: volume data length = " + data.Length + ", resolution size = " + size);
+
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasReadBufferCount", size);
                     cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasReadBuffer", s_ProbeVolumeAtlasBlitDataBuffer);
