@@ -559,7 +559,7 @@ namespace UnityEditor.VFX.Test
             {
                 expectedValue = new Vector2(5.0f, 6.0f);
                 parameter.value = expectedValue;
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+                graph.RecompileIfNeeded();
             }
 
             if (modifyValue)
