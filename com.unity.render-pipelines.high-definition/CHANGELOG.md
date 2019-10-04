@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed moving objects not rendered in custom passes
 - Fixed abstract classes listed in the + menu of the custom pass list
 - Fixed custom pass that was rendered in previews
+- Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
