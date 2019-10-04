@@ -19,7 +19,9 @@ Unity provides an HDRP Template Project which you can use to quickly get set up 
 3. Click **Create**.
 
 Unity creates a Project and automatically installs the HDRP package, and all of its dependencies. After Unity opens the Template Project, you can see the main Scene. Which looks like this:
+
 ![](Images/GettingStarted1.png)
+
 In the Template Scene, you can view GameObjects in the Inspector to see things like HDRP Material or [Volume](Volumes.html) examples. You can then use these examples as a reference when creating your own Scene in HDRP.
 
 ## Pipeline setup
