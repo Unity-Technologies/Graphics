@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [8.0.0] - 2019-XX-XX
+### Added
+- Custom Inspector for Spawn context, delay settings are more user friendly.
+- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
+- Octagon & Triangle support for planar distortion output
+- Custom Z axis option for strip output
 
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
@@ -16,12 +21,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Possible loss of shadergraph reference in unlit output
 - ui : toolbar item wrap instead of overlapping.
 - Selection Pass for Universal and High Definition Render Pipeline
-
-### Added
-- Custom Inspector for Spawn context, delay settings are more user friendly.
-- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
-- Octagon & Triangle support for planar distortion output
-- Custom Z axis option for strip output
 
 ## [7.1.1] - 2019-09-05
 ### Added
