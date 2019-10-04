@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             for (int c = arraylist.count, i = 0; i < c; ++i)
             {
                 bool moveNext = false;
-                Assert.That(() => moveNext = a.MoveNext(), Is.Not.AllocatingGCMemory());
+                Assert.That(() => { moveNext = a.MoveNext(); }, Is.Not.AllocatingGCMemory());
                 Assert.True(moveNext);
                 Assert.True(l.MoveNext());
                 Assert.AreEqual(a.current, l.Current);
@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 for (int c = arraylist.count, i = 0; i < c; ++i)
                 {
                     bool aMoveNext = false;
-                    Assert.That(() => aMoveNext = a.MoveNext(), Is.Not.AllocatingGCMemory());
+                    Assert.That(() => { aMoveNext = a.MoveNext(); }, Is.Not.AllocatingGCMemory());
                     Assert.True(l.MoveNext());
                     Assert.AreEqual(a.current, l.Current + 1);
                 }

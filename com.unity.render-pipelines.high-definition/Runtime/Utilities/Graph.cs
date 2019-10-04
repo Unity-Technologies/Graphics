@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <typeparam name="Wh">Type of the where clause.</typeparam>
     public struct WhereRefIterator<T, En, Wh> : IRefEnumerator<T>
         where Wh : struct, IInFunc<T, bool>
-        where En : IRefEnumerator<T>
+        where En : struct, IRefEnumerator<T>
     {
         class Data
         {
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <typeparam name="Wh">Type of the where clause.</typeparam>
     public struct WhereMutIterator<T, En, Wh> : IMutEnumerator<T>
         where Wh : struct, IInFunc<T, bool>
-        where En : IMutEnumerator<T>
+        where En : struct, IMutEnumerator<T>
     {
         class Data
         {
@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <typeparam name="T">Type of the array's item.</typeparam>
     public unsafe struct ArrayList
     {
-        unsafe struct Data
+        internal unsafe struct Data
         {
             public int count;
             public int length;
@@ -237,6 +237,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const float GrowFactor = 2.0f;
 
         Data* m_Data;
+
+        internal Data* ptr => m_Data;
 
         /// <summary>Get an immutable span over the items.</summary>
         /// <remarks>
@@ -256,17 +258,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>Number of item in the list.</summary>
         public int count => m_Data->count;
 
-        /// <summary>Iterate over the values of the list by reference.</summary>
-        public ArrayListRefEnumerator<T, A> GetValues<T, A>()
-            where T: struct
-            where A: IMemoryAllocator => new ArrayListRefEnumerator<T, A>(this);
-        /// <summary>Iterate over the values of the list by mutable reference.</summary>
-        public ArrayListMutEnumerator<T, A> GetValuesMut<T, A>()
-            where T: struct
-            where A: IMemoryAllocator => new ArrayListMutEnumerator<T, A>(this);
-
         public static ArrayList New<A>(A allocator)
-            where A: IMemoryAllocator
+            where A: struct, IMemoryAllocator
         {
             var list = new ArrayList();
             list.m_Data = allocator.Allocate<Data, A>();
@@ -276,6 +269,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return list;
         }
+
+        internal ArrayList(Data* data) => m_Data = data;
 
         /// <summary>Add a value to the list.</summary>
         /// <remarks>
@@ -292,7 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The index of the added value.</returns>
         public unsafe int Add<T, A>(in T value, A allocator)
             where T: struct
-            where A: IMemoryAllocator
+            where A: struct, IMemoryAllocator
         {
             var index = m_Data->count;
             m_Data->count++;
@@ -406,7 +401,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <typeparam name="A">The type of the allocator.</typeparam>
         public unsafe void GrowCapacity<T, A>(int size, A allocator)
             where T : struct
-            where A: IMemoryAllocator
+            where A: struct, IMemoryAllocator
         {
             if (size > m_Data->length)
                 GrowIfRequiredFor<T, A>(size, allocator);
@@ -420,7 +415,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <typeparam name="A">The type of the allocator.</typeparam>
         /// <param name="allocator">The allocator used for this collection.</param>
         public unsafe void Dispose<A>(A allocator)
-            where A: IMemoryAllocator
+            where A: struct, IMemoryAllocator
         {
             var ptr = m_Data->storage;
             m_Data->storage = null;
@@ -446,7 +441,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="size">The requested size.</param>
         unsafe void GrowIfRequiredFor<T, A>(int size, A allocator)
             where T: struct
-            where A: IMemoryAllocator
+            where A: struct, IMemoryAllocator
         {
             Assert.IsTrue(size > 0);
 
@@ -472,24 +467,26 @@ namespace UnityEditor.Rendering.HighDefinition
         where T : struct
     {
         public static ArrayList<T, A> New<A>(A allocator)
-        where A : IMemoryAllocator
+        where A : struct, IMemoryAllocator
             => new ArrayList<T, A>(allocator);
     }
 
     public unsafe struct ArrayList<T, A> : IDisposable
         where T: struct
-        where A: IMemoryAllocator
+        where A: struct, IMemoryAllocator
     {
         ArrayList m_ArrayList;
         A m_Allocator;
+
+        internal unsafe ArrayList.Data* ptr => m_ArrayList.ptr;
 
         /// <summary>Number of item in the list.</summary>
         public int count => m_ArrayList.count;
 
         /// <summary>Iterate over the values of the list by reference.</summary>
-        public ArrayListRefEnumerator<T, A> values => m_ArrayList.GetValues<T, A>();
+        public ArrayListRefEnumerator<T, A> values => ArrayListEnumerator<T>.Ref(this, m_Allocator);
         /// <summary>Iterate over the values of the list by mutable reference.</summary>
-        public ArrayListMutEnumerator<T, A> valuesMut => m_ArrayList.GetValuesMut<T, A>();
+        public ArrayListMutEnumerator<T, A> valuesMut => ArrayListEnumerator<T>.Mut(this, m_Allocator);
 
         public ArrayList(A allocator)
         {
@@ -570,61 +567,108 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal unsafe struct Data
         {
-            public ArrayList* source;
+            public ArrayList.Data* source;
             public int index;
         }
     }
 
+    public static class ArrayListEnumerator<T>
+            where T : struct
+    {
+        public static ArrayListRefEnumerator<T, A2> Ref<A, A2>(in ArrayList<T, A> arrayList, A2 allocator)
+            where A : struct, IMemoryAllocator
+            where A2 : struct, IMemoryAllocator
+        => ArrayListRefEnumerator<T, A2>.New(arrayList, allocator);
+
+        public static ArrayListMutEnumerator<T, A2> Mut<A, A2>(in ArrayList<T, A> arrayList, A2 allocator)
+            where A : struct, IMemoryAllocator
+            where A2 : struct, IMemoryAllocator
+        => ArrayListMutEnumerator<T, A2>.New(arrayList, allocator);
+    }
+
     /// <summary>EXPERIMENTAL: An enumerator by reference over a <see cref="ArrayList{T}"/>.</summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
-    public unsafe struct ArrayListRefEnumerator<T, A> : IRefEnumerator<T>
-        where A : IMemoryAllocator
+    public struct ArrayListRefEnumerator<T, A> : IRefEnumerator<T>
+        where A : struct, IMemoryAllocator
         where T : struct
     {
-        ArrayListEnumerator.Data* m_Data;
+        unsafe ArrayListEnumerator.Data* m_Data;
         A m_Allocator;
 
-        public ArrayListRefEnumerator(ArrayList* source)
+        bool TryGetArrayList(out ArrayList arrayList)
         {
-            m_Data = new Data
+            unsafe
             {
-                source = source,
-                index = -1
-            };
+                if (m_Data->source == null)
+                {
+                    arrayList = default;
+                    return false;
+                }
+                arrayList = new ArrayList(m_Data->source);
+                return true;
+            }
+        }
+
+        internal static ArrayListRefEnumerator<T, A> New<A2>(in ArrayList<T, A2> arrayList, A allocator)
+            where A2: struct, IMemoryAllocator
+        {
+            unsafe
+            {
+                var data = allocator.Allocate<ArrayListEnumerator.Data, A>();
+                data->source = arrayList.ptr;
+                data->index = 0;
+
+                return new ArrayListRefEnumerator<T, A>
+                {
+                    m_Data = data,
+                    m_Allocator = allocator
+                };
+            }
         }
 
         public ref readonly T current
         {
             get
             {
-                if (m_Data.source == null || m_Data.index < 0 || m_Data.index >= m_Data.source->count)
-                    throw new InvalidOperationException("Enumerator was not initialized");
+                unsafe
+                {
+                    if (!TryGetArrayList(out var arrayList)
+                        || m_Data->index >= arrayList.count
+                        || m_Data->index < 0)
+                        throw new InvalidOperationException("Enumerator was not initialized");
 
-                return ref m_Data.source->GetUnchecked<T>(m_Data.index);
+                    return ref arrayList.GetUnchecked<T>(m_Data->index);
+                }
             }
         }
 
         public bool MoveNext()
         {
-            if (m_Data.source == null)
+            if (!TryGetArrayList(out var arrayList))
                 return false;
 
-            var next = m_Data.index + 1;
-            if (next < m_Data.source.count)
+            unsafe
             {
-                m_Data.index++;
-                return true;
-            }
+                var next = m_Data->index + 1;
+                if (next < arrayList.count)
+                {
+                    m_Data->index++;
+                    return true;
+                }
 
-            return false;
+                return false;
+            }
         }
 
         public void Reset()
         {
-            if (m_Data == null)
-                return;
+            unsafe
+            {
+                if (m_Data == null)
+                    return;
 
-            m_Data.index = 0;
+                m_Data->index = 0;
+            }
         }
     }
 
@@ -633,58 +677,86 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     /// <typeparam name="T">Type of the enumerated values.</typeparam>
     public struct ArrayListMutEnumerator<T, A> : IMutEnumerator<T>
-        where T : struct
-        where A : IMemoryAllocator
+       where A : struct, IMemoryAllocator
+       where T : struct
     {
-        class Data
+        unsafe ArrayListEnumerator.Data* m_Data;
+        A m_Allocator;
+
+        bool TryGetArrayList(out ArrayList arrayList)
         {
-            public ArrayList<T, A> source;
-            public int index;
+            unsafe
+            {
+                if (m_Data->source == null)
+                {
+                    arrayList = default;
+                    return false;
+                }
+                arrayList = new ArrayList(m_Data->source);
+                return true;
+            }
         }
 
-        Data m_Data;
-
-        public ArrayListMutEnumerator(ArrayList<T, A> source)
+        internal static ArrayListMutEnumerator<T, A> New<A2>(in ArrayList<T, A2> arrayList, A allocator)
+            where A2 : struct, IMemoryAllocator
         {
-            m_Data = new Data
+            unsafe
             {
-                source = source,
-                index = -1
-            };
+                var data = allocator.Allocate<ArrayListEnumerator.Data, A>();
+                data->source = arrayList.ptr;
+                data->index = 0;
+
+                return new ArrayListMutEnumerator<T, A>
+                {
+                    m_Data = data,
+                    m_Allocator = allocator
+                };
+            }
         }
 
         public ref T current
         {
             get
             {
-                if (m_Data == null || m_Data.index < 0 || m_Data.index >= m_Data.source.count)
-                    throw new InvalidOperationException("Enumerator was not initialized");
+                unsafe
+                {
+                    if (!TryGetArrayList(out var arrayList)
+                        || m_Data->index >= arrayList.count
+                        || m_Data->index < 0)
+                        throw new InvalidOperationException("Enumerator was not initialized");
 
-                return ref m_Data.source.GetMut(m_Data.index);
+                    return ref arrayList.GetMutUnchecked<T>(m_Data->index);
+                }
             }
         }
 
         public bool MoveNext()
         {
-            if (m_Data == null)
+            if (!TryGetArrayList(out var arrayList))
                 return false;
 
-            var next = m_Data.index + 1;
-            if (next < m_Data.source.count)
+            unsafe
             {
-                m_Data.index++;
-                return true;
-            }
+                var next = m_Data->index + 1;
+                if (next < arrayList.count)
+                {
+                    m_Data->index++;
+                    return true;
+                }
 
-            return false;
+                return false;
+            }
         }
 
         public void Reset()
         {
-            if (m_Data == null)
-                return;
+            unsafe
+            {
+                if (m_Data == null)
+                    return;
 
-            m_Data.index = 0;
+                m_Data->index = 0;
+            }
         }
     }
 
