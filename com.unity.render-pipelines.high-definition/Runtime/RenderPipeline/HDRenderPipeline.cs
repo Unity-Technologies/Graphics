@@ -1824,7 +1824,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
             // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-            if (m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+            if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
                 UpdateSkyEnvironment(hdCamera, m_FrameCount, cmd);
             else
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
