@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support of Alembic velocity to various shaders
 - Renaming Properties no longer freezes the Shader Graph window.
 - Fixed an error that previously occurred when you used the Gradient Sample node and your system locale uses commas instead of periods.
+- Fixed an issue with the animated preview when there is no Camera with animated Materials in the Editor.
 
 ## [6.9.0] - 2019-07-05
 

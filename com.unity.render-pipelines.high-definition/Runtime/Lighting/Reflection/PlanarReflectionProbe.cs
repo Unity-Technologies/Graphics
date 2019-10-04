@@ -5,6 +5,7 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteAlways]
+    [AddComponentMenu("Rendering/Planar Reflection Probe")]
     public sealed partial class PlanarReflectionProbe : HDProbe
     {
         // Serialized data

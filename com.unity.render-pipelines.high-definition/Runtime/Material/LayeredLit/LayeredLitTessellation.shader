@@ -133,10 +133,10 @@ Shader "HDRP/LayeredLitTessellation"
         _HeightPoMAmplitude2("Height Amplitude2", Float) = 2.0 // In centimeters
         _HeightPoMAmplitude3("Height Amplitude3", Float) = 2.0 // In centimeters
 
-        _DetailMap0("DetailMap0", 2D) = "black" {}
-        _DetailMap1("DetailMap1", 2D) = "black" {}
-        _DetailMap2("DetailMap2", 2D) = "black" {}
-        _DetailMap3("DetailMap3", 2D) = "black" {}
+        _DetailMap0("DetailMap0", 2D) = "linearGrey" {}
+        _DetailMap1("DetailMap1", 2D) = "linearGrey" {}
+        _DetailMap2("DetailMap2", 2D) = "linearGrey" {}
+        _DetailMap3("DetailMap3", 2D) = "linearGrey" {}
 
         _DetailAlbedoScale0("_DetailAlbedoScale0", Range(0.0, 2.0)) = 1
         _DetailAlbedoScale1("_DetailAlbedoScale1", Range(0.0, 2.0)) = 1

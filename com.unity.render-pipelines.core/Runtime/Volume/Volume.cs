@@ -3,6 +3,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering
 {
     [ExecuteAlways]
+    [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour
     {
         [Tooltip("A global volume is applied to the whole scene.")]

@@ -154,11 +154,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             /// </summary>
             public FOVMode fieldOfViewMode;
             /// <summary>Value to use when FOV is fixed.</summary>
-            [Range(0, 180)]
+            [Range(0, 179f)]
             public float fixedValue;
             /// <summary>The automatic value of the FOV is multiplied by this factor at the end.</summary>
+            [Min(0)]
             public float automaticScale;
             /// <summary>The viewer's FOV is multiplied by this factor at the end.</summary>
+            [Min(0)]
             public float viewerScale;
         }
 
