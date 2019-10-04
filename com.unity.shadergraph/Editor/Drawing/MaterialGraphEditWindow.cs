@@ -232,6 +232,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 UpdateShaderGraphOnDisk(path);
 
+                if (GraphData.onSaveGraph != null)
+                {
+                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+                    GraphData.onSaveGraph(shader);
+                }
+
                 graphObject.isDirty = false;
             }
         }

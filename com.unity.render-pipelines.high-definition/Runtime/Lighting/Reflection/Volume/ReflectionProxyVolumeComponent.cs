@@ -1,5 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    [AddComponentMenu("Rendering/Reflection Proxy Volume")]
     public class ReflectionProxyVolumeComponent : MonoBehaviour
     {
         [SerializeField]
