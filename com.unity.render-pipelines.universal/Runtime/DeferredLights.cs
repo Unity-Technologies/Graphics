@@ -3,10 +3,9 @@ using Unity.Collections;
 
 // TODO use subpass API to hide extra TileDepthPass
 // TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
-// TODO RelLightIndices should be stored in ushort instead of uint.
-// TODO use Unity.Mathematics
+// TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
+// TODO Fix (1.0 - d) shader code for UNITY_REVERSED_Z
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
-// TODO Align() function duplicated. Is there an Unity function for that?
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -41,9 +40,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // For platforms using 16x16 px tiles, we use a 16x16px tiles grid, a 64x64px tiles grid, and a 256x256px tiles grid
         // For platforms using  8x8  px tiles, we use a  8x8px  tiles grid, a 32x32px tiles grid, and a 128x128px tiles grid
         public const int kTilerDepth = 3;
-                                           
 
-        public const int kMaxLightPerTile = 31;
+        public const int kAvgLightPerTile = 32;
 
         // On platforms where the tile dimensions is large (16x16), it may be faster to generate tileDepthInfo texture
         // with an intermediate mip level, as this allows spawning more pixel shaders (avoid GPU starvation).
@@ -119,10 +117,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point lights without shadows) - false: use StencilDeferred.shader for all lights
 
-        // Cached.
+        //
         internal int m_RenderWidth = 0;
-        // Cached.
+        //
         internal int m_RenderHeight = 0;
+        // Cached.
+        internal int m_CachedRenderWidth = 0;
+        // Cached.
+        internal int m_CachedRenderHeight = 0;
         // Cached.
         Matrix4x4 m_CachedProjectionMatrix;
 
@@ -189,7 +191,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Tilers[tilerLevel] = new DeferredTiler(
                     DeferredConfig.kTilePixelWidth * scale,
                     DeferredConfig.kTilePixelHeight * scale,
-                    (DeferredConfig.kMaxLightPerTile + 1) * scale * scale - 1,
+                    (DeferredConfig.kAvgLightPerTile + 1) * scale * scale - 1,
                     tilerLevel
                 );
             }
@@ -206,27 +208,27 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             DeferredShaderData.instance.ResetBuffers();
 
-            // Precompute tile data again if the camera projection or the screen resolution has changed.
-            if (m_RenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
-                || m_RenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
-                || m_CachedProjectionMatrix != renderingData.cameraData.camera.projectionMatrix)
-            {
-                m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
-                m_RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
-                m_CachedProjectionMatrix = renderingData.cameraData.camera.projectionMatrix;
+            m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
+            m_RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
 
-                if (tiledDeferredShading)
+            if (this.tiledDeferredShading)
+            {
+                // Precompute tile data again if the camera projection or the screen resolution has changed.
+                if (m_CachedRenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
+                    || m_CachedRenderHeight != renderingData.cameraData.cameraTargetDescriptor.height
+                    || m_CachedProjectionMatrix != renderingData.cameraData.camera.projectionMatrix)
                 {
+                    m_CachedRenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
+                    m_CachedRenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
+                    m_CachedProjectionMatrix = renderingData.cameraData.camera.projectionMatrix;
+
                     foreach (DeferredTiler tiler in m_Tilers)
                     {
                         tiler.PrecomputeTiles(renderingData.cameraData.camera.projectionMatrix,
-                            renderingData.cameraData.camera.orthographic, m_RenderWidth, m_RenderHeight);
+                            renderingData.cameraData.camera.orthographic, m_CachedRenderWidth, m_CachedRenderHeight);
                     }
                 }
-            }
 
-            if (tiledDeferredShading)
-            {
                 // Allocate temporary resources for each hierarchical tiler.
                 foreach (DeferredTiler tiler in m_Tilers)
                     tiler.Setup();
@@ -246,7 +248,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.camera.nearClipPlane
             );
 
-            if(tiledDeferredShading)
+            if (this.tiledDeferredShading)
             {
                 NativeArray<ushort> defaultIndices = new NativeArray<ushort>(prePointLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 for (int i = 0; i < prePointLights.Length; ++i)
@@ -272,40 +274,40 @@ namespace UnityEngine.Rendering.Universal.Internal
                         int coarseTileXCount = coarseTiler.GetTileXCount();
                         int coarseTileYCount = coarseTiler.GetTileYCount();
                         ref NativeArray<ushort> coarseTiles = ref coarseTiler.GetTiles();
-                        int coarseTileHeader = coarseTiler.GetTileHeader();
                         int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
                         int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
 
                         for (int j = 0; j < coarseTileYCount; ++j)
-                            for (int i = 0; i < coarseTileXCount; ++i)
-                            {
-                                int fine_istart = i * fineStepX;
-                                int fine_jstart = j * fineStepY;
-                                int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
-                                int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
-                                int coarseTileOffset = coarseTiler.GetTileOffset(i, j);
-                                int coarseVisLightCount = coarseTiles[coarseTileOffset];
+                        for (int i = 0; i < coarseTileXCount; ++i)
+                        {
+                            int fine_istart = i * fineStepX;
+                            int fine_jstart = j * fineStepY;
+                            int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
+                            int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
+                            int coarseTileOffset;
+                            int coarseVisLightCount;
+                            coarseTiler.GetTileOffsetAndCount(i, j, out coarseTileOffset, out coarseVisLightCount);
 
-                                if (t != 0)
-                                {
-                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
-                                    // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
-                                    fineTiler.CullIntermediateLights(ref prePointLights,
-                                        ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
-                                        fine_istart, fine_iend, fine_jstart, fine_jend
-                                    );
-                                }
-                                else
-                                {
-                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
-                                    // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
-                                    // Also fills additional per-tile "m_TileHeader" data
-                                    fineTiler.CullFinalLights(ref prePointLights,
-                                        ref coarseTiles, coarseTileOffset + coarseTileHeader, coarseVisLightCount,
-                                        fine_istart, fine_iend, fine_jstart, fine_jend
-                                    );
-                                }
+                            if (t != 0)
+                            {
+                                // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                                // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
+                                fineTiler.CullIntermediateLights(ref prePointLights,
+                                    ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                                    fine_istart, fine_iend, fine_jstart, fine_jend
+                                );
                             }
+                            else
+                            {
+                                // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                                // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
+                                // Also fills additional per-tile "m_TileHeaders"
+                                fineTiler.CullFinalLights(ref prePointLights,
+                                    ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                                    fine_istart, fine_iend, fine_jstart, fine_jend
+                                );
+                            }
+                        }
                     }
                 }
                 else
@@ -370,8 +372,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             DeferredTiler tiler = m_Tilers[0];
             int tileXCount = tiler.GetTileXCount();
             int tileYCount = tiler.GetTileYCount();
-            int tileXStride = tiler.GetTileXStride();
-            int tileYStride = tiler.GetTileYStride();
             int tilePixelWidth = tiler.GetTilePixelWidth();
             int tilePixelHeight = tiler.GetTilePixelHeight();
             int tileMipLevel = (int)Mathf.Log(Mathf.Min(tilePixelWidth, tilePixelHeight), 2);
@@ -381,6 +381,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int depthInfoWidth = (m_RenderWidth + alignment - 1) >> intermediateMipLevel;
             int depthInfoHeight = (m_RenderHeight + alignment - 1) >> intermediateMipLevel;
             ref NativeArray<ushort> tiles = ref tiler.GetTiles();
+            ref NativeArray<uint> tileHeaders = ref tiler.GetTileHeaders();
 
             CommandBuffer cmd = CommandBufferPool.Get(k_TileDepthInfo);
             RenderTargetIdentifier depthSurface = m_DepthTexture.Identifier();
@@ -429,9 +430,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     for (int i = 0; i < tileXCount; ++i)
                     {
-                        int tileOffset = i * tileXStride + j * tileYStride;
-                        int tileLightCount = tiles[tileOffset];
-                        uint listDepthRange = tileLightCount == 0 ? invalidDepthRange : ((uint)tiles[tileOffset + 1]) | (((uint)tiles[tileOffset + 2]) << 16);
+                        int headerOffset = tiler.GetTileHeaderOffset(i, j);
+                        int tileLightCount = (int)tileHeaders[headerOffset + 1];
+                        uint listDepthRange = tileLightCount == 0 ? invalidDepthRange : tileHeaders[headerOffset + 2];
                         depthRanges[i + (j - tileY) * tileXCount] = listDepthRange;
                     }
                 }
@@ -583,7 +584,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 VisibleLight vl = visibleLights[visLightIndex];
 
-                if (vl.lightType == LightType.Point || vl.lightType == LightType.Spot )
+                if (vl.lightType == LightType.Point || vl.lightType == LightType.Spot)
                 {
                     if (this.tiledDeferredShading && IsTileLight(vl.light))
                     {
@@ -637,24 +638,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 int tileXCount = tiler.GetTileXCount();
                 int tileYCount = tiler.GetTileYCount();
-                int tileXStride = tiler.GetTileXStride();
-                int tileYStride = tiler.GetTileYStride();
                 int maxLightPerTile = tiler.GetMaxLightPerTile();
-                int tileHeader = tiler.GetTileHeader();
                 ref NativeArray<ushort> tiles = ref tiler.GetTiles();
+                ref NativeArray<uint> tileHeaders = ref tiler.GetTileHeaders();
 
                 int instanceOffset = 0;
                 int tileCount = 0;
                 int lightCount = 0;
                 int relLightIndices = 0;
 
-                NativeArray<Vector4UInt> tileList = new NativeArray<Vector4UInt>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                NativeArray<Vector4UInt> pointLightBuffer = new NativeArray<Vector4UInt>(m_MaxPointLightPerBatch * sizeof_vec4_PointLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                NativeArray<uint> relLightList = new NativeArray<uint>(m_MaxRelLightIndicesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
                 ComputeBuffer _tileList = DeferredShaderData.instance.ReserveBuffer<TileData>(m_MaxTilesPerBatch, DeferredConfig.kUseCBufferForTileList);
                 ComputeBuffer _pointLightBuffer = DeferredShaderData.instance.ReserveBuffer<PointLightData>(m_MaxPointLightPerBatch, DeferredConfig.kUseCBufferForLightData);
                 ComputeBuffer _relLightList = DeferredShaderData.instance.ReserveBuffer<uint>(m_MaxRelLightIndicesPerBatch, DeferredConfig.kUseCBufferForLightList);
+
+                NativeArray<Vector4UInt> tileList = new NativeArray<Vector4UInt>(m_MaxTilesPerBatch * sizeof_vec4_TileData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<Vector4UInt> pointLightBuffer = new NativeArray<Vector4UInt>(m_MaxPointLightPerBatch * sizeof_vec4_PointLightData, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                NativeArray<uint> relLightList = new NativeArray<uint>(m_MaxRelLightIndicesPerBatch, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 // Acceleration structure to quickly find if a light has already been added to the uniform block data for the current draw call.
                 NativeArray<ushort> trimmedLights = new NativeArray<ushort>(maxLightPerTile, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -665,14 +664,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     for (int i = 0; i < tileXCount; ++i)
                     {
-                        int tileOffset = i * tileXStride + j * tileYStride;
-                        int tileLightCount = tiles[tileOffset];
+                        int tileOffset;
+                        int tileLightCount;
+                        tiler.GetTileOffsetAndCount(i, j, out tileOffset, out tileLightCount);
                         if (tileLightCount == 0) // empty tile
                             continue;
 
                         // Find lights that are not in the batch yet.
-                        int trimmedLightCount = TrimLights(ref trimmedLights, ref tiles, tileOffset + tileHeader, tileLightCount, ref usedLights);
-                        Assertions.Assert.IsTrue(trimmedLightCount <= maxLightPerTile, "too many lights overlaps a tile");
+                        int trimmedLightCount = TrimLights(ref trimmedLights, ref tiles, tileOffset, tileLightCount, ref usedLights);
+                        Assertions.Assert.IsTrue(trimmedLightCount <= maxLightPerTile); // too many lights overlaps a tile
 
                         // Checks whether one of the GPU buffers is reaching max capacity.
                         // In that case, the draw call must be flushed and new GPU buffer(s) be allocated.
@@ -710,7 +710,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 // If pointLightBuffer was reset, then all lights in the current tile must be added.
                                 trimmedLightCount = tileLightCount;
                                 for (int l = 0; l < tileLightCount; ++l)
-                                    trimmedLights[l] = tiles[tileOffset + tileHeader + l];
+                                    trimmedLights[l] = tiles[tileOffset + l];
                                 usedLights.Clear();
                             }
 
@@ -725,7 +725,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         }
 
                         // Add TileData.
-                        uint listBitMask = (uint)tiles[tileOffset + 3] | ((uint)tiles[tileOffset + 4] << 16);
+                        int headerOffset = tiler.GetTileHeaderOffset(i, j);
+                        uint listBitMask = tileHeaders[headerOffset + 3];
                         StoreTileData(ref tileList, tileCount, PackTileID((uint)i, (uint)j), listBitMask, (ushort)relLightIndices, (ushort)tileLightCount);
                         ++tileCount;
 
@@ -742,7 +743,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // Add light list for the tile.
                         for (int l = 0; l < tileLightCount; ++l)
                         {
-                            int visLightIndex = tiles[tileOffset + tileHeader + l];
+                            int visLightIndex = tiles[tileOffset + l];
                             ushort relLightIndex = visLightToRelLights[visLightIndex];
                             relLightList[relLightIndices++] = relLightIndex;
                         }
@@ -769,12 +770,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     };
                 }
 
-                trimmedLights.Dispose();
-                visLightToRelLights.Dispose();
-                usedLights.Dispose();
                 tileList.Dispose();
                 pointLightBuffer.Dispose();
                 relLightList.Dispose();
+                trimmedLights.Dispose();
+                visLightToRelLights.Dispose();
+                usedLights.Dispose();
             }
 
             // Now draw all tile batches.
@@ -852,7 +853,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
                 Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
                 Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
-                cmd.SetGlobalMatrix("_InvCameraViewProj", viewProjInv);
+                cmd.SetGlobalMatrix(ShaderConstants._InvCameraViewProj, viewProjInv);
 
                 cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
