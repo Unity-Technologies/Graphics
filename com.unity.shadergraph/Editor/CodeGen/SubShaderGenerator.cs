@@ -96,26 +96,26 @@ namespace UnityEditor.ShaderGraph
             {
                 if(slots != null)
                 {
-                    foreach (var slot in slots)
+                    if (isSubgraph)
                     {
-                        string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        if (isSubgraph)
-                        {
-                            hlslName = $"{hlslName}_{slot.id}";
-                        }
-
-                        surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
-
-                        if (activeFields != null)
-                        {
-                            activeFields.AddAll(structName + "." + hlslName);
-                        }
-                    }
-                    
-                    if (isSubgraph) //if we're generating a subgraph, we need Surface.Out for preview pass
-                    {
-                        var firstSlot = slots.ElementAt(0);
+                        var firstSlot = slots.FirstOrDefault();
+                        var hlslName = $"{NodeUtils.GetHLSLSafeName(firstSlot.shaderOutputName)}_{firstSlot.id}";
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", firstSlot.concreteValueType.ToShaderString(firstSlot.owner.concretePrecision), hlslName);
                         surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(firstSlot.owner.concretePrecision), "Out");
+                    }
+                    else
+                    {
+                        foreach (var slot in slots)
+                        {
+                            string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+
+                            surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
+
+                            if (activeFields != null)
+                            {
+                                activeFields.AddAll(structName + "." + hlslName);
+                            }
+                        }
                     }
                 }
             }
@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder surfaceDescriptionFunction,
             GenerationMode mode)
         {
-            if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
+            if (rootNode is IMasterNode)
             {
                 var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
                 foreach (var input in usedSlots)
@@ -217,30 +217,25 @@ namespace UnityEditor.ShaderGraph
                     {
                         var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                         var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                        if (rootNode is SubGraphOutputNode)
-                        {
-                            hlslName = $"{hlslName}_{input.id}";
-                        }
                         if (foundEdges.Any())
-                        {
-                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                hlslName,
-                                rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
-                        }
+                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision)};");
                         else
-                        {
-                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
-                        }
+                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {input.GetDefaultValue(mode, rootNode.concretePrecision)};");
                     }
                 }
             }
-            if (rootNode is SubGraphOutputNode)
+            else if (rootNode is SubGraphOutputNode)
             {
-                var slot = rootNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
+                var slot = slots.FirstOrDefault();
                 if (slot != null)
                 {
-                    surfaceDescriptionFunction.AppendLine($"surface.Out = surface.{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id};");
+                    var foundEdges = graph.GetEdges(slot.slotReference).ToArray();
+                    var hlslName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
+                    if (foundEdges.Any())
+                        surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision)};");
+                    else
+                        surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {slot.GetDefaultValue(mode, rootNode.concretePrecision)};");
+                    surfaceDescriptionFunction.AppendLine($"surface.Out = surface.{hlslName};");
                 }
             }
             else if (rootNode.hasPreview)

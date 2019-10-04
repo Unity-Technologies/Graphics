@@ -67,7 +67,10 @@ namespace UnityEditor.ShaderGraph
             }
             else if(outputNode is SubGraphOutputNode)
             {
-                outputNode.GetInputSlots(pixelSlots = new List<MaterialSlot>());
+                pixelSlots = new List<MaterialSlot>()
+                {
+                    outputNode.GetInputSlots<MaterialSlot>().FirstOrDefault(),
+                };
                 vertexSlots = new List<MaterialSlot>();
             }
             else
@@ -238,10 +241,7 @@ namespace UnityEditor.ShaderGraph
 
             // Build pixel graph outputs
             // Add struct fields to active fields
-            if(outputNode is SubGraphOutputNode)
-                SubShaderGenerator.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, true);
-            else
-                SubShaderGenerator.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
+            SubShaderGenerator.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, outputNode is SubGraphOutputNode);
 
             // Build pixel graph functions from ShaderPass pixel port mask
             SubShaderGenerator.GenerateSurfaceDescriptionFunction(
