@@ -700,5 +700,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s += pattern1.Length;
             return new string(buffer, 0, s);
         }
+
+        internal static float ClampFOV(float fov) => Mathf.Clamp(fov, 0.00001f, 179);
     }
 }
