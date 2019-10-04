@@ -12,7 +12,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CaptureSettings,
             ProbeSettings,
             SeparatePassThrough,
-            UpgradeFrameSettingsToStruct
+            UpgradeFrameSettingsToStruct,
+            ProbesWithcustomizableFrameSettings,
         }
 
         [SerializeField, FormerlySerializedAs("version"), FormerlySerializedAs("m_Version")]
@@ -55,7 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 p.m_LocalReferencePosition = Quaternion.Euler(-90, 0, 0) * -p.m_LocalReferencePosition;
             }),
             MigrationStep.New(PlanarProbeVersion.SeparatePassThrough, (PlanarReflectionProbe t) => k_Migration.ExecuteStep(t, Version.SeparatePassThrough)),
-            MigrationStep.New(PlanarProbeVersion.UpgradeFrameSettingsToStruct, (PlanarReflectionProbe t) => k_Migration.ExecuteStep(t, Version.UpgradeFrameSettingsToStruct))
+            MigrationStep.New(PlanarProbeVersion.UpgradeFrameSettingsToStruct, (PlanarReflectionProbe t) => k_Migration.ExecuteStep(t, Version.UpgradeFrameSettingsToStruct)),
+            MigrationStep.New(PlanarProbeVersion.ProbesWithcustomizableFrameSettings, (PlanarReflectionProbe t) => k_Migration.ExecuteStep(t, Version.ProbesWithOverrideableFrameSettings))
         );
 
         // Obsolete Properties

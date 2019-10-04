@@ -416,5 +416,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.RayTracing, true);
         }
+
+        /// <summary>
+        /// Some controls are not forced by the code for the framesettings for reflections. So the user can actually
+        /// set the values himself.
+        ///
+        /// However, we must set the values as the forced values during migration to ensure that whatever the values are
+        /// the behaviour is the same as before the version update.
+        /// </summary>
+        /// <param name="cameraFrameSettings"></param>
+        internal static void MigrateToProbesWithOverrideableFrameSettings(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.ExposureControl, false);
+        }
     }
 }

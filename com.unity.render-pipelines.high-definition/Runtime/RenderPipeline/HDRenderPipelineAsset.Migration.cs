@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddFrameSettingDirectSpecularLighting,
             AddCustomPostprocessAndCustomPass,
             ScalableSettingsRefactor,
+            ProbesWithCustomizableFrameSettings,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -67,6 +68,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowInit.shadowResolutionArea.schemaId = ScalableSettingSchemaId.With4Levels;
                 shadowInit.shadowResolutionDirectional.schemaId = ScalableSettingSchemaId.With4Levels;
                 shadowInit.shadowResolutionPunctual.schemaId = ScalableSettingSchemaId.With4Levels;
+            }),
+            MigrationStep.New(Version.ProbesWithCustomizableFrameSettings, (HDRenderPipelineAsset data) =>
+            {
+                {
+                    ref var frameSettings = ref data.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+                    FrameSettings.MigrateToProbesWithOverrideableFrameSettings(ref frameSettings);
+                }
+                {
+                    ref var frameSettings = ref data.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
+                    FrameSettings.MigrateToProbesWithOverrideableFrameSettings(ref frameSettings);
+                }
             })
         );
 
