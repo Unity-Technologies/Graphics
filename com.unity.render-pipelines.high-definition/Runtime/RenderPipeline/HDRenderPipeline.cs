@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat GetColorBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
-            
+
         GraphicsFormat GetCustomBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.customBufferFormat;
 
@@ -252,7 +252,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool                            m_IsDepthBufferCopyValid;
         RenderTexture                   m_TemporaryTargetForCubemaps;
-        Stack<Camera>                   m_ProbeCameraPool = new Stack<Camera>();
+
+        private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
+            CameraCache<(Transform viewer, HDProbe probe, int face)>();
 
         RenderTargetIdentifier[] m_MRTTransparentMotionVec;
         RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, diffuse, sss buffer;
@@ -865,24 +867,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 //   it is disposed during an `OnValidate` call.
                 //   But during `OnValidate` call, game object must not be destroyed.
                 //   So, only when this method was called during an `OnValidate` call, the destruction of the
-                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtiles.Destroy`
+                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtils.Destroy`
                 var isInOnValidate = false;
                 isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
                 if (isInOnValidate)
                 {
-                    var pool = m_ProbeCameraPool;
-                    UnityEditor.EditorApplication.delayCall += () =>
-                    {
-                        while (pool.Count > 0)
-                            CoreUtils.Destroy(pool.Pop().gameObject);
-                    };
-                    m_ProbeCameraPool = null;
+                    var pool = m_ProbeCameraCache;
+                    UnityEditor.EditorApplication.delayCall += () => pool.Dispose();
+                    m_ProbeCameraCache = null;
                 }
                 else
                 {
 #endif
-                    while (m_ProbeCameraPool.Count > 0)
-                        CoreUtils.Destroy(m_ProbeCameraPool.Pop().gameObject);
+                    m_ProbeCameraCache.Dispose();
+                    m_ProbeCameraCache = null;
 #if UNITY_EDITOR
                 }
 #endif
@@ -1045,7 +1043,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 public RenderTexture copyToTarget;
             }
             public HDCamera hdCamera;
-            public bool destroyCamera;
+            public bool clearCameraSettings;
             public Target target;
             public HDCullingResults cullingResults;
             public int index;
@@ -1118,6 +1116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (newFrame)
                 {
                     HDCamera.CleanUnused();
+                    m_ProbeCameraCache.ClearCamerasUnusedFor(2, Time.frameCount);
 
                     if (newTime > m_Time)
                         m_FrameCount++;
@@ -1447,10 +1446,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
-                        Camera camera = (m_ProbeCameraPool.Count == 0)
-                            ? new GameObject().AddComponent<Camera>()
-                            : m_ProbeCameraPool.Pop();
-
+                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount);
                         camera.targetTexture = visibleProbe.realtimeTexture; // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
                         camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
                         camera.gameObject.SetActive(false);
@@ -1512,7 +1508,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             hdCamera = hdCamera,
                             cullingResults = _cullingResults,
-                            destroyCamera = true,
+                            clearCameraSettings = true,
                             dependsOnRenderRequestIndices = ListPool<int>.Get(),
                             index = renderRequests.Count,
                             cameraSettings = cameraSettings[j]
@@ -1682,12 +1678,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     target.copyToTarget, (int)target.face, 0, 0, 0
                                 );
                             }
-                            // Destroy the camera if requested
-                            if (renderRequest.destroyCamera)
-                            {
-                                renderRequest.hdCamera.camera.targetTexture = null; // release reference because the RenderTexture might be destroyed before camera
-                                m_ProbeCameraPool.Push(renderRequest.hdCamera.camera);
-                            }
+                            if (renderRequest.clearCameraSettings)
+                                // release reference because the RenderTexture might be destroyed before the camera
+                                renderRequest.hdCamera.camera.targetTexture = null;
 
                             ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
                             renderRequest.cullingResults.decalCullResults?.Clear();
