@@ -117,6 +117,8 @@ MonoBehaviour:
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
       type: 3}
+    decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6,
+      type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAODenoiseCS: {fileID: 7200000, guid: 414b49640e3c719488fae81080e089c5, type: 3}
     GTAOUpsampleCS: {fileID: 7200000, guid: 61b3fcbcdc928ef4e94363cb25b7cca7, type: 3}
