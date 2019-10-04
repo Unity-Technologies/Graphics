@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Graph no longer references the `NUnit` package.
 - Fixed a shader compatibility issue in the SRP Batcher when you use a hybrid instancing custom variable.
 - Fixed an issue where Unity would crash when you imported a Shader Graph Asset with invalid formatting.
+- Fixed an issue with the animated preview when there is no Camera with animated Materials in the Editor.
 
 ## [7.1.1] - 2019-09-05
 ### Added
