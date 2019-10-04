@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals not affecting lightmap/lightprobe
 - Fixed issue with rectangular area light when seen from the back
 - Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
+- Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well
