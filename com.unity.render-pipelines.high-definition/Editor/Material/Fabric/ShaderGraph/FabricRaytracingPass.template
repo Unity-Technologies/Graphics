@@ -146,6 +146,10 @@ Pass
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
+        // specularOcclusion need to be init ahead of decal to quiet the compiler that modify the SurfaceData struct
+        // however specularOcclusion can come from the graph, so need to be init here so it can be override.
+        surfaceData.specularOcclusion = 1.0;
+
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:                     surfaceData.baseColor =                 surfaceDescription.Albedo;
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
@@ -203,9 +207,13 @@ Pass
         $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
-        // If user provide bent normal then we process a better term
-        surfaceData.specularOcclusion = 1.0;
+#if HAVE_DECALS
+        if (_EnableDecals)
+        {
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        }
+#endif
 
 #if defined(_SPECULAR_OCCLUSION_CUSTOM)
         // Just use the value passed through via the slot (not active otherwise)
@@ -214,16 +222,6 @@ Pass
         surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
 #elif defined(_AMBIENT_OCCLUSION) && defined(_SPECULAR_OCCLUSION_FROM_AO)
         surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#else
-        surfaceData.specularOcclusion = 1.0;
-#endif
-
-#if HAVE_DECALS
-        if (_EnableDecals)
-        {
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-        }
 #endif
 
 #ifdef DEBUG_DISPLAY

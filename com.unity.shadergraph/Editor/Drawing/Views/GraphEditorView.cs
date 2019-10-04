@@ -59,6 +59,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action saveRequested { get; set; }
 
+        public Action saveAsRequested { get; set; }
+
         public Func<bool> isCheckedOut { get; set; }
 
         public Action checkOut { get; set; }
@@ -146,6 +148,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (saveRequested != null)
                             saveRequested();
+                    }
+                    GUILayout.Space(6);
+                    if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
+                    {
+                        saveAsRequested();
                     }
                     GUILayout.Space(6);
                     if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
@@ -1010,6 +1017,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphView != null)
             {
                 saveRequested = null;
+                saveAsRequested = null;
                 convertToSubgraphRequested = null;
                 showInProjectRequested = null;
                 foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())

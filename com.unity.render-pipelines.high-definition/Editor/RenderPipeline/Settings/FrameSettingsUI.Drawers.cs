@@ -75,16 +75,16 @@ namespace UnityEditor.Rendering.HighDefinition
         //separated to add enum popup on default frame settings
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true) => CED.Group(
                 CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(198, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
+                    CED.Group(206, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(198, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
+                    CED.Group(206, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(198, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
+                    CED.Group(206, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
                     ),
                 CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(198, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
+                    CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
                     )
                 );
 
@@ -199,9 +199,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
             );
             area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
-                overridedDefaultValue: ScalableSetting.Level.Low,
-                customGetter: () => (ScalableSetting.Level)serialized.lodBiasQualityLevel.enumValueIndex,
-                customSetter: v => serialized.lodBiasQualityLevel.enumValueIndex = (int)v,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
+                customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
                 customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.LODBias,
@@ -218,9 +218,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
             );
             area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
-                overridedDefaultValue: ScalableSetting.Level.Low,
-                customGetter: () => (ScalableSetting.Level)serialized.maximumLODLevelQualityLevel.enumValueIndex,
-                customSetter: v => serialized.maximumLODLevelQualityLevel.enumValueIndex = (int)v,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
+                customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
                 customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
@@ -237,6 +237,15 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
             area.Draw(withOverride);
+        }
+
+        // Use an enum to have appropriate UI enum field in the frame setting api
+        // Do not use anywhere else
+        enum ScalableLevel3ForFrameSettingsUIOnly
+        {
+            Low,
+            Medium,
+            High
         }
 
         static void Drawer_SectionLightingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)

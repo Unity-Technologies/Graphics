@@ -46,7 +46,7 @@ In HDRP, each individual Light component controls its own shadow biasing using t
 - **Edge Tolerance Normal**
 - **Edge Tolerance**
 
-Find these settings under the **Shadows** section. If some of the property fields are missing, click the **Advanced Properties** button to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.html).
+Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.html) cog to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.html).
 
 ![](Images/Shadows1.png)
 

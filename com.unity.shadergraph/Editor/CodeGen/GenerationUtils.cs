@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -590,6 +590,12 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresTime)
             {
                 activeFields.Add($"{structName}.TimeParameters");
+            }
+
+            if (requirements.requiresVertexSkinning)
+            {
+                activeFields.Add($"{structName}.BoneWeights");
+                activeFields.Add($"{structName}.BoneIndices");
             }
         }
 

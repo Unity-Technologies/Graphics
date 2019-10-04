@@ -287,10 +287,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
         public static bool IsRegularPreviewCamera(Camera camera)
         {
-            HDAdditionalCameraData additionalCameraData;
-            if (!camera.TryGetComponent<HDAdditionalCameraData>(out additionalCameraData))
-                return false;
-            return camera.cameraType == CameraType.Preview && (additionalCameraData && !additionalCameraData.isEditorCameraPreview);
+            if (camera.cameraType == CameraType.Preview)
+            {
+                camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
+                return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
+
+            }
+            return false;
         }
 
         // We need these at runtime for RenderPipelineResources upgrade

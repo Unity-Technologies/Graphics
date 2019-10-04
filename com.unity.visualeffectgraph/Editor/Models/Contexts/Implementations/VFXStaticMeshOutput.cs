@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override string name { get { return "Static Mesh Output"; } }
+        public override string name { get { return "Output Mesh"; } }
         public override string codeGeneratorTemplate { get { return null; } }
         public override VFXTaskType taskType { get { return VFXTaskType.Output; } }
 

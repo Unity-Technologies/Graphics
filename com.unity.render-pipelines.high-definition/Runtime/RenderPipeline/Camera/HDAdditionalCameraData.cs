@@ -142,6 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool dithering = false;
         public bool stopNaNs = false;
 
+        [Range(0, 2)]
+        public float taaSharpenStrength = 0.6f;
+
         // Physical parameters
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 
@@ -160,6 +163,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public LayerMask probeLayerMask = ~0;
 
+        /// <summary>
+        /// Enable to retain history buffers even if the camera is disabled.
+        /// </summary>
+        public bool hasPersistentHistory = false;
+
         // Event used to override HDRP rendering for this particular camera.
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         public bool hasCustomRender { get { return customRender != null; } }
@@ -170,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public FrameSettingsRenderType defaultFrameSettings;
 
         public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
-        
+
         bool IFrameSettingsHistoryContainer.hasCustomFrameSettings
             => customRenderingSettings;
 
@@ -188,20 +196,12 @@ namespace UnityEngine.Rendering.HighDefinition
         FrameSettingsHistory IFrameSettingsHistoryContainer.frameSettingsHistory
         {
             get => m_RenderingPathHistory;
-            set
-            {
-                // do not loss the struct position so only change content
-                m_RenderingPathHistory.defaultType = value.defaultType;
-                m_RenderingPathHistory.customMask = value.customMask;
-                m_RenderingPathHistory.overridden = value.overridden;
-                m_RenderingPathHistory.sanitazed = value.sanitazed;
-                m_RenderingPathHistory.debug = value.debug;
-            }
+            set => m_RenderingPathHistory = value;
         }
 
         string IFrameSettingsHistoryContainer.panelName
             => m_CameraRegisterName;
-        
+
         Action IDebugData.GetReset()
                 //caution: we actually need to retrieve the right
                 //m_FrameSettingsHistory as it is a struct so no direct
@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
         public bool isEditorCameraPreview { get; set; }
-        
+
         // This is use to copy data into camera for the Reset() workflow in camera editor
         public void CopyTo(HDAdditionalCameraData data)
         {
@@ -412,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             UnRegisterDebug();
-            
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateDebugCameraName;
 #endif

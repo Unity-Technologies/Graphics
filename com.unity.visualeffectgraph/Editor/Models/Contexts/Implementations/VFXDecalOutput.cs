@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXDecalOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Decal Output"; } }
+        public override string name { get { return "Output Particle Forward Decal"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
         public override bool supportsUV { get { return true; } }

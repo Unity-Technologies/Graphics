@@ -37,6 +37,8 @@ int _RaytracingDenoiseRadius;
 [numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
 void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     #ifdef HALF_RESOLUTION
     // Compute the half res coordinate that we shall be using for our effect
     uint2 targetCoord = dispatchThreadId.xy;

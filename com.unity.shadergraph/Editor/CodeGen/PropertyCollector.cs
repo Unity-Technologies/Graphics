@@ -43,7 +43,13 @@ namespace UnityEditor.ShaderGraph
 
             if (instancedCount > 0)
             {
-                builder.AppendLine("#ifndef UNITY_DOTS_INSTANCING_ENABLED");
+                builder.AppendLine("#ifdef UNITY_DOTS_INSTANCING_ENABLED");
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                        builder.AppendLine(prop.GetPropertyDeclarationString("_dummy;"));
+                }
+                builder.AppendLine("#else");
                 foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
                 {
                     if (prop.gpuInstanced)
