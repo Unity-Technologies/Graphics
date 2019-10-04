@@ -117,7 +117,8 @@ namespace UnityEngine.Rendering.Universal
 
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
 
-        // public Vector3 spotDirection; // TODO for spotLights
+        public Vector3 spotDirection;   // for spotLights
+        public float padding0;          // TODO find something to put here? (or test other packing schemes?)
     }
 
     public struct PostProcessingData

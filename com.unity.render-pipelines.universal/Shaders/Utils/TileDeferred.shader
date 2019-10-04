@@ -128,9 +128,15 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                     uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
                     PointLightData pl;
                     pl.wsPos  = asfloat(_PointLightBuffer[i + 0].xyz);
-                    pl.radius = asfloat(_PointLightBuffer[i + 0].w);
+                    pl.radius = asfloat(_PointLightBuffer[i + 0].w);  // TODO remove/replace?
+
                     pl.color.rgb = asfloat(_PointLightBuffer[i + 1].rgb);
+
                     pl.attenuation.xyzw = asfloat(_PointLightBuffer[i + 2].xyzw);
+
+                    pl.spotDirection.xyz = asfloat(_PointLightBuffer[i + 3].xyz);
+                    // pl.padding0 = asfloat(_PointLightBuffer[i + 3].w); // TODO use for something?
+
                     return pl;
                 }
 

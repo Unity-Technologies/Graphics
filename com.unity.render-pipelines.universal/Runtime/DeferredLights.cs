@@ -236,6 +236,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             NativeArray<DeferredTiler.PrePointLight> prePointLights;
 
             // inspect lights in renderingData.lightData.visibleLights and convert them to entries in prePointLights OR m_stencilVisLights
+            // currently we store pointlights and spotlights that can be rendered by TiledDeferred, in the same prePointLights list
             PrecomputeLights(
                 out prePointLights,
                 out m_stencilVisLights,
@@ -550,6 +551,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             const int lightTypeCount = (int)LightType.Disc + 1;
 
+            // number of supported lights rendered by the TileDeferred system, for each light type (Spot, Directional, Point, Area, Rectangle, Disc, plus one slot at the end)
             NativeArray<int> tileLightCount = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
             int stencilLightCount = 0;
 
@@ -568,7 +570,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 stencilLightCount = visibleLights.Length;
 
-            prePointLights = new NativeArray<DeferredTiler.PrePointLight>(tileLightCount[(int)LightType.Point], Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            // for now we store spotlights and pointlights in the same list
+            prePointLights = new NativeArray<DeferredTiler.PrePointLight>(tileLightCount[(int)LightType.Point] + tileLightCount[(int)LightType.Spot], Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             stencilVisLights = new NativeArray<ushort>(stencilLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             for (int i = 0; i < tileLightCount.Length; ++i)
@@ -580,7 +583,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 VisibleLight vl = visibleLights[visLightIndex];
 
-                if (vl.lightType == LightType.Point)
+                if (vl.lightType == LightType.Point || vl.lightType == LightType.Spot )
                 {
                     if (this.tiledDeferredShading && IsTileLight(vl.light))
                     {
@@ -595,7 +598,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                         ppl.visLightIndex = visLightIndex;
 
-                        int i = tileLightCount[(int)LightType.Point]++;
+                        int i = tileLightCount[(int)LightType.Point /*vl.lightType*/ ]++;  // for now we store spotlights and pointlights in the same list
                         prePointLights[i] = ppl;
                         continue;
                     }
@@ -860,7 +863,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ushort visLightIndex = m_stencilVisLights[i];
                     VisibleLight vl = visibleLights[visLightIndex];
 
-                    if (vl.light.type == LightType.Point)
+                    if (vl.light.type == LightType.Point || vl.light.type == LightType.Spot)
                     {
                         Vector3 wsPos = vl.light.transform.position;
                         float adjRadius = vl.light.range * 1.06067f; // adjust for approximate sphere geometry
@@ -877,13 +880,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalVector("_LightColor", /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
 
                         Vector4 lightAttenuation;
-                        Vector4 lightSpotDir;
+                        Vector4 lightSpotDir4;
                         ForwardLights.GetLightAttenuationAndSpotDirection(
                             vl.light.type, vl.range /*vl.light.range*/, vl.localToWorldMatrix,
                             vl.spotAngle, vl.light?.innerSpotAngle,
-                            out lightAttenuation, out lightSpotDir);
+                            out lightAttenuation, out lightSpotDir4);
                         cmd.SetGlobalVector("_LightAttenuation", lightAttenuation);
-                        //cmd.SetGlobalVector("_LightSpotDirection", lightSpotDir); // TODO
+                        Vector3 lightSpotDir3 = new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z);
+                        cmd.SetGlobalVector("_LightSpotDirection", lightSpotDir3);
 
                         // stencil pass
                         cmd.DrawMesh(m_SphereMesh, sphereMatrix, m_StencilDeferredMaterial, 0, 0);
@@ -913,8 +917,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         void StorePointLightData(ref NativeArray<Vector4UInt> pointLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
             Vector3 wsPos = visibleLights[index].light.transform.position;
-            pointLightBuffer[storeIndex * 3 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range));
-            pointLightBuffer[storeIndex * 3 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
+            pointLightBuffer[storeIndex * 4 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range));
+            pointLightBuffer[storeIndex * 4 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
 
             Vector4 lightAttenuation;
             Vector4 lightSpotDir;
@@ -922,8 +926,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 visibleLights[index].lightType, visibleLights[index].range, visibleLights[index].localToWorldMatrix,
                 visibleLights[index].spotAngle, visibleLights[index].light?.innerSpotAngle,
                 out lightAttenuation, out lightSpotDir);
-            pointLightBuffer[storeIndex * 3 + 2] = new Vector4UInt(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
-            //pointLightBuffer[storeIndex * 4 + 3] = new Vector4UInt(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), FloatToUInt(lightSpotDir.w)); // TODO for spotLights
+            pointLightBuffer[storeIndex * 4 + 2] = new Vector4UInt(FloatToUInt(lightAttenuation.x), FloatToUInt(lightAttenuation.y), FloatToUInt(lightAttenuation.z), FloatToUInt(lightAttenuation.w));
+            pointLightBuffer[storeIndex * 4 + 3] = new Vector4UInt(FloatToUInt(lightSpotDir.x), FloatToUInt(lightSpotDir.y), FloatToUInt(lightSpotDir.z), FloatToUInt(lightSpotDir.w));
         }
 
         void StoreTileData(ref NativeArray<Vector4UInt> tileList, int storeIndex, uint tileID, uint listBitMask, ushort relLightOffset, ushort lightCount)
@@ -936,7 +940,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // tileDeferred might render a lot of point lights in the same draw call.
             // point light shadows require generating cube shadow maps in real-time, requiring extra CPU/GPU resources ; which can become expensive quickly
-            return light.type == LightType.Point && light.shadows == LightShadows.None;
+            return (light.type == LightType.Point && light.shadows == LightShadows.None)
+                || light.type == LightType.Spot ;
         }
 
         Mesh CreateSphereMesh()

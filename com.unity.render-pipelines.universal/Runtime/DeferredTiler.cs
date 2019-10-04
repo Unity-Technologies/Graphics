@@ -359,6 +359,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return h | (ux & ~msk) >> 16;
         }
 
+        // TODO: finer culling for spot lights
         public void CullIntermediateLights(ref NativeArray<PrePointLight> pointLights,
                                            ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
                                            int istart, int iend, int jstart, int jend)
