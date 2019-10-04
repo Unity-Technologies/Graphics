@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool useIdsInNames = false)
+        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool isSubgraph = false)
         {
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
                     foreach (var slot in slots)
                     {
                         string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        if (useIdsInNames)
+                        if (isSubgraph)
                         {
                             hlslName = $"{hlslName}_{slot.id}";
                         }
@@ -110,6 +110,12 @@ namespace UnityEditor.ShaderGraph
                         {
                             activeFields.AddAll(structName + "." + hlslName);
                         }
+                    }
+                    
+                    if (isSubgraph) //if we're generating a subgraph, we need Surface.Out for preview pass
+                    {
+                        var firstSlot = slots.ElementAt(0);
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(firstSlot.owner.concretePrecision), "Out");
                     }
                 }
             }
@@ -227,6 +233,14 @@ namespace UnityEditor.ShaderGraph
                                 hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
                         }
                     }
+                }
+            }
+            if (rootNode is SubGraphOutputNode)
+            {
+                var slot = rootNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
+                if (slot != null)
+                {
+                    surfaceDescriptionFunction.AppendLine($"surface.Out = surface.{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id};");
                 }
             }
             else if (rootNode.hasPreview)
