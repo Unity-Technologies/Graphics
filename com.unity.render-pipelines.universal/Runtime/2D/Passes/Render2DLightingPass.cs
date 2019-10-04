@@ -79,9 +79,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.Clear();
                 if (lightStats.totalLights > 0)
                 {
-#if UNITY_EDITOR
-                    cmd.name = "Render Lights - " + SortingLayer.IDToName(layerToRender);
-#endif
                     RendererLighting.RenderLights(camera, cmd, layerToRender);
                 }
                 else
@@ -100,9 +97,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
 
                     cmd.Clear();
-#if UNITY_EDITOR
-                    cmd.name = "Render Light Volumes" + SortingLayer.IDToName(layerToRender);
-#endif
                     RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();

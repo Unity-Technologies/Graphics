@@ -161,10 +161,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxCacheSize = 2000000000; //2 GigaByte
         internal const int k_MaxDirectionalLightsOnScreen = 16;
         internal const int k_MaxPunctualLightsOnScreen    = 512;
-        internal const int k_MaxAreaLightsOnScreen        = 64;
+        internal const int k_MaxAreaLightsOnScreen        = 128;
         internal const int k_MaxDecalsOnScreen = 512;
         internal const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
-        internal const int k_MaxEnvLightsOnScreen = 64;
+        internal const int k_MaxEnvLightsOnScreen = 128;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         #if UNITY_SWITCH
@@ -2055,12 +2055,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // And if needed rescale the whole atlas
                     m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
 
-                    bool isPysicallyBasedSkyActive = false;
-
                     var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
                     Debug.Assert(visualEnvironment != null);
 
-                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSky>());
+                    bool isPbrSkyActive = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased;
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -2127,7 +2125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
+                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPbrSkyActive))
                             {
                                 directionalLightcount++;
 

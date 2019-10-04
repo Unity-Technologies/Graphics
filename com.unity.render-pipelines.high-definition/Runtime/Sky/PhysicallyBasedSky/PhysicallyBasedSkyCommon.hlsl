@@ -98,13 +98,13 @@ float2 IntersectSphere(float sphereRadius, float cosChi,
     // t^2 + 2 * dot(r_o, r_d) + dot(r_o, r_o) - R^2 = 0
     //
     // Solve: t^2 + (2 * b) * t + c = 0, where
-    // b = -r * cosChi,
+    // b = r * cosChi,
     // c = r^2 - R^2.
     //
     // t = (-2 * b + sqrt((2 * b)^2 - 4 * c)) / 2
     // t = -b + sqrt(b^2 - c)
-    // t = -b + sqrt((r * cosChi)^2 + R^2 - r^2)
-    // t = -b + r * sqrt((cosChi)^2 + (R/r)^2 - 1)
+    // t = -b + sqrt((r * cosChi)^2 - (r^2 - R^2))
+    // t = -b + r * sqrt((cosChi)^2 - 1 + (R/r)^2)
     // t = -b + r * sqrt(d)
     // t = r * (-cosChi + sqrt(d))
     //
@@ -155,9 +155,9 @@ float UnmapQuadraticHeight(float v)
 
 float ComputeCosineOfHorizonAngle(float r)
 {
-    float R        = _PlanetaryRadius;
-    float sinHoriz = R * rcp(r);
-    return -sqrt(saturate(1 - sinHoriz * sinHoriz));
+    float R      = _PlanetaryRadius;
+    float sinHor = R * rcp(r);
+    return -sqrt(saturate(1 - sinHor * sinHor));
 }
 
 // We use the parametrization from "Outdoor Light Scattering Sample Update" by E. Yusov.
