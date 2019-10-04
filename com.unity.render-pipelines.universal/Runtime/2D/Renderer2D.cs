@@ -44,7 +44,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
-            PixelPerfectCamera ppc = cameraData.camera.GetComponent<PixelPerfectCamera>();
+            PixelPerfectCamera ppc;
+            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out ppc);
 
             Vector2Int ppcOffscreenRTSize = ppc != null ? ppc.offscreenRTSize : Vector2Int.zero;
             bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;

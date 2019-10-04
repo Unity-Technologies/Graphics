@@ -181,6 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader colorResolvePS;
 
             // Post-processing
+            [Reload("Runtime/PostProcessing/Shaders/AlphaCopy.compute")]
+            public ComputeShader copyAlphaCS;
             [Reload("Runtime/PostProcessing/Shaders/NaNKiller.compute")]
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]

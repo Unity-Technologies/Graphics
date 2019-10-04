@@ -1625,6 +1625,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Discard probe if disabled in debug menu
             if (!debugDisplaySettings.data.lightingDebugSettings.showReflectionProbe)
                 return false;
+            
+            // Discard probe if its distance is too far or if its weight is at 0
+            float weight = HDUtils.ComputeWeightedLinearFadeDistance(probe.transform.position, camera.transform.position, probe.weight, probe.fadeDistance);
+            if (weight <= 0f)
+                return false;
 
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
@@ -1688,7 +1693,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = probe.lightLayersAsUInt;
             envLightData.influenceShapeType = influence.envShape;
-            envLightData.weight = probe.weight;
+            envLightData.weight = weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
@@ -3147,6 +3152,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new DeferredLightingParameters();
 
+            bool debugDisplayOrSceneLightOff = CoreUtils.IsSceneLightingDisabled(hdCamera.camera) || debugDisplaySettings.IsDebugDisplayEnabled();
+
             int w = hdCamera.actualWidth;
             int h = hdCamera.actualHeight;
             parameters.numTilesX = (w + 15) / 16;
@@ -3155,7 +3162,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.enableTile = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile);
             parameters.outputSplitLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
             parameters.useComputeLightingEvaluation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation);
-            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
+            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplayOrSceneLightOff;
             parameters.enableShadowMasks = m_enableBakeShadowMask;
             parameters.numVariants = LightDefinitions.s_NumFeatureVariants;
             parameters.debugDisplaySettings = debugDisplaySettings;
@@ -3165,8 +3172,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = hdCamera.viewCount;
 
             // Full Screen Pixel (debug)
-            parameters.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
-            parameters.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
+            parameters.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, parameters.enableShadowMasks, debugDisplayOrSceneLightOff);
+            parameters.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, parameters.enableShadowMasks, debugDisplayOrSceneLightOff);
 
             return parameters;
         }

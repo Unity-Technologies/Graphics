@@ -14,6 +14,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Material         fullscreenPassMaterial;
         public int              materialPassIndex;
 
+        int fadeValueId;
+
+        protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            fadeValueId = Shader.PropertyToID("_FadeValue");
+        }
+
         /// <summary>
         /// Execute the pass with the fullscreen setup
         /// </summary>
@@ -22,6 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (fullscreenPassMaterial != null)
             {
+                fullscreenPassMaterial.SetFloat(fadeValueId, fadeValue);
                 CoreUtils.DrawFullScreen(cmd, fullscreenPassMaterial, shaderPassId: materialPassIndex);
             }
         }

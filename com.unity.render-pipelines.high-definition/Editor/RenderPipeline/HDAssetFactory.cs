@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 newAsset.name = Path.GetFileName(pathName);
                 // Load default renderPipelineResources / Material / Shader
                 newAsset.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(s_RenderPipelineResourcesPath);
+                EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(newAsset);
 
                 //as we must init the editor resources with lazy init, it is not required here
 

@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             var sourceProjection = Matrix4x4.Perspective(
-                cameraSettings.frustum.fieldOfView,
+                HDUtils.ClampFOV(cameraSettings.frustum.fieldOfView),
                 cameraSettings.frustum.aspect,
                 cameraSettings.frustum.nearClipPlane,
                 cameraSettings.frustum.farClipPlane

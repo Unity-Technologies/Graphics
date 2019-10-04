@@ -166,7 +166,7 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 69340090203933
+      data1: 69344385171229
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -177,7 +177,7 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 69692277456669
+      data1: 69696572423965
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -245,15 +245,15 @@ MonoBehaviour:
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 0
       shadowResolutionDirectional:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00010000000200000004000000000000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00010000000200000004000000000000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionArea:
-        m_Values: 00010000000200000004000000080000
+        m_Values: 00010000000200000004000000000000
         m_SchemaId:
           m_Id: With4Levels
       maxDirectionalShadowMapResolution: 2048
