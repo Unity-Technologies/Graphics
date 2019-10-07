@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reassign the same camera for a realtime probe face render request to have appropriate history buffer during realtime probe rendering.
 - Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
 - Fixed issue with decal and htile optimization
+- Fixed an issue with shader stripper and asset dependencies search that was taking a long time with big projects
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
