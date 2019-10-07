@@ -186,6 +186,10 @@ namespace UnityEditor.VFX
                         original.onInvalidateDelegate += OnOriginalSlotModified;
                     }
                 }
+                else if( child.copy is VFXSubgraphBlock subgraphBlock)
+                {
+                    subgraphBlock.RecreateCopy();
+                }
             }
 
             List<string> newInputFlowNames = new List<string>();
