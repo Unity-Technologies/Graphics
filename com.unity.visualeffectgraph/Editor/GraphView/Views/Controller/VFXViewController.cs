@@ -858,8 +858,8 @@ namespace UnityEditor.VFX.UI
                 title = "Title",
                 position = new Rect(position, Vector2.one * 100),
                 contents = "type something here",
-                theme = StickyNote.Theme.Classic.ToString(),
-                textSize = StickyNote.TextSize.Small.ToString()
+                theme = StickyNoteTheme.Classic.ToString(),
+                textSize = StickyNoteFontSize.Small.ToString()
             };
 
             if (ui.stickyNoteInfos != null)
