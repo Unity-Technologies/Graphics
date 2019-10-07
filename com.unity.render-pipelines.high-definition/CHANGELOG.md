@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with rectangular area light when seen from the back
 - Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
 - Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
+- Fixed an issue with shader stripper and asset dependencies search that was taking a long time with big projects
 
 ### Changed
 - Added Alembic velocity support to various Shaders.
