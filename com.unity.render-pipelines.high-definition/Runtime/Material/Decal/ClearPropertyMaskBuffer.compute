@@ -1,0 +1,18 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#pragma kernel CSMain
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    int blockID = id.x / 8;
+    int blockX = id.x % 8;
+    int blockY = id.y;
+    int index = blockID * 64 + blockY * 8 + blockX;
+#ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
+    _DecalPropertyMaskBuffer[index] = 0;
+#endif
+}

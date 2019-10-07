@@ -104,6 +104,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_TempTexture1024; // RGHalf
         RTHandle m_TempTexture32;   // RGHalf
 
+        readonly bool m_KeepAlpha;
+        RTHandle m_AlphaTexture; // RHalf
+
         readonly TargetPool m_Pool;
 
         readonly bool m_UseSafePath;
@@ -207,6 +210,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Average Luminance Temp 32"
             );
 
+            // Used to copy the alpha channel of the color buffer if the format is set to fp16
+            m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.keepAlpha;
+            if (m_KeepAlpha)
+            {
+                m_AlphaTexture = RTHandles.Alloc(
+                    Vector2.one, slices: TextureXR.slices, dimension: TextureXR.dimension,
+                    colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "Alpha Channel Copy"
+                );
+            }
+
             ResetHistory();
         }
 
@@ -217,6 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_EmptyExposureTexture);
             RTHandles.Release(m_TempTexture1024);
             RTHandles.Release(m_TempTexture32);
+            RTHandles.Release(m_AlphaTexture);
             CoreUtils.Destroy(m_ExposureCurveTexture);
             CoreUtils.Destroy(m_InternalSpectralLut);
             RTHandles.Release(m_InternalLogLut);
@@ -231,6 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EmptyExposureTexture      = null;
             m_TempTexture1024           = null;
             m_TempTexture32             = null;
+            m_AlphaTexture              = null;
             m_ExposureCurveTexture      = null;
             m_InternalSpectralLut       = null;
             m_InternalLogLut            = null;
@@ -360,6 +375,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Post-processing", CustomSamplerId.PostProcessing.GetSampler()))
             {
+                // Save the alpha and apply it back into the final pass if working in fp16
+                if (m_KeepAlpha)
+                {
+                    using (new ProfilingSample(cmd, "Alpha Copy", CustomSamplerId.AlphaCopy.GetSampler()))
+                    {
+                        DoCopyAlpha(cmd, camera, colorBuffer);
+                    }
+                }
+
                 var source = colorBuffer;
 
                 if (m_PostProcessEnabled)
@@ -623,6 +647,19 @@ namespace UnityEngine.Rendering.HighDefinition
             int kernel = cs.FindKernel("KMain");
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+        }
+
+        #endregion
+
+        #region Copy Alpha
+
+        void DoCopyAlpha(CommandBuffer cmd, HDCamera camera, RTHandle source)
+        {
+            var cs = m_Resources.shaders.copyAlphaCS;
+            int kernel = cs.FindKernel("KMain");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_AlphaTexture);
             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
         }
 
@@ -2309,6 +2346,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            m_FinalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture,
+                m_KeepAlpha
+                ? m_AlphaTexture.rt
+                : (Texture)Texture2D.whiteTexture
+            );
 
             m_FinalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                 flipY
