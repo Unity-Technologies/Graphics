@@ -308,9 +308,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the max requests in the HDRP asset");
                 return -1;
             }
+
             int cachedIndex = -1;
-
-
+            
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].resolution = resolution;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].shadowMapType = shadowMapType;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].lightID = lightID;
@@ -326,8 +326,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].hasBeenStoredInCachedList = false;
             }
-
-
 
             switch (shadowMapType)
             {
@@ -390,6 +388,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return false;
+        }
+
+        internal void PruneEmptyCachedSlots(ShadowMapType type)
+        {
+            switch (type)
+            {
+                case ShadowMapType.PunctualAtlas:
+                    if(m_Atlas != null)
+                        m_Atlas.PruneDeadCachedLightSlots();
+                    break;
+                case ShadowMapType.AreaLightAtlas:
+                    if (m_AreaLightShadowAtlas != null)
+                        m_AreaLightShadowAtlas.PruneDeadCachedLightSlots();
+                    break;
+                default:
+                    break;
+            }
+
         }
 
         internal int GetAtlasShapeID(ShadowMapType type)

@@ -446,9 +446,7 @@ $include("SharedCode.template.hlsl")
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-        surfaceData.bentNormalWS = surfaceData.geomNormalWS; // better to use the geometric one for occlusion by default if no bentnormal map given
         surfaceData.coatNormalWS = surfaceData.geomNormalWS;
-        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, surfaceData.bentNormalWS, doubleSidedConstants);
         $CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);
 
         // surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);
@@ -456,19 +454,26 @@ $include("SharedCode.template.hlsl")
         // surfaceData.normalWS is normalized:
         surfaceData.tangentWS = (fragInputs.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
         $Tangent: surfaceData.tangentWS = TransformTangentToWorld(surfaceDescription.Tangent, fragInputs.tangentToWorld);
-        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+        surfaceData.bentNormalWS = float3(0.0, 0.0, 0.0); // Initialise bentNormalWS before decal to keep compiler quiet, will be override after decal.
 
 #if HAVE_DECALS
         if (_EnableDecals)
         {
+            // Both uses and modifies 'surfaceData.normalWS'.
             DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
         }
 #endif
 
-        // 
+        surfaceData.bentNormalWS = surfaceData.normalWS;
+        $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, surfaceData.bentNormalWS, doubleSidedConstants);
+
+        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+        //
         // SpecularAA
-        // 
+        //
 
         // TODO Note: specular occlusion that uses bent normals should also use filtering, although the visibility model is not a
         // specular lobe with roughness but a cone with solid angle determined by the ambient occlusion so this is an even more
