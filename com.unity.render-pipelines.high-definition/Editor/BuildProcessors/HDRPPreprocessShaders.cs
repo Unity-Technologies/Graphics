@@ -181,7 +181,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             int inputShaderVariantCount = inputData.Count;
-            for (int i = 0; i < inputShaderVariantCount; ++i)
+            for (int i = 0; i < inputShaderVariantCount; )
             {
                 ShaderCompilerData input = inputData[i];
 
