@@ -42,7 +42,16 @@ namespace UnityEditor.VFX
 
         protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
 
-        public VFXSRPSubOutput subOutput => m_CurrentSubOutput;
+        public VFXSRPSubOutput subOutput
+        {
+            get
+            {
+                if (m_CurrentSubOutput == null)
+                    GetOrCreateSubOutput();
+                return m_CurrentSubOutput;
+            }
+        }
+
         private VFXSRPSubOutput CreateDefaultSubOutput()
         {
             var defaultSubOutput  = ScriptableObject.CreateInstance<VFXSRPSubOutput>();

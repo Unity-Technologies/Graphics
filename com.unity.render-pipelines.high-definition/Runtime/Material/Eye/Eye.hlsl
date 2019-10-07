@@ -596,10 +596,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
              float4x3 lightVerts;
 
              // TODO: some of this could be precomputed.
-            lightVerts[0] = lightData.positionRWS + lightData.right * halfWidth + lightData.up * halfHeight;
-            lightVerts[1] = lightData.positionRWS + lightData.right * halfWidth + lightData.up * -halfHeight;
-            lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-            lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * halfHeight;
+            lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+            lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+            lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+            lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
              // Note: We don't have the same normal for diffuse and specular
             // Rotate the endpoints into the local coordinate system.

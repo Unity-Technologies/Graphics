@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, "XR Mirror View"))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-
+              
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
                 {
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (camera.TryGetCullingParameters(false, out var cullingParams))
             {
-                cullingParams.stereoProjectionMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+                cullingParams.stereoProjectionMatrix = camera.projectionMatrix;
                 cullingParams.stereoViewMatrix = camera.worldToCameraMatrix;
             }
             else
