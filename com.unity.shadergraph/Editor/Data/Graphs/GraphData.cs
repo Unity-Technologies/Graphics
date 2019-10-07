@@ -447,7 +447,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!node.canDeleteNode)
             {
-                throw new InvalidOperationException($"Node {node.name} ({node.legacyGuid}) cannot be deleted.");
+                throw new InvalidOperationException($"Node {node.name} cannot be deleted.");
             }
             RemoveNodeNoValidate(node);
             ValidateGraph();
@@ -543,7 +543,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!node.canDeleteNode)
                 {
-                    throw new InvalidOperationException($"Node {node.name} ({node.legacyGuid}) cannot be deleted.");
+                    throw new InvalidOperationException($"Node {node.name} cannot be deleted.");
                 }
             }
 
@@ -1183,13 +1183,15 @@ namespace UnityEditor.ShaderGraph
         [JsonExtensionData]
         Dictionary<string, JToken> m_AdditionalData = null;
 
-        MaterialSlot GetSlotFromLegacyJToken(JToken jToken)
+        MaterialSlot GetSlotFromLegacyJToken(JToken jToken, List<DeserializationPair> jObjects)
         {
-            var nodeGuid = new Guid(jToken.Value<string>("m_NodeGUIDSerialized"));
+            var nodeGuid = jToken.Value<string>("m_NodeGUIDSerialized");
             var slotId = jToken.Value<int>("m_SlotId");
-            foreach (var node in m_Nodes)
+            foreach (var (instance, jObject) in jObjects)
             {
-                if (node.legacyGuid == nodeGuid)
+                    if (instance is AbstractMaterialNode node &&
+                        jObject.TryGetValue("m_GuidSerialized", out var nodeGuidJToken) &&
+                        nodeGuidJToken.Value<string>() == nodeGuid)
                 {
                     return node.FindSlot(slotId);
                 }
@@ -1235,8 +1237,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     var element = jToken.ToObject<SerializationHelper.JSONSerializedElement>();
                     var edgeJToken = JToken.Parse(element.JSONnodeData);
-                    var outputSlot = GetSlotFromLegacyJToken(edgeJToken["m_OutputSlot"]);
-                    var inputSlot = GetSlotFromLegacyJToken(edgeJToken["m_InputSlot"]);
+                    var outputSlot = GetSlotFromLegacyJToken(edgeJToken["m_OutputSlot"], jObjects);
+                    var inputSlot = GetSlotFromLegacyJToken(edgeJToken["m_InputSlot"], jObjects);
                     m_Edges.Add(new Edge(outputSlot, inputSlot));
                 }
             }
@@ -1259,10 +1261,12 @@ namespace UnityEditor.ShaderGraph
 
             if (m_AdditionalData.TryGetValue("m_ActiveOutputNodeGuidSerialized", out var guidJToken))
             {
-                var guid = new Guid(guidJToken.Value<string>());
-                foreach (var node in m_Nodes)
+                var guid = guidJToken.Value<string>();
+                foreach (var (instance, nodeJObject) in jObjects)
                 {
-                    if (node.legacyGuid == guid)
+                    if (instance is AbstractMaterialNode node &&
+                        nodeJObject.TryGetValue("m_GuidSerialized", out var nodeGuidJToken) &&
+                        nodeGuidJToken.Value<string>() == guid)
                     {
                         outputNode = node;
                         break;

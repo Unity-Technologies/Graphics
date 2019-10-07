@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNodeView"));
             this.node = node;
-            viewDataKey = node.legacyGuid.ToString();
+            viewDataKey = node.owner.owner.jsonStore.GetId(node);
             userData = node;
 
             // Getting the generatePropertyBlock property to see if it is exposed or not

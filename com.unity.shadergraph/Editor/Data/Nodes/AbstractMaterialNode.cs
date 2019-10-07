@@ -57,11 +57,6 @@ namespace UnityEditor.ShaderGraph
                 m_OnModified(this, scope);
         }
 
-        // TODO: Get rid of this
-        [JsonProperty]
-        [JsonUpgrade("m_GuidSerialized")]
-        public Guid legacyGuid { get; private set; }
-
         public string name
         {
             get { return m_Name; }
@@ -156,17 +151,18 @@ namespace UnityEditor.ShaderGraph
 
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
-        Guid m_GuidForDefaultVariableName;
+        string m_IdForDefaultVariableName;
 
         string defaultVariableName
         {
             get
             {
-                if (m_NameForDefaultVariableName != name || m_GuidForDefaultVariableName != legacyGuid)
+                var id = owner.owner.jsonStore.GetId(this);
+                if (m_NameForDefaultVariableName != name || m_IdForDefaultVariableName != id)
                 {
-                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), GuidEncoder.Encode(legacyGuid));
+                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), NodeUtils.GetHLSLSafeName(id));
                     m_NameForDefaultVariableName = name;
-                    m_GuidForDefaultVariableName = legacyGuid;
+                    m_IdForDefaultVariableName = id;
                 }
                 return m_DefaultVariableName;
             }

@@ -73,7 +73,7 @@ namespace UnityEditor.Graphing.Util
             {
                 if (!node.canCopyNode)
                 {
-                    throw new InvalidOperationException($"Cannot copy node {node.name} ({node.legacyGuid}).");
+                    throw new InvalidOperationException($"Cannot copy node {node.name}.");
                 }
                 AddNode(node);
                 foreach (var edge in NodeUtils.GetAllEdges(node))

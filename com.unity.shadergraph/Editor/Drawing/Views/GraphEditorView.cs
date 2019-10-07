@@ -508,7 +508,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in dependentNodes)
             {
                 var theViews = m_GraphView.nodes.ToList().OfType<IShaderNodeView>();
-                var viewsFound = theViews.Where(x => x.node.legacyGuid == node.legacyGuid).ToList();
+                var viewsFound = theViews.Where(x => x.node == node).ToList();
                 foreach (var drawableNodeData in viewsFound)
                     drawableNodeData.OnModified(scope);
             }
@@ -537,7 +537,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node.UnregisterCallback(OnNodeChanged);
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node.legacyGuid == node.legacyGuid);
+                    .FirstOrDefault(p => p.node != null && p.node == node);
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
@@ -583,7 +583,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 GraphElement graphElement = null;
                 if (groupChange.groupItem is AbstractMaterialNode node)
                 {
-                    graphElement = m_GraphView.GetNodeByGuid(node.legacyGuid.ToString());
+                    graphElement = m_GraphView.GetNodeByGuid(m_Graph.owner.jsonStore.GetId(node));
                 }
                 else if (groupChange.groupItem is StickyNoteData stickyNote)
                 {
@@ -626,7 +626,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.pastedNodes)
             {
                 var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node.legacyGuid == node.legacyGuid);
+                    .FirstOrDefault(p => p.node != null && p.node == node);
                 m_GraphView.AddToSelection((Node)nodeView);
             }
 
@@ -705,7 +705,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = messageData.Key;
 
-                if (!(m_GraphView.GetNodeByGuid(node.legacyGuid.ToString()) is MaterialNodeView nodeView))
+                if (!(m_GraphView.GetNodeByGuid(m_Graph.owner.jsonStore.GetId(node)) is MaterialNodeView nodeView))
                     continue;
 
                 if (messageData.Value.Count == 0)

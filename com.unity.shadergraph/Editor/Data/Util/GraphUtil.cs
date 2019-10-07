@@ -184,22 +184,6 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
-        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<Guid, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
-        {
-            if (!unmarkedNodes.ContainsKey(node.legacyGuid))
-                return;
-            foreach (var slot in node.GetInputSlots<MaterialSlot>())
-            {
-                foreach (var edge in node.owner.GetEdges(slot))
-                {
-                    var inputNode = edge.outputSlot.owner;
-                    Visit(outputList, unmarkedNodes, inputNode);
-                }
-            }
-            unmarkedNodes.Remove(node.legacyGuid);
-            outputList.Add(node);
-        }
-
         static Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> s_LegacyTypeRemapping;
 
         public static Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
