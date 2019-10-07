@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat GetColorBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
-            
+
         GraphicsFormat GetCustomBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.customBufferFormat;
 
@@ -252,7 +252,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool                            m_IsDepthBufferCopyValid;
         RenderTexture                   m_TemporaryTargetForCubemaps;
-        Stack<Camera>                   m_ProbeCameraPool = new Stack<Camera>();
+
+        private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
+            CameraCache<(Transform viewer, HDProbe probe, int face)>();
 
         RenderTargetIdentifier[] m_MRTTransparentMotionVec;
         RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, diffuse, sss buffer;
@@ -356,7 +358,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Debug.Assert(m_DeferredMaterial != null);
 
             m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
-            m_DbufferManager = new DBufferManager(asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask);
+            m_DbufferManager = new DBufferManager();
+            m_DbufferManager.InitializeHDRPResouces(asset);
 
             m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
@@ -566,10 +569,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             //Debug.isDebugBuild can be changed during DoBuildPlayer, these allocation has to be check on every frames
             //TODO : Clean this with the RenderGraph system
-            if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null && m_IntermediateAfterPostProcessBuffer == null)
+            if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
             {
                 m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugColorPicker");
                 m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
+            }
+
+            if (m_IntermediateAfterPostProcessBuffer == null)
+            {
+                // We always need this target because there could be a custom pass in after post process mode.
+                // In that case, we need to do the flip y after this pass.
                 m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
             }
         }
@@ -859,24 +868,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 //   it is disposed during an `OnValidate` call.
                 //   But during `OnValidate` call, game object must not be destroyed.
                 //   So, only when this method was called during an `OnValidate` call, the destruction of the
-                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtiles.Destroy`
+                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtils.Destroy`
                 var isInOnValidate = false;
                 isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
                 if (isInOnValidate)
                 {
-                    var pool = m_ProbeCameraPool;
-                    UnityEditor.EditorApplication.delayCall += () =>
-                    {
-                        while (pool.Count > 0)
-                            CoreUtils.Destroy(pool.Pop().gameObject);
-                    };
-                    m_ProbeCameraPool = null;
+                    var pool = m_ProbeCameraCache;
+                    UnityEditor.EditorApplication.delayCall += () => pool.Dispose();
+                    m_ProbeCameraCache = null;
                 }
                 else
                 {
 #endif
-                    while (m_ProbeCameraPool.Count > 0)
-                        CoreUtils.Destroy(m_ProbeCameraPool.Pop().gameObject);
+                    m_ProbeCameraCache.Dispose();
+                    m_ProbeCameraCache = null;
 #if UNITY_EDITOR
                 }
 #endif
@@ -897,11 +902,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_MaxCameraHeight = Mathf.Max(m_MaxCameraHeight, hdCamera.actualHeight);
 
                 if (m_MaxCameraWidth > 0 && m_MaxCameraHeight > 0)
+                {
                     LightLoopReleaseResolutionDependentBuffers();
+                    m_DbufferManager.ReleaseResolutionDependentBuffers();
+                }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
+                m_DbufferManager.AllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
             }
-
         }
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
@@ -1039,7 +1047,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 public RenderTexture copyToTarget;
             }
             public HDCamera hdCamera;
-            public bool destroyCamera;
+            public bool clearCameraSettings;
             public Target target;
             public HDCullingResults cullingResults;
             public int index;
@@ -1112,6 +1120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (newFrame)
                 {
                     HDCamera.CleanUnused();
+                    m_ProbeCameraCache.ClearCamerasUnusedFor(2, Time.frameCount);
 
                     if (newTime > m_Time)
                         m_FrameCount++;
@@ -1146,7 +1155,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
-            using (DictionaryPool<HDProbe, List<int>>.Get(out Dictionary<HDProbe, List<int>> renderRequestIndicesWhereTheProbeIsVisible))
+            using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
             using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
             {
@@ -1324,20 +1333,29 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Notify that we render the probe at this frame
                         probe.SetIsRendered(Time.frameCount);
 
+                        float visibility = ComputeVisibility(visibleInIndex, probe);
+
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
                         {
-                            visibleInIndices = ListPool<int>.Get();
+                            visibleInIndices = ListPool<(int index, float weight)>.Get();
                             renderRequestIndicesWhereTheProbeIsVisible.Add(probe, visibleInIndices);
                         }
-                        if (!visibleInIndices.Contains(visibleInIndex))
-                            visibleInIndices.Add(visibleInIndex);
+                        if (!visibleInIndices.Contains((visibleInIndex, visibility)))
+                            visibleInIndices.Add((visibleInIndex, visibility));
+                    }
+
+                    float ComputeVisibility(int visibleInIndex, HDProbe visibleProbe)
+                    {
+                        var visibleInRenderRequest = renderRequests[visibleInIndex];
+                        var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
+                        return HDUtils.ComputeWeightedLinearFadeDistance(visibleProbe.transform.position, viewerTransform.position, visibleProbe.weight, visibleProbe.fadeDistance);
                     }
                 }
 
                 foreach (var probeToRenderAndDependencies in renderRequestIndicesWhereTheProbeIsVisible)
                 {
                     var visibleProbe = probeToRenderAndDependencies.Key;
-                    var visibleInIndices = probeToRenderAndDependencies.Value;
+                    var visibilities = probeToRenderAndDependencies.Value;
 
                     // Two cases:
                     //   - If the probe is view independent, we add only one render request per face that is
@@ -1348,32 +1366,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (isViewDependent)
                     {
-                        for (int i = 0; i < visibleInIndices.Count; ++i)
-                    {
-                            var visibleInIndex = visibleInIndices[i];
-                            var visibleInRenderRequest = renderRequests[visibleInIndices[i]];
+                        for (int i = 0; i < visibilities.Count; ++i)
+                        {
+                            var visibility = visibilities[i];
+                            if (visibility.weight <= 0f)
+                                continue;
+
+                            var visibleInIndex = visibility.index;
+                            var visibleInRenderRequest = renderRequests[visibleInIndex];
                             var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
 
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
-                                Enumerable.Repeat(visibleInIndex, 1),
+                                Enumerable.Repeat(visibility, 1),
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView
                             );
                         }
                     }
                     else
-                        AddHDProbeRenderRequests(visibleProbe, null, visibleInIndices);
+                    {
+                        bool visibleInOneViewer = false;
+                        for (int i = 0; i < visibilities.Count && !visibleInOneViewer; ++i)
+                        {
+                            if (visibilities[i].weight > 0f)
+                                visibleInOneViewer = true;
+                        }
+                        if (visibleInOneViewer)
+                            AddHDProbeRenderRequests(visibleProbe, null, visibilities);
+                    }
                 }
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
-                    ListPool<int>.Release(pair.Value);
+                    ListPool<(int index, float weight)>.Release(pair.Value);
                 renderRequestIndicesWhereTheProbeIsVisible.Clear();
 
                 // Local function to share common code between view dependent and view independent requests
                 void AddHDProbeRenderRequests(
                     HDProbe visibleProbe,
                     Transform viewerTransform,
-                    IEnumerable<int> visibleInIndices,
+                    IEnumerable<(int index, float weight)> visibilities,
                     float referenceFieldOfView = 90
                 )
                 {
@@ -1419,10 +1450,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
-                        Camera camera = (m_ProbeCameraPool.Count == 0)
-                            ? new GameObject().AddComponent<Camera>()
-                            : m_ProbeCameraPool.Pop();
-
+                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount);
                         camera.targetTexture = visibleProbe.realtimeTexture; // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
                         camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
                         camera.gameObject.SetActive(false);
@@ -1484,7 +1512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             hdCamera = hdCamera,
                             cullingResults = _cullingResults,
-                            destroyCamera = true,
+                            clearCameraSettings = true,
                             dependsOnRenderRequestIndices = ListPool<int>.Get(),
                             index = renderRequests.Count,
                             cameraSettings = cameraSettings[j]
@@ -1514,8 +1542,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         renderRequests.Add(request);
 
 
-                        foreach (var visibleInIndex in visibleInIndices)
-                            renderRequests[visibleInIndex].dependsOnRenderRequestIndices.Add(request.index);
+                        foreach (var visibility in visibilities)
+                            renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
                     }
                 }
 
@@ -1654,12 +1682,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     target.copyToTarget, (int)target.face, 0, 0, 0
                                 );
                             }
-                            // Destroy the camera if requested
-                            if (renderRequest.destroyCamera)
-                            {
-                                renderRequest.hdCamera.camera.targetTexture = null; // release reference because the RenderTexture might be destroyed before camera
-                                m_ProbeCameraPool.Push(renderRequest.hdCamera.camera);
-                            }
+                            if (renderRequest.clearCameraSettings)
+                                // release reference because the RenderTexture might be destroyed before the camera
+                                renderRequest.hdCamera.camera.targetTexture = null;
 
                             ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
                             renderRequest.cullingResults.decalCullResults?.Clear();
@@ -1730,21 +1755,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DebugDisplaySettings.UpdateCameraFreezeOptions();
 
                 m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
-
-                bool sceneLightingIsDisabled = CoreUtils.IsSceneLightingDisabled(hdCamera.camera);
-                if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
-                {
-                    if(sceneLightingIsDisabled)
-                    {
-                        m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.MatcapView);
-                    }
-                }
-
-                if (hdCamera.sceneLightingWasDisabledForCamera && !CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
-                {
-                    m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
-                }
-                hdCamera.sceneLightingWasDisabledForCamera = sceneLightingIsDisabled;
             }
 
             aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
@@ -1818,7 +1828,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
             // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-            if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.MatcapView)
+            if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
                 UpdateSkyEnvironment(hdCamera, m_FrameCount, cmd);
             else
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
@@ -1912,7 +1922,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
 
-            if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled())
+            if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
                 RenderDebugViewMaterial(cullingResults, hdCamera, renderContext, cmd);
             }
@@ -2176,9 +2186,11 @@ namespace UnityEngine.Rendering.HighDefinition
             aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
             RenderPostProcess(cullingResults, hdCamera, target.id, renderContext, cmd);
 
+            bool hasAfterPostProcessCustomPass = RenderCustomPass(renderContext, cmd, hdCamera, cullingResults, CustomPassInjectionPoint.AfterPostProcess);
+
             // In developer build, we always render post process in m_AfterPostProcessBuffer at (0,0) in which we will then render debug.
             // Because of this, we need another blit here to the final render target at the right viewport.
-            if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid)
+            if (!HDUtils.PostProcessIsFinalPass() || aovRequest.isValid || hasAfterPostProcessCustomPass)
             {
                 hdCamera.ExecuteCaptureActions(m_IntermediateAfterPostProcessBuffer, cmd);
 
@@ -2386,6 +2398,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     currentFrameSettings.SetEnabled(FrameSettingsField.SubsurfaceScattering, false);
                 }
+            }
+
+            if(CoreUtils.IsSceneLightingDisabled(camera))
+            {
+                currentFrameSettings.SetEnabled(FrameSettingsField.ExposureControl, false);
             }
 
             // Disable object-motion vectors in everything but the game view
@@ -2871,11 +2888,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DbufferManager.GetBuffersRTI(),
                                 m_DbufferManager.GetRTHandles(),
                                 m_SharedRTManager.GetDepthStencilBuffer(),
-                                m_DbufferManager.GetHTileBuffer(),
+                                m_DbufferManager.propertyMaskBuffer,
+                                m_DbufferManager.clearPropertyMaskBufferShader,
+                                m_DbufferManager.clearPropertyMaskBufferKernel,
+                                m_DbufferManager.propertyMaskBufferSize,
                                 RendererList.Create(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)),
                                 renderContext, cmd);
 
-                cmd.SetGlobalTexture(HDShaderIDs._DecalHTileTexture, m_DbufferManager.GetHTileBuffer());  // mask per 8x8 tile used for optimization when looking up dbuffer values
+                cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
 
                 m_DbufferManager.BindBufferAsTextures(cmd);
             }
@@ -2916,11 +2936,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static RenderTargetIdentifier[] m_Dbuffer3RtIds = new RenderTargetIdentifier[3];
+
         static void RenderDBuffer(  bool                        use4RTs,
                                     RenderTargetIdentifier[]    mrt,
                                     RTHandle[]                  rtHandles,
                                     RTHandle                    depthStencilBuffer,
-                                    RTHandle                    decalsHTile,
+                                    ComputeBuffer               propertyMaskBuffer,
+                                    ComputeShader               propertyMaskClearShader,
+                                    int                         propertyMaskClearShaderKernel,
+                                    int                         propertyMaskBufferSize,
                                     RendererList                meshDecalsRendererList,
                                     ScriptableRenderContext     renderContext,
                                     CommandBuffer               cmd)
@@ -2936,16 +2961,27 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetRenderTarget(cmd, rtHandles[0], ClearFlag.Color, clearColor);
             CoreUtils.SetRenderTarget(cmd, rtHandles[1], ClearFlag.Color, clearColorNormal);
             CoreUtils.SetRenderTarget(cmd, rtHandles[2], ClearFlag.Color, clearColor);
+
             if (use4RTs)
             {
                 CoreUtils.SetRenderTarget(cmd, rtHandles[3], ClearFlag.Color, clearColorAOSBlend);
+                // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
+                CoreUtils.SetRenderTarget(cmd, mrt, depthStencilBuffer); // do not clear anymore
+            }
+            else
+            {
+                for (int rtindex = 0; rtindex < 3; rtindex++)
+                {
+                     m_Dbuffer3RtIds[rtindex] = mrt[rtindex];
+                }
+                // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
+                CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
             }
 
-            CoreUtils.SetRenderTarget(cmd, decalsHTile, ClearFlag.Color, Color.clear);
-
-            // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
-            CoreUtils.SetRenderTarget(cmd, mrt, depthStencilBuffer); // do not clear anymore
-            cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, decalsHTile);
+            // clear decal property mask buffer
+            cmd.SetComputeBufferParam(propertyMaskClearShader, propertyMaskClearShaderKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
+            cmd.DispatchCompute(propertyMaskClearShader, propertyMaskClearShaderKernel, propertyMaskBufferSize / 64, 1, 1);
+            cmd.SetRandomWriteTarget(use4RTs ? 4 : 3, propertyMaskBuffer);
 
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
@@ -3124,7 +3160,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if(m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+            if(m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
             {
                 return;
             }
@@ -3320,27 +3356,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderCustomPass(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResults, CustomPassInjectionPoint injectionPoint)
+        bool RenderCustomPass(ScriptableRenderContext context, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResults, CustomPassInjectionPoint injectionPoint)
         {
+            // We don't want custom pass in previews
+            if (hdCamera.camera.cameraType == CameraType.Preview)
+                return false;
+
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
-                return;
+                return false;
 
             var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
 
             if (customPass == null)
-                return;
+                return false;
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
             var customPassTargets = new CustomPass.RenderTargets
             {
-                cameraColorBuffer = m_CameraColorBuffer,
+                cameraColorBuffer = (injectionPoint == CustomPassInjectionPoint.AfterPostProcess) ? m_IntermediateAfterPostProcessBuffer : m_CameraColorBuffer,
                 cameraDepthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaa),
                 customColorBuffer = m_CustomPassColorBuffer,
                 customDepthBuffer = m_CustomPassDepthBuffer,
             };
 
-            customPass.Execute(context, cmd, hdCamera, cullingResults, customPassTargets);
+            return customPass.Execute(context, cmd, hdCamera, cullingResults, customPassTargets);
         }
 
         void RenderTransparentDepthPrepass(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -3698,10 +3738,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // However debug mode like colorPickerModes and false color don't need DEBUG_DISPLAY and must work with the lighting.
             // So we will enabled DEBUG_DISPLAY independently
 
+            bool debugDisplayEnabledOrSceneLightingDisabled = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera);
             // Enable globally the keyword DEBUG_DISPLAY on shader that support it with multi-compile
-            CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled());
+            CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", debugDisplayEnabledOrSceneLightingDisabled);
 
-            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ||
+            if (debugDisplayEnabledOrSceneLightingDisabled ||
                 m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
                 // This is for texture streaming
@@ -3717,8 +3758,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 var debugEmissiveColor = new Vector4(lightingDebugSettings.overrideEmissiveColor ? 1.0f : 0.0f, lightingDebugSettings.overrideEmissiveColorValue.r, lightingDebugSettings.overrideEmissiveColorValue.g, lightingDebugSettings.overrideEmissiveColorValue.b);
                 var debugTrueMetalColor = new Vector4(materialDebugSettings.materialValidateTrueMetal ? 1.0f : 0.0f, materialDebugSettings.materialValidateTrueMetalColor.r, materialDebugSettings.materialValidateTrueMetalColor.g, materialDebugSettings.materialValidateTrueMetalColor.b);
 
+                DebugLightingMode debugLightingMode = m_CurrentDebugDisplaySettings.GetDebugLightingMode();
+                if (CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
+                {
+                    debugLightingMode = DebugLightingMode.MatcapView;
+                }
+
                 cmd.SetGlobalFloatArray(HDShaderIDs._DebugViewMaterial, m_CurrentDebugDisplaySettings.GetDebugMaterialIndexes());
-                cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
+                cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)debugLightingMode);
                 cmd.SetGlobalInt(HDShaderIDs._DebugShadowMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapModeTerrainTexture, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapModeTerrainTexture());
@@ -4002,7 +4049,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
                         m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                         // If the matcap view is enabled, the sky isn't updated so we clear the background color
-                        m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.MatcapView ||
+                        m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera) ||
                         // If we want the sky but the sky don't exist, still clear with background color
                         (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid()) ||
                         // Special handling for Preview we force to clear with background color (i.e black)

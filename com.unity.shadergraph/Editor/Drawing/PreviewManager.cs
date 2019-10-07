@@ -286,6 +286,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             PropagateNodeList(m_NodesToDraw, PropagationDirection.Downstream);
             m_NodesToDraw.UnionWith(m_TimedNodes);
 
+            var time = Time.realtimeSinceStartup;
+            var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+
             foreach (var node in m_NodesToDraw)
             {
                 if(node == null || !node.hasPreview || !node.previewExpanded)
@@ -294,6 +297,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var renderData = GetRenderData(node.tempId);
 
                 CollectShaderProperties(node, renderData);
+                renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
 
                 if (renderData.shaderData.shader == null)
                 {
@@ -314,7 +318,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_RenderList3D.Add(renderData);
             }
 
-            var time = Time.realtimeSinceStartup;
             EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
 
             m_SceneResources.light0.enabled = true;
