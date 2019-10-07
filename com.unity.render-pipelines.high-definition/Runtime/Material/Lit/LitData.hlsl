@@ -202,13 +202,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
     GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
-    // Use bent normal to sample GI if available
-#ifdef _BENTNORMALMAP
-    GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
-#else
-    bentNormalWS = surfaceData.normalWS;
-#endif
-
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
     surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
@@ -216,9 +209,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if HAVE_DECALS
     if (_EnableDecals)
     {
+        // Both uses and modifies 'surfaceData.normalWS'.
         DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
         ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
     }
+#endif
+
+    // Use bent normal to sample GI if available
+#ifdef _BENTNORMALMAP
+    GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
+#else
+    bentNormalWS = surfaceData.normalWS;
 #endif
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
