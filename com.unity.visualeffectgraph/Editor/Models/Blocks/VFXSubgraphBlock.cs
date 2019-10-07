@@ -152,6 +152,9 @@ namespace UnityEditor.VFX
             {
                 child.hideFlags = HideFlags.HideAndDontSave;
             }
+
+            foreach (var subgraphBlocks in m_SubBlocks.OfType<VFXSubgraphBlock>())
+                subgraphBlocks.RecreateCopy();
             SyncSlots(VFXSlot.Direction.kInput,true);
             PatchInputExpressions();
         }
