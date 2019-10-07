@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
         {
             m_Graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
             var groupItems = m_Graph.GetItemsInGroup(userData);
-            m_Graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new [] {userData}, groupItems.OfType<StickyNoteData>().ToArray());
+            m_Graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new Edge[] {}, new [] {userData}, groupItems.OfType<StickyNoteData>().ToArray());
         }
     }
 }

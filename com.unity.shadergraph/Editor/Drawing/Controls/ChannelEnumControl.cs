@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         void CreatePopup()
         {
-            int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot<MaterialSlot>(m_SlotId).concreteValueType);
+            int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot(m_SlotId).concreteValueType);
 
             if (m_PopupField != null)
             {

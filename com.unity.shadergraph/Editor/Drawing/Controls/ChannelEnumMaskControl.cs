@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var value = (int)m_PropertyInfo.GetValue(m_Node, null);
             using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
             {
-                int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot<MaterialSlot>(m_SlotId).concreteValueType);
+                int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot(m_SlotId).concreteValueType);
                 string[] enumEntryNames = Enum.GetNames(typeof(TextureChannel));
                 string[] popupEntries = new string[channelCount];
                 for (int i = 0; i < popupEntries.Length; i++)

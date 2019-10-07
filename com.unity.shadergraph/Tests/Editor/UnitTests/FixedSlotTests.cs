@@ -57,112 +57,112 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void ConnectV1ToV1Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V1In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V1Out), m_NodeB.FindSlot(TestNode.V1In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV1ToV2Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V2In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V1Out), m_NodeB.FindSlot(TestNode.V2In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV1ToV3Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V3In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V1Out), m_NodeB.FindSlot(TestNode.V3In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV1ToV4Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V4In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V1Out), m_NodeB.FindSlot(TestNode.V4In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV2ToV1Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V1In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V2Out), m_NodeB.FindSlot(TestNode.V1In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV2ToV2Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V2In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V2Out), m_NodeB.FindSlot(TestNode.V2In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV2ToV3Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V3In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V2Out), m_NodeB.FindSlot(TestNode.V3In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV2ToV4Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V4In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V2Out), m_NodeB.FindSlot(TestNode.V4In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV3ToV1Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V1In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V3Out), m_NodeB.FindSlot(TestNode.V1In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV3ToV2Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V2In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V3Out), m_NodeB.FindSlot(TestNode.V2In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV3ToV3Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V3In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V3Out), m_NodeB.FindSlot(TestNode.V3In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV3ToV4Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V4In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V3Out), m_NodeB.FindSlot(TestNode.V4In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV4ToV1Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V1In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V4Out), m_NodeB.FindSlot(TestNode.V1In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV4ToV2Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V2In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V4Out), m_NodeB.FindSlot(TestNode.V2In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV4ToV3Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V3In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V4Out), m_NodeB.FindSlot(TestNode.V3In));
             Assert.IsFalse(m_NodeB.hasError);
         }
 
         [Test]
         public void ConnectV4ToV4Works()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V4In));
+            m_Graph.Connect(m_NodeA.FindSlot(TestNode.V4Out), m_NodeB.FindSlot(TestNode.V4In));
             Assert.IsFalse(m_NodeB.hasError);
         }
     }

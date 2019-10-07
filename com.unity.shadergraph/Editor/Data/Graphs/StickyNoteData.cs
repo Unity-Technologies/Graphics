@@ -1,18 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class StickyNoteData : ISerializationCallbackReceiver, IGroupItem
+    class StickyNoteData : IJsonObject, IGroupItem
     {
-        [NonSerialized]
+        // TODO: Get rid of this
+        [JsonProperty]
+        [JsonUpgrade("m_GuidSerialized")]
         Guid m_Guid;
 
         public Guid guid => m_Guid;
-
-        [SerializeField]
-        string m_GuidSerialized;
 
         public Guid RewriteGuid()
         {
@@ -65,17 +68,8 @@ namespace UnityEditor.ShaderGraph
             set => m_Position = value;
         }
 
-        [SerializeField]
-        string m_GroupGuidSerialized;
-
-        [NonSerialized]
-        Guid m_GroupGuid;
-
-        public Guid groupGuid
-        {
-            get { return m_GroupGuid; }
-            set { m_GroupGuid = value; }
-        }
+        [JsonProperty]
+        public GroupData group { get; set; }
 
         public StickyNoteData(string title, string content, Rect position)
         {
@@ -83,27 +77,6 @@ namespace UnityEditor.ShaderGraph
             m_Title = title;
             m_Position = position;
             m_Content = content;
-            m_GroupGuid = Guid.Empty;
-        }
-
-        public void OnBeforeSerialize()
-        {
-            m_GuidSerialized = guid.ToString();
-            m_GroupGuidSerialized = groupGuid.ToString();
-        }
-
-        public void OnAfterDeserialize()
-        {
-            if (!string.IsNullOrEmpty(m_GuidSerialized))
-            {
-                m_Guid = new Guid(m_GuidSerialized);
-            }
-
-            if (!string.IsNullOrEmpty(m_GroupGuidSerialized))
-            {
-                m_GroupGuid = new Guid(m_GroupGuidSerialized);
-            }
         }
     }
 }
-

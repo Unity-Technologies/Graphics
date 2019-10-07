@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int slotId, string variableName)
         {
-            var slot = node.FindSlot<MaterialSlot>(slotId);
+            var slot = node.FindSlot(slotId);
 
             if (slot == null)
                 return kErrorString;
@@ -441,7 +441,7 @@ namespace UnityEditor.ShaderGraph
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
                 builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
-            
+
             if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
                 builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
         }

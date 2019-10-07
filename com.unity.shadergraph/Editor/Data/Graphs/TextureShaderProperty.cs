@@ -1,34 +1,37 @@
 using System;
 using System.Text;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class TextureShaderProperty : AbstractShaderProperty<SerializableTexture>
+    class TextureShaderProperty : AbstractShaderProperty<Texture>
     {
+        [JsonUpgrade("m_Value", typeof(SerializableTextureUpgrader))]
+        public override Texture value { get; set; }
+
         public enum DefaultType { White, Black, Grey, Bump }
 
         public TextureShaderProperty()
         {
             displayName = "Texture2D";
-            value = new SerializableTexture();
         }
-        
+
         public override PropertyType propertyType => PropertyType.Texture2D;
-        
+
         public override bool isBatchable => false;
         public override bool isExposable => true;
         public override bool isRenamable => true;
-        
+
         public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
         public override string GetPropertyBlockString()
         {
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
-        
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return $"TEXTURE2D({referenceName}){delimiter} SAMPLER(sampler{referenceName}); {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}";
@@ -38,7 +41,7 @@ namespace UnityEditor.ShaderGraph
         {
             return $"TEXTURE2D_PARAM({referenceName}, sampler{referenceName})";
         }
-        
+
         [SerializeField]
         bool m_Modifiable = true;
 
@@ -56,18 +59,18 @@ namespace UnityEditor.ShaderGraph
             get { return m_DefaultType; }
             set { m_DefaultType = value; }
         }
-        
+
         public override AbstractMaterialNode ToConcreteNode()
         {
-            return new Texture2DAssetNode { texture = value.texture };
+            return new Texture2DAssetNode { texture = value };
         }
-        
+
         public override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
                 name = referenceName,
-                textureValue = value.texture
+                textureValue = value
             };
         }
 

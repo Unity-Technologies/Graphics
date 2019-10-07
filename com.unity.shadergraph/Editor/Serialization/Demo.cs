@@ -10,13 +10,13 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.SerializationDemo
 {
-    class ClassA : IPersistent
+    class ClassA : IJsonObject
     {
         public string value { get; set; }
         public ClassB classB { get; set; }
     }
 
-    class ClassB : IPersistent
+    class ClassB : IJsonObject
     {
         public string value { get; set; }
         public ClassC classC;
@@ -27,29 +27,29 @@ namespace UnityEditor.ShaderGraph.SerializationDemo
         public string value { get; set; }
     }
 
-    [InitializeOnLoad]
+//    [InitializeOnLoad]
     static class JsonTest
     {
         static JsonTest()
         {
             var classB = new ClassB { value = "B", classC = new ClassC { value = "C" } };
             var classA = new ClassA { value = "A", classB = classB };
-            var set = new PersistentSet { classA, classB };
-            var json = set.ToJson();
-            var deserializedSet = PersistentSet.FromJson(json);
+            var set = new JsonStore { classA, classB };
+            var json = set.Serialize(classA);
+            var deserializedSet = JsonStore.Deserialize(json);
 
             Debug.Log(json);
-            Debug.Log(deserializedSet.ToJson());
+            Debug.Log(deserializedSet.Serialize(classA));
             Debug.Log($"ClassA.classB == ClassB: {ReferenceEquals(deserializedSet.First<ClassA>().classB, deserializedSet.First<ClassB>())}");
 
-            var legacyJson = File.ReadAllText("Assets/TestbedAssets/MiscSGs/PartyPreview.ShaderGraph");
+            var legacyJson = File.ReadAllText("Assets/Testing/IntegrationTests/Graphs/Math/Interpolation/Lerp.ShaderGraph");
             LoadLegacyGraph(legacyJson);
         }
 
-        class LegacyNestedDeserializer<T> where T : IPersistent
+        class LegacyNestedDeserializer<T> where T : IJsonObject
         {
             readonly JObject m_LegacyJObject;
-            readonly PersistentSet m_Set;
+            readonly JsonStore m_Set;
             readonly JsonSerializer m_Serializer;
             readonly Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> m_TypeRemapping;
             readonly string m_CollectionPropertyName;
@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.SerializationDemo
             readonly Dictionary<string, T> m_LegacyMap = new Dictionary<string, T>();
             readonly List<(T, JObject)> m_ProcessingQueue = new List<(T, JObject)>();
 
-            public LegacyNestedDeserializer(PersistentSet set,
+            public LegacyNestedDeserializer(JsonStore set,
                 JsonSerializer serializer,
                 Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> typeRemapping,
                 JObject legacyJObject,
@@ -119,6 +119,7 @@ namespace UnityEditor.ShaderGraph.SerializationDemo
             {
                 return result;
             }
+
             foreach (var jToken in jArray)
             {
                 var serializedElement = serializer.Deserialize<SerializationHelper.JSONSerializedElement>(jToken.CreateReader());
@@ -135,8 +136,7 @@ namespace UnityEditor.ShaderGraph.SerializationDemo
 
                 if (type == null || type.GetConstructor(new Type[0]) == null)
                 {
-                    // TODO: Put an error somewhere
-                    continue;
+                    throw new InvalidOperationException("Missing default constructor");
                 }
 
                 var jObject = JObject.Parse(serializedElement.JSONnodeData);
@@ -155,7 +155,23 @@ namespace UnityEditor.ShaderGraph.SerializationDemo
 
         static void LoadLegacyGraph(string json)
         {
-            var set = new PersistentSet();
+            var set = new JsonStore {};
+            var serializer = JsonSerializer.Create(new JsonSerializerSettings
+            {
+                ContractResolver = new ContractResolver(),
+                Converters = new List<JsonConverter>() { new Vector2Converter(), new Vector3Converter(), new Vector4Converter(), new ColorConverter(), new Matrix4x4Converter() },
+                Formatting = Formatting.Indented,
+                ReferenceResolverProvider = () => new ReferenceResolver { jsonStore = set }
+            });
+            var graphData = serializer.Deserialize<GraphData>(new JsonTextReader(new StringReader(json)));
+            set.Add(graphData);
+            set.Serialize(graphData, Formatting.None);
+            Debug.Log(set.Serialize(graphData));
+        }
+
+        static void LoadLegacyGraph2(string json)
+        {
+            var set = new JsonStore();
             var jObject = JObject.Parse(json);
 
             // m_Groups
@@ -166,31 +182,38 @@ namespace UnityEditor.ShaderGraph.SerializationDemo
 
             var serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
-                ContractResolver = new ShaderGraphContractResolver(),
-                Converters = new List<JsonConverter>() { new Vector4Converter() }
+                ContractResolver = new ContractResolver(),
+                Converters = new List<JsonConverter>() { new Vector2Converter(), new Vector3Converter(), new Vector4Converter(), new ColorConverter(), new Matrix4x4Converter() },
+                Formatting = Formatting.Indented
             });
             var typeRemapping = GraphUtil.GetLegacyTypeRemapping();
 
+            var processingQueue = new List<(object, JObject)>();
+
             const string legacyNodesKey = "m_SerializableNodes";
-            var nodeLegacyData = new LegacyData<AbstractMaterialNode>();
+            var legacyMap = new Dictionary<string, IJsonObject>();
+            var nodeSlots = new List<(AbstractMaterialNode, List<MaterialSlot>)>();
             if (jObject.ContainsKey(legacyNodesKey))
             {
-                nodeLegacyData.queue = ParseAndCreateElements<AbstractMaterialNode>(jObject.Value<JArray>(legacyNodesKey), serializer, typeRemapping);
-                nodeLegacyData.map = nodeLegacyData.queue.ToDictionary(x => x.Item2["m_GuidSerialized"].Value<string>(), x => x.Item1);
-                set.AddRange(nodeLegacyData.queue.Select(x => x.Item1));
-                jObject.Remove(legacyNodesKey);
-            }
-
-            foreach (var (node, jNode) in nodeLegacyData.queue)
-            {
-                var slotQueue = ParseAndCreateElements<MaterialSlot>(jNode.Value<JArray>("m_SerializableSlots"), serializer, typeRemapping);
-                foreach (var (materialSlot, jSlot) in slotQueue)
+                var queue = ParseAndCreateElements<AbstractMaterialNode>(jObject.Value<JArray>(legacyNodesKey), serializer, typeRemapping);
+                foreach (var (node, nodeJObject) in queue)
                 {
-                    Debug.Log(jSlot);
-                    serializer.Populate(jSlot.CreateReader(), materialSlot);
-                    var stringWriter = new StringWriter();
-                    serializer.Serialize(stringWriter, materialSlot);
-                    Debug.Log(stringWriter.ToString());
+                    set.Add(node);
+                    processingQueue.Add((node, nodeJObject));
+                    var legacyGuid = nodeJObject.Value<string>("m_GuidSerialized");
+                    legacyMap.Add($"node:{legacyGuid}", node);
+                    const string legacySlotsKey = "m_SerializableSlots";
+                    var slotQueue = ParseAndCreateElements<MaterialSlot>(nodeJObject.Value<JArray>(legacySlotsKey), serializer, typeRemapping);
+                    var slotList = new List<MaterialSlot>();
+                    foreach (var (slot, slotJObject) in slotQueue)
+                    {
+                        set.Add(slot);
+                        processingQueue.Add((slot, slotJObject));
+                        var slotId = slotJObject.Value<int>("m_Id");
+                        legacyMap.Add($"slot:{legacyGuid}.{slotId}", slot);
+                        slotList.Add(slot);
+                    }
+                    nodeSlots.Add((node, slotList));
                 }
             }
 
@@ -218,6 +241,33 @@ namespace UnityEditor.ShaderGraph.SerializationDemo
                 set.AddRange(keywordLegacyData.queue.Select(x => x.Item1));
             }
 
+            var referenceResolver = new ReferenceResolver { };
+            serializer.ReferenceResolver = referenceResolver;
+
+            var writer = new StringWriter();
+            foreach (var (obj, objJObject) in processingQueue)
+            {
+                serializer.Populate(objJObject.CreateReader(), obj);
+            }
+
+            foreach (var (node, slots) in nodeSlots)
+            {
+                foreach (var slot in slots)
+                {
+                    node.AddSlot(slot);
+                }
+            }
+
+            foreach (var (obj, _) in processingQueue)
+            {
+                writer.WriteLine(obj.GetType().FullName);
+                referenceResolver.nextIsSource = true;
+                serializer.Serialize(writer, obj, typeof(IJsonObject));
+                writer.WriteLine();
+                writer.WriteLine();
+            }
+
+            Debug.Log(writer.ToString());
 //            var propertyDeserializer = new LegacyNestedDeserializer<AbstractShaderProperty>(set, serializer, typeRemapping, legacyJObject,
 //                "m_SerializedProperties",
 //                x => x["m_Guid"]["m_GuidSerialized"].Value<string>());

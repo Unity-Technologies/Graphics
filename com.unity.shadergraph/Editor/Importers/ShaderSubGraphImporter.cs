@@ -8,6 +8,7 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -29,10 +30,12 @@ namespace UnityEditor.ShaderGraph
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
-            var graphData = new GraphData { isSubGraph = true, assetGuid = subGraphGuid };
+            var set = JsonStore.Deserialize(textGraph);
+            var graphData = set.First<GraphData>();
+            graphData.isSubGraph = true;
             var messageManager = new MessageManager();
             graphData.messageManager = messageManager;
-            JsonUtility.FromJsonOverwrite(textGraph, graphData);
+//            JsonUtility.FromJsonOverwrite(textGraph, graphData);
 
             try
             {
@@ -50,7 +53,7 @@ namespace UnityEditor.ShaderGraph
                     graphAsset.isValid = false;
                     foreach (var pair in messageManager.GetNodeMessages())
                     {
-                        var node = graphData.GetNodeFromTempId(pair.Key);
+                        var node = pair.Key;
                         foreach (var message in pair.Value)
                         {
                             MessageManager.Log(node, subGraphPath, message, graphAsset);
@@ -107,10 +110,10 @@ namespace UnityEditor.ShaderGraph
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
-            
+
             GatherFromGraph(assetPath, out var containsCircularDependency, out var descendents);
             asset.descendents.AddRange(descendents);
-            
+
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
             foreach (var node in nodes)
@@ -123,7 +126,7 @@ namespace UnityEditor.ShaderGraph
                         asset.children.Add(subGraphGuid);
                     }
                 }
-                
+
                 if (node.hasError)
                 {
                     anyErrors = true;
@@ -212,27 +215,27 @@ namespace UnityEditor.ShaderGraph
 
             asset.OnBeforeSerialize();
         }
-        
+
         static void GatherFromGraph(string assetPath, out bool containsCircularDependency, out HashSet<string> descendentGuids)
         {
             var dependencyMap = new Dictionary<string, string[]>();
             using (var tempList = ListPool<string>.GetDisposable())
             {
                 GatherDependencies(assetPath, dependencyMap, tempList.value);
-                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);    
+                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);
             }
-            
+
             descendentGuids = new HashSet<string>();
             GatherDescendents(assetPath, descendentGuids, dependencyMap);
         }
-        
+
         static void GatherDependencies(string assetPath, Dictionary<string, string[]> dependencyMap, List<string> dependencies)
         {
             if (!dependencyMap.ContainsKey(assetPath))
             {
                 if(assetPath.EndsWith(Extension))
                     MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
-                
+
                 var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
                 dependencies.Clear();
                 foreach (var dependencyPath in dependencyPaths)
@@ -260,7 +263,7 @@ namespace UnityEditor.ShaderGraph
             {
                 return true;
             }
-            
+
             ancestors.Add(assetPath);
             foreach (var dependencyPath in dependencyMap[assetPath])
             {

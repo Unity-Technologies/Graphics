@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -25,18 +27,19 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        [SerializeField]
-        private SerializableTexture m_Texture = new SerializableTexture();
+        Texture m_Texture;
 
         [TextureControl("")]
+        [JsonProperty]
+        [JsonUpgrade("m_Texture", typeof(SerializableTextureUpgrader))]
         public Texture texture
         {
-            get { return m_Texture.texture; }
+            get => m_Texture;
             set
             {
-                if (m_Texture.texture == value)
+                if (m_Texture == value)
                     return;
-                m_Texture.texture = value;
+                m_Texture = value;
                 Dirty(ModificationScope.Node);
             }
         }

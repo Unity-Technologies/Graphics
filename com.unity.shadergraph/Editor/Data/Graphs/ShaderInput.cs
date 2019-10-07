@@ -4,8 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    abstract class ShaderInput : IPersistent
+    [Serializable]
+    abstract class ShaderInput : IJsonObject
     {
+        // TODO: Get rid of this
         [SerializeField]
         SerializableGuid m_Guid = new SerializableGuid();
 

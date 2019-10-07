@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
 
             if(graph.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                graph.AddValidationError(node.tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                graph.AddValidationError(node, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 
                 results.configuredTextures = shaderProperties.GetConfiguredTexutres();
                 results.shader = string.Empty;
@@ -463,7 +463,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (input != null)
                     {
-                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                        var foundEdges = graph.GetEdges(input).ToArray();
                         var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
                         if (rootNode is SubGraphOutputNode)
                         {
@@ -554,10 +554,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach (var slot in slots)
                     {
-                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                        var isSlotConnected = slot.isConnected;
                         var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                         var slotValue = isSlotConnected ?
-                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                            slot.owner.GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
                         builder.AppendLine("description.{0} = {1};", slotName, slotValue);
                     }
                 }

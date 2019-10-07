@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_Flip_{FindSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
+            return $"Unity_Flip_{FindSlot(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        int channelCount { get { return SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType); } }
+        int channelCount { get { return SlotValueHelper.GetChannelCount(FindSlot(InputSlotId).concreteValueType); } }
 
         [SerializeField]
         private bool m_RedChannel;

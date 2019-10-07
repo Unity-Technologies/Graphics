@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
                 var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
                 if (error)
                 {
-                    owner.AddValidationError(tempId, errorMessage);
+                    owner.AddValidationError(this, errorMessage);
                     break;
                 }
             }
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!this.GetInputSlots<MaterialSlot>().Any())
             {
-                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(this, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
 
             base.ValidateNode();
@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
 
         public int AddSlot(ConcreteSlotValueType concreteValueType)
         {
-            var index = this.GetInputSlots<ISlot>().Count() + 1;
+            var index = this.GetInputSlots<MaterialSlot>().Count() + 1;
             string name = string.Format("Out_{0}", NodeUtils.GetDuplicateSafeNameForSlot(this, index, concreteValueType.ToString()));
             AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
                 NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));

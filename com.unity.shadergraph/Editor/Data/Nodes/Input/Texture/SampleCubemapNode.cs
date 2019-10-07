@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
         {
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInputId);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
+            var edgesSampler = owner.GetEdges(samplerSlot);
 
             var id = GetSlotValue(CubemapInputId, generationMode);
             string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}, {2}, reflect(-{3}, {4}), {5});"
@@ -68,7 +68,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             var viewDirSlot = FindInputSlot<MaterialSlot>(ViewDirInputId);
-            var edgesViewDir = owner.GetEdges(viewDirSlot.slotReference);
+            var edgesViewDir = owner.GetEdges(viewDirSlot);
             if (!edgesViewDir.Any())
                 return CoordinateSpace.Object.ToNeededCoordinateSpace();
             else
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             var normalSlot = FindInputSlot<MaterialSlot>(NormalInputId);
-            var edgesNormal = owner.GetEdges(normalSlot.slotReference);
+            var edgesNormal = owner.GetEdges(normalSlot);
             if (!edgesNormal.Any())
                 return CoordinateSpace.Object.ToNeededCoordinateSpace();
             else

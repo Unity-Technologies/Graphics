@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
 
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInput);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
+            var edgesSampler = owner.GetEdges(samplerSlot);
 
             var lodSlot = GetSlotValue(LODInput, generationMode);
 

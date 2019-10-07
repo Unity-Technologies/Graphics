@@ -186,17 +186,17 @@ namespace UnityEditor.ShaderGraph
 
         static void Visit(List<AbstractMaterialNode> outputList, Dictionary<Guid, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
         {
-            if (!unmarkedNodes.ContainsKey(node.guid))
+            if (!unmarkedNodes.ContainsKey(node.legacyGuid))
                 return;
-            foreach (var slot in node.GetInputSlots<ISlot>())
+            foreach (var slot in node.GetInputSlots<MaterialSlot>())
             {
-                foreach (var edge in node.owner.GetEdges(slot.slotReference))
+                foreach (var edge in node.owner.GetEdges(slot))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var inputNode = edge.outputSlot.owner;
                     Visit(outputList, unmarkedNodes, inputNode);
                 }
             }
-            unmarkedNodes.Remove(node.guid);
+            unmarkedNodes.Remove(node.legacyGuid);
             outputList.Add(node);
         }
 

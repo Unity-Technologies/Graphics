@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         static string kGraphName = "Assets/CommonAssets/Graphs/SlotConv.shadergraph";
         GraphData m_Graph;
         CustomFunctionNode m_CFNode;
-        
+
         [SetUp]
         public void LoadGraph()
         {
@@ -25,18 +25,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_CFNode = m_Graph.GetNodes<CustomFunctionNode>().FirstOrDefault();
             Assert.NotNull(m_CFNode, $"No CustomFunctionNode found in {kGraphName}.");
         }
-        
+
         [Test]
         public void TestAllCombos()
         {
             foreach (var slot in m_CFNode.GetInputSlots<MaterialSlot>())
             {
                 // Should only be one edge per slot on this graph
-                var edge = m_Graph.GetEdges(slot.slotReference).FirstOrDefault();
+                var edge = m_Graph.GetEdges(slot).FirstOrDefault();
                 if (edge == null) continue;
-                
-                var outputNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
+
+                var outputSlot = edge.outputSlot;
                 var curOutputType = outputSlot.valueType.ToConcreteSlotValueType();
 
                 foreach (var slotValType in (SlotValueType[]) Enum.GetValues(typeof(SlotValueType)))
@@ -49,7 +48,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     // Verify all errors are expected
                     foreach (var message in m_Graph.messageManager.GetNodeMessages())
                     {
-                        if (message.Key.Equals(m_CFNode.tempId) && message.Value.Exists(msg =>
+                        if (message.Key.Equals(m_CFNode) && message.Value.Exists(msg =>
                                 msg.severity == ShaderCompilerMessageSeverity.Error))
                         {
                             Assert.IsFalse(SlotValueHelper.AreCompatible(slotValType, curOutputType),

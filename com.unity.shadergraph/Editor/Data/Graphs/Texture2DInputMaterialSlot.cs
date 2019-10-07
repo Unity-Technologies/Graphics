@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,16 +13,11 @@ namespace UnityEditor.ShaderGraph
     class Texture2DInputMaterialSlot : Texture2DMaterialSlot
     {
         [SerializeField]
-        private SerializableTexture m_Texture = new SerializableTexture();
-
-        [SerializeField]
         private TextureShaderProperty.DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
 
-        public Texture texture
-        {
-            get { return m_Texture.texture; }
-            set { m_Texture.texture = value; }
-        }
+        [JsonProperty]
+        [JsonUpgrade("m_Texture", typeof(SerializableTextureUpgrader))]
+        public Texture texture { get; set; }
 
         public TextureShaderProperty.DefaultType defaultType
         {
@@ -64,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
-            prop.value.texture = texture;
+            prop.value = texture;
             prop.defaultType = defaultType;
             properties.AddShaderProperty(prop);
         }
@@ -83,7 +80,7 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = foundSlot as Texture2DInputMaterialSlot;
             if (slot != null)
-                m_Texture = slot.m_Texture;
+                texture = slot.texture;
         }
     }
 }

@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV1NoneWorks()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector1, dynOut1.concreteValueType);
         }
@@ -68,8 +68,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV1V1Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector1, dynOut1.concreteValueType);
         }
@@ -77,8 +77,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV1V2Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -86,8 +86,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV1V3Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector3, dynOut1.concreteValueType);
         }
@@ -95,8 +95,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV1V4Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector4, dynOut1.concreteValueType);
         }
@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV2NoneWorks()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -112,8 +112,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV2V1Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -121,8 +121,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV2V2Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -130,8 +130,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV2V3Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -139,8 +139,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV2V4Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -148,7 +148,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV3NoneWorks()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector3, dynOut1.concreteValueType);
         }
@@ -156,8 +156,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV3V1Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector3, dynOut1.concreteValueType);
         }
@@ -165,8 +165,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV3V2Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -174,8 +174,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV3V3Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector3, dynOut1.concreteValueType);
         }
@@ -183,8 +183,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV3V4Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector3, dynOut1.concreteValueType);
         }
@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV4NoneWorks()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector4, dynOut1.concreteValueType);
         }
@@ -200,8 +200,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV4V1Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V1Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V1Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector4, dynOut1.concreteValueType);
         }
@@ -209,8 +209,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV4V2Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V2Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V2Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector2, dynOut1.concreteValueType);
         }
@@ -218,8 +218,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV4V3Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V3Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V3Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector3, dynOut1.concreteValueType);
         }
@@ -227,8 +227,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void DynamicInputsV4V4Works()
         {
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn1));
-            m_Graph.Connect(m_StaticNode.GetSlotReference(TestNode.V4Out), m_DynamicNode.GetSlotReference(DynamicNode.DynIn2));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn1));
+            m_Graph.Connect(m_StaticNode.FindSlot(TestNode.V4Out), m_DynamicNode.FindSlot(DynamicNode.DynIn2));
             var dynOut1 = m_DynamicNode.FindOutputSlot<MaterialSlot>(DynamicNode.DynOut);
             Assert.AreEqual(ConcreteSlotValueType.Vector4, dynOut1.concreteValueType);
         }

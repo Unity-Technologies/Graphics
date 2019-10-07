@@ -1,43 +1,41 @@
 using System;
+using Newtonsoft.Json;
 using UnityEngine;
 
-namespace UnityEditor.Graphing
+namespace UnityEditor.ShaderGraph
 {
+    [FormerName("UnityEditor.Graphing.Edge")]
     [Serializable]
-    class Edge : IEdge
+    class Edge
     {
-        [SerializeField]
-        private SlotReference m_OutputSlot;
-        [SerializeField]
-        private SlotReference m_InputSlot;
+        [JsonProperty]
+        MaterialSlot m_OutputSlot;
+
+        [JsonProperty]
+        MaterialSlot m_InputSlot;
 
         public Edge()
         {}
 
-        public Edge(SlotReference outputSlot, SlotReference inputSlot)
+        public Edge(MaterialSlot outputSlot, MaterialSlot inputSlot)
         {
             m_OutputSlot = outputSlot;
             m_InputSlot = inputSlot;
         }
 
-        public SlotReference outputSlot
+        public MaterialSlot outputSlot
         {
-            get { return m_OutputSlot; }
+            get => m_OutputSlot;
         }
 
-        public SlotReference inputSlot
+        public MaterialSlot inputSlot
         {
-            get { return m_InputSlot; }
+            get => m_InputSlot;
         }
 
         protected bool Equals(Edge other)
         {
             return Equals(m_OutputSlot, other.m_OutputSlot) && Equals(m_InputSlot, other.m_InputSlot);
-        }
-
-        public bool Equals(IEdge other)
-        {
-            return Equals(other as object);
         }
 
         public override bool Equals(object obj)

@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph
             GenerateNodeFunctionsAndPropertyUsages(vertexShaderBlock, propertyUsages, nodeFunction, mode, vertexInputs);
 
             var slot = FindInputSlot<MaterialSlot>(VertexOffsetId);
-            foreach (var edge in owner.GetEdges(slot.slotReference))
+            foreach (var edge in owner.GetEdges(slot))
             {
                 var outputRef = edge.outputSlot;
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
@@ -291,7 +291,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (surfaceInputs.Contains(slot.id))
                 {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
+                    foreach (var edge in owner.GetEdges(slot))
                     {
                         var outputRef = edge.outputSlot;
                         var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
@@ -418,7 +418,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (surfaceInputs.Contains(slot.id))
                 {
-                    foreach (var edge in owner.GetEdges(slot.slotReference))
+                    foreach (var edge in owner.GetEdges(slot))
                     {
                         var outputRef = edge.outputSlot;
                         var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);

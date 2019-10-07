@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using UIEdge = UnityEditor.Experimental.GraphView.Edge;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class GradientEdge : Edge
+    class GradientEdge : UIEdge
     {
         readonly CustomStyleProperty<Color> k_InputColorProperty = new CustomStyleProperty<Color>("--edge-input-color");
         readonly CustomStyleProperty<Color> k_OutputColorProperty = new CustomStyleProperty<Color>("--edge-output-color");

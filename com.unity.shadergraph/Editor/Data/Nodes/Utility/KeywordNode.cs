@@ -1,25 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEngine.Serialization;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Utility", "Keyword")]
-    class KeywordNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
+    sealed class KeywordNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
     {
         public KeywordNode()
         {
             UpdateNodeAfterDeserialization();
         }
-        
-        [SerializeField]
-        private string m_KeywordGuidSerialized;
 
-        private Guid m_KeywordGuid;
+        // TODO: Get rid of this
+        [JsonProperty]
+        [JsonUpgrade("m_KeywordGuidSerialized")]
+        Guid m_KeywordGuid;
 
         public Guid keywordGuid
         {
@@ -49,7 +51,7 @@ namespace UnityEditor.ShaderGraph
             var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
             if (keyword == null)
                 return;
-            
+
             name = keyword.displayName;
             UpdatePorts(keyword);
         }
@@ -74,15 +76,15 @@ namespace UnityEditor.ShaderGraph
                     GetInputSlots(inputSlots);
 
                     // Store the edges
-                    Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
+                    Dictionary<MaterialSlot, List<Edge>> edgeDict = new Dictionary<MaterialSlot, List<Edge>>();
                     foreach (MaterialSlot slot in inputSlots)
-                        edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
-                    
+                        edgeDict.Add(slot, (List<Edge>)slot.owner.owner.GetEdges(slot));
+
                     // Remove old slots
                     for(int i = 0; i < inputSlots.Count; i++)
                     {
                         RemoveSlot(inputSlots[i].id);
-                    } 
+                    }
 
                     // Add output slot
                     AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
@@ -93,10 +95,9 @@ namespace UnityEditor.ShaderGraph
                     for(int i = 0; i < keyword.entries.Count; i++)
                     {
                         // Get slot based on entry id
-                        MaterialSlot slot = inputSlots.Where(x => 
-                            x.id == keyword.entries[i].id &&
-                            x.RawDisplayName() == keyword.entries[i].displayName && 
-                            x.shaderOutputName == keyword.entries[i].referenceName).FirstOrDefault();
+                        MaterialSlot slot = inputSlots.FirstOrDefault(x => x.id == keyword.entries[i].id &&
+                            x.RawDisplayName() == keyword.entries[i].displayName &&
+                            x.shaderOutputName == keyword.entries[i].referenceName);
 
                         // If slot doesnt exist its new so create it
                         if(slot == null)
@@ -110,9 +111,9 @@ namespace UnityEditor.ShaderGraph
                     RemoveSlotsNameNotMatching(slotIds);
 
                     // Reconnect the edges
-                    foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
+                    foreach (KeyValuePair<MaterialSlot, List<Edge>> entry in edgeDict)
                     {
-                        foreach (IEdge edge in entry.Value)
+                        foreach (Edge edge in entry.Value)
                         {
                             owner.Connect(edge.outputSlot, edge.inputSlot);
                         }
@@ -129,7 +130,7 @@ namespace UnityEditor.ShaderGraph
             var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
             if (keyword == null)
                 return;
-            
+
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
             switch(keyword.keywordType)
             {
@@ -165,7 +166,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             sb.AppendLine($"#elif defined({keyword.referenceName}_{keyword.entries[i].referenceName})");
                         }
-                        
+
                         // Append per-slot code
                         var value = GetSlotValue(GetSlotIdForPermutation(new KeyValuePair<ShaderKeyword, int>(keyword, i)), generationMode);
                         sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {value};"));
@@ -201,25 +202,6 @@ namespace UnityEditor.ShaderGraph
                 return true;
 
             return false;
-        }
-        
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-
-            // Handle keyword guid serialization
-            m_KeywordGuidSerialized = m_KeywordGuid.ToString();
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-
-            // Handle keyword guid serialization
-            if (!string.IsNullOrEmpty(m_KeywordGuidSerialized))
-            {
-                m_KeywordGuid = new Guid(m_KeywordGuidSerialized);
-            } 
         }
     }
 }

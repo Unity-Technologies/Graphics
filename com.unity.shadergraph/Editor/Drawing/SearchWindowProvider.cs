@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Texture2D m_Icon;
         public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
-        public SlotReference targetSlotReference { get; private set; }
+        public MaterialSlot targetSlot { get; private set; }
         public Vector2 targetPosition { get; private set; }
         private const string k_HiddenFolderName = "Hidden";
 
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         List<int> m_Ids;
-        List<ISlot> m_Slots = new List<ISlot>();
+        List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
         public List<SearchTreeEntry> CreateSearchTree(SearchWindowContext context)
         {
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
-                
+
                 if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
                     continue;
@@ -256,10 +256,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var nodeEntry = (NodeEntry)entry.userData;
             var node = nodeEntry.node;
-
             var drawState = node.drawState;
-
-
             var windowRoot = m_EditorWindow.rootVisualElement;
             var windowMousePosition = windowRoot.ChangeCoordinatesTo(windowRoot.parent, context.screenMousePosition - m_EditorWindow.position.position);
             var graphMousePosition = m_GraphView.contentViewContainer.WorldToLocal(windowMousePosition);
@@ -272,15 +269,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (connectedPort != null)
             {
                 var connectedSlot = connectedPort.slot;
-                var connectedSlotReference = connectedSlot.owner.GetSlotReference(connectedSlot.id);
-                var compatibleSlotReference = node.GetSlotReference(nodeEntry.compatibleSlotId);
+                var compatibleSlot = node.FindSlot(nodeEntry.compatibleSlotId);
 
-                var fromReference = connectedSlot.isOutputSlot ? connectedSlotReference : compatibleSlotReference;
-                var toReference = connectedSlot.isOutputSlot ? compatibleSlotReference : connectedSlotReference;
-                m_Graph.Connect(fromReference, toReference);
+                var from = connectedSlot.isOutputSlot ? connectedSlot : compatibleSlot;
+                var to = connectedSlot.isOutputSlot ? compatibleSlot : connectedSlot;
+                m_Graph.Connect(from, to);
 
                 nodeNeedsRepositioning = true;
-                targetSlotReference = compatibleSlotReference;
+                targetSlot = compatibleSlot;
                 targetPosition = graphMousePosition;
             }
 

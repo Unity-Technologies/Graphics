@@ -10,7 +10,7 @@ using UnityEditor.Graphs;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEngine.UIElements;
-using Edge = UnityEditor.Experimental.GraphView.Edge;
+using UIEdge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return DropdownMenuAction.Status.Disabled;
                 });
 
-                
+
 
                 var editorView = GetFirstAncestorOfType<GraphEditorView>();
                 if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
@@ -412,15 +412,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
-                propNode.groupGuid = node.groupGuid;
+                propNode.group = node.group;
                 graph.AddNode(propNode);
                 propNode.propertyGuid = prop.guid;
 
-                var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
-                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
+                var oldSlot = node.FindSlot(converter.outputSlotId);
+                var newSlot = propNode.FindSlot(PropertyNode.OutputSlotId);
 
-                foreach (var edge in graph.GetEdges(oldSlot.slotReference))
-                    graph.Connect(newSlot.slotReference, edge.inputSlot);
+                foreach (var edge in graph.GetEdges(oldSlot))
+                    graph.Connect(newSlot, edge.inputSlot);
 
                 graph.RemoveNode(node);
             }
@@ -463,7 +463,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
-            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
+            var edges = elements.OfType<UIEdge>().Select(x => x.userData).OfType<Edge>();
             var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
@@ -531,7 +531,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Filter nodes that cannot be deleted
             var nodesToDelete = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node);
-            
+
             // Add keyword nodes dependent on deleted keywords
             nodesToDelete = nodesToDelete.Union(keywordNodes);
 
@@ -543,13 +543,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     keywordsDirty = true;
                 }
             }
-            
+
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(nodesToDelete.ToArray(),
-                selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
+                selection.OfType<UIEdge>().Select(x => x.userData).OfType<Edge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
-            
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -681,7 +681,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (textureArray != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
-                
+
                 var node = new SampleTexture2DArrayNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
@@ -713,7 +713,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (cubemap != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
-                
+
                 var node = new SampleCubemapNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
@@ -740,7 +740,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardField = obj as BlackboardField;
             if (blackboardField != null)
-            {   
+            {
                 graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
 
                 switch(blackboardField.userData)
@@ -841,7 +841,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())
             {
-                using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
+                using (var remappedEdgesDisposable = ListPool<Edge>.GetDisposable())
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
@@ -878,7 +878,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
                         {
-                            if (element is Edge edge && remappedEdges.Contains(edge.userData as IEdge))
+                            if (element is UIEdge edge && remappedEdges.Contains(edge.userData as Edge))
                                 graphView.AddToSelection(edge);
 
                             if (element is IShaderNodeView nodeView && remappedNodes.Contains(nodeView.node))

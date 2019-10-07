@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
 
             //Sampler input slot
             var samplerSlot = FindInputSlot<MaterialSlot>(SamplerInput);
-            var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
+            var edgesSampler = owner.GetEdges(samplerSlot);
 
             var id = GetSlotValue(TextureInputId, generationMode);
             var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D_ARRAY({1}, {2}, {3}, {4});"

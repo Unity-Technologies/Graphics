@@ -1,4 +1,6 @@
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -76,13 +78,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
-        [SerializeField]
-        T m_Value;
-
-        public virtual T value
-        {
-            get => m_Value;
-            set => m_Value = value;
-        }
+        [JsonProperty]
+        [JsonUpgrade("m_Value")]
+        public virtual T value { get; set; }
     }
 }

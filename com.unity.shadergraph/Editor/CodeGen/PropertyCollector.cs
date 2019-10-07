@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
 
             if (batchAll)
                 return;
-            
+
             foreach (var prop in properties.Where(n => !n.isBatchable || !n.generatePropertyBlock))
             {
                 builder.AppendLine(prop.GetPropertyDeclarationString());
@@ -118,7 +118,7 @@ namespace UnityEditor.ShaderGraph
                     var textureInfo = new TextureInfo
                     {
                         name = prop.referenceName,
-                        textureId = prop.value.texture != null ? prop.value.texture.GetInstanceID() : 0,
+                        textureId = prop.value != null ? prop.value.GetInstanceID() : 0,
                         modifiable = prop.modifiable
                     };
                     result.Add(textureInfo);
@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph
                     var textureInfo = new TextureInfo
                     {
                         name = prop.referenceName,
-                        textureId = prop.value.texture != null ? prop.value.texture.GetInstanceID() : 0,
+                        textureId = prop.value != null ? prop.value.GetInstanceID() : 0,
                         modifiable = prop.modifiable
                     };
                     result.Add(textureInfo);

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -79,7 +80,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromTempId(pair.Key);
+                    var node = pair.Key;
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
@@ -125,7 +126,8 @@ Shader ""Hidden/GraphErrorShader2""
             try
             {
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graph = JsonUtility.FromJson<GraphData>(textGraph);
+                var set = JsonStore.Deserialize(textGraph);
+                graph = set.First<GraphData>();
                 graph.messageManager = new MessageManager();
                 graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
                 graph.OnEnable();

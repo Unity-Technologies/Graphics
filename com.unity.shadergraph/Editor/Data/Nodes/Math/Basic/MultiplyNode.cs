@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_Multiply_{FindSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(concretePrecision)}_{FindSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(concretePrecision)}";
+            return $"Unity_Multiply_{FindSlot(Input1SlotId).concreteValueType.ToShaderString(concretePrecision)}_{FindSlot(Input2SlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
@@ -107,9 +107,9 @@ namespace UnityEditor.ShaderGraph
             foreach (var inputSlot in s_TempSlots)
             {
                 inputSlot.hasError = false;
-                
+
                 // if there is a connection
-                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                var edges = owner.GetEdges(inputSlot).ToList();
                 if (!edges.Any())
                 {
                     if (inputSlot is DynamicValueMaterialSlot)
@@ -118,15 +118,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // get the output details
-                var outputSlotRef = edges[0].outputSlot;
-                var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                if (outputNode == null)
-                    continue;
-
-                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
-                if (outputSlot == null)
-                    continue;
-
+                var outputSlot = edges[0].outputSlot;
                 if (outputSlot.hasError)
                 {
                     inputSlot.hasError = true;
@@ -246,7 +238,7 @@ namespace UnityEditor.ShaderGraph
 
             if (isInError)
             {
-                ((GraphData) owner).AddValidationError(tempId, errorMessage);
+                ((GraphData) owner).AddValidationError(this, errorMessage);
             }
             else
             {
@@ -294,11 +286,10 @@ namespace UnityEditor.ShaderGraph
             GetInputSlots(slots);
             for (int i = 0; i < slots.Count; i++)
             {
-                var edges = owner.GetEdges(slots[i].slotReference).ToList();
+                var edges = owner.GetEdges(slots[i]).ToList();
                 if (!edges.Any())
                     continue;
-                var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
-                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
+                var outputSlot = edges[0].outputSlot;
                 if (outputSlot.concreteValueType == ConcreteSlotValueType.Matrix4
                     || outputSlot.concreteValueType == ConcreteSlotValueType.Matrix3
                     || outputSlot.concreteValueType == ConcreteSlotValueType.Matrix2)
@@ -309,11 +300,10 @@ namespace UnityEditor.ShaderGraph
 
         private void SetConcreteValueTypeFromEdge(DynamicValueMaterialSlot slot)
         {
-            var edges = owner.GetEdges(slot.slotReference).ToList();
+            var edges = owner.GetEdges(slot).ToList();
             if (!edges.Any())
                 return;
-            var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
-            var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
+            var outputSlot = edges[0].outputSlot;
             slot.SetConcreteType(outputSlot.concreteValueType);
         }
     }

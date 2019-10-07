@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -13,11 +15,9 @@ namespace UnityEditor.ShaderGraph
     abstract class MasterNode<T> : AbstractMaterialNode, IMasterNode, IHasSettings
         where T : class, ISubShader
     {
-        [NonSerialized]
+        [JsonProperty]
+        [JsonUpgrade("m_SerializableSubShaders", typeof(SerializedElementsConverter))]
         List<T> m_SubShaders = new List<T>();
-
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableSubShaders = new List<SerializationHelper.JSONSerializedElement>();
 
         public override bool hasPreview
         {
@@ -84,8 +84,8 @@ namespace UnityEditor.ShaderGraph
 
             if(owner.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                owner.AddValidationError(tempId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
-                
+                owner.AddValidationError(this, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+
                 configuredTextures = shaderProperties.GetConfiguredTexutres();
                 return ShaderGraphImporter.k_ErrorShader;
             }
@@ -119,20 +119,6 @@ namespace UnityEditor.ShaderGraph
                     return true;
             }
             return false;
-        }
-
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-            m_SerializableSubShaders = SerializationHelper.Serialize<T>(m_SubShaders);
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            m_SubShaders = SerializationHelper.Deserialize<T>(m_SerializableSubShaders, GraphUtil.GetLegacyTypeRemapping());
-            m_SubShaders.RemoveAll(x => x == null);
-            m_SerializableSubShaders = null;
-            base.OnAfterDeserialize();
         }
 
         public override void UpdateNodeAfterDeserialization()

@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
                 bool alpha = (channelMask & 8) != 0;
                 channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
             }
-            return $"Unity_ChannelMask_{channelSum}_{FindSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
+            return $"Unity_ChannelMask_{channelSum}_{FindSlot(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
 
         void ValidateChannelCount()
         {
-            int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+            int channelCount = SlotValueHelper.GetChannelCount(FindSlot(InputSlotId).concreteValueType);
             if (channelMask >= 1 << channelCount)
                 channelMask = -1;
         }
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
             ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>
                 {
-                    int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+                    int channelCount = SlotValueHelper.GetChannelCount(FindSlot(InputSlotId).concreteValueType);
                     s.AppendLine(GetFunctionPrototype("In", "Out"));
                     using (s.BlockScope())
                     {
