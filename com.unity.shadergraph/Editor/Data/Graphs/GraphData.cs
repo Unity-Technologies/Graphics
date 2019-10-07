@@ -1023,6 +1023,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            SampleTextureStackNodeBase.ValidatNodes(this);
+
             StackPool<AbstractMaterialNode>.Release(stack);
             ListPool<MaterialSlot>.Release(slots);
             IndexSetPool.Release(temporaryMarks);
