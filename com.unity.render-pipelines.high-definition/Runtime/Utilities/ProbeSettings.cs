@@ -19,7 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
         frustumFieldOfViewMode = 1 << 10,
         frustumFixedValue = 1 << 11,
         frustumAutomaticScale = 1 << 12,
-        frustumViewerScale = 1 << 13
+        frustumViewerScale = 1 << 13,
+        lightingFadeDistance = 1 << 14,
     }
 
     [Serializable]
@@ -87,14 +88,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 multiplier = 1.0f,
                 weight = 1.0f,
-                lightLayer = LightLayerEnum.LightLayerDefault
+                lightLayer = LightLayerEnum.LightLayerDefault,
+                fadeDistance = 10000f
             };
 
-            /// <summary>A multiplier applied to the radiance of the probe.</summary>
+            /// <summary>A multiplier applied to the radiance of the Probe.</summary>
             public float multiplier;
-            /// <summary>A weight applied to the influence of the probe.</summary>
+            /// <summary>A weight applied to the influence of the Probe.</summary>
             public float weight;
+            /// <summary>An enum flag to select which Light Layers this Probe interacts with.</summary>
             public LightLayerEnum lightLayer;
+            /// <summary>The distance at which reflections smoothly fade out before HDRP cut them completely.</summary>
+            public float fadeDistance;
         }
 
         /// <summary>Settings of this probe in the current proxy.</summary>
@@ -154,11 +159,13 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             public FOVMode fieldOfViewMode;
             /// <summary>Value to use when FOV is fixed.</summary>
-            [Range(0, 180)]
+            [Range(0, 179f)]
             public float fixedValue;
             /// <summary>The automatic value of the FOV is multiplied by this factor at the end.</summary>
+            [Min(0)]
             public float automaticScale;
             /// <summary>The viewer's FOV is multiplied by this factor at the end.</summary>
+            [Min(0)]
             public float viewerScale;
         }
 

@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <returns>The projection matrix.</returns>
             public Matrix4x4 ComputeProjectionMatrix()
             {
-                return Matrix4x4.Perspective(fieldOfView, aspect, nearClipPlane, farClipPlane);
+                return Matrix4x4.Perspective(HDUtils.ClampFOV(fieldOfView), aspect, nearClipPlane, farClipPlane);
             }
 
             public Matrix4x4 GetUsedProjectionMatrix()
