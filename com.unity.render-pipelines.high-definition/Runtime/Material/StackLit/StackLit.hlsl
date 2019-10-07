@@ -1372,7 +1372,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // More details:
 // -----------------------------
 //
-// There’s a couple of choices for formulating the adding equations in ComputeAdding( ).
+// There's a couple of choices for formulating the adding equations in ComputeAdding( ).
 // I discuss that here along with some information on the whole method.
 //
 // If the energy coefficients are intended to be used solely in a split sum IBL context,
@@ -1398,7 +1398,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // light evaluations instead of the full BSDF. However, test empirically, might still be
 // better to use the full BSDF even then.
 // (Using FGD means accounting an average omnidirectional-outgoing / unidirectional-incoming
-// energy transfer, “directional albedo” form. But in analytical lights, dirac vanishes
+// energy transfer, "directional albedo" form. But in analytical lights, dirac vanishes
 // the first FGD integral, and the "LD" part will be very sparse and punctual, hence this
 // might justify using more than D_GGX() ?)
 //
@@ -1421,12 +1421,12 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // propagation operators work: eg see p9 the Symmetric Model: it is as if roughness is not
 // "injected" in the direction of the macrosurface but in the H direction. Although
 // different, empirical results show that it is as valid. Note however that again, this
-// doesn’t change the lobe directions.
+// doesn't change the lobe directions.
 //
 // Offspecular effects:
 //
-// Since the ComputeAdding() method doesn’t really track mean directions but assume symmetry in
-// the incidence plane (perpendicular to the “up” vector of the parametrization - either N or H
+// Since the ComputeAdding() method doesn't really track mean directions but assume symmetry in
+// the incidence plane (perpendicular to the "up" vector of the parametrization - either N or H
 // depending on the given cti param - cos theta incident), only elevation angles are used, but
 // output lobe directions (by symmetry of reflection and symmetry of transmission top-to-bottom
 // + bottom-to-top), since only reflection lobes are outputted, are all in the same direction
@@ -1442,7 +1442,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // tilt still happens but after and based on the whole layered stack stats that have been
 // computed).
 //
-// Again, since we don’t change w_i when instantiating an analytic BSDF, the change in roughness
+// Again, since we don't change w_i when instantiating an analytic BSDF, the change in roughness
 // will incur that additional offspecular deviation naturally.
 // For IBLs however, we take the resulting output (vlayer) roughness and calculate a correction
 // to fetch through the dominant (central direction of the lobe) through GetSpecularDominantDir( )
@@ -1465,14 +1465,14 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 
 // TODO:
 // This creates another performance option: when in VLAYERED_RECOMPUTE_PERLIGHT mode, we
-// don’t recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
+// don't recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
 // and will require FGD fetches for each analytical light. (ie ComputeAdding( ) ideally should
 // always do calculations with FGD and do the fetches, so that even in GetPreLightData, nothing
-// would be done there). For now, and for performance reasons, we don’t provide the option.
+// would be done there). For now, and for performance reasons, we don't provide the option.
 //
 // However, when VLAYERED_RECOMPUTE_PERLIGHT is not used, we actually get usable terms that we
 // will apply to the specular lighting, but these are different, we have one per real interface
-// (so 2 vs the 3 “virtual” layer structure here).
+// (so 2 vs the 3 "virtual" layer structure here).
 // (FGDinf can be obtained from our FGD)
 //
 
