@@ -12,6 +12,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDEditorUtils
     {
+        internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
+
         static readonly Action<SerializedProperty, GUIContent> k_DefaultDrawer = (p, l) => EditorGUILayout.PropertyField(p, l);
 
         delegate void MaterialResetter(Material material);
