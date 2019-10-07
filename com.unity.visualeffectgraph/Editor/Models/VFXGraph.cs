@@ -279,15 +279,12 @@ namespace UnityEditor.VFX
         {
             try
             {
-                EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(visualEffectResource));
                 m_saved = true;
             }
             catch (Exception e)
             {
                 Debug.LogErrorFormat("Save failed : {0}", e);
             }
-            EditorUtility.ClearProgressBar();
         }
 
         public void SanitizeGraph()
