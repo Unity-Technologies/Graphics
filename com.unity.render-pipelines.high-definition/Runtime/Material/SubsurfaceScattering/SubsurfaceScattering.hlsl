@@ -92,7 +92,7 @@ void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 }
 
 // OUTPUT_SSSBUFFER start from SV_Target2 as SV_Target0 and SV_Target1 are used for lighting buffer, shifts to SV_Target3 if VT is enabled
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
     #define OUTPUT_SSSBUFFER(NAME) out SSSBufferType0 MERGE_NAME(NAME, 0) : SV_Target3
 #else
     #define OUTPUT_SSSBUFFER(NAME) out SSSBufferType0 MERGE_NAME(NAME, 0) : SV_Target2
@@ -229,10 +229,10 @@ uint FindDiffusionProfileIndex(uint diffusionProfileHash)
 {
     if (diffusionProfileHash == 0)
         return 0;
-    
+
     uint diffusionProfileIndex = 0;
     uint i = 0;
-    
+
     // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
     for (i = 0; i < _DiffusionProfileCount; i++)
     {

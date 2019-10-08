@@ -3,7 +3,7 @@
 
 #define GRA_HLSL_5 1
 #define GRA_ROW_MAJOR 1
-#define GRA_TEXTURE_ARRAY_SUPPORT 0
+#define GRA_TEXTURE_ARRAY_SUPPORT 1
 #define GRA_PACK_RESOLVE_OUTPUT 0
 #include "GraniteShaderLib3.cginc"
 
@@ -62,19 +62,8 @@
     pass in the result of the PrepareStack for the correct stack the texture belongs to.
 
 */
-// A note about the on/off defines
-// UNITY_VIRTUAL_TEXTURING current project is configured to use VT this is something even non vt materials may need to be aware of (e.g. different gbuffer layout used etc...)
-// VIRTUAL_TEXTURES_ACTIVE vt data is built and enabled so the current shader should actively use VT sampling
 
-#if UNITY_VIRTUAL_TEXTURING
-#define VIRTUAL_TEXTURES_ACTIVE 1
-#else
-#define VIRTUAL_TEXTURES_ACTIVE 0
-#endif
-
-
-
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
 
 struct StackInfo
 {
@@ -133,7 +122,7 @@ StackInfo PrepareVT_##stackName(float2 uv)\
 #define jj(a, b) jj2(a, b)
 
 #define DECLARE_STACK_LAYER(stackName, layerSamplerName, layerIndex) \
-TEXTURE2D(stackName##_c##layerIndex);\
+TEXTURE2D_ARRAY(stackName##_c##layerIndex);\
 SAMPLER(sampler##stackName##_c##layerIndex);\
 \
 float4 SampleVT_##layerSamplerName(StackInfo info)\
@@ -155,7 +144,7 @@ float4 SampleVT_##layerSamplerName(StackInfo info)\
 	grCB.streamingTextureBuffer = textureParamBlock;\
 \
 	GraniteCacheTexture cache;\
-	cache.Texture = stackName##_c##layerIndex;\
+	cache.TextureArray = stackName##_c##layerIndex;\
 	cache.Sampler = sampler##stackName##_c##layerIndex;\
 \
 	float4 output;\

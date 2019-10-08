@@ -11,6 +11,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
+#ifdef UNITY_VIRTUAL_TEXTURING
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl"
+#endif
+
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
@@ -42,8 +46,10 @@ TEXTURE2D_X(_GBufferTexture0);
 TEXTURE2D_X(_GBufferTexture1);
 TEXTURE2D_X(_GBufferTexture2);
 TEXTURE2D_X(_GBufferTexture3); // Bake lighting and/or emissive
-TEXTURE2D_X(_GBufferTexture4); // Light layer or shadow mask
-TEXTURE2D_X(_GBufferTexture5); // shadow mask
+TEXTURE2D_X(_GBufferTexture4); // VTFeedbakc or Light layer or shadow mask
+TEXTURE2D_X(_GBufferTexture5); // Light layer or shadow mask
+TEXTURE2D_X(_GBufferTexture6); // shadow mask
+
 
 TEXTURE2D_X(_LightLayersTexture);
 #ifdef SHADOWS_SHADOWMASK
@@ -57,7 +63,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 // Definition
 //-----------------------------------------------------------------------------
 
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
 #define OUT_GBUFFER_VTFEEDBACK outGBuffer4
 #define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer5
 #define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer6
@@ -637,7 +643,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     OUT_GBUFFER_SHADOWMASK = BUILTIN_DATA_SHADOW_MASK;
 #endif
 
-#if VIRTUAL_TEXTURES_ACTIVE
+#ifdef UNITY_VIRTUAL_TEXTURING
     OUT_GBUFFER_VTFEEDBACK = GetPackedVTFeedback(builtinData.vtFeedback);
 #endif
 }
