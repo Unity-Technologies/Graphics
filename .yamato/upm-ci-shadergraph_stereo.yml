@@ -13,8 +13,8 @@ testplatforms:
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:
-  - name: Universal_Stereo
-    folder: UniversalGfxTestStereo
+  - name: ShaderGraph_Stereo
+    folder: ShaderGraphUniversalStereo
 ---
 {% for project in projects %}
 {% for editor in editors %}
