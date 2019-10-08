@@ -27,6 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void SetupTarget(ref TargetSetupContext context)
         {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("a3b60b90b9eb3e549adfd57a75e77811")); // HDRPRaytracingMeshTarget
+
             switch(context.masterNode)
             {
                 case FabricMasterNode fabricMasterNode:

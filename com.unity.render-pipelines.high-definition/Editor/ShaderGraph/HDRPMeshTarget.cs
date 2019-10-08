@@ -29,6 +29,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void SetupTarget(ref TargetSetupContext context)
         {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("326a52113ee5a7d46bf9145976dcb7f6")); // HDRPMeshTarget
+
             switch(context.masterNode)
             {
                 case PBRMasterNode pBRMasterNode:

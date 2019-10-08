@@ -25,8 +25,8 @@ namespace UnityEditor.Rendering.Universal
 
         public void SetupTarget(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath("7395c9320da217b42b9059744ceb1de6"); // MeshTarget
-            context.AddAssetDependencyPath("ac9e1a400a9ce404c8f26b9c1238417e"); // UniversalMeshTarget
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget
             
             switch(context.masterNode)
             {

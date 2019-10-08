@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public void AddAssetDependencyPath(string path)
         {
-            assetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath(path));
+            assetDependencyPaths.Add(path);
         }
     }
 }
