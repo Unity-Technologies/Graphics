@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 
 ### Fixed
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
@@ -16,6 +17,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+- Fixed an issue where 2D Lighting was broken for Perspective Cameras.
+- Fixed an issue where resetting a Freeform 2D Light would throw null reference exceptions. [case 1184536](https://issuetracker.unity3d.com/issues/lwrp-changing-light-type-to-freeform-after-clicking-on-reset-throws-multiple-arguementoutofrangeexception)
+- Fixed an issue where Freeform 2D Lights were not culled correctly when there was a Falloff Offset.
+- Fixed an issue where Tilemap palettes were invisible in the Tile Palette window when the 2D Renderer was in use. [case 1162550](https://issuetracker.unity3d.com/issues/adding-tiles-in-the-tile-palette-makes-the-tiles-invisible)
+
+### Changed
+- Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
+- Eliminated some GC allocations from the 2D Renderer.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

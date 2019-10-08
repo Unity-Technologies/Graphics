@@ -47,7 +47,7 @@ Shader "HDRP/Lit"
         // These parameters are for pixel displacement
         _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
-        _DetailMap("DetailMap", 2D) = "black" {}
+        _DetailMap("DetailMap", 2D) = "linearGrey" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(0.0, 2.0)) = 1

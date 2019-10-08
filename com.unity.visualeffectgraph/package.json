@@ -14,5 +14,12 @@
   ],
   "dependencies": {
     "com.unity.shadergraph": "8.0.0"
-  }
+  },    
+  "samples" : [
+     {
+       "displayName" : "Visual Effect Graph Additions",
+       "description" : "Additional Assets for use with Visual Effect Graph",
+       "path" : "Samples~/VFXGraphAdditions"
+     }
+  ]
 }

@@ -1,0 +1,2 @@
+#!/bin/bash
+grep --color=always '[^         -~]\+' -R $0 --include \*.hlsl -- include \*.shader --include \*.template --include "\*.compute"

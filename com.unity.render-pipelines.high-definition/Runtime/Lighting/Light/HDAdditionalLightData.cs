@@ -1426,12 +1426,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void DisableCachedShadowSlot()
         {
-            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-                  (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
-
             if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
             {
+                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
                 HDShadowManager.instance.MarkCachedShadowSlotsAsEmpty(shadowMapType, GetInstanceID());
+                HDShadowManager.instance.PruneEmptyCachedSlots(shadowMapType);  // We invalidate it all to be sure.
+                m_ShadowMapRenderedSinceLastRequest = false;
             }
         }
 
@@ -1600,7 +1602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
-
+             
             // Update the directional shadow atlas size
             if (legacyLight.type == LightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
@@ -1704,6 +1706,17 @@ namespace UnityEngine.Rendering.HighDefinition
             int count = GetShadowRequestCount();
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
             bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
+
+            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+            bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+
+            bool shouldUseRequestFromCachedList = shadowIsCached && hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
+            bool cachedDataIsValid = shadowIsCached && m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
+            cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
+            shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
+
             for (int index = 0; index < count; index++)
             {
                 var         shadowRequest = shadowRequests[index];
@@ -1711,13 +1724,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
 
-                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
-
-                bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
-
-                bool shouldUseRequestFromCachedList = shadowIsCached && hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
-                bool cachedDataIsValid = shadowIsCached && m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
 
                 if (resolutionRequest == null)
@@ -1725,8 +1731,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 
-                cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
-                shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
 
                 if (shadowRequestIndex == -1)
                     continue;

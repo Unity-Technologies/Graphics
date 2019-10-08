@@ -19,7 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/QualitySettings";
         internal const string WizardSheetPath =
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
-        
+        internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
+
         private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(string basePath)
             => (
                 AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
@@ -63,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [Obsolete("Use HDShaderUtils.ResetMaterialKeywords instead")]
         public static bool ResetMaterialKeywords(Material material)
             => HDShaderUtils.ResetMaterialKeywords(material);
-        
+
         static readonly GUIContent s_OverrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
         internal static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
             where TEnum : struct, IConvertible // restrict to ~enum

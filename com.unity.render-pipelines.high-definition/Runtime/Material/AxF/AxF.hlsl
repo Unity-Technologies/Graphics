@@ -312,8 +312,8 @@ float CT_D(float N_H, float m)
 {
     float cosb_sqr = N_H * N_H;
     float m_sqr = m * m;
-    float e = (cosb_sqr - 1.0) / (cosb_sqr*m_sqr);  // -tan(a)² / m²
-    return exp(e) / (m_sqr*cosb_sqr*cosb_sqr);  // exp(-tan(a)² / m²) / (m² * cos(a)^4)
+    float e = (cosb_sqr - 1.0) / (cosb_sqr*m_sqr);  // -tan(a)^2 / m^2
+    return exp(e) / (m_sqr*cosb_sqr*cosb_sqr);  // exp(-tan(a)^2 / m^2) / (m^2 * cos(a)^4)
 }
 
 // Classical Schlick approximation for Fresnel
@@ -328,7 +328,7 @@ float CT_F(float H_V, float F0)
 float3  MultiLobesCookTorrance(float NdotL, float NdotV, float NdotH, float VdotH)
 {
     // Ensure numerical stability
-    if (NdotV < 0.00174532836589830883577820272085 || NdotL < 0.00174532836589830883577820272085) //sin(0.1°)
+    if (NdotV < 0.00174532836589830883577820272085 || NdotL < 0.00174532836589830883577820272085) //sin(0.1 deg )
         return 0.0;
 
     float   specularIntensity = 0.0;
@@ -1755,10 +1755,10 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
 
     // TODO: some of this could be precomputed.
     float4x3    lightVerts;
-    lightVerts[0] = lightPositionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightPositionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightPositionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightPositionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+    lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+    lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+    lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
     // Rotate the endpoints into tangent space
     lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));

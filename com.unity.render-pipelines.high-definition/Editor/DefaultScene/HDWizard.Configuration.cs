@@ -254,7 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsSRPBatcherCorrect()
-            => (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher;
+            => IsHdrpAssetUsedCorrect() && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher;
         void FixSRPBatcher()
         {
             if (!IsHdrpAssetUsedCorrect())
@@ -286,6 +286,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             CreateOrLoadDefaultScene(fromAsync ? () => m_Fixer.Stop() : (Action)null, scene => HDProjectSettings.defaultScenePrefab = scene, forDXR: false);
             m_DefaultScene.SetValueWithoutNotify(HDProjectSettings.defaultScenePrefab);
+        }
+
+        bool IsDefaultVolumeProfileAssigned()
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                return false;
+
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            return hdAsset.defaultVolumeProfile != null && !hdAsset.defaultVolumeProfile.Equals(null);
+        }
+        void FixDefaultVolumeProfileAssigned()
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                FixHdrpAssetUsed(fromAsync: false);
+
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdAsset);
         }
 
         #endregion
