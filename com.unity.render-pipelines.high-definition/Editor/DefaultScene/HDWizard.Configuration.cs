@@ -162,7 +162,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 () => { if (!IsShadowmaskCorrect())     FixShadowmask();                    });
             FixHdrpAsset();
             m_Fixer.Add(
-                () => { if (!IsDefaultSceneCorrect())   FixDefaultScene(fromAsync: true);   });
+                () => { if (!IsDefaultSceneCorrect())               FixDefaultScene(fromAsync: true); },
+                () => { if (!IsDefaultVolumeProfileAssigned())      FixDefaultVolumeProfileAssigned(); }
+            );
         }
 
         bool IsHdrpAssetCorrect() =>
