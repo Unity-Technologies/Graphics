@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Possible loss of shadergraph reference in unlit output
 - ui : toolbar item wrap instead of overlapping.
 - Selection Pass for Universal and High Definition Render Pipeline
-- Copy/Paste not deserializing crrectly for Particle Strip data
+- Copy/Paste not deserializing correctly for Particle Strip data
+- WorldPosition, AbsoluteWorldPosition & ScreenPos in shadergraph integration
 
 ## [7.1.1] - 2019-09-05
 ### Added

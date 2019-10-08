@@ -51,6 +51,14 @@ struct VFXSamplerCubeArray
     SamplerState s;
 };
 
+#if !VFX_WORLD_SPACE && !VFX_LOCAL_SPACE
+#error VFXCommon.hlsl should be included after space defines
+#endif
+
+#if VFX_WORLD_SPACE && VFX_LOCAL_SPACE
+#error VFX_WORLD_SPACE & VFX_LOCAL_SPACE are both enabled
+#endif
+
 #ifdef VFX_WORLD_SPACE
 float3 TransformDirectionVFXToWorld(float3 dir)             { return dir; }
 float3 TransformPositionVFXToWorld(float3 pos)              { return pos; }
