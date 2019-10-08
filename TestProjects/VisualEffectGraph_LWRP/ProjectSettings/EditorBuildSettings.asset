@@ -51,6 +51,6 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Coverage/05. Operators/105.b_Operators_Other.unity
     guid: 2075f7345284111468a89d28adbf277b
   - enabled: 1
-    path: Assets/GraphicsTests/100_Fog.unity
+    path: Assets/GraphicsTests/200_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   m_configObjects: {}
