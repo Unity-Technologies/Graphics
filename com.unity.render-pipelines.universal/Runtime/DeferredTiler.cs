@@ -21,6 +21,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             public ushort visLightIndex;
         }
 
+        struct CulledLight
+        {
+            public float minDist;
+            public float maxDist;
+            public ushort visLightIndex;
+        }
+
         enum ClipResult
         {
             Unknown,
@@ -52,11 +59,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_IsOrthographic;
 
         // Store all visible light indices for all tiles.
-        // (currently) Contains sequential blocks of ushort values (light count, light indices and optionally additional per-tile "header" values), for each tile
+        // (currently) Contains sequential blocks of ushort values (light indices and optionally lightDepthRange), for each tile
         // For example for platforms using 16x16px tiles:
-        // in a finest        tiler DeferredLights.m_Tilers[0] ( 16x16px  tiles), each tile will use a block of  1 *  1 * 32 (DeferredConfig.kMaxLightPerTile + 1) - 1 + 5 (fine m_TileHeader) =   36 ushort values
-        // in an intermediate tiler DeferredLights.m_Tilers[1] ( 64x64px  tiles), each tile will use a block of  4 *  4 * 32 (DeferredConfig.kMaxLightPerTile + 1) - 1 + 1 (     m_TileHeader) =  512 ushort values
-        // in a coarsest      tiler DeferredLights.m_Tilers[2] (256x256px tiles), each tile will use a block of 16 * 16 * 32 (DeferredConfig.kMaxLightPerTile + 1) - 1 + 1 (     m_TileHeader) = 8192 ushort values
+        // in a finest        tiler DeferredLights.m_Tilers[0] ( 16x16px  tiles), each tile will use a block of  1 *  1 * 32 =   32 ushort values
+        // in an intermediate tiler DeferredLights.m_Tilers[1] ( 64x64px  tiles), each tile will use a block of  4 *  4 * 32 =  512 ushort values
+        // in a coarsest      tiler DeferredLights.m_Tilers[2] (256x256px tiles), each tile will use a block of 16 * 16 * 32 = 8192 ushort values
         NativeArray<ushort> m_TileData;
 
         // Store tile header (fixed size per tile)
@@ -260,9 +267,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Store culled lights in temporary buffer.
-            ushort* tiles = stackalloc ushort[lightCount];
-            // Store min&max depth range for each light in a tile. 
-            float2* minMax = stackalloc float2[lightCount];
+            CulledLight* culledLights = stackalloc CulledLight[lightCount];
+            ushort* bitRanges = stackalloc ushort[lightCount];
 
             int maxLightPerTile = 0; // for stats
             int lightEndIndex = lightStartIndex + lightCount;
@@ -279,13 +285,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     float tileXCentre = m_FrustumPlanes.left + tileExtents.x + i * tileSize.x;
 
                     PreTile preTile = m_PreTiles[i + j * m_TileXCount];
-                    int tileLightCount = 0;
+                    int culledLightCount = 0;
 
                     // For the current tile's light list, min&max depth range (absolute values).
                     float listMinDepth = float.MaxValue;
                     float listMaxDepth = -float.MaxValue;
 
                     // Duplicate the inner loop twice. Testing for the ortographic case inside the inner loop would cost an extra 8% otherwise.
+                    // Missing C++ template argument here!
                     if (!m_IsOrthographic)
                     {
                         for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
@@ -310,12 +317,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
                             listMaxDepth = listMaxDepth > t1 ? listMaxDepth : t1;
-                            minMax[tileLightCount] = new float2(t0, t1);
+                            culledLights[culledLightCount].minDist = t0;
+                            culledLights[culledLightCount].maxDist = t1;
 
                             // Because this always output to the finest tiles, contrary to CullLights(),
                             // the result are indices into visibleLights, instead of indices into pointLights.
-                            tiles[tileLightCount] = ppl.visLightIndex;
-                            ++tileLightCount;
+                            culledLights[culledLightCount].visLightIndex = ppl.visLightIndex;
+                            ++culledLightCount;
                         }
                     }
                     else
@@ -342,19 +350,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
                             listMaxDepth = listMaxDepth > t1 ? listMaxDepth : t1;
-                            minMax[tileLightCount] = new float2(t0, t1);
+                            culledLights[culledLightCount].minDist = t0;
+                            culledLights[culledLightCount].maxDist = t1;
 
                             // Because this always output to the finest tiles, contrary to CullLights(),
                             // the result are indices into visibleLights, instead of indices into pointLights.
-                            tiles[tileLightCount] = ppl.visLightIndex;
-                            ++tileLightCount;
+                            culledLights[culledLightCount].visLightIndex = ppl.visLightIndex;
+                            ++culledLightCount;
                         }
                     }
 
-                    // Copy the culled light list.
-                    int tileOffset = tileLightCount > 0 ? ReserveTileData(tileLightCount) : 0;
-                    for (int k = 0; k < tileLightCount; ++k)
-                        m_TileData[tileOffset + k] = tiles[k];
+                    int tileOffset = culledLightCount > 0 ? ReserveTileData(culledLightCount * 2) : 0;
 
                     // Post-multiply by zNear to get actual world unit absolute depth values, then clamp to valid depth range.
                     listMinDepth = max2(listMinDepth * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear);
@@ -363,15 +369,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Calculate bitmask for 2.5D culling.
                     uint bitMask = 0;
                     float depthRangeInv = 1.0f / (listMaxDepth - listMinDepth);
-                    for (int tileLightIndex = 0; tileLightIndex < tileLightCount; ++tileLightIndex)
+                    for (int culledLightIndex = 0; culledLightIndex < culledLightCount; ++culledLightIndex)
                     {
-                        float lightMinDepth = max2(minMax[tileLightIndex].x * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear);
-                        float lightMaxDepth = min2(minMax[tileLightIndex].y * m_FrustumPlanes.zNear, m_FrustumPlanes.zFar);
+                        float lightMinDepth = max2(culledLights[culledLightIndex].minDist * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear);
+                        float lightMaxDepth = min2(culledLights[culledLightIndex].maxDist * m_FrustumPlanes.zNear, m_FrustumPlanes.zFar);
                         int firstBit = (int)((lightMinDepth - listMinDepth) * 32.0f * depthRangeInv);
                         int lastBit = (int)((lightMaxDepth - listMinDepth) * 32.0f * depthRangeInv);
-                        int bitCount = lastBit - firstBit + 1;
-                        bitCount = (bitCount > 32 ? 32 : bitCount);
-                        bitMask |= (uint)(((1ul << bitCount) - 1) << firstBit);
+                        int bitCount = min(lastBit - firstBit + 1, 32 - firstBit);
+                        bitMask |= (uint)((0xFFFFFFFF >> (32 - bitCount)) << firstBit);
+
+                        bitRanges[culledLightIndex] = (ushort)((uint)firstBit | (uint)(bitCount << 8));
                     }
 
                     // As listMinDepth and listMaxDepth are used to calculate the geometry 2.5D bitmask,
@@ -386,11 +393,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     int headerOffset = GetTileHeaderOffset(i, j);
                     _tileHeaders[headerOffset + 0] = (uint)tileOffset;
-                    _tileHeaders[headerOffset + 1] = (uint)tileLightCount;
+                    _tileHeaders[headerOffset + 1] = (uint)culledLightCount;
                     _tileHeaders[headerOffset + 2] = _f32tof16(a) | (_f32tof16(b) << 16);
                     _tileHeaders[headerOffset + 3] = bitMask;
 
-                    maxLightPerTile = max(maxLightPerTile, tileLightCount);
+                    // Sort lights from closest to fursest (use closest bound for each light).
+
+                    // Copy the culled light list.
+                    for (int k = 0; k < culledLightCount; ++k)
+                        m_TileData[tileOffset + k] = culledLights[k].visLightIndex;
+
+                    for (int k = 0; k < culledLightCount; ++k)
+                        m_TileData[tileOffset + culledLightCount + k] = bitRanges[k];
+
+                    maxLightPerTile = max(maxLightPerTile, culledLightCount);
                 }
             }
 
@@ -466,16 +482,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         unsafe static bool IntersectionLineSphere(float3 centre, float radius, float3 raySource, float3 rayDirection, out float t0, out float t1)
         {
-            float3 _centre = *(float3*)&centre;
-            float3 _raySource = *(float3*)&raySource;
-            float3 _rayDirection = *(float3*)&rayDirection;
-
-            float A = dot(_rayDirection, _rayDirection); // always >= 0
-            float B = dot(_raySource - _centre, _rayDirection);
-            float C = dot(_raySource, _raySource)
-                    + dot(_centre, _centre)
+            float A = dot(rayDirection, rayDirection); // always >= 0
+            float B = dot(raySource - centre, rayDirection);
+            float C = dot(raySource, raySource)
+                    + dot(centre, centre)
                     - (radius * radius)
-                    - 2 * dot(_raySource, _centre);
+                    - 2 * dot(raySource, centre);
             float discriminant = (B * B) - A * C;
             if (discriminant > 0)
             {

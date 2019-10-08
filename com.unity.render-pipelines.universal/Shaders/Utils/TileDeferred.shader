@@ -79,73 +79,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                nointerpolation int2 relLightOffsetAndCount : TEXCOORD0;
+                nointerpolation int2 relLightOffsets : TEXCOORD0;
                 noperspective float2 clipCoord : TEXCOORD1;
             };
-
-            Varyings Vertex(Attributes input)
-            {
-                uint instanceID = _InstanceOffset + input.instanceID;
-
-                TileData tileData = LoadTileData(instanceID);
-                uint2 tileCoord = UnpackTileID(tileData.tileID);
-
-                uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
-                bool shouldDiscard = (geoDepthBitmask & tileData.listBitMask) == 0;
-
-                // This handles both "real quad" and "2 triangles" cases: remaps {0, 1, 2, 3, 4, 5} into {0, 1, 2, 3, 0, 2}.
-                uint quadIndex = (input.vertexID & 0x03) + (input.vertexID >> 2) * (input.vertexID & 0x01);
-                float2 pp = GetQuadVertexPosition(quadIndex).xy;
-                uint2 pixelCoord  = tileCoord * uint2(_TilePixelWidth, _TilePixelHeight);
-                pixelCoord += uint2(pp.xy * uint2(_TilePixelWidth, _TilePixelHeight));
-                float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
-
-                Varyings output;
-                output.positionCS = float4(clipCoord, shouldDiscard ? -2 : 0, 1);
-//              Screen is already y flipped (different from HDRP)?
-//                // Tiles coordinates always start at upper-left corner of the screen (y axis down).
-//                // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
-//                output.positionCS.y *= -1.0;
-
-                output.clipCoord = clipCoord;
-                // Screen is flipped!!!!!!
-                output.clipCoord.y *= -1.0;
-
-                output.relLightOffsetAndCount.x = tileData.relLightOffsetAndCount & 0xFFFF;
-                output.relLightOffsetAndCount.y = (tileData.relLightOffsetAndCount >> 16) & 0xFFFF;
-
-                return output;
-            }
-
-            #if USE_CBUFFER_FOR_LIGHTDATA
-                CBUFFER_START(UPointLightBuffer)
-                // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
-                uint4 _PointLightBuffer[MAX_POINTLIGHT_PER_CBUFFER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
-                CBUFFER_END
-
-                PointLightData LoadPointLightData(int relLightIndex)
-                {
-                    uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
-                    PointLightData pl;
-                    pl.wsPos  = asfloat(_PointLightBuffer[i + 0].xyz);
-                    pl.radius = asfloat(_PointLightBuffer[i + 0].w);  // TODO remove/replace?
-
-                    pl.color.rgb = asfloat(_PointLightBuffer[i + 1].rgb);
-
-                    pl.attenuation.xyzw = asfloat(_PointLightBuffer[i + 2].xyzw);
-
-                    pl.spotDirection.xyz = asfloat(_PointLightBuffer[i + 3].xyz);
-                    // pl.padding0 = asfloat(_PointLightBuffer[i + 3].w); // TODO use for something?
-
-                    return pl;
-                }
-
-            #else
-                StructuredBuffer<PointLightData> _PointLightBuffer;
-
-                PointLightData LoadPointLightData(int relLightIndex) { return _PointLightBuffer[relLightIndex]; }
-
-            #endif
 
             #if USE_CBUFFER_FOR_LIGHTLIST
                 CBUFFER_START(URelLightList)
@@ -161,6 +97,117 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             #endif
 
+            Varyings Vertex(Attributes input)
+            {
+                uint instanceID = _InstanceOffset + input.instanceID;
+                TileData tileData = LoadTileData(instanceID);
+                uint2 tileCoord = UnpackTileID(tileData.tileID);
+                uint geoDepthBitmask = _TileDepthInfoTexture.Load(int3(tileCoord, 0)).x;
+                bool shouldDiscard = (geoDepthBitmask & tileData.listBitMask) == 0;
+
+                Varyings output;
+
+                [branch] if (shouldDiscard)
+                {
+                    output.positionCS = float4(-2, -2, -2, 1);
+                    output.clipCoord = 0.0;
+                    output.relLightOffsets = 0;
+                    return output;
+                }
+
+                // This handles both "real quad" and "2 triangles" cases: remaps {0, 1, 2, 3, 4, 5} into {0, 1, 2, 3, 0, 2}.
+                uint quadIndex = (input.vertexID & 0x03) + (input.vertexID >> 2) * (input.vertexID & 0x01);
+                float2 pp = GetQuadVertexPosition(quadIndex).xy;
+                uint2 pixelCoord  = tileCoord * uint2(_TilePixelWidth, _TilePixelHeight);
+                pixelCoord += uint2(pp.xy * uint2(_TilePixelWidth, _TilePixelHeight));
+                float2 clipCoord = (pixelCoord * _ScreenSize.zw) * 2.0 - 1.0;
+
+                output.positionCS = float4(clipCoord, 0, 1);
+//              Screen is already y flipped (different from HDRP)?
+//                // Tiles coordinates always start at upper-left corner of the screen (y axis down).
+//                // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
+//                output.positionCS.y *= -1.0;
+
+                output.clipCoord = clipCoord;
+                // Screen is flipped!!!!!!
+                output.clipCoord.y *= -1.0;
+
+                // flat interpolators are calculated by the provoking vertex of the triangles or quad.
+                // Provoking vertex convention is different per platform.
+                #if defined(SHADER_API_METAL)
+                [branch] if (input.vertexID == 0 || input.vertexID == 1)
+                #elif SHADER_API_SWITCH
+				[branch] if (input.vertexID == 3)
+                #else
+                [branch] if (input.vertexID == 0 || input.vertexID == 3)
+                #endif
+                {
+                    int relLightOffset = tileData.relLightOffsetAndCount & 0xFFFF;
+                    int relLightOffsetEnd = relLightOffset + (tileData.relLightOffsetAndCount >> 16);
+
+                    // Trim beginning of the light list.
+                    [loop] for (; relLightOffset < relLightOffsetEnd; ++relLightOffset)
+                    {
+                        uint lightIndexAndRange = LoadRelLightIndex(relLightOffset);
+                        uint firstBit = (lightIndexAndRange >> 16) & 0xFF;
+                        uint bitCount = lightIndexAndRange >> 24;
+                        uint lightBitmask = (0xFFFFFFFF >> (32 - bitCount)) << firstBit;
+
+                        [branch] if ((geoDepthBitmask & lightBitmask) != 0)
+                            break;
+                    }
+
+                    // Trim end of the light list.
+                    [loop] for (; relLightOffsetEnd >= relLightOffset; --relLightOffsetEnd)
+                    {
+                        uint lightIndexAndRange = LoadRelLightIndex(relLightOffsetEnd - 1);
+                        uint firstBit = (lightIndexAndRange >> 16) & 0xFF;
+                        uint bitCount = lightIndexAndRange >> 24;
+                        uint lightBitmask = (0xFFFFFFFF >> (32 - bitCount)) << firstBit;
+
+                        [branch] if ((geoDepthBitmask & lightBitmask) != 0)
+                            break;
+                    }
+
+                    output.relLightOffsets.x = relLightOffset;
+                    output.relLightOffsets.y = relLightOffsetEnd;
+                }
+                else
+                {
+                    output.relLightOffsets.x = 0;
+                    output.relLightOffsets.y = 0;
+                }
+
+                return output;
+            }
+
+            #if USE_CBUFFER_FOR_LIGHTDATA
+                CBUFFER_START(UPointLightBuffer)
+                // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
+                uint4 _PointLightBuffer[MAX_POINTLIGHT_PER_CBUFFER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
+                CBUFFER_END
+
+                PointLightData LoadPointLightData(int relLightIndex)
+                {
+                    uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
+                    PointLightData pl;
+                    pl.wsPos  = asfloat(_PointLightBuffer[i + 0].xyz);
+                    pl.radius2 = asfloat(_PointLightBuffer[i + 0].w);
+                    pl.color.rgb = asfloat(_PointLightBuffer[i + 1].rgb);
+                    pl.attenuation.xyzw = asfloat(_PointLightBuffer[i + 2].xyzw);
+                    pl.spotDirection.xyz = asfloat(_PointLightBuffer[i + 3].xyz);
+                    // pl.padding0 = asfloat(_PointLightBuffer[i + 3].w); // TODO use for something?
+
+                    return pl;
+                }
+
+            #else
+                StructuredBuffer<PointLightData> _PointLightBuffer;
+
+                PointLightData LoadPointLightData(int relLightIndex) { return _PointLightBuffer[relLightIndex]; }
+
+            #endif
+
             Texture2D _DepthTex;
             Texture2D _GBuffer0;
             Texture2D _GBuffer1;
@@ -168,9 +215,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
-                int relLightOffset = input.relLightOffsetAndCount.x;
-                int lightCount = input.relLightOffsetAndCount.y;
-
                 #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
                 float d = 1.0 - _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
                 #else
@@ -195,26 +239,31 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float4 normalRoughness = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 float4 spec = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 #endif
-
                 half3 color = 0.0.xxx;
 
-                [loop] for (int li = 0; li < lightCount; ++li)
+                //[loop] for (int li = input.relLightOffsets.x; li < input.relLightOffsets.y; ++li)
+                int li = input.relLightOffsets.x;
+                [loop] do
                 {
-                    uint offsetInList = relLightOffset + li;
-                    uint relLightIndex = LoadRelLightIndex(offsetInList);
+                    uint relLightIndex = LoadRelLightIndex(li) & 0xFFFF;
                     PointLightData light = LoadPointLightData(relLightIndex);
 
 #if TEST_WIP_DEFERRED_POINT_LIGHTING
-                    Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, wsPos.xyz);
-                    color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+                    float3 L = light.wsPos - wsPos.xyz;
+                    [branch] if (dot(L, L) < light.radius2)
+                    {
+                        Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, wsPos.xyz);
+                        color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+                    }
 #else
                     // TODO calculate lighting.
                     float3 L = light.wsPos - wsPos.xyz;
-                    half att = dot(L, L) < light.radius*light.radius ? 1.0 : 0.0;
+                    half att = dot(L, L) < light.radius2 ? 1.0 : 0.0;
 
                     color += light.color.rgb * att * 0.1; // + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
 #endif
                 }
+                while(++li < input.relLightOffsets.y);
 
                 return half4(color, 0.0);
             }

@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Tilers[tilerLevel] = new DeferredTiler(
                     DeferredConfig.kTilePixelWidth * scale,
                     DeferredConfig.kTilePixelHeight * scale,
-                    (DeferredConfig.kAvgLightPerTile + 1) * scale * scale - 1,
+                    DeferredConfig.kAvgLightPerTile * scale * scale,
                     tilerLevel
                 );
             }
@@ -745,7 +745,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         {
                             int visLightIndex = tiles[tileOffset + l];
                             ushort relLightIndex = visLightToRelLights[visLightIndex];
-                            relLightList[relLightIndices++] = relLightIndex;
+                            ushort relLightBitRange = tiles[tileOffset + tileLightCount + l];
+                            relLightList[relLightIndices++] = (uint)relLightIndex | (uint)(relLightBitRange << 16);
                         }
                     }
                 }
@@ -877,7 +878,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         );
 
                         cmd.SetGlobalVector("_LightWsPos", wsPos);
-                        cmd.SetGlobalFloat("_LightRadius", vl.light.range);  // TODO is this still needed?
+                        cmd.SetGlobalFloat("_LightRadius2", vl.light.range * vl.light.range);  // TODO is this still needed?
                         cmd.SetGlobalVector("_LightColor", /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
 
                         Vector4 lightAttenuation;
@@ -918,7 +919,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void StorePointLightData(ref NativeArray<Vector4UInt> pointLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
             Vector3 wsPos = visibleLights[index].light.transform.position;
-            pointLightBuffer[storeIndex * 4 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range));
+            pointLightBuffer[storeIndex * 4 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
             pointLightBuffer[storeIndex * 4 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
 
             Vector4 lightAttenuation;
@@ -947,6 +948,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Mesh CreateSphereMesh()
         {
+            // TODO reorder for pre&post-transform cache optimisation.
             Vector3 [] spherePos = {
                 new Vector3(0.000000f, -1.000000f, 0.000000f), new Vector3(1.000000f, 0.000000f, 0.000000f),
                 new Vector3(0.000000f, 1.000000f, 0.000000f), new Vector3(-1.000000f, 0.000000f, 0.000000f),

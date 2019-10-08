@@ -32,7 +32,7 @@
 struct PointLightData
 {
     float3 wsPos;
-    float radius; // TODO remove/replace?
+    float radius2; // squared radius
 
     float4 color;
 

@@ -37,7 +37,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma vertex Vertex
             #pragma fragment Frag
-//            #pragma enable_d3d11_debug_symbols
+            //#pragma enable_d3d11_debug_symbols
 
             struct Attributes
             {
@@ -94,7 +94,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma vertex Vertex
             #pragma fragment PointLightShading
-//            #pragma enable_d3d11_debug_symbols
+            //#pragma enable_d3d11_debug_symbols
 
             struct Attributes
             {
@@ -129,7 +129,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Texture2D _GBuffer2;
 
             float3 _LightWsPos;
-            float _LightRadius;
+            float _LightRadius2;
             float3 _LightColor;
             float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
             float3 _LightSpotDirection; // spotLights support
@@ -141,7 +141,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 PointLightData light;
                 light.wsPos = _LightWsPos;
-                light.radius = _LightRadius;
+                light.radius2 = _LightRadius2;
                 light.color = float4(_LightColor, 0.0);
                 light.attenuation = _LightAttenuation;
                 light.spotDirection = _LightSpotDirection;
@@ -172,7 +172,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, wsPos.xyz);
                 color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
-
             #if 0 // Temporary debug output
                 // TO CHECK (does Forward support works??):
                 //color.rgb = surfaceData.emission;
@@ -194,7 +193,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 // TODO calculate lighting.
                 float3 L = light.wsPos - wsPos.xyz;
-                half att = dot(L, L) < light.radius*light.radius ? 1.0 : 0.0;
+                half att = dot(L, L) < light.radius2 ? 1.0 : 0.0;
 
                 color += light.color.rgb * att * 0.1; // + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
 #endif
