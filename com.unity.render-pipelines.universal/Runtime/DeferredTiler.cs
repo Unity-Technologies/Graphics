@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public float3 vsPos;
             // Radius in world unit.
             public float radius;
+            // Distance between closest bound of the light and the camera. Used for sorting lights front-to-back.
+            public float minDist;
             // Projected position of the sphere centre on the screen (near plane).
             public float2 screenPos;
             // Index into renderingData.lightData.visibleLights native array.

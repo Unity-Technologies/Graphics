@@ -1,8 +1,10 @@
 using UnityEngine.Profiling;
 using Unity.Collections;
+using static Unity.Mathematics.math;
 
 // TODO use subpass API to hide extra TileDepthPass
 // TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
+// TODO remove Vector4UInt
 // TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
 // TODO Fix (1.0 - d) shader code for UNITY_REVERSED_Z
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
@@ -250,6 +252,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (this.tiledDeferredShading)
             {
+                // Sort lights front to back.
+                // This allows a further optimisation where the per-tile light lists can be more easily trimmed on both ends in the vertex shading instancing the tiles.
+                SortLights(ref prePointLights);
+
                 NativeArray<ushort> defaultIndices = new NativeArray<ushort>(prePointLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 for (int i = 0; i < prePointLights.Length; ++i)
                     defaultIndices[i] = (ushort)i;
@@ -532,6 +538,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         }
 
+        void SortLights(ref NativeArray<DeferredTiler.PrePointLight> prePointLights)
+        {
+            DeferredTiler.PrePointLight[] array = prePointLights.ToArray(); // TODO Use NativeArrayExtensions and avoid dynamic memory allocation.
+            System.Array.Sort<DeferredTiler.PrePointLight>(array, new SortPrePointLight());
+            prePointLights.CopyFrom(array);
+        }
+
         bool CheckHasTileLights(ref NativeArray<VisibleLight> visibleLights)
         {
             for (int visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
@@ -591,6 +604,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         DeferredTiler.PrePointLight ppl;
                         ppl.vsPos = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space
                         ppl.radius = vl.light.range;
+                        ppl.minDist = max(0.0f, length(ppl.vsPos) - ppl.radius);
 
                         ppl.screenPos = new Vector2(ppl.vsPos.x, ppl.vsPos.y);
                         // Project on screen for perspective projections.
@@ -1041,6 +1055,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             uint hx = Mathf.FloatToHalf(x);
             uint hy = Mathf.FloatToHalf(y);
             return hx | (hy << 16);
+        }
+    }
+
+    class SortPrePointLight : System.Collections.Generic.IComparer<DeferredTiler.PrePointLight>
+    {
+        public int Compare(DeferredTiler.PrePointLight a, DeferredTiler.PrePointLight b)
+        {
+            if (a.minDist < b.minDist)
+                return -1;
+            else if (a.minDist > b.minDist)
+                return 1;
+            else
+                return 0;
         }
     }
 
