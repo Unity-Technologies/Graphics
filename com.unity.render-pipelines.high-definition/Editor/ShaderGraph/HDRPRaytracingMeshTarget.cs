@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Pass setup
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 defines = Defines.LitForwardIndirect,
                 keywords = Keywords.Indirect,
                 includes = Includes.Lit,
@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 defines = Defines.LitVisibility,
                 includes = Includes.LitVisibility,
 
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 defines = Defines.LitForwardIndirect,
                 keywords = Keywords.GBufferForward,
                 includes = Includes.Lit,
@@ -186,7 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 defines = Defines.LitGBuffer,
                 keywords = Keywords.GBufferForward,
                 includes = Includes.LitGBuffer,
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Basic,
+                pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
                 includes = Includes.Unlit,
 
@@ -244,7 +244,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Basic,
+                pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
                 includes = Includes.Unlit,
 
@@ -270,7 +270,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Basic,
+                pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
                 includes = Includes.Unlit,
 
@@ -296,7 +296,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Basic,
+                pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
                 includes = Includes.UnlitGBuffer,
 
@@ -327,7 +327,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 defines = Defines.FabricForwardIndirect,
                 keywords = Keywords.Indirect,
                 includes = Includes.Fabric,
@@ -354,7 +354,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 keywords = Keywords.Basic,
                 includes = Includes.FabricVisibility,
 
@@ -380,7 +380,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 defines = Defines.FabricForwardIndirect,
                 keywords = Keywords.GBufferForward,
                 includes = Includes.Fabric,
@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 fieldDependencies = HDRPMeshTarget.FieldDependencies.Default,
 
                 // Conditional State
-                pragmas = HDRPMeshTarget.Pragmas.Instanced,
+                pragmas = Pragmas.Instanced,
                 defines = Defines.FabricGBuffer,
                 keywords = Keywords.GBufferForward,
                 includes = Includes.FabricGBuffer,
@@ -514,6 +514,26 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDRPMeshTarget.VaryingsMeshToPS,
                 HDRPMeshTarget.SurfaceDescriptionInputs,
                 HDRPMeshTarget.VertexDescriptionInputs,
+            };
+        }
+#endregion
+
+#region Pragmas
+        public static class Pragmas
+        {
+            public static ConditionalPragma[] Basic = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Custom("raytracing test")),
+                new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
+            };
+
+            public static ConditionalPragma[] Instanced = new ConditionalPragma[]
+            {
+                new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Custom("raytracing test")),
+                new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
+                new ConditionalPragma(Pragma.MultiCompileInstancing),
             };
         }
 #endregion

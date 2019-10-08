@@ -3046,12 +3046,16 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalPragma[] Basic = new ConditionalPragma[]
             {
                 new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
             };
 
             public static ConditionalPragma[] Instanced = new ConditionalPragma[]
             {
                 new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
             };
@@ -3059,6 +3063,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalPragma[] InstancedEditorSync = new ConditionalPragma[]
             {
                 new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
                 new ConditionalPragma(Pragma.Custom("editor_sync_compilation")),
@@ -3067,6 +3073,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalPragma[] InstancedRenderingPlayer = new ConditionalPragma[]
             {
                 new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
                 new ConditionalPragma(Pragma.Custom("instancing_options renderinglayer")),
@@ -3075,6 +3083,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalPragma[] InstancedRenderingPlayerEditorSync = new ConditionalPragma[]
             {
                 new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
                 new ConditionalPragma(Pragma.Custom("instancing_options renderinglayer")),
@@ -3084,6 +3094,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalPragma[] DotsInstanced = new ConditionalPragma[]
             {
                 new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
                 new ConditionalPragma(Pragma.Custom("instancing_options nolightprobe"), new FieldCondition[] 
@@ -3126,6 +3138,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalPragma[] DotsInstancedEditorSync = new ConditionalPragma[]
             {
                 new ConditionalPragma(Pragma.Target(4.5)),
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
                 new ConditionalPragma(Pragma.Custom("editor_sync_compilation")),

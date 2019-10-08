@@ -9,14 +9,13 @@ Pass
     // Render State
     $splice(RenderState)
 
-    HLSLPROGRAM
-    #pragma raytracing test
-
     // Debug
     $splice(Debug)
     
     // --------------------------------------------------
     // Pass
+
+    HLSLPROGRAM
 
     // Pragmas
     $splice(PassPragmas)

@@ -9,15 +9,13 @@ Pass
     // Render State
     $splice(RenderState)
 
-    HLSLPROGRAM
-    #pragma vertex Vert
-    #pragma fragment Frag
-
     // Debug
     $splice(Debug)
     
     // --------------------------------------------------
     // Pass
+
+    HLSLPROGRAM
 
     // Pragmas
     $splice(PassPragmas)

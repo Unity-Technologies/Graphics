@@ -453,6 +453,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static ConditionalPragma[] Instanced = new ConditionalPragma[]
             {
+                new ConditionalPragma(Pragma.Vertex("Vert")),
+                new ConditionalPragma(Pragma.Fragment("Frag")),
                 new ConditionalPragma(Pragma.Target(4.5)),
                 new ConditionalPragma(Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS4, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch})),
                 new ConditionalPragma(Pragma.MultiCompileInstancing),
