@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reassign the same camera for a realtime probe face render request to have appropriate history buffer during realtime probe rendering.
 - Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
 - Fixed issue with decal and htile optimization
+- Fixed TerrainLit shader compilation error regarding `_Control0_TexelSize` redefinition (case 1178480).
 - Fixed warning about duplicate HDRuntimeReflectionSystem when configuring play mode without domain reload.
 - Fixed an editor crash when multiple decal projectors were selected and some had null material
 - Added all relevant fix actions to FixAll button in Wizard
