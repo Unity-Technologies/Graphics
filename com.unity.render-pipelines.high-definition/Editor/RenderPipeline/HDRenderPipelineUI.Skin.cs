@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_MaxDirectionalContent = EditorGUIUtility.TrTextContent("Maximum Directional on Screen", "Sets the maximum number of Directional Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
-        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Environment Lights on Screen", "Sets the maximum number of environment Lights HDRP can handle on screen at once.");
+        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probe on Screen", "Sets the maximum number of Planar and Reflection Probe HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
 
         static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
