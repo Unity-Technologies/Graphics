@@ -78,6 +78,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with decal and htile optimization
 - Fixed warning about duplicate HDRuntimeReflectionSystem when configuring play mode without domain reload.
 - Fixed an editor crash when multiple decal projectors were selected and some had null material
+- Added all relevant fix actions to FixAll button in Wizard
+- Moved FixAll button on top of the Wizard
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
