@@ -1,4 +1,3 @@
-//#define OLD_COPY_PASTE
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -389,6 +388,7 @@ namespace UnityEditor.VFX.UI
             m_LockedElement.style.fontSize = new StyleLength(72f);
             m_LockedElement.style.color = Color.white * 0.75f;
 
+
             m_Blackboard = new VFXBlackboard(this);
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
@@ -401,6 +401,7 @@ namespace UnityEditor.VFX.UI
                 ShowComponentBoard();
             toggleComponentBoard.value = componentBoardVisible;*/
 
+            Add(m_LockedElement);
             Add(m_Toolbar);
             m_Toolbar.SetEnabled(false);
 
@@ -668,10 +669,7 @@ namespace UnityEditor.VFX.UI
                 m_NoAssetLabel.RemoveFromHierarchy();
                 m_Toolbar.SetEnabled(true);
 
-                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
-
-                if (!AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
-                    Insert(this.IndexOf(m_Toolbar), m_LockedElement);
+                m_LockedElement.style.display = !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible) ? DisplayStyle.None: DisplayStyle.Flex;
             }
             else
             {
@@ -684,11 +682,11 @@ namespace UnityEditor.VFX.UI
         }
 
         public void OnFocus()
-        {   
+        {
             if (controller != null && controller.model.asset != null && !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
-                Insert(this.IndexOf(m_Toolbar),m_LockedElement);
+                m_LockedElement.style.display = DisplayStyle.Flex;
             else
-                m_LockedElement.RemoveFromHierarchy();
+                m_LockedElement.style.display = DisplayStyle.None;
 
         }
 
@@ -1463,9 +1461,6 @@ namespace UnityEditor.VFX.UI
 
         VFXComponentBoard m_ComponentBoard;
 
-        public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
-        public Vector2 pasteOffset = Vector2.zero;
-
         public VFXBlackboard blackboard
         {
             get { return m_Blackboard; }
@@ -1547,7 +1542,6 @@ namespace UnityEditor.VFX.UI
 
         public string SerializeElements(IEnumerable<GraphElement> elements)
         {
-            pasteOffset = defaultPasteOffset;
 
             Profiler.BeginSample("VFXCopy.SerializeElements");
             string result = VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
@@ -1572,8 +1566,6 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXPaste.VFXPaste.UnserializeAndPasteElements");
             VFXPaste.UnserializeAndPasteElements(controller, pasteCenter, data, this);
             Profiler.EndSample();
-
-            pasteOffset += defaultPasteOffset;
         }
 
         const float k_MarginBetweenContexts = 30;
