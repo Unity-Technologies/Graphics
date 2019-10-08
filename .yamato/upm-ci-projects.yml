@@ -33,7 +33,7 @@ all_project_ci:
   {% endfor %}
   triggers:
     recurring:
-      - branch: 2019.3/staging
+      - branch: release/2019.3
         frequency: daily
   artifacts:
     logs:

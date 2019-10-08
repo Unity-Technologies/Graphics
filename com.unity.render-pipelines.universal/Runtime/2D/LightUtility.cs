@@ -6,9 +6,37 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class LightUtility
     {
-        public static bool CheckForChange<T>(T a, ref T b)
+        public static bool CheckForChange(int a, ref int b)
         {
-            bool changed = !Equals(a,b);
+            bool changed = a != b;
+            b = a;
+            return changed;
+        }
+
+        public static bool CheckForChange(float a, ref float b)
+        {
+            bool changed = a != b;
+            b = a;
+            return changed;
+        }
+
+        public static bool CheckForChange(bool a, ref bool b)
+        {
+            bool changed = a != b;
+            b = a;
+            return changed;
+        }
+
+        public static bool CheckForChange(Vector2 a, ref Vector2 b)
+        {
+            bool changed = a != b;
+            b = a;
+            return changed;
+        }
+
+        public static bool CheckForChange(Sprite a, ref Sprite b)
+        {
+            bool changed = !Equals(a, b);
             b = a;
             return changed;
         }

@@ -65,8 +65,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingFilterReflection,
         RaytracingAmbientOcclusion,
         RaytracingFilterAO,
-        RaytracingShadowIntegration,
-        RaytracingShadowCombination,
+        RaytracingDirectionalLightShadow,
+        RaytracingLightShadow,
+        RaytracingIntegrateIndirectDiffuse,
         RaytracingFilterIndirectDiffuse,
         RaytracingDebug,
 

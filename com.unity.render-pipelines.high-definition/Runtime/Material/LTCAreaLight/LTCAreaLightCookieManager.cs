@@ -35,6 +35,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(defaultResources.shaders.filterAreaLightCookiesPS);
         }
 
+        internal void NewFrame()
+        {
+            m_AreaCookieTexArray.NewFrame();
+        }
+
         public void ReleaseResources()
         {
             if(m_AreaCookieTexArray != null)
