@@ -6,7 +6,7 @@ A Volume Profile organizes its properties into structures which control differen
 
 ##Create and custom a Volume Profile
 
-There are multiple ways to create a Volume Profile. Unity creates, and links, a Volume Profile automatically when you create a **Scene Settings** GameObject (menu: **Rendering** &gt; **Scene Settings**). You can also create a Volume Profile manually. Navigate to menu: **Assets** &gt; **Create** &gt; **Volume Profile**.
+There are multiple ways to create a Volume Profile. Unity creates, and links, a Volume Profile automatically when you create a **Scene Settings** GameObject (menu: **Rendering > Scene Settings**). You can also create a Volume Profile manually. Navigate to menu: **Assets > Create > Volume Profile**.
 
 Open the Volume Profile in the Inspector to edit its properties. To do this, you can either:
 

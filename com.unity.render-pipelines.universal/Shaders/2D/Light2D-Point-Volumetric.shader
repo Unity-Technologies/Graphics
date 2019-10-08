@@ -58,16 +58,17 @@ Shader "Hidden/Light2d-Point-Volumetric"
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
-            half4	_LightColor;
+            half4   _LightColor;
             float   _VolumeOpacity;
-            float4	_LightPosition;
-            half4x4	_LightInvMatrix;
-            half4x4	_LightNoRotInvMatrix;
-            half	_LightZDistance;
-            half	_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half	_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half	_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
-            half	_InverseHDREmulationScale;
+            float4  _LightPosition;
+            half4x4 _LightInvMatrix;
+            half4x4 _LightNoRotInvMatrix;
+            half    _LightZDistance;
+            half    _OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
+            half    _InverseHDREmulationScale;
+            half    _IsFullSpotlight;
 
             SHADOW_VARIABLES
 
@@ -114,7 +115,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
 
                 // Spotlight
-                half  spotAttenuation = saturate((_OuterAngle - lookupValue.g) * _InnerAngleMult);
+                half  spotAttenuation = saturate((_OuterAngle - lookupValue.g + _IsFullSpotlight) * _InnerAngleMult);
                 attenuation = attenuation * spotAttenuation;
 
                 half2 mappedUV;

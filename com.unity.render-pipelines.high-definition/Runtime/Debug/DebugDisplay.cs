@@ -106,6 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //saved enum fields for when repainting
             public int lightingDebugModeEnumIndex;
             public int lightingFulscreenDebugModeEnumIndex;
+            public int materialValidatorDebugModeEnumIndex;
             public int tileClusterDebugEnumIndex;
             public int mipMapsEnumIndex;
             public int engineEnumIndex;
@@ -234,6 +235,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsDebugMipMapDisplayEnabled()
         {
             return data.mipMapDebugSettings.IsDebugDisplayEnabled();
+        }
+
+        public bool IsMatcapViewEnabled(HDCamera camera)
+        {
+            bool sceneViewLightingDisabled = CoreUtils.IsSceneLightingDisabled(camera.camera);
+            return sceneViewLightingDisabled || GetDebugLightingMode() == DebugLightingMode.MatcapView;
         }
 
         private void DisableNonMaterialDebugSettings()
@@ -401,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add( new DebugUI.EnumField { displayName = "Attributes", getter = () => (int)data.materialDebugSettings.debugViewVarying, setter = value => SetDebugViewVarying((DebugViewVarying)value), autoEnum = typeof(DebugViewVarying), getIndex = () => data.attributesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.attributesEnumIndex = value; } });
             list.Add( new DebugUI.EnumField { displayName = "Properties", getter = () => (int)data.materialDebugSettings.debugViewProperties, setter = value => SetDebugViewProperties((DebugViewProperties)value), autoEnum = typeof(DebugViewProperties), getIndex = () => data.propertiesEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.propertiesEnumIndex = value; } });
             list.Add( new DebugUI.EnumField { displayName = "GBuffer", getter = () => data.materialDebugSettings.debugViewGBuffer, setter = value => SetDebugViewGBuffer(value), enumNames = MaterialDebugSettings.debugViewMaterialGBufferStrings, enumValues = MaterialDebugSettings.debugViewMaterialGBufferValues, getIndex = () => data.gBufferEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.gBufferEnumIndex = value; } });
-            list.Add( new DebugUI.EnumField { displayName = "Material Validator", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_MaterialFullScreenDebugStrings, enumValues = s_MaterialFullScreenDebugValues, onValueChanged = RefreshMaterialDebug, getIndex = () => data.lightingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingFulscreenDebugModeEnumIndex = value; } });
+            list.Add( new DebugUI.EnumField { displayName = "Material Validator", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), enumNames = s_MaterialFullScreenDebugStrings, enumValues = s_MaterialFullScreenDebugValues, onValueChanged = RefreshMaterialDebug, getIndex = () => data.materialValidatorDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.materialValidatorDebugModeEnumIndex = value; } });
 
             if (data.fullScreenDebugMode == FullScreenDebugMode.ValidateDiffuseColor || data.fullScreenDebugMode == FullScreenDebugMode.ValidateSpecularColor)
             {

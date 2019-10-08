@@ -16,7 +16,7 @@ float2 BoxRayIntersect(float3 start, float3 dir, float3 boxMin, float3 boxMax)
     float3 firstPlaneIntersect = (boxMin - start) * invDir;
     float3 secondPlaneIntersect = (boxMax - start) * invDir;
 
-    // Get the closest/furthest of these intersections along the ray (Ok because x/0 give +inf and -x/0 give �inf )
+    // Get the closest/furthest of these intersections along the ray (Ok because x/0 give +inf and -x/0 give -inf )
     float3 closestPlane = min(firstPlaneIntersect, secondPlaneIntersect);
     float3 furthestPlane = max(firstPlaneIntersect, secondPlaneIntersect);
 

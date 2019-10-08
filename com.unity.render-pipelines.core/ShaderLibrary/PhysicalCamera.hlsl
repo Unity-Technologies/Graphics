@@ -4,7 +4,7 @@
 // Has to be kept in sync with ColorUtils.cs
 
 // References:
-// "Moving Frostbite to PBR" (Sébastien Lagarde & Charles de Rousiers)
+// "Moving Frostbite to PBR" (Sebastien Lagarde & Charles de Rousiers)
 //   https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
 // "Implementing a Physically Based Camera" (Padraic Hennessy)
 //   https://placeholderart.wordpress.com/2014/11/16/implementing-a-physically-based-camera-understanding-exposure/

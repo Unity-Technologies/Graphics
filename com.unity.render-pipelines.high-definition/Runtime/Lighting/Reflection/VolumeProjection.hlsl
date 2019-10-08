@@ -98,7 +98,7 @@ float InfluenceBoxWeight(EnvLightData lightData, float3 normalWS, float3 positio
     // 4. Fade specific cubemap faces
     // For each axis (both positive and negative ones), we want to fade from the center of one face to another
     // So we normalize the sample direction (R) and use its component to fade for each axis
-    // We consider R.x as cos(X) and then fade as angle from 60°(=acos(1/2)) to 75°(=acos(1/4))
+    // We consider R.x as cos(X) and then fade as angle from 60 deg (=acos(1/2)) to 75 deg (=acos(1/4))
     // For positive axes: axisFade = (R - 1/4) / (1/2 - 1/4)
     // <=> axisFace = 4 * R - 1;
     float3 faceFade = saturate((4 * dirIS - 1) * lightData.boxSideFadePositive)
