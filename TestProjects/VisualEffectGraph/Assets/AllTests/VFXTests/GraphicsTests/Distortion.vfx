@@ -200,6 +200,7 @@ MonoBehaviour:
   useExposureWeight: 0
   distortionMode: 1
   scaleByDistance: 1
+  primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614537
 MonoBehaviour:
@@ -3872,6 +3873,7 @@ MonoBehaviour:
   useExposureWeight: 0
   distortionMode: 0
   scaleByDistance: 1
+  primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614908
 MonoBehaviour:
@@ -4223,6 +4225,7 @@ MonoBehaviour:
   useExposureWeight: 0
   distortionMode: 0
   scaleByDistance: 0
+  primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614927
 MonoBehaviour:
@@ -4918,6 +4921,7 @@ MonoBehaviour:
   useExposureWeight: 0
   distortionMode: 0
   scaleByDistance: 0
+  primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614976
 MonoBehaviour:

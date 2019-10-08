@@ -2830,6 +2830,7 @@ MonoBehaviour:
   castShadows: 0
   useExposureWeight: 1
   tilingMode: 0
+  UseCustomZAxis: 0
 --- !u!114 &8926484042661615178
 MonoBehaviour:
   m_ObjectHideFlags: 0

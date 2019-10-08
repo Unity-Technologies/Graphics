@@ -2010,6 +2010,7 @@ MonoBehaviour:
   enableEnvLight: 1
   normalBending: 1
   tilingMode: 1
+  UseCustomZAxis: 0
 --- !u!114 &8926484042661614665
 MonoBehaviour:
   m_ObjectHideFlags: 0

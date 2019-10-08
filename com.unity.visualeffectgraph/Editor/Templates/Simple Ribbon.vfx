@@ -726,6 +726,7 @@ MonoBehaviour:
   castShadows: 0
   useExposureWeight: 0
   tilingMode: 0
+  UseCustomZAxis: 0
 --- !u!114 &8926484042661614563
 MonoBehaviour:
   m_ObjectHideFlags: 0
