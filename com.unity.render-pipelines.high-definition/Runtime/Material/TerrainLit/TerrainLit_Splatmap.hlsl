@@ -1,8 +1,4 @@
 TEXTURE2D(_Control0);
-#ifndef _TERRAIN_BASEMAP_GEN
-// To avoid duplicate definitions, we put this inside the #ifdef
-float4 _Control0_TexelSize;
-#endif
 
 #define DECLARE_TERRAIN_LAYER_TEXS(n)   \
     TEXTURE2D(_Splat##n);               \
@@ -19,7 +15,6 @@ DECLARE_TERRAIN_LAYER_TEXS(3);
     DECLARE_TERRAIN_LAYER_TEXS(6);
     DECLARE_TERRAIN_LAYER_TEXS(7);
     TEXTURE2D(_Control1);
-    float4 _Control1_TexelSize;
 #endif
 
 #undef DECLARE_TERRAIN_LAYER_TEXS
