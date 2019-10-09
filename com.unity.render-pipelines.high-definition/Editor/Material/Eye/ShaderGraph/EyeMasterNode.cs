@@ -653,9 +653,9 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(DefaultFields.GraphVertex,                         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-                                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
-                                                                                        IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
+                new ConditionalField(DefaultFields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
+                                                                                        IsSlotConnected(VertexNormalSlotID) || 
+                                                                                        IsSlotConnected(VertexTangentSlotID)),
                 new ConditionalField(DefaultFields.GraphPixel,                          true),
                 
                 // Surface Type
