@@ -64,6 +64,13 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Manages tiled-based deferred lights.
     internal class DeferredLights
     {
+        // Adapted from ForwardLights.LightConstantBuffer
+        static class LightConstantBuffer
+        {
+            public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");
+            public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");
+        }
+
         static class ShaderConstants
         {
             public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
@@ -116,6 +123,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         const string k_TileDepthInfo = "Tile Depth Info";
         const string k_TiledDeferredPass = "Tile-Based Deferred Shading";
         const string k_StencilDeferredPass = "Stencil Deferred Shading";
+        const string k_SetupLightConstants = "Setup Light Constants";
 
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point lights without shadows) - false: use StencilDeferred.shader for all lights
 
@@ -206,8 +214,36 @@ namespace UnityEngine.Rendering.Universal.Internal
             return m_Tilers[i];
         }
 
+        // adapted from ForwardLights.SetupShaderLightConstants
+        void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            //m_MixedLightingSetup = MixedLightingSetup.None;
+
+            // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
+            // Universal Forward pipeline only supports a single shadow light, if available it will be the main light.
+            SetupMainLightConstants(cmd, ref renderingData.lightData);
+            //SetupAdditionalLightConstants(cmd, ref renderingData);
+        }
+        // adapted from ForwardLights.SetupShaderLightConstants
+        void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
+        {
+            Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
+            ForwardLights.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
+
+            cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, lightPos);
+            cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
+        }
+
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Main Directional Light
+            {
+                CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
+                SetupShaderLightConstants(cmd, ref renderingData);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
             DeferredShaderData.instance.ResetBuffers();
 
             m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
