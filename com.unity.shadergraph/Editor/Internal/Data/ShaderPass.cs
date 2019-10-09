@@ -65,8 +65,6 @@ namespace UnityEditor.ShaderGraph.Internal
         public string displayName;
         public string referenceName;
         public string lightMode;
-        public string passInclude;
-        public string varyingsInclude;
         public bool useInPreview;
 
         // Port mask
@@ -83,7 +81,8 @@ namespace UnityEditor.ShaderGraph.Internal
         public ConditionalPragma[] pragmas;
         public ConditionalDefine[] defines;
         public ConditionalKeyword[] keywords;
-        public ConditionalInclude[] includes;
+        public ConditionalInclude[] preGraphIncludes;
+        public ConditionalInclude[] postGraphIncludes;
 
         // Custom Template
         public string passTemplatePath;

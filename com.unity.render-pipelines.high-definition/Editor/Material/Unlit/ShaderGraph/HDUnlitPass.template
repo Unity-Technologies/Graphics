@@ -49,7 +49,7 @@ Pass
     $splice(DotsInstancingOptions)
 
     // Includes
-    $splice(PassIncludes)
+    $splice(PreGraphIncludes)
 
     // Used by SceneSelectionPass
     int _ObjectId;
@@ -129,7 +129,7 @@ Pass
     // --------------------------------------------------
     // Main
 
-    $splice(MainInclude)
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }

@@ -105,8 +105,6 @@ namespace UnityEditor.Rendering.Universal
                 displayName = "Universal Forward",
                 referenceName = "SHADERPASS_FORWARD",
                 lightMode = "UniversalForward",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 useInPreview = true,
 
                 // Port Mask
@@ -122,7 +120,8 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Forward,
                 keywords = Keywords.PBRForward,
-                includes = Includes.PBRForward,
+                preGraphIncludes = PreGraphIncludes.PBRForward,
+                postGraphIncludes = PostGraphIncludes.PBRForward,
             };
 
             public static ShaderPass DepthOnly = new ShaderPass()
@@ -131,8 +130,6 @@ namespace UnityEditor.Rendering.Universal
                 displayName = "DepthOnly",
                 referenceName = "SHADERPASS_DEPTHONLY",
                 lightMode = "DepthOnly",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 useInPreview = true,
 
                 // Port Mask
@@ -146,7 +143,8 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
                 pragmas = Pragmas.Instanced,
-                includes = Includes.PBRDepthOnly,
+                preGraphIncludes = PreGraphIncludes.PBRDepthOnly,
+                postGraphIncludes = PostGraphIncludes.DepthOnly,
             };
 
             public static ShaderPass ShadowCaster = new ShaderPass()
@@ -155,8 +153,6 @@ namespace UnityEditor.Rendering.Universal
                 displayName = "ShadowCaster",
                 referenceName = "SHADERPASS_SHADOWCASTER",
                 lightMode = "ShadowCaster",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 
                 // Port Mask
                 vertexPorts = VertexPorts.PBR,
@@ -170,7 +166,8 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Instanced,
-                includes = Includes.PBRShadowCaster,
+                preGraphIncludes = PreGraphIncludes.PBRShadowCaster,
+                postGraphIncludes = PostGraphIncludes.ShadowCaster,
             };
 
             public static ShaderPass Meta = new ShaderPass()
@@ -179,8 +176,6 @@ namespace UnityEditor.Rendering.Universal
                 displayName = "Meta",
                 referenceName = "SHADERPASS_META",
                 lightMode = "Meta",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
 
                 // Port Mask
                 vertexPorts = VertexPorts.PBR,
@@ -195,7 +190,8 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.PBRMeta,
-                includes = Includes.PBRMeta,
+                preGraphIncludes = PreGraphIncludes.PBRMeta,
+                postGraphIncludes =PostGraphIncludes.LightingMeta,
             };
 
             public static ShaderPass _2D = new ShaderPass()
@@ -203,8 +199,6 @@ namespace UnityEditor.Rendering.Universal
                 // Definition
                 referenceName = "SHADERPASS_2D",
                 lightMode = "Universal2D",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
 
                 // Port Mask
                 vertexPorts = VertexPorts.PBR,
@@ -217,7 +211,8 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
-                includes = Includes.PBR2D,
+                preGraphIncludes = PreGraphIncludes.PBR2D,
+                postGraphIncludes = PostGraphIncludes.PBR2D,
             };
 
             public static ShaderPass Unlit = new ShaderPass
@@ -225,8 +220,6 @@ namespace UnityEditor.Rendering.Universal
                 // Definition
                 displayName = "Pass",
                 referenceName = "SHADERPASS_UNLIT",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 useInPreview = true,
 
                 // Port Mask
@@ -241,7 +234,8 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
                 keywords = Keywords.Unlit,
-                includes = Includes.Basic,
+                preGraphIncludes = PreGraphIncludes.Basic,
+                postGraphIncludes = PostGraphIncludes.Unlit,
             };
 
             public static ShaderPass SpriteLit = new ShaderPass
@@ -250,8 +244,6 @@ namespace UnityEditor.Rendering.Universal
                 displayName = "Sprite Lit",
                 referenceName = "SHADERPASS_SPRITELIT",
                 lightMode = "Universal2D",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 useInPreview = true,
 
                 // Port Mask
@@ -267,7 +259,8 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.SpriteLit,
-                includes = Includes.SpriteLit,
+                preGraphIncludes = PreGraphIncludes.SpriteLit,
+                postGraphIncludes = PostGraphIncludes.SpriteLit,
             };
 
             public static ShaderPass SpriteNormal = new ShaderPass
@@ -276,8 +269,6 @@ namespace UnityEditor.Rendering.Universal
                 displayName = "Sprite Normal",
                 referenceName = "SHADERPASS_SPRITENORMAL",
                 lightMode = "NormalsRendering",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteNormalPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 useInPreview = true,
 
                 // Port Mask
@@ -292,7 +283,8 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
-                includes = Includes.SpriteNormal,
+                preGraphIncludes = PreGraphIncludes.SpriteNormal,
+                postGraphIncludes = PostGraphIncludes.SpriteNormal,
             };
 
             public static ShaderPass SpriteForward = new ShaderPass
@@ -301,8 +293,6 @@ namespace UnityEditor.Rendering.Universal
                 displayName = "Sprite Forward",
                 referenceName = "SHADERPASS_SPRITEFORWARD",
                 lightMode = "UniversalForward",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 useInPreview = true,
 
                 // Port Mask
@@ -318,15 +308,14 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.ETCExternalAlpha,
-                includes = Includes.Basic,
+                preGraphIncludes = PreGraphIncludes.Basic,
+                postGraphIncludes = PostGraphIncludes.SpriteForward,
             };
 
             public static ShaderPass SpriteUnlit = new ShaderPass
             {
                 // Definition
                 referenceName = "SHADERPASS_SPRITEUNLIT",
-                passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl",
-                varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
                 useInPreview = true,
 
                 // Port Mask
@@ -342,7 +331,8 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.ETCExternalAlpha,
-                includes = Includes.Basic,
+                preGraphIncludes = PreGraphIncludes.Basic,
+                postGraphIncludes = PostGraphIncludes.SpriteUnlit,
             };
         }
 #endregion
@@ -726,7 +716,7 @@ namespace UnityEditor.Rendering.Universal
 #endregion
 
 #region Includes
-        static class Includes
+        static class PreGraphIncludes
         {
             public static ConditionalInclude[] Basic = new ConditionalInclude[]
             {
@@ -798,6 +788,63 @@ namespace UnityEditor.Rendering.Universal
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl")),
+            };
+        }
+        static class PostGraphIncludes
+        {
+            private static ConditionalInclude varyingsInclude = new ConditionalInclude(
+                Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl"));
+            public static ConditionalInclude[] PBRForward = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl")),
+            };
+            public static ConditionalInclude[] DepthOnly = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl")),
+            };
+
+            public static ConditionalInclude[] ShadowCaster = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl")),
+            };
+
+            public static ConditionalInclude[] LightingMeta = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl")),
+            };
+            public static ConditionalInclude[] PBR2D = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl")),
+            };
+            public static ConditionalInclude[] Unlit = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl")),
+            };
+            public static ConditionalInclude[] SpriteLit = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl")),
+            };
+            public static ConditionalInclude[] SpriteNormal = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteNormalPass.hlsl")),
+            };
+            public static ConditionalInclude[] SpriteForward = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl")),
+            };
+            public static ConditionalInclude[] SpriteUnlit = new ConditionalInclude[]
+            {
+                PostGraphIncludes.varyingsInclude,
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl")),
             };
         }
 #endregion

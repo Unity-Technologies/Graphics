@@ -97,7 +97,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "IndirectDXR",
                 referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
                 lightMode = "IndirectDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -112,7 +111,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 pragmas = Pragmas.Instanced,
                 defines = Defines.LitForwardIndirect,
                 keywords = Keywords.Indirect,
-                includes = Includes.Lit,
+                preGraphIncludes = PreGraphIncludes.Lit,
+                postGraphIncludes = PostGraphIncludes.Indirect,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
@@ -124,7 +124,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "VisibilityDXR",
                 referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
                 lightMode = "VisibilityDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -138,7 +137,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Conditional State
                 pragmas = Pragmas.Instanced,
                 defines = Defines.LitVisibility,
-                includes = Includes.LitVisibility,
+                preGraphIncludes = PreGraphIncludes.LitVisibility,
+                postGraphIncludes = PostGraphIncludes.Visibility,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
@@ -150,7 +150,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "ForwardDXR",
                 referenceName = "SHADERPASS_RAYTRACING_FORWARD",
                 lightMode = "ForwardDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -165,7 +164,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 pragmas = Pragmas.Instanced,
                 defines = Defines.LitForwardIndirect,
                 keywords = Keywords.GBufferForward,
-                includes = Includes.Lit,
+                preGraphIncludes = PreGraphIncludes.Lit,
+                postGraphIncludes = PostGraphIncludes.Forward,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
@@ -177,7 +177,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "GBufferDXR",
                 referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
                 lightMode = "GBufferDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -192,7 +191,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 pragmas = Pragmas.Instanced,
                 defines = Defines.LitGBuffer,
                 keywords = Keywords.GBufferForward,
-                includes = Includes.LitGBuffer,
+                preGraphIncludes = PreGraphIncludes.LitGBuffer,
+                postGraphIncludes = PostGraphIncludes.GBuffer,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Lit"),
@@ -208,8 +208,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Definition
                 displayName = "IndirectDXR",
                 referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
-                lightMode = "IndirectDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl",
+                lightMode = "IndirectDXR",  
                 useInPreview = false,
 
                 // Port Mask
@@ -223,7 +222,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Conditional State
                 pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
-                includes = Includes.Unlit,
+                preGraphIncludes = PreGraphIncludes.Unlit,
+                postGraphIncludes = PostGraphIncludes.Indirect,
 
                 // Custom Template
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
@@ -235,7 +235,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "VisibilityDXR",
                 referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
                 lightMode = "VisibilityDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -249,7 +248,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Conditional State
                 pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
-                includes = Includes.Unlit,
+                preGraphIncludes = PreGraphIncludes.Unlit,
+                postGraphIncludes = PostGraphIncludes.Visibility,
 
                 // Custom Template
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
@@ -261,7 +261,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "ForwardDXR",
                 referenceName = "SHADERPASS_RAYTRACING_FORWARD",
                 lightMode = "ForwardDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -275,7 +274,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Conditional State
                 pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
-                includes = Includes.Unlit,
+                preGraphIncludes = PreGraphIncludes.Unlit,
+                postGraphIncludes = PostGraphIncludes.Forward,
 
                 // Custom Template
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
@@ -287,7 +287,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "GBufferDXR",
                 referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
                 lightMode = "GBufferDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -301,7 +300,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Conditional State
                 pragmas = Pragmas.Basic,
                 keywords = Keywords.Basic,
-                includes = Includes.UnlitGBuffer,
+                preGraphIncludes = PreGraphIncludes.UnlitGBuffer,
+                postGraphIncludes = PostGraphIncludes.GBuffer,
 
                 // Custom Template
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
@@ -318,7 +318,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "IndirectDXR",
                 referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
                 lightMode = "IndirectDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -333,7 +332,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 pragmas = Pragmas.Instanced,
                 defines = Defines.FabricForwardIndirect,
                 keywords = Keywords.Indirect,
-                includes = Includes.Fabric,
+                preGraphIncludes = PreGraphIncludes.Fabric,
+                postGraphIncludes = PostGraphIncludes.Indirect,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Fabric"),
@@ -345,7 +345,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "VisibilityDXR",
                 referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
                 lightMode = "VisibilityDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -359,7 +358,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Conditional State
                 pragmas = Pragmas.Instanced,
                 keywords = Keywords.Basic,
-                includes = Includes.FabricVisibility,
+                preGraphIncludes = PreGraphIncludes.FabricVisibility,
+                postGraphIncludes = PostGraphIncludes.Visibility,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Fabric"),
@@ -371,7 +371,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "ForwardDXR",
                 referenceName = "SHADERPASS_RAYTRACING_FORWARD",
                 lightMode = "ForwardDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -386,7 +385,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 pragmas = Pragmas.Instanced,
                 defines = Defines.FabricForwardIndirect,
                 keywords = Keywords.GBufferForward,
-                includes = Includes.Fabric,
+                preGraphIncludes = PreGraphIncludes.Fabric,
+                postGraphIncludes = PostGraphIncludes.Forward,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Fabric"),
@@ -398,7 +398,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 displayName = "GBufferDXR",
                 referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
                 lightMode = "GBufferDXR",
-                passInclude = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl",
                 useInPreview = false,
 
                 // Port Mask
@@ -413,7 +412,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 pragmas = Pragmas.Instanced,
                 defines = Defines.FabricGBuffer,
                 keywords = Keywords.GBufferForward,
-                includes = Includes.FabricGBuffer,
+                preGraphIncludes = PreGraphIncludes.FabricGBuffer,
+                postGraphIncludes = PostGraphIncludes.GBuffer,
 
                 // Custom Template
                 passTemplatePath = GetPassTemplatePath("Fabric"),
@@ -610,7 +610,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #endregion
 
 #region Includes
-        static class Includes
+        static class PreGraphIncludes
         {
             public static ConditionalInclude[] Lit = new ConditionalInclude[]
             {
@@ -771,6 +771,26 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+            };
+        }
+
+        static class PostGraphIncludes
+        {
+            public static ConditionalInclude[] GBuffer = new ConditionalInclude[]
+            {
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl")),
+            };
+            public static ConditionalInclude[] Forward = new ConditionalInclude[]
+            {
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl")),
+            };
+            public static ConditionalInclude[] Visibility = new ConditionalInclude[]
+            {
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl")),
+            };
+            public static ConditionalInclude[] Indirect = new ConditionalInclude[]
+            {
+                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl")),
             };
         }
 #endregion

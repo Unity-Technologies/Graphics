@@ -26,8 +26,6 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 // Definition
                 referenceName = "SHADERPASS_PREVIEW",
-                passInclude = "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl",
-                varyingsInclude = "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl",
                 useInPreview = true,
 
                 // Fields
@@ -37,7 +35,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 // Conditional State
                 pragmas = Pragmas.Default,
                 defines = Defines.Default,
-                includes = Includes.Default,
+                preGraphIncludes = PreGraphIncludes.Default,
+                postGraphIncludes = PostGraphIncludes.Default,
             };
         }
 #endregion
@@ -166,7 +165,7 @@ namespace UnityEditor.ShaderGraph.Internal
 #endregion
 
 #region Includes
-        static class Includes
+        static class PreGraphIncludes
         {
             public static ConditionalInclude[] Default = new ConditionalInclude[]
             {
@@ -181,6 +180,15 @@ namespace UnityEditor.ShaderGraph.Internal
                 new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
             };
         }
+        static class PostGraphIncludes
+        {
+            public static ConditionalInclude[] Default = new ConditionalInclude[]
+            {
+                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl")),
+                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl")),
+            };
+        }
+
 #endregion
 
 #region ShaderStructs

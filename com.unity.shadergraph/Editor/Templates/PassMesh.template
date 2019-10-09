@@ -55,7 +55,7 @@ Pass
     $splice(GraphDefines)
 
     // Includes
-    $splice(PassIncludes)
+    $splice(PreGraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
@@ -89,7 +89,7 @@ Pass
     // --------------------------------------------------
     // Main
 
-    $splice(MainInclude)
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }

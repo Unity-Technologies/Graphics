@@ -293,9 +293,9 @@ namespace UnityEditor.ShaderGraph
             // Includes
             using (var passIncludeBuilder = new ShaderStringBuilder())
             {
-                if(pass.includes != null)
+                if(pass.preGraphIncludes != null)
                 {
-                    foreach(ConditionalInclude include in pass.includes)
+                    foreach(ConditionalInclude include in pass.preGraphIncludes)
                     {
                         string value = null;
                         if(include.TestActive(activeFields, out value))
@@ -303,8 +303,8 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                string command = GenerationUtils.GetSpliceCommand(passIncludeBuilder.ToCodeBlack(), "PassIncludes");
-                spliceCommands.Add("PassIncludes", command);
+                string command = GenerationUtils.GetSpliceCommand(passIncludeBuilder.ToCodeBlack(), "PreGraphIncludes");
+                spliceCommands.Add("PreGraphIncludes", command);
             }
 
             // Keywords
@@ -625,15 +625,20 @@ namespace UnityEditor.ShaderGraph
             // This must be defined after all graph code
             using (var mainBuilder = new ShaderStringBuilder())
             {
-                if(!string.IsNullOrEmpty(pass.varyingsInclude))
-                    mainBuilder.AppendLine($"#include \"{pass.varyingsInclude}\"");
-                if(!string.IsNullOrEmpty(pass.passInclude))
-                    mainBuilder.AppendLine($"#include \"{pass.passInclude}\"");
+                if(pass.postGraphIncludes != null)
+                {
+                    foreach(ConditionalInclude include in pass.postGraphIncludes)
+                    {
+                        string value = null;
+                        if(include.TestActive(activeFields, out value))
+                            mainBuilder.AppendLine(value);
+                    }
+                }
 
                 // Add to splice commands
                 if(mainBuilder.length == 0)
-                    mainBuilder.AppendLine("// MainInclude: <None>");
-                spliceCommands.Add("MainInclude", mainBuilder.ToCodeBlack());
+                    mainBuilder.AppendLine("// Post Graph Includes: <None>");
+                spliceCommands.Add("PostGraphIncludes", mainBuilder.ToCodeBlack());
             }
 
             // --------------------------------------------------
