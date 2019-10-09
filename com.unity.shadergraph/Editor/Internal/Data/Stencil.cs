@@ -18,7 +18,7 @@
                 builder.AppendLine($"Comp {Comp}");
                 builder.AppendLine($"Pass {Pass}");
             }
-            return builder.ToCodeBlack();
+            return builder.ToCodeBlock();
         }
     }
 }

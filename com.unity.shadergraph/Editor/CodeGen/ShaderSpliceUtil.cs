@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph
                                 // Reduce result length to remove this include
                                 temp.AppendLines(result.ToString(endIndex, result.length - endIndex));
                                 result.length = endIndex;
-                                result.AppendLines(temp.ToCodeBlack());
+                                result.AppendLines(temp.ToCodeBlock());
                             }
                         }
                     }

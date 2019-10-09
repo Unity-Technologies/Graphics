@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
         List<string> m_AssetDependencyPaths;
 
-        public string generatedShader => m_Builder.ToCodeBlack();
+        public string generatedShader => m_Builder.ToCodeBlock();
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
         public List<string> assetDependencyPaths => m_AssetDependencyPaths;
 
@@ -269,7 +269,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                string command = GenerationUtils.GetSpliceCommand(renderStateBuilder.ToCodeBlack(), "RenderState");
+                string command = GenerationUtils.GetSpliceCommand(renderStateBuilder.ToCodeBlock(), "RenderState");
                 spliceCommands.Add("RenderState", command);
             }
 
@@ -286,7 +286,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlack(), "PassPragmas");
+                string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
             }
 
@@ -303,7 +303,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                string command = GenerationUtils.GetSpliceCommand(passIncludeBuilder.ToCodeBlack(), "PreGraphIncludes");
+                string command = GenerationUtils.GetSpliceCommand(passIncludeBuilder.ToCodeBlock(), "PreGraphIncludes");
                 spliceCommands.Add("PreGraphIncludes", command);
             }
 
@@ -320,7 +320,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                string command = GenerationUtils.GetSpliceCommand(passKeywordBuilder.ToCodeBlack(), "PassKeywords");
+                string command = GenerationUtils.GetSpliceCommand(passKeywordBuilder.ToCodeBlock(), "PassKeywords");
                 spliceCommands.Add("PassKeywords", command);
             }
 
@@ -349,7 +349,7 @@ namespace UnityEditor.ShaderGraph
                         {
                             var instanceGenerator = new ShaderStringBuilder();
                             GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
-                            var key = instanceGenerator.ToCodeBlack();
+                            var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
                             else
@@ -385,7 +385,7 @@ namespace UnityEditor.ShaderGraph
                 interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Float.ToShaderString());
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
-            spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlack());
+            spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlock());
             
             // Generated String Builders for all struct types 
             var passStructBuilder = new ShaderStringBuilder();
@@ -401,7 +401,7 @@ namespace UnityEditor.ShaderGraph
             }
             if(passStructBuilder.length == 0) 
                 passStructBuilder.AppendLine("//Pass Structs: <None>");
-            spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlack());
+            spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlock());
 
             // --------------------------------------------------
             // Graph Vertex
@@ -447,7 +447,7 @@ namespace UnityEditor.ShaderGraph
             // Add to splice commands
             if(vertexBuilder.length == 0)
                 vertexBuilder.AppendLine("// GraphVertex: <None>");
-            spliceCommands.Add("GraphVertex", vertexBuilder.ToCodeBlack());
+            spliceCommands.Add("GraphVertex", vertexBuilder.ToCodeBlock());
 
             // --------------------------------------------------
             // Graph Pixel
@@ -490,7 +490,7 @@ namespace UnityEditor.ShaderGraph
                 // Add to splice commands
                 if(pixelBuilder.length == 0)
                     pixelBuilder.AppendLine("// GraphPixel: <None>");
-                spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlack());
+                spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -498,7 +498,7 @@ namespace UnityEditor.ShaderGraph
 
             if(functionBuilder.length == 0)
                 functionBuilder.AppendLine("// GraphFunctions: <None>");
-            spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlack());
+            spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlock());
 
             // --------------------------------------------------
             // Graph Keywords
@@ -508,7 +508,7 @@ namespace UnityEditor.ShaderGraph
                 keywordCollector.GetKeywordsDeclaration(keywordBuilder, m_Mode);
                 if(keywordBuilder.length == 0)
                     keywordBuilder.AppendLine("// GraphKeywords: <None>");
-                spliceCommands.Add("GraphKeywords", keywordBuilder.ToCodeBlack());
+                spliceCommands.Add("GraphKeywords", keywordBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -519,7 +519,7 @@ namespace UnityEditor.ShaderGraph
                 propertyCollector.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.concretePrecision);
                 if(propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
-                spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlack());
+                spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -532,7 +532,7 @@ namespace UnityEditor.ShaderGraph
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// DotsInstancedProperties: <None>");
-                spliceCommands.Add("DotsInstancedProperties", dotsInstancedPropertyBuilder.ToCodeBlack());
+                spliceCommands.Add("DotsInstancedProperties", dotsInstancedPropertyBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -551,7 +551,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 if(dotsInstancingOptionsBuilder.length == 0)
                     dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
-                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlack());
+                spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -615,7 +615,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // Add to splice commands
-                spliceCommands.Add("GraphDefines", graphDefines.ToCodeBlack());
+                spliceCommands.Add("GraphDefines", graphDefines.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -638,7 +638,7 @@ namespace UnityEditor.ShaderGraph
                 // Add to splice commands
                 if(mainBuilder.length == 0)
                     mainBuilder.AppendLine("// Post Graph Includes: <None>");
-                spliceCommands.Add("PostGraphIncludes", mainBuilder.ToCodeBlack());
+                spliceCommands.Add("PostGraphIncludes", mainBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------
@@ -661,7 +661,7 @@ namespace UnityEditor.ShaderGraph
                     debugBuilder.AppendLine("// <None>");
                 
                 // Add to splice commands
-                spliceCommands.Add("Debug", debugBuilder.ToCodeBlack());
+                spliceCommands.Add("Debug", debugBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------

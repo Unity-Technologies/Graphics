@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph
             m_StringBuilder.Replace(oldValue, newValue, start, end );
         }
 
-        public string ToCodeBlack()
+        public string ToCodeBlock()
         {
             // Remove new line
             if(m_StringBuilder.Length > 0)
