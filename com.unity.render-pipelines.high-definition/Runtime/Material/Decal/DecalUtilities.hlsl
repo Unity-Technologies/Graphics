@@ -286,8 +286,10 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 
     }
 #else // _SURFACE_TYPE_TRANSPARENT
-    #ifdef PLATFORM_SUPPORTS_TEXTURE_ATOMICS
-    mask = (uint)LOAD_TEXTURE2D_X(_DecalHTileTexture, posInput.positionSS / 8).r;
+    #ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
+    int stride = (_ScreenSize.x + 7) / 8;
+    int2 maskIndex = posInput.positionSS / 8;
+    mask = _DecalPropertyMaskBufferSRV[stride * maskIndex.y + maskIndex.x];
     #else
     mask = DBUFFERHTILEBIT_DIFFUSE | DBUFFERHTILEBIT_NORMAL | DBUFFERHTILEBIT_MASK;
     #endif

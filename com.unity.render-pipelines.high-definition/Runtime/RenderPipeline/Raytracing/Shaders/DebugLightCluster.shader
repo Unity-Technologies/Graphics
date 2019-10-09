@@ -147,7 +147,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 positionRWS = GetCameraRelativePositionWS(positionWS);
 
                 // Given that we have the cell index, get the number of lights
-                int numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
+                uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
                 output.cellColor.xyz = lerp(float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 0.0), clamp((float) numLights / _LightPerCellCount, 0.0, 1.0));
                 output.cellColor.w = numLights == 0 ? 0.0 : 1.0;
                 output.cellColor.xyz = numLights >= _LightPerCellCount ?  float3(5.0, 0.0, 0.0) : output.cellColor.xyz;
@@ -224,7 +224,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 positionRWS = GetCameraRelativePositionWS(positionWS);
 
                 // Given that we have the cell index, get the number of lights
-                int numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
+                uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
                 output.cellColor.xyz = lerp(float3(0.0, 1.0, 0.0), float3(1.0, 1.0, 0.0), clamp((float) numLights / _LightPerCellCount, 0.0, 1.0));
                 output.cellColor.w = numLights == 0 ? 0.0 : 1.0;
                 output.cellColor.xyz = numLights >= _LightPerCellCount ?  float3(1.0, 0.0, 0.0) : output.cellColor.xyz;

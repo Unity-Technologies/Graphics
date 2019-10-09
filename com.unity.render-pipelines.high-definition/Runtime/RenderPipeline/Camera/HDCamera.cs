@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Camera    camera;
         public Vector4   taaJitter;
         public int       taaFrameIndex;
-        public Vector2   taaFrameRotation;
+        public float     taaSharpenStrength;
         public Vector4   zBufferParams;
         public Vector4   unity_OrthoParams;
         public Vector4   projectionParams;
@@ -66,8 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public VBufferParameters[] vBufferParams; // Double-buffered
 
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
-
-        public bool sceneLightingWasDisabledForCamera = false;
 
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
@@ -379,10 +377,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (m_AdditionalCameraData != null)
                 {
                     antialiasing = m_AdditionalCameraData.antialiasing;
-                    if(antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-                    {
-                        SMAAQuality = m_AdditionalCameraData.SMAAQuality;
-                    }
+                    SMAAQuality = m_AdditionalCameraData.SMAAQuality;
+                    taaSharpenStrength = m_AdditionalCameraData.taaSharpenStrength;
                 }
                 else
                     antialiasing = AntialiasingMode.None;
@@ -392,12 +388,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 taaFrameIndex = 0;
                 taaJitter = Vector4.zero;
-            }
-
-            // TODO: is this used?
-            {
-                float t = taaFrameIndex * (0.5f * Mathf.PI);
-                taaFrameRotation = new Vector2(Mathf.Sin(t), Mathf.Cos(t));
             }
         }
 
@@ -471,7 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         combinedViewMatrix.SetColumn(3, combinedOrigin);
                     }
 
-                    projMatrix = combinedProjMatrix;
+                    projMatrix = GL.GetGPUProjectionMatrix(combinedProjMatrix, true);
                     invProjMatrix = projMatrix.inverse;
                     viewProjMatrix = projMatrix * combinedViewMatrix;
                 }
@@ -806,8 +796,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera.camera != null && camera.camera.cameraType == CameraType.SceneView)
                     continue;
 
+                bool hasPersistentHistory = camera.m_AdditionalCameraData != null && camera.m_AdditionalCameraData.hasPersistentHistory;
                 // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
-                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview))
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory))
                     s_Cleanup.Add(key);
             }
 
@@ -846,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._ProjectionParams,          projectionParams);
             cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams,          unity_OrthoParams);
             cmd.SetGlobalVector(HDShaderIDs._ScreenParams,              screenParams);
-            cmd.SetGlobalVector(HDShaderIDs._TaaFrameInfo,              new Vector4(taaFrameRotation.x, taaFrameRotation.y, taaFrameIndex, taaEnabled ? 1 : 0));
+            cmd.SetGlobalVector(HDShaderIDs._TaaFrameInfo,              new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0));
             cmd.SetGlobalVector(HDShaderIDs._TaaJitterStrength,         taaJitter);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
 

@@ -8,8 +8,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Ray tracing support for VR single-pass
+- Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
+- Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
+- Add check in wizard on SRP Batcher enabled.
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
+- Added custom pass fade radius
+- Added after post process injection point for custom passes
+- Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
+- Added falloff distance on Reflection Probe and Planar Reflection Probe
 
 ### Fixed
+- Fixed sky settings and materials in Shader Graph Samples package
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
 - Fixed Hair and PBR shader graphs double sided modes
 - Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
@@ -39,9 +48,47 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
 - Fix DXR scene serialization in wizard
 - Fixed an issue where Previews would reallocate History Buffers every frame
+- Fixed the SetLightLayer function in HDAdditionalLightData setting the wrong light layer
+- Fix error first time a preview is created for planar
+- Fixed an issue where SSR would use an incorrect roughness value on ForwardOnly (StackLit, AxF, Fabric, etc.) materials when the pipeline is configured to also allow deferred Lit.
+- Fixed issues with light explorer (cases 1183468, 1183269)
+- Fix dot colors in LayeredLit material inspector
+- Fix undo not resetting all value when undoing the material affectation in LayerLit material
+- Fix for issue that caused gizmos to render in render textures (case 1174395)
+- Fixed the light emissive mesh not updated when the light was disabled/enabled
+- Fixed light and shadow layer sync when setting the HDAdditionalLightData.lightlayersMask property
+- Fixed a nullref when a custom post process component that was in the HDRP PP list is removed from the project
+- Fixed issue that prevented decals from modifying specular occlusion (case 1178272).
+- Fixed exposure of volumetric reprojection
+- Fixed multi selection support for Scalable Settings in lights
+- Fixed font shaders in test projects for VR by using a Shader Graph version
+- Fixed refresh of baked cubemap by incrementing updateCount at the end of the bake (case 1158677).
+- Fixed issue with rectangular area light when seen from the back
+- Fixed decals not affecting lightmap/lightprobe
+- Fixed zBufferParams with XR single-pass rendering
+- Fixed moving objects not rendered in custom passes
+- Fixed abstract classes listed in the + menu of the custom pass list
+- Fixed custom pass that was rendered in previews
+- Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
+- Assign default volume profile when creating a new HDRP Asset
+- Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
+- Fixed bugs with shadow caching 
+- Reassign the same camera for a realtime probe face render request to have appropriate history buffer during realtime probe rendering.
+- Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
+- Fixed issue with decal and htile optimization
+- Fixed TerrainLit shader compilation error regarding `_Control0_TexelSize` redefinition (case 1178480).
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
+- Rename Emission Radius to Radius in UI in Point, Spot
+- Angular Diameter parameter for directional light is no longuer an advanced property
+- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead. 
+- Remove MaxSmoothness parameters from UI for point, spot and directional light. The MaxSmoothness is now deduce from Radius Parameters
+- DXR: Remove the Ray Tracing Environement Component. Add a Layer Mask to the ray Tracing volume components to define which objects are taken into account for each effect.
+- Removed second cubemaps used for shadowing in lookdev
+- Disable Physically Based Sky below ground
+- Increase max limit of area light and reflection probe to 128
+- Change default texture for detailmap to grey
 
 ## [7.1.1] - 2019-09-05
 

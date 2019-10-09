@@ -156,7 +156,7 @@ void RayGenReflectionHalfRes()
     }
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
     float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
@@ -271,7 +271,7 @@ void RayGenReflectionFullRes()
     }
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Compute the PDF
     float samplePDF = 1.0;
@@ -392,7 +392,7 @@ void RayGenIntegration()
         rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Contribute to the pixel
         finalColor += rayIntersection.color;

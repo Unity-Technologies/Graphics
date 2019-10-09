@@ -161,10 +161,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxCacheSize = 2000000000; //2 GigaByte
         internal const int k_MaxDirectionalLightsOnScreen = 16;
         internal const int k_MaxPunctualLightsOnScreen    = 512;
-        internal const int k_MaxAreaLightsOnScreen        = 64;
+        internal const int k_MaxAreaLightsOnScreen        = 128;
         internal const int k_MaxDecalsOnScreen = 512;
         internal const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
-        internal const int k_MaxEnvLightsOnScreen = 64;
+        internal const int k_MaxEnvLightsOnScreen = 128;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         #if UNITY_SWITCH
@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void NewFrame()
             {
+                areaLightCookieManager.NewFrame();
                 cookieTexArray.NewFrame();
                 cubeCookieTexArray.NewFrame();
                 reflectionProbeCache.NewFrame();
@@ -1149,9 +1150,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
 
             }
-
+            //Value of max smoothness is derived from AngularDiameter. Formula results from eyeballing. Angular diameter of 0 results in 1 and angular diameter of 80 results in 0.
+            float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f),2f)) - 0.11f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-            lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
+            lightData.minRoughness = (1.0f - maxSmoothness) * (1.0f - maxSmoothness);
 
             lightData.shadowMaskSelector = Vector4.zero;
 
@@ -1412,8 +1414,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
 #endif
+            //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
+            float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-            lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
+            lightData.minRoughness = (1.0f - maxSmoothness) * (1.0f - maxSmoothness);
 
             lightData.shadowMaskSelector = Vector4.zero;
 
@@ -1621,6 +1625,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Discard probe if disabled in debug menu
             if (!debugDisplaySettings.data.lightingDebugSettings.showReflectionProbe)
                 return false;
+            
+            // Discard probe if its distance is too far or if its weight is at 0
+            float weight = HDUtils.ComputeWeightedLinearFadeDistance(probe.transform.position, camera.transform.position, probe.weight, probe.fadeDistance);
+            if (weight <= 0f)
+                return false;
 
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
@@ -1684,7 +1693,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = probe.lightLayersAsUInt;
             envLightData.influenceShapeType = influence.envShape;
-            envLightData.weight = probe.weight;
+            envLightData.weight = weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
@@ -1948,10 +1957,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
-#if ENABLE_RAYTRACING
-            HDRaytracingEnvironment raytracingEnv = m_RayTracingManager.CurrentEnvironment();
-#endif
-
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
@@ -1966,6 +1971,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
+                m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;
                 m_DebugSelectedLightShadowCount = 0;
@@ -2054,12 +2060,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // And if needed rescale the whole atlas
                     m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
 
-                    bool isPysicallyBasedSkyActive = false;
-
                     var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
                     Debug.Assert(visualEnvironment != null);
 
-                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSky>());
+                    bool isPbrSkyActive = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased;
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -2126,7 +2130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
+                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPbrSkyActive))
                             {
                                 directionalLightcount++;
 
@@ -3148,6 +3152,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new DeferredLightingParameters();
 
+            bool debugDisplayOrSceneLightOff = CoreUtils.IsSceneLightingDisabled(hdCamera.camera) || debugDisplaySettings.IsDebugDisplayEnabled();
+
             int w = hdCamera.actualWidth;
             int h = hdCamera.actualHeight;
             parameters.numTilesX = (w + 15) / 16;
@@ -3156,7 +3162,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.enableTile = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile);
             parameters.outputSplitLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
             parameters.useComputeLightingEvaluation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation);
-            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
+            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplayOrSceneLightOff;
             parameters.enableShadowMasks = m_enableBakeShadowMask;
             parameters.numVariants = LightDefinitions.s_NumFeatureVariants;
             parameters.debugDisplaySettings = debugDisplaySettings;
@@ -3166,8 +3172,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = hdCamera.viewCount;
 
             // Full Screen Pixel (debug)
-            parameters.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
-            parameters.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
+            parameters.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, parameters.enableShadowMasks, debugDisplayOrSceneLightOff);
+            parameters.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, parameters.enableShadowMasks, debugDisplayOrSceneLightOff);
 
             return parameters;
         }

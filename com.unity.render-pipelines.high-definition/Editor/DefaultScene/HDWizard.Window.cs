@@ -64,8 +64,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string hdrpAssetEditorResourcesError = "There is an issue with the editor resources!";
             public const string hdrpAssetDiffusionProfileLabel = "Diffusion profile";
             public const string hdrpAssetDiffusionProfileError = "There is no diffusion profile assigned in the HDRP asset!";
+            public const string hdrpSRPBatcherLabel = "SRP Batcher";
+            public const string hdrpSRPBatcherError = "SRP Batcher must be enabled!";
             public const string defaultSceneLabel = "Default scene prefab";
             public const string defaultSceneError = "Default scene prefab must be set to create HD templated scene!";
+            public const string defaultVolumeProfileLabel = "Default volume profile";
+            public const string defaultVolumeProfileError = "Default volume profile must be assigned in the HDRP asset!";
             public const string vrSupportedLabel = "VR activated";
             public const string vrSupportedError = "VR need to be enabled in Player Settings!";
             public const string dxrAutoGraphicsAPILabel = "Auto graphics API";
@@ -359,8 +363,10 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(new ConfigInfoLine(Style.hdrpAssetUsedLabel, Style.hdrpAssetUsedError, Style.resolve, IsHdrpAssetUsedCorrect, () => FixHdrpAssetUsed(fromAsync: false), indent: 1));
             container.Add(new ConfigInfoLine(Style.hdrpAssetRuntimeResourcesLabel, Style.hdrpAssetRuntimeResourcesError, Style.resolve, IsHdrpAssetRuntimeResourcesCorrect, FixHdrpAssetRuntimeResources, indent: 1));
             container.Add(new ConfigInfoLine(Style.hdrpAssetEditorResourcesLabel, Style.hdrpAssetEditorResourcesError, Style.resolve, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources, indent: 1));
+            container.Add(new ConfigInfoLine(Style.hdrpSRPBatcherLabel, Style.hdrpSRPBatcherError, Style.resolve, IsSRPBatcherCorrect, FixSRPBatcher, indent: 1));
             container.Add(new ConfigInfoLine(Style.hdrpAssetDiffusionProfileLabel, Style.hdrpAssetDiffusionProfileError, Style.resolve, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile, indent: 1));
             container.Add(new ConfigInfoLine(Style.defaultSceneLabel, Style.defaultSceneError, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(fromAsync: false)));
+            container.Add(new ConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.resolve, IsDefaultVolumeProfileAssigned, FixDefaultVolumeProfileAssigned));
         }
 
         void AddVRConfigInfo(VisualElement container)

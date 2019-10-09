@@ -20,9 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // External data
         RenderPipelineResources m_RenderPipelineResources = null;
         HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources = null;
-        HDRaytracingManager m_RaytracingManager = null;
         HDRenderPipeline m_RenderPipeline = null;
-        SharedRTManager m_SharedRTManager = null;
 
         // Light Culling data
         LightVolume[] m_LightVolumesCPUArray = null;
@@ -78,18 +76,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        public void Initialize(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Initialize(HDRenderPipeline renderPipeline)
         {
             // Keep track of the external buffers
-            m_RenderPipelineResources = rpResources;
-            m_RenderPipelineRayTracingResources = rpRTResources;
-            m_RaytracingManager = raytracingManager;
+            m_RenderPipelineResources = renderPipeline.asset.renderPipelineResources;
+            m_RenderPipelineRayTracingResources = renderPipeline.asset.renderPipelineRayTracingResources;
 
             // Keep track of the render pipeline
             m_RenderPipeline = renderPipeline;
-
-            // Keep track of the shader rt manager
-            m_SharedRTManager = sharedRTManager;
 
             // Texture used to output debug information
             m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugLightClusterTexture");
@@ -225,9 +219,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildGPULightVolumes(HDRayTracingLights lightArray)
+        void BuildGPULightVolumes(HDRayTracingLights rayTracingLights)
         {
-            int totalNumLights = lightArray.hdLightArray.Count + lightArray.reflectionProbeArray.Count;
+            int totalNumLights = rayTracingLights.lightCount;
+
             // Make sure the light volume buffer has the right size
             if (m_LightVolumesCPUArray == null || totalNumLights != m_LightVolumesCPUArray.Length)
             {
@@ -241,9 +236,9 @@ namespace UnityEngine.Rendering.HighDefinition
             totalLightCount = 0;
 
             int realIndex = 0;
-            for (int lightIdx = 0; lightIdx < lightArray.hdLightArray.Count; ++lightIdx)
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
             {
-                HDAdditionalLightData currentLight = lightArray.hdLightArray[lightIdx];
+                HDAdditionalLightData currentLight = rayTracingLights.hdLightArray[lightIdx];
 
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to not add it if it is null for that invalid frame
@@ -275,9 +270,9 @@ namespace UnityEngine.Rendering.HighDefinition
             int indexOffset = realIndex;
 
             // Set Env Light volume data to the CPU buffer
-            for (int lightIdx = 0; lightIdx < lightArray.reflectionProbeArray.Count; ++lightIdx)
+            for (int lightIdx = 0; lightIdx < rayTracingLights.reflectionProbeArray.Count; ++lightIdx)
             {
-                HDProbe currentEnvLight = lightArray.reflectionProbeArray[lightIdx];
+                HDProbe currentEnvLight = rayTracingLights.reflectionProbeArray[lightIdx];
                 if (currentEnvLight != null)
                 {
                     if(currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
@@ -305,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightVolumeGPUArray.SetData(m_LightVolumesCPUArray);
         }
 
-        void EvaluateClusterVolume(HDRaytracingEnvironment currentEnv, HDCamera hdCamera)
+        void EvaluateClusterVolume(HDCamera hdCamera)
         {
             var settings = VolumeManager.instance.stack.GetComponent<LightCluster>();
 
@@ -343,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             clusterDimension = (maxClusterPos - minClusterPos);
         }
 
-        void CullLights(CommandBuffer cmd, ComputeShader lightClusterCS)
+        void CullLights(CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Cull Light Cluster", CustomSamplerId.RaytracingCullLights.GetSampler()))
             {
@@ -352,6 +347,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     ResizeCullResultBuffer(totalLightCount);
                 }
+
+                ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
 
                 // Grab the kernel
                 int lightClusterCullKernel = lightClusterCS.FindKernel(m_LightCullKernelName);
@@ -370,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightCluster(CommandBuffer cmd, ComputeShader lightClusterCS, HDRaytracingEnvironment currentEnv)
+        void BuildLightCluster(CommandBuffer cmd)
         {
             using (new ProfilingSample(cmd, "Build Light Cluster", CustomSamplerId.RaytracingBuildCluster.GetSampler()))
             {
@@ -385,6 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Grab the kernel
+                ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
                 int lightClusterKernel = lightClusterCS.FindKernel(m_LightClusterKernelName);
 
                 // Inject all the parameters
@@ -406,92 +404,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void GetLightGPUType(HDAdditionalLightData additionalData, Light light, ref GPULightType gpuLightType, ref LightCategory lightCategory)
-        {
-            lightCategory = LightCategory.Count;
-            gpuLightType = GPULightType.Point;
-
-            if (additionalData.lightTypeExtent == LightTypeExtent.Punctual)
-            {
-                lightCategory = LightCategory.Punctual;
-
-                switch (light.type)
-                {
-                    case LightType.Spot:
-                        switch (additionalData.spotLightShape)
-                        {
-                            case SpotLightShape.Cone:
-                                gpuLightType = GPULightType.Spot;
-                                break;
-                            case SpotLightShape.Pyramid:
-                                gpuLightType = GPULightType.ProjectorPyramid;
-                                break;
-                            case SpotLightShape.Box:
-                                gpuLightType = GPULightType.ProjectorBox;
-                                break;
-                            default:
-                                Debug.Assert(false, "Encountered an unknown SpotLightShape.");
-                                break;
-                        }
-                        break;
-
-                    case LightType.Directional:
-                        gpuLightType = GPULightType.Directional;
-                        break;
-
-                    case LightType.Point:
-                        gpuLightType = GPULightType.Point;
-                        break;
-
-                    default:
-                        Debug.Assert(false, "Encountered an unknown LightType.");
-                        break;
-                }
-            }
-            else
-            {
-                lightCategory = LightCategory.Area;
-
-                switch (additionalData.lightTypeExtent)
-                {
-                    case LightTypeExtent.Rectangle:
-                        gpuLightType = GPULightType.Rectangle;
-                        break;
-
-                    case LightTypeExtent.Tube:
-                        gpuLightType = GPULightType.Tube;
-                        break;
-
-                    default:
-                        Debug.Assert(false, "Encountered an unknown LightType.");
-                        break;
-                }
-            }
-        }
-
-        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, List<HDAdditionalLightData> lightArray)
+        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If no lights, exit
-            if (lightArray.Count == 0)
+            if (rayTracingLights.lightCount == 0)
             {
                 ResizeLightDataBuffer(1);
                 return;
             }
 
             // Also we need to build the light list data
-            if (m_LightDataGPUArray == null || m_LightDataGPUArray.count != lightArray.Count)
+            if (m_LightDataGPUArray == null || m_LightDataGPUArray.count != rayTracingLights.lightCount)
             {
-                ResizeLightDataBuffer(lightArray.Count);
+                ResizeLightDataBuffer(rayTracingLights.lightCount);
             }
 
             m_LightDataCPUArray.Clear();
 
             // Build the data for every light
-            for (int lightIdx = 0; lightIdx < lightArray.Count; ++lightIdx)
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
             {
                 var lightData = new LightData();
 
-                HDAdditionalLightData additionalLightData = lightArray[lightIdx];
+                HDAdditionalLightData additionalLightData = rayTracingLights.hdLightArray[lightIdx];
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to add an invalid light for that frame
                 if(additionalLightData == null)
@@ -514,7 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.lightLayers = additionalLightData.GetLightLayers();
                 LightCategory lightCategory = LightCategory.Count;
                 GPULightType gpuLightType = GPULightType.Point;
-                GetLightGPUType(additionalLightData, light, ref gpuLightType, ref lightCategory);
+                LightVolumeType lightVolumeType = LightVolumeType.Count;
+                HDRenderPipeline.EvaluateGPULightType(light.type, additionalLightData.lightTypeExtent, additionalLightData.spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                 lightData.lightType = gpuLightType;
 
@@ -741,7 +677,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightClusterDebugCS == null) return;
 
             // Bind the output texture
-            CoreUtils.SetRenderTarget(cmd, m_DebugLightClusterTexture, m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
+            CoreUtils.SetRenderTarget(cmd, m_DebugLightClusterTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
 
             // Grab the kernel
             int m_LightClusterDebugKernel = lightClusterDebugCS.FindKernel("DebugLightCluster");
@@ -752,7 +688,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(lightClusterDebugCS, HDShaderIDs._MaxClusterPos, maxClusterPos);
             cmd.SetComputeVectorParam(lightClusterDebugCS, _ClusterCellSize, clusterCellSize);
             cmd.SetComputeIntParam(lightClusterDebugCS, HDShaderIDs._LightPerCellCount, numLightsPerCell);
-            cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
+            cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
 
             // Target output texture
             cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, _DebutLightClusterTexture, m_DebugLightClusterTexture);
@@ -774,7 +710,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugMaterialProperties.SetVector(HDShaderIDs._MaxClusterPos, maxClusterPos);
             m_DebugMaterialProperties.SetVector(_ClusterCellSize, clusterCellSize);
             m_DebugMaterialProperties.SetInt(HDShaderIDs._LightPerCellCount, numLightsPerCell);
-            m_DebugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthTexture());
+            m_DebugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, m_RenderPipeline.sharedRTManager.GetDepthTexture());
 
             // Draw the faces
             cmd.DrawProcedural(Matrix4x4.identity, m_DebugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, m_DebugMaterialProperties);
@@ -846,11 +782,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EvaluateLightClusters(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
-            // Grab the current ray-tracing environment, if no environment available stop right away
-            HDRaytracingEnvironment currentEnv = m_RaytracingManager.CurrentEnvironment();
-            ComputeShader lightClusterCS = m_RenderPipelineRayTracingResources.lightClusterBuildCS;
             // If there is no lights to process or no environment not the shader is missing
-            if (currentEnv == null || (rayTracingLights.hdLightArray.Count == 0 && rayTracingLights.reflectionProbeArray.Count == 0))
+            if (rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
             {
                 InvalidateCluster();
                 return;
@@ -867,16 +800,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Evaluate the volume of the cluster
-            EvaluateClusterVolume(currentEnv, hdCamera);
+            EvaluateClusterVolume(hdCamera);
 
             // Cull the lights within the evaluated cluster range
-            CullLights(cmd, lightClusterCS);
+            CullLights(cmd);
 
             // Build the light Cluster
-            BuildLightCluster(cmd, lightClusterCS, currentEnv);
+            BuildLightCluster(cmd);
 
             // Build the light data
-            BuildLightData(cmd, hdCamera, rayTracingLights.hdLightArray);
+            BuildLightData(cmd, hdCamera, rayTracingLights);
 
             // Build the light data
             BuildEnvLightData(cmd, hdCamera, rayTracingLights);
