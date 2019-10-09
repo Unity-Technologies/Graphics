@@ -188,9 +188,6 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-    // Not lit here (but emissive is allowed)
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
-
     HDShadowContext shadowContext = InitShadowContext();
     float shadow;
     float3 normalWS = normalize(packedInput.vmesh.interpolators1);
@@ -200,14 +197,12 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     float3 shadowTint = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).rgb * _ShadowTint.rgb;
     float shadowTintAlpha = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).a * _ShadowTint.a;
 
-    //shadow = (1.0f - shadow)*(1.0f - shadowTintAlpha);
-    //shadow *= shadowTintAlpha;
-
-    float3 shadowColor = ComputeShadowColor(shadow, shadowTint.rgb);
+    float3 shadowColor  = ComputeShadowColor(shadow, shadowTint.rgb);
+    float  coef         = (1 - shadow)*shadowTintAlpha;
 
     // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
-    //float4 outColor = ApplyBlendMode(shadowColor/**bsdfData.color*/ + builtinData.emissiveColor*GetCurrentExposureMultiplier(), builtinData.opacity);
-    //outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
+    float4 outColor = ApplyBlendMode(shadowColor, builtinData.opacity);
+    outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
 
 #ifdef DEBUG_DISPLAY
     // Same code in ShaderPassForward.shader
@@ -251,6 +246,5 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     }
 #endif
 
-    return float4(shadowColor.rgb*(1 - shadow)*(shadowTintAlpha), (1 - shadow)*(shadowTintAlpha));
-    //return float4(shadowColor.rgb, 1);
+    return float4(outColor.rgb*coef, coef);
 }
