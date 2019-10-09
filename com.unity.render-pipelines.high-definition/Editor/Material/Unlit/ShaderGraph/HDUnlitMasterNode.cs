@@ -374,8 +374,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Features
                 new ConditionalField(DefaultFields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
-                                                                                        IsSlotConnected(VertexNormalSlotID) || 
-                                                                                        IsSlotConnected(VertexTangentSlotID)),
+                                                                                        IsSlotConnected(VertexNormalSlotId) || 
+                                                                                        IsSlotConnected(VertexTangentSlotId)),
                 new ConditionalField(DefaultFields.GraphPixel,                          true),
 
                 // Distortion
