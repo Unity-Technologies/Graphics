@@ -211,7 +211,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var node in m_Graph.removedNodes)
             {
-                Debug.Log(node.name);
                 DestroyPreview(node.tempId);
                 m_NodesToUpdate.Remove(node);
                 m_NodesToDraw.Remove(node);
@@ -458,7 +457,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
                 ShaderUtil.ClearCachedData(renderData.shaderData.shader);
-                
+
                 BeginCompile(renderData, results.shader);
                 //get the preview mode from generated results
                 renderData.previewMode = results.previewMode;
@@ -597,7 +596,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 return;
             }
-            Debug.Log(renderData.shaderData.node.name);
 
             DestroyRenderData(renderData);
 

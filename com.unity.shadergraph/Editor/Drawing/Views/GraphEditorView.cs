@@ -820,7 +820,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //Debug.Log(Environment.StackTrace);
                 VisualizeActiveMasterNode();
                 //m_Graph.didActiveOutputNodeChange = true;
-                Debug.Log("Muppets!");
             }
 
             if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
