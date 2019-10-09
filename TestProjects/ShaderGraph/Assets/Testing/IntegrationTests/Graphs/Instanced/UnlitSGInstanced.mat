@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PBRInstanced
-  m_Shader: {fileID: -6465566751694194690, guid: 6eb63b2711d222d4aa9d3c023fd1d483,
+  m_Name: UnlitSGInstanced
+  m_Shader: {fileID: -6465566751694194690, guid: 2e0dd05ab112bd749ad4e1c61b988c51,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
