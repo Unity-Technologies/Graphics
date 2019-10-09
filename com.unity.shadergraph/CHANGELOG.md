@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
+- Added support for vertex skinning when you use the DOTS animation package.
 
 ### Fixed 
 - The Editor now displays correct errors for missing or deleted Sub Graph Assets.
