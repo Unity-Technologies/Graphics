@@ -49,7 +49,7 @@ linux_apis:
     flavor: m1.mac
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published
     
@@ -77,7 +77,7 @@ linux_apis:
     flavor: b1.large
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published    
 
@@ -146,7 +146,7 @@ linux_apis:
   commands:
     - sudo -H pip install --upgrade pip
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-    - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - sudo npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli -b {{ editor.version }} -c editor --wait --published
     {% if testplatform.name == "Standalone" %}
