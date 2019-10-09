@@ -44,6 +44,9 @@ Pass
     $DisableDecals:                      #define _DISABLE_DECALS 1
     $DisableSSR:                         #define _DISABLE_SSR 1
 
+    // Includes
+    $splice(PreGraphIncludes)
+
     // --------------------------------------------------
     // Structs and Packing
 
@@ -254,7 +257,7 @@ Pass
     // --------------------------------------------------
     // Main
 
-    $splice(MainInclude)
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }
