@@ -380,7 +380,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.LightLayer, "m_RenderingLayerMask", 80, (r, prop, dep) =>     // 20: Light Layer
                 {
-                    using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportLightLayers))
+                    using (new EditorGUI.DisabledScope(!(GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportLightLayers))
                     {
                         Light light = prop.serializedObject.targetObject as Light;
                         if(light == null || lightDataPairing[light].hdAdditionalLightData == null)

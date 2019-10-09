@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                HDRenderPipelineAsset hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                 if (hdrp != null)
                 {
                     return hdrp.currentPlatformRenderPipelineSettings.decalSettings.drawDistance;
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                HDRenderPipelineAsset hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                 if (hdrp != null)
                 {
                     return hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Material == null)
                     return;
 
-                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                HDRenderPipelineAsset hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                 bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);

@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
 
                 return hdPipelineAsset.currentPlatformRenderPipelineSettings;
             }

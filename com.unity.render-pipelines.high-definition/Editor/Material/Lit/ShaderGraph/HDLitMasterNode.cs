@@ -1049,7 +1049,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void ValidateNode()
         {
-            var hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdPipelineAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
 
             if (hdPipelineAsset == null)
                 return;

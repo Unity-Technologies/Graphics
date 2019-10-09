@@ -672,7 +672,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (serialized.settings.isMixed)
                     {
-                        using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
+                        using (new EditorGUI.DisabledScope(!(GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
                         {
                             EditorGUI.showMixedValue = serialized.serializedLightData.nonLightmappedOnly.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
@@ -834,7 +834,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
 
             // Draw shadow settings using the current shadow algorithm
-            HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
             LightType lightType = (LightType)serialized.settings.lightType.enumValueIndex;
 
             return hdShadowInitParameters.shadowFilteringQuality == quality;

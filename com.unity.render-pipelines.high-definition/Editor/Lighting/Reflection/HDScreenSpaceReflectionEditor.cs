@@ -72,7 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDRenderPipelineAsset currentAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            HDRenderPipelineAsset currentAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSR ?? false)
             {
                 EditorGUILayout.Space();

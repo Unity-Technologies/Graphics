@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
 
             // Create Materials
             m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_WardPS);

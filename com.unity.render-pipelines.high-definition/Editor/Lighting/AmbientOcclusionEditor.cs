@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
+            if (!(GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset)
                 ?.currentPlatformRenderPipelineSettings.supportSSAO ?? false)
             {
                 EditorGUILayout.Space();

@@ -285,7 +285,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (field is Enum)
                 return EditorGUILayout.EnumPopup(label, (Enum)field);
             else if (field is LayerMask)
-                return EditorGUILayout.MaskField(label, (LayerMask)field, GraphicsSettings.renderPipelineAsset.renderingLayerMaskNames);
+                return EditorGUILayout.MaskField(label, (LayerMask)field, GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames);
             else if (field is UnityEngine.Object)
                 return EditorGUILayout.ObjectField(label, (UnityEngine.Object)field, field.GetType(), true);
             else if (field is SerializedProperty)

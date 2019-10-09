@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                 m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
 #if UNITY_EDITOR
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
                 return false;
 #endif

@@ -359,7 +359,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // We need to prevent the user to edit default decal materials
                 bool isDefaultMaterial = false;
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                 if (hdrp != null)
                 {
                     foreach(var decalProjector in targets)

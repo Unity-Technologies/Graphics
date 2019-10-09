@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var hdrpAsset     = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrpAsset     = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             var hdrpResources = HDRenderPipeline.defaultAsset.renderPipelineResources;
 
             // Shaders

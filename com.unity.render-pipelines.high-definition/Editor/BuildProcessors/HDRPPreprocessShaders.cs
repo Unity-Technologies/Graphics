@@ -316,7 +316,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Here we want the HDRP Assets that are actually used at runtime.
                 // An SRP asset is included if:
                 // 1. It is set in a quality level
-                // 2. It is set as main (GraphicsSettings.renderPipelineAsset)
+                // 2. It is set as main (GraphicsSettings.currentRenderPipeline)
                 //   AND at least one quality level does not have SRP override
                 // 3. It is set as default (GraphicsSettings.defaultRenderPipeline)
                 //   AND there is no main SRP
@@ -336,7 +336,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!allQualityLevelsAreOverriden)
                 {
                     // We need to check the fallback cases
-                    if (GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrp1)
+                    if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrp1)
                         tmpAssets.Add(hdrp1);
                     else if (GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset hdrp2)
                         tmpAssets.Add(hdrp2);

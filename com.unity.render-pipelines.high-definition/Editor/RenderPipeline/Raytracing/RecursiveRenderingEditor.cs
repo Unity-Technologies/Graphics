@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDRenderPipelineAsset currentAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            HDRenderPipelineAsset currentAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
             {
                 EditorGUILayout.Space();

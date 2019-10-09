@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnPreprocessBuild(BuildReport report)
         {
             // Detect if the users forget to assign an HDRP Asset
-            if (GraphicsSettings.renderPipelineAsset == null)
+            if (GraphicsSettings.currentRenderPipeline == null)
             {
                 if (!Application.isBatchMode)
                 {
@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Don't execute the preprocess if we are not HDRenderPipeline
-            HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             if (hdPipelineAsset == null)
                 return;
 

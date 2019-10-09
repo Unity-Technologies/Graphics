@@ -1114,7 +1114,7 @@ namespace UnityEditor.VFX
 
                 if (m_RenderingLayerMask != null)
                 {
-                    RenderPipelineAsset srpAsset = GraphicsSettings.renderPipelineAsset;
+                    RenderPipelineAsset srpAsset = GraphicsSettings.currentRenderPipeline;
                     if (srpAsset != null)
                     {
                         var layerNames = srpAsset.renderingLayerMaskNames;

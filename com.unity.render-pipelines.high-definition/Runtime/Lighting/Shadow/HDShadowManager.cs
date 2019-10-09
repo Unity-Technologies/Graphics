@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
-            var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            var hdAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
             switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
             {
                 case HDShadowFilteringQuality.Low:
@@ -540,7 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
 
-            var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            var hdAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
 
             if (atlas.HasBlurredEVSM())
             {

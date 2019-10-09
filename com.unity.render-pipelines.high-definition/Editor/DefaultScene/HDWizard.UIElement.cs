@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 title = Style.hdrpAssetDisplayDialogTitle;
                 content = Style.hdrpAssetDisplayDialogContent;
-                target = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                target = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             }
             else
                 throw new ArgumentException("Unknown type used");

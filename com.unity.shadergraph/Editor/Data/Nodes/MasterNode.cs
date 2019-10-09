@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var subShader in m_SubShaders)
             {
-                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                if (subShader.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
                     return subShader;
             }
             return null;
@@ -117,7 +117,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var subShader in m_SubShaders)
                 {
-                    if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                    if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
                         finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
                 }
 
@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var subShader in m_SubShaders)
             {
-                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                if (subShader.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
                     return true;
             }
             return false;

@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void UpgradeSceneMaterials()
         {
 #pragma warning disable 618
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
             // For each loaded materials
             foreach (var mat in Resources.FindObjectsOfTypeAll<Material>())
             {
