@@ -60,3 +60,28 @@ MaterialNodeView.CategoryColor #selection-border{
     border-top-width: 2px;
     border-bottom-width: 2px;
 }
+
+MaterialNodeView.UserDefinedColor:hover > #selection-border{
+    border-color: rgba(68,192,255, 0.5);
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-top-width: 5px;
+    border-bottom-width: 5px;
+}
+
+MaterialNodeView.UserDefinedColor:selected  > #selection-border
+{
+    border-color: #44C0FF;
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-top-width: 5px;
+    border-bottom-width: 5px;
+}
+
+MaterialNodeView.UserDefinedColor #selection-border{
+    border-radius: 10px;
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-top-width: 5px;
+    border-bottom-width: 5px;
+}

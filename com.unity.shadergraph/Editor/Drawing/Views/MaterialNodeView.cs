@@ -239,18 +239,28 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return this; }
         }
 
-        static readonly StyleColor noColor = new StyleColor(StyleKeyword.Null);
+        static readonly StyleColor noColor = new StyleColor(StyleKeyword.Auto);
+        static readonly StyleColor clearColor = new StyleColor(Color.clear);
         public void SetColor(Color color)
         {
+            AddToClassList("UserDefinedColor");
             //m_TitleContainer.style.borderBottomColor = color;
-            m_Border.style.borderBottomColor = color;
-            m_Border.style.borderTopColor = color;
-            m_Border.style.borderLeftColor = color;
+
+
+//            m_Border.style.borderBottomColor = color;
+//            m_Border.style.borderTopColor = color;
+//            m_Border.style.borderLeftColor = color;
             m_Border.style.borderRightColor = color;
-            m_Border.style.borderBottomWidth = 2;
-            m_Border.style.borderTopWidth = 2;
-            m_Border.style.borderLeftWidth = 2;
-            m_Border.style.borderRightWidth = 2;
+//
+
+//            m_Border.style.borderBottomWidth = 2;
+//            m_Border.style.borderTopWidth = 2;
+//            m_Border.style.borderLeftWidth = 2;
+//            m_Border.style.borderRightWidth = 2;
+
+
+
+
 //            m_Border.style.borderBottomColor = color;
 //            m_Border.style.borderLeftColor = color;
 //            m_Border.style.borderRightColor = color;
@@ -259,13 +269,30 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ResetColor()
         {
-            m_TitleContainer.style.borderBottomColor = noColor;
+
+//            //m_TitleContainer.style.borderBottomColor = noColor;
+//            m_Border.style.borderBottomColor = clearColor;
+//            m_Border.style.borderTopColor = clearColor;
+//            m_Border.style.borderLeftColor = clearColor;
+            m_Border.style.borderRightColor = clearColor;
+            RemoveFromClassList("UserDefinedColor");
+
         }
 
+//        void DefaultBorderStyle()
+//        {
+//            background-color:rgba(68,192,255,0.4);
+//            border-color:rgba(68,192,255,1);
+//            border-left-width: 2px;
+//            border-right-width: 2px;
+//            border-top-width: 2px;
+//            border-bottom-width: 2px;
+//        }
 
         public Color GetColor()
         {
-            return m_TitleContainer.resolvedStyle.borderBottomColor;
+            //return m_TitleContainer.resolvedStyle.borderBottomColor;
+            return m_Border.resolvedStyle.borderBottomColor;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
