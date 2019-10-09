@@ -88,10 +88,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "ENABLE_WIND", windOn);
 
                 // This is something we only have to do for Speedtree version 8, whereas 7 uses the _WindQuality value directly.
-                // and of course, it only makes sense 
-                if (material.HasProperty("_WindQualityVer8") && windOn)
+                // and it so happens that only Speedtree 7 has a _SpeedTreeGeom property, whereas 8 embeds it inside UV...
+                // So we know that if we don't have a _SpeedTreeGeom property, this must be SpeedTree 8.
+                if (material.HasProperty("_WindQuality") && windOn && !material.HasProperty("_SpeedTreeGeom"))
                 {
-                    SpeedTreeLitMasterNode.WindQuality q = (SpeedTreeLitMasterNode.WindQuality)material.GetInt("_WindQualityVer8");
+                    SpeedTreeLitMasterNode.WindQuality q = (SpeedTreeLitMasterNode.WindQuality)material.GetInt("_WindQuality");
 
                     material.DisableKeyword("_WINDQUALITY_NONE");
                     material.DisableKeyword("_WINDQUALITY_FASTEST");
