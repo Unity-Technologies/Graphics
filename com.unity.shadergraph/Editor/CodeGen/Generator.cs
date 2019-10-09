@@ -367,7 +367,8 @@ namespace UnityEditor.ShaderGraph
                             else
                                 interpolatorBuilder.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(generated.Value.Item2).Replace("#if", "#elif"));
 
-                            interpolatorBuilder.Concat(generated.Value.Item1);
+                            //interpolatorBuilder.Concat(generated.Value.Item1);
+                            interpolatorBuilder.AppendLines(generated.Value.Item1.ToString());
                         }
                         if (generatedPackedTypes.Count > 0)
                             interpolatorBuilder.AppendLine("#endif");
