@@ -21,16 +21,10 @@ CBUFFER_END
 
 #endif
 
-void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float3 finalTangent, out float2 finalUV, out float finalAlpha)
+#ifdef SPEEDTREE_V7
+
+void Speedtree7Wind(float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, inout float3 finalPosition, inout float3 finalNormal)
 {
-    finalPosition = vertex.xyz;
-    finalNormal = normal.xyz;
-    finalTangent = tangent.xyz;
-    finalUV = texcoord0.xy;     // Billboard UVs might overwrite this.
-    finalAlpha = 1.0;
-
-#if defined(SPEEDTREE_V7) && !defined(EFFECT_BILLBOARD)
-
 #ifdef ENABLE_WIND
     half windQuality = ((windOverride >= 0) ? windOverride : _WindQuality) * _WindEnabled;
 
@@ -122,8 +116,13 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
         finalPosition = GlobalWind(finalPosition, treePos, true, rotatedWindVector, _ST_WindGlobal.x);
     }
 #endif
+}
 
-#elif defined(SPEEDTREE_V7)
+#endif // SPEEDTREE_V7
+
+#if defined(SPEEDTREE_V7) && defined(EFFECT_BILLBOARD)
+void Speedtree7BBWind(float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, inout float3 finalPosition, inout float3 finalNormal, inout float3 finalTangent, inout float2 finalUV)
+{
     // This is handling Speedtree v7 billboards
     float4x4 objToWorld = UNITY_MATRIX_M;
     // assume no scaling & rotation
@@ -180,9 +179,12 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
     {
         finalUV = imageTexCoords.xy + imageTexCoords.zw * percent;
     }
+}
+#endif // SPEEDTREE_V7 && EFFECT_BILLBOARD
 
-#else // if it's SPEEDTREE_V8
-    
+#ifdef SPEEDTREE_V8
+void Speedtree8Wind(float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, inout float3 finalPosition, inout float3 finalNormal, inout float3 finalTangent, inout float2 finalUV, inout float finalAlpha)
+{
     // smooth LOD
 #if defined(LOD_FADE_PERCENTAGE) && !defined(EFFECT_BILLBOARD)
     finalPosition.xyz = lerp(finalPosition.xyz, texcoord2.xyz, unity_LODFade.x);
@@ -274,8 +276,10 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
         finalPosition.xyz = windyPosition;
     }
 #endif	// defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
+}
 
-#if defined(EFFECT_BILLBOARD)
+void Speedtree8BBFade(float4 texcoord0, inout float3 finalPosition, inout float3 finalNormal, inout float3 finalTangent, inout float2 finalUV, inout float finalAlpha)
+{
     float3 treePos = float3(UNITY_MATRIX_M[0].w, UNITY_MATRIX_M[1].w, UNITY_MATRIX_M[2].w);
 
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
@@ -322,9 +326,34 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
     }
 
     finalNormal = normalize(finalNormal);
+}
+#endif
+
+void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float3 finalTangent, out float2 finalUV, out float finalAlpha)
+{
+    finalPosition = vertex.xyz;
+    finalNormal = normal.xyz;
+    finalTangent = tangent.xyz;
+    finalUV = texcoord0.xy;     // Billboard UVs (Speedtree7) might overwrite this.
+    finalAlpha = 1.0;           // Billboards in Speedtree8 will change this.
+
+#if defined(SPEEDTREE_V7) && !defined(EFFECT_BILLBOARD)
+
+    Speedtree7Wind(color, texcoord0, texcoord1, texcoord2, texcoord3, windOverride, finalPosition, finalNormal);
+
+#elif defined(SPEEDTREE_V7)
+
+    Speedtree7BBWind(texcoord0, texcoord1, texcoord2, texcoord3, windOverride, finalPosition, finalNormal, finalTangent, finalUV);
+
+#elif defined(SPEEDTREE_V8)
+
+    Speedtree8Wind(texcoord0, texcoord1, texcoord2, texcoord3, finalPosition, finalNormal, finalTangent, finalUV, finalAlpha);
+
+#if defined(EFFECT_BILLBOARD)
+    Speedtree8BBFade(texcoord0, finalPosition, finalNormal, finalTangent, finalUV, finalAlpha);
 #endif // defined(EFFECT_BILLBOARD)
 
-#endif // IS SPEEDTREE_V8
+#endif 
 }
 
 #endif

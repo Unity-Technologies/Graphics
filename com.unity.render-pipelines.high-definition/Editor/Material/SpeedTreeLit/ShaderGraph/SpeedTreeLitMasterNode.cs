@@ -1035,10 +1035,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public void AddBasicGeometryDefines(ref List<String> ExtraDefines)
         {
             ExtraDefines.Add("#pragma enable_d3d11_debug_symbols");
-            ExtraDefines.Add("#pragma shader_feature_local EFFECT_BUMP");
             ExtraDefines.Add("#pragma shader_feature_local ENABLE_WIND");
             ExtraDefines.Add("#pragma shader_feature_local EFFECT_BILLBOARD");
-            //ExtraDefines.Add("#pragma shader_feature_local _ SPEEDTREE_V7 SPEEDTREE_V8");
             ExtraDefines.Add("#define _ALPHATEST_ON");
             if (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree7)
             {
@@ -1152,12 +1150,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 hidden = true,
             });
 
-            // Use a different reference name for 8 and 7 because we need to do different things with them, and
-            // that is dependent on finding the property value by name.
-            string windQualityRefName = (speedTreeAssetVersion == SpeedTreeVersion.SpeedTree8) ? "_WindQualityVer8" : "_WindQuality";
+            // WARNING!!!  This has to be named _WindQuality, or we will just lose wind support entirely.
+            // We also do something specific for Speedtree 8, and the assumption here is that ONLY Speedtree 8 has this property
+            // but DOES NOT have the Geometry Type tag.
             collector.AddShaderProperty(new Vector1ShaderProperty()
             {
-                overrideReferenceName = windQualityRefName,
+                overrideReferenceName = "_WindQuality",
                 floatType = FloatType.Enum,
                 value = (int)WindQuality.Best,
                 enumNames = { "None", "Fastest", "Fast", "Better", "Best", "Palm" },
