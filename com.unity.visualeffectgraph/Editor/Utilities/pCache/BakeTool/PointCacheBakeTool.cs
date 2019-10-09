@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
-    public partial class PointCacheBakeTool : EditorWindow
+    partial class PointCacheBakeTool : EditorWindow
     {
         [MenuItem("Window/Visual Effects/Utilities/Point Cache Bake Tool",false,3012)]
         static void OpenWindow()

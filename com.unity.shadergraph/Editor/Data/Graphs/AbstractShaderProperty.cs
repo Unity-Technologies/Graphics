@@ -1,22 +1,30 @@
 using System;
-using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    abstract class AbstractShaderProperty : ShaderInput
+    public abstract class AbstractShaderProperty : ShaderInput
     {
         public abstract PropertyType propertyType { get; }
 
-        public override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
+        internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
 
         [SerializeField]
         Precision m_Precision = Precision.Inherit;
         
+        [SerializeField]
+        private bool m_GPUInstanced = false;
+
+        public bool gpuInstanced
+        {
+            get { return m_GPUInstanced; }
+            set { m_GPUInstanced = value; }
+        }
+
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
-        public Precision precision
+        internal Precision precision
         {
             get => m_Precision;
             set => m_Precision = value;
@@ -24,12 +32,12 @@ namespace UnityEditor.ShaderGraph
 
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
 
-        public void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
         {
             m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
         }
 
-        public abstract bool isBatchable { get; }
+        internal abstract bool isBatchable { get; }
 
         [SerializeField]
         bool m_Hidden = false;
@@ -40,30 +48,31 @@ namespace UnityEditor.ShaderGraph
             set => m_Hidden = value;
         }
 
-        public string hideTagString => hidden ? "[HideInInspector]" : "";
+        internal string hideTagString => hidden ? "[HideInInspector]" : "";
 
-        public virtual string GetPropertyBlockString()
+        internal virtual string GetPropertyBlockString()
         {
             return string.Empty;
         }
 
-        public virtual string GetPropertyDeclarationString(string delimiter = ";")
+        internal virtual string GetPropertyDeclarationString(string delimiter = ";")
         {
             SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
             return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{delimiter}";
         }
 
-        public virtual string GetPropertyAsArgumentString()
+        internal virtual string GetPropertyAsArgumentString()
         {
             return GetPropertyDeclarationString(string.Empty);
         }
         
-        public abstract AbstractMaterialNode ToConcreteNode();
-        public abstract PreviewProperty GetPreviewMaterialProperty();
+        internal abstract AbstractMaterialNode ToConcreteNode();
+        internal abstract PreviewProperty GetPreviewMaterialProperty();
+        internal virtual bool isGpuInstanceable => false;
     }
     
     [Serializable]
-    abstract class AbstractShaderProperty<T> : AbstractShaderProperty
+    public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
         [SerializeField]
         T m_Value;

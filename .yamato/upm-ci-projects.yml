@@ -7,10 +7,14 @@ projects:
     folder: UniversalGfxTestStereo
   - name: ShaderGraph
     folder: ShaderGraph
+  - name: ShaderGraph_Stereo
+    folder: ShaderGraphUniversalStereo
   - name: PostProcessing
     folder: PostProcessing
   - name: HDRP
     folder: HDRP_Tests
+  - name: HDRP_Standalone
+    folder: HDRP_RuntimeTests
   - name: VFXMain
     folder: VisualEffectGraph
   - name: VFX_LWRP

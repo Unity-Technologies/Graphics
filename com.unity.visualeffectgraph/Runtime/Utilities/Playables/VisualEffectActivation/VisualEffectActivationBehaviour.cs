@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 using UnityEngine.VFX.Utility;
 
 [Serializable]
-public class VisualEffectActivationBehaviour : PlayableBehaviour
+class VisualEffectActivationBehaviour : PlayableBehaviour
 {
     [Serializable]
     public enum AttributeType
@@ -25,9 +25,11 @@ public class VisualEffectActivationBehaviour : PlayableBehaviour
     [Serializable]
     public struct EventState
     {
+#pragma warning disable 649
         public ExposedProperty attribute;
         public AttributeType type;
         public float[] values; //double could cover precision of integer and float within the same container, but not needed for now
+#pragma warning restore 649
     }
 
     [SerializeField]

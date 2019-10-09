@@ -113,7 +113,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
         Pass
         {
             ZWrite Off ZTest Off Blend Off Cull Off
-            Blend One SrcAlpha
+            Blend One SrcAlpha, Zero One
             BlendOp Add
 
             HLSLPROGRAM

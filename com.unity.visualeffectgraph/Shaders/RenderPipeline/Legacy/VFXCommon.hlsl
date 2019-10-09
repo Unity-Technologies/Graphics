@@ -14,6 +14,11 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
     return UnityWorldToClipPos(posWS);
 }
 
+float4 VFXTransformFinalColor(float4 color)
+{
+	return color;
+}
+
 float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 {
 	return VFXTransformPositionWorldToClip(posWS); //TODO

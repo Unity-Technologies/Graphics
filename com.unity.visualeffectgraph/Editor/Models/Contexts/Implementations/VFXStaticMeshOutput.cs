@@ -52,7 +52,10 @@ namespace UnityEditor.VFX
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
         {
             if (model == this && cause == VFXModel.InvalidationCause.kSettingChanged)
-                ((VFXDataMesh)GetData()).shader = shader;
+            {
+                var data = (VFXDataMesh)GetData();
+                data.shader = shader;
+            }
 
             base.OnInvalidate(model, cause);
         }
@@ -67,6 +70,7 @@ namespace UnityEditor.VFX
 
                 if (shader != null)
                 {
+                    var mat = ((VFXDataMesh)GetData()).GetOrCreateMaterial();
                     var propertyAttribs = new List<object>(1);
                     for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
                     {
@@ -74,24 +78,33 @@ namespace UnityEditor.VFX
                             continue;
 
                         Type propertyType = null;
+                        object propertyValue = null;
+
+                        var propertyName = ShaderUtil.GetPropertyName(shader, i);
+                        var propertyNameId = Shader.PropertyToID(propertyName);
+
                         propertyAttribs.Clear();
 
                         switch (ShaderUtil.GetPropertyType(shader, i))
                         {
                             case ShaderUtil.ShaderPropertyType.Color:
                                 propertyType = typeof(Color);
+                                propertyValue = mat.GetColor(propertyNameId);
                                 break;
                             case ShaderUtil.ShaderPropertyType.Vector:
                                 propertyType = typeof(Vector4);
+                                propertyValue = mat.GetVector(propertyNameId);
                                 break;
                             case ShaderUtil.ShaderPropertyType.Float:
                                 propertyType = typeof(float);
+                                propertyValue = mat.GetFloat(propertyNameId);
                                 break;
                             case ShaderUtil.ShaderPropertyType.Range:
                                 propertyType = typeof(float);
                                 float minRange = ShaderUtil.GetRangeLimits(shader, i, 1);
                                 float maxRange = ShaderUtil.GetRangeLimits(shader, i, 2);
                                 propertyAttribs.Add(new RangeAttribute(minRange, maxRange));
+                                propertyValue = mat.GetFloat(propertyNameId);
                                 break;
                             case ShaderUtil.ShaderPropertyType.TexEnv:
                             {
@@ -106,6 +119,7 @@ namespace UnityEditor.VFX
                                     default:
                                         break;     // TODO
                                 }
+                                propertyValue = mat.GetTexture(propertyNameId);
                                 break;
                             }
                             default:
@@ -114,21 +128,22 @@ namespace UnityEditor.VFX
 
                         if (propertyType != null)
                         {
-                            string propertyName = ShaderUtil.GetPropertyName(shader, i);
                             propertyAttribs.Add(new TooltipAttribute(ShaderUtil.GetPropertyDescription(shader, i)));
-                            yield return new VFXPropertyWithValue(new VFXProperty(propertyType, propertyName, VFXPropertyAttribute.Create(propertyAttribs.ToArray())));
+                            yield return new VFXPropertyWithValue(new VFXProperty(propertyType, propertyName, VFXPropertyAttribute.Create(propertyAttribs.ToArray())), propertyValue);
                         }
                     }
                 }
             }
         }
 
-        public override string name { get { return "Static Mesh Output"; } }
+        public override string name { get { return "Output Mesh"; } }
         public override string codeGeneratorTemplate { get { return null; } }
         public override VFXTaskType taskType { get { return VFXTaskType.Output; } }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
+            var meshData = (VFXDataMesh)GetData();
+
             switch (target)
             {
                 case VFXDeviceTarget.GPU:
@@ -160,6 +175,38 @@ namespace UnityEditor.VFX
                     mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
                     mapper.AddExpression(GetInputSlot(1).GetExpression(), "transform", -1);
                     mapper.AddExpression(GetInputSlot(2).GetExpression(), "subMeshMask", -1);
+
+                    // TODO Remove this once material are serialized
+                    // Add material properties
+                    if (shader != null)
+                    {
+                        var mat = meshData.GetOrCreateMaterial();
+                        for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
+                        {
+                            if (ShaderUtil.IsShaderPropertyHidden(shader, i))
+                            {
+                                var name = ShaderUtil.GetPropertyName(shader, i);
+                                var nameId = Shader.PropertyToID(name);
+                                if (!mat.HasProperty(nameId))
+                                    continue;
+
+                                VFXExpression expr = null;
+                                switch (ShaderUtil.GetPropertyType(shader, i))
+                                {
+                                    case ShaderUtil.ShaderPropertyType.Float:
+                                        expr = VFXValue.Constant<float>(mat.GetFloat(nameId));
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                                if (expr != null)
+                                    mapper.AddExpression(expr, name, -1);
+
+                            }
+                        }
+                    }
+
                     return mapper;
                 }
 

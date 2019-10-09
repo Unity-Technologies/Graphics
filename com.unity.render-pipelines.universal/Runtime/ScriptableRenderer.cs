@@ -234,6 +234,14 @@ namespace UnityEngine.Rendering.Universal
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
 
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            var localCmd = CommandBufferPool.Get(string.Empty);
+            //Triggers dispatch per camera, all global parameters should have been setup at this stage.
+            VFX.VFXManager.ProcessCameraCommand(camera, localCmd);
+            context.ExecuteCommandBuffer(localCmd);
+            CommandBufferPool.Release(localCmd);
+#endif
+
             // In this block main rendering executes.
             ExecuteBlock(RenderPassBlock.MainRendering, blockRanges, context, ref renderingData);
 
@@ -247,7 +255,8 @@ namespace UnityEngine.Rendering.Universal
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
-            InternalFinishRendering(context);
+            //if (renderingData.resolveFinalTarget)
+                InternalFinishRendering(context);
             blockRanges.Dispose();
         }
 
@@ -274,7 +283,7 @@ namespace UnityEngine.Rendering.Universal
             cameraClearFlags = CameraClearFlags.SolidColor;
 #endif
 
-            // LWRP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
+            // Universal RP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
             // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
             // CameraClearFlags.Nothing clears Depth on PC/Desktop and in mobile it clears both
             // depth and color.
@@ -374,6 +383,12 @@ namespace UnityEngine.Rendering.Universal
 
                 Camera camera = cameraData.camera;
                 ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+
+                // Overlay cameras composite on top of previous ones. They don't clear.
+                // MTT: Commented due to not implemented yet
+//                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
+//                    clearFlag = ClearFlag.None;
+
                 SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
                     CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 

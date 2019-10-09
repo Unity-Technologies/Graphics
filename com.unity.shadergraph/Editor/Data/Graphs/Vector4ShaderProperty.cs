@@ -2,19 +2,21 @@ using System;
 using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class Vector4ShaderProperty : VectorShaderProperty
+    [FormerName("UnityEditor.ShaderGraph.Vector4ShaderProperty")]
+    public sealed class Vector4ShaderProperty : VectorShaderProperty
     {
-        public Vector4ShaderProperty()
+        internal Vector4ShaderProperty()
         {
             displayName = "Vector4";
         }
+        internal override bool isGpuInstanceable => true;
         
         public override PropertyType propertyType => PropertyType.Vector4;
         
-        public override AbstractMaterialNode ToConcreteNode()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();
             node.FindInputSlot<Vector1MaterialSlot>(Vector4Node.InputSlotXId).value = value.x;
@@ -24,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             return node;
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -33,7 +35,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new Vector4ShaderProperty()
             {

@@ -11,13 +11,11 @@
 //  F, the *normalized* vector irradiance
 float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
 {
-    // L[0] = top-right
-    // L[1] = bottom-right
-    // L[2] = bottom-left
-    // L[3] = top-left
-    float3  origin = L[2];
-    float3  right = L[1] - origin;
-    float3  up = L[3] - origin;
+    // L[0..3] : LL UL UR LR
+
+    float3  origin = L[0];
+    float3  right = L[3] - origin;
+    float3  up = L[1] - origin;
 
     float3  normal = cross(right, up);
     float   sqArea = dot(normal, normal);
@@ -388,6 +386,13 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+    if(light.screenSpaceShadowIndex >= 0)
+    {
+        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+    }
+    else
+#endif
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);

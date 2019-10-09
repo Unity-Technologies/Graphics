@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpgradeFrameSettingsToStruct,
             AddFrameSettingSpecularLighting, // Not use anymore
             AddReflectionFrameSetting,
+            AddFrameSettingDirectSpecularLighting,
         }
 
         protected static readonly MigrationDescription<Version, HDProbe> k_Migration = MigrationDescription.New(
@@ -65,6 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.AddReflectionFrameSetting, (HDProbe data) =>
             {
                 FrameSettings.MigrateToNoReflectionSettings(ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings);
+            }),
+            MigrationStep.New(Version.AddFrameSettingDirectSpecularLighting, (HDProbe data) =>
+            {
+                FrameSettings.MigrateToNoDirectSpecularLighting(ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings);
             })
         );
 
@@ -95,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("m_Mode"), Obsolete("For Data Migration")]
         protected ProbeSettings.Mode m_ObsoleteMode = ProbeSettings.Mode.Baked;
 
-        [SerializeField, FormerlySerializedAs("lightLayer"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("lightLayers"), Obsolete("For Data Migration")]
         LightLayerEnum m_ObsoleteLightLayers = LightLayerEnum.LightLayerDefault;
 
         [SerializeField, FormerlySerializedAs("m_CaptureSettings"), Obsolete("For Data Migration")]

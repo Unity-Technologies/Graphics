@@ -98,6 +98,8 @@ MonoBehaviour:
       type: 3}
     preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba,
       type: 3}
+    defaultRendererCustomPass: {fileID: 4800000, guid: 18cb4caffc5f88c44bf4d8f1a7841e73,
+      type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
@@ -115,11 +117,14 @@ MonoBehaviour:
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
       type: 3}
+    decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6,
+      type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAODenoiseCS: {fileID: 7200000, guid: 414b49640e3c719488fae81080e089c5, type: 3}
     GTAOUpsampleCS: {fileID: 7200000, guid: 61b3fcbcdc928ef4e94363cb25b7cca7, type: 3}
     depthValuesPS: {fileID: 4800000, guid: 6e6a4a3dbb788234594aa74f2d6aeb6f, type: 3}
     colorResolvePS: {fileID: 4800000, guid: dd7047092f3c82b40b3a07868f9c4de2, type: 3}
+    copyAlphaCS: {fileID: 7200000, guid: c2c7eb6611725264187721ef9df0354b, type: 3}
     nanKillerCS: {fileID: 7200000, guid: 83982f199acf927499576a99abc9bea9, type: 3}
     exposureCS: {fileID: 7200000, guid: 976d7bce54fae534fb9ec67e9c18570c, type: 3}
     uberPostCS: {fileID: 7200000, guid: f1bf52f7c71bffd4f91e6cd90d12a4f7, type: 3}
@@ -233,6 +238,15 @@ MonoBehaviour:
     owenScrambled256Tex: {fileID: 2800000, guid: 2a205358e67aa9e4a94a128ac9362f4e,
       type: 3}
     scramblingTex: {fileID: 2800000, guid: bf25cd6288e2c8d43854a61a8496a830, type: 3}
+    rankingTile1SPP: {fileID: 2800000, guid: f2fe0251f704c4c478a8063775cffedb, type: 3}
+    scramblingTile1SPP: {fileID: 2800000, guid: 6185473f62ad3e74da4acac5d482917a,
+      type: 3}
+    rankingTile8SPP: {fileID: 2800000, guid: af4bd638a4b3eb14781e6441adcdfbb9, type: 3}
+    scramblingTile8SPP: {fileID: 2800000, guid: 152f8b933250a7b448fc2d4d301b9944,
+      type: 3}
+    rankingTile256SPP: {fileID: 2800000, guid: 1e604a266c415cd46b36d97cd9220aa8, type: 3}
+    scramblingTile256SPP: {fileID: 2800000, guid: 882fb55d7b3e7c94598a318df9376e32,
+      type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

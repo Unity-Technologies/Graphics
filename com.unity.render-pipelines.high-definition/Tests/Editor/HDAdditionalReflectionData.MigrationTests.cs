@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEditor.Rendering.TestFramework;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -144,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             }
 
             string GeneratePrefabYAML(LegacyProbeData legacyProbeData)
-                => $@"%YAML 1.1
+                => FormattableString.Invariant($@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3102262843427888416
 GameObject:
@@ -343,7 +344,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {{fileID: 11400000, guid: cc8be05cdf24e1748a0d99d50a681853, type: 2}}";
+  sharedProfile: {{fileID: 11400000, guid: cc8be05cdf24e1748a0d99d50a681853, type: 2}}");
         }
 
         public class MigrateFromLegacyProbe
@@ -508,7 +509,7 @@ MonoBehaviour:
             }
 
             string GeneratePrefabYAML(LegacyProbeData legacyProbeData)
-                => $@"%YAML 1.1
+                => FormattableString.Invariant($@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &4579176910221717176
 GameObject:
@@ -574,7 +575,7 @@ ReflectionProbe:
   m_UseOcclusionCulling: {(legacyProbeData.useOcclusionCulling ? 1 : 0)}
   m_Importance: {legacyProbeData.importance}
   m_CustomBakedTexture: {{fileID: 0}}
-";
+");
         }
     }
 }

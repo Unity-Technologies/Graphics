@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEditor.VFX.Block
 {
-    public enum ForceMode
+    enum ForceMode
     {
         Absolute,
         Relative

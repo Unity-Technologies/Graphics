@@ -14,7 +14,7 @@ struct vs_input
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 {
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-
+	
 	UNITY_SETUP_INSTANCE_ID(i);
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
@@ -23,19 +23,26 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXLoadAttributesOrCull}
 	${VFXProcessBlocks}
 			
-	if (!alive)
+	if (!attributes.alive)
 		return o;
 	
 	float3 offsets = (float3)0;
 	offsets.x = float(id & 1);
-	offsets.y = float((id & 3) >> 1);
-	offsets.z = float((id & 7) >> 2);
+	offsets.y = float((id & 2) >> 1);
+	offsets.z = float((id & 6) >> 2);
 	offsets -= 0.5f;
 	
 	${VFXLoadSize}
 	
-	float3x3 rot = GetEulerMatrix(radians(float3(angleX,angleY,angleZ)));
-	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,rot,float3(pivotX,pivotY,pivotZ),size3,position);
+	float3x3 rot = GetEulerMatrix(radians(float3(attributes.angleX,attributes.angleY,attributes.angleZ)));
+	float4x4 elementToVFX = GetElementToVFXMatrix(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		rot,
+		float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		size3,
+		attributes.position);
 
 	float3 inputVertexPosition = offsets;
 	float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
@@ -51,7 +58,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	o.VFX_VARYING_FACEID = (id & 7) % 5;
 #endif
 #if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)
-	rot = mul(transpose(float3x3(axisX,axisY,axisZ)),rot);
+	rot = mul(transpose(float3x3(attributes.axisX,attributes.axisY,attributes.axisZ)),rot);
 #ifdef VFX_LOCAL_SPACE 
 	rot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);
 #endif
@@ -64,14 +71,29 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	${VFXVertexCommonProcess}
 	
+	
+	#if USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE) && defined(VFX_VARYING_UV_BIAS)
+	o.VFX_VARYING_UV_SCALE = uvScale;
+	o.VFX_VARYING_UV_BIAS = uvBias;
+	#endif
+	
 	#if USE_FLIPBOOK
 	${VFXLoadParameter:{flipBookSize}}
 	${VFXLoadParameter:{invFlipBookSize}}
-	${VFXLoadParameter:{texIndex}}
+	#ifdef VFX_VARYING_TEXINDEX
+	o.VFX_VARYING_TEXINDEX = attributes.texIndex;
+	#endif
 	
+	#if defined(VFX_VARYING_FLIPBOOKSIZE) && defined(VFX_VARYING_INVFLIPBOOKSIZE)
 	o.VFX_VARYING_FLIPBOOKSIZE = flipBookSize;
 	o.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;
-	o.VFX_VARYING_TEXINDEX = texIndex;
+	#endif
+	#ifdef VFX_VARYING_TEXINDEX
+	#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
+	${VFXLoadParameter:{motionVectorScale}}
+	o.VFX_VARYING_MOTIONVECTORSCALE = motionVectorScale * invFlipBookSize;
+	#endif
+	#endif
 	#endif
 
 	${VFXVertexAdditionalProcess}

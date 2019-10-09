@@ -32,6 +32,8 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.uv2:                       output.uv2 =                         input.uv2;
     $VertexDescriptionInputs.uv3:                       output.uv3 =                         input.uv3;
     $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
+    $VertexDescriptionInputs.BoneWeights:               output.BoneWeights =                 input.weights;
+    $VertexDescriptionInputs.BoneIndices:               output.BoneIndices =                 input.indices;
 
     return output;
 }
@@ -47,7 +49,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
     // copy graph output to the results
-    $VertexDescription.Position:    input.positionOS = vertexDescription.Position;
+    $VertexDescription.VertexPosition: input.positionOS = vertexDescription.VertexPosition;
+    $VertexDescription.VertexNormal:   input.normalOS = vertexDescription.VertexNormal;
+    $VertexDescription.VertexTangent:  input.tangentOS.xyz = vertexDescription.VertexTangent;
 
     return input;
 }

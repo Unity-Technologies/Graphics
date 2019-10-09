@@ -52,8 +52,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="positiveDependencies">[Optional] Dependencies that must be activated in order to appear activable in Inspector. Indentation is deduced frm this information.</param>
         /// <param name="customOrderInGroup">[Optional] If order is not the same than the order of value in the FrameSettingsField enum, you can ask to rewrite order from this element.
         /// Could be asked to use this on another element too to have correct ordering amongst everything.
-        /// (Exemple if the 2nd element must be showed at position 10, add this property with value 10 to in and this parameter with value 3 to the following one (the 3rd).</param>
-        public FrameSettingsFieldAttribute(int group, FrameSettingsField autoName = FrameSettingsField.None, string displayedName = null, string tooltip = null, DisplayType type = DisplayType.BoolAsCheckbox, Type targetType = null, FrameSettingsField[] positiveDependencies = null, FrameSettingsField[] negativeDependencies = null, int customOrderInGroup = -1)
+        /// (Example if the 2nd element must be showed at position 10, add this property with value 10 to in and this parameter with value 3 to the following one (the 3rd).</param>
+        public FrameSettingsFieldAttribute(
+            int group,
+            FrameSettingsField autoName = FrameSettingsField.None,
+            string displayedName = null,
+            string tooltip = null,
+            DisplayType type = DisplayType.BoolAsCheckbox,
+            Type targetType = null,
+            FrameSettingsField[] positiveDependencies = null,
+            FrameSettingsField[] negativeDependencies = null,
+            int customOrderInGroup = -1)
         {
             if (string.IsNullOrEmpty(displayedName))
                 displayedName = autoName.ToString().CamelToPascalCaseWithSpace();
@@ -78,6 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        public bool IsNegativeDependency(FrameSettingsField frameSettingsField) => Array.FindIndex(dependencies, fsf => fsf == frameSettingsField) >= dependencySeparator;
+        public bool IsNegativeDependency(FrameSettingsField frameSettingsField)
+            => Array.FindIndex(dependencies, fsf => fsf == frameSettingsField) >= dependencySeparator;
     }
 }

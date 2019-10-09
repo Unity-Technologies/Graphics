@@ -209,7 +209,7 @@ namespace UnityEditor.Rendering
             
             if (isBoxed)
             {
-                rect.xMin = EditorGUIUtility.singleLineHeight - 2;
+                rect.xMin = EditorGUIUtility.singleLineHeight;
                 rect.width -= 1;
             }
 
@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering
                 labelRect.xMin += 5;
                 foldoutRect.xMin += 5;
                 backgroundRect.xMin = EditorGUIUtility.singleLineHeight;
-                backgroundRect.width -= 3;
+                backgroundRect.width -= 1;
             }
 
             // Background
@@ -568,7 +568,7 @@ namespace UnityEditor.Rendering
                 for(int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
-                    suffixRect.x += fieldWidth + .66f;
+                    suffixRect.x += fieldWidth + .33f;
                 }
             }
 
@@ -584,12 +584,12 @@ namespace UnityEditor.Rendering
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
-                suffixRect.x += fieldWidth  - .5f;
+                suffixRect.x += fieldWidth  + 0.33f;
                 colorMark.normal.textColor = colors[1];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
-                suffixRect.x += fieldWidth;
+                suffixRect.x += fieldWidth + .33f;
                 colorMark.normal.textColor = colors[2];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;

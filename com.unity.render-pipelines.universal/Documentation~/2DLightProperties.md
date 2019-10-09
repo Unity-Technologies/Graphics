@@ -1,4 +1,4 @@
-# 2D Lights Properties
+# 2D Lights properties
 
 ## Creating a Light
 
@@ -14,21 +14,23 @@ Create a __2D Light__ GameObject by going to __GameObject > Light > 2D__ and sel
 
 The following are the common properties used by the different Light types. 
 
-![](images/image_8.png)
+![](images/2DLightBasics.png)
 
 | Property                                                     | Function                                                     |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Light Type                                                   | Select the type of Light you want the selected Light to be. The available types are __Freeform__, __Sprite__, __Parametric__, __Point__, and __Global__. |
-| [Alpha Blend On Overlap](#alpha-blend-on-overlap)            | Select this option to blend the selected Light with Lights below it based on their alpha values. |
-| [Light Order](#light-order) *unavailable for __Global__ Lights | Enter a value here to specify the rendering order of this Light relative to other Lights on the same sorting layer(s). Lights with lower values are rendered first, and negative values are valid. |
-| [Blend Style](LightBlendStyles.md)                           | Select the blend style used by this Light. Different blend styles can be customized in the [2D Renderer Asset](2DRendererConfig). |
-| Color                                                        | Use the color picker to set the color of the emitted light.  |
-| [Intensity](#intensity)                                      | Enter the desired brightness value of the Light. The default value is 1. |
-| [Use Normal Map](#use-normal-map)                            | Select this to enable the Light to interact with a Sprite's [normal map Textures](SecondaryTextures). |
-| [Distance](#distance) * available when __Use Normal Map__ is checked | Enter the desired distance (in Unity units) between the Light and the lit Sprite. This does not Transform the position of the Light in the Scene. |
-| [Quality](#quality)                                          | Select either __Accurate__ or __Fast__ to adjust the accuracy of the lighting calculations used. |
-| Volume Opacity                                               | Use the slider to select the opacity of the volumetric lighting. The value scales from 0 (transparent) to 1 (opaque). |
-| Target Sorting Layers                                        | Select the sorting layers that this Light targets and affects. |
+| __Light Type__                                               | Select the type of Light you want the selected Light to be. The available types are __Freeform__, __Sprite__, __Parametric__, __Point__, and __Global__. |
+| __[Alpha Blend On Overlap](#alpha-blend-on-overlap)__        | Select this option to blend the selected Light with Lights below it based on their alpha values. |
+| __[Light Order](#light-order)__ (unavailable for __Global Lights__) | Enter a value here to specify the rendering order of this Light relative to other Lights on the same sorting layer(s). Lights with lower values are rendered first, and negative values are valid. |
+| __[Blend Style](LightBlendStyles.md)__                       | Select the blend style used by this Light. Different blend styles can be customized in the [2D Renderer Asset](2DRendererConfig). |
+| __Color__                                                    | Use the color picker to set the color of the emitted light.  |
+| __[Intensity](#intensity)__                                  | Enter the desired brightness value of the Light. The default value is 1. |
+| __[Use Normal Map](#use-normal-map)__                        | Select this to enable the Light to interact with a Sprite's [normal map Textures](SecondaryTextures). |
+| __[Distance](#distance)__  (available when __Use Normal Map__ is checked) | Enter the desired distance (in Unity units) between the Light and the lit Sprite. This does not Transform the position of the Light in the Scene. |
+| __[Quality](#quality)__                                      | Select either __Accurate__ or __Fast__ to adjust the accuracy of the lighting calculations used. |
+| __Volume Opacity__                                           | Use the slider to select the opacity of the volumetric lighting. The value scales from 0 (transparent) to 1 (opaque). |
+| __Shadow Intensity__                                         | Use the slider to control the amount of light that __Shadow Caster 2Ds__ block when they obscure this Light. The value scales from 0 (no light is blocked) to 1 (all light is blocked). |
+| __Shadow Volume Intensity__                                  | Use the slider to control the amount of volumetric light that __Shadow Caster 2Ds__ block when they obscure this Light. The value scales from 0 (no light is blocked) to 1 (all light is blocked). |
+| __Target Sorting Layers__                                    | Select the sorting layers that this Light targets and affects. |
 
 
 
@@ -75,6 +77,22 @@ Light quality allows the developer to choose between performance and accuracy. W
 ## Volume Opacity
 
 Volumetric lighting is available to all Light types. Use the __Volume Opacity__ slider to control the visibility of the volumetric light. At a value of zero, no Light volume is shown while at a value of one, the Light volume appears at full opacity.
+
+## Shadow Intensity
+
+The Shadow Intensity property controls the amount of light that **Shadow Caster 2Ds** block from the Light source which affects the intensity of their shadows. This is available on all non global Light types. Use this slider to control the amount of light that Shadow Caster 2Ds block when they interact with or block this Light.
+
+The slider ranges from 0 to 1. At 0, Shadow Caster 2Ds do not block any light coming from the Light source and they create no shadows. At the maximum value of 1, Shadow Caster 2Ds block all light from the Light source and create shadows at full intensity.
+
+| ![](images\ShadowIntensity0.png) | ![](images\ShadowIntensity05.png) | ![](images\ShadowIntensity100.png) |
+| -------------------------------- | --------------------------------- | ---------------------------------- |
+| Shadow Intensity = 0.0           | Shadow Intensity = 0.5            | Shadow Intensity = 1.0             |
+
+## Shadow Volume Intensity
+
+Shadow Volume Intensity determines the amount of volumetric light __Shadow Caster 2Ds__ block from the Light source. It is available on all non global lights, and when Volume Opacity is above zero. Use this slider to control the amount of volumetric light that Shadow Caster 2Ds block when they interact with or block this Light.
+
+The slider ranges from 0 to 1. At 0, Shadow Caster 2Ds do not block any light coming from the Light source and they create no shadows. At the maximum value of 1, Shadow Caster 2Ds block all light from the Light source and create shadows at full intensity.
 
 ## Target Sorting Layers
 

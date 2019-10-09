@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static Material k_PreviewMaterial;
         static Material k_PreviewOutlineMaterial;
 
+        bool firstDraw = true;
+
         List<Texture> m_PreviewedTextures = new List<Texture>();
 
         public override bool HasPreviewGUI()
@@ -103,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Get the exposure texture used in this scene view
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp))
                 return;
-            var hdCamera = HDCamera.GetOrCreate(sceneView.camera, new XRPass());
+            var hdCamera = HDCamera.GetOrCreate(sceneView.camera);
             var exposureTex = hdrp.GetExposureTexture(hdCamera);
 
             var index = Array.IndexOf(m_TypedTargets, target);
@@ -115,12 +117,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var factor = k_PreviewHeight / p.texture.height;
             var previewSize = new Rect(p.texture.width * factor, k_PreviewHeight, 0, 0);
-
-            // Get and reserve rect
-            var cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
-
-            if (Event.current.type == EventType.Repaint)
+            
+            if (Event.current.type == EventType.Layout
+                || !firstDraw && Event.current.type == EventType.Repaint)
             {
+                // Get and reserve rect
+                //this can cause the following issue if calls on a repaint before a layout:
+                //ArgumentException: Getting control 0's position in a group with only 0 controls when doing repaint
+                var cameraRect = GUILayoutUtility.GetRect(previewSize.x, previewSize.y);
+                firstDraw = false;
+
                 var c = new Rect(cameraRect);
 
                 c.width = p.texture.width * factor;
@@ -271,7 +277,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             probe = ProbeSettingsFields.lightingLightLayer
                 | ProbeSettingsFields.lightingMultiplier
-                | ProbeSettingsFields.lightingWeight,
+                | ProbeSettingsFields.lightingWeight
+                | ProbeSettingsFields.lightingFadeDistance,
             camera = new CameraSettingsOverride
             {
                 camera = CameraSettingsFields.none

@@ -158,7 +158,7 @@ namespace UnityEditor.VFX.Operator
             {
                 case PositionMode.Random:
                     // Random UVs
-                    uv = new VFXExpressionCombine(VFXOperatorUtility.FixedRandom(0, true), VFXOperatorUtility.FixedRandom(1, true));
+                    uv = new VFXExpressionCombine(VFXOperatorUtility.FixedRandom(0, VFXSeedMode.PerParticle), VFXOperatorUtility.FixedRandom(1, VFXSeedMode.PerParticle));
                     break;
 
                 case PositionMode.Sequential:
@@ -189,10 +189,10 @@ namespace UnityEditor.VFX.Operator
             }
 
             VFXExpression projpos = uv * VFXValue.Constant<Vector2>(new Vector2(2f, 2f)) - VFXValue.Constant<Vector2>(Vector2.one);
-            VFXExpression uvs = new VFXExpressionCombine(uv.x * CamPixDim.x, uv.y * CamPixDim.y, VFXValue.Constant(0f));
+            VFXExpression uvs = new VFXExpressionCombine(uv.x * CamPixDim.x, uv.y * CamPixDim.y, VFXValue.Constant(0f), VFXValue.Constant(0f));
 
             // Get depth
-            VFXExpression depth = new VFXExpressionExtractComponent(new VFXExpressionLoadTexture2D(Camera_depthBuffer, uvs), 0);
+            VFXExpression depth = new VFXExpressionExtractComponent(new VFXExpressionLoadTexture2DArray(Camera_depthBuffer, uvs), 0);
 
             if (SystemInfo.usesReversedZBuffer)
             {
@@ -241,7 +241,7 @@ namespace UnityEditor.VFX.Operator
             if (inheritSceneColor)
             {
                 VFXExpression Camera_colorBuffer = expressions.First(e => e.name == "Camera_colorBuffer").exp;
-                VFXExpression tempColor = new VFXExpressionLoadTexture2D(Camera_colorBuffer, uvs);
+                VFXExpression tempColor = new VFXExpressionLoadTexture2DArray(Camera_colorBuffer, uvs);
                 color = new VFXExpressionCombine(tempColor.x, tempColor.y, tempColor.z, VFXValue.Constant(1.0f));
             }
 

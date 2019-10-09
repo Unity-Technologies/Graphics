@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
     {
         //Update this field when upgrading the target Documentation for the package
         //Should be linked to the package version somehow.
-        public const string version = "6.9";
+        public const string version = "7.1";
     }
 
     //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/

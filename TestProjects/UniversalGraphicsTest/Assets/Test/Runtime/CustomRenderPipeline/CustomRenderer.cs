@@ -1,3 +1,5 @@
+using UnityEngine.Rendering.Universal.Internal;
+
 namespace UnityEngine.Rendering.Universal
 {
     public class CustomRenderer : ScriptableRenderer

@@ -159,6 +159,8 @@ namespace UnityEditor.VFX
         virtual public string runtimePath { get { return templatePath; } } //optional different path for .hlsl included in runtime
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
+
+        public virtual void SetupMaterial(Material mat) {}
     }
 
     // Not in Universal package because we dont want to add a dependency on VFXGraph
@@ -167,6 +169,12 @@ namespace UnityEditor.VFX
         public override string templatePath { get { return "Packages/com.unity.visualeffectgraph/Shaders/RenderPipeline/Universal"; } }
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return null; } }
+    }
+
+    // This is just for retrocompatibility with LWRP
+    class VFXLWRPBinder : VFXUniversalBinder
+    {
+        public override string SRPAssetTypeStr { get { return "LightweightRenderPipelineAsset"; } }
     }
 
     // This is the default binder used if no SRP is used in the project
@@ -429,6 +437,7 @@ namespace UnityEditor.VFX
             return types.Where(type => attributeType == null || type.GetCustomAttributes(attributeType, false).Length == 1);
         }
 
+        [NonSerialized]
         private static Dictionary<string, VFXSRPBinder> srpBinders = null;
 
         private static void LoadSRPBindersIfNeeded()

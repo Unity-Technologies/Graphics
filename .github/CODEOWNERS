@@ -10,8 +10,10 @@
 /com.unity.render-pipelines.universal/Shaders/2D @Unity-Technologies/2d-graphics
 /com.unity.render-pipelines.universal/Editor/ShaderGraph/MasterNodes @Unity-Technologies/2d-graphics
 
-# Shadergraph
+# Shader Graph
+/com.unity.shadergraph/ @Unity-Technologies/shader-graph
 /com.unity.shadergraph/CHANGELOG.md @Unity-Technologies/gfx-docs
+/com.unity.shadergraph/Documentation~/ @Unity-Technologies/gfx-docs
 
 # Test systems
 /.yamato/ @Unity-Technologies/gfx-sdets

@@ -6,48 +6,26 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponent
     {
-        [Tooltip("Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas.")]
+        public BoolParameter rayTracing = new BoolParameter(false);
+
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 4f);
-
-        [Tooltip("Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction).")]
-        public ClampedIntParameter stepCount = new ClampedIntParameter(6, 2, 32);
-
-        [Tooltip("Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses.")]
-        public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
-
-        [Tooltip("The effect runs at full resolution. This increases quality, but also decreases performance significantly.")]
-        public BoolParameter fullResolution = new BoolParameter(false);
-
-        [Tooltip("This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions.")]
-        public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
-
-
-        [Tooltip("Controls how much the ambient light affects occlusion.")]
         public ClampedFloatParameter directLightingStrength = new ClampedFloatParameter(0f, 0f, 1f);
 
-        [Tooltip("Enable raytraced ambient occlusion.")]
-        public BoolParameter enableRaytracing = new BoolParameter(false);
+        public ClampedIntParameter stepCount = new ClampedIntParameter(6, 2, 32);
+        public ClampedFloatParameter radius = new ClampedFloatParameter(2.0f, 0.25f, 5.0f);
+        public BoolParameter fullResolution = new BoolParameter(false);
+        public ClampedIntParameter maximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
 
-        [Tooltip("Controls the length of ambient occlusion rays.")]
+        public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
-
-        [Tooltip("Enable Filtering on the raytraced ambient occlusion.")]
-        public BoolParameter enableFilter = new BoolParameter(false);
-
-        [Tooltip("Controls the length of ambient occlusion rays.")]
-        public ClampedIntParameter numSamples = new ClampedIntParameter(4, 1, 64);
-
-        [Tooltip("Controls the length of ambient occlusion rays.")]
-        public ClampedIntParameter filterRadius = new ClampedIntParameter(16, 1, 32);
-
+        public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
+        public BoolParameter denoise = new BoolParameter(false);
+        public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
     }
 
     partial class AmbientOcclusionSystem
     {
         RenderPipelineResources m_Resources;
-#if ENABLE_RAYTRACING
-        HDRenderPipelineRayTracingResources m_RTResources;
-#endif
         RenderPipelineSettings m_Settings;
 
         private bool m_HistoryReady = false;
@@ -59,7 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_RunningFullRes = false;
 
 #if ENABLE_RAYTRACING
-        public HDRaytracingManager m_RayTracingManager;
         readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
 #endif
 
@@ -99,9 +76,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Settings = hdAsset.currentPlatformRenderPipelineSettings;
             m_Resources = defaultResources;
-#if ENABLE_RAYTRACING
-            m_RTResources = hdAsset.renderPipelineRayTracingResources;
-#endif
 
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
@@ -119,14 +93,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if ENABLE_RAYTRACING
-        public void InitRaytracing(HDRaytracingManager raytracingManager, SharedRTManager sharedRTManager)
+        public void InitRaytracing(HDRenderPipeline renderPipeline)
         {
-            m_RayTracingManager = raytracingManager;
-            m_RaytracingAmbientOcclusion.Init(m_Resources, m_RTResources, m_Settings, m_RayTracingManager, sharedRTManager);
+            m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
 #endif
 
-        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
+        public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && camera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && settings.intensity.value > 0f;
 
         public void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
         {
@@ -142,8 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
 #if ENABLE_RAYTRACING
-                HDRaytracingEnvironment rtEnvironement = m_RayTracingManager.CurrentEnvironment();
-                if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && rtEnvironement != null && settings.enableRaytracing.value)
+                if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
                 else
 #endif

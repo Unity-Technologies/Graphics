@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
@@ -63,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedProfile.diffusionProfileAsset = value;
                 m_SerializedDiffusionProfile = EditorJsonUtility.ToJson(serializedProfile, true);
                 m_DiffusionProfileAsset = value;
+                owner.ValidateNode();
             }
         }
 

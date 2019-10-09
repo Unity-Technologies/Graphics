@@ -25,10 +25,6 @@ class VFXContextEditor : VFXSlotContainerEditor
 
     float m_Width;
 
-
-    VFXViewController m_ViewController;
-    VFXContextController m_ContextController;
-
     protected new void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
@@ -46,26 +42,7 @@ class VFXContextEditor : VFXSlotContainerEditor
         UnityEngine.Object[] allSRPSubOutputs = targets.OfType<VFXAbstractRenderedOutput>().Select(t => t.subOutput).Where(t => t != null).ToArray();
         srpSubOutputObject = allSRPSubOutputs.Length > 0 ? new SerializedObject(allSRPSubOutputs) : null;
 
-        if (!serializedObject.isEditingMultipleObjects)
-        {
-            m_ViewController = VFXViewController.GetController(((VFXContext)target).GetGraph().GetResource());
-            m_ViewController.useCount++;
-
-            m_ContextController = m_ViewController.GetRootNodeController((VFXContext)target, 0) as VFXContextController;
-        }
-
         base.OnEnable();
-    }
-
-    private new void OnDisable()
-    {
-        base.OnDisable();
-
-        if(m_ViewController != null)
-        {
-            m_ViewController.useCount--;
-            m_ViewController = null;
-        }
     }
 
     protected override SerializedProperty FindProperty(VFXSetting setting)
@@ -157,9 +134,13 @@ class VFXContextEditor : VFXSlotContainerEditor
         if (srpSubOutputObject != null)
             srpSubOutputObject.Update();
 
-        if (m_ContextController != null && m_ContextController.letter != '\0')
+        if( ! serializedObject.isEditingMultipleObjects)
         {
-            GUILayout.Label(m_ContextController.letter.ToString(),Styles.letter);
+            VFXContext model = (VFXContext)target;
+            if (model != null && model.letter != '\0')
+            {
+                GUILayout.Label(model.letter.ToString(), Styles.letter);
+            }
         }
 
         base.OnInspectorGUI();

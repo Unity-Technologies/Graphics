@@ -24,7 +24,7 @@ RW_TEXTURE2D_X(float4, _DebugLightVolumesTexture);
 [numthreads(DEBUG_LIGHT_VOLUME_TILE_SIZE, DEBUG_LIGHT_VOLUME_TILE_SIZE, 1)]
 void LightVolumeGradient(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
 	// Fetch the current pixel coordinate
 	uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_VOLUME_TILE_SIZE + groupThreadId;
@@ -47,7 +47,7 @@ void LightVolumeGradient(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 [numthreads(DEBUG_LIGHT_VOLUME_TILE_SIZE, DEBUG_LIGHT_VOLUME_TILE_SIZE, 1)]
 void LightVolumeColors(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
 	// Fetch the current pixel coordinate
 	uint2 currentPixelCoordinate = groupId * DEBUG_LIGHT_VOLUME_TILE_SIZE + groupThreadId;

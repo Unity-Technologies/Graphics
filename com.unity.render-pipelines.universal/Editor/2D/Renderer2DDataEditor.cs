@@ -17,9 +17,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent customBlendFactors = EditorGUIUtility.TrTextContent("Custom Blend Factors");
             public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
+            public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Use Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
+            public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data", "Resources (textures, shaders, etc.) required by post-processing effects.");
         }
-        struct LightBlendStyleProps
 
+        struct LightBlendStyleProps
         {
             public SerializedProperty enabled;
             public SerializedProperty name;
@@ -33,6 +35,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_HDREmulationScale;
         SerializedProperty m_LightBlendStyles;
         LightBlendStyleProps[] m_LightBlendStylePropsArray;
+        SerializedProperty m_UseDepthStencilBuffer;
+        SerializedProperty m_PostProcessData;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -104,6 +108,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 if (props.blendFactorAdditive == null)
                     props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additve");
             }
+
+            m_UseDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
+            m_PostProcessData = serializedObject.FindProperty("m_PostProcessData");
         }
 
         private void OnDestroy()
@@ -174,7 +181,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
 
+            
             EditorGUI.indentLevel--;
+            EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
         }

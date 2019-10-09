@@ -52,12 +52,12 @@ namespace  UnityEditor.VFX.UI
         {
             if(controller.isOutput)
             {
-                icon = Resources.Load<Texture2D>("VFX/output dot");
+                icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/output dot.png");
 
             }
             else if (controller.exposed)
             {
-                icon = Resources.Load<Texture2D>("VFX/exposed dot");
+                icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/exposed dot.png");
             }
             else
             {

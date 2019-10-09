@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    [AddComponentMenu("VFX/Property Binders/UI Toggle Parameter Binder")]
+    [AddComponentMenu("VFX/Property Binders/UI Toggle Binder")]
     [VFXBinder("UI/Toggle")]
     class VFXUIToggleBinder : VFXBinderBase
     {

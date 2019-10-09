@@ -117,23 +117,24 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             if (tGround < tFrag)
             {
                 // Closest so far.
-                tFrag = tGround;
+                // Make it negative to communicate to EvaluatePbrAtmosphere that we intersected the ground.
+                tFrag = -tGround;
 
                 radiance = 0;
 
-                float3 gP = O + tFrag * -V;
+                float3 gP = O + tGround * -V;
                 float3 gN = normalize(gP);
 
                 if (_HasGroundEmissionTexture)
                 {
-                    radiance += SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation));
+                    radiance += SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation)).rgb;
                 }
 
                 float3 albedo;
 
                 if (_HasGroundAlbedoTexture)
                 {
-                    albedo = SAMPLE_TEXTURECUBE(_GroundAlbedoTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation));
+                    albedo = SAMPLE_TEXTURECUBE(_GroundAlbedoTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation)).rgb;
                 }
                 else
                 {
@@ -163,7 +164,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             if (_HasSpaceEmissionTexture)
             {
                 // V points towards the camera.
-                radiance += SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation));
+                radiance += SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation)).rgb;
             }
         }
 
@@ -171,26 +172,32 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         if (rayIntersectsAtmosphere)
         {
-            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, tFrag, renderSunDisk, skyColor, skyOpacity);
+            float distAlongRay = tFrag * 1000; // Convert km to m
+            EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
         }
 
         skyColor += radiance * (1 - skyOpacity);
-        skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
+        skyColor *= _IntensityMultiplier;
 
         return float4(skyColor, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target
     {
-        return RenderSky(input);
+        return RenderSky(input); // The cube map is not pre-exposed
     }
 
     float4 FragRender(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        float4 color = RenderSky(input);
-        color.rgb *= GetCurrentExposureMultiplier();
-        return color;
+        float4 value = RenderSky(input);
+        value.rgb *= GetCurrentExposureMultiplier(); // Only the full-screen pass is pre-exposed
+        return value;
+    }
+
+    float4 FragBlack(Varyings input) : SV_Target
+    {
+        return 0;
     }
 
     ENDHLSL
@@ -207,7 +214,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             HLSLPROGRAM
                 #pragma fragment FragBaking
             ENDHLSL
+        }
 
+        Pass
+        {
+            ZWrite Off
+            ZTest Always
+            Blend Off
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma fragment FragBlack
+            ENDHLSL
         }
 
         Pass
@@ -219,6 +237,18 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
             HLSLPROGRAM
                 #pragma fragment FragRender
+            ENDHLSL
+        }
+
+        Pass
+        {
+            ZWrite Off
+            ZTest LEqual
+            Blend Off
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma fragment FragBlack
             ENDHLSL
         }
 

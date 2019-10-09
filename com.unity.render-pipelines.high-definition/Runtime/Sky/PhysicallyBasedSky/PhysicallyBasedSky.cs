@@ -127,10 +127,13 @@ namespace UnityEngine.Rendering.HighDefinition
             unchecked
             {
                 hash = hash * 23 + planetCenterPosition.GetHashCode();
-                hash = hash * 23 + groundAlbedoTexture.GetHashCode();
-                hash = hash * 23 + groundEmissionTexture.GetHashCode();
+                if (groundAlbedoTexture.value != null)
+                    hash = hash * 23 + groundAlbedoTexture.GetHashCode();
+                if (groundEmissionTexture.value != null)
+                    hash = hash * 23 + groundEmissionTexture.GetHashCode();
                 hash = hash * 23 + planetRotation.GetHashCode();
-                hash = hash * 23 + spaceEmissionTexture.GetHashCode();
+                if (spaceEmissionTexture.value != null)
+                    hash = hash * 23 + spaceEmissionTexture.GetHashCode();
                 hash = hash * 23 + spaceRotation.GetHashCode();
             }
 

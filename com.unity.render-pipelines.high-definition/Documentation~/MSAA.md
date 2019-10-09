@@ -34,7 +34,7 @@ To enable MSAA on each Camera:
 3. Open the **Rendering Settings** drop-down menu and set the **Lit Shader Mode** to **Forward**, because HDRP only supports MSAA for forward rendering. 
 4. Tick the **MSAA** checkbox to enable MSAA for this Camera.
 
-Increasing the MSAA Sample Count produces smoother antialiasing, at the cost of performance. Here are some visual examples showing the effect of the different **MSAA Sample Counts**:
+Increasing the MSAA Sample Count produces smoother anti-aliasing, at the cost of performance. Here are some visual examples showing the effect of the different **MSAA Sample Counts**:
 
 ![](Images/MSAA3.png)
 

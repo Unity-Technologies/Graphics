@@ -10,8 +10,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] float              m_ShapeLightParametricRadius        = 1.0f;
         [SerializeField] float              m_ShapeLightFalloffSize             = 0.50f;
         [SerializeField] Vector2            m_ShapeLightFalloffOffset           = Vector2.zero;
-        [SerializeField] Vector3[]          m_ShapePath;
+        [SerializeField] Vector3[]          m_ShapePath                         = null;
 
+        float   m_PreviousShapeLightFalloffSize             = -1;
         int     m_PreviousShapeLightParametricSides         = -1;
         float   m_PreviousShapeLightParametricAngleOffset   = -1;
         float   m_PreviousShapeLightParametricRadius        = -1;
@@ -42,8 +43,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             BoundingSphere boundingSphere;
 
-            Vector3 maximum = transform.TransformPoint(m_LocalBounds.max);
-            Vector3 minimum = transform.TransformPoint(m_LocalBounds.min);
+            Vector3 maxBound = Vector3.Max(m_LocalBounds.max, m_LocalBounds.max + (Vector3)m_ShapeLightFalloffOffset);
+            Vector3 minBound = Vector3.Min(m_LocalBounds.min, m_LocalBounds.min + (Vector3)m_ShapeLightFalloffOffset);
+            Vector3 maximum = transform.TransformPoint(maxBound);
+            Vector3 minimum = transform.TransformPoint(minBound);
             Vector3 center = 0.5f * (maximum + minimum);
             float radius = Vector3.Magnitude(maximum - center);
 
@@ -52,27 +55,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return boundingSphere;
         }
-
-#if UNITY_EDITOR
-        int GetShapePathHash()
-        {
-            unchecked
-            {
-                int hashCode = (int)2166136261;
-
-                if (m_ShapePath != null)
-                {
-                    foreach (var point in m_ShapePath)
-                        hashCode = hashCode * 16777619 ^ point.GetHashCode();
-                }
-                else
-                {
-                    hashCode = 0;
-                }
-
-                return hashCode;
-            }
-        }
-#endif
     }
 }

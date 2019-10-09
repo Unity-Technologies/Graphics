@@ -121,41 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
 
         [Serializable]
-        public struct HDShadowTierParams
-        {
-            public int lowQualityResolution;
-            public int mediumQualityResolution;
-            public int highQualityResolution;
-            public int veryHighQualityResolution;
-
-            public int GetResolution(ShadowResolutionTier tier)
-            {
-                switch (tier)
-                {
-                    case ShadowResolutionTier.Low:
-                        return lowQualityResolution;
-                    case ShadowResolutionTier.Medium:
-                        return mediumQualityResolution;
-                    case ShadowResolutionTier.High:
-                        return highQualityResolution;
-                    case ShadowResolutionTier.VeryHigh:
-                        return veryHighQualityResolution;
-                }
-                return mediumQualityResolution;
-            }
-            public static HDShadowTierParams GetDefault()
-            {
-                return new HDShadowTierParams()
-                {
-                    lowQualityResolution = 256,
-                    mediumQualityResolution = 512,
-                    highQualityResolution = 1024,
-                    veryHighQualityResolution = 2048
-                };
-            }
-        }
-
-        [Serializable]
         public struct HDShadowAtlasInitParams
         {
             public int shadowAtlasResolution;
@@ -180,9 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
             directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
             punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
             areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            directionalLightsResolutionTiers    = HDShadowTierParams.GetDefault(),
-            punctualLightsResolutionTiers       = HDShadowTierParams.GetDefault(),
-            areaLightsResolutionTiers           = HDShadowTierParams.GetDefault(),
+            shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
+            shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
+            shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With3Levels),
             shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
             supportScreenSpaceShadows   = false,
             maxScreenSpaceShadows       = 2,
@@ -205,9 +170,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDShadowAtlasInitParams punctualLightShadowAtlas;
         public HDShadowAtlasInitParams areaLightShadowAtlas;
 
-        public HDShadowTierParams directionalLightsResolutionTiers;
-        public HDShadowTierParams punctualLightsResolutionTiers;
-        public HDShadowTierParams areaLightsResolutionTiers;
+        public IntScalableSetting shadowResolutionDirectional;
+        public IntScalableSetting shadowResolutionPunctual;
+        public IntScalableSetting shadowResolutionArea;
 
         public int maxDirectionalShadowMapResolution;
         public int maxPunctualShadowMapResolution;
@@ -343,9 +308,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogWarning("Max shadow requests count reached, dropping all exceeding requests. You can increase this limit by changing the max requests in the HDRP asset");
                 return -1;
             }
+
             int cachedIndex = -1;
-
-
+            
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].resolution = resolution;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].shadowMapType = shadowMapType;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].lightID = lightID;
@@ -361,8 +326,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].hasBeenStoredInCachedList = false;
             }
-
-
 
             switch (shadowMapType)
             {
@@ -425,6 +388,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return false;
+        }
+
+        internal void PruneEmptyCachedSlots(ShadowMapType type)
+        {
+            switch (type)
+            {
+                case ShadowMapType.PunctualAtlas:
+                    if(m_Atlas != null)
+                        m_Atlas.PruneDeadCachedLightSlots();
+                    break;
+                case ShadowMapType.AreaLightAtlas:
+                    if (m_AreaLightShadowAtlas != null)
+                        m_AreaLightShadowAtlas.PruneDeadCachedLightSlots();
+                    break;
+                default:
+                    break;
+            }
+
         }
 
         internal int GetAtlasShapeID(ShadowMapType type)

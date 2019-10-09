@@ -1,10 +1,11 @@
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(Bloom))]
-    sealed class BloomEditor : VolumeComponentEditor
+    sealed class BloomEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_Scatter;
@@ -22,6 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<Bloom>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
@@ -30,14 +33,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirtTexture = Unpack(o.Find(x => x.dirtTexture));
             m_DirtIntensity = Unpack(o.Find(x => x.dirtIntensity));
 
-            m_HighQualityFiltering = Unpack(o.Find(x => x.highQualityFiltering));
-            m_Resolution = Unpack(o.Find(x => x.resolution));
+            m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
+            m_Resolution = Unpack(o.Find("m_Resolution"));
             m_Prefilter = Unpack(o.Find(x => x.prefilter));
             m_Anamorphic = Unpack(o.Find(x => x.anamorphic));
         }
 
         public override void OnInspectorGUI()
         {
+            base.OnInspectorGUI();
+
             EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
             PropertyField(m_Intensity);
             PropertyField(m_Scatter);
@@ -50,8 +55,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isInAdvancedMode)
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+
+                GUI.enabled = useCustomValue;
                 PropertyField(m_Resolution);
                 PropertyField(m_HighQualityFiltering);
+                GUI.enabled = true;
+
                 PropertyField(m_Prefilter);
                 PropertyField(m_Anamorphic);
             }

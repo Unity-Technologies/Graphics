@@ -6,6 +6,7 @@
 
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
 
@@ -14,8 +15,8 @@
 uniform int g_isOrthographic;
 uniform int g_iNrVisibLights;
 
-uniform float4x4 g_mInvProjectionArr[2];
-uniform float4x4 g_mProjectionArr[2];
+uniform float4x4 g_mInvProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
+uniform float4x4 g_mProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
 
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
 

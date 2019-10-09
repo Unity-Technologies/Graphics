@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 
+using UnityEngine.Experimental.GlobalIllumination;
+using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
+
 namespace UnityEngine.Rendering.Universal
 {
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MixedLightingSetup
@@ -181,11 +184,72 @@ namespace UnityEngine.Rendering.Universal
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             }
-            
+
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
             return desc;
         }
+
+        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        {
+            // Editor only.
+#if UNITY_EDITOR
+            LightDataGI lightData = new LightDataGI();
+
+            for (int i = 0; i < requests.Length; i++)
+            {
+                Light light = requests[i];
+                switch (light.type)
+                {
+                    case LightType.Directional:
+                        DirectionalLight directionalLight = new DirectionalLight();
+                        LightmapperUtils.Extract(light, ref directionalLight);
+                        lightData.Init(ref directionalLight);
+                        break;
+                    case LightType.Point:
+                        PointLight pointLight = new PointLight();
+                        LightmapperUtils.Extract(light, ref pointLight);
+                        lightData.Init(ref pointLight);
+                        break;
+                    case LightType.Spot:
+                        SpotLight spotLight = new SpotLight();
+                        LightmapperUtils.Extract(light, ref spotLight);
+                        spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
+                        spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
+                        lightData.Init(ref spotLight);
+                        break;
+                    case LightType.Area:
+                        RectangleLight rectangleLight = new RectangleLight();
+                        LightmapperUtils.Extract(light, ref rectangleLight);
+                        rectangleLight.mode = LightMode.Baked;
+                        lightData.Init(ref rectangleLight);
+                        break;
+                    case LightType.Disc:
+                        DiscLight discLight = new DiscLight();
+                        LightmapperUtils.Extract(light, ref discLight);
+                        discLight.mode = LightMode.Baked;
+                        lightData.Init(ref discLight);
+                        break;
+                    default:
+                        lightData.InitNoBake(light.GetInstanceID());
+                        break;
+                }
+
+                lightData.falloff = FalloffType.InverseSquared;
+                lightsOutput[i] = lightData;
+            }
+#else
+            LightDataGI lightData = new LightDataGI();
+
+            for (int i = 0; i < requests.Length; i++)
+            {
+                Light light = requests[i];
+                lightData.InitNoBake(light.GetInstanceID());
+                lightsOutput[i] = lightData;
+            }
+            Debug.LogWarning("Realtime GI is not supported in Universal Pipeline.");
+#endif
+        };
     }
 }

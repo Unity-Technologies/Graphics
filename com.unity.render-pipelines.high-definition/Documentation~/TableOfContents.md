@@ -5,7 +5,7 @@
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
-  * [Exposing Advanced Properties](Advanced-Properties)
+  * [Exposing More Options](More-Options)
   * [VR in HDRP](VR-in-HDRP)
 * Upgrading HDRP between Unity Versions
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
@@ -17,16 +17,12 @@
   * Volume Overrides List
     * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
-    * Fog
-      * [Exponential Fog](Override-Exponential-Fog)
-      * [Linear Fog](Override-Linear-Fog)
-      * [Volumetric Fog](Override-Volumetric-Fog)
+    * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
-      * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
@@ -34,6 +30,7 @@
     * Sky
       * [Gradient Sky](Override-Gradient-Sky)
       * [HDRI Sky](Override-HDRI-Sky)
+      * [Physically Based Sky](Override-Physically-Based-Sky)
       * [Procedural Sky](Override-Procedural-Sky)
     * [Visual Environment](Override-Visual-Environment)
 * Render Pipeline Settings
@@ -45,20 +42,21 @@
   * [Displacement Mode](Displacement-Mode)
   * [Double Sided](Double-Sided)
   * [Geometric Specular Anti-aliasing](Geometric-Specular-Anti-Aliasing)
+  * [Mask Map and Detail Map](Mask-Map-and-Detail-Map)
   * [Material Type](Material-Type)
   * [Renderer and Material Priority](Renderer-And-Material-Priority)
   * [Surface Type](Surface-Type)
   * Subsurface Scattering
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
-  * [Decal Projector](Decal-Projector)
   * Shader List
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
     * [Unlit Shader](Unlit-Shader)
-  * Shader Graph master nodes
-    * [Creating and Editing Shader Graphs](Creating-and-Editing-HDRP-Shader-Graphs)
+  * Shader Graph Master Nodes
+    * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
+    * [Hair](Master-Node-Hair)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
@@ -69,7 +67,6 @@
     * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
-  * [Static Lighting Sky](Static-Lighting-Sky)
   * [Atmospheric Scattering](Atmospheric-Scattering)
   * [Density Volume](Density-Volume)
   * [Light Layers](Light-Layers)
@@ -101,13 +98,29 @@
     * [Tonemapping](Post-Processing-Tonemapping)
     * [Vignette](Post-Processing-Vignette)
     * [White Balance](Post-Processing-White-Balance)
+* Ray Tracing
+  * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
+  * Components
+    * [Ray Tracing Environment](Ray-Tracing-Environment)
+  * Effects and Volume Overrides
+    * [Ray Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
+    * [Ray Traced Global Illumination](Ray-Traced-Global-Illumination)
+    * [Ray Traced Reflections](Ray-Traced-Reflections)
+    * [Ray Traced Shadows](Ray-Traced-Shadows)
+    * [Light Cluster](Ray-Tracing-Light-Cluster)
+    * [Path Tracing](Ray-Tracing-Path-Tracing)
+    * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
+  * Debugging
+    * [Debugging Ray Traced Effects](Ray-Tracing-Debug)
+* Components
+  * [Decal Projector](Decal-Projector)
+* Tools
+  * Look Dev
+    * [Look Dev Window](Look-Dev)
+    * [Environment Library](Look-Dev-Environment-Library)
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
-* Tools
-  * Look Dev
-    - [Look Dev Window](Look-Dev)
-    - [Environment Library](Look-Dev-Environment-Library)
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky ](Creating-a-Custom-Sky)

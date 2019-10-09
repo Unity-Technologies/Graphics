@@ -35,7 +35,7 @@ TEXTURE2D_X(_StencilTexture);               // DXGI_FORMAT_R8_UINT is not suppor
 [numthreads(NR_THREADS, 1, 1)]
 void MATERIALFLAGSGEN(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 tileIDX = u3GroupID.xy;
 

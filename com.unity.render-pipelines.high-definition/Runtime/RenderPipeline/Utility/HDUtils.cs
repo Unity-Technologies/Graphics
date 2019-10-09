@@ -253,9 +253,9 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
         {
-            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, -1);
+            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
             commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -287,10 +287,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
         public static bool IsRegularPreviewCamera(Camera camera)
         {
-            HDAdditionalCameraData additionalCameraData;
-            if (!camera.TryGetComponent<HDAdditionalCameraData>(out additionalCameraData))
-                return false;
-            return camera.cameraType == CameraType.Preview && (additionalCameraData && !additionalCameraData.isEditorCameraPreview);
+            if (camera.cameraType == CameraType.Preview)
+            {
+                camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
+                return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
+
+            }
+            return false;
         }
 
         // We need these at runtime for RenderPipelineResources upgrade
@@ -510,6 +513,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        /// <summary>
+        /// Extract scale and bias from a fade distance to achieve a linear fading starting at 90% of the fade distance.
+        /// </summary>
+        /// <param name="fadeDistance">Distance at which object should be totally fade</param>
+        /// <param name="scale">[OUT] Slope of the fading on the fading part</param>
+        /// <param name="bias">[OUT] Ordinate of the fading part at abscissa 0</param>
         public static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
@@ -517,6 +526,13 @@ namespace UnityEngine.Rendering.HighDefinition
             scale = 1.0f / (fadeDistance - distanceFadeNear);
             bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
         }
+
+        /// <summary>
+        /// Compute the linear fade distance
+        /// </summary>
+        /// <param name="distanceToCamera">Distance from the object to fade from the camera</param>
+        /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
+        /// <returns>Computed fade factor</returns>
         public static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
         {
             float scale;
@@ -524,6 +540,21 @@ namespace UnityEngine.Rendering.HighDefinition
             GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
 
             return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
+        }
+
+        /// <summary>
+        /// Compute the linear fade distance between two position with an additional weight multiplier
+        /// </summary>
+        /// <param name="position1">Object/camera position</param>
+        /// <param name="position2">Camera/object position</param>
+        /// <param name="weight">Weight multiplior</param>
+        /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
+        /// <returns>Computed fade factor</returns>
+        public static float ComputeWeightedLinearFadeDistance(Vector3 position1, Vector3 position2, float weight, float fadeDistance)
+        {
+            float distanceToCamera = Vector3.Magnitude(position1 - position2);
+            float distanceFade = ComputeLinearDistanceFade(distanceToCamera, fadeDistance);
+            return distanceFade * weight;
         }
 
         public static bool PostProcessIsFinalPass()
@@ -669,5 +700,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s += pattern1.Length;
             return new string(buffer, 0, s);
         }
+
+        internal static float ClampFOV(float fov) => Mathf.Clamp(fov, 0.00001f, 179);
     }
 }

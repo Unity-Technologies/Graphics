@@ -1,11 +1,11 @@
-# Upgrading your shaders
+# Upgrading your Shaders
 
-If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](installing-universalrp-into-an-existing-project), you must convert those Shaders to the UniversalRP Shaders. This is because built-in Lit shaders are not compatible with UniversalRP Shaders. For an overview of the mapping between built-in shaders and UniversalRP Shaders, see [Shader mappings](#shader-mappings).
+If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](installing-universalrp-into-an-existing-project), you must convert those Shaders to the URP Shaders. This is because built-in Lit shaders are not compatible with URP Shaders. For an overview of the mapping between built-in shaders and URP Shaders, see [Shader mappings](#shader-mappings).
 
 To upgrade built-in Shaders:
 
 1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**. 
-2. According to your needs, select either __Upgrade Project Materials to UniversalRP Materials__ or __Upgrade Selected Materials to UniversalRP Materials__.
+2. According to your needs, select either __Upgrade Project Materials to URP Materials__ or __Upgrade Selected Materials to URP Materials__.
 
 **Note:** These changes cannot be undone. Backup your Project before you upgrade it.
 
@@ -15,7 +15,7 @@ For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity d
 
 ## Shader mappings
 
-The table below shows which UniversalRP shaders the Unity built-in shaders convert to when you run the shader upgrader.
+The table below shows which URP shaders the Unity built-in shaders convert to when you run the shader upgrader.
 
 | Unity built-in shader                             | Universal Render Pipeline shader          |
 | ------------------------------------------------- | ------------------------------------------- |

@@ -63,6 +63,7 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
             NormalData normalData;
             DecodeFromNormalBuffer(GBufferNormal, uint2(0, 0), normalData);
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+            normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
             EncodeIntoNormalBuffer(normalData, uint2(0, 0), GBufferNormal);
             _NormalBuffer[COORD_TEXTURE2D_X(positionSS)] = GBufferNormal;
         }

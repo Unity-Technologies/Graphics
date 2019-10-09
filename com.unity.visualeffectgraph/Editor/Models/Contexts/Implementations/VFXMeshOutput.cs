@@ -7,12 +7,12 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXMeshOutput : VFXAbstractParticleOutput
+    class VFXMeshOutput : VFXShaderGraphParticleOutput
     {
-        public override string name { get { return "Mesh Output"; } }
+        public override string name { get { return "Output Particle Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsUV { get { return true; } }
+        public override bool supportsUV { get { return shaderGraph == null; } }
         public override bool implementsMotionVector { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back;  } }
 
@@ -48,14 +48,29 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-
-            yield return slotExpressions.First(o => o.name == "mainTexture");
+            if( shaderGraph == null)
+                yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
-        public class InputProperties
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                if( shaderGraph == null)
+                    foreach (var property in PropertiesFromType("OptionalInputProperties"))
+                        yield return property;
+                foreach (var property in base.inputProperties)
+                    yield return property;
+            }
+        }
+
+        public class OptionalInputProperties
         {
             [Tooltip("Texture to be applied to the mesh.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+        }
+        public class InputProperties
+        {
             [Tooltip("Mesh to be used for particle rendering.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
             [Tooltip("Define a bitmask to control which submeshes are rendered."), BitField]

@@ -84,7 +84,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -114,7 +116,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -127,6 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialName = "Hair",
             ShaderPassName = "SHADERPASS_DEPTH_ONLY",
             ZWriteOverride = "ZWrite On",
+            CullOverride = HDSubShaderUtilities.defaultCullMode,
 
             ExtraDefines = HDSubShaderUtilities.s_ExtraDefinesForwardMaterialDepthOrMotion,
 
@@ -164,7 +169,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
 
@@ -215,7 +222,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = false,
 
@@ -253,7 +262,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = true
         };
@@ -306,7 +317,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
@@ -375,7 +388,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
 
@@ -425,7 +440,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HairMasterNode.PositionSlotId
+                HairMasterNode.PositionSlotId,
+                HairMasterNode.VertexNormalSlotId,
+                HairMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
         };
@@ -610,7 +627,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(HairMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(HairMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(HairMasterNode.VertexNormalSlotId) ||
+                    masterNode.IsSlotConnected(HairMasterNode.VertexNormalSlotId) )
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

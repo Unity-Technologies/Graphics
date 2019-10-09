@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("RAND");
+            return string.Format("Rand(attributes.seed)");
         }
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
