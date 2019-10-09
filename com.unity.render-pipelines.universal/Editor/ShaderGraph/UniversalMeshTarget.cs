@@ -794,55 +794,76 @@ namespace UnityEditor.Rendering.Universal
         {
             private static ConditionalInclude varyingsInclude = new ConditionalInclude(
                 Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl"));
+
+            private static ConditionalInclude shaderPassInclude = new ConditionalInclude(
+                Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"));
+
             public static ConditionalInclude[] PBRForward = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl")),
             };
+
             public static ConditionalInclude[] DepthOnly = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl")),
             };
 
             public static ConditionalInclude[] ShadowCaster = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl")),
             };
 
             public static ConditionalInclude[] LightingMeta = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl")),
             };
+
             public static ConditionalInclude[] PBR2D = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl")),
             };
+
             public static ConditionalInclude[] Unlit = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl")),
             };
+
             public static ConditionalInclude[] SpriteLit = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl")),
             };
+
             public static ConditionalInclude[] SpriteNormal = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteNormalPass.hlsl")),
             };
+
             public static ConditionalInclude[] SpriteForward = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl")),
             };
+
             public static ConditionalInclude[] SpriteUnlit = new ConditionalInclude[]
             {
+                PostGraphIncludes.shaderPassInclude,
                 PostGraphIncludes.varyingsInclude,
                 new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl")),
             };

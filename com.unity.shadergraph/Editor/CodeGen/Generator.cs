@@ -560,11 +560,7 @@ namespace UnityEditor.ShaderGraph
 
             using (var graphDefines = new ShaderStringBuilder())
             {
-                // TODO: Solve inconsistency
-                // URP: #define PASSNAME
-                // HDRP: #define SHADERPASS PASSNAME
-                // graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
-                graphDefines.AppendLine("#define {0}", pass.referenceName);
+                graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
                 
                 if(pass.defines != null)
                 {
