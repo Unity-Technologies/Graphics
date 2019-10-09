@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
             public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
-            public static readonly int _InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
+            public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
             public static readonly int _unproject0 = Shader.PropertyToID("_unproject0");
             public static readonly int _unproject1 = Shader.PropertyToID("_unproject1");
         }
@@ -222,8 +222,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Universal Forward pipeline only supports a single shadow light, if available it will be the main light.
             SetupMainLightConstants(cmd, ref renderingData.lightData);
-            //SetupAdditionalLightConstants(cmd, ref renderingData);
+            SetupAdditionalLightConstants(cmd, ref renderingData);
         }
+
         // adapted from ForwardLights.SetupShaderLightConstants
         void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
@@ -234,16 +235,35 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
         }
 
+        void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
+
+            float yInversionFactor = SystemInfo.graphicsUVStartsAtTop ? -1.0f : 1.0f;
+            // TODO There is an inconsistency in UniversalRP where the screen is already y-inverted. Why?
+            yInversionFactor *= -1.0f;
+
+            Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
+            Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
+            // Go to pixel coordinates for xy coordinates, z goes to texture space [0.0; 1.0].
+            Matrix4x4 toScreen = new Matrix4x4(
+                new Vector4(0.5f * m_RenderWidth, 0.0f, 0.0f, 0.0f),
+                new Vector4(0.0f, 0.5f * yInversionFactor * m_RenderHeight, 0.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, 0.5f, 0.0f),
+                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, 0.5f, 1.0f)
+            );
+            Matrix4x4 toReversedZ = new Matrix4x4(
+                new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
+                new Vector4(0.0f, 1.0f, 0.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, SystemInfo.usesReversedZBuffer ? 1.0f : 0.0f, 1.0f)
+            );
+            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toReversedZ * toScreen * proj * view);
+            cmd.SetGlobalMatrix(ShaderConstants._ScreenToWorld, clipToWorld);
+        }
+
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // Main Directional Light
-            {
-                CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
-                SetupShaderLightConstants(cmd, ref renderingData);
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-            }
-
             DeferredShaderData.instance.ResetBuffers();
 
             m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
@@ -286,10 +306,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.camera.nearClipPlane
             );
 
+            // Shared uniform constants for all lights.
+            {
+                CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
+                SetupShaderLightConstants(cmd, ref renderingData);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
             if (this.tiledDeferredShading)
             {
                 // Sort lights front to back.
-                // This allows a further optimisation where the per-tile light lists can be more easily trimmed on both ends in the vertex shading instancing the tiles.
+                // This allows a further optimisation where per-tile light lists can be more easily trimmed on both ends in the vertex shading instancing the tiles.
                 SortLights(ref prePointLights);
 
                 NativeArray<ushort> defaultIndices = new NativeArray<ushort>(prePointLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -839,18 +867,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
+                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
+
                 int tileWidth = m_Tilers[0].GetTilePixelWidth();
                 int tileHeight = m_Tilers[0].GetTilePixelHeight();
                 cmd.SetGlobalInt(ShaderConstants._TilePixelWidth, tileWidth);
                 cmd.SetGlobalInt(ShaderConstants._TilePixelHeight, tileHeight);
 
-                Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
-                Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
-                Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
-                cmd.SetGlobalMatrix(ShaderConstants._InvCameraViewProj, viewProjInv);
-
                 cmd.SetGlobalTexture(m_TileDepthInfoTexture.id, m_TileDepthInfoTexture.Identifier());
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
                 for (int i = 0; i < drawCallCount; ++i)
                 {
@@ -897,18 +921,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (new ProfilingSample(cmd, k_StencilDeferredPass))
             {
-                // It doesn't seem UniversalRP use this.
-                Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
-                cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
-
-                Matrix4x4 proj = renderingData.cameraData.camera.projectionMatrix;
-                Matrix4x4 view = renderingData.cameraData.camera.worldToCameraMatrix;
-                Matrix4x4 viewProjInv = Matrix4x4.Inverse(proj * view);
-                cmd.SetGlobalMatrix(ShaderConstants._InvCameraViewProj, viewProjInv);
+                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
                 cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
-
-                NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
                 for (int i = 0; i < m_stencilVisLights.Length; ++i)
                 {

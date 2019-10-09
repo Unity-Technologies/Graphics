@@ -127,6 +127,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Texture2D _GBuffer0;
             Texture2D _GBuffer1;
             Texture2D _GBuffer2;
+            float4x4 _ScreenToWorld;
 
             float3 _LightWsPos;
             float _LightRadius2;
@@ -146,24 +147,17 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 light.attenuation = _LightAttenuation;
                 light.spotDirection = _LightSpotDirection;
 
-                float2 clipCoord = input.positionCS.xy * _ScreenSize.zw * 2.0 - 1.0;
-
-                #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
-                float d = 1.0 - _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
-                #else
-                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
-                #endif
-
-                // Temporary code to calculate fragment world space position.
-                float4 wsPos = mul(_InvCameraViewProj, float4(clipCoord, d * 2.0 - 1.0, 1.0));
-                wsPos.xyz *= 1.0 / wsPos.w;
-
                 float3 color = 0.0.xxx;
 
 #if TEST_WIP_DEFERRED_POINT_LIGHTING
+                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
                 half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
+
+                // Temporary code to calculate fragment world space position.
+                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+                wsPos.xyz *= 1.0 / wsPos.w;
 
                 SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
                 InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, wsPos.xyz);
@@ -187,9 +181,14 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #endif
 
 #else
+                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
                 float4 albedoOcc = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 float4 normalRoughness = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 float4 spec = _GBuffer2.Load(int3(input.positionCS.xy, 0));
+
+                // Temporary code to calculate fragment world space position.
+                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+                wsPos.xyz *= 1.0 / wsPos.w;
 
                 // TODO calculate lighting.
                 float3 L = light.wsPos - wsPos.xyz;

@@ -78,9 +78,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             struct Varyings
             {
-                float4 positionCS : SV_POSITION;
+                noperspective float4 positionCS : SV_POSITION;
                 nointerpolation int2 relLightOffsets : TEXCOORD0;
-                noperspective float2 clipCoord : TEXCOORD1;
             };
 
             #if USE_CBUFFER_FOR_LIGHTLIST
@@ -110,7 +109,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [branch] if (shouldDiscard)
                 {
                     output.positionCS = float4(-2, -2, -2, 1);
-                    output.clipCoord = 0.0;
                     output.relLightOffsets = 0;
                     return output;
                 }
@@ -127,10 +125,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 //                // Tiles coordinates always start at upper-left corner of the screen (y axis down).
 //                // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
 //                output.positionCS.y *= -1.0;
-
-                output.clipCoord = clipCoord;
-                // Screen is flipped!!!!!!
-                output.clipCoord.y *= -1.0;
 
                 // flat interpolators are calculated by the provoking vertex of the triangles or quad.
                 // Provoking vertex convention is different per platform.
@@ -212,32 +206,33 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Texture2D _GBuffer0;
             Texture2D _GBuffer1;
             Texture2D _GBuffer2;
+            float4x4 _ScreenToWorld;
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
-                #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
-                float d = 1.0 - _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
-                #else
-                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
-                #endif
-
-                // Temporary code to calculate fragment world space position.
-                float4 wsPos = mul(_InvCameraViewProj, float4(input.clipCoord, d * 2.0 - 1.0, 1.0));
-                wsPos.xyz *= 1.0 / wsPos.w;
-
 #if TEST_WIP_DEFERRED_POINT_LIGHTING
+                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
                 half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
+
+                // Temporary code to calculate fragment world space position.
+                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+                wsPos.xyz *= 1.0 / wsPos.w;
 
                 SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
                 InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, wsPos.xyz);
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 #else
+                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
                 float4 albedoOcc = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 float4 normalRoughness = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 float4 spec = _GBuffer2.Load(int3(input.positionCS.xy, 0));
+
+                // Temporary code to calculate fragment world space position.
+                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+                wsPos.xyz *= 1.0 / wsPos.w;
 #endif
                 half3 color = 0.0.xxx;
 
