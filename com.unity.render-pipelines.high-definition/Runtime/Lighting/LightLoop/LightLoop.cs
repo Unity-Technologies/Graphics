@@ -161,10 +161,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxCacheSize = 2000000000; //2 GigaByte
         internal const int k_MaxDirectionalLightsOnScreen = 16;
         internal const int k_MaxPunctualLightsOnScreen    = 512;
-        internal const int k_MaxAreaLightsOnScreen        = 64;
+        internal const int k_MaxAreaLightsOnScreen        = 128;
         internal const int k_MaxDecalsOnScreen = 512;
         internal const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
-        internal const int k_MaxEnvLightsOnScreen = 64;
+        internal const int k_MaxEnvLightsOnScreen = 128;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         #if UNITY_SWITCH
@@ -1625,6 +1625,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Discard probe if disabled in debug menu
             if (!debugDisplaySettings.data.lightingDebugSettings.showReflectionProbe)
                 return false;
+            
+            // Discard probe if its distance is too far or if its weight is at 0
+            float weight = HDUtils.ComputeWeightedLinearFadeDistance(probe.transform.position, camera.transform.position, probe.weight, probe.fadeDistance);
+            if (weight <= 0f)
+                return false;
 
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
@@ -1688,7 +1693,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = probe.lightLayersAsUInt;
             envLightData.influenceShapeType = influence.envShape;
-            envLightData.weight = probe.weight;
+            envLightData.weight = weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
@@ -2055,12 +2060,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // And if needed rescale the whole atlas
                     m_ShadowManager.LayoutShadowMaps(debugDisplaySettings.data.lightingDebugSettings);
 
-                    bool isPysicallyBasedSkyActive = false;
-
                     var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
                     Debug.Assert(visualEnvironment != null);
 
-                    isPysicallyBasedSkyActive = (visualEnvironment.skyType.value == SkySettings.GetUniqueID<PhysicallyBasedSky>());
+                    bool isPbrSkyActive = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased;
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -2127,7 +2130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPysicallyBasedSkyActive))
+                            if (GetDirectionalLightData(cmd, hdCamera, gpuLightType, light, lightComponent, additionalLightData, lightIndex, shadowIndex, debugDisplaySettings, directionalLightcount, ref m_ScreenSpaceShadowIndex, isPbrSkyActive))
                             {
                                 directionalLightcount++;
 
@@ -3149,6 +3152,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new DeferredLightingParameters();
 
+            bool debugDisplayOrSceneLightOff = CoreUtils.IsSceneLightingDisabled(hdCamera.camera) || debugDisplaySettings.IsDebugDisplayEnabled();
+
             int w = hdCamera.actualWidth;
             int h = hdCamera.actualHeight;
             parameters.numTilesX = (w + 15) / 16;
@@ -3157,7 +3162,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.enableTile = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile);
             parameters.outputSplitLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
             parameters.useComputeLightingEvaluation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation);
-            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplaySettings.IsDebugDisplayEnabled();
+            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && !debugDisplayOrSceneLightOff;
             parameters.enableShadowMasks = m_enableBakeShadowMask;
             parameters.numVariants = LightDefinitions.s_NumFeatureVariants;
             parameters.debugDisplaySettings = debugDisplaySettings;
@@ -3167,8 +3172,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = hdCamera.viewCount;
 
             // Full Screen Pixel (debug)
-            parameters.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
-            parameters.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, parameters.enableShadowMasks, parameters.debugDisplaySettings.IsDebugDisplayEnabled());
+            parameters.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, parameters.enableShadowMasks, debugDisplayOrSceneLightOff);
+            parameters.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, parameters.enableShadowMasks, debugDisplayOrSceneLightOff);
 
             return parameters;
         }

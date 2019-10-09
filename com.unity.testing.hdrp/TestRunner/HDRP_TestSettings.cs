@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +10,7 @@ using UnityEngine.TestTools.Graphics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 
 [ExecuteAlways]
@@ -19,10 +20,16 @@ public class HDRP_TestSettings : GraphicsTestSettings
 	public int captureFramerate = 0;
 	public int waitFrames = 0;
 
+    internal XRLayoutOverride xrLayout = XRLayoutOverride.TestSinglePassOneEye;
+
     public RenderPipelineAsset renderPipelineAsset;
 
     void Awake()
     {
+        // Built-in font shaders are incompatible with XR, replace them with a ShaderGraph version
+        if (XRSystem.testModeEnabled)
+            doBeforeTest.AddListener(ReplaceBuiltinFontShaders);
+
         if (renderPipelineAsset == null)
         {
             Debug.LogWarning("No RenderPipelineAsset has been assigned in the test settings. This may result in a wrong test.");
@@ -48,5 +55,30 @@ public class HDRP_TestSettings : GraphicsTestSettings
         Debug.Log($"Scenes that needed to change the RP asset:{Environment.NewLine}{quitDebug.ToString()}");
 
         quitDebug.Clear();
+    }
+
+    void ReplaceBuiltinFontShaders()
+    {
+#if UNITY_EDITOR
+        var fontMaterialSG = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.testing.hdrp/Fonts/Font Material SG.mat");
+        if (fontMaterialSG != null)
+        {
+            foreach (var textMesh in GameObject.FindObjectsOfType<TextMesh>())
+            {
+                var textMeshRenderer = textMesh.gameObject.GetComponent<MeshRenderer>();
+
+                if (!textMeshRenderer.material.shader.name.StartsWith("Shader Graphs"))
+                {
+                    // From Unity source: Runtime\Resources\Assets\DefaultResources\Font.shader
+                    var fontTexture = textMeshRenderer.material.GetTexture("_MainTex");
+                    var fontColor = textMeshRenderer.material.GetColor("_Color");
+
+                    textMeshRenderer.material = fontMaterialSG;
+                    textMeshRenderer.material.SetTexture("_MainTex", fontTexture);
+                    textMeshRenderer.material.SetColor("_Color", fontColor);
+                }
+            }
+        }
+#endif
     }
 }
