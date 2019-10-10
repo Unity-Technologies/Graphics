@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 // Else rely on GraphicsSettings are you should be in hdrp and owner could be probe or camera.
-                hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                hdrpAsset = HDRenderPipeline.currentAsset;
             }
             return hdrpAsset;
         }

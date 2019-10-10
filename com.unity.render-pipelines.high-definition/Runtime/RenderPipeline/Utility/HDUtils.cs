@@ -62,9 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-
-                return hdPipelineAsset.currentPlatformRenderPipelineSettings;
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
         public static int debugStep => MousePositionDebug.instance.debugStep;

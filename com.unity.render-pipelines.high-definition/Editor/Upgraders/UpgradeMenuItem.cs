@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         "Update material " + caption + "...",
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
-                    
+
                     if (HDShaderUtils.IsHDRPShader(mat.shader))
                     {
                         // We don't handle embed material as we can't rewrite fbx files
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void UpgradeSceneMaterials()
         {
 #pragma warning disable 618
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdAsset = HDRenderPipeline.currentAsset;
             // For each loaded materials
             foreach (var mat in Resources.FindObjectsOfTypeAll<Material>())
             {

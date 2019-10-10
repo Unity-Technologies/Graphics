@@ -15,8 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static float GetPunctualFilterWidthInTexels(HDCamera camera, LightType lightType)
         {
-            var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-
+            var hdAsset = HDRenderPipeline.currentAsset;
             if (hdAsset == null)
                 return 1;
 
