@@ -428,12 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
-#if !UNITY_2019_2_OR_NEWER
-                    buildTarget == UnityEditor.BuildTarget.StandaloneLinuxUniversal ||
-#endif
-#if UNITY_2019_3_OR_NEWER
                     buildTarget == UnityEditor.BuildTarget.Stadia ||
-#endif
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
@@ -467,12 +462,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case UnityEditor.BuildTarget.StandaloneWindows64:
                     return OperatingSystemFamily.Windows;
                 case UnityEditor.BuildTarget.StandaloneLinux64:
-#if !UNITY_2019_2_OR_NEWER
-                case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
-#endif
-#if UNITY_2019_3_OR_NEWER
                 case UnityEditor.BuildTarget.Stadia:
-#endif
                     return OperatingSystemFamily.Linux;
                 default:
                     return OperatingSystemFamily.Other;

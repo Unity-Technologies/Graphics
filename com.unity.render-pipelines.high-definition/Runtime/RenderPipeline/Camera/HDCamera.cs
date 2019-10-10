@@ -712,13 +712,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return transform.transpose;
             }
 
-#if UNITY_2019_1_OR_NEWER
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             Vector2 lensShift = camera.GetGateFittedLensShift();
-#else
-            float verticalFoV = camera.fieldOfView * Mathf.Deg2Rad;
-            Vector2 lensShift = Vector2.zero;
-#endif
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false);
         }

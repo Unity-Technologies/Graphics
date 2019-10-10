@@ -101,22 +101,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkyManager()
         {
 #if UNITY_EDITOR
-    #if UNITY_2019_2_OR_NEWER
             UnityEditor.Lightmapping.bakeStarted += OnBakeStarted;
-    #else
-            UnityEditor.Lightmapping.started += OnBakeStarted;
-    #endif
 #endif
         }
 
         ~SkyManager()
         {
 #if UNITY_EDITOR
-    #if UNITY_2019_2_OR_NEWER
             UnityEditor.Lightmapping.bakeStarted -= OnBakeStarted;
-    #else
-            UnityEditor.Lightmapping.started -= OnBakeStarted;
-    #endif
 #endif
         }
 
