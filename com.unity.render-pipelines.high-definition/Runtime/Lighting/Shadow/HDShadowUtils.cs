@@ -69,10 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             splitData.cullingSphere.Set(0.0f, 0.0f, 0.0f, float.NegativeInfinity);
             splitData.cullingPlaneCount = 0;
 
-#if UNITY_2019_3_OR_NEWER
             // This used to be fixed to .6f, but is now configureable.
             splitData.shadowCascadeBlendCullingFactor = .6f;
-#endif
 
             // get lightDir
             lightDir = visibleLight.light.transform.forward;

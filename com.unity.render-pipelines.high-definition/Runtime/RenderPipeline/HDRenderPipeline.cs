@@ -641,10 +641,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
                 editableMaterialRenderQueue = false
-#if UNITY_2019_3_OR_NEWER
                 // Enlighten is deprecated in 2019.3 and above
                 , enlighten = false
-#endif
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
