@@ -49,12 +49,12 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     uint currentDepth = _RaytracingMaxRecursion - rayIntersection.remainingDepth;
 
     // The first thing that we should do is grab the intersection vertex
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, WorldRayDirection(), fragInput);
+    BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
 
     // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 position = GetAbsolutePositionWS(fragInput.positionRWS);
@@ -74,7 +74,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceDataFromIntersection(fragInput, -WorldRayDirection(), posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
+    GetSurfaceDataFromIntersection(fragInput, -WorldRayDirection(), posInput, currentVertex, rayIntersection.cone, surfaceData, builtinData);
 
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
@@ -210,12 +210,12 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 void AnyHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     // The first thing that we should do is grab the intersection vertex
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, WorldRayDirection(), fragInput);
+    BuildFragInputsFromIntersection(currentVertex, WorldRayDirection(), fragInput);
 
     // Compute the distance of the ray
     rayIntersection.t = RayTCurrent();
@@ -227,7 +227,7 @@ void AnyHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool isVisible = GetSurfaceDataFromIntersection(fragInput, -WorldRayDirection(), posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
+    bool isVisible = GetSurfaceDataFromIntersection(fragInput, -WorldRayDirection(), posInput, currentVertex, rayIntersection.cone, surfaceData, builtinData);
 
     // If this fella should be culled, then we cull it
     if (!isVisible)
