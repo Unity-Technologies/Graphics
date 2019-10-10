@@ -467,7 +467,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DstOffset         = Shader.PropertyToID("_DstOffset");
         public static readonly int _DepthMipChain = Shader.PropertyToID("_DepthMipChain");
 
-
         public static readonly int _FogEnabled                     = Shader.PropertyToID("_FogEnabled");
         public static readonly int _PBRFogEnabled                  = Shader.PropertyToID("_PBRFogEnabled");
         public static readonly int _MaxFogDistance                 = Shader.PropertyToID("_MaxFogDistance");

@@ -444,7 +444,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     // m_CarPaint_numThetaF = FindProperty( m_CarPaint_numThetaFText, props );
                     // m_CarPaint_numThetaI = FindProperty( m_CarPaint_numThetaIText, props );
 
-
                     // Clearcoat
                     bool    hasClearcoat = EditorGUILayout.Toggle("Enable Clearcoat", (flags & 2) != 0);
                     bool    clearcoatUsesRefraction = (flags & 4) != 0;

@@ -5,6 +5,9 @@ Shader "HDRP/ShadowMatte"
         // Versioning of material to help for upgrading
         [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
+        _ShadowFilterPoint("_ShadowFilterPoint", Int) = 0
+        _ShadowFilterDir("_ShadowFilterDir", Int) = 0
+        _ShadowFilterRect("_ShadowFilterRect", Int) = 0
         _ShadowTint("Color", Color) = (0,0,0,1)
         _ShadowTintMap("ColorMap", 2D) = "white" {}
         // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.

@@ -12,6 +12,7 @@ SAMPLER(sampler_ShadowTintMap);
 
 CBUFFER_START(UnityPerMaterial)
 
+uint _ShadowFilter;
 float4 _ShadowTint;
 float4 _ShadowTintMap_ST;
 float4 _UnlitColor;

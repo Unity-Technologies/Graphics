@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new ShadowMatteShadowTintUIBlock(MaterialUIBlock.Expandable.Input),
+            new ShadowMatteUIBlock(MaterialUIBlock.Expandable.Input),
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity)
         };
@@ -48,10 +48,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
             Shader.EnableKeyword("SHADOW_HIGH");
 
-            var mainTex = material.GetTexture(ShadowMatteShadowTintUIBlock.kColorMap);
+            var mainTex = material.GetTexture(ShadowMatteUIBlock.kColorMap);
             material.SetTexture("_ShadowTintMap", mainTex);
-            Color color = material.GetColor(ShadowMatteShadowTintUIBlock.kColor);
+            Color color = material.GetColor(ShadowMatteUIBlock.kColor);
             material.SetColor("_ShadowTint", color);
+            float shadowFilterPoint  = material.GetFloat(ShadowMatteUIBlock.kShadowFilterPoint);
+            float shadowFilterDir    = material.GetFloat(ShadowMatteUIBlock.kShadowFilterDir);
+            float shadowFilterRect   = material.GetFloat(ShadowMatteUIBlock.kShadowFilterRect);
+            //uint shadowFilter = 0u;
+            uint finalFlag = 0x00000000;
+            if (shadowFilterPoint == 1.0f)
+                finalFlag |= unchecked((uint)LightFeatureFlags.Punctual);
+            if (shadowFilterDir == 1.0f)
+                finalFlag |= unchecked((uint)LightFeatureFlags.Directional);
+            if (shadowFilterRect == 1.0f)
+                finalFlag |= unchecked((uint)LightFeatureFlags.Area);
+            material.SetInt("_ShadowFilter", unchecked((int)finalFlag));
         }
     }
 } // namespace UnityEditor
