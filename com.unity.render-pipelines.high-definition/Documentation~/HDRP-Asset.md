@@ -121,11 +121,11 @@ These settings control skybox reflections and skybox lighting.
 
 ### Shadow
 
-These settings adjust the size of the shadow mask. Smaller values causes Unity to discard more distant shadows, while higher values lead to Unity displaying more shadows at longer distances from the Camera.
+These settings adjust the size of the shadowmask. Smaller values causes Unity to discard more distant shadows, while higher values lead to Unity displaying more shadows at longer distances from the Camera.
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Shadow Mask**                  | Enable the checkbox to make HDRP support [Shadowmask](https://docs.unity3d.com/Manual/LightMode-Mixed-Shadowmask.html) in your Unity Project. |
+| **Shadowmask**                  | Enable the checkbox to make HDRP support the [Shadowmask lighting mode](Lighting-Mode-Shadowmask.html) in your Unity Project. |
 | **Maximum** **Shadow on Screen** | The maximum number of shadows you can have in view. A Spot Light casts a single shadow, a Point Light casts six shadows, and a Directional Light casts shadows equal to the number of cascades defined in the [HD Shadow Settings](Override-Shadows.html) override. |
 | **Filtering Quality**            | Use the drop-down to select the filtering quality for shadows. Higher values increase the shadow quality in HDRP as better filtering near the edges of shadows reduce aliasing effects. Shadow quality only works for Cameras that use [forward rendering](Forward-And-Deferred-Rendering.html). **Deferred** mode uses Medium.<br />To edit this property, select **Both** or **Forward Only** from the **Lit Shader Mode** drop-down. For information on each filtering quality preset, see the [Filtering Qualities table](#FilteringQualities). |
 | **Screen Space Shadows**         | Enable the checkbox to allow HDRP to compute shadows in a separate pass and store them in a screen-aligned Texture. |
