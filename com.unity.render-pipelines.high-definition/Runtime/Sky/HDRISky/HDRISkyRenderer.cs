@@ -69,6 +69,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(type, blendAmount, Mathf.Cos(backplatePhi), Mathf.Sin(backplatePhi));
         }
 
+        private Vector4 GetBackplateParameters2()
+        {
+            float localPhi = -Mathf.Deg2Rad*m_HdriSkyParams.plateTexRotation.value;
+            return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), m_HdriSkyParams.plateTexOffset.value.x, m_HdriSkyParams.plateTexOffset.value.y);
+        }
+
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             if (m_HdriSkyParams.enableBackplate.value == false)
@@ -125,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, Mathf.Cos(phi), Mathf.Sin(phi)));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0());
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi));
+                m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters2, GetBackplateParameters2());
                 m_SkyHDRIMaterial.SetColor(HDShaderIDs._BackplateShadowTint, m_HdriSkyParams.shadowTint.value);
                 uint shadowFilter = 0u;
                 if (m_HdriSkyParams.pointLightShadow.value)

@@ -30,7 +30,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float4  _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
     float4  _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
     float4  _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
-    float4  _BackplateShadowTint; // xyz: ShadowTint
+    float4  _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
+    float3  _BackplateShadowTint; // xyz: ShadowTint
     uint    _BackplateShadowFilter;
 
     #define _Exposure           _SkyParam.x
@@ -48,6 +49,12 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #define _CosPhiPlate        _BackplateParameters1.z
     #define _SinPhiPlate        _BackplateParameters1.w
     #define _CosSinPhiPlate     _BackplateParameters1.zw
+    #define _CosPhiPlateTex     _BackplateParameters2.x
+    #define _SinPhiPlateTex     _BackplateParameters2.y
+    #define _CosSinPhiPlateTex  _BackplateParameters2.xy
+    #define _OffsetTexX         _BackplateParameters2.z
+    #define _OffsetTexY         _BackplateParameters2.w
+    #define _OffsetTex          _BackplateParameters2.zw
     #define _ShadowTint         _BackplateShadowTint.rgb
     #define _ShadowFilter       _BackplateShadowFilter
 
@@ -72,6 +79,14 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return output;
     }
 
+    float3 RotationUp(float3 p, float2 cos_sin)
+    {
+        float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
+        float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
+
+        return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
+    }
+
     // TODO: cf. dir.y == 0
     float3 GetPositionOnInfinitePlane(float3 dir)
     {
@@ -89,6 +104,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float GetSDF(out float scale, float2 position)
     {
+        position = RotationUp(float3(position.x, 0.0f, position.y), _CosSinPhiPlate).xz;
         if (_BackplateType == 0)
         {
             scale = _ScaleX;
@@ -113,7 +129,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     bool IsBackplateHit(out float3 positionOnBackplatePlane, float3 dir)
     {
-        positionOnBackplatePlane   = GetPositionOnInfinitePlane(dir);
+        positionOnBackplatePlane = GetPositionOnInfinitePlane(dir);
 
         float localScale;
         float sdf = GetSDF(localScale, positionOnBackplatePlane.xz);
@@ -123,7 +139,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     bool IsBackplateHitWithBlend(out float3 positionOnBackplatePlane, out float blend, float3 dir)
     {
-        //positionOnBackplatePlane = GetPositionOnInfinitePlaneGroundLevel(dir, 0.0f);
         positionOnBackplatePlane = GetPositionOnInfinitePlane(dir);
 
         float localScale;
@@ -141,13 +156,11 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
     {
-        // Rotate direction
-        float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
-        float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
-        dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
+        dir = RotationUp(dir, cos_sin);
 
         float3 skyColor = GetSkyColor(dir)*_Exposure*_Multiplier*exposure;
         skyColor = ClampToFloat16Max(skyColor);
+
         return float4(skyColor, 1.0);
     }
 
@@ -164,33 +177,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float4 RenderSkyWithBackplate(Varyings input, float3 positionOnBackplate, float exposure, float3 originalDir, float blend, float depth)
     {
         // Reverse it to point into the scene
-        float3 dir = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0); // No need for normalization
+        float3 offset = RotationUp(float3(_OffsetTexX, 0, _OffsetTexY), _CosSinPhiPlate);
+        float3 dir = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0) + offset; // No need for normalization
 
-        /*
-            PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
-
-            float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
-
-            SurfaceData surfaceData;
-            BuiltinData builtinData;
-            GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-
-            HDShadowContext shadowContext = InitShadowContext();
-            float shadow;
-            float3 normalWS = normalize(packedInput.vmesh.interpolators1);
-            ShadowLoopMin(shadowContext, posInput, normalWS, 0xFFFFFFFF, 0xFFFFFFFF, shadow);
-
-            float2 shadowMatteColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _ShadowTintMap);
-            float3 shadowTint = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).rgb * _ShadowTint.rgb;
-            float shadowTintAlpha = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).a * _ShadowTint.a;
-
-            float3 shadowColor  = ComputeShadowColor(shadow, shadowTint.rgb);
-            float  coef         = (1 - shadow)*shadowTintAlpha;
-
-            // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
-            float4 outColor = ApplyBlendMode(shadowColor, builtinData.opacity);
-            outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
-        */
         PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
@@ -198,12 +187,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
         float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint);
 
-        //float2 shadowMatteColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _ShadowTintMap);
-        //float3 shadowTint = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).rgb * _ShadowTint.rgb;
-        //float shadowTintAlpha = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).a * _ShadowTint.a;
-
         float3 output = lerp(GetColorWithRotation(originalDir, exposure, _CosSinPhi).rgb,
-                             shadowColor*GetColorWithRotation(dir,         exposure, _CosSinPhiPlate).rgb, blend);
+                             shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex),         exposure, _CosSinPhi).rgb, blend);
 
         return float4(output, exposure);
     }

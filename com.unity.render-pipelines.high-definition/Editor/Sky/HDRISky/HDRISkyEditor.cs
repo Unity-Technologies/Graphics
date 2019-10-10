@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Scale;
         SerializedDataParameter m_ProjectionDistance;
         SerializedDataParameter m_PlateRotation;
+        SerializedDataParameter m_PlateTexRotation;
+        SerializedDataParameter m_PlateTexOffset;
         SerializedDataParameter m_BlendAmount;
         SerializedDataParameter m_PointLightShadow;
         SerializedDataParameter m_DirLightShadow;
@@ -53,6 +55,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Scale                     = Unpack(o.Find(x => x.scale));
             m_ProjectionDistance        = Unpack(o.Find(x => x.projectionDistance));
             m_PlateRotation             = Unpack(o.Find(x => x.plateRotation));
+            m_PlateTexRotation          = Unpack(o.Find(x => x.plateTexRotation));
+            m_PlateTexOffset            = Unpack(o.Find(x => x.plateTexOffset));
             m_BlendAmount               = Unpack(o.Find(x => x.blendAmount));
             m_PointLightShadow          = Unpack(o.Find(x => x.pointLightShadow));
             m_DirLightShadow            = Unpack(o.Find(x => x.dirLightShadow));
@@ -167,7 +171,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     }
                     PropertyField(m_ProjectionDistance);
-                    PropertyField(m_PlateRotation);
+                    PropertyField(m_PlateRotation, new GUIContent("Backplate Rotation"));
+                    PropertyField(m_PlateTexRotation, new GUIContent("Texture Rotation"));
+                    PropertyField(m_PlateTexOffset, new GUIContent("Texture Offset"));
                     if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
                         PropertyField(m_BlendAmount);
                     PropertyField(m_PointLightShadow, new GUIContent("Point Light Shadow"));
