@@ -114,7 +114,6 @@ Shader "HDRP/ShadowMatte"
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
-
     //enable GPU instancing support
     #pragma multi_compile_instancing
 
@@ -293,15 +292,12 @@ Shader "HDRP/ShadowMatte"
             #define VARYINGS_NEED_TANGENT_TO_WORLD
 
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-            #define LIGHTLOOP_SHADOW_ONLY
 
             #define HAS_LIGHTLOOP
 
             #ifdef DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
             #endif
-
-            #define HAS_LIGHTLOOP
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"

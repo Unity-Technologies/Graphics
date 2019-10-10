@@ -15,9 +15,19 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_IntensityMode;
         SerializedDataParameter m_UpperHemisphereLuxValue;
 
+        SerializedDataParameter m_EnableBackplate;
+        SerializedDataParameter m_BackplateType;
+        SerializedDataParameter m_GroundLevel;
+        SerializedDataParameter m_Scale;
+        SerializedDataParameter m_ProjectionDistance;
+        SerializedDataParameter m_PlateRotation;
+        SerializedDataParameter m_BlendAmount;
+        SerializedDataParameter m_ShadowTint;
+
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D readBackTexture;
+        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
@@ -27,10 +37,19 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
-            m_hdriSky = Unpack(o.Find(x => x.hdriSky));
-            m_DesiredLuxValue = Unpack(o.Find(x => x.desiredLuxValue));
-            m_IntensityMode = Unpack(o.Find(x => x.skyIntensityMode));
-            m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+            m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
+            m_DesiredLuxValue           = Unpack(o.Find(x => x.desiredLuxValue));
+            m_IntensityMode             = Unpack(o.Find(x => x.skyIntensityMode));
+            m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+
+            m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
+            m_BackplateType             = Unpack(o.Find(x => x.backplateType));
+            m_GroundLevel               = Unpack(o.Find(x => x.groundLevel));
+            m_Scale                     = Unpack(o.Find(x => x.scale));
+            m_ProjectionDistance        = Unpack(o.Find(x => x.projectionDistance));
+            m_PlateRotation             = Unpack(o.Find(x => x.plateRotation));
+            m_BlendAmount               = Unpack(o.Find(x => x.blendAmount));
+            m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             var hdrp = HDRenderPipeline.defaultAsset;
@@ -104,6 +123,41 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             base.CommonSkySettingsGUI();
+
+            if (isInAdvancedMode)
+            {
+                PropertyField(m_EnableBackplate);
+                if (m_EnableBackplate.value.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_BackplateType);
+                    bool constraintAsCircle = false;
+                    if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Disc)
+                    {
+                        constraintAsCircle = true;
+                    }
+                    PropertyField(m_GroundLevel);
+                    if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
+                    {
+                        PropertyField(m_Scale);
+                        if (constraintAsCircle)
+                        {
+                            m_Scale.value.vector2Value = new Vector2(m_Scale.value.vector2Value.x, m_Scale.value.vector2Value.x);
+                        }
+                        else if (m_BackplateType.value.enumValueIndex == (uint)BackplateType.Ellipse &&
+                                 Mathf.Abs(m_Scale.value.vector2Value.x - m_Scale.value.vector2Value.y) < 1e-4f)
+                        {
+                            m_Scale.value.vector2Value = new Vector2(m_Scale.value.vector2Value.x, m_Scale.value.vector2Value.x + 1e-4f);
+                        }
+                    }
+                    PropertyField(m_ProjectionDistance);
+                    PropertyField(m_PlateRotation);
+                    if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
+                        PropertyField(m_BlendAmount);
+                    PropertyField(m_ShadowTint);
+                    EditorGUI.indentLevel--;
+                }
+            }
         }
     }
 }

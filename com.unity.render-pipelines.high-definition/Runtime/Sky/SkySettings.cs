@@ -38,6 +38,21 @@ namespace UnityEngine.Rendering.HighDefinition
         ShowUpdateMode =      (1 << 2),
     }
 
+    public enum BackplateType
+    {
+        Disc,
+        Rectangle,
+        Ellipse,
+        Infinite
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class BackplateTypeParameter : VolumeParameter<BackplateType>
+    {
+        public BackplateTypeParameter(BackplateType value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class SkyIntensityParameter : VolumeParameter<SkyIntensityMode>
     {

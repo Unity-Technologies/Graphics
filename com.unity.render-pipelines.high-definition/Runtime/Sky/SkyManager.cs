@@ -415,6 +415,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public void PreRenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        {
+            m_CurrentSkyRenderingContext.PreRenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, frameIndex, cmd);
+        }
+
         public void RenderSky(HDCamera camera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             m_CurrentSkyRenderingContext.RenderSky(m_VisualSky, camera, sunLight, colorBuffer, depthBuffer, debugSettings, frameIndex, cmd);

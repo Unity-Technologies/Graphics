@@ -12,11 +12,42 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
+        
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+    #define HAS_LIGHTLOOP
+
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
 
-    float4   _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
+    float4  _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
+    float4  _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
+    float4  _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
+    float4  _BackplateShadowTint; // xyz: ShadowTint
+
+    #define _Exposure           _SkyParam.x
+    #define _Multiplier         _SkyParam.y
+    #define _CosPhi             _SkyParam.z
+    #define _SinPhi             _SkyParam.w
+    #define _CosSinPhi          _SkyParam.zw
+    #define _Scales             _BackplateParameters0.xy
+    #define _ScaleX             _BackplateParameters0.x
+    #define _ScaleY             _BackplateParameters0.y
+    #define _GroundLevel        _BackplateParameters0.z
+    #define _ProjectionDistance _BackplateParameters0.w
+    #define _BackplateType      _BackplateParameters1.x
+    #define _BlendAmount        _BackplateParameters1.y
+    #define _CosPhiPlate        _BackplateParameters1.z
+    #define _SinPhiPlate        _BackplateParameters1.w
+    #define _CosSinPhiPlate     _BackplateParameters1.zw
+    #define _ShadowTint         _BackplateShadowTint.rgb
 
     struct Attributes
     {
@@ -39,6 +70,85 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return output;
     }
 
+    // TODO: cf. dir.y == 0
+    float3 GetPositionOnInfinitePlane(float3 dir)
+    {
+        const float alpha = (_GroundLevel - _WorldSpaceCameraPos.y)/dir.y;
+
+        return _WorldSpaceCameraPos + alpha*dir;
+    }
+
+    float3 GetPositionOnInfinitePlaneGroundLevel(float3 dir, float groundLevel)
+    {
+        const float alpha = (groundLevel - _WorldSpaceCameraPos.y)/dir.y;
+
+        return _WorldSpaceCameraPos + alpha*dir;
+    }
+
+    float GetSDF(out float scale, float2 position)
+    {
+        if (_BackplateType == 0)
+        {
+            scale = _ScaleX;
+            return CircleSDF(position, _ScaleX);
+        }
+        else if (_BackplateType == 1)
+        {
+            scale = min(_ScaleX, _ScaleY);
+            return RectangleSDF(position, _Scales);
+        }
+        else if (_BackplateType == 2)
+        {
+            scale = min(_ScaleX, _ScaleY);
+            return EllipseSDF(position, _Scales);
+        }
+        else //if (_BackplateType == 3) // Infinite backplate
+        {
+            scale = FLT_MAX;
+            return CircleSDF(position, scale);
+        }
+    }
+
+    bool IsBackplateHit(out float3 positionOnBackplatePlane, float3 dir)
+    {
+        positionOnBackplatePlane   = GetPositionOnInfinitePlane(dir);
+
+        float localScale;
+        float sdf = GetSDF(localScale, positionOnBackplatePlane.xz);
+
+        return sdf < 0.0f && dir.y < 0.0f && _WorldSpaceCameraPos.y > _GroundLevel;
+    }
+
+    bool IsBackplateHitWithBlend(out float3 positionOnBackplatePlane, out float blend, float3 dir)
+    {
+        //positionOnBackplatePlane = GetPositionOnInfinitePlaneGroundLevel(dir, 0.0f);
+        positionOnBackplatePlane = GetPositionOnInfinitePlane(dir);
+
+        float localScale;
+        float sdf = GetSDF(localScale, positionOnBackplatePlane.xz);
+
+        blend = smoothstep(0.0f, localScale*_BlendAmount, max(-sdf, 0));
+
+        return sdf < 0.0f && dir.y < 0.0f && _WorldSpaceCameraPos.y > _GroundLevel;
+    }
+
+    float3 GetSkyColor(float3 dir)
+    {
+        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+    }
+
+    float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
+    {
+        // Rotate direction
+        float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
+        float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
+        dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
+
+        float3 skyColor = GetSkyColor(dir)*_Exposure*_Multiplier*exposure;
+        skyColor = ClampToFloat16Max(skyColor);
+        return float4(skyColor, 1.0);
+    }
+
     float4 RenderSky(Varyings input, float exposure)
     {
         float3 viewDirWS = GetSkyViewDirWS(input.positionCS.xy);
@@ -46,16 +156,54 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         // Reverse it to point into the scene
         float3 dir = -viewDirWS;
 
-        // Rotate direction
-        float cosPhi = _SkyParam.z;
-        float sinPhi = _SkyParam.w;
-        float3 rotDirX = float3(cosPhi, 0, -sinPhi);
-        float3 rotDirY = float3(sinPhi, 0, cosPhi);
-        dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
+        return GetColorWithRotation(dir, exposure, _CosSinPhi);
+    }
 
-        float3 skyColor = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * _SkyParam.x * _SkyParam.y * exposure;
-        skyColor = ClampToFloat16Max(skyColor);
-        return float4(skyColor, 1.0);
+    float4 RenderSkyWithBackplate(Varyings input, float3 positionOnBackplate, float exposure, float3 originalDir, float blend, float depth)
+    {
+        // Reverse it to point into the scene
+        float3 dir = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0); // No need for normalization
+
+        /*
+            PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
+
+            float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+
+            SurfaceData surfaceData;
+            BuiltinData builtinData;
+            GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
+
+            HDShadowContext shadowContext = InitShadowContext();
+            float shadow;
+            float3 normalWS = normalize(packedInput.vmesh.interpolators1);
+            ShadowLoopMin(shadowContext, posInput, normalWS, 0xFFFFFFFF, 0xFFFFFFFF, shadow);
+
+            float2 shadowMatteColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _ShadowTintMap);
+            float3 shadowTint = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).rgb * _ShadowTint.rgb;
+            float shadowTintAlpha = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).a * _ShadowTint.a;
+
+            float3 shadowColor  = ComputeShadowColor(shadow, shadowTint.rgb);
+            float  coef         = (1 - shadow)*shadowTintAlpha;
+
+            // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
+            float4 outColor = ApplyBlendMode(shadowColor, builtinData.opacity);
+            outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
+        */
+        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        HDShadowContext shadowContext = InitShadowContext();
+        float shadow;
+        ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), 0xFFFFFFFF, 0xFFFFFFFF, shadow);
+
+        float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint);
+
+        //float2 shadowMatteColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _ShadowTintMap);
+        //float3 shadowTint = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).rgb * _ShadowTint.rgb;
+        //float shadowTintAlpha = SAMPLE_TEXTURE2D(_ShadowTintMap, sampler_ShadowTintMap, shadowMatteColorMapUv).a * _ShadowTint.a;
+
+        float3 output = lerp(GetColorWithRotation(originalDir, exposure, _CosSinPhi).rgb,
+                             shadowColor*GetColorWithRotation(dir,         exposure, _CosSinPhiPlate).rgb, blend);
+
+        return float4(output, exposure);
     }
 
     float4 FragBaking(Varyings input) : SV_Target
@@ -69,10 +217,80 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return RenderSky(input, GetCurrentExposureMultiplier());
     }
 
+    float4 RenderBackplate(Varyings input, float exposure)
+    {
+        float3 viewDirWS = -GetSkyViewDirWS(input.positionCS.xy);
+        float3 finalPos;
+        float depth;
+        float blend;
+        if (IsBackplateHitWithBlend(finalPos, blend, viewDirWS))
+        {
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - _WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
+        }
+        else
+        {
+            depth = UNITY_RAW_FAR_CLIP_VALUE;
+        }
+
+        float curDepth = LoadCameraDepth(input.positionCS.xy);
+
+        if (curDepth > depth)
+            discard;
+
+        float4 results = 0; // Warning
+        if (curDepth == UNITY_RAW_FAR_CLIP_VALUE)
+            results = RenderSky(input, exposure);
+        else if (curDepth <= depth)
+            results = RenderSkyWithBackplate(input, finalPos, exposure, viewDirWS, blend, depth);
+
+        return results;
+    }
+
+    float4 FragBakingBackplate(Varyings input) : SV_Target
+    {
+        return RenderBackplate(input, 1.0);
+    }
+
+    float4 FragRenderBackplate(Varyings input) : SV_Target
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        return RenderBackplate(input, GetCurrentExposureMultiplier());
+    }
+
+    float GetDepthWithBackplate(Varyings input)
+    {
+        float3 viewDirWS = -GetSkyViewDirWS(input.positionCS.xy);
+        float3 finalPos;
+        float depth;
+        if (IsBackplateHit(finalPos, viewDirWS))
+        {
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - _WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
+        }
+        else
+        {
+            depth = UNITY_RAW_FAR_CLIP_VALUE;
+        }
+
+        return depth;
+    }
+
+    float FragBakingBackplateDepth(Varyings input) : SV_Depth
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        return GetDepthWithBackplate(input);
+    }
+
+    float FragRenderBackplateDepth(Varyings input) : SV_Depth
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        return GetDepthWithBackplate(input);
+    }
+
     ENDHLSL
 
     SubShader
     {
+        // Regular HDRI Sky
         // For cubemap
         Pass
         {
@@ -82,6 +300,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
+                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+                #pragma multi_compile _ SHADOWS_SHADOWMASK
+
                 #pragma fragment FragBaking
             ENDHLSL
         }
@@ -95,10 +316,78 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
+                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+                #pragma multi_compile _ SHADOWS_SHADOWMASK
+
                 #pragma fragment FragRender
             ENDHLSL
         }
 
+        // HDRI Sky with Backplate
+        // For cubemap with Backplate
+        Pass
+        {
+            ZWrite Off
+            ZTest Always
+            Blend Off
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+                #pragma multi_compile _ SHADOWS_SHADOWMASK
+
+                #pragma fragment FragBakingBackplate
+            ENDHLSL
+        }
+
+        // For fullscreen Sky with Backplate
+        Pass
+        {
+            ZWrite Off
+            ZTest Always
+            Blend Off
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+                #pragma multi_compile _ SHADOWS_SHADOWMASK
+
+                #pragma fragment FragRenderBackplate
+            ENDHLSL
+        }
+
+        // HDRI Sky with Backplate for PreRenderSky (Depth Only Pass)
+        // DepthOnly For cubemap with Backplate
+        Pass
+        {
+            ZWrite On
+            ZTest Always
+            Blend Off
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+                #pragma multi_compile _ SHADOWS_SHADOWMASK
+
+                #pragma fragment FragBakingBackplateDepth
+            ENDHLSL
+        }
+
+        // DepthOnly For fullscreen Sky with Backplate
+        Pass
+        {
+            ZWrite On
+            ZTest Always
+            Blend Off
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+                #pragma multi_compile _ SHADOWS_SHADOWMASK
+
+                #pragma fragment FragRenderBackplateDepth
+            ENDHLSL
+        }
     }
     Fallback Off
 }

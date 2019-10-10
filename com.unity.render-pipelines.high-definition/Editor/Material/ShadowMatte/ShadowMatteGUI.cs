@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var mainTex = material.GetTexture(ShadowMatteShadowTintUIBlock.kColorMap);
             material.SetTexture("_ShadowTintMap", mainTex);
-            var color = material.GetColor(ShadowMatteShadowTintUIBlock.kColor);
+            Color color = material.GetColor(ShadowMatteShadowTintUIBlock.kColor);
             material.SetColor("_ShadowTint", color);
         }
     }

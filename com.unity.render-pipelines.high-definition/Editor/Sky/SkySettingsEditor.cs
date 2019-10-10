@@ -34,7 +34,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_EnvUpdateMode = Unpack(o.Find(x => x.updateMode));
             m_EnvUpdatePeriod = Unpack(o.Find(x => x.updatePeriod));
             m_IncludeSunInBaking = Unpack(o.Find(x => x.includeSunInBaking));
-
         }
 
         protected void CommonSkySettingsGUI()

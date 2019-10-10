@@ -306,6 +306,44 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
+        public void PreRenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        {
+            if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
+            {
+                using (new ProfilingSample(cmd, "Sky PrePass"))
+                {
+                    m_BuiltinParameters.hdCamera                  = hdCamera;
+                    m_BuiltinParameters.commandBuffer             = cmd;
+                    m_BuiltinParameters.sunLight                  = sunLight;
+                    m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+                    m_BuiltinParameters.worldSpaceCameraPos       = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                    m_BuiltinParameters.viewMatrix                = hdCamera.mainViewConstants.viewMatrix;
+                    m_BuiltinParameters.screenSize                = hdCamera.screenSize;
+                    m_BuiltinParameters.colorBuffer               = colorBuffer;
+                    m_BuiltinParameters.depthBuffer               = depthBuffer;
+                    m_BuiltinParameters.debugSettings             = debugSettings;
+                    m_BuiltinParameters.frameIndex                = frameIndex;
+                    m_BuiltinParameters.updateMode                = skyContext.skySettings.updateMode.value;
+
+                    if (depthBuffer == BuiltinSkyParameters.nullRT)
+                    {
+                        CoreUtils.SetRenderTarget(cmd, colorBuffer);
+                    }
+                    else
+                    {
+                        CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer);
+                    }
+
+                    // If the luxmeter is enabled, we don't render the sky
+                    if (debugSettings.data.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
+                    {
+                        // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
+                        skyContext.renderer.PreRenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
+                    }
+                }
+            }
+        }
+
         public void RenderSky(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             if (skyContext.IsValid() && hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky)
