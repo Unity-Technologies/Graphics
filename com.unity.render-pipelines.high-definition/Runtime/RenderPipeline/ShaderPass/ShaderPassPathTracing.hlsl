@@ -90,9 +90,9 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
     // Generate the new sample (following values of the sequence)
     float3 inputSample = 0.0;
-    inputSample.x = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth);
-    inputSample.y = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 1);
-    inputSample.z = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 2);
+    inputSample.x = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth);
+    inputSample.y = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 1);
+    inputSample.z = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 2);
 
     // Get current path throughput
     float3 pathThroughput = rayIntersection.color;
@@ -154,7 +154,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         float russianRouletteValue = Luminance(pathThroughput);
         float russianRouletteFactor = 1.0;
 
-        float rand = GetSample(rayIntersection.pixelCoord, _RaytracingFrameIndex, 4 * currentDepth + 3);
+        float rand = GetSample(rayIntersection.pixelCoord, rayIntersection.rayCount, 4 * currentDepth + 3);
         if (!currentDepth || RussianRouletteTest(russianRouletteValue, rand, russianRouletteFactor))
         {
             rayDescriptor.TMax = FLT_INF;
@@ -164,6 +164,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
             nextRayIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
             nextRayIntersection.t = rayDescriptor.TMax;
             nextRayIntersection.pixelCoord = rayIntersection.pixelCoord;
+            nextRayIntersection.rayCount = rayIntersection.rayCount;
 
             // Adjust the max roughness, based on the estimated diff/spec ratio
             nextRayIntersection.maxRoughness = (mtlResult.specPdf * max(bsdfData.roughnessT, bsdfData.roughnessB) + mtlResult.diffPdf) / pdf;
