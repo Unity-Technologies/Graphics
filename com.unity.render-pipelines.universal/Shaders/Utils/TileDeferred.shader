@@ -210,7 +210,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
             half4 PointLightShading(Varyings input) : SV_Target
             {
-#if TEST_WIP_DEFERRED_POINT_LIGHTING
                 float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
                 half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
@@ -224,16 +223,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, wsPos.xyz);
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-#else
-                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-                float4 albedoOcc = _GBuffer0.Load(int3(input.positionCS.xy, 0));
-                float4 normalRoughness = _GBuffer1.Load(int3(input.positionCS.xy, 0));
-                float4 spec = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
-                // Temporary code to calculate fragment world space position.
-                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-                wsPos.xyz *= 1.0 / wsPos.w;
-#endif
                 half3 color = 0.0.xxx;
 
                 //[loop] for (int li = input.relLightOffsets.x; li < input.relLightOffsets.y; ++li)
@@ -243,20 +233,12 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                     uint relLightIndex = LoadRelLightIndex(li) & 0xFFFF;
                     PointLightData light = LoadPointLightData(relLightIndex);
 
-#if TEST_WIP_DEFERRED_POINT_LIGHTING
                     float3 L = light.wsPos - wsPos.xyz;
                     [branch] if (dot(L, L) < light.radius2)
                     {
                         Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, wsPos.xyz);
                         color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
                     }
-#else
-                    // TODO calculate lighting.
-                    float3 L = light.wsPos - wsPos.xyz;
-                    half att = dot(L, L) < light.radius2 ? 1.0 : 0.0;
-
-                    color += light.color.rgb * att * 0.1; // + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
-#endif
                 }
                 while(++li < input.relLightOffsets.y);
 

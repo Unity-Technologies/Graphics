@@ -149,13 +149,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 float3 color = 0.0.xxx;
 
-#if TEST_WIP_DEFERRED_POINT_LIGHTING
                 float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
                 half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
-                // Temporary code to calculate fragment world space position.
+                // Temporary(?) code to calculate fragment world space position.
                 float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
                 wsPos.xyz *= 1.0 / wsPos.w;
 
@@ -179,23 +178,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 //color.rgb = half3(inputData.fogCoord, inputData.fogCoord, inputData.fogCoord);
                 //color.rgb = inputData.vertexLighting;
             #endif
-
-#else
-                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-                float4 albedoOcc = _GBuffer0.Load(int3(input.positionCS.xy, 0));
-                float4 normalRoughness = _GBuffer1.Load(int3(input.positionCS.xy, 0));
-                float4 spec = _GBuffer2.Load(int3(input.positionCS.xy, 0));
-
-                // Temporary code to calculate fragment world space position.
-                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-                wsPos.xyz *= 1.0 / wsPos.w;
-
-                // TODO calculate lighting.
-                float3 L = light.wsPos - wsPos.xyz;
-                half att = dot(L, L) < light.radius2 ? 1.0 : 0.0;
-
-                color += light.color.rgb * att * 0.1; // + (albedoOcc.rgb + normalRoughness.rgb + spec.rgb) * 0.001 + half3(albedoOcc.a, normalRoughness.a, spec.a) * 0.01;
-#endif
                 return half4(color, 0.0);
             }
             ENDHLSL

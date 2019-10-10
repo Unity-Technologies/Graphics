@@ -42,8 +42,6 @@ struct PointLightData
     float padding0;  // TODO find something to put here? (or test other packing schemes?)
 };
 
-#define TEST_WIP_DEFERRED_POINT_LIGHTING 1
-
 Light UnityLightFromPointLightDataAndWorldSpacePosition(PointLightData pointLightData, float3 positionWS)
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
