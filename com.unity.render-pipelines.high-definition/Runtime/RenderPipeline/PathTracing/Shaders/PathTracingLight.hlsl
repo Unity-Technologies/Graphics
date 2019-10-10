@@ -160,7 +160,8 @@ bool SampleLights(LightList lightList,
         {
             float cosTheta = -dot(outgoingDir, lightData.forward);
             if (cosTheta < 0.001)
-            return false;
+                // FIXME: Insane compiler bug: without this comment, the following line breaks the code, WTF?!?!?
+                return false;
 
             float lightArea = length(cross(lightData.size.x * lightData.right, lightData.size.y * lightData.up));
             value = lightData.color;
