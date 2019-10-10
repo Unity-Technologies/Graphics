@@ -101,7 +101,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     rayIntersection.color = computeDirect ? builtinData.emissiveColor : 0.0;
 
     // Initialize our material
-    Material mtl = CreateMaterial(bsdfData, -WorldRayDirection());
+    Material mtl = CreateMaterial(bsdfData, fragInput.tangentToWorld[2], -WorldRayDirection());
 
     if (IsBlack(mtl))
         return;

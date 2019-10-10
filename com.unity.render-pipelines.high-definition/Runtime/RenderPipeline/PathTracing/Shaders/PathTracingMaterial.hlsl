@@ -1,7 +1,13 @@
 // FIXME: these sample/evaluate functions will be refactored when introducing transmission (BRDF/BTDF)
 
+bool IsSampleValid(float3 geoNormal, float3 sampleDir)
+{
+    return dot(geoNormal, sampleDir) > 0.0;
+}
+
 bool SampleGGX(float2 inputSample,
                float3x3 localToWorld,
+               float3 geoNormal,
                float3 incomingDir,
                BSDFData bsdfData,
            out float3 outgoingDir,
@@ -11,7 +17,7 @@ bool SampleGGX(float2 inputSample,
     float NdotL, NdotH, VdotH;
     SampleGGXDir(inputSample, incomingDir, localToWorld, bsdfData.roughnessT, outgoingDir, NdotL, NdotH, VdotH);
 
-    if (NdotL < 0.001)
+    if (NdotL < 0.001 || !IsSampleValid(geoNormal, outgoingDir))
         return false;
 
     float D = D_GGX(NdotH, bsdfData.roughnessT);
@@ -59,12 +65,17 @@ void EvaluateGGX(float3x3 localToWorld,
 
 bool SampleLambert(float2 inputSample,
                    float3 normal,
+                   float3 geoNormal,
                    BSDFData bsdfData,
                out float3 outgoingDir,
                out float3 value,
                out float pdf )
 {
     outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, normal);
+
+    if (!IsSampleValid(geoNormal, outgoingDir))
+        return false;
+
     pdf = dot(normal, outgoingDir) * INV_PI;
 
     if (pdf < 0.001)
@@ -87,6 +98,7 @@ void EvaluateLambert(float3 normal,
 
 bool SampleBurley(float2 inputSample,
                   float3 normal,
+                  float3 geoNormal,
                   float3 incomingDir,
                   BSDFData bsdfData,
               out float3 outgoingDir,
@@ -94,6 +106,10 @@ bool SampleBurley(float2 inputSample,
               out float pdf )
 {
     outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, normal);
+
+    if (!IsSampleValid(geoNormal, outgoingDir))
+        return false;
+
     float NdotL = dot(normal, outgoingDir);
     pdf = NdotL * INV_PI;
 
@@ -124,6 +140,7 @@ void EvaluateBurley(float3 normal,
 
 bool SampleDiffuse(float2 inputSample,
                    float3 normal,
+                   float3 geoNormal,
                    float3 incomingDir,
                    BSDFData bsdfData,
                out float3 outgoingDir,
@@ -131,9 +148,9 @@ bool SampleDiffuse(float2 inputSample,
                out float pdf )
 {
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
-    return SampleLambert(inputSample, normal, bsdfData, outgoingDir, value, pdf);
+    return SampleLambert(inputSample, normal, geoNormal, bsdfData, outgoingDir, value, pdf);
 #else
-    return SampleBurley(inputSample, normal, incomingDir, bsdfData, outgoingDir, value, pdf);
+    return SampleBurley(inputSample, normal, geoNormal, incomingDir, bsdfData, outgoingDir, value, pdf);
 #endif
 }
 
@@ -163,7 +180,8 @@ struct MaterialResult
 struct Material
 {
     BSDFData    bsdfData;
-    float3      V;
+    float3      G; // geometric normal
+    float3      V; // view vector
     float3x3    localToWorld;
     float       diffProb;
     float       specProb;
@@ -174,7 +192,7 @@ bool IsBlack(Material mtl)
     return mtl.diffProb + mtl.specProb < 0.001;
 }
 
-Material CreateMaterial(BSDFData bsdfData, float3 V)
+Material CreateMaterial(BSDFData bsdfData, float3 G, float3 V)
 {
     Material mtl;
 
@@ -193,6 +211,7 @@ Material CreateMaterial(BSDFData bsdfData, float3 V)
 
         // Keep these around, rather than passing them to all methods
         mtl.bsdfData = bsdfData;
+        mtl.G = G;
         mtl.V = V;
 
         // Compute a local frame from the normal
@@ -207,14 +226,14 @@ bool SampleMaterial(Material mtl, float3 inputSample, out float3 sampleDir, out 
 {
     if (inputSample.z < mtl.specProb)
     {
-        if (!SampleGGX(inputSample, mtl.localToWorld, mtl.V, mtl.bsdfData, sampleDir, result.specValue, result.specPdf))
+        if (!SampleGGX(inputSample, mtl.localToWorld, mtl.G, mtl.V, mtl.bsdfData, sampleDir, result.specValue, result.specPdf))
             return false;
 
         EvaluateDiffuse(mtl.bsdfData.normalWS, mtl.V, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
     }
     else
     {
-        if (!SampleDiffuse(inputSample, mtl.bsdfData.normalWS, mtl.V, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
+        if (!SampleDiffuse(inputSample, mtl.bsdfData.normalWS, mtl.G, mtl.V, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
             return false;
 
         EvaluateGGX(mtl.localToWorld, mtl.V, sampleDir, mtl.bsdfData, result.specValue, result.specPdf);

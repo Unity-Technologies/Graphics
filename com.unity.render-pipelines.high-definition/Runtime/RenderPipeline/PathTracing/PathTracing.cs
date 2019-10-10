@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         [Tooltip("Defines the maximum number of paths cast within each pixel.")]
-        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 512);
+        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 1024);
 
         [Tooltip("Defines the minimum number of bounces for each path.")]
         public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         name: string.Format("PathTracingHistoryBuffer{0}", frameIndex));
         }
 
-        public void PathTracingRender(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        public void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
@@ -63,6 +63,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // If any resource or game-object is missing We stop right away
             if (invalidState)
                 return;
+
+            // Inject the ray-tracing sampling data
+            BlueNoise blueNoiseManager = GetBlueNoiseManager();
+            blueNoiseManager.BindDitheredRNGData256SPP(cmd);
 
             // Grab the history buffer (hijack the reflections one)
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
