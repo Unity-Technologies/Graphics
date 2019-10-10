@@ -14,6 +14,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter    plateRotation       = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         public ClampedFloatParameter    blendAmount         = new ClampedFloatParameter(0.0f, 0.0f, 100.0f);
         public ColorParameter           shadowTint          = new ColorParameter(Color.grey);
+        public BoolParameter            pointLightShadow    = new BoolParameter(false);
+        public BoolParameter            dirLightShadow      = new BoolParameter(false);
+        public BoolParameter            rectLightShadow     = new BoolParameter(false);
 
         public override SkyRenderer CreateRenderer()
         {
@@ -35,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + projectionDistance.GetHashCode();
                 hash = hash * 23 + blendAmount.GetHashCode();
                 hash = hash * 23 + shadowTint.GetHashCode();
+                hash = hash * 23 + pointLightShadow.GetHashCode();
+                hash = hash * 23 + dirLightShadow.GetHashCode();
+                hash = hash * 23 + rectLightShadow.GetHashCode();
             }
 
             return hash;

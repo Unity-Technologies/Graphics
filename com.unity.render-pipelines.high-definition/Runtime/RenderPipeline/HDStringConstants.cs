@@ -452,6 +452,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BackplateParameters0 = Shader.PropertyToID("_BackplateParameters0");
         public static readonly int _BackplateParameters1 = Shader.PropertyToID("_BackplateParameters1");
         public static readonly int _BackplateShadowTint = Shader.PropertyToID("_BackplateShadowTint");
+        public static readonly int _BackplateShadowFilter = Shader.PropertyToID("_BackplateShadowFilter");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");

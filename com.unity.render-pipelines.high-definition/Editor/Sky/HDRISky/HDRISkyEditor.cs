@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DesiredLuxValue;
         SerializedDataParameter m_IntensityMode;
         SerializedDataParameter m_UpperHemisphereLuxValue;
+        SerializedDataParameter m_UpperHemisphereLuxColor;
 
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
@@ -22,11 +23,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ProjectionDistance;
         SerializedDataParameter m_PlateRotation;
         SerializedDataParameter m_BlendAmount;
+        SerializedDataParameter m_PointLightShadow;
+        SerializedDataParameter m_DirLightShadow;
+        SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
 
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
-        Texture2D readBackTexture;
+        Texture2D m_ReadBackTexture;
         public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
@@ -41,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DesiredLuxValue           = Unpack(o.Find(x => x.desiredLuxValue));
             m_IntensityMode             = Unpack(o.Find(x => x.skyIntensityMode));
             m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+            m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
             m_BackplateType             = Unpack(o.Find(x => x.backplateType));
@@ -49,12 +54,15 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ProjectionDistance        = Unpack(o.Find(x => x.projectionDistance));
             m_PlateRotation             = Unpack(o.Find(x => x.plateRotation));
             m_BlendAmount               = Unpack(o.Find(x => x.blendAmount));
+            m_PointLightShadow          = Unpack(o.Find(x => x.pointLightShadow));
+            m_DirLightShadow            = Unpack(o.Find(x => x.dirLightShadow));
+            m_RectLightShadow           = Unpack(o.Find(x => x.rectLightShadow));
             m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             var hdrp = HDRenderPipeline.defaultAsset;
             m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
-            readBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
+            m_ReadBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
 
         public override void OnDisable()
@@ -62,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_IntensityTexture != null)
                 RTHandles.Release(m_IntensityTexture);
 
-            readBackTexture = null;
+            m_ReadBackTexture = null;
         }
 
         // Compute the lux value in the upper hemisphere of the HDRI skybox
@@ -79,12 +87,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Copy the rendertexture containing the lux value inside a Texture2D
             RenderTexture.active = m_IntensityTexture.rt;
-            readBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1, 1), 0, 0);
+            m_ReadBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1, 1), 0, 0);
             RenderTexture.active = null;
 
             // And then the value inside this texture
-            Color hdriIntensity = readBackTexture.GetPixel(0, 0);
-            m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.r;
+            Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
+            m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.a;
+            float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
+            if (max == 0.0f)
+                max = 1.0f;
+            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
+            m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Neutral Grey
         }
 
         public override void OnInspectorGUI()
@@ -97,9 +110,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_IntensityMode);
             }
+            bool updateDefaultShadowTint = false;
             if (EditorGUI.EndChangeCheck())
             {
                 GetUpperHemisphereLuxValue();
+                updateDefaultShadowTint = true;
             }
 
             if (m_IntensityMode.value.enumValueIndex == (int)SkyIntensityMode.Lux)
@@ -127,6 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isInAdvancedMode)
             {
                 PropertyField(m_EnableBackplate);
+                EditorGUILayout.Space();
                 if (m_EnableBackplate.value.boolValue)
                 {
                     EditorGUI.indentLevel++;
@@ -154,7 +170,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_PlateRotation);
                     if (m_BackplateType.value.enumValueIndex != (uint)BackplateType.Infinite)
                         PropertyField(m_BlendAmount);
+                    PropertyField(m_PointLightShadow, new GUIContent("Point Light Shadow"));
+                    PropertyField(m_DirLightShadow, new GUIContent("Directional Light Shadow"));
+                    PropertyField(m_RectLightShadow, new GUIContent("Rectangular Light Shadow"));
                     PropertyField(m_ShadowTint);
+                    if (updateDefaultShadowTint || GUILayout.Button("Reset Color"))
+                    {
+                        m_ShadowTint.value.colorValue = new Color(m_UpperHemisphereLuxColor.value.vector3Value.x, m_UpperHemisphereLuxColor.value.vector3Value.y, m_UpperHemisphereLuxColor.value.vector3Value.z);
+                    }
                     EditorGUI.indentLevel--;
                 }
             }

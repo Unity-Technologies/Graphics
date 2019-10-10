@@ -31,6 +31,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float4  _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
     float4  _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
     float4  _BackplateShadowTint; // xyz: ShadowTint
+    uint    _BackplateShadowFilter;
 
     #define _Exposure           _SkyParam.x
     #define _Multiplier         _SkyParam.y
@@ -48,6 +49,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #define _SinPhiPlate        _BackplateParameters1.w
     #define _CosSinPhiPlate     _BackplateParameters1.zw
     #define _ShadowTint         _BackplateShadowTint.rgb
+    #define _ShadowFilter       _BackplateShadowFilter
 
     struct Attributes
     {
@@ -192,7 +194,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
-        ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), 0xFFFFFFFF, 0xFFFFFFFF, shadow);
+        ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), _ShadowFilter, 0xFFFFFFFF, shadow);
 
         float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint);
 

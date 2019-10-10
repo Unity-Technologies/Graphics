@@ -126,6 +126,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0());
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi));
                 m_SkyHDRIMaterial.SetColor(HDShaderIDs._BackplateShadowTint, m_HdriSkyParams.shadowTint.value);
+                uint shadowFilter = 0u;
+                if (m_HdriSkyParams.pointLightShadow.value)
+                    shadowFilter |= unchecked((uint)LightFeatureFlags.Punctual);
+                if (m_HdriSkyParams.dirLightShadow.value)
+                    shadowFilter |= unchecked((uint)LightFeatureFlags.Directional);
+                if (m_HdriSkyParams.rectLightShadow.value)
+                    shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
+                m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
 
                 // This matrix needs to be updated at the draw call frequency.
                 m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
