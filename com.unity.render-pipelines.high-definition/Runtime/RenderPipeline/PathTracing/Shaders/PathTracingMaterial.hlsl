@@ -1,170 +1,162 @@
 // FIXME: these sample/evaluate functions will be refactored when introducing transmission (BRDF/BTDF)
 
+struct Material
+{
+    BSDFData    bsdfData;
+    float3      G; // geometric normal
+    float3      V; // view vector
+    float3x3    localToWorld;
+    float       diffProb;
+    float       specProb;
+};
+
 bool IsSampleValid(float3 geoNormal, float3 sampleDir)
 {
     return dot(geoNormal, sampleDir) > 0.0;
 }
 
-bool SampleGGX(float2 inputSample,
-               float3x3 localToWorld,
-               float3 geoNormal,
-               float3 incomingDir,
-               BSDFData bsdfData,
+bool SampleGGX(Material mtl,
+               float3 inputSample,
            out float3 outgoingDir,
            out float3 value,
            out float pdf)
 {
     float NdotL, NdotH, VdotH;
-    SampleGGXDir(inputSample, incomingDir, localToWorld, bsdfData.roughnessT, outgoingDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(inputSample, mtl.V, mtl.localToWorld, mtl.bsdfData.roughnessT, outgoingDir, NdotL, NdotH, VdotH);
 
-    if (NdotL < 0.001 || !IsSampleValid(geoNormal, outgoingDir))
+    if (NdotL < 0.001 || !IsSampleValid(mtl.G, outgoingDir))
         return false;
 
-    float D = D_GGX(NdotH, bsdfData.roughnessT);
+    float D = D_GGX(NdotH, mtl.bsdfData.roughnessT);
     pdf = D * NdotH / (4.0 * VdotH);
 
     if (pdf < 0.001)
         return false;
 
-    float NdotV = dot(localToWorld[2], incomingDir);
-    float3 F = F_Schlick(bsdfData.fresnel0, NdotV);
-    float V = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughnessT);
+    float NdotV = dot(mtl.localToWorld[2], mtl.V);
+    float3 F = F_Schlick(mtl.bsdfData.fresnel0, NdotV);
+    float V = V_SmithJointGGX(NdotL, NdotV, mtl.bsdfData.roughnessT);
 
     value = F * D * V * NdotL;
 
     return true;
 }
 
-void EvaluateGGX(float3x3 localToWorld,
-                 float3 incomingDir,
+void EvaluateGGX(Material mtl,
                  float3 outgoingDir,
-                 BSDFData bsdfData,
              out float3 value,
              out float pdf)
 {
-    float NdotV = dot(localToWorld[2], incomingDir);
+    float NdotV = dot(mtl.localToWorld[2], mtl.V);
     if (NdotV < 0.001)
     {
         value = 0.0;
         pdf = 0.0;
         return;
     }
-    float NdotL = dot(localToWorld[2], outgoingDir);
+    float NdotL = dot(mtl.localToWorld[2], outgoingDir);
 
-    float3 H = normalize(incomingDir + outgoingDir);
-    float NdotH = dot(localToWorld[2], H);
-    float VdotH = dot(incomingDir, H);
-    float D = D_GGX(NdotH, bsdfData.roughnessT);
+    float3 H = normalize(mtl.V + outgoingDir);
+    float NdotH = dot(mtl.localToWorld[2], H);
+    float VdotH = dot(mtl.V, H);
+    float D = D_GGX(NdotH, mtl.bsdfData.roughnessT);
     pdf = D * NdotH / (4.0 * VdotH);
 
-    float3 F = F_Schlick(bsdfData.fresnel0, NdotV);
-    float V = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughnessT);
+    float3 F = F_Schlick(mtl.bsdfData.fresnel0, NdotV);
+    float V = V_SmithJointGGX(NdotL, NdotV, mtl.bsdfData.roughnessT);
 
     value = F * D * V * NdotL;
 }
 
-bool SampleLambert(float2 inputSample,
-                   float3 normal,
-                   float3 geoNormal,
-                   BSDFData bsdfData,
+bool SampleLambert(Material mtl,
+                   float3 inputSample,
                out float3 outgoingDir,
                out float3 value,
-               out float pdf )
+               out float pdf)
 {
-    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, normal);
+    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, mtl.localToWorld[2]);
 
-    if (!IsSampleValid(geoNormal, outgoingDir))
+    if (!IsSampleValid(mtl.G, outgoingDir))
         return false;
 
-    pdf = dot(normal, outgoingDir) * INV_PI;
+    pdf = dot(mtl.localToWorld[2], outgoingDir) * INV_PI;
 
     if (pdf < 0.001)
         return false;
 
-    value = bsdfData.diffuseColor * pdf;
+    value = mtl.bsdfData.diffuseColor * pdf;
 
     return true;
 }
 
-void EvaluateLambert(float3 normal,
+void EvaluateLambert(Material mtl,
                      float3 outgoingDir,
-                     BSDFData bsdfData,
                  out float3 value,
                  out float pdf)
 {
-    pdf = dot(normal, outgoingDir) * INV_PI;
-    value = bsdfData.diffuseColor * pdf;
+    pdf = dot(mtl.localToWorld[2], outgoingDir) * INV_PI;
+    value = mtl.bsdfData.diffuseColor * pdf;
 }
 
-bool SampleBurley(float2 inputSample,
-                  float3 normal,
-                  float3 geoNormal,
-                  float3 incomingDir,
-                  BSDFData bsdfData,
+bool SampleBurley(Material mtl,
+                  float3 inputSample,
               out float3 outgoingDir,
               out float3 value,
-              out float pdf )
+              out float pdf)
 {
-    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, normal);
+    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, mtl.localToWorld[2]);
 
-    if (!IsSampleValid(geoNormal, outgoingDir))
+    if (!IsSampleValid(mtl.G, outgoingDir))
         return false;
 
-    float NdotL = dot(normal, outgoingDir);
+    float NdotL = dot(mtl.localToWorld[2], outgoingDir);
     pdf = NdotL * INV_PI;
 
     if (pdf < 0.001)
         return false;
 
-    float NdotV = saturate(dot(normal, incomingDir));
-    float LdotV = saturate(dot(outgoingDir, incomingDir));
-    value = bsdfData.diffuseColor * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness) * pdf;
+    float NdotV = saturate(dot(mtl.localToWorld[2], mtl.V));
+    float LdotV = saturate(dot(outgoingDir, mtl.V));
+    value = mtl.bsdfData.diffuseColor * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, mtl.bsdfData.perceptualRoughness) * pdf;
 
     return true;
 }
 
-void EvaluateBurley(float3 normal,
-                    float3 incomingDir,
+void EvaluateBurley(Material mtl,
                     float3 outgoingDir,
-                    BSDFData bsdfData,
                 out float3 value,
                 out float pdf)
 {
-    float NdotL = dot(normal, outgoingDir);
-    float NdotV = saturate(dot(normal, incomingDir));
-    float LdotV = saturate(dot(outgoingDir, incomingDir));
+    float NdotL = dot(mtl.localToWorld[2], outgoingDir);
+    float NdotV = saturate(dot(mtl.localToWorld[2], mtl.V));
+    float LdotV = saturate(dot(outgoingDir, mtl.V));
 
     pdf = NdotL * INV_PI;
-    value = bsdfData.diffuseColor * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness) * pdf;
+    value = mtl.bsdfData.diffuseColor * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, mtl.bsdfData.perceptualRoughness) * pdf;
 }
 
-bool SampleDiffuse(float2 inputSample,
-                   float3 normal,
-                   float3 geoNormal,
-                   float3 incomingDir,
-                   BSDFData bsdfData,
+bool SampleDiffuse(Material mtl,
+                   float3 inputSample,
                out float3 outgoingDir,
                out float3 value,
-               out float pdf )
+               out float pdf)
 {
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
-    return SampleLambert(inputSample, normal, geoNormal, bsdfData, outgoingDir, value, pdf);
+    return SampleLambert(mtl, inputSample, outgoingDir, value, pdf);
 #else
-    return SampleBurley(inputSample, normal, geoNormal, incomingDir, bsdfData, outgoingDir, value, pdf);
+    return SampleBurley(mtl, inputSample, outgoingDir, value, pdf);
 #endif
 }
 
-void EvaluateDiffuse(float3 normal,
-                     float3 incomingDir,
+void EvaluateDiffuse(Material mtl,
                      float3 outgoingDir,
-                     BSDFData bsdfData,
                  out float3 value,
                  out float pdf)
 {
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
-    EvaluateLambert(normal, outgoingDir, bsdfData, value, pdf);
+    EvaluateLambert(mtl, outgoingDir, value, pdf);
 #else
-    EvaluateBurley(normal, incomingDir, outgoingDir, bsdfData, value, pdf);
+    EvaluateBurley(mtl, outgoingDir, value, pdf);
 #endif
 }
 
@@ -174,17 +166,6 @@ struct MaterialResult
     float  diffPdf;
     float3 specValue;
     float  specPdf;
-};
-
-// FIXME: WIP, only partial support of Lit
-struct Material
-{
-    BSDFData    bsdfData;
-    float3      G; // geometric normal
-    float3      V; // view vector
-    float3x3    localToWorld;
-    float       diffProb;
-    float       specProb;
 };
 
 bool IsBlack(Material mtl)
@@ -226,17 +207,17 @@ bool SampleMaterial(Material mtl, float3 inputSample, out float3 sampleDir, out 
 {
     if (inputSample.z < mtl.specProb)
     {
-        if (!SampleGGX(inputSample, mtl.localToWorld, mtl.G, mtl.V, mtl.bsdfData, sampleDir, result.specValue, result.specPdf))
+        if (!SampleGGX(mtl, inputSample, sampleDir, result.specValue, result.specPdf))
             return false;
 
-        EvaluateDiffuse(mtl.bsdfData.normalWS, mtl.V, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
+        EvaluateDiffuse(mtl, sampleDir, result.diffValue, result.diffPdf);
     }
     else
     {
-        if (!SampleDiffuse(inputSample, mtl.bsdfData.normalWS, mtl.G, mtl.V, mtl.bsdfData, sampleDir, result.diffValue, result.diffPdf))
+        if (!SampleDiffuse(mtl, inputSample, sampleDir, result.diffValue, result.diffPdf))
             return false;
 
-        EvaluateGGX(mtl.localToWorld, mtl.V, sampleDir, mtl.bsdfData, result.specValue, result.specPdf);
+        EvaluateGGX(mtl, sampleDir, result.specValue, result.specPdf);
     }
 
     result.diffPdf *= mtl.diffProb;
@@ -247,8 +228,8 @@ bool SampleMaterial(Material mtl, float3 inputSample, out float3 sampleDir, out 
 
 void EvaluateMaterial(Material mtl, float3 sampleDir, out MaterialResult result)
 {
-    EvaluateDiffuse(mtl.bsdfData.normalWS, mtl.V, sampleDir, mtl.bsdfData, result.diffValue, result.diffPdf);
-    EvaluateGGX(mtl.localToWorld, mtl.V, sampleDir, mtl.bsdfData, result.specValue, result.specPdf);
+    EvaluateDiffuse(mtl, sampleDir, result.diffValue, result.diffPdf);
+    EvaluateGGX(mtl, sampleDir, result.specValue, result.specPdf);
     result.diffPdf *= mtl.diffProb;
     result.specPdf *= mtl.specProb;
 }
