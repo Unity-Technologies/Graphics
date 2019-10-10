@@ -64,15 +64,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Manages tiled-based deferred lights.
     internal class DeferredLights
     {
-        // Adapted from ForwardLights.LightConstantBuffer
-        static class LightConstantBuffer
-        {
-            public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");
-            public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");
-        }
-
         static class ShaderConstants
         {
+            public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+
             public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
             public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
             public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
@@ -231,8 +227,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 lightPos, lightColor, lightAttenuation, lightSpotDir, lightOcclusionChannel;
             ForwardLights.InitializeLightConstants_Common(lightData.visibleLights, lightData.mainLightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionChannel);
 
-            cmd.SetGlobalVector(LightConstantBuffer._MainLightPosition, lightPos);
-            cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
+            cmd.SetGlobalVector(ShaderConstants._MainLightPosition, lightPos);
+            cmd.SetGlobalVector(ShaderConstants._MainLightColor, lightColor);
         }
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)

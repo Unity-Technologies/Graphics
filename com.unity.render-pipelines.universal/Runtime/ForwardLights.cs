@@ -10,8 +10,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         static class LightConstantBuffer
         {
-            public static int _MainLightPosition;
-            public static int _MainLightColor;
+            public static int _MainLightPosition;   // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _MainLightColor;      // DeferredLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
 
             public static int _AdditionalLightsCount;
             public static int _AdditionalLightsPosition;
