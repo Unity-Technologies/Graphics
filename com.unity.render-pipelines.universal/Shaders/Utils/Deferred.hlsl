@@ -31,7 +31,7 @@
 
 struct PointLightData
 {
-    float3 wsPos;
+    float3 posWS;
     float radius2; // squared radius
 
     float4 color;
@@ -48,7 +48,7 @@ Light UnityLightFromPointLightDataAndWorldSpacePosition(PointLightData pointLigh
 
     Light light;
 
-    float3 lightVector = pointLightData.wsPos - positionWS.xyz;
+    float3 lightVector = pointLightData.posWS - positionWS.xyz;
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));

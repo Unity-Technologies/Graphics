@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal struct PrePointLight
         {
             // view-space position.
-            public float3 vsPos;
+            public float3 posVS;
             // Radius in world unit.
             public float radius;
             // Distance between closest bound of the light and the camera. Used for sorting lights front-to-back.
@@ -189,20 +189,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_IsOrthographic = isOrthographic;
 
             // Tile size in world units.
-            float tileWsWidth = (m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount;
-            float tileWsHeight = (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount;
+            float tileWidthWS = (m_FrustumPlanes.right - m_FrustumPlanes.left) / m_TileXCount;
+            float tileHeightWS = (m_FrustumPlanes.top - m_FrustumPlanes.bottom) / m_TileYCount;
 
             if (!isOrthographic) // perspective
             {
                 for (int j = 0; j < m_TileYCount; ++j)
                 {
-                    float tileTop = m_FrustumPlanes.top - tileWsHeight * j;
-                    float tileBottom = tileTop - tileWsHeight;
+                    float tileTop = m_FrustumPlanes.top - tileHeightWS * j;
+                    float tileBottom = tileTop - tileHeightWS;
 
                     for (int i = 0; i < m_TileXCount; ++i)
                     {
-                        float tileLeft = m_FrustumPlanes.left + tileWsWidth * i;
-                        float tileRight = tileLeft + tileWsWidth;
+                        float tileLeft = m_FrustumPlanes.left + tileWidthWS * i;
+                        float tileRight = tileLeft + tileWidthWS;
 
                         // Camera view space is always OpenGL RH coordinates system.
                         // In view space with perspective projection, all planes pass by (0,0,0).
@@ -220,13 +220,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 for (int j = 0; j < m_TileYCount; ++j)
                 {
-                    float tileTop = m_FrustumPlanes.top - tileWsHeight * j;
-                    float tileBottom = tileTop - tileWsHeight;
+                    float tileTop = m_FrustumPlanes.top - tileHeightWS * j;
+                    float tileBottom = tileTop - tileHeightWS;
 
                     for (int i = 0; i < m_TileXCount; ++i)
                     {
-                        float tileLeft = m_FrustumPlanes.left + tileWsWidth * i;
-                        float tileRight = tileLeft + tileWsWidth;
+                        float tileLeft = m_FrustumPlanes.left + tileWidthWS * i;
+                        float tileRight = tileLeft + tileWidthWS;
 
                         // Camera view space is always OpenGL RH coordinates system.
                         PreTile preTile;
@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             float t0, t1;
                             // This is more expensive than Clip() but allow to compute min&max depth range for the part of the light inside the tile.
-                            if (!IntersectionLineSphere(ppl.vsPos, ppl.radius, tileOrigin, tileOffCentre, out t0, out t1))
+                            if (!IntersectionLineSphere(ppl.posVS, ppl.radius, tileOrigin, tileOffCentre, out t0, out t1))
                                 continue;
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             float t0, t1;
                             // This is more expensive than Clip() but allow to compute min&max depth range for the part of the light inside the tile.
-                            if (!IntersectionLineSphere(ppl.vsPos, ppl.radius, tileOrigin, tileOffCentre, out t0, out t1))
+                            if (!IntersectionLineSphere(ppl.posVS, ppl.radius, tileOrigin, tileOffCentre, out t0, out t1))
                                 continue;
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
@@ -438,7 +438,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         PrePointLight ppl = pointLights[lightIndex];
 
                         // This is slightly faster than IntersectionLineSphere().
-                        if (!Clip(ref preTile, ppl.vsPos, ppl.radius))
+                        if (!Clip(ref preTile, ppl.posVS, ppl.radius))
                             continue;
 
                         tiles[tileLightCount] = lightIndex;
@@ -509,7 +509,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Clip a sphere against a 2D tile. Near and far planes are ignored (already tested).
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static bool Clip(ref PreTile tile, float3 vsPos, float radius)
+        static bool Clip(ref PreTile tile, float3 posVS, float radius)
         {
             // Simplified clipping code, only deals with 4 clipping planes.
             // zNear and zFar clipping planes are ignored as presumably the light is already visible to the camera frustum.
@@ -518,19 +518,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             int insideCount = 0;
             ClipResult res;
 
-            res = ClipPartial(tile.planeLeft, tile.planeBottom, tile.planeTop, vsPos, radius, radiusSq, ref insideCount);
+            res = ClipPartial(tile.planeLeft, tile.planeBottom, tile.planeTop, posVS, radius, radiusSq, ref insideCount);
             if (res != ClipResult.Unknown)
                 return res == ClipResult.In;
 
-            res = ClipPartial(tile.planeRight, tile.planeBottom, tile.planeTop, vsPos, radius, radiusSq, ref insideCount);
+            res = ClipPartial(tile.planeRight, tile.planeBottom, tile.planeTop, posVS, radius, radiusSq, ref insideCount);
             if (res != ClipResult.Unknown)
                 return res == ClipResult.In;
 
-            res = ClipPartial(tile.planeTop, tile.planeLeft, tile.planeRight, vsPos, radius, radiusSq, ref insideCount);
+            res = ClipPartial(tile.planeTop, tile.planeLeft, tile.planeRight, posVS, radius, radiusSq, ref insideCount);
             if (res != ClipResult.Unknown)
                 return res == ClipResult.In;
 
-            res = ClipPartial(tile.planeBottom, tile.planeLeft, tile.planeRight, vsPos, radius, radiusSq, ref insideCount);
+            res = ClipPartial(tile.planeBottom, tile.planeLeft, tile.planeRight, posVS, radius, radiusSq, ref insideCount);
             if (res != ClipResult.Unknown)
                 return res == ClipResult.In;
 
@@ -539,14 +539,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Internal function to clip against 1 plane of a cube, with additional 2 side planes for false-positive detection (normally 4 planes, but near and far planes are ignored).
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static ClipResult ClipPartial(float4 plane, float4 sidePlaneA, float4 sidePlaneB, float3 vsPos, float radius, float radiusSq, ref int insideCount)
+        static ClipResult ClipPartial(float4 plane, float4 sidePlaneA, float4 sidePlaneB, float3 posVS, float radius, float radiusSq, ref int insideCount)
         {
-            float d = DistanceToPlane(plane, vsPos);
+            float d = DistanceToPlane(plane, posVS);
             if (d + radius <= 0.0f) // completely outside
                 return ClipResult.Out;
             else if (d < 0.0f) // intersection: further check: only need to consider case where more than half the sphere is outside
             {
-                float3 p = vsPos - plane.xyz * d;
+                float3 p = posVS - plane.xyz * d;
                 float rSq = radiusSq - d * d;
                 if (SignedSq(DistanceToPlane(sidePlaneA, p)) >= -rSq
                  && SignedSq(DistanceToPlane(sidePlaneB, p)) >= -rSq)

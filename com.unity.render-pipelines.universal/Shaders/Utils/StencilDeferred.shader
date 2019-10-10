@@ -129,7 +129,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Texture2D _GBuffer2;
             float4x4 _ScreenToWorld;
 
-            float3 _LightWsPos;
+            float3 _LightPosWS;
             float _LightRadius2;
             float3 _LightColor;
             float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
@@ -141,7 +141,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 PointLightData light;
-                light.wsPos = _LightWsPos;
+                light.posWS = _LightPosWS;
                 light.radius2 = _LightRadius2;
                 light.color = float4(_LightColor, 0.0);
                 light.attenuation = _LightAttenuation;
@@ -154,16 +154,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
-                // Temporary(?) code to calculate fragment world space position.
-                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-                wsPos.xyz *= 1.0 / wsPos.w;
+                float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+                posWS.xyz *= 1.0 / posWS.w;
 
                 SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
-                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, wsPos.xyz);
+                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-                Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, wsPos.xyz);
+                Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, posWS.xyz);
                 color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
             #if 0 // Temporary debug output
                 // TO CHECK (does Forward support works??):

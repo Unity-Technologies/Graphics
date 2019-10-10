@@ -185,7 +185,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 {
                     uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
                     PointLightData pl;
-                    pl.wsPos  = asfloat(_PointLightBuffer[i + 0].xyz);
+                    pl.posWS  = asfloat(_PointLightBuffer[i + 0].xyz);
                     pl.radius2 = asfloat(_PointLightBuffer[i + 0].w);
                     pl.color.rgb = asfloat(_PointLightBuffer[i + 1].rgb);
                     pl.attenuation.xyzw = asfloat(_PointLightBuffer[i + 2].xyzw);
@@ -216,11 +216,11 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
                 // Temporary code to calculate fragment world space position.
-                float4 wsPos = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-                wsPos.xyz *= 1.0 / wsPos.w;
+                float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+                posWS.xyz *= 1.0 / posWS.w;
 
                 SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
-                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, wsPos.xyz);
+                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
@@ -233,10 +233,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                     uint relLightIndex = LoadRelLightIndex(li) & 0xFFFF;
                     PointLightData light = LoadPointLightData(relLightIndex);
 
-                    float3 L = light.wsPos - wsPos.xyz;
+                    float3 L = light.posWS - posWS.xyz;
                     [branch] if (dot(L, L) < light.radius2)
                     {
-                        Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, wsPos.xyz);
+                        Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, posWS.xyz);
                         color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
                     }
                 }

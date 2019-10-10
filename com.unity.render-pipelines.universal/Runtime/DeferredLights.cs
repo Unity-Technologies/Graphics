@@ -662,14 +662,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (this.tiledDeferredShading && IsTileLight(vl.light))
                     {
                         DeferredTiler.PrePointLight ppl;
-                        ppl.vsPos = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space
+                        ppl.posVS = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space
                         ppl.radius = vl.light.range;
-                        ppl.minDist = max(0.0f, length(ppl.vsPos) - ppl.radius);
+                        ppl.minDist = max(0.0f, length(ppl.posVS) - ppl.radius);
 
-                        ppl.screenPos = new Vector2(ppl.vsPos.x, ppl.vsPos.y);
+                        ppl.screenPos = new Vector2(ppl.posVS.x, ppl.posVS.y);
                         // Project on screen for perspective projections.
-                        if (!isOrthographic && ppl.vsPos.z <= zNear)
-                            ppl.screenPos = ppl.screenPos * (-zNear / ppl.vsPos.z);
+                        if (!isOrthographic && ppl.posVS.z <= zNear)
+                            ppl.screenPos = ppl.screenPos * (-zNear / ppl.posVS.z);
 
                         ppl.visLightIndex = visLightIndex;
 
@@ -928,17 +928,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     if (vl.light.type == LightType.Point || vl.light.type == LightType.Spot)
                     {
-                        Vector3 wsPos = vl.light.transform.position;
+                        Vector3 posWS = vl.light.transform.position;
                         float adjRadius = vl.light.range * 1.06067f; // adjust for approximate sphere geometry
 
                         Matrix4x4 sphereMatrix = new Matrix4x4(
                             new Vector4(adjRadius,      0.0f,      0.0f, 0.0f),
                             new Vector4(     0.0f, adjRadius,      0.0f, 0.0f),
                             new Vector4(     0.0f,      0.0f, adjRadius, 0.0f),
-                            new Vector4(  wsPos.x,   wsPos.y,   wsPos.z, 1.0f)
+                            new Vector4(  posWS.x,   posWS.y,   posWS.z, 1.0f)
                         );
 
-                        cmd.SetGlobalVector("_LightWsPos", wsPos);
+                        cmd.SetGlobalVector("_LightPosWS", posWS);
                         cmd.SetGlobalFloat("_LightRadius2", vl.light.range * vl.light.range);  // TODO is this still needed?
                         cmd.SetGlobalVector("_LightColor", /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
 
@@ -979,8 +979,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void StorePointLightData(ref NativeArray<Vector4UInt> pointLightBuffer, int storeIndex, ref NativeArray<VisibleLight> visibleLights, int index)
         {
-            Vector3 wsPos = visibleLights[index].light.transform.position;
-            pointLightBuffer[storeIndex * 4 + 0] = new Vector4UInt(FloatToUInt(wsPos.x), FloatToUInt(wsPos.y), FloatToUInt(wsPos.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
+            Vector3 posWS = visibleLights[index].light.transform.position;
+            pointLightBuffer[storeIndex * 4 + 0] = new Vector4UInt(FloatToUInt(posWS.x), FloatToUInt(posWS.y), FloatToUInt(posWS.z), FloatToUInt(visibleLights[index].range * visibleLights[index].range));
             pointLightBuffer[storeIndex * 4 + 1] = new Vector4UInt(FloatToUInt(visibleLights[index].finalColor.r), FloatToUInt(visibleLights[index].finalColor.g), FloatToUInt(visibleLights[index].finalColor.b), 0);
 
             Vector4 lightAttenuation;
