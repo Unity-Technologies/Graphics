@@ -169,10 +169,37 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataDisplacement.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
+uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
+{
+    uint2 fadeMaskSeed;
+
+    if (IsPerspectiveProjection())
+    {
+        // Start with the world-space direction V. It is independent from the orientation of the camera,
+        // and only depends on the position of the camera and the position of the fragment.
+        // Now, project and transform it into [-1, 1].
+        float2 pv = PackNormalOctQuadEncode(V);
+        // Rescale it to account for the resolution of the screen.
+        pv *= _ScreenSize.xy;
+        // The camera only sees a small portion of the sphere, limited by hFoV and vFoV.
+        // Therefore, we must rescale again (before quantization), roughly, by 1/tan(FoV/2).
+        pv *= UNITY_MATRIX_P._m00_m11;
+        // Truncate and quantize.
+        fadeMaskSeed = asuint((int2)pv);
+    }
+    else
+    {
+        // Can't use the view direction, it is the same across the entire screen.
+        fadeMaskSeed = positionSS;
+    }
+
+    return fadeMaskSeed;
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-    uint3 fadeMaskSeed = asuint((int3)(V * _ScreenSize.xyx)); // Quantize V to _ScreenSize values
+    uint2 fadeMaskSeed = ComputeFadeMaskSeed(V, posInput.positionSS);
     LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 

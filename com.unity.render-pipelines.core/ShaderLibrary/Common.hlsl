@@ -1077,7 +1077,7 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor -1..0
 // This is what is provided by unity_LODFade
-void LODDitheringTransition(uint3 fadeMaskSeed, float ditherFactor)
+void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 {
     ditherFactor = ditherFactor < 0.0 ? 1 + ditherFactor : ditherFactor;
 
