@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly BlackboardSection m_KeywordSection;
         public Blackboard blackboard { get; private set; }
         Label m_PathLabel;
+        Label m_TitleLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
@@ -55,6 +56,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
+            m_TitleLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("titleLabel");
+            m_TitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent2);
+
             m_PathLabelTextField = new TextField { visible = false };
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
@@ -69,6 +73,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var keyword in graph.keywords)
                 AddInputRow(keyword);
             blackboard.Add(m_KeywordSection);
+        }
+
+        void OnMouseDownEvent2(MouseDownEvent evt)
+        {
+            Debug.Log("clicking");
         }
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
