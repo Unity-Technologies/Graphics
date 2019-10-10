@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/001-HDTemplate.unity
     guid: cbfe36cfddfde964d9dfce63a355d5dd
   - enabled: 1
+    path: Assets/Scenes/003_QualitySettings_High.unity
+    guid: 26027bbac74eefa49a49c45dfe7c9879
+  - enabled: 1
     path: Assets/Scenes/003_QualitySettings_Medium.unity
-    guid: 96e841d29968efb4f85b54d813f916cf
+    guid: e43d426deaf89664497ea986b8625fe8
+  - enabled: 1
+    path: Assets/Scenes/003_QualitySettings_Low.unity
+    guid: cf7f1726f2afa8145ba49af2374110db
   m_configObjects: {}
