@@ -21,7 +21,7 @@ projects:
     folder: VisualEffectGraph_LWRP
 ---
 all_project_ci:
-  name: Run all test projects on all platforms
+  name: ABV for SRP repository
   agent:
     name: whatever
     type: Unity::VM
