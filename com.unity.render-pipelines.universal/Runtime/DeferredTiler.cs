@@ -23,13 +23,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public ushort visLightIndex;
         }
 
-        struct CulledLight
-        {
-            public float minDist;
-            public float maxDist;
-            public ushort visLightIndex;
-        }
-
         enum ClipResult
         {
             Unknown,
@@ -66,10 +59,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         // in a finest        tiler DeferredLights.m_Tilers[0] ( 16x16px  tiles), each tile will use a block of  1 *  1 * 32 =   32 ushort values
         // in an intermediate tiler DeferredLights.m_Tilers[1] ( 64x64px  tiles), each tile will use a block of  4 *  4 * 32 =  512 ushort values
         // in a coarsest      tiler DeferredLights.m_Tilers[2] (256x256px tiles), each tile will use a block of 16 * 16 * 32 = 8192 ushort values
+        [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
         NativeArray<ushort> m_TileData;
 
         // Store tile header (fixed size per tile)
         // light offset, light count, optionally additional per-tile "header" values.
+        [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
         NativeArray<uint> m_TileHeaders;
 
         // Precompute tile data.
@@ -159,8 +154,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_TileDataCapacity <= 0)
                 m_TileDataCapacity = m_TileXCount * m_TileYCount * m_AvgLightPerTile;
 
-            m_TileData = new NativeArray<ushort>(m_TileDataCapacity, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            m_TileHeaders = new NativeArray<uint>(m_TileXCount * m_TileYCount * m_TileHeaderSize, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            m_TileData = new NativeArray<ushort>(m_TileDataCapacity, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            m_TileHeaders = new NativeArray<uint>(m_TileXCount * m_TileYCount * m_TileHeaderSize, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
         }
 
         public void FrameCleanup()
@@ -268,9 +263,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            // Store culled lights in temporary buffer.
-            CulledLight* culledLights = stackalloc CulledLight[lightCount];
-            ushort* bitRanges = stackalloc ushort[lightCount];
+            // Store culled lights in temporary buffer. Additionally store depth range of each light for a given tile too.
+            // the depth range is a 32bit mask, but packed into a 16bits value since the range of the light is continuous
+            // (only need to store first bit enabled, and count of enabled bits).
+            ushort* tiles = stackalloc ushort[lightCount*2];
+            float2* depthRanges = stackalloc float2[lightCount];
 
             int maxLightPerTile = 0; // for stats
             int lightEndIndex = lightStartIndex + lightCount;
@@ -319,12 +316,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
                             listMaxDepth = listMaxDepth > t1 ? listMaxDepth : t1;
-                            culledLights[culledLightCount].minDist = t0;
-                            culledLights[culledLightCount].maxDist = t1;
-
+                            depthRanges[culledLightCount] = new float2(t0, t1);
                             // Because this always output to the finest tiles, contrary to CullLights(),
                             // the result are indices into visibleLights, instead of indices into pointLights.
-                            culledLights[culledLightCount].visLightIndex = ppl.visLightIndex;
+                            tiles[culledLightCount] = ppl.visLightIndex;
                             ++culledLightCount;
                         }
                     }
@@ -352,17 +347,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                             listMinDepth = listMinDepth < t0 ? listMinDepth : t0;
                             listMaxDepth = listMaxDepth > t1 ? listMaxDepth : t1;
-                            culledLights[culledLightCount].minDist = t0;
-                            culledLights[culledLightCount].maxDist = t1;
-
+                            depthRanges[culledLightCount] = new float2(t0, t1);
                             // Because this always output to the finest tiles, contrary to CullLights(),
                             // the result are indices into visibleLights, instead of indices into pointLights.
-                            culledLights[culledLightCount].visLightIndex = ppl.visLightIndex;
+                            tiles[culledLightCount] = ppl.visLightIndex;
                             ++culledLightCount;
                         }
                     }
-
-                    int tileOffset = culledLightCount > 0 ? ReserveTileData(culledLightCount * 2) : 0;
 
                     // Post-multiply by zNear to get actual world unit absolute depth values, then clamp to valid depth range.
                     listMinDepth = max2(listMinDepth * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear);
@@ -373,14 +364,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     float depthRangeInv = 1.0f / (listMaxDepth - listMinDepth);
                     for (int culledLightIndex = 0; culledLightIndex < culledLightCount; ++culledLightIndex)
                     {
-                        float lightMinDepth = max2(culledLights[culledLightIndex].minDist * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear);
-                        float lightMaxDepth = min2(culledLights[culledLightIndex].maxDist * m_FrustumPlanes.zNear, m_FrustumPlanes.zFar);
+                        float lightMinDepth = max2(depthRanges[culledLightIndex].x * m_FrustumPlanes.zNear, m_FrustumPlanes.zNear);
+                        float lightMaxDepth = min2(depthRanges[culledLightIndex].y * m_FrustumPlanes.zNear, m_FrustumPlanes.zFar);
                         int firstBit = (int)((lightMinDepth - listMinDepth) * 32.0f * depthRangeInv);
                         int lastBit = (int)((lightMaxDepth - listMinDepth) * 32.0f * depthRangeInv);
                         int bitCount = min(lastBit - firstBit + 1, 32 - firstBit);
                         bitMask |= (uint)((0xFFFFFFFF >> (32 - bitCount)) << firstBit);
 
-                        bitRanges[culledLightIndex] = (ushort)((uint)firstBit | (uint)(bitCount << 8));
+                        tiles[culledLightCount + culledLightIndex] = (ushort)((uint)firstBit | (uint)(bitCount << 8));
                     }
 
                     // As listMinDepth and listMaxDepth are used to calculate the geometry 2.5D bitmask,
@@ -393,20 +384,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     float a = 32.0f * depthRangeInv;
                     float b = -listMinDepth * a;
 
+                    int tileDataSize = culledLightCount * 2;
+                    int tileOffset = culledLightCount > 0 ? AddTileData(tiles, ref tileDataSize) : 0;
+
                     int headerOffset = GetTileHeaderOffset(i, j);
                     _tileHeaders[headerOffset + 0] = (uint)tileOffset;
-                    _tileHeaders[headerOffset + 1] = (uint)culledLightCount;
+                    _tileHeaders[headerOffset + 1] = (uint)(tileDataSize == 0 ? 0 : culledLightCount);
                     _tileHeaders[headerOffset + 2] = _f32tof16(a) | (_f32tof16(b) << 16);
                     _tileHeaders[headerOffset + 3] = bitMask;
-
-                    // Sort lights from closest to fursest (use closest bound for each light).
-
-                    // Copy the culled light list.
-                    for (int k = 0; k < culledLightCount; ++k)
-                        m_TileData[tileOffset + k] = culledLights[k].visLightIndex;
-
-                    for (int k = 0; k < culledLightCount; ++k)
-                        m_TileData[tileOffset + culledLightCount + k] = bitRanges[k];
 
                     maxLightPerTile = max(maxLightPerTile, culledLightCount);
                 }
@@ -430,7 +415,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 for (int i = istart; i < iend; ++i)
                 {
                     PreTile preTile = m_PreTiles[i + j * m_TileXCount];
-                    ushort tileLightCount = 0;
+                    int culledLightCount = 0;
 
                     for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
                     {
@@ -441,40 +426,67 @@ namespace UnityEngine.Rendering.Universal.Internal
                         if (!Clip(ref preTile, ppl.posVS, ppl.radius))
                             continue;
 
-                        tiles[tileLightCount] = lightIndex;
-                        ++tileLightCount;
+                        tiles[culledLightCount] = lightIndex;
+                        ++culledLightCount;
                     }
 
                     // Copy the culled light list.
-                    int tileOffset = tileLightCount > 0 ? ReserveTileData(tileLightCount) : 0;
-                    for (int k = 0; k < tileLightCount; ++k)
-                        m_TileData[tileOffset + k] = tiles[k];
+                    int tileOffset = culledLightCount > 0 ? AddTileData(tiles, ref culledLightCount) : 0;
 
                     int headerOffset = GetTileHeaderOffset(i, j);
                     m_TileHeaders[headerOffset + 0] = (uint)tileOffset;
-                    m_TileHeaders[headerOffset + 1] = (uint)tileLightCount;
+                    m_TileHeaders[headerOffset + 1] = (uint)culledLightCount;
                 }
             }
         }
 
-        // TODO make it thread-safe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        int ReserveTileData(int size)
+        unsafe int AddTileData(ushort* lightData, ref int size)
         {
-            int offset = m_TileDataSize;
-            m_TileDataSize += size;
+            int tileDataSize = System.Threading.Interlocked.Add(ref m_TileDataSize, size);
+            int offset = tileDataSize - size;
 
-            if (m_TileDataSize > m_TileDataCapacity)
+            if (tileDataSize <= m_TileData.Length)
             {
-                m_TileDataCapacity = max(m_TileDataSize, m_TileDataCapacity * 2);
-                NativeArray<ushort> newTileData = new NativeArray<ushort>(m_TileDataCapacity, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-                for (int k = 0; k < offset; ++k)
-                    newTileData[k] = m_TileData[k];
-                m_TileData.Dispose();
-                m_TileData = newTileData;
+                ushort* _TileData = (ushort*)m_TileData.GetUnsafePtr();
+                UnsafeUtility.MemCpy(_TileData + offset, lightData, size * 2);
+                return offset;
             }
-            return offset;
+            else
+            {
+                // Buffer overflow. Ignore data to add.
+                // Gracefully increasing the buffer size is possible but costs extra CPU time (see commented code below) due to the needed critical section.
+
+                m_TileDataCapacity = max(m_TileDataCapacity, tileDataSize); // use an atomic max instead?
+                size = 0;
+                return 0;
+            }
+
+            /*
+            lock (this)
+            {
+                int offset = m_TileDataSize;
+                m_TileDataSize += size;
+                ushort* _TileData = (ushort*)m_TileData.GetUnsafePtr();
+
+                if (m_TileDataSize > m_TileDataCapacity)
+                {
+                    m_TileDataCapacity = max(m_TileDataSize, m_TileDataCapacity * 2);
+                    NativeArray<ushort> newTileData = new NativeArray<ushort>(m_TileDataCapacity, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                    ushort* _newTileData = (ushort*)newTileData.GetUnsafePtr();
+
+                    UnsafeUtility.MemCpy(_newTileData, _TileData, offset * 2);
+
+                    m_TileData.Dispose();
+                    m_TileData = newTileData;
+                    _TileData = _newTileData;
+                }
+
+                UnsafeUtility.MemCpy(_TileData + offset, lightData, size * 2);
+
+                return offset;
+            }
+            */
         }
 
         // Return parametric intersection between a sphere and a line.

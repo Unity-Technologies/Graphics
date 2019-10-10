@@ -1,12 +1,13 @@
 using UnityEngine.Profiling;
 using Unity.Collections;
+using Unity.Jobs;
 using static Unity.Mathematics.math;
 
+// TODO remove g_deferredLights: it is currently a workaround for IJob not allowed to contains reference types (we need a reference/pointer to a DeferredTiler).
 // TODO use subpass API to hide extra TileDepthPass
 // TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
 // TODO remove Vector4UInt
 // TODO Make sure GPU buffers are uploaded without copying into Unity CommandBuffer memory
-// TODO Fix (1.0 - d) shader code for UNITY_REVERSED_Z
 // TODO Check if there is a bitarray structure (with dynamic size) available in Unity
 
 namespace UnityEngine.Rendering.Universal.Internal
@@ -103,6 +104,43 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _unproject1 = Shader.PropertyToID("_unproject1");
         }
 
+        struct CullLightsJob : IJob
+        {
+            public int tilerLevel;
+            [ReadOnly]
+            [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            public NativeArray<DeferredTiler.PrePointLight> prePointLights;
+            [ReadOnly]
+            [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            public NativeArray<ushort> coarseTiles;
+            public int coarseTileOffset;
+            public int coarseVisLightCount;
+            public int istart;
+            public int iend;
+            public int jstart;
+            public int jend;
+
+            public void Execute()
+            {
+                if (tilerLevel == 0)
+                {
+                    g_deferredLights.m_Tilers[tilerLevel].CullFinalLights(
+                        ref prePointLights,
+                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                        istart, iend, jstart, jend
+                    );
+                }
+                else
+                {
+                    g_deferredLights.m_Tilers[tilerLevel].CullIntermediateLights(
+                        ref prePointLights,
+                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                        istart, iend, jstart, jend
+                    );
+                }
+            }
+        }
+
         struct DrawCall
         {
             public ComputeBuffer tileList;
@@ -115,13 +153,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int instanceCount;
         }
 
-        const string k_DeferredPass = "Deferred Pass";
-        const string k_TileDepthInfo = "Tile Depth Info";
-        const string k_TiledDeferredPass = "Tile-Based Deferred Shading";
-        const string k_StencilDeferredPass = "Stencil Deferred Shading";
-        const string k_SetupLightConstants = "Setup Light Constants";
+        internal static DeferredLights g_deferredLights;
+
+        
+        static readonly string k_SetupLights = "SetupLights";
+        static readonly string k_DeferredPass = "Deferred Pass";
+        static readonly string k_TileDepthInfo = "Tile Depth Info";
+        static readonly string k_TiledDeferredPass = "Tile-Based Deferred Shading";
+        static readonly string k_StencilDeferredPass = "Stencil Deferred Shading";
+        static readonly string k_SetupLightConstants = "Setup Light Constants";
 
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point lights without shadows) - false: use StencilDeferred.shader for all lights
+        public readonly bool useJobSystem = true;
 
         //
         internal int m_RenderWidth = 0;
@@ -260,6 +303,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            Profiler.BeginSample(k_SetupLights);
+
             DeferredShaderData.instance.ResetBuffers();
 
             m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
@@ -343,6 +388,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                         int fineStepX = coarseTiler.GetTilePixelWidth() / fineTiler.GetTilePixelWidth();
                         int fineStepY = coarseTiler.GetTilePixelHeight() / fineTiler.GetTilePixelHeight();
 
+                        // TODO Hacky workaround because the jobs cannot access the DeferredTiler instances otherwise. Fix this.
+                        g_deferredLights = this;
+                        NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(coarseTileXCount * coarseTileYCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                        int jobCount = 0;
+
                         for (int j = 0; j < coarseTileYCount; ++j)
                         for (int i = 0; i < coarseTileXCount; ++i)
                         {
@@ -354,26 +404,49 @@ namespace UnityEngine.Rendering.Universal.Internal
                             int coarseVisLightCount;
                             coarseTiler.GetTileOffsetAndCount(i, j, out coarseTileOffset, out coarseVisLightCount);
 
-                            if (t != 0)
+                            if (this.useJobSystem)
                             {
-                                // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
-                                // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
-                                fineTiler.CullIntermediateLights(ref prePointLights,
-                                    ref coarseTiles, coarseTileOffset, coarseVisLightCount,
-                                    fine_istart, fine_iend, fine_jstart, fine_jend
-                                );
+                                CullLightsJob job = new CullLightsJob
+                                {
+                                    tilerLevel = t,
+                                    prePointLights = prePointLights,
+                                    coarseTiles = coarseTiles,
+                                    coarseTileOffset = coarseTileOffset,
+                                    coarseVisLightCount = coarseVisLightCount,
+                                    istart = fine_istart,
+                                    iend = fine_iend,
+                                    jstart = fine_jstart,
+                                    jend = fine_jend
+                                };
+                                jobHandles[jobCount++] = job.Schedule();
                             }
                             else
                             {
-                                // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
-                                // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
-                                // Also fills additional per-tile "m_TileHeaders"
-                                fineTiler.CullFinalLights(ref prePointLights,
-                                    ref coarseTiles, coarseTileOffset, coarseVisLightCount,
-                                    fine_istart, fine_iend, fine_jstart, fine_jend
-                                );
+                                if (t != 0)
+                                {
+                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                                    // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
+                                    fineTiler.CullIntermediateLights(ref prePointLights,
+                                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                                        fine_istart, fine_iend, fine_jstart, fine_jend
+                                    );
+                                }
+                                else
+                                {
+                                    // Fill fineTiler.m_Tiles with for each tile, a list of lightIndices from prePointLights that intersect the tile
+                                    // (The prePointLights excluded during previous coarser tiler Culling are not processed any more)
+                                    // Also fills additional per-tile "m_TileHeaders"
+                                    fineTiler.CullFinalLights(ref prePointLights,
+                                        ref coarseTiles, coarseTileOffset, coarseVisLightCount,
+                                        fine_istart, fine_iend, fine_jstart, fine_jend
+                                    );
+                                }
                             }
                         }
+
+                        if (this.useJobSystem)
+                            JobHandle.CompleteAll(jobHandles);
+                        jobHandles.Dispose();
                     }
                 }
                 else
@@ -389,6 +462,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // We don't need this array anymore as all the lights have been inserted into the tile-grid structures.
             prePointLights.Dispose();
+
+            Profiler.EndSample();
         }
 
         public void Setup(ref RenderingData renderingData, RenderTargetHandle depthCopyTexture, RenderTargetHandle depthInfoTexture, RenderTargetHandle tileDepthInfoTexture, RenderTargetHandle depthTexture, RenderTargetHandle lightingTexture)
@@ -645,7 +720,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 stencilLightCount = visibleLights.Length;
 
             // for now we store spotlights and pointlights in the same list
-            prePointLights = new NativeArray<DeferredTiler.PrePointLight>(tileLightCount[(int)LightType.Point] + tileLightCount[(int)LightType.Spot], Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            prePointLights = new NativeArray<DeferredTiler.PrePointLight>(tileLightCount[(int)LightType.Point] + tileLightCount[(int)LightType.Spot], Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             stencilVisLights = new NativeArray<ushort>(stencilLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             for (int i = 0; i < tileLightCount.Length; ++i)
