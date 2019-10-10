@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added all relevant fix actions to FixAll button in Wizard
 - Moved FixAll button on top of the Wizard
 - Fixed an issue where fog color was not pre-exposed correctly
+- Fix LOD fade mask by accounting for field of view
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
