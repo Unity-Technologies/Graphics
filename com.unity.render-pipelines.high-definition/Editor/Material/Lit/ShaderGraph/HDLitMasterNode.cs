@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string AlphaClipThresholdDepthPrepassSlotName = "AlphaClipThresholdDepthPrepass";
         public const string AlphaClipThresholdDepthPostpassSlotName = "AlphaClipThresholdDepthPostpass";
         public const string AnisotropySlotName = "Anisotropy";
-        public const string PositionSlotName = "Vertex Position";        
+        public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
         public const string VertexNormalSlotName = "Vertex Normal";
         public const string VertexTangentSlotName = "Vertex Tangent";
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int LightingSlotId = 30;
         public const int BackLightingSlotId = 31;
         public const int DepthOffsetSlotId = 32;
-        public const int VertexNormalSlotID = 33; 
+        public const int VertexNormalSlotID = 33;
         public const int VertexTangentSlotID = 34;
 
         public enum MaterialType
@@ -1049,7 +1049,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void ValidateNode()
         {
-            var hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdPipelineAsset = HDRenderPipeline.currentAsset;
 
             if (hdPipelineAsset == null)
                 return;
