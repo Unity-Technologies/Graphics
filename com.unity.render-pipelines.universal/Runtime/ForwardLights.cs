@@ -212,6 +212,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             InitializeLightConstants_Common(lights, lightIndex, out lightPos, out lightColor, out lightAttenuation, out lightSpotDir, out lightOcclusionProbeChannel);
 
+            // When no lights are visible, main light will be set to -1.
+            // In this case we initialize it to default values and return
+            if (lightIndex < 0)
+                return;
+
             VisibleLight lightData = lights[lightIndex];
             Light light = lightData.light;
 
