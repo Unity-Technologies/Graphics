@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BakedShadow = 1 << 7,
             ShadowQuality = 1 << 8
         }
-        
+
         enum AdvancedMode
         {
             General = 1 << 0,
@@ -547,7 +547,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.editorLightShape != LightShape.Directional)
             {
                 EditorGUI.BeginChangeCheck();
+                #if UNITY_2020_1_OR_NEWER
+                serialized.settings.DrawRange();
+                #else
                 serialized.settings.DrawRange(false);
+                #endif
                 if (EditorGUI.EndChangeCheck())
                 {
                     // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
@@ -629,7 +633,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)
         {
-            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.currentAsset;
 
             bool oldShadowEnabled = serialized.settings.shadowsType.enumValueIndex != 0;
             bool newShadowsEnabled = EditorGUILayout.Toggle(s_Styles.enableShadowMap, oldShadowEnabled);
@@ -672,7 +676,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (serialized.settings.isMixed)
                     {
-                        using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportShadowMask))
+                        using (new EditorGUI.DisabledScope(!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportShadowMask))
                         {
                             EditorGUI.showMixedValue = serialized.serializedLightData.nonLightmappedOnly.hasMultipleDifferentValues;
                             EditorGUI.BeginChangeCheck();
@@ -735,7 +739,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 #endif
-                
+
 #endif
             }
         }
@@ -817,7 +821,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)
         {
-            var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.currentAsset;
             SerializedScalableSettingValueUI.LevelAndToggleGUILayout(
                 serialized.serializedLightData.contactShadows,
                 s_Styles.contactShadows,
@@ -834,7 +838,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
 
             // Draw shadow settings using the current shadow algorithm
-            HDShadowInitParameters hdShadowInitParameters = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams;
+            HDShadowInitParameters hdShadowInitParameters = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             LightType lightType = (LightType)serialized.settings.lightType.enumValueIndex;
 
             return hdShadowInitParameters.shadowFilteringQuality == quality;
@@ -861,7 +865,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
                     //m_BaseData.type.enumValueIndex = (int)LightType.Rectangle;
                     // In case of change, think to update InitDefaultHDAdditionalLightData()
-                    
+
                     serialized.settings.lightType.enumValueIndex = (int)LightType.Point;
                     serialized.serializedLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
                     if (serialized.settings.isRealtime)

@@ -16,6 +16,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDRenderPipelineAsset defaultAsset
             => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
 
+        internal static HDRenderPipelineAsset currentAsset
+            => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
+
         private static Volume s_DefaultVolume = null;
         static VolumeProfile defaultVolumeProfile
             => defaultAsset?.defaultVolumeProfile;
@@ -470,13 +473,13 @@ namespace UnityEngine.Rendering.HighDefinition
 			ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 
 #if ENABLE_RAYTRACING
-            if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources == null)
-                (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources
+            if (HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources == null)
+                HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
-            ResourceReloader.ReloadAllNullIn((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+            ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
 #else
             // If ray tracing is not enabled we do not want to have ray tracing resources referenced
-            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).renderPipelineRayTracingResources = null;
+            HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources = null;
 #endif
 
             if (HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null)
@@ -535,9 +538,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (settings.supportCustomPass)
             {
                 m_CustomPassColorBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer");
+                m_CustomPassDepthBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, isShadowMap: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32);
             }
-
-            m_CustomPassDepthBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, isShadowMap: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32);
 
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
 
@@ -639,10 +641,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
                 editableMaterialRenderQueue = false
-#if UNITY_2019_3_OR_NEWER
                 // Enlighten is deprecated in 2019.3 and above
                 , enlighten = false
-#endif
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
