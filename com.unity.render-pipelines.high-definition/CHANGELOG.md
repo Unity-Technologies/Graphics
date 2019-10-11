@@ -86,6 +86,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix cleanup not called when the custom pass GameObject is destroyed
 - Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides. 
 - Fixed an issue with Realtime GI not working on upgraded projects. 
+- Fixed issue with screen space shadows fallback texture was not set as a texture array. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
