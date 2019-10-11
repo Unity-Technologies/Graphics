@@ -8,6 +8,8 @@ float4 _AOBufferSize;
 float4 _AOParams0;
 float4 _AOParams1;
 float4 _AOParams2;
+float4 _AOParams3;
+float4 _AOParams4;
 float4 _AODepthToViewParams;
 CBUFFER_END
 
@@ -22,6 +24,16 @@ CBUFFER_END
 #define _AOInvStepCountPlusOne _AOParams2.z
 #define _AOMaxRadiusInPixels (int)_AOParams2.w
 #define _AORTHandleSize _AOParams2.xy
+#define _AODirectionCount _AOParams4.x
+
+// For denoising, whether temporal or not
+#define _BlurTolerance _AOParams3.x
+#define _UpsampleTolerance _AOParams3.y
+#define _NoiseFilterStrength _AOParams3.z
+#define _StepSize _AOParams3.w
+#define _AOTemporalUpperNudgeLimit _AOParams4.y
+#define _AOTemporalLowerNudgeLimit _AOParams4.z
+
 
 // If this is set to 0 best quality is achieved when full res, but performance is significantly lower.
 // If set to 1, when full res, it may lead to extra aliasing and loss of detail, but still significant higher quality than half res.
@@ -29,7 +41,7 @@ CBUFFER_END
 #define HALF_RES_DEPTH_WHEN_FULL_RES_FOR_CENTRAL 0
 
 // This increases the quality when running with half resolution buffer, however it adds a bit of cost. Note that it will not have artifact as we already don't allow samples to be at the edge of the depth buffer.
-#define MIN_DEPTH_GATHERED_FOR_CENTRAL 1
+#define MIN_DEPTH_GATHERED_FOR_CENTRAL 0
 
 #define CENTRAL_AND_SAMPLE_DEPTH_FETCH_SAME_METHOD 0
 
@@ -141,4 +153,9 @@ void UnpackGatheredData(uint4 data, out float4 AOs, out float4 depths)
     UnpackData(data.y, AOs.y, depths.y);
     UnpackData(data.z, AOs.z, depths.z);
     UnpackData(data.w, AOs.w, depths.w);
+}
+
+float OutputFinalAO(float AO)
+{
+    return 1.0f - PositivePow(AO, _AOIntensity);
 }
