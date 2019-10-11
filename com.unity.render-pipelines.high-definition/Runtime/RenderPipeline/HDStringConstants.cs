@@ -827,6 +827,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AOParams1                      = Shader.PropertyToID("_AOParams1");
         public static readonly int _AOParams2                      = Shader.PropertyToID("_AOParams2");
         public static readonly int _AOParams3                      = Shader.PropertyToID("_AOParams3");
+        public static readonly int _AOParams4                      = Shader.PropertyToID("_AOParams4");
         public static readonly int _OcclusionTexture               = Shader.PropertyToID("_OcclusionTexture");
         public static readonly int _BentNormalsTexture             = Shader.PropertyToID("_BentNormalsTexture");
         public static readonly int _AOPackedData                   = Shader.PropertyToID("_AOPackedData");

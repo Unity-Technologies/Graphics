@@ -4,7 +4,11 @@
 //#pragma enable_d3d11_debug_symbols
 
 #pragma kernel GTAOMain_HalfRes GTAO_KERNEL_NAME=GTAOMain_HalfRes HALF_RES
+#pragma kernel GTAOMain_HalfRes_Temporal GTAO_KERNEL_NAME=GTAOMain_HalfRes_Temporal HALF_RES TEMPORAL
+
 #pragma kernel GTAOMain_FullRes GTAO_KERNEL_NAME=GTAOMain_FullRes FULL_RES
+#pragma kernel GTAOMain_FullRes_Temporal GTAO_KERNEL_NAME=GTAOMain_FullRes_Temporal FULL_RES TEMPORAL
+
 
 // --------------------------------------------
 // Options
@@ -16,14 +20,12 @@
 #define INTEGRAL_TYPE INTEGRAL_COSINE
 
 // Noise options
-#define TEMPORAL_ROTATION 1
-#define ENABLE_TEMPORAL_OFFSET 1
+#define TEMPORAL_ROTATION defined(TEMPORAL)
+#define ENABLE_TEMPORAL_OFFSET defined(TEMPORAL)
 
 // Normal fetching options
 #define NORMAL_FROM_GBUFFER 1
 #define NORMAL_COMPUTATION NORMAL_FROM_GBUFFER
-
-#define WEIGHT_WITH_PROJ_N_LENGTH 0
 
 // --------------------------------------------
 // Integration functions
@@ -46,32 +48,28 @@ float UpdateHorizon(float maxH, float candidateH, float distSq)
 {
     float falloff = saturate((1.0 - (distSq * _AOInvRadiusSq)));
 
-    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : maxH;        // TODO_FCC: Thickness heuristic here.
+    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : maxH;        // TODO: Thickness heuristic here.
 }
 
 // --------------------------------------------
-// Noisy functions
+// Direction functions
 // --------------------------------------------
 
-float2 GetDirection(uint2 positionSS)
+float2 GetDirection(uint2 positionSS, int offset)
 {
-    // Spatial distribution 
-    float noise = (1.0 / 16.0) * ((((positionSS.x + positionSS.y) & 0x3) << 2) +
-        // Note: in the original presentation, this has a bug as the following needs to be positionSS.y and not positionSS.x
-        (positionSS.y & 0x3)) * PI;
-    
+    float noise = InterleavedGradientNoise(positionSS.xy, 0);
+    float rotations[] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
 
 #if TEMPORAL_ROTATION
-    // Temporal rotations
-    float rotations[] = { 60.0, 300.0, 180.0, 240.0, 120.0, 0.0 };
     float rotation = (rotations[_AOTemporalRotationIdx] / 360.0);
-
-    noise += rotation; 
+#else
+    float rotation = (rotations[offset] / 360.0);
 #endif
 
-    float2 dir = float2(cos(noise), sin(noise));
+    noise += rotation;
+    noise *= PI;
 
-    return dir;
+    return float2(cos(noise), sin(noise));
 }
 
 // --------------------------------------------
@@ -121,7 +119,7 @@ float3 GetNormalVS(float4 normalBufferData)
 
 float HorizonLoop(float3 positionVS, float3 V, float2 rayStart, float2 rayDir, float rayOffset, float rayStep, int mipModifier)
 {
-    float maxHorizon = -1;
+    float maxHorizon = -1.0f;  // cos(pi) 
     float t = rayOffset * rayStep + rayStep;
 
     const uint startWithLowerRes = min(max(0, _AOStepCount / 2 - 2), 3);
@@ -153,60 +151,67 @@ void GTAO_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 	UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Read buffers as early as possible.
-    float currDepth = GetDepthForCentral(dispatchThreadId.xy + 0.5f);
+    float currDepth = GetDepthForCentral(dispatchThreadId.xy);
     float3 positionVS = GetPositionVS(dispatchThreadId.xy, currDepth);
+
 #if HALF_RES
     float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, dispatchThreadId.xy * 2);
 #else
     float4 normalBufferData = LOAD_TEXTURE2D_X(_NormalBufferTexture, dispatchThreadId.xy);
 #endif
 
-    float2 dir = GetDirection(dispatchThreadId.xy);
     float offset = GetOffset(dispatchThreadId.xy);
-
     float2 rayStart = dispatchThreadId.xy;
+    float integral = 0;
+
+#ifdef TEMPORAL
+    const int dirCount = 1;
+#else
+    const int dirCount = _AODirectionCount;
+#endif
 
     float3 V = normalize(-positionVS);
-    float fovCorrectedradiusSS =  clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
-    float step = fovCorrectedradiusSS * _AOInvStepCountPlusOne;
+    float fovCorrectedradiusSS = clamp(_AORadius * _AOFOVCorrection * rcp(positionVS.z), _AOStepCount, _AOMaxRadiusInPixels);
+    float step = max(1, fovCorrectedradiusSS * _AOInvStepCountPlusOne);
 
-    // NOTE: Work around a shader compilation bug, where removing the tiny epsilon causes
-    // incorrect output on some drivers. The epsilon should be small enough to not affect
-    // the output.
-    float2 negDir = -dir + 1e-30;
-
-    // Find horizons 
-    float2 maxHorizons;
-    maxHorizons.x = HorizonLoop(positionVS, V, rayStart, dir, offset, step, 0);
-    maxHorizons.y = HorizonLoop(positionVS, V, rayStart, negDir, offset, step, 0);
-
-    // We now can transform normal data into normal in view space (latency from read should have been hidden as much as possible)
-    float3 normalVS = GetNormalVS(normalBufferData);
-
-    // Integrate horizons 
-    float3 sliceN =  normalize(cross(float3(dir.xy, 0.0f), V.xyz));
-    float3 projN = normalVS - sliceN * dot(normalVS, sliceN);
-    float projNLen = length(projN);
-    float cosN = dot(projN / projNLen, V);
-
-    float3 T = cross(V, sliceN);
-    float N = -sign(dot(projN, T)) * GTAOFastAcos(cosN);
-
-    // Now we find the actual horizon angles
-    maxHorizons.x = -GTAOFastAcos(maxHorizons.x);
-    maxHorizons.y = GTAOFastAcos(maxHorizons.y);
-    maxHorizons.x = N + max(maxHorizons.x - N, -HALF_PI);
-    maxHorizons.y = N + min(maxHorizons.y - N, HALF_PI);
-
-#if INTEGRAL_TYPE == INTEGRAL_COSINE
-#if !WEIGHT_WITH_PROJ_N_LENGTH
-    float integral = 1 * IntegrateArcCosWeighted(maxHorizons.x, maxHorizons.y, N, cosN);
-#else
-    float integral = projNLen * IntegrateArcCosWeighted(maxHorizons.x, maxHorizons.y, N, cosN);
+#ifdef TEMPORAL
+    [unroll]
 #endif
-#elif INTEGRAL_TYPE == INTEGRAL_UNIFORM
-    float integral = projNLen * IntegrateArcUniform(maxHorizons.x, maxHorizons.y);
-#endif 
+    for (int i = 0; i < dirCount; ++i)
+    {
+        float2 dir = GetDirection(dispatchThreadId.xy, i);
+
+        // NOTE: Work around a shader compilation bug, where removing the tiny epsilon causes
+        // incorrect output on some drivers. The epsilon should be small enough to not affect
+        // the output.
+        float2 negDir = -dir + 1e-30;
+
+        // Find horizons 
+        float2 maxHorizons;
+        maxHorizons.x = HorizonLoop(positionVS, V, rayStart, dir, offset, step, 0);
+        maxHorizons.y = HorizonLoop(positionVS, V, rayStart, negDir, offset, step, 0);
+
+        // We now can transform normal data into normal in view space (latency from read should have been hidden as much as possible)
+        float3 normalVS = GetNormalVS(normalBufferData);
+
+        // Integrate horizons 
+        float3 sliceN = normalize(cross(float3(dir.xy, 0.0f), V.xyz));
+        float3 projN = normalVS - sliceN * dot(normalVS, sliceN);
+        float projNLen = length(projN);
+        float cosN = dot(projN / projNLen, V);
+
+        float3 T = cross(V, sliceN);
+        float N = -sign(dot(projN, T)) * GTAOFastAcos(cosN);
+
+        // Now we find the actual horizon angles
+        maxHorizons.x = -GTAOFastAcos(maxHorizons.x);
+        maxHorizons.y = GTAOFastAcos(maxHorizons.y);
+        maxHorizons.x = N + max(maxHorizons.x - N, -HALF_PI);
+        maxHorizons.y = N + min(maxHorizons.y - N, HALF_PI);
+        integral += any(isnan(maxHorizons)) ? 1 : IntegrateArcCosWeighted(maxHorizons.x, maxHorizons.y, N, cosN);
+    }
+
+    integral /= dirCount;
 
     if (currDepth == UNITY_RAW_FAR_CLIP_VALUE)
     {
