@@ -150,6 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition
             for (int index = 0; index < targets.Length; ++index)
             {
                 DecalProjector decalProjector = (targets[index] as DecalProjector);
+
                 if((decalProjector != null) && (decalProjector.material != null))
                     materials[validMaterialsCount++] = (targets[index] as DecalProjector).material;
             }
