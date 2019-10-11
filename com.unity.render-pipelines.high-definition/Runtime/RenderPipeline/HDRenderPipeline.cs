@@ -540,7 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CustomPassColorBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer");
                 m_CustomPassDepthBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, isShadowMap: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32);
             }
-            
+
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
@@ -1930,7 +1930,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
                      VolumeManager.instance.stack.GetComponent<PathTracing>().enable.value)
             {
-                PathTracingRender(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
+                RenderPathTracing(hdCamera, cmd, m_CameraColorBuffer, renderContext, m_FrameCount);
             }
 #endif
             else
