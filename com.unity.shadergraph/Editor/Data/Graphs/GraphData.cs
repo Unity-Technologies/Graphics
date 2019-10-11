@@ -1393,42 +1393,28 @@ namespace UnityEditor.ShaderGraph
         {
             // First get all valid TargetImplementations that are valid with the current graph
             List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-
-            //if subgraph output node, preview target is the only valid target
-            if (outputNode is SubGraphOutputNode)
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())//
             {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())//
+                foreach (var type in assembly.GetTypesOrNothing())
                 {
-                    foreach (var type in assembly.GetTypesOrNothing())
+                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
+                    //for subgraph output nodes, preview target is the only valid target
+                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
                     {
-                        var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(DefaultPreviewTarget).IsAssignableFrom(type);
-                        if (isImplementation)
+                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
+                        foundImplementations.Add(implementation);
+                    }
+                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
+                    {
+                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
+                        if(implementation.IsValid(masterNode))
                         {
-                            var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
                             foundImplementations.Add(implementation);
                         }
                     }
                 }
             }
-            else
-            {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())//
-                {
-                    foreach (var type in assembly.GetTypesOrNothing())
-                    {
-                        var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
-                        if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
-                        {
-                            var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                            var implementation = (ITargetImplementation)Activator.CreateInstance(type);
-                            if(implementation.IsValid(masterNode))
-                            {
-                                foundImplementations.Add(implementation);
-                            }
-                        }
-                    }
-                }
-            }            
 
             // Next we get all Targets that have valid TargetImplementations
             List<ITarget> foundTargets = new List<ITarget>();
