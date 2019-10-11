@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/001-HDTemplate.unity
     guid: cbfe36cfddfde964d9dfce63a355d5dd
+  - enabled: 1
+    path: Assets/Scenes/002-Lighting.unity
+    guid: c516a89c8b6be4741a6399e0aa42190d
   m_configObjects: {}
