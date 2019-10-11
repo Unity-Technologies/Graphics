@@ -532,7 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         int lightlayersMask = (int)lightData.lightlayersMask;
 
                         EditorGUI.BeginChangeCheck();
-                        lightlayersMask = HDEditorUtils.LightLayerMaskPropertyDrawer(r, lightlayersMask);
+                        lightlayersMask = HDEditorUtils.DrawLightLayerMask(r, lightlayersMask);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(lightData, "Changed light layer");
