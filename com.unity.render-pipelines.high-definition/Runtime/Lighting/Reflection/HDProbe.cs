@@ -175,6 +175,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The distance at which reflections smoothly fade out before HDRP cut them completely.</summary>
         public float fadeDistance
         { get => m_ProbeSettings.lighting.fadeDistance; set => m_ProbeSettings.lighting.fadeDistance = value; }
+        /// <summary>The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read. This is to simply avoid issues with values clamping due to precision of the storing format.</summary>
+        public float rangeCompressionFactor
+        { get => m_ProbeSettings.lighting.rangeCompressionFactor; set => m_ProbeSettings.lighting.rangeCompressionFactor = value; }
+
 
         // Proxy
         /// <summary>ProxyVolume currently used by this probe.</summary>

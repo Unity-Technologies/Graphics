@@ -169,7 +169,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes = Volumes.@default,
             flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
             invertFaceCulling = false,
-            probeLayerMask = ~0
+            probeLayerMask = ~0,
+            probeRangeCompressionFactor = 1.0f
         };
 
         public static CameraSettings From(HDCamera hdCamera)
@@ -241,6 +242,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMask probeLayerMask;
         /// <summary>Which default FrameSettings should be used when rendering with these parameters.</summary>
         public FrameSettingsRenderType defaultFrameSettings;
+
+        // Marked as internal as it is here just for propagation purposes, the correct way to edit this value is through the probe itself.
+        internal float probeRangeCompressionFactor;
 
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;
