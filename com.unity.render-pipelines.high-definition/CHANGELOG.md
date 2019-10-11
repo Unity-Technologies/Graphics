@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added hability to name LightLayers in HDRenderPipelineAsset
 - Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
 - Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
+- Added non temporal version of SSAO.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -106,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increase max limit of area light and reflection probe to 128
 - Change default texture for detailmap to grey
 - Optimize Shadow RT load on Tile based architecture platforms. 
+- Improved quality of SSAO.
 
 ## [7.1.1] - 2019-09-05
 
