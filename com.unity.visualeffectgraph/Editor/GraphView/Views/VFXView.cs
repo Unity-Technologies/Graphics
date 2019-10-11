@@ -695,7 +695,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_LockedElement.style.display != DisplayStyle.Flex)
                 {
-                    m_LockedElement.style.display = DisplayStyle.Flex;
+                m_LockedElement.style.display = DisplayStyle.Flex;
                     this.RemoveManipulator(m_SelectionDragger);
                     this.RemoveManipulator(m_RectangleSelector);
                     m_LockedElement.Focus();
@@ -706,7 +706,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_LockedElement.style.display != DisplayStyle.None)
                 {
-                    m_LockedElement.style.display = DisplayStyle.None;
+                m_LockedElement.style.display = DisplayStyle.None;
                     this.AddManipulator(m_SelectionDragger);
                     this.AddManipulator(m_RectangleSelector);
                 }
