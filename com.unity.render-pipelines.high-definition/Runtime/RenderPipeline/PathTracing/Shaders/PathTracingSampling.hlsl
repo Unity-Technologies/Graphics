@@ -2,8 +2,8 @@
 
 float GetSample(uint2 coord, uint index, uint dim)
 {
-    // If we go past the stored number of samples per dim, just pick another pair of dimensions
+    // If we go past the number of stored samples per dim, just shift all to the next pair of dimensions
     dim += (index / 256) * 2;
 
-    return GetBNDSequenceSample(coord, index, dim);
+    return GetBNDSequenceSample(coord, _RaytracingFrameIndex + index, dim);
 }

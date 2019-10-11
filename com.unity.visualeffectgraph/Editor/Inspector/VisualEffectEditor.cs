@@ -252,7 +252,7 @@ namespace UnityEditor.VFX
                         {
                             Vector4 result = EditorGUI.Vector4Field(rect, nameContent, Vector4.zero);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.vector4Value = result;
                                 changed = true;
                             }
@@ -262,7 +262,7 @@ namespace UnityEditor.VFX
                         {
                             Vector3 result = EditorGUI.Vector3Field(rect, nameContent, Vector3.zero);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.vector3Value = result;
                                 changed = true;
                             }
@@ -272,7 +272,7 @@ namespace UnityEditor.VFX
                         {
                             Vector2 result = EditorGUI.Vector2Field(rect, nameContent, Vector2.zero);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.vector2Value = result;
                                 changed = true;
                             }
@@ -294,7 +294,7 @@ namespace UnityEditor.VFX
                             }
                             UnityObject result = EditorGUI.ObjectField(rect, nameContent, null, objTyp, false);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.objectReferenceValue = result;
                                 changed = true;
                             }
@@ -305,7 +305,7 @@ namespace UnityEditor.VFX
                         {
                             float value = EditorGUI.Slider(rect, nameContent, 0, parameter.min, parameter.max);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.floatValue = value;
                                 changed = true;
                             }
@@ -314,7 +314,7 @@ namespace UnityEditor.VFX
                         {
                             float value = EditorGUI.FloatField(rect, nameContent, 0);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.floatValue = value;
                                 changed = true;
                             }
@@ -325,7 +325,7 @@ namespace UnityEditor.VFX
                         {
                             int value = EditorGUI.IntSlider(rect, nameContent, 0, (int)parameter.min, (int)parameter.max);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.intValue = value;
                                 changed = true;
                             }
@@ -334,7 +334,7 @@ namespace UnityEditor.VFX
                         {
                             int value = EditorGUI.IntField(rect, nameContent, 0);
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.intValue = value;
                                 changed = true;
                             }
@@ -346,11 +346,11 @@ namespace UnityEditor.VFX
                             Gradient newGradient = EditorGUI.GradientField(rect, nameContent, s_DefaultGradient, true);
 
                             if (GUI.changed)
-                            { 
+                            {
                                 valueProperty.gradientValue = newGradient;
                                 changed = true;
                             }
-                            
+
                         }
                         break;
                 }
@@ -489,7 +489,7 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            
+
             GUILayout.Label("Show Bounds", GUILayout.Width(192));
 
             VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
@@ -696,7 +696,7 @@ namespace UnityEditor.VFX
             //bool currentState = EditorGUILayout.Toggle(GUIContent.none, prevState, Styles.foldoutStyle);
 
             float height = Styles.foldoutStyle.CalcHeight(nameContent, 4000) + 3;
-            
+
             Rect rect = GUILayoutUtility.GetRect(1, height);
 
             rect.width += rect.x;
@@ -1079,7 +1079,7 @@ namespace UnityEditor.VFX
             }
 
             if(showRendererCategory)
-                m_RendererEditor.OnInspectorGUI();     
+                m_RendererEditor.OnInspectorGUI();
         }
 
         private class RendererEditor
@@ -1114,7 +1114,7 @@ namespace UnityEditor.VFX
 
                 if (m_RenderingLayerMask != null)
                 {
-                    RenderPipelineAsset srpAsset = GraphicsSettings.renderPipelineAsset;
+                    RenderPipelineAsset srpAsset = GraphicsSettings.currentRenderPipeline;
                     if (srpAsset != null)
                     {
                         var layerNames = srpAsset.renderingLayerMaskNames;

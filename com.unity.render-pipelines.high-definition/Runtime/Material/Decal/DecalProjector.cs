@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
         /// <summary>
-        /// Change the offset position. 
+        /// Change the offset position.
         /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
         /// </summary>
         internal Vector3 offset
@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                var hdrp = HDRenderPipeline.defaultAsset;
                 m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Handle = null;
             }
         }
-        
+
         /// <summary>
         /// Event called each time the used material change.
         /// </summary>
@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
 #if UNITY_EDITOR
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.defaultAsset;
             if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
                 return false;
 #endif
