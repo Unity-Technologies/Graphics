@@ -10,7 +10,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             None = 0,
             CaptureSettingsIsAdvanced = 1 << 0,
-            InfluenceVolumeIsAdvanced = 1 << 1
+            InfluenceVolumeIsAdvanced = 1 << 1,
+            CustomSettingsIsAdvanced = 1 << 2
         }
 
         internal SerializedObject serializedObject;

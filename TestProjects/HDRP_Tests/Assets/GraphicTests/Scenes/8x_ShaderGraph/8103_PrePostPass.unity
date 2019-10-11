@@ -333,6 +333,7 @@ MonoBehaviour:
       m_Calls: []
   captureFramerate: 0
   waitFrames: 0
+  xrLayout: 0
   renderPipelineAsset: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
     type: 2}
   compareSGtoBI: 0

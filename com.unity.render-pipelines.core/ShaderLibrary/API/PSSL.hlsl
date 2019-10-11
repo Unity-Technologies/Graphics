@@ -57,6 +57,73 @@ uint WaveGetLaneCount()
     return PLATFORM_LANE_COUNT;
 }
 
+#define INTRINSIC_QUAD_SHUFFLE
+
+/*
+IMPORTANT!! The following are valid only in pixel shaders or when threads are arranged in a quad fashion.
+
+Let's assume the relative indices of threads in a quad are as follow
+        +--------- X
+        | [0] [1]
+        | [2] [3]
+
+        Y
+
+The mask given to the swizzle operation will assume we are in quad mode, meaning that the 16th bit is set to 1 and bits [8:14] are irrelevant. In this mode
+the bits [1:0] will point to the relative lane index [0] will get the value from, bits[3:2] to the relative lane index [1] will get the value from and so forth.
+
+The following predetermined functions give us swaps across all directions of quad.
+
+For example, referencing the plot on top of this comment:
+This means that ReadAcrossX for [0] will give [1], for [1] will give [0], for [2] it will give [3] and for [3] it will give [2]
+*/
+
+
+#define GENERATE_INTRINSIC_1_VAR_ARG_1_FIXED_UINT_ARG(FunctionName, BaseIntrinsicName, Parameter0, UintParam) \
+    float FunctionName(float Parameter0) { return BaseIntrinsicName##_f32(Parameter0, UintParam); } \
+    int   FunctionName(int   Parameter0) { return BaseIntrinsicName##_i32(Parameter0, UintParam); } \
+    uint  FunctionName(uint  Parameter0) { return BaseIntrinsicName##_u32(Parameter0, UintParam); }
+
+#define GENERATE_INTRINSIC_1_VAR_ARG_1_VAR_UINT_ARG(FunctionName, BaseIntrinsicName, Parameter0, UintParam) \
+    float FunctionName(float Parameter0, uint UintParam) { return BaseIntrinsicName##_f32(Parameter0, UintParam); } \
+    int   FunctionName(int   Parameter0, uint UintParam) { return BaseIntrinsicName##_i32(Parameter0, UintParam); } \
+    uint  FunctionName(uint  Parameter0, uint UintParam) { return BaseIntrinsicName##_u32(Parameter0, UintParam); }
+
+GENERATE_INTRINSIC_1_VAR_ARG_1_FIXED_UINT_ARG(QuadReadAcrossX,        __ds_swizzle, value, 32945); // offset: 1000 0000 1011 0001
+GENERATE_INTRINSIC_1_VAR_ARG_1_FIXED_UINT_ARG(QuadReadAcrossY,        __ds_swizzle, value, 32846); // offset: 1000 0000 0100 1110
+GENERATE_INTRINSIC_1_VAR_ARG_1_FIXED_UINT_ARG(QuadReadAcrossDiagonal, __ds_swizzle, value, 32795); // offset: 1000 0000 0001 1011
+
+
+// The following functions are the generic lane swizzle, doesn't assume QUAD distribution of lanes.
+#define INTRINSIC_WAVE_LANE_SWIZZLE
+// Some helper functions to get the right arguments for the lane intrinsics when group size is known.
+// IMPORTANT: Only valid for compute and it only works when group size horizontally is an even number.
+uint GetSwizzleMaskForQuadXSwap()
+{
+    // And mask = 0x1f, or_mask=0, xor_mask=0x01
+    return 0x041f;
+}
+
+uint GetSwizzleMaskForQuadYSwap_8x8Group()
+{
+    // And mask = 0x1f, or_mask=0, xor_mask=0x08
+    return 0x201f;
+}
+
+uint GetSwizzleMaskForQuadDiagonalSwap_8x8Group()
+{
+    // And mask = 0x1f, or_mask=0, xor_mask=0x09
+    return 0x241f;
+}
+
+uint GetSwizzleMaskForQuadYSwap_16x16Group()
+{
+    // And mask = 0x1f, or_mask=0, xor_mask=0x10
+    return 0x401f;
+}
+
+// More generic lane swizzling, it follows a different pattern than the quad mode above, see GCN ISA.
+GENERATE_INTRINSIC_1_VAR_ARG_1_VAR_UINT_ARG(WaveLaneSwizzle, __ds_swizzle, value, offset);
 
 #define UNITY_UV_STARTS_AT_TOP 1
 #define UNITY_REVERSED_Z 1

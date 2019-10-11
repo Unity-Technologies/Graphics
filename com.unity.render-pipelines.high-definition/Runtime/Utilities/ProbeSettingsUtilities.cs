@@ -90,6 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
+            // Propagate the desired custom exposure
+            cameraSettings.probeRangeCompressionFactor = settings.lighting.rangeCompressionFactor;
+
             // Frame Settings Overrides
             switch (settings.mode)
             {
