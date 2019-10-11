@@ -13,16 +13,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         [Tooltip("Defines the maximum number of paths cast within each pixel.")]
-        public ClampedIntParameter maxSamples = new ClampedIntParameter(256, 1, 512);
+        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 1024);
 
         [Tooltip("Defines the minimum number of bounces for each path.")]
-        public ClampedIntParameter minDepth = new ClampedIntParameter(1, 1, 10);
+        public ClampedIntParameter minimumDepth = new ClampedIntParameter(1, 1, 10);
 
         [Tooltip("Defines the maximum number of bounces for each path.")]
-        public ClampedIntParameter maxDepth = new ClampedIntParameter(3, 1, 10);
+        public ClampedIntParameter maximumDepth = new ClampedIntParameter(3, 1, 10);
 
         [Tooltip("Defines the maximum intensity value computed for a path.")]
-        public ClampedFloatParameter maxIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+        public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
     }
 
 #if ENABLE_RAYTRACING
@@ -41,28 +41,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static RTHandle PathTracingHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
-            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
                                         name: string.Format("PathTracingHistoryBuffer{0}", frameIndex));
         }
 
-        public void PathTracingRender(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        public void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
         {
             // First thing to check is: Do we have a valid ray-tracing environment?
             RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
-
             PathTracing pathTracingSettings = VolumeManager.instance.stack.GetComponent<PathTracing>();
-            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
-            RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
 
             // Check the validity of the state before computing the effect
-            bool invalidState = !pathTracingSettings.enable.value || pathTracingShader == null
-                || m_Asset.renderPipelineResources.textures.owenScrambled256Tex == null
-                || m_Asset.renderPipelineResources.textures.scramblingTex == null;
-
-            // If any resource or game-object is missing We stop right away
-            if (invalidState)
+            if (!pathTracingShader || !pathTracingSettings.enable.value)
                 return;
+
+            // Inject the ray-tracing sampling data
+            BlueNoise blueNoiseManager = GetBlueNoiseManager();
+            blueNoiseManager.BindDitheredRNGData256SPP(cmd);
 
             // Grab the history buffer (hijack the reflections one)
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
@@ -71,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Grab the acceleration structure and the list of HD lights for the target camera
             RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
             HDRaytracingLightCluster lightCluster = RequestLightCluster();
+            LightCluster lightClusterSettings = VolumeManager.instance.stack.GetComponent<LightCluster>();
+            RayTracingSettings rayTracingSettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
 
             // Define the shader pass to use for the path tracing pass
             cmd.SetRayTracingShaderPass(pathTracingShader, "PathTracingDXR");
@@ -84,10 +82,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Inject the ray generation data
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, pathTracingSettings.maxSamples.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, pathTracingSettings.minDepth.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, pathTracingSettings.maxDepth.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, pathTracingSettings.maxIntensity.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, pathTracingSettings.maximumSamples.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, pathTracingSettings.minimumDepth.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, pathTracingSettings.maximumDepth.value);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, pathTracingSettings.maximumIntensity.value);
             cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
 
             // Set the data for the ray generation
@@ -107,10 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, lightClusterSettings.maxNumLightsPercell.value);
             cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
             cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
-
-            // Note: directional lights are not supported atm
-            //cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, renderPipeline.directionalLightDatas);
-            //cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, renderPipeline.m_lightList.directionalLights.Count);
 
             // Set the data for the ray miss
             cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
