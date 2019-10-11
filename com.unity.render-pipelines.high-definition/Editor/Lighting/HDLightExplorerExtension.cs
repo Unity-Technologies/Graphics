@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else
                     {
-                        var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+                        var hdrp = HDRenderPipeline.currentAsset;
                         var defaultValue = HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp);
 
                         using (new EditorGUI.DisabledScope(true))
@@ -361,7 +361,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowResolution, "m_Intensity", 130, (r, prop, dep) =>          // 15: Shadow resolution override
                 {
-                    var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+                    var hdrp = HDRenderPipeline.currentAsset;
 
                     if(!TryGetAdditionalLightData(prop, out var lightData, out var light) || hdrp == null)
                     {
@@ -521,7 +521,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.LightLayer, "m_RenderingLayerMask", 145, (r, prop, dep) =>    // 20: Light Layer
                 {
-                    using (new EditorGUI.DisabledScope(!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportLightLayers))
+                    using (new EditorGUI.DisabledScope(!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportLightLayers))
                     {
                         if(!TryGetAdditionalLightData(prop, out var lightData))
                         {
@@ -532,7 +532,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         int lightlayersMask = (int)lightData.lightlayersMask;
 
                         EditorGUI.BeginChangeCheck();
-                        lightlayersMask = HDEditorUtils.LightLayerMaskPropertyDrawer(r, lightlayersMask);
+                        lightlayersMask = HDEditorUtils.DrawLightLayerMask(r, lightlayersMask);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(lightData, "Changed light layer");

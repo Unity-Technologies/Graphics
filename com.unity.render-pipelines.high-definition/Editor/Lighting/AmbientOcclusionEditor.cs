@@ -46,8 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
-                ?.currentPlatformRenderPipelineSettings.supportSSAO ?? false)
+            if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportSSAO ?? false)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.HelpBox("The current HDRP Asset does not support Ambient Occlusion.", MessageType.Error, wide: true);
