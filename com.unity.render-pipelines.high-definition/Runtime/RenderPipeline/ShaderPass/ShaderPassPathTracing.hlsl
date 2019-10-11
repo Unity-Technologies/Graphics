@@ -31,6 +31,13 @@ float PowerHeuristic(float f, float b)
     return Sq(f) / (Sq(f) + Sq(b));
 }
 
+void transferPathConstants(RayIntersection input, out RayIntersection output)
+{
+    output.pixelCoord = input.pixelCoord;
+    output.rayCount = input.rayCount;
+    output.cone.width = input.cone.width;
+}
+
 // Generic function that handles the reflection code
 [shader("closesthit")]
 void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
@@ -101,7 +108,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     rayIntersection.color = computeDirect ? builtinData.emissiveColor : 0.0;
 
     // Initialize our material
-    Material mtl = CreateMaterial(bsdfData, fragInput.tangentToWorld[2], -WorldRayDirection());
+    Material mtl = CreateMaterial(bsdfData, -WorldRayDirection());
 
     if (IsBlack(mtl))
         return;
@@ -159,19 +166,19 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         {
             rayDescriptor.TMax = FLT_INF;
 
+            // Copy path constants across
+            transferPathConstants(rayIntersection, nextRayIntersection);
+
             // Complete RayIntersection structure for this sample
             nextRayIntersection.color = pathThroughput * russianRouletteFactor;
             nextRayIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
             nextRayIntersection.t = rayDescriptor.TMax;
-            nextRayIntersection.pixelCoord = rayIntersection.pixelCoord;
-            nextRayIntersection.rayCount = rayIntersection.rayCount;
 
             // Adjust the max roughness, based on the estimated diff/spec ratio
             nextRayIntersection.maxRoughness = (mtlResult.specPdf * max(bsdfData.roughnessT, bsdfData.roughnessB) + mtlResult.diffPdf) / pdf;
 
             // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
             nextRayIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle + roughnessToSpreadAngle(nextRayIntersection.maxRoughness);
-            nextRayIntersection.cone.width = rayIntersection.cone.width;
 
             // Shoot ray for indirect lighting
             TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_FORCE_OPAQUE, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, nextRayIntersection);
@@ -193,7 +200,7 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
         }
     }
 
-#else
+#else // HAS_LIGHTLOOP
     rayIntersection.color = !currentDepth || computeDirect ? builtinData.emissiveColor : 0.0;
 #endif
 

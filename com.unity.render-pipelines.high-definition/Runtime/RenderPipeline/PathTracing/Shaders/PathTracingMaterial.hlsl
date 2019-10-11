@@ -2,12 +2,10 @@
 
 struct Material
 {
-    BSDFData    bsdfData;
-    float3      G; // geometric normal
-    float3      V; // view vector
-    float3x3    localToWorld;
-    float       diffProb;
-    float       specProb;
+    BSDFData bsdfData;
+    float3   V;
+    float    diffProb;
+    float    specProb;
 };
 
 bool IsSampleValid(float3 geoNormal, float3 sampleDir)
@@ -22,9 +20,10 @@ bool SampleGGX(Material mtl,
            out float pdf)
 {
     float NdotL, NdotH, VdotH;
-    SampleGGXDir(inputSample, mtl.V, mtl.localToWorld, mtl.bsdfData.roughnessT, outgoingDir, NdotL, NdotH, VdotH);
+    float3x3 localToWorld = float3x3(mtl.bsdfData.normalWS, mtl.bsdfData.tangentWS, mtl.bsdfData.bitangentWS);
+    SampleGGXDir(inputSample, mtl.V, localToWorld, mtl.bsdfData.roughnessT, outgoingDir, NdotL, NdotH, VdotH);
 
-    if (NdotL < 0.001 || !IsSampleValid(mtl.G, outgoingDir))
+    if (NdotL < 0.001 || !IsSampleValid(mtl.bsdfData.geomNormalWS, outgoingDir))
         return false;
 
     float D = D_GGX(NdotH, mtl.bsdfData.roughnessT);
@@ -33,7 +32,7 @@ bool SampleGGX(Material mtl,
     if (pdf < 0.001)
         return false;
 
-    float NdotV = dot(mtl.localToWorld[2], mtl.V);
+    float NdotV = dot(mtl.bsdfData.normalWS, mtl.V);
     float3 F = F_Schlick(mtl.bsdfData.fresnel0, NdotV);
     float V = V_SmithJointGGX(NdotL, NdotV, mtl.bsdfData.roughnessT);
 
@@ -47,17 +46,17 @@ void EvaluateGGX(Material mtl,
              out float3 value,
              out float pdf)
 {
-    float NdotV = dot(mtl.localToWorld[2], mtl.V);
+    float NdotV = dot(mtl.bsdfData.normalWS, mtl.V);
     if (NdotV < 0.001)
     {
         value = 0.0;
         pdf = 0.0;
         return;
     }
-    float NdotL = dot(mtl.localToWorld[2], outgoingDir);
+    float NdotL = dot(mtl.bsdfData.normalWS, outgoingDir);
 
     float3 H = normalize(mtl.V + outgoingDir);
-    float NdotH = dot(mtl.localToWorld[2], H);
+    float NdotH = dot(mtl.bsdfData.normalWS, H);
     float VdotH = dot(mtl.V, H);
     float D = D_GGX(NdotH, mtl.bsdfData.roughnessT);
     pdf = D * NdotH / (4.0 * VdotH);
@@ -74,12 +73,12 @@ bool SampleLambert(Material mtl,
                out float3 value,
                out float pdf)
 {
-    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, mtl.localToWorld[2]);
+    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, mtl.bsdfData.normalWS);
 
-    if (!IsSampleValid(mtl.G, outgoingDir))
+    if (!IsSampleValid(mtl.bsdfData.geomNormalWS, outgoingDir))
         return false;
 
-    pdf = dot(mtl.localToWorld[2], outgoingDir) * INV_PI;
+    pdf = dot(mtl.bsdfData.normalWS, outgoingDir) * INV_PI;
 
     if (pdf < 0.001)
         return false;
@@ -94,7 +93,7 @@ void EvaluateLambert(Material mtl,
                  out float3 value,
                  out float pdf)
 {
-    pdf = dot(mtl.localToWorld[2], outgoingDir) * INV_PI;
+    pdf = dot(mtl.bsdfData.normalWS, outgoingDir) * INV_PI;
     value = mtl.bsdfData.diffuseColor * pdf;
 }
 
@@ -104,18 +103,18 @@ bool SampleBurley(Material mtl,
               out float3 value,
               out float pdf)
 {
-    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, mtl.localToWorld[2]);
+    outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, mtl.bsdfData.normalWS);
 
-    if (!IsSampleValid(mtl.G, outgoingDir))
+    if (!IsSampleValid(mtl.bsdfData.geomNormalWS, outgoingDir))
         return false;
 
-    float NdotL = dot(mtl.localToWorld[2], outgoingDir);
+    float NdotL = dot(mtl.bsdfData.normalWS, outgoingDir);
     pdf = NdotL * INV_PI;
 
     if (pdf < 0.001)
         return false;
 
-    float NdotV = saturate(dot(mtl.localToWorld[2], mtl.V));
+    float NdotV = saturate(dot(mtl.bsdfData.normalWS, mtl.V));
     float LdotV = saturate(dot(outgoingDir, mtl.V));
     value = mtl.bsdfData.diffuseColor * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, mtl.bsdfData.perceptualRoughness) * pdf;
 
@@ -127,8 +126,8 @@ void EvaluateBurley(Material mtl,
                 out float3 value,
                 out float pdf)
 {
-    float NdotL = dot(mtl.localToWorld[2], outgoingDir);
-    float NdotV = saturate(dot(mtl.localToWorld[2], mtl.V));
+    float NdotL = dot(mtl.bsdfData.normalWS, outgoingDir);
+    float NdotV = saturate(dot(mtl.bsdfData.normalWS, mtl.V));
     float LdotV = saturate(dot(outgoingDir, mtl.V));
 
     pdf = NdotL * INV_PI;
@@ -173,7 +172,7 @@ bool IsBlack(Material mtl)
     return mtl.diffProb + mtl.specProb < 0.001;
 }
 
-Material CreateMaterial(BSDFData bsdfData, float3 G, float3 V)
+Material CreateMaterial(BSDFData bsdfData, float3 V)
 {
     Material mtl;
 
@@ -192,12 +191,7 @@ Material CreateMaterial(BSDFData bsdfData, float3 G, float3 V)
 
         // Keep these around, rather than passing them to all methods
         mtl.bsdfData = bsdfData;
-        mtl.G = G;
         mtl.V = V;
-
-        // Compute a local frame from the normal
-        // FIXME: compute tangent frame for anisotropy support
-        mtl.localToWorld = GetLocalFrame(bsdfData.normalWS);
     }
 
     return mtl;
