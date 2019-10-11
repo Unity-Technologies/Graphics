@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added after post process injection point for custom passes
 - Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
 - Added falloff distance on Reflection Probe and Planar Reflection Probe
+- Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -73,7 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
 - Assign default volume profile when creating a new HDRP Asset
 - Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
-- Fixed bugs with shadow caching 
+- Fixed bugs with shadow caching
 - Reassign the same camera for a realtime probe face render request to have appropriate history buffer during realtime probe rendering.
 - Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
 - Fixed issue with decal and htile optimization
@@ -85,15 +86,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where fog color was not pre-exposed correctly
 - Fix priority order when custom passes are overlapping
 - Fix cleanup not called when the custom pass GameObject is destroyed
-- Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides. 
-- Fixed an issue with Realtime GI not working on upgraded projects. 
-- Fixed issue with screen space shadows fallback texture was not set as a texture array. 
+- Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides.
+- Fixed an issue with Realtime GI not working on upgraded projects.
+- Fixed issue with screen space shadows fallback texture was not set as a texture array.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
 - Rename Emission Radius to Radius in UI in Point, Spot
 - Angular Diameter parameter for directional light is no longuer an advanced property
-- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead. 
+- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead.
 - Remove MaxSmoothness parameters from UI for point, spot and directional light. The MaxSmoothness is now deduce from Radius Parameters
 - DXR: Remove the Ray Tracing Environement Component. Add a Layer Mask to the ray Tracing volume components to define which objects are taken into account for each effect.
 - Removed second cubemaps used for shadowing in lookdev
@@ -114,11 +115,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom passes volume component with 3 injection points: Before Rendering, Before Transparent and Before Post Process
 - Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
 - Support for XR SDK mirror view modes
-- HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage. 
+- HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage.
 - DepthOfFieldCoC option in the fullscreen debug modes.
 - Added override Ambient Occlusion option on debug windows
 - Added Custom Post Processes with 3 injection points: Before Transparent, Before Post Process and After Post Process
-- Add draft of minimal interactive path tracing (experimental) based on DXR API - Support only 4 area light, lit and unlit shader (non-shadergraph)
+- Added draft of minimal interactive path tracing (experimental) based on DXR API - Support only 4 area light, lit and unlit shader (non-shadergraph)
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
