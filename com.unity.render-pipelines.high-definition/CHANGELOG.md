@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed moving objects not rendered in custom passes
 - Fixed abstract classes listed in the + menu of the custom pass list
 - Fixed custom pass that was rendered in previews
+- Fixed precision error in zero value normals when applying decals (case 1181639)
 - Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
 - Assign default volume profile when creating a new HDRP Asset
 - Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
