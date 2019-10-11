@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
+        void OnDestroy() => Cleanup();
+
         internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CustomPass.RenderTargets targets)
         {
             bool executed = false;
@@ -117,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 volume.m_OverlappingColliders.Clear();
 
-                float sqrFadeRadius = volume.fadeRadius * volume.fadeRadius;
+                float sqrFadeRadius = Mathf.Max(float.Epsilon, volume.fadeRadius * volume.fadeRadius);
                 float minSqrDistance = 1e20f;
 
                 foreach (var collider in volume.m_Colliders)
@@ -157,8 +159,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (v1.isGlobal && v2.isGlobal) return 0;
-                if (v1.isGlobal) return -1;
-                if (v2.isGlobal) return 1;
+                if (v1.isGlobal) return 1;
+                if (v2.isGlobal) return -1;
                 
                 return GetVolumeExtent(v1).CompareTo(GetVolumeExtent(v2));
             });
