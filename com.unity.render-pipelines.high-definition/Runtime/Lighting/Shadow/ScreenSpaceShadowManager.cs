@@ -115,7 +115,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BindBlackShadowTexture(CommandBuffer cmd)
         {
-            cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, TextureXR.GetBlackTexture());
+            // We always need to bind an array here.
+            cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, TextureXR.GetBlackTextureArray());
         }
 
         static RTHandle ShadowHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
