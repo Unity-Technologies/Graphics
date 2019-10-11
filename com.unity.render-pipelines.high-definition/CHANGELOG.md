@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with Realtime GI not working on upgraded projects. 
 - Fixed issue with screen space shadows fallback texture was not set as a texture array. 
 - Fixed Pyramid Lights bounding box
+- Fixed terrain heightmap default/null values and epsilons
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
