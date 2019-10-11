@@ -71,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable Physically Based Sky below ground
 - Increase max limit of area light and reflection probe to 128
 - Change default texture for detailmap to grey
+- Optimize Shadow RT load on Tile based architecture platforms. 
 
 ## [7.1.2] - 2019-09-19
 
