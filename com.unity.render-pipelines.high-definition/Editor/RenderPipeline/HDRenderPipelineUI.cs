@@ -34,7 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
             MotionBlurQuality = 1 << 18,
             BloomQuality = 1 << 19,
             ChromaticAberrationQuality = 1 << 20,
-            XR = 1 << 21
+            XR = 1 << 21,
+            LightLayer = 1 << 22
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -65,7 +66,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static HDRenderPipelineUI()
         {
             Inspector = CED.Group(
-                //CED.Group(SupportedSettingsInfoSection),
                 CED.FoldoutGroup(k_RenderingSectionTitle, Expandable.Rendering, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionRenderingUnsorted),
                     CED.FoldoutGroup(k_DecalsSubTitle, Expandable.Decal, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionDecalSettings),
@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CED.FoldoutGroup(k_LightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
+                    CED.FoldoutGroup(k_LightLayerSubTitle, Expandable.LightLayer, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionLightLayers),
                     CED.FoldoutGroup(k_CookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(k_ReflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
                     CED.FoldoutGroup(k_SkySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
@@ -179,6 +180,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
             //EditorGUILayout.PropertyField(serialized.enableSRPBatcher, k_SRPBatcher);
             EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, k_ShaderVariantLogLevel);
+        }
+
+        static void Drawer_SectionLightLayers(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, k_SupportLightLayerContent);
+
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportLightLayers.boolValue))
+            {
+                ++EditorGUI.indentLevel;
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName0, serialized.renderPipelineSettings.lightLayerName0);
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName1, serialized.renderPipelineSettings.lightLayerName1);
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName2, serialized.renderPipelineSettings.lightLayerName2);
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName3, serialized.renderPipelineSettings.lightLayerName3);
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName4, serialized.renderPipelineSettings.lightLayerName4);
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName5, serialized.renderPipelineSettings.lightLayerName5);
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName6, serialized.renderPipelineSettings.lightLayerName6);
+                HDEditorUtils.DrawDelayedTextField(k_LightLayerName7, serialized.renderPipelineSettings.lightLayerName7);
+                --EditorGUI.indentLevel;
+            }
         }
 
         static void Drawer_SectionCookies(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -738,8 +758,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.increaseResolutionOfVolumetrics, k_VolumetricResolutionContent);
                 --EditorGUI.indentLevel;
             }
-
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, k_SupportLightLayerContent);
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }

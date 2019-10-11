@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added after post process injection point for custom passes
 - Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
 - Added falloff distance on Reflection Probe and Planar Reflection Probe
+- Added hability to name LightLayers in HDRenderPipelineAsset
+- Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors. 
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -70,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed moving objects not rendered in custom passes
 - Fixed abstract classes listed in the + menu of the custom pass list
 - Fixed custom pass that was rendered in previews
+- Fixed precision error in zero value normals when applying decals (case 1181639)
 - Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
 - Assign default volume profile when creating a new HDRP Asset
 - Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
@@ -78,6 +81,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
 - Fixed issue with decal and htile optimization
 - Fixed TerrainLit shader compilation error regarding `_Control0_TexelSize` redefinition (case 1178480).
+- Fixed warning about duplicate HDRuntimeReflectionSystem when configuring play mode without domain reload.
+- Fixed an editor crash when multiple decal projectors were selected and some had null material
+- Added all relevant fix actions to FixAll button in Wizard
+- Moved FixAll button on top of the Wizard
+- Fixed an issue where fog color was not pre-exposed correctly
+- Fix priority order when custom passes are overlapping
+- Fix cleanup not called when the custom pass GameObject is destroyed
+- Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides. 
+- Fixed an issue with Realtime GI not working on upgraded projects. 
+- Fixed issue with screen space shadows fallback texture was not set as a texture array. 
+- Fixed Pyramid Lights bounding box
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

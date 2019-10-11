@@ -21,7 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 | ProbeSettingsFields.proxyCaptureRotationProxySpace
                 | ProbeSettingsFields.proxyMirrorPositionProxySpace
                 | ProbeSettingsFields.proxyMirrorRotationProxySpace
-                | ProbeSettingsFields.proxyUseInfluenceVolumeAsProxyVolume;
+                | ProbeSettingsFields.proxyUseInfluenceVolumeAsProxyVolume
+                | ProbeSettingsFields.lightingRangeCompression;
             const ProbeSettingsFields frustum = ProbeSettingsFields.frustumFieldOfViewMode
                 | ProbeSettingsFields.frustumAutomaticScale
                 | ProbeSettingsFields.frustumFixedValue;
@@ -34,14 +35,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 GUI.enabled = hd.currentPlatformRenderPipelineSettings.supportLightLayers;
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingLightLayer, serialized.lightingLightLayer, EditorGUIUtility.TrTextContent("Light Layer", "Specifies the Light Layer the Reflection Probe uses to capture its view of the Scene. The Probe only uses Lights on the Light Layer you specify."), @override.probe, displayedFields.probe, overridableFields.probe,
-                    (property, label) => LightLayerMaskPropertyDrawer(label, property)
+                    (property, label) => EditorGUILayout.PropertyField(property, label)
                 );
 
                 GUI.enabled = true;
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingMultiplier, serialized.lightingMultiplier, EditorGUIUtility.TrTextContent("Multiplier", "Sets the multiplier value that reflective Materials apply to the results from the Reflection Probe."), @override.probe, displayedFields.probe, overridableFields.probe);
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingWeight, serialized.lightingWeight, EditorGUIUtility.TrTextContent("Weight", "Sets the weight of this Reflection Probe. When multiple Probes both affect the same area of a reflective Material, the Material uses the Weight of each Probe to determine their contribution to the reflective effect."), @override.probe, displayedFields.probe, overridableFields.probe);
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingFadeDistance, serialized.lightingFadeDistance, EditorGUIUtility.TrTextContent("Fade Distance", "Specifies the distance at which reflections smoothly fadeout before HDRP cuts them completely."), @override.probe, displayedFields.probe, overridableFields.probe);
-                EditorGUILayout.Space();
             }
 
             if ((displayedFields.probe & frustum) != 0)
@@ -87,6 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.MirrorRotation, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                     }
                 );
+                PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.lightingRangeCompression, serialized.lightingRangeCompressionFactor, EditorGUIUtility.TrTextContent("Range Compression Factor", "The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read. This is to simply avoid issues with values clamping due to precision of the storing format."), @override.probe, displayedFields.probe, overridableFields.probe);
+
                 EditorGUILayout.Space();
             }
 
