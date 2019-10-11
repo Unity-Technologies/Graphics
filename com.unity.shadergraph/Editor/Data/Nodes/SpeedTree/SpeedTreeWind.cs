@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph
 		public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
 		{
             // Inject SpeedTree wind code at global scope
-            registry.ProvideFunction("ApplyWindTransformation", sb => { sb.AppendLines("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Nature/SpeedTreeCommonWind.hlsl\""); });
+            registry.ProvideFunction("ApplyWindTransformation", sb => { sb.AppendLines("#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SpeedTreeLit/SpeedTreeCommonWind.hlsl\""); });
 		}
 
 	}

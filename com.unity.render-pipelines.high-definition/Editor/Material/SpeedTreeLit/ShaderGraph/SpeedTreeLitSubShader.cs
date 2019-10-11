@@ -32,7 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT",
                 "#pragma multi_compile _ LIGHT_LAYERS",
                 "#pragma multi_compile _ LOD_FADE_CROSSFADE",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
                 // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -116,7 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
             RequiredFields = new List<string>()
@@ -189,7 +187,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
             PixelShaderSlots = new List<int>()
@@ -228,7 +225,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#define SCENESELECTIONPASS",
                 "#pragma editor_sync_compilation",
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                  DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
@@ -314,7 +310,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as SpeedTreeLitMasterNode;
                 HDSubShaderUtilities.SetStencilStateForDepth(ref pass);
 
-                pass.ExtraDefines.Add("#define EFFECT_BACKSIDE_NORMALS");
                 pass.ExtraDefines.Add("#define SPEEDTREE_Y_UP");
                 masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
             }
@@ -373,7 +368,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var masterNode = node as SpeedTreeLitMasterNode;
                 HDSubShaderUtilities.SetStencilStateForMotionVector(ref pass);
 
-                pass.ExtraDefines.Add("#define EFFECT_BACKSIDE_NORMALS");
                 pass.ExtraDefines.Add("#define SPEEDTREE_Y_UP");
 
                 masterNode.AddBasicGeometryDefines(ref pass.ExtraDefines);
@@ -395,7 +389,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#pragma multi_compile_vertex LOD_FADE_PERCENTAGE",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
             },
             StencilOverride = new List<string>()
@@ -470,7 +463,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_PREPASS",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
@@ -583,7 +575,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#ifndef DEBUG_DISPLAY\n#define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST\n#endif",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
@@ -669,7 +660,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                  DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High),
             },
@@ -699,8 +689,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         };
 
-        /*
-
         Pass m_PassRaytracingIndirect = new Pass()
         {
             Name = "IndirectDXR",
@@ -715,7 +703,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#pragma multi_compile _ DIFFUSE_LIGHTING_ONLY",
                 "#define SHADOW_LOW",
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
             },
@@ -772,7 +759,6 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             ExtraDefines = new List<string>()
             {
-                "#define EFFECT_BACKSIDE_NORMALS",
                 "#define SPEEDTREE_Y_UP",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.Low)
             },
@@ -825,6 +811,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#define SHADOW_LOW",
+                "#define SPEEDTREE_Y_UP",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },
             Includes = new List<string>()
@@ -880,6 +867,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
                 "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
                 "#define SHADOW_LOW",
+                "#define SPEEDTREE_Y_UP",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },
             Includes = new List<string>()
@@ -921,7 +909,6 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             UseInPreview = false
         };
-        */
 
         public int GetPreviewPassIndex() { return 0; }
 
@@ -1298,8 +1285,6 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);
 
-            // TODO
-            /*
 #if ENABLE_RAYTRACING
             if(mode == GenerationMode.ForReals)
             {
@@ -1316,7 +1301,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.AddShaderChunk("}", false);
             }
 #endif
-            */
 
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.SpeedTreeLitGUI""");
 
