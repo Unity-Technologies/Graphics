@@ -113,6 +113,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         FXAA,
         SMAA,
         FinalPost,
+        CustomPostProcessBeforePP,
+        CustomPostProcessAfterPP,
+        CustomPostProcessBeforeTransparent,
 
         Max
     }

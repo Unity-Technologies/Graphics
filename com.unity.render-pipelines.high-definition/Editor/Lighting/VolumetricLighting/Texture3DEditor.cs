@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
@@ -17,7 +17,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         private static readonly string SAVE_BUTTON_NAME = "Generate and Save 3D Texture";
         private static readonly string SAVE_DIALOGUE = "Save Texture3D";
-        private static readonly string DEFAULT_SAVE_DIRECTORY = "Assets";
         private static readonly string DEFAULT_FILENAME = "untitled_texture3D.asset";
         private static readonly string FILE_EXTENSION = "asset";
         private enum Texture3DEditorError

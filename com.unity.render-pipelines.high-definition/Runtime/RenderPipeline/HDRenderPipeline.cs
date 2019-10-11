@@ -97,6 +97,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         // custom-end
 
+        internal static HDRenderPipelineAsset defaultAsset
+            => GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
+
         public const string k_ShaderTagName = "HDRenderPipeline";
 
         readonly HDRenderPipelineAsset m_Asset;
@@ -2070,6 +2073,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderForwardEmissive(cullingResults, hdCamera, renderContext, cmd);
 
                 RenderSky(hdCamera, cmd);
+
+				m_PostProcessSystem.DoUserBeforeTransparent(cmd, hdCamera, m_CameraColorBuffer);
 
                 RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
@@ -46,7 +46,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private static readonly string GUI_TEXTURE_IN_DEFAULT_NAME = "Source Texture";
         private static readonly string SAVE_BUTTON_NAME = "Save HDR Sky";
         private static readonly string SAVE_DIALOGUE = "Save HDR Sky";
-        private static readonly string DEFAULT_SAVE_DIRECTORY = "Assets";
         private static readonly string DEFAULT_FILENAME = "untitled_hdr_sky.exr";
         private static readonly string FILE_EXTENSION = "exr";
 
@@ -77,7 +76,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (GUILayout.Button(SAVE_BUTTON_NAME))
             {
-                Texture3D texture3D = null;
                 if (ErrorCapture(HDRSkyEditor.ComputeTextureDestinationFromSource(ref textureDestination, ref textureDestinationData, ref textureSource, ref textureSourceData, settings)))
                 {
                     return;

@@ -235,6 +235,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+   // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
+        [SerializeField]
+        internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
+        [SerializeField]
+        internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
+        [SerializeField]
+        internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
+
 #if UNITY_EDITOR
         public override Material defaultMaterial
         {

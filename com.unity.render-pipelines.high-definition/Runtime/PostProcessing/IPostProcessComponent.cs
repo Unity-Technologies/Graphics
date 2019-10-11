@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    interface IPostProcessComponent
+    public interface IPostProcessComponent
     {
         bool IsActive();
     }

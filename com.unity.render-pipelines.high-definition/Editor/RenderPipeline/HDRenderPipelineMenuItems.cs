@@ -126,6 +126,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
+ 		[MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority3)]
+        static void MenuCreateCSharpPostProcessVolume()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        static void MenuCreatePostProcessShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Shader.shader");
+        }
+
         [MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]
         static void AddAdditionalLightData()
         {

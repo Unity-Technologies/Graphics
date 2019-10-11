@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -213,6 +215,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
+
+            // Cleanup Custom Post Process
+            if (HDRenderPipeline.defaultAsset != null)
+            {
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
+                    CleanupCustomPostProcess(typeString);
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
+                    CleanupCustomPostProcess(typeString);
+                foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
+                    CleanupCustomPostProcess(typeString);
+
+                void CleanupCustomPostProcess(string typeString)
+                {
+                    var comp = VolumeManager.instance.stack.GetComponent(Type.GetType(typeString)) as CustomPostProcessVolumeComponent;
+                    comp.CleanupInternal();
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -269,6 +288,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        void PoolSourceGuard(ref RTHandle src, RTHandle dst, RTHandle colorBuffer)
+        {
+            // Special case to handle the source buffer, we only want to send it back to our
+            // target pool if it's not the input color buffer
+            if (src != colorBuffer) m_Pool.Recycle(src);
+            src = dst;
+        }
+
         public void Render(CommandBuffer cmd, HDCamera camera, BlueNoise blueNoise, RTHandle colorBuffer, RTHandle afterPostProcessTexture, RTHandle lightingBuffer, RenderTargetIdentifier finalRT, RTHandle depthBuffer, bool flipY)
         {
             var dynResHandler = HDDynamicResolutionHandler.instance;
@@ -277,10 +304,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             void PoolSource(ref RTHandle src, RTHandle dst)
             {
-                // Special case to handle the source buffer, we only want to send it back to our
-                // target pool if it's not the input color buffer
-                if (src != colorBuffer) m_Pool.Recycle(src);
-                src = dst;
+                PoolSourceGuard(ref src, dst, colorBuffer);
             }
 
             bool isSceneView = camera.camera.cameraType == CameraType.SceneView;
@@ -362,6 +386,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             DoSMAA(cmd, camera, source, destination, depthBuffer);
                             PoolSource(ref source, destination);
                         }
+                    }
+
+  					using (new ProfilingSample(cmd, "Custom Post Processes Before PP", CustomSamplerId.CustomPostProcessBeforePP.GetSampler()))
+                    {
+                        foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
+                            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                     }
 
                     // Depth of Field is done right after TAA as it's easier to just re-project the CoC
@@ -450,6 +480,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_BloomTexture = null;
 
                         PoolSource(ref source, destination);
+                    }
+
+    				using (new ProfilingSample(cmd, "Custom Post Processes After PP", CustomSamplerId.CustomPostProcessAfterPP.GetSampler()))
+                    {
+                        foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
+                            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                     }
                 }
 
@@ -2247,6 +2283,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             HDUtils.DrawFullScreen(cmd, backBufferRect, m_FinalPassMaterial, destination);
+        }
+
+        #endregion
+
+ #region User Post Processes
+        
+        internal void DoUserBeforeTransparent(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
+        {
+            RTHandle source = colorBuffer;
+
+            using (new ProfilingSample(cmd, "Custom Post Processes Before Transparent", CustomSamplerId.CustomPostProcessBeforeTransparent.GetSampler()))
+            {
+                bool needsBlitToColorBuffer = false;
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
+                    needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
+
+                if (needsBlitToColorBuffer)
+                {
+                    Rect backBufferRect = camera.finalViewport;
+                    HDUtils.BlitCameraTexture(cmd, source, colorBuffer);
+                }
+            }
+
+            PoolSourceGuard(ref source, null, colorBuffer);
+        }
+
+        bool RenderCustomPostProcess(CommandBuffer cmd, HDCamera camera, ref RTHandle source, RTHandle colorBuffer, Type customPostProcessComponentType)
+        {
+            if (customPostProcessComponentType == null)
+                return false;
+
+            var stack = VolumeManager.instance.stack;
+
+            if (stack.GetComponent(customPostProcessComponentType) is CustomPostProcessVolumeComponent customPP)
+            {
+                customPP.SetupIfNeeded();
+
+                if (customPP is IPostProcessComponent pp)                    
+                {
+                    if(pp.IsActive())
+                    {
+                        var destination = m_Pool.Get(Vector2.one, k_ColorFormat);
+                        CoreUtils.SetRenderTarget(cmd, destination);
+                        using (new ProfilingSample(cmd, customPP.name))
+                        {
+                            customPP.Render(cmd, camera, source, destination);
+                        }
+                        PoolSourceGuard(ref source, destination, colorBuffer);
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion
