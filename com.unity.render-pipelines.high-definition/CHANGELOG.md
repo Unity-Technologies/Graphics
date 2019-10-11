@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides. 
 - Fixed an issue with Realtime GI not working on upgraded projects. 
 - Fixed issue with screen space shadows fallback texture was not set as a texture array. 
+- Fixed Pyramid Lights bounding box
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
