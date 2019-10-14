@@ -20,6 +20,8 @@ win_apis:
     cmd: -force-d3d11
   - name: Vulkan
     cmd: -force-vulkan
+  - name: DX12
+    cmd: -force-d3d12
 mac_apis:
   - name: metal
   - name: openglcore
