@@ -94,6 +94,16 @@ public static class CustomBuild
         BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
 
+        static void BuildWindowsDX12Linear()
+    {
+        PlayerSettings.colorSpace = ColorSpace.Linear;
+        BuildTarget buildTarget = BuildTarget.StandaloneWindows64;
+        BuildOptions buildOptions = BuildOptions.None;
+
+        GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Direct3D12 };
+        BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
+    }
+
     static void BuildScenes(string path, string name, BuildTarget buildTarget, BuildOptions buildOptions, GraphicsDeviceType[] graphicsAPIs)
     {
         string buildName = string.Format("{0}{1}", "TestScenes", name);
