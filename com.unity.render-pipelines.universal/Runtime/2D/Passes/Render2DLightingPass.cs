@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
+using Unity.Collections;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
@@ -14,7 +15,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
-        
+
+        AttachmentDescriptor m_ColorOutputAttachment = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
+        AttachmentDescriptor m_LightAttachment0 = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
+        AttachmentDescriptor m_LightAttachment1 = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
+        AttachmentDescriptor m_LightAttachment2 = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
+        AttachmentDescriptor m_LightAttachment3 = new AttachmentDescriptor(RenderTextureFormat.ARGB32);
+
         public Render2DLightingPass(Renderer2DData rendererData)
         {
             if (s_SortingLayers == null)
@@ -58,6 +65,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
             filterSettings.sortingLayerRange = SortingLayerRange.all;
             Profiler.EndSample();
 
+            // Configure the attachments
+            m_ColorOutputAttachment.format = renderingData.cameraData.cameraTargetDescriptor.colorFormat;
+            m_ColorOutputAttachment.ConfigureTarget(colorAttachment, false, true);
+            m_LightAttachment0.format = RendererLighting.s_RenderTextureFormatToUse;
+            m_LightAttachment0.loadAction = RenderBufferLoadAction.DontCare;
+            m_LightAttachment1.format = RendererLighting.s_RenderTextureFormatToUse;
+            m_LightAttachment1.loadAction = RenderBufferLoadAction.DontCare;
+            m_LightAttachment2.format = RendererLighting.s_RenderTextureFormatToUse;
+            m_LightAttachment2.loadAction = RenderBufferLoadAction.DontCare;
+            m_LightAttachment3.format = RendererLighting.s_RenderTextureFormatToUse;
+            m_LightAttachment3.loadAction = RenderBufferLoadAction.DontCare;
+
+            var attachments = new NativeArray<AttachmentDescriptor>(5, Allocator.Temp);
+            attachments[0] = m_ColorOutputAttachment;
+            attachments[1] = m_LightAttachment0;
+            attachments[2] = m_LightAttachment1;
+            attachments[3] = m_LightAttachment2;
+            attachments[4] = m_LightAttachment3;
+            context.BeginRenderPass(targetDescriptor.width, targetDescriptor.height, 1, attachments);
+            attachments.Dispose();
+
             for (int i = 0; i < s_SortingLayers.Length; i++)
             {
                 // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
@@ -79,15 +107,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.Clear();
                 if (lightStats.totalLights > 0)
                 {
-                    RendererLighting.RenderLights(camera, cmd, layerToRender);
+                    RendererLighting.RenderLights(camera, cmd, layerToRender, context);
                 }
                 else
                 {
-                    RendererLighting.ClearDirtyLighting(cmd);
+                    RendererLighting.ClearDirtyLighting(cmd, context);
                 }
 
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
-                context.ExecuteCommandBuffer(cmd);
+                //CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
+                //context.ExecuteCommandBuffer(cmd);
+
+                var colorOutputAttachment = new NativeArray<int>(1, Allocator.Temp);
+                colorOutputAttachment[0] = 0;
+                var lightInputAttachments = new NativeArray<int>(4, Allocator.Temp);
+                lightInputAttachments[0] = 1;
+                lightInputAttachments[1] = 2;
+                lightInputAttachments[2] = 3;
+                lightInputAttachments[3] = 4;
+                context.BeginSubPass(colorOutputAttachment, lightInputAttachments);
+                colorOutputAttachment.Dispose();
+                lightInputAttachments.Dispose();
 
                 Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
                 context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
@@ -101,6 +140,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                 }
+
+                context.EndSubPass();
             }
 
             cmd.Clear();
@@ -111,8 +152,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            filterSettings.sortingLayerRange = SortingLayerRange.all;
-            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+            //var colorOutputAttachment2 = new NativeArray<int>(1, Allocator.Temp);
+            //colorOutputAttachment2[0] = 0;
+            //context.BeginSubPass(colorOutputAttachment2);
+            //colorOutputAttachment2.Dispose();
+
+            //filterSettings.sortingLayerRange = SortingLayerRange.all;
+            //RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+
+            //context.EndSubPass();
+
+            context.EndRenderPass();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -47,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static Material[] s_ShadowMaterials;
         static Material[] s_RemoveSelfShadowMaterials;
 
-        static RenderTextureFormat s_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
+        internal static RenderTextureFormat s_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
         static bool s_HasSetupRenderTextureFormatToUse;
 
         static public void Setup(Renderer2DData rendererData)
@@ -118,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 descriptor.width = (int)(width * renderTextureScale);
                 descriptor.height = (int)(height * renderTextureScale);
-                cmd.GetTemporaryRT(s_LightRenderTargets[i].id, descriptor, FilterMode.Bilinear);
+                //cmd.GetTemporaryRT(s_LightRenderTargets[i].id, descriptor, FilterMode.Bilinear);
                 s_LightRenderTargetsDirty[i] = true;
             }
 
@@ -146,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (!s_BlendStyles[i].enabled)
                     continue;
 
-                cmd.ReleaseTemporaryRT(s_LightRenderTargets[i].id);
+                //cmd.ReleaseTemporaryRT(s_LightRenderTargets[i].id);
             }
 
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
@@ -443,15 +444,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
         }
 
-        static public void ClearDirtyLighting(CommandBuffer cmdBuffer)
+        static public void ClearDirtyLighting(CommandBuffer cmdBuffer, ScriptableRenderContext context)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
                 if (s_LightRenderTargetsDirty[i])
                 {
-                    cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
+                    var lightAttachment = new NativeArray<int>(1, Allocator.Temp);
+                    lightAttachment[0] = i + 1;
+                    context.BeginSubPass(lightAttachment);
+                    lightAttachment.Dispose();
+
+                    //cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
                     cmdBuffer.ClearRenderTarget(false, true, Color.black);
                     s_LightRenderTargetsDirty[i] = false;
+
+                    context.ExecuteCommandBuffer(cmdBuffer);
+                    cmdBuffer.Clear();
+                    context.EndSubPass();
                 }
             }
         }
@@ -468,7 +478,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             renderContext.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
         }
 
-        static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, int layerToRender)
+        static public void RenderLights(Camera camera, CommandBuffer cmdBuffer, int layerToRender, ScriptableRenderContext context)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
@@ -476,10 +486,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (!s_BlendStyles[i].enabled)
                     continue;
 
+                var lightAttachment = new NativeArray<int>(1, Allocator.Temp);
+                lightAttachment[0] = i + 1;
+                context.BeginSubPass(lightAttachment);
+                lightAttachment.Dispose();
+
                 string sampleName = s_BlendStyles[i].name;
                 cmdBuffer.BeginSample(sampleName);
 
-                cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
+                //cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
 
                 bool rtDirty = false;
                 Color clearColor;
@@ -503,6 +518,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_LightRenderTargetsDirty[i] = rtDirty;
 
                 cmdBuffer.EndSample(sampleName);
+
+                context.ExecuteCommandBuffer(cmdBuffer);
+                cmdBuffer.Clear();
+                context.EndSubPass();
             }
         }
 

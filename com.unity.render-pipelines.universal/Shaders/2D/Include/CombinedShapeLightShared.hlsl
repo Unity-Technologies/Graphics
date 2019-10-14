@@ -7,7 +7,8 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 {
 
 #if USE_SHAPE_LIGHT_TYPE_0
-    half4 shapeLight0 = SAMPLE_TEXTURE2D(_ShapeLightTexture0, sampler_ShapeLightTexture0, lightingUV);
+    //half4 shapeLight0 = SAMPLE_TEXTURE2D(_ShapeLightTexture0, sampler_ShapeLightTexture0, lightingUV);
+    half4 shapeLight0 = UNITY_READ_FRAMEBUFFER_INPUT(1, lightingUV);
 
     if (any(_ShapeLightMaskFilter0))
     {
@@ -23,7 +24,8 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 #endif
 
 #if USE_SHAPE_LIGHT_TYPE_1
-    half4 shapeLight1 = SAMPLE_TEXTURE2D(_ShapeLightTexture1, sampler_ShapeLightTexture1, lightingUV);
+    //half4 shapeLight1 = SAMPLE_TEXTURE2D(_ShapeLightTexture1, sampler_ShapeLightTexture1, lightingUV);
+    half4 shapeLight1 = UNITY_READ_FRAMEBUFFER_INPUT(2, lightingUV);
 
     if (any(_ShapeLightMaskFilter1))
     {
@@ -39,7 +41,8 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 #endif
 
 #if USE_SHAPE_LIGHT_TYPE_2
-    half4 shapeLight2 = SAMPLE_TEXTURE2D(_ShapeLightTexture2, sampler_ShapeLightTexture2, lightingUV);
+    //half4 shapeLight2 = SAMPLE_TEXTURE2D(_ShapeLightTexture2, sampler_ShapeLightTexture2, lightingUV);
+    half4 shapeLight2 = UNITY_READ_FRAMEBUFFER_INPUT(3, lightingUV);
 
     if (any(_ShapeLightMaskFilter2))
     {
@@ -55,7 +58,8 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 #endif
 
 #if USE_SHAPE_LIGHT_TYPE_3
-    half4 shapeLight3 = SAMPLE_TEXTURE2D(_ShapeLightTexture3, sampler_ShapeLightTexture3, lightingUV);
+    //half4 shapeLight3 = SAMPLE_TEXTURE2D(_ShapeLightTexture3, sampler_ShapeLightTexture3, lightingUV);
+    half4 shapeLight3 = UNITY_READ_FRAMEBUFFER_INPUT(4, lightingUV);
 
     if (any(_ShapeLightMaskFilter3))
     {
