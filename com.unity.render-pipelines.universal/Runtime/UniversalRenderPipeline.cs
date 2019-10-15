@@ -225,6 +225,7 @@ namespace UnityEngine.Rendering.Universal
                 InitializeRenderingData(settings, ref cameraData, ref cullResults, out var renderingData);
 
                 renderer.Setup(context, ref renderingData);
+
                 renderer.Execute(context, ref renderingData);
             }
 
@@ -265,6 +266,9 @@ namespace UnityEngine.Rendering.Universal
             cameraData = new CameraData();
             cameraData.camera = camera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
+
+            // XRTODO: Wire this up with shader variants logic as pure mode requires pure version of shaders
+            cameraData.isPureURPCamera = true;
 
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
@@ -572,19 +576,37 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
 
-            float scaledCameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            float scaledCameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
-            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
-            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
-            float cameraWidth = (float)cameraData.camera.pixelWidth;
-            float cameraHeight = (float)cameraData.camera.pixelHeight;
-            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            float scaledCameraWidth = 0;
+            float scaledCameraHeight = 0;
+
+            float cameraWidth = 0;
+            float cameraHeight = 0;
+
+            scaledCameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
+            scaledCameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
+            
+            cameraWidth = (float)cameraData.camera.pixelWidth;
+            cameraHeight = (float)cameraData.camera.pixelHeight;
 
             Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
             Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
             Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
+            Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
+            Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
+
+            if (cameraData.isPureURPCamera)
+            {
+                Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                Shader.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+            }
         }
 
 

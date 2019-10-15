@@ -63,7 +63,42 @@ namespace UnityEngine.Rendering.Universal.Internal
             // The blit will be reworked for stereo along the XRSDK work.
             Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+
+            if (cameraData.isPureURPCamera)
+            {
+                // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
+                // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
+                // meanwhile we set to load so split screen case works.
+                SetRenderTarget(
+                    cmd,
+                    BuiltinRenderTextureType.CameraTarget,
+                    RenderBufferLoadAction.Load,
+                    RenderBufferStoreAction.Store,
+                    ClearFlag.None,
+                    Color.black,
+                    m_TargetDimension);
+
+                Camera camera = cameraData.camera;
+
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                // Scene camera renders to texuture, game camera renders to backbuffer
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.isSceneViewCamera);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                cmd.SetViewport(cameraData.camera.pixelRect);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
+            }
+            else if ( cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
@@ -86,6 +121,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_TargetDimension);
 
                 Camera camera = cameraData.camera;
+
+                cmd.SetViewport(cameraData.camera.pixelRect);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);

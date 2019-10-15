@@ -137,7 +137,8 @@ namespace UnityEngine.Rendering.Universal
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
             bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
-            bool postProcessEnabled = cameraData.postProcessEnabled;
+            // XRTODO: enable postFX
+            bool postProcessEnabled = cameraData.postProcessEnabled && false;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;

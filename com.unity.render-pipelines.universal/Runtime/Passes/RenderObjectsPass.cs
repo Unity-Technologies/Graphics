@@ -95,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                     viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
 
+                    // XRTODO: remove cmd.SetViewProjectionMatrices
                     cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                     context.ExecuteCommandBuffer(cmd);
                 }
@@ -108,6 +109,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         camera.nearClipPlane, camera.farClipPlane);
 
                     cmd.Clear();
+                    // XRTODO: remove cmd.SetViewProjectionMatrices
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
                 }
             }

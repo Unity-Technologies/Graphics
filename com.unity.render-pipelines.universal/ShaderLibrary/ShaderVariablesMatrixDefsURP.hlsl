@@ -5,7 +5,7 @@
 #ifndef UNITY_SHADER_VARIABLES_MATRIX_DEFS_URP_INCLUDED
 #define UNITY_SHADER_VARIABLES_MATRIX_DEFS_URP_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesURPBuiltinVarsDecl.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesURPBuildinVarsDecl.hlsl"
 
 CBUFFER_START(UnityPerDraw)
 float4x4 BUILDIN_unity_ObjectToWorld;
@@ -86,7 +86,7 @@ SAMPLER(BUILDIN_samplerunity_SpecCube0);
 TEXTURE2D(BUILDIN_unity_Lightmap);
 SAMPLER(BUILDIN_samplerunity_Lightmap);
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesURPBuiltinVarsImpl.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesURPBuildinVarsImpl.hlsl"
 
 #if defined(USING_PUREXRSDK_STEREO_MATRICES)
 #error TODO: Pure XR - add SPI matrices
@@ -106,67 +106,61 @@ SAMPLER(BUILDIN_samplerunity_Lightmap);
 //#define _WorldSpaceCameraPos unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
 #else
 
-float4x4 glstate_matrix_projection;
-float4x4 unity_MatrixV;
-float4x4 unity_MatrixInvV;
-float4x4 unity_MatrixVP;
-float4 unity_StereoScaleOffset;
-int unity_StereoEyeIndex;
-float4x4 BUILDIN_unity_CameraInvProjection;
-float4x4 BUILDIN_unity_CameraToWorld;
-
-#define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
-#define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
-#define UNITY_MATRIX_V     unity_MatrixV
-#define UNITY_MATRIX_I_V   unity_MatrixInvV
-#define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
-#define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
-#define UNITY_MATRIX_VP    unity_MatrixVP
-#define UNITY_MATRIX_I_VP  _InvCameraViewProj
-#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
-#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
-#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
-#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-
-
-// TODO: all affine matrices should be 3x4.
-// TODO: sort these vars by the frequency of use (descending), and put commonly used vars together.
-// Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
-float4x4 _PrevViewProjMatrix;
-float4x4 _ViewProjMatrix;
-float4x4 _NonJitteredViewProjMatrix;
-float4x4 _ViewMatrix;
-float4x4 _ProjMatrix;
-float4x4 _InvViewProjMatrix;
-float4x4 _InvViewMatrix;
-float4x4 _InvProjMatrix;
-float4   _InvProjParam;
-float4   _ScreenSize;       // {w, h, 1/w, 1/h}
-float4   _FrustumPlanes[6]; // {(a, b, c) = N, d = -dot(N, P)} [L, R, T, B, N, F]
-
-//
-//// Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
-//float4x4 _ViewProjMatrix;
-//float4x4 _ViewMatrix;
-//float4x4 _ProjMatrix;
-//float4x4 _InvViewProjMatrix;
-//float4x4 _InvViewMatrix;
-//float4x4 _InvProjMatrix;
+//float4x4 glstate_matrix_projection;
+//float4x4 unity_MatrixV;
+//float4x4 unity_MatrixInvV;
+//float4x4 unity_MatrixVP;
+//float4 unity_StereoScaleOffset;
+//int unity_StereoEyeIndex;
 //float4x4 BUILDIN_unity_CameraInvProjection;
 //float4x4 BUILDIN_unity_CameraToWorld;
 //
 //#define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
 //#define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
-//#define UNITY_MATRIX_V     _ViewMatrix
-//#define UNITY_MATRIX_I_V   _InvViewMatrix
-//#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)
-//#define UNITY_MATRIX_I_P   _InvProjMatrix
-//#define UNITY_MATRIX_VP    _ViewProjMatrix
-//#define UNITY_MATRIX_I_VP  _InvViewProjMatrix
+//#define UNITY_MATRIX_V     unity_MatrixV
+//#define UNITY_MATRIX_I_V   unity_MatrixInvV
+//#define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
+//#define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
+//#define UNITY_MATRIX_VP    unity_MatrixVP
+//#define UNITY_MATRIX_I_VP  _InvCameraViewProj
 //#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 //#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 //#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 //#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+//float4x4 _PrevViewProjMatrix;
+//float4x4 _ViewProjMatrix;
+//float4x4 _NonJitteredViewProjMatrix;
+//float4x4 _ViewMatrix;
+//float4x4 _ProjMatrix;
+//float4x4 _InvViewProjMatrix;
+//float4x4 _InvViewMatrix;
+//float4x4 _InvProjMatrix;
+//float4   _InvProjParam;
+//float4   _ScreenSize;       
+//float4   _FrustumPlanes[6]; 
+
+//// Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
+float4x4 _ViewProjMatrix;
+float4x4 _ViewMatrix;
+float4x4 _ProjMatrix;
+float4x4 _InvViewProjMatrix;
+float4x4 _InvViewMatrix;
+float4x4 _InvProjMatrix;
+float4x4 BUILDIN_unity_CameraInvProjection;
+float4x4 BUILDIN_unity_CameraToWorld;
+
+#define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
+#define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
+#define UNITY_MATRIX_V     _ViewMatrix
+#define UNITY_MATRIX_I_V   _InvViewMatrix
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)
+#define UNITY_MATRIX_I_P   _InvProjMatrix
+#define UNITY_MATRIX_VP    _ViewProjMatrix
+#define UNITY_MATRIX_I_VP  _InvViewProjMatrix
+#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
+#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
+#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
+#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 
 #endif // USING_STEREO_MATRICES
 

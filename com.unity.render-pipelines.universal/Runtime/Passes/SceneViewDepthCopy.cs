@@ -35,7 +35,18 @@ namespace UnityEngine.Rendering.Universal
             cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-            cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial);
+
+            if (renderingData.cameraData.isPureURPCamera)
+            {
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                // XRTODO: fullscreen triangle/quad if support vertexID
+                //var propertyBlock = new MaterialPropertyBlock();
+                //cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+            }
+            else
+            {
+                cmd.Blit(source.Identifier(), BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

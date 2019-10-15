@@ -56,8 +56,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             if (!stereo)
             {
+                // XRTODO: remove cmd.SetViewProjectionMatrices
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
+                // XRTODO: remove cmd.SetViewProjectionMatrices
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
             else

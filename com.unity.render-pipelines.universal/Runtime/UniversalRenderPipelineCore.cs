@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
+
+        public bool isPureURPCamera;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData

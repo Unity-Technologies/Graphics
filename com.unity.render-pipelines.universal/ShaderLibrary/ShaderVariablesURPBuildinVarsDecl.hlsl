@@ -14,7 +14,6 @@
 #define BUILDIN_unity_LightData            unity_LightData
 #define BUILDIN_unity_LightIndices         unity_LightIndices
 
-
 #define BUILDIN_unity_SHAr                 unity_SHAr
 #define BUILDIN_unity_SHAg                 unity_SHAg
 #define BUILDIN_unity_SHAb                 unity_SHAb
