@@ -4,6 +4,9 @@
 #define MAX_VISIBLE_LIGHTS_SSBO 256
 #define MAX_VISIBLE_LIGHTS_UBO  32
 
+// Experimental Code Path: Pure URP
+#define USING_PUREURP
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
 // There are some performance issues by using SSBO in mobile.
@@ -39,6 +42,9 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
+#if defined(USING_PUREURP)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesMatrixDefsURP.hlsl"
+#else
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
@@ -72,8 +78,9 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
