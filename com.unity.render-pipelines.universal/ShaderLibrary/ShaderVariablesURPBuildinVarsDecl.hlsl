@@ -13,7 +13,6 @@
 #define BUILDIN_unity_FogColor             unity_FogColor
 #define BUILDIN_unity_LightData            unity_LightData
 #define BUILDIN_unity_LightIndices         unity_LightIndices
-
 #define BUILDIN_unity_SHAr                 unity_SHAr
 #define BUILDIN_unity_SHAg                 unity_SHAg
 #define BUILDIN_unity_SHAb                 unity_SHAb
@@ -21,6 +20,8 @@
 #define BUILDIN_unity_SHBg                 unity_SHBg
 #define BUILDIN_unity_SHBb                 unity_SHBb
 #define BUILDIN_unity_SHC                  unity_SHC;
+
+//XRTODO: Add the following to BuildinVarsImpl.hlsl to prevent people from using them
 #define BUILDIN_unity_SpecCube0            unity_SpecCube0;
 #define BUILDIN_samplerunity_SpecCube0     samplerunity_SpecCube0
 #define BUILDIN_unity_SpecCube0_HDR        unity_SpecCube0_HDR

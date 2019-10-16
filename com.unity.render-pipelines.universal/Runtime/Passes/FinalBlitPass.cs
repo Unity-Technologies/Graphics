@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;
                 // Scene camera renders to texuture, game camera renders to backbuffer
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.isSceneViewCamera);
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
                 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);

@@ -63,28 +63,77 @@ namespace UnityEngine.Rendering.Universal.Internal
             // TODO: we don't need a command buffer here. We can set these via Material.Set* API
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
-            if (cameraSamples > 1)
+            if (renderingData.cameraData.isPureURPCamera)
             {
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                if (cameraSamples == 4)
+                switch(cameraSamples)
                 {
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    case 1:
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        break;
+                    case 2:
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        break;
+                    case 4:
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        break;
+                    default:
+                        // XRTODO: Add err msg. This case shouldn't really happend. Could be undefined behavior
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                        break;
                 }
-                else
-                {
-                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                }
-                
-                Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                // XRTODO: Can't use coreutil to set rendertarget becuase it doesn't configure scriptable renderer's internal states
+                // Must use ScriptableRenderer.SetRenderTarget. Better solution is to override Configure to specify rt upfront.
+                // Or redesign renderpass to only specify rt descriptor instead of taking in specific gpu resources.
+                //CoreUtils.SetRenderTarget(cmd, copyDepthSurface);
+                ScriptableRenderer.SetRenderTarget(cmd, copyDepthSurface, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
             }
             else
             {
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
-                CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                if (cameraSamples > 1)
+                {
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                    if (cameraSamples == 4)
+                    {
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    }
+                    else
+                    {
+                        cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                        cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    }
+
+                    Blit(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                }
+                else
+                {
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
+                    CopyTexture(cmd, depthSurface, copyDepthSurface, m_CopyDepthMaterial);
+                }
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

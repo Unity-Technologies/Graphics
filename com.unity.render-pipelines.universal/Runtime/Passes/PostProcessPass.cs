@@ -340,13 +340,36 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                    if (renderingData.cameraData.isPureURPCamera)
+                    {
+                        Matrix4x4 projMatrix;
+                        Matrix4x4 viewMatrix;
+                        projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
+                        viewMatrix = Matrix4x4.identity;
+                        Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                        Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
 
-                    if (m_Destination == RenderTargetHandle.CameraTarget)
-                        cmd.SetViewport(cameraData.camera.pixelRect);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
 
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
-                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                        if (m_Destination == RenderTargetHandle.CameraTarget)
+                            cmd.SetViewport(cameraData.camera.pixelRect);
+
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+                    }
+                    else
+                    {
+                        cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                        if (m_Destination == RenderTargetHandle.CameraTarget)
+                            cmd.SetViewport(cameraData.camera.pixelRect);
+
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+                        cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                    }
                 }
 
                 // Cleanup
@@ -1006,16 +1029,40 @@ namespace UnityEngine.Rendering.Universal.Internal
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
             cmd.SetRenderTarget(m_Destination.Identifier(), colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-            if (cameraData.isStereoEnabled)
+            if (renderingData.cameraData.isPureURPCamera)
             {
-                Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                // XRTODO: This is a bit hacky, we have to assume the img is already y-flipped in previous postFX pass.
+                // We need a better solution where renderer tells renderpass which coord they should render into
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                cmd.SetViewport(cameraData.camera.pixelRect);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
             }
             else
             {
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(cameraData.camera.pixelRect);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-                cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                if (cameraData.isStereoEnabled)
+                {
+                    Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
+                }
+                else
+                {
+                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                    cmd.SetViewport(cameraData.camera.pixelRect);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
+                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                }
             }
         }
 

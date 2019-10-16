@@ -98,46 +98,12 @@ SAMPLER(BUILDIN_samplerunity_Lightmap);
 //#define UNITY_MATRIX_I_VP           _XRViewConstants[unity_StereoEyeIndex].invViewProjMatrix
 //#define UNITY_MATRIX_UNJITTERED_VP  _XRViewConstants[unity_StereoEyeIndex].nonJitteredViewProjMatrix
 //#define UNITY_MATRIX_PREV_VP        _XRViewConstants[unity_StereoEyeIndex].prevViewProjMatrix
-
 //#define unity_CameraProjection unity_StereoCameraProjection[unity_StereoEyeIndex]
 //#define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
 //#define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
 //#define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
 //#define _WorldSpaceCameraPos unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
 #else
-
-//float4x4 glstate_matrix_projection;
-//float4x4 unity_MatrixV;
-//float4x4 unity_MatrixInvV;
-//float4x4 unity_MatrixVP;
-//float4 unity_StereoScaleOffset;
-//int unity_StereoEyeIndex;
-//float4x4 BUILDIN_unity_CameraInvProjection;
-//float4x4 BUILDIN_unity_CameraToWorld;
-//
-//#define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
-//#define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
-//#define UNITY_MATRIX_V     unity_MatrixV
-//#define UNITY_MATRIX_I_V   unity_MatrixInvV
-//#define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
-//#define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
-//#define UNITY_MATRIX_VP    unity_MatrixVP
-//#define UNITY_MATRIX_I_VP  _InvCameraViewProj
-//#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
-//#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
-//#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
-//#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-//float4x4 _PrevViewProjMatrix;
-//float4x4 _ViewProjMatrix;
-//float4x4 _NonJitteredViewProjMatrix;
-//float4x4 _ViewMatrix;
-//float4x4 _ProjMatrix;
-//float4x4 _InvViewProjMatrix;
-//float4x4 _InvViewMatrix;
-//float4x4 _InvProjMatrix;
-//float4   _InvProjParam;
-//float4   _ScreenSize;       
-//float4   _FrustumPlanes[6]; 
 
 //// Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
 float4x4 _ViewProjMatrix;
