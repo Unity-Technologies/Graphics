@@ -39,19 +39,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
-            GameObject obj = UnityEditor.Selection.activeGameObject;
-
-            if (!obj)
-                return;
-
-            ProbeVolume probeVolume = obj.GetComponent<ProbeVolume>();
-
             EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
             GUILayout.FlexibleSpace();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Bake"))
             {
-                ProbeVolumeManager.BakeSingle(probeVolume);
+                ProbeVolumeManager.BakeSingle();
             }
             GUILayout.EndHorizontal();
         }
