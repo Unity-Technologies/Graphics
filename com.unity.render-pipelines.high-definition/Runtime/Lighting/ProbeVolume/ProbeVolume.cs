@@ -219,7 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-
         protected void Update()
         {
             if (transform.hasChanged)
@@ -479,7 +478,6 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
                 Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
         }
-    }
 #endif
-
+    }
 } // UnityEngine.Experimental.Rendering.HDPipeline

@@ -78,6 +78,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.additionalBakedProbesCompleted += manager.ReactivateProbes;
             UnityEditor.Lightmapping.BakeAsync();
         }
-    }
 #endif
+    }
 }

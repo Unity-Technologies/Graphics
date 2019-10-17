@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public SphericalHarmonicsL1[] data = null;
 
+#if UNITY_EDITOR
         [UnityEditor.MenuItem("Assets/Create/ProbeVolume", false, 204)]
         protected static void CreateAssetFromMenu()
         {
@@ -60,5 +61,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return asset;
         }
+#endif
     }
 }
