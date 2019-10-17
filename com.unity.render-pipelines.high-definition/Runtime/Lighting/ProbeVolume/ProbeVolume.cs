@@ -217,6 +217,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
 
+        protected void Update()
+        {
+            if (transform.hasChanged)
+            {
+                OnValidate();
+                transform.hasChanged = false;
+            }
+        }
+
         protected void OnValidate()
         {
             parameters.Constrain();
