@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount (12) bytes ~= 50.3 MB.
         static int s_MaxProbeVolumeProbeCount = 1024 * 1024;
         RTHandle m_ProbeVolumeAtlasSHRTHandle;
-        Texture2DAtlas probeVolumeAtlas = null; // TODO(Nicholas): it was marked as public, but Texture2DAtlas is not publicly accessible anymore.
+        Texture2DAtlasDynamic probeVolumeAtlas = null;
 
         // Note: These max resolution dimensions are implicitly defined from the way probe volumes are laid out in our 2D atlas.
         // If this layout changes, these resolution constraints should be updated to reflect the actual constraint.
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: "ProbeVolumeAtlasSH"
             );
 
-            probeVolumeAtlas = new Texture2DAtlas(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
+            probeVolumeAtlas = new Texture2DAtlasDynamic(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
         }
 
         void DestroyBuffers()
@@ -217,6 +217,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, 0);
             cmd.SetGlobalTexture("_ProbeVolumeAtlasSH", Texture2D.blackTexture);
             cmd.SetGlobalFloat("_ProbeVolumeNormalBiasWS", 0.0f);
+        }
+
+        public void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
+        {
+            int key = volume.GetID();
+            // Debug.Log(probeVolumeAtlas.DebugStringFromRoot());
+            probeVolumeAtlas.ReleaseTextureSlot(key);
+            // Debug.Log(probeVolumeAtlas.DebugStringFromRoot());
         }
 
         private bool EnsureProbeVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, ProbeVolume volume)

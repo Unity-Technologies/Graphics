@@ -140,12 +140,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAsset probeVolumeAsset = null;
         public ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
-        
+
         public int GetID()
         {
             return GetInstanceID();
         }
-        
+
         public SphericalHarmonicsL1[] GetData()
         {
             dataUpdated = false;
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
             nativeData.Dispose();
 
             if (!probeVolumeAsset)
-            { 
+            {
                 probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
                 UnityEditor.EditorUtility.SetDirty(this);
             }
@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugProbeMatricesList = new List<Matrix4x4[]>();
             Matrix4x4[] currentprobeMatrices = new Matrix4x4[probesInCurrentBatch];
             int[] indices = new int[probesInCurrentBatch];
-            
+
             // Everything around point meshes for non-selected ProbeVolumes
             m_DebugProbePointMeshList = new List<Mesh>();
             int[] currentProbeDebugIndices = new int[probesInCurrentBatch];
@@ -376,7 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         processedProbes++;
 
                         int probesLeft = probeCount - processedProbes;
-                        
+
                         if (indexInCurrentBatch >= 1023 || probesLeft == 0)
                         {
                             Mesh currentProbeDebugMesh = new Mesh();
