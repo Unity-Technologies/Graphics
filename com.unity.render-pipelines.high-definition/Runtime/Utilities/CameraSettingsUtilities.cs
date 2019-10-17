@@ -37,6 +37,10 @@ namespace UnityEngine.Rendering.HighDefinition
             add.customRenderingSettings = settings.customRenderingSettings;
             add.flipYMode = settings.flipYMode;
             add.invertFaceCulling = settings.invertFaceCulling;
+            // AntiAliasing
+            add.antialiasing = settings.antiAliasing.mode;
+            add.taaSharpenStrength = settings.antiAliasing.TAASharpenStrength;
+            add.SMAAQuality = settings.antiAliasing.SMAAQuality;
         }
 
         /// <summary>Applies <paramref name="settings"/> to <paramref name="cam"/>.</summary>

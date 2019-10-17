@@ -24,7 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         customRenderingSettings = 1 << 15,
         flipYMode = 1 << 16,
         frameSettings = 1 << 17,
-        probeLayerMask = 1 << 18
+        probeLayerMask = 1 << 18,
+        antiAliasingMode = 1 << 19,
+        antiAliasingSMAAQuality = 1 << 20,
+        antiAliasingTAASharpenStrength = 1 << 21
     }
 
     [Serializable]
@@ -77,7 +80,6 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>If not null, define the location of the evaluation of the volume framework.</summary>
             public Transform anchorOverride;
         }
-
 
         /// <summary>Defines the projection matrix of the camera.</summary>
         [Serializable]
@@ -139,6 +141,27 @@ namespace UnityEngine.Rendering.HighDefinition
                     default: throw new ArgumentException();
                 }
             }
+        }
+
+        /// <summary>Defines the antialiasing algorithm.</summary>
+        [Serializable]
+        public struct AntiAliasing
+        {
+            /// <summary>Default value.</summary>
+            public static readonly AntiAliasing @default = new AntiAliasing
+            {
+                mode = HDAdditionalCameraData.AntialiasingMode.None,
+                SMAAQuality = HDAdditionalCameraData.SMAAQualityLevel.High,
+                TAASharpenStrength = 0.6f,
+            };
+
+            /// <summary>Defines the antialiasing algorithm to use.</summary>
+            public HDAdditionalCameraData.AntialiasingMode mode;
+            /// <summary>Defines the quality preset for SMAA.</summary>
+            public HDAdditionalCameraData.SMAAQualityLevel SMAAQuality;
+            /// <summary>Defines the sharpen strengh for TAA.</summary>
+            [Range(0, 2)]
+            public float TAASharpenStrength;
         }
 
         /// <summary>Defines the culling settings of the camera.</summary>
@@ -241,6 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMask probeLayerMask;
         /// <summary>Which default FrameSettings should be used when rendering with these parameters.</summary>
         public FrameSettingsRenderType defaultFrameSettings;
+        /// <summary>AntiAliasing algorithm and parameters.</summary>
+        public AntiAliasing antiAliasing;
 
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;

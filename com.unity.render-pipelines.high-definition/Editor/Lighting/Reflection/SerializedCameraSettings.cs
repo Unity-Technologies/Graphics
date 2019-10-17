@@ -40,6 +40,9 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty customRenderingSettings;
         internal SerializedProperty flipYMode;
         internal SerializedProperty probeLayerMask;
+        internal SerializedProperty antiAliasingMode;
+        internal SerializedProperty antiAliasingSMAAQuality;
+        internal SerializedProperty antiAliasingTAASharpenStrength;
 
         internal SerializedCameraSettings(SerializedProperty root)
         {
@@ -67,6 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
             customRenderingSettings = root.FindPropertyRelative("customRenderingSettings");
             flipYMode = root.FindPropertyRelative("flipYMode");
             probeLayerMask = root.FindPropertyRelative("probeLayerMask");
+            antiAliasingMode = root.FindPropertyRelative("antiAliasing.mode");
+            antiAliasingSMAAQuality = root.FindPropertyRelative("antiAliasing.SMAAQuality");
+            antiAliasingTAASharpenStrength = root.FindPropertyRelative("antiAliasing.TAASharpenStrength");
         }
     }
 }

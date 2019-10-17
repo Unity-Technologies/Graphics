@@ -29,6 +29,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 | CameraSettingsFields.frustumFieldOfView;
             const CameraSettingsFields frustumFarOrNearPlane = CameraSettingsFields.frustumFarClipPlane
                 | CameraSettingsFields.frustumNearClipPlane;
+            const CameraSettingsFields antiAliasing = CameraSettingsFields.antiAliasingMode
+                | CameraSettingsFields.antiAliasingSMAAQuality
+                | CameraSettingsFields.antiAliasingTAASharpenStrength;
 
             if ((displayedFields.camera & bufferFields) != 0)
             {
@@ -84,6 +87,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.flipYMode, serialized.flipYMode, EditorGUIUtility.TrTextContent("Flip Y"), @override.camera, displayedFields.camera, overridableFields.camera);
             PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.probeLayerMask, serialized.probeLayerMask, EditorGUIUtility.TrTextContent("Probe Layer Mask"), @override.camera, displayedFields.camera, overridableFields.camera);
+
+            if ((displayedFields.camera & antiAliasing) != 0)
+            {
+                PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.antiAliasingMode, serialized.antiAliasingMode, EditorGUIUtility.TrTextContent("Anti Aliasing"), @override.camera, displayedFields.camera, overridableFields.camera);
+                switch ((HDAdditionalCameraData.AntialiasingMode)serialized.antiAliasingMode.intValue)
+                {
+                    case HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing:
+                        PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.antiAliasingTAASharpenStrength, serialized.antiAliasingTAASharpenStrength, EditorGUIUtility.TrTextContent("Sharpen Strength"), @override.camera, displayedFields.camera, overridableFields.camera, indent: 1);
+                        break;
+                    case HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing:
+                        PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.antiAliasingSMAAQuality, serialized.antiAliasingSMAAQuality, EditorGUIUtility.TrTextContent("Quality Preset"), @override.camera, displayedFields.camera, overridableFields.camera, indent: 1);
+                        break;
+                }
+            }
+
             PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.customRenderingSettings, serialized.customRenderingSettings, EditorGUIUtility.TrTextContent("Custom Frame Settings"), @override.camera, displayedFields.camera, overridableFields.camera);
 
             if ((displayedFields.camera & CameraSettingsFields.frameSettings) != 0)
