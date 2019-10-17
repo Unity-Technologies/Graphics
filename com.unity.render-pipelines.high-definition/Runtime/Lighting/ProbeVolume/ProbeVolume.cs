@@ -30,6 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int resolutionY;
         public int resolutionZ;
 
+        public float weight;
+
         public Vector3 positiveFade
         {
             get
@@ -84,6 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.resolutionX = 0;
             this.resolutionY = 0;
             this.resolutionZ = 0;
+            this.weight = 1;
         }
 
         public void Constrain()
@@ -104,13 +107,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 positiveFade = this.positiveFade;
             Vector3 negativeFade = this.negativeFade;
 
-            data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
-            data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
-            data.rcpPosFaceFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
+            data.rcpPosFaceFade.x = Mathf.Min(this.weight / positiveFade.x, float.MaxValue);
+            data.rcpPosFaceFade.y = Mathf.Min(this.weight / positiveFade.y, float.MaxValue);
+            data.rcpPosFaceFade.z = Mathf.Min(this.weight / positiveFade.z, float.MaxValue);
 
-            data.rcpNegFaceFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
-            data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
-            data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
+            data.rcpNegFaceFade.y = Mathf.Min(this.weight / negativeFade.y, float.MaxValue);
+            data.rcpNegFaceFade.x = Mathf.Min(this.weight / negativeFade.x, float.MaxValue);
+            data.rcpNegFaceFade.z = Mathf.Min(this.weight / negativeFade.z, float.MaxValue);
 
             float distFadeLen = Mathf.Max(this.distanceFadeEnd - this.distanceFadeStart, 0.00001526f);
             data.rcpDistFadeLen = 1.0f / distFadeLen;

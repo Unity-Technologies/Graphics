@@ -11,6 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty resolutionY;
         public SerializedProperty resolutionZ;
 
+        public SerializedProperty weight;
+
         public SerializedProperty size;
 
         public SerializedProperty positiveFade;
@@ -36,6 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition
             resolutionX = probeVolumeParams.FindPropertyRelative("resolutionX");
             resolutionY = probeVolumeParams.FindPropertyRelative("resolutionY");
             resolutionZ = probeVolumeParams.FindPropertyRelative("resolutionZ");
+
+            weight = probeVolumeParams.FindPropertyRelative("weight");
 
             size = probeVolumeParams.FindPropertyRelative("size");
 

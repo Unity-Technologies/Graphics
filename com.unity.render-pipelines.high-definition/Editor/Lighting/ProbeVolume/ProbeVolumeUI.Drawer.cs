@@ -82,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.resolutionY.intValue = Mathf.Clamp(serialized.resolutionY.intValue, 1, maxY);
                 serialized.resolutionZ.intValue = Mathf.Clamp(serialized.resolutionZ.intValue, 1, maxZ);
             }
+            EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
         }
 
         static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)
