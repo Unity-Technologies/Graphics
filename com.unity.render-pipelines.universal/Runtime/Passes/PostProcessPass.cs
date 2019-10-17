@@ -248,8 +248,31 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingSample(cmd, "Stop NaN"))
                 {
-                    cmd.Blit(GetSource(), BlitDstDiscardContent(cmd, GetDestination()), m_Materials.stopNaN);
-                    Swap();
+                    if (cameraData.isPureURPCamera)
+                    {
+                        Matrix4x4 projMatrix;
+                        Matrix4x4 viewMatrix;
+                        projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                        viewMatrix = Matrix4x4.identity;
+                        Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                        Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                        BlitDstDiscardContent(cmd, GetDestination());
+                        cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), GetSource());
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.stopNaN);
+                        Swap();
+                    }
+                    else
+                    {
+                        cmd.Blit(GetSource(), BlitDstDiscardContent(cmd, GetDestination()), m_Materials.stopNaN);
+                        Swap();
+                    }
                 }
             }
 
@@ -272,7 +295,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 using (new ProfilingSample(cmd, markerName))
                 {
-                    DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination());
+                    DoDepthOfField(ref cameraData, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -348,7 +371,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         viewMatrix = Matrix4x4.identity;
                         Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                         Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
                         cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
                         cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
                         cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
@@ -439,34 +461,76 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, m_Descriptor.width, m_Descriptor.height, tempDepthBits, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, m_Descriptor.width, m_Descriptor.height, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
 
-            // Prepare for manual blit
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            cmd.SetViewport(camera.pixelRect);
+            if (cameraData.isPureURPCamera)
+            {
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
 
-            // Pass 1: Edge detection
-            cmd.SetRenderTarget(ShaderConstants._EdgeTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                stencil, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            cmd.ClearRenderTarget(true, true, Color.clear);
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+                cmd.SetViewport(camera.pixelRect);
+                // Pass 1: Edge detection
+                cmd.SetRenderTarget(ShaderConstants._EdgeTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    stencil, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.ClearRenderTarget(true, true, Color.clear);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
 
-            // Pass 2: Blend weights
-            cmd.SetRenderTarget(ShaderConstants._BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                stencil, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
-            cmd.ClearRenderTarget(false, true, Color.clear);
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+                // Pass 2: Blend weights
+                cmd.SetRenderTarget(ShaderConstants._BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    stencil, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
+                cmd.ClearRenderTarget(false, true, Color.clear);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
 
-            // Pass 3: Neighborhood blending
-            cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
+                // Pass 3: Neighborhood blending
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
+                cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
 
-            // Cleanup
-            cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._BlendTexture);
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                // Cleanup
+                cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
+                cmd.ReleaseTemporaryRT(ShaderConstants._BlendTexture);
+            }
+            else
+            {
+                // Prepare for manual blit
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                cmd.SetViewport(camera.pixelRect);
+                // Pass 1: Edge detection
+                cmd.SetRenderTarget(ShaderConstants._EdgeTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    stencil, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.ClearRenderTarget(true, true, Color.clear);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+
+                // Pass 2: Blend weights
+                cmd.SetRenderTarget(ShaderConstants._BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    stencil, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
+                cmd.ClearRenderTarget(false, true, Color.clear);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+
+                // Pass 3: Neighborhood blending
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
+                cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
+
+                // Cleanup
+                cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
+                cmd.ReleaseTemporaryRT(ShaderConstants._BlendTexture);
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            }
         }
 
         #endregion
@@ -475,17 +539,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // TODO: CoC reprojection once TAA gets in LW
         // TODO: Proper LDR/gamma support
-        void DoDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
+        void DoDepthOfField(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
-                DoGaussianDepthOfField(camera, cmd, source, destination);
+                DoGaussianDepthOfField(ref cameraData, cmd, source, destination);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
                 DoBokehDepthOfField(cmd, source, destination);
         }
 
         // TODO: XR isn't working with Gaussian DOF
-        void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
+        void DoGaussianDepthOfField(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
+            var camera = cameraData.camera;
             var material = m_Materials.gaussianDepthOfField;
             int wh = m_Descriptor.width / 2;
             int hh = m_Descriptor.height / 2;
@@ -515,13 +580,38 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MRT2[0] = ShaderConstants._HalfCoCTexture;
             m_MRT2[1] = ShaderConstants._PingTexture;
 
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-            cmd.SetViewport(camera.pixelRect);
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-            cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
-            cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            if (cameraData.isPureURPCamera)
+            {
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                cmd.SetViewport(camera.pixelRect);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
+                cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+                cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+            }
+            else
+            {
+
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                cmd.SetViewport(camera.pixelRect);
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
+                cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+                cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+            }
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
