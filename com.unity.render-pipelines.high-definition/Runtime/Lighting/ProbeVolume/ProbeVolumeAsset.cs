@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             String assetFileName;
             String assetPath;
 
-            if (id < 0)
+            if (id == -1)
             {
                 assetPath = "Assets";
                 assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + ".asset");
