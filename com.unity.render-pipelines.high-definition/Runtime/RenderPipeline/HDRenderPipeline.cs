@@ -1481,8 +1481,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             GenericPool<HDCullingResults>.Release(_cullingResults);
                             continue;
                         }
-                        HDAdditionalCameraData hdCam;
-                        camera.TryGetComponent<HDAdditionalCameraData>(out hdCam);
+                        camera.TryGetComponent(out HDAdditionalCameraData hdCam);
+                        // For realtime probe, we need persistent history.
+                        hdCam.hasPersistentHistory = true;
                         hdCam.flipYMode = visibleProbe.type == ProbeSettings.ProbeType.ReflectionProbe
                                 ? HDAdditionalCameraData.FlipYMode.ForceFlipY
                                 : HDAdditionalCameraData.FlipYMode.Automatic;
