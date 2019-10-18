@@ -1695,6 +1695,7 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
+            envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
             {

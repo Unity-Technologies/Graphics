@@ -211,6 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
             flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
             invertFaceCulling = false,
             probeLayerMask = ~0,
+            probeRangeCompressionFactor = 1.0f,
             postProcesses = PostProcesses.@default
         };
 
@@ -287,6 +288,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public AntiAliasing antiAliasing;
         /// <summary>Post processes options.</summary>
         public PostProcesses postProcesses;
+
+        // Marked as internal as it is here just for propagation purposes, the correct way to edit this value is through the probe itself.
+        internal float probeRangeCompressionFactor;
 
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;

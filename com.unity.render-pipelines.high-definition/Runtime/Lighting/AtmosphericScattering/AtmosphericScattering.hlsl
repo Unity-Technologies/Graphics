@@ -28,7 +28,7 @@ float3 GetFogColor(float3 V, float fragDist)
         return SampleSkyTexture(-V, mipLevel, 0).rgb;
     }
     else // Should not be possible.
-        return  float3(0.0, 0.0, 0.0);
+        return float3(0.0, 0.0, 0.0);
 }
 
 // All units in meters!
@@ -290,7 +290,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             float  trFallback = TransmittanceFromOpticalDepth(odFallback);
             float  trCamera = 1 - volFog.a;
 
-            volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * volAlbedo * (1 - trFallback);
+            volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * GetCurrentExposureMultiplier() * volAlbedo * (1 - trFallback);
             volFog.a = 1 - (trCamera * trFallback);
         }
 

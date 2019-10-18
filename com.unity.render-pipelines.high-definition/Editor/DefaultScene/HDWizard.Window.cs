@@ -203,20 +203,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     },
                 out m_BaseUpdatable));
 
-            AddHDRPConfigInfo(m_BaseUpdatable);
-
-            var vrScope = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_VR);
-            AddVRConfigInfo(vrScope);
-            vrScope.Init();
-            m_BaseUpdatable.Add(vrScope);
-            
-            var dxrScope = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_DXR);
-            AddDXRConfigInfo(dxrScope);
-            dxrScope.Init();
-            m_BaseUpdatable.Add(dxrScope);
-
             m_BaseUpdatable.Add(new FixAllButton(
                 Style.resolveAll,
                 () =>
@@ -246,6 +232,20 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                     }
                 }));
+
+            AddHDRPConfigInfo(m_BaseUpdatable);
+
+            var vrScope = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_VR);
+            AddVRConfigInfo(vrScope);
+            vrScope.Init();
+            m_BaseUpdatable.Add(vrScope);
+            
+            var dxrScope = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_DXR);
+            AddDXRConfigInfo(dxrScope);
+            dxrScope.Init();
+            m_BaseUpdatable.Add(dxrScope);
             
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateMigrationButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));

@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             add.customRenderingSettings = settings.customRenderingSettings;
             add.flipYMode = settings.flipYMode;
             add.invertFaceCulling = settings.invertFaceCulling;
+            add.probeCustomFixedExposure = settings.probeRangeCompressionFactor;
             // AntiAliasing
             add.antialiasing = settings.antiAliasing.mode;
             add.taaSharpenStrength = settings.antiAliasing.TAASharpenStrength;
