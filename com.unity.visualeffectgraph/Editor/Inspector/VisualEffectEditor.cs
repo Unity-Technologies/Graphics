@@ -146,6 +146,11 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty,bool overrideMixed,bool valueMixed, out bool overriddenChanged)
         {
+            if (parameter.realType == typeof(Matrix4x4).Name)
+            {
+                overriddenChanged = false;
+                return false;
+            }
             EditorGUILayout.BeginHorizontal();
 
             var height = 16f;
