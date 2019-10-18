@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: "ProbeVolumeAtlasSH"
             );
 
-            probeVolumeAtlas = new Texture2DAtlasDynamic(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
+            probeVolumeAtlas = new Texture2DAtlasDynamic(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, k_MaxVisibleProbeVolumeCount, UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat);
         }
 
         void DestroyBuffers()

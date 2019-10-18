@@ -1,196 +1,269 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using System;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     class AtlasAllocatorDynamic
     {
-        // Warning: AtlasNode will create GC.Allocs as it is a reference type.
-        // Previously AtlasAllocator rarely freed nodes, so the GC was infrequent.
-        // Now that we have added methods to free and reallocate sections of the atlas on the fly, we need to consider
-        // how to avoid creating garbage.
-        //
-        // TODO: Pool AtlasNode(s) -  one idea is to switch to struct type and pre-allocate in flat array:
-        // struct AtlasNode
-        // {
-        //     int m_Parent;
-        //     int m_LeftChild;
-        //     int m_RightChild;
-        //     int m_Padding;
-        //     Vector4 m_Rect;
-        // }
-
-        // AtlasNode[] atlasNodes = new AtlasNode[MAX_CAPACITY];
-        // int atlasNodeNext = 0;
-        // int atlasNodeFreelist = -1;
-
-        private class AtlasNode
+        private class AtlasNodePool
         {
-            public AtlasNode m_Parent;
-            public AtlasNode m_LeftChild;
-            public AtlasNode m_RightChild;
-            public bool isOccupied;
-            public Vector4 m_Rect;
+            public AtlasNode[] m_Nodes;
+            Int16 m_Next;
+            Int16 m_FreelistHead;
 
-            public AtlasNode(AtlasNode parent)
+            public AtlasNodePool(Int16 capacity)
             {
-                m_Parent = parent;
-                m_LeftChild = null;
-                m_RightChild = null;
-                isOccupied = false;
-                m_Rect = new Vector4(0, 0, 0, 0); // x,y is width and height (scale) z,w offset into atlas (bias)
+                m_Nodes = new AtlasNode[capacity];
+                m_Next = 0;
+                m_FreelistHead = -1;
             }
 
-            protected bool IsLeafNode()
+            public void Dispose()
+            {
+                Clear();
+                m_Nodes = null;
+            }
+
+            public void Clear()
+            {
+                m_Next = 0;
+                m_FreelistHead = -1;
+            }
+
+            public Int16 AtlasNodeCreate(Int16 parent)
+            {
+                Debug.Assert((m_Next < m_Nodes.Length) || (m_FreelistHead != -1), "Error: AtlasNodePool: Out of memory. Please pre-allocate pool to larger capacity");
+
+                if (m_FreelistHead != -1)
+                {
+                    Int16 freelistHeadNext = m_Nodes[m_FreelistHead].m_FreelistNext;
+                    m_Nodes[m_FreelistHead] = new AtlasNode(m_FreelistHead, parent);
+                    Int16 res = m_FreelistHead;
+                    m_FreelistHead = freelistHeadNext;
+                    return res;
+                }
+
+                m_Nodes[m_Next] = new AtlasNode(m_Next, parent);
+                return m_Next++;
+            }
+
+            public void AtlasNodeFree(Int16 index)
+            {
+                Debug.Assert(index >= 0 && index < m_Nodes.Length, "Error: AtlasNodeFree: index out of range.");
+                m_Nodes[index].m_FreelistNext = m_FreelistHead;
+                m_FreelistHead = index;
+            }
+        }
+
+        [StructLayout(LayoutKind.Explicit, Size=32)]
+        private struct AtlasNode
+        {
+            private enum AtlasNodeFlags : uint
+            {
+                IsOccupied = 1 << 0
+            }
+
+            [FieldOffset(0)] public Int16 m_Self;
+            [FieldOffset(2)] public Int16 m_Parent;
+            [FieldOffset(4)] public Int16 m_LeftChild;
+            [FieldOffset(6)] public Int16 m_RightChild;
+            [FieldOffset(8)] public Int16 m_FreelistNext;
+            [FieldOffset(10)] public UInt16 m_Flags;
+            // [15:12] bytes are padding
+            [FieldOffset(16)] public Vector4 m_Rect;
+
+            public AtlasNode(Int16 self, Int16 parent)
+            {
+                m_Self = self;
+                m_Parent = parent;
+                m_LeftChild = -1;
+                m_RightChild = -1;
+                m_Flags = 0;
+                m_FreelistNext = -1;
+                m_Rect = Vector4.zero; // x,y is width and height (scale) z,w offset into atlas (bias)
+            }
+
+            public bool IsOccupied()
+            {
+                return (m_Flags & (UInt16)AtlasNodeFlags.IsOccupied) > 0;
+            }
+
+            public void SetIsOccupied()
+            {
+                UInt16 isOccupiedMask = (UInt16)AtlasNodeFlags.IsOccupied;
+                m_Flags |= isOccupiedMask;
+            }
+
+            public void ClearIsOccupied()
+            {
+                UInt16 isOccupiedMask = (UInt16)AtlasNodeFlags.IsOccupied;
+                m_Flags &= (UInt16)~isOccupiedMask;
+            }
+
+            public bool IsLeafNode()
             {
                 // Note: Only need to check if m_LeftChild == null, as either both are allocated (split), or none are allocated (leaf).
-                return (m_LeftChild == null) && (m_RightChild == null);
+                return m_LeftChild == -1;
             }
 
-            public AtlasNode Allocate(int width, int height)
+            public Int16 Allocate(AtlasNodePool pool, int width, int height)
             {
                 if (Mathf.Min(width, height) < 1)
                 {
                     // Degenerate allocation requested.
                     Debug.Assert(false, "Error: Texture2DAtlasDynamic: Attempted to allocate a degenerate region. Please ensure width and height are >= 1");
-                    return null;
+                    return -1;
                 }
 
                 // not a leaf node, try children
                 // TODO: Rather than always going left, then right, we might want to always attempt to allocate in the smaller child, then larger.
                 if (!IsLeafNode())
                 {
-                    AtlasNode node = null;
-                    if (m_LeftChild != null)
+                    Int16 node = pool.m_Nodes[m_LeftChild].Allocate(pool, width, height);
+                    if (node == -1)
                     {
-                        node = m_LeftChild.Allocate(width, height);
-                    }
-                    if (node == null && m_RightChild != null)
-                    {
-                        node = m_RightChild.Allocate(width, height);
+                        node = pool.m_Nodes[m_RightChild].Allocate(pool, width, height);
                     }
                     return node;
                 }
 
-                if (isOccupied) { return null; }
-
                 // leaf node, check for fit
-                if ((width <= m_Rect.x) && (height <= m_Rect.y))
+                if (IsOccupied()) { return -1; }
+                if (width > m_Rect.x || height > m_Rect.y) { return -1; }
+
+                // perform the split
+                Debug.Assert(m_LeftChild == -1);
+                Debug.Assert(m_RightChild == -1);
+                m_LeftChild = pool.AtlasNodeCreate(m_Self);
+                m_RightChild = pool.AtlasNodeCreate(m_Self);
+                // Debug.Log("m_LeftChild = " + m_LeftChild);
+                // Debug.Log("m_RightChild = " + m_RightChild);
+
+                Debug.Assert(m_LeftChild >= 0 && m_LeftChild < pool.m_Nodes.Length);
+                Debug.Assert(m_RightChild >= 0 && m_RightChild < pool.m_Nodes.Length);
+
+                // Debug.Log("Rect = {" + m_Rect.x + ", " + m_Rect.y + ", " + m_Rect.z + ", " + m_Rect.w + "}");
+
+                float deltaX = m_Rect.x - width;
+                float deltaY = m_Rect.y - height;
+                // Debug.Log("deltaX = " + deltaX);
+                // Debug.Log("deltaY = " + deltaY);
+
+                if (deltaX >= deltaY)
                 {
-                    // perform the split
-                    m_LeftChild = new AtlasNode(this);
-                    m_RightChild = new AtlasNode(this);
+                    // Debug.Log("Split horizontally");
+                    //  +--------+------+
+                    //  |        |      |
+                    //  |        |      |
+                    //  |        |      |
+                    //  |        |      |
+                    //  +--------+------+
+                    pool.m_Nodes[m_LeftChild].m_Rect.x = width;
+                    pool.m_Nodes[m_LeftChild].m_Rect.y = m_Rect.y;
+                    pool.m_Nodes[m_LeftChild].m_Rect.z = m_Rect.z;
+                    pool.m_Nodes[m_LeftChild].m_Rect.w = m_Rect.w;
 
-                    float deltaX = m_Rect.x - width;
-                    float deltaY = m_Rect.y - height;
-                    // Debug.Log("deltaX = " + deltaX);
-                    // Debug.Log("deltaY = " + deltaY);
+                    pool.m_Nodes[m_RightChild].m_Rect.x = deltaX;
+                    pool.m_Nodes[m_RightChild].m_Rect.y = m_Rect.y;
+                    pool.m_Nodes[m_RightChild].m_Rect.z = m_Rect.z + width;
+                    pool.m_Nodes[m_RightChild].m_Rect.w = m_Rect.w;
 
-                    if (deltaX >= deltaY)
+                    if (deltaY < 1)
                     {
-                        // Debug.Log("Split horizontally");
-                        //  +--------+------+
-                        //  |        |      |
-                        //  |        |      |
-                        //  |        |      |
-                        //  |        |      |
-                        //  +--------+------+
-                        m_LeftChild.m_Rect.x = width;
-                        m_LeftChild.m_Rect.y = m_Rect.y;
-                        m_LeftChild.m_Rect.z = m_Rect.z;
-                        m_LeftChild.m_Rect.w = m_Rect.w;
-
-                        m_RightChild.m_Rect.x = deltaX;
-                        m_RightChild.m_Rect.y = m_Rect.y;
-                        m_RightChild.m_Rect.z = m_Rect.z + width;
-                        m_RightChild.m_Rect.w = m_Rect.w;
-
-                        if (deltaY < 1)
-                        {
-                            m_LeftChild.isOccupied = true;
-                            return m_LeftChild;
-                        }
-                        else
-                        {
-                            AtlasNode node = m_LeftChild.Allocate(width, height);
-                            if (node != null) { node.isOccupied = true; }
-                            return node;
-                        }
+                        pool.m_Nodes[m_LeftChild].SetIsOccupied();
+                        return m_LeftChild;
                     }
                     else
                     {
-                        // Debug.Log("Split vertically.");
-                        //  +---------------+
-                        //  |               |
-                        //  |---------------|
-                        //  |               |
-                        //  |               |
-                        //  +---------------+
-                        m_LeftChild.m_Rect.x = m_Rect.x;
-                        m_LeftChild.m_Rect.y = height;
-                        m_LeftChild.m_Rect.z = m_Rect.z;
-                        m_LeftChild.m_Rect.w = m_Rect.w;
-
-                        m_RightChild.m_Rect.x = m_Rect.x;
-                        m_RightChild.m_Rect.y = deltaY;
-                        m_RightChild.m_Rect.z = m_Rect.z;
-                        m_RightChild.m_Rect.w = m_Rect.w + height;
-
-                        if (deltaX < 1)
-                        {
-                            m_LeftChild.isOccupied = false;
-                            return m_LeftChild;
-                        }
-                        else
-                        {
-                            AtlasNode node = m_LeftChild.Allocate(width, height);
-                            if (node != null) { node.isOccupied = true; }
-                            return node;
-                        }
+                        Int16 node = pool.m_Nodes[m_LeftChild].Allocate(pool, width, height);
+                        if (node >= 0) { pool.m_Nodes[node].SetIsOccupied(); }
+                        return node;
                     }
                 }
-                return null;
-            }
-
-            public void Release()
-            {
-                if (m_LeftChild != null)
+                else
                 {
-                    m_LeftChild.Release();
-                    m_RightChild.Release();
+                    // Debug.Log("Split vertically.");
+                    //  +---------------+
+                    //  |               |
+                    //  |---------------|
+                    //  |               |
+                    //  |               |
+                    //  +---------------+
+                    pool.m_Nodes[m_LeftChild].m_Rect.x = m_Rect.x;
+                    pool.m_Nodes[m_LeftChild].m_Rect.y = height;
+                    pool.m_Nodes[m_LeftChild].m_Rect.z = m_Rect.z;
+                    pool.m_Nodes[m_LeftChild].m_Rect.w = m_Rect.w;
+
+                    pool.m_Nodes[m_RightChild].m_Rect.x = m_Rect.x;
+                    pool.m_Nodes[m_RightChild].m_Rect.y = deltaY;
+                    pool.m_Nodes[m_RightChild].m_Rect.z = m_Rect.z;
+                    pool.m_Nodes[m_RightChild].m_Rect.w = m_Rect.w + height;
+
+                    if (deltaX < 1)
+                    {
+                        pool.m_Nodes[m_LeftChild].SetIsOccupied();
+                        return m_LeftChild;
+                    }
+                    else
+                    {
+                        Int16 node = pool.m_Nodes[m_LeftChild].Allocate(pool, width, height);
+                        if (node >= 0) { pool.m_Nodes[node].SetIsOccupied(); }
+                        return node;
+                    }
                 }
-                m_LeftChild = null;
-                m_RightChild = null;
             }
 
-            public void ReleaseAndMerge()
+            public void ReleaseChildren(AtlasNodePool pool)
             {
-                AtlasNode n = this;
+                if (IsLeafNode()) { return; }
+                pool.m_Nodes[m_LeftChild].ReleaseChildren(pool);
+                pool.m_Nodes[m_RightChild].ReleaseChildren(pool);
+
+                pool.AtlasNodeFree(m_LeftChild);
+                pool.AtlasNodeFree(m_RightChild);
+                m_LeftChild = -1;
+                m_RightChild = -1;
+            }
+
+            public void ReleaseAndMerge(AtlasNodePool pool)
+            {
+                Int16 n = m_Self;
                 do
                 {
-                    n.Release();
-                    n.isOccupied = false;
-                    n = n.m_Parent;
+                    pool.m_Nodes[n].ReleaseChildren(pool);
+                    pool.m_Nodes[n].ClearIsOccupied();
+                    n = pool.m_Nodes[n].m_Parent;
                 }
-                while (n != null && n.IsMergeNeeded());
+                while (n >= 0 && pool.m_Nodes[n].IsMergeNeeded(pool));
             }
 
-            protected bool IsMergeNeeded()
+            public bool IsMergeNeeded(AtlasNodePool pool)
             {
-                return m_LeftChild.IsLeafNode() && (!m_LeftChild.isOccupied)
-                    && m_RightChild.IsLeafNode() && (!m_RightChild.isOccupied);
+                return pool.m_Nodes[m_LeftChild].IsLeafNode() && (!pool.m_Nodes[m_LeftChild].IsOccupied())
+                    && pool.m_Nodes[m_RightChild].IsLeafNode() && (!pool.m_Nodes[m_RightChild].IsOccupied());
             }
         }
 
-        private AtlasNode m_Root;
         private int m_Width;
         private int m_Height;
-        private Dictionary<int, AtlasNode> m_NodeFromID = new Dictionary<int, AtlasNode>();
+        private AtlasNodePool m_Pool;
+        private Int16 m_Root;
+        private Dictionary<int, Int16> m_NodeFromID;
 
-        public AtlasAllocatorDynamic(int width, int height)
+        public AtlasAllocatorDynamic(int width, int height, int capacityAllocations)
         {
-            m_Root = new AtlasNode(null);
-            m_Root.m_Rect.Set(width, height, 0, 0);
+            // In an evenly split binary tree, the nodeCount == leafNodeCount * 2
+            int capacityNodes = capacityAllocations * 2;
+            Debug.Assert(capacityNodes < (1 << 16));
+            m_Pool = new AtlasNodePool((Int16)capacityNodes);
+
+            m_NodeFromID = new Dictionary<int, Int16>(capacityAllocations);
+
+            Int16 rootParent = -1;
+            m_Root = m_Pool.AtlasNodeCreate(rootParent);
+            m_Pool.m_Nodes[m_Root].m_Rect.Set(width, height, 0, 0);
             m_Width = width;
             m_Height = height;
 
@@ -201,10 +274,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool Allocate(ref Vector4 result, int key, int width, int height)
         {
-            AtlasNode node = m_Root.Allocate(width, height);
-            if (node != null)
+            Int16 node = m_Pool.m_Nodes[m_Root].Allocate(m_Pool, width, height);
+            if (node >= 0)
             {
-                result = node.m_Rect;
+                result = m_Pool.m_Nodes[node].m_Rect;
                 m_NodeFromID.Add(key, node);
                 return true;
             }
@@ -217,9 +290,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Release(int key)
         {
-            if (m_NodeFromID.TryGetValue(key, out AtlasNode node))
+            if (m_NodeFromID.TryGetValue(key, out Int16 node))
             {
-                node.ReleaseAndMerge();
+                Debug.Assert(node >= 0 && node < m_Pool.m_Nodes.Length);
+                m_Pool.m_Nodes[node].ReleaseAndMerge(m_Pool);
                 m_NodeFromID.Remove(key);
                 return;
             }
@@ -227,9 +301,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Release()
         {
-            m_Root.Release();
-            m_Root = new AtlasNode(null);
-            m_Root.m_Rect.Set(m_Width, m_Height, 0, 0);
+            m_Pool.Clear();
+            m_Root = m_Pool.AtlasNodeCreate(-1);
+            m_Pool.m_Nodes[m_Root].m_Rect.Set(m_Width, m_Height, 0, 0);
             m_NodeFromID.Clear();
         }
 
@@ -240,20 +314,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return res;
         }
 
-        private void DebugStringFromNode(ref string res, AtlasNode n, int depthCurrent = 0, int depthMax = -1)
+        private void DebugStringFromNode(ref string res, Int16 n, int depthCurrent = 0, int depthMax = -1)
         {
-            res += "{[" + depthCurrent + "], isOccupied = " + (n.isOccupied ? "true" : "false") + ","  + n.m_Rect.x + "," + n.m_Rect.y + ", " + n.m_Rect.z + ", " + n.m_Rect.w + "}\n";
+            res += "{[" + depthCurrent + "], isOccupied = " + (m_Pool.m_Nodes[n].IsOccupied() ? "true" : "false") + ", self = " + m_Pool.m_Nodes[n].m_Self + ", " + m_Pool.m_Nodes[n].m_Rect.x + "," + m_Pool.m_Nodes[n].m_Rect.y + ", " + m_Pool.m_Nodes[n].m_Rect.z + ", " + m_Pool.m_Nodes[n].m_Rect.w + "}\n";
 
             if (depthMax == -1 || depthCurrent < depthMax)
             {
-                if (n.m_LeftChild != null)
+                if (m_Pool.m_Nodes[n].m_LeftChild >= 0)
                 {
-                    DebugStringFromNode(ref res, n.m_LeftChild, depthCurrent + 1, depthMax);
+                    DebugStringFromNode(ref res, m_Pool.m_Nodes[n].m_LeftChild, depthCurrent + 1, depthMax);
                 }
 
-                if (n.m_RightChild != null)
+                if (m_Pool.m_Nodes[n].m_RightChild >= 0)
                 {
-                    DebugStringFromNode(ref res, n.m_RightChild, depthCurrent + 1, depthMax);
+                    DebugStringFromNode(ref res, m_Pool.m_Nodes[n].m_RightChild, depthCurrent + 1, depthMax);
                 }
             }
         }
@@ -267,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_Height;
         private GraphicsFormat m_Format;
         private AtlasAllocatorDynamic m_AtlasAllocator = null;
-        private Dictionary<int, Vector4> m_AllocationCache = new Dictionary<int, Vector4>();
+        private Dictionary<int, Vector4> m_AllocationCache;
 
         public RTHandle AtlasTexture
         {
@@ -277,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Texture2DAtlasDynamic(int width, int height, GraphicsFormat format)
+        public Texture2DAtlasDynamic(int width, int height, int capacity, GraphicsFormat format)
         {
             m_Width = width;
             m_Height = height;
@@ -301,10 +375,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     false);
             isAtlasTextureOwner = true;
 
-            m_AtlasAllocator = new AtlasAllocatorDynamic(width, height);
+            m_AtlasAllocator = new AtlasAllocatorDynamic(width, height, capacity);
+            m_AllocationCache = new Dictionary<int, Vector4>(capacity);
         }
 
-        public Texture2DAtlasDynamic(int width, int height, RTHandle atlasTexture)
+        public Texture2DAtlasDynamic(int width, int height, int capacity, RTHandle atlasTexture)
         {
             m_Width = width;
             m_Height = height;
@@ -312,7 +387,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AtlasTexture = atlasTexture;
             isAtlasTextureOwner = false;
 
-            m_AtlasAllocator = new AtlasAllocatorDynamic(width, height);
+            m_AtlasAllocator = new AtlasAllocatorDynamic(width, height, capacity);
         }
 
         public void Release()
