@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty antiAliasingMode;
         internal SerializedProperty antiAliasingSMAAQuality;
         internal SerializedProperty antiAliasingTAASharpenStrength;
+        internal SerializedProperty postProcessesDithering;
 
         internal SerializedCameraSettings(SerializedProperty root)
         {
@@ -73,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             antiAliasingMode = root.FindPropertyRelative("antiAliasing.mode");
             antiAliasingSMAAQuality = root.FindPropertyRelative("antiAliasing.SMAAQuality");
             antiAliasingTAASharpenStrength = root.FindPropertyRelative("antiAliasing.TAASharpenStrength");
+            postProcessesDithering = root.FindPropertyRelative("postProcesses.dithering");
         }
     }
 }

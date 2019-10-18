@@ -27,7 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
         probeLayerMask = 1 << 18,
         antiAliasingMode = 1 << 19,
         antiAliasingSMAAQuality = 1 << 20,
-        antiAliasingTAASharpenStrength = 1 << 21
+        antiAliasingTAASharpenStrength = 1 << 21,
+        postProcessesDithering = 1 << 22
     }
 
     [Serializable]
@@ -181,6 +182,23 @@ namespace UnityEngine.Rendering.HighDefinition
             public LayerMask cullingMask;
         }
 
+        /// <summary>Describe post processes options.</summary>
+        [Serializable]
+        public struct PostProcesses
+        {
+            public static readonly PostProcesses @default = new PostProcesses
+            {
+                dithering = true
+            };
+
+            /// <summary>
+            /// <c>true</c> when dithering is allowed for this rendering.
+            ///
+            /// Note that the frame setting must also allow the dithering to have it enabled during the rendering.
+            /// </summary>
+            public bool dithering;
+        }
+
         /// <summary>Default value.</summary>
         public static readonly CameraSettings @default = new CameraSettings
         {
@@ -192,7 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes = Volumes.@default,
             flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
             invertFaceCulling = false,
-            probeLayerMask = ~0
+            probeLayerMask = ~0,
+            postProcesses = PostProcesses.@default
         };
 
         public static CameraSettings From(HDCamera hdCamera)
@@ -266,6 +285,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public FrameSettingsRenderType defaultFrameSettings;
         /// <summary>AntiAliasing algorithm and parameters.</summary>
         public AntiAliasing antiAliasing;
+        /// <summary>Post processes options.</summary>
+        public PostProcesses postProcesses;
 
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;

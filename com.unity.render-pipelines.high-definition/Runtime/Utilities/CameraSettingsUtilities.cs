@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             add.antialiasing = settings.antiAliasing.mode;
             add.taaSharpenStrength = settings.antiAliasing.TAASharpenStrength;
             add.SMAAQuality = settings.antiAliasing.SMAAQuality;
+            // Post processes
+            add.dithering = settings.postProcesses.dithering;
         }
 
         /// <summary>Applies <paramref name="settings"/> to <paramref name="cam"/>.</summary>

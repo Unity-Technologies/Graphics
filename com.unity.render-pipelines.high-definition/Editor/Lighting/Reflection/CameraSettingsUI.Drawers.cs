@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             const CameraSettingsFields antiAliasing = CameraSettingsFields.antiAliasingMode
                 | CameraSettingsFields.antiAliasingSMAAQuality
                 | CameraSettingsFields.antiAliasingTAASharpenStrength;
+            const CameraSettingsFields postProcesses = CameraSettingsFields.postProcessesDithering;
 
             if ((displayedFields.camera & bufferFields) != 0)
             {
@@ -100,6 +101,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.antiAliasingSMAAQuality, serialized.antiAliasingSMAAQuality, EditorGUIUtility.TrTextContent("Quality Preset"), @override.camera, displayedFields.camera, overridableFields.camera, indent: 1);
                         break;
                 }
+            }
+
+            if ((displayedFields.camera & postProcesses) != 0)
+            {
+                PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.postProcessesDithering, serialized.postProcessesDithering, EditorGUIUtility.TrTextContent("Dithering"), @override.camera, displayedFields.camera, overridableFields.camera);
             }
 
             PropertyFieldWithFlagToggleIfDisplayed(CameraSettingsFields.customRenderingSettings, serialized.customRenderingSettings, EditorGUIUtility.TrTextContent("Custom Frame Settings"), @override.camera, displayedFields.camera, overridableFields.camera);
