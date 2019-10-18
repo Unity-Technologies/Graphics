@@ -83,9 +83,9 @@ namespace UnityEngine.Rendering.HighDefinition
             this.distanceFadeStart = 10000.0f;
             this.distanceFadeEnd = 10000.0f;
             this.scaleBias = Vector4.zero;
-            this.resolutionX = 0;
-            this.resolutionY = 0;
-            this.resolutionZ = 0;
+            this.resolutionX = 4;
+            this.resolutionY = 4;
+            this.resolutionZ = 4;
             this.weight = 1;
         }
 
@@ -93,6 +93,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             this.distanceFadeStart = Mathf.Max(0, this.distanceFadeStart);
             this.distanceFadeEnd = Mathf.Max(this.distanceFadeStart, this.distanceFadeEnd);
+
+            this.resolutionX = Mathf.Max(1, this.resolutionX);
+            this.resolutionY = Mathf.Max(1, this.resolutionY);
+            this.resolutionZ = Mathf.Max(1, this.resolutionZ);
         }
 
         public ProbeVolumeEngineData ConvertToEngineData()
