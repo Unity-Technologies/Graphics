@@ -387,7 +387,7 @@ namespace UnityEditor.VFX.UI
             m_LockedElement.style.unityTextAlign = TextAnchor.MiddleCenter;
             m_LockedElement.style.fontSize = new StyleLength(72f);
             m_LockedElement.style.color = Color.white * 0.75f;
-            m_LockedElement.style.display = DisplayStyle.none;
+            m_LockedElement.style.display = DisplayStyle.None;
 
 
             m_Blackboard = new VFXBlackboard(this);
