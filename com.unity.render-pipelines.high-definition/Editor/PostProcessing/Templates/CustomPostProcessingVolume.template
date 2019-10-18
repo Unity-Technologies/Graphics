@@ -30,7 +30,7 @@ public sealed class #SCRIPTNAME# : CustomPostProcessVolumeComponent, IPostProces
 
         m_Material.SetFloat("_Intensity", intensity.value);
         m_Material.SetTexture("_InputTexture", source);
-        HDUtils.DrawFullScreen(cmd, camera, m_Material, destination);
+        HDUtils.DrawFullScreen(cmd, m_Material, destination);
     }
 
     public override void Cleanup()
