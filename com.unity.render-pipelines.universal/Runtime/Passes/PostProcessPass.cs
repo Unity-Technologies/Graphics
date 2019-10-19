@@ -332,7 +332,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (bloomActive)
                 {
                     using (new ProfilingSample(cmd, "Bloom"))
-                        SetupBloom(cmd, GetSource(), m_Materials.uber);
+                        SetupBloom(cmd, GetSource(), m_Materials.uber, ref cameraData);
                 }
 
                 // Setup other effects constants
@@ -357,31 +357,31 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetRenderTarget(m_Destination.Identifier(), colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                if (m_IsStereo)
+                if (renderingData.cameraData.isPureURPCamera)
                 {
-                    Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
+                    Matrix4x4 projMatrix;
+                    Matrix4x4 viewMatrix;
+                    projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
+                    viewMatrix = Matrix4x4.identity;
+                    Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                    Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                    if (m_Destination == RenderTargetHandle.CameraTarget)
+                        cmd.SetViewport(cameraData.camera.pixelRect);
+
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
                 }
                 else
                 {
-                    if (renderingData.cameraData.isPureURPCamera)
+                    if (m_IsStereo)
                     {
-                        Matrix4x4 projMatrix;
-                        Matrix4x4 viewMatrix;
-                        projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
-                        viewMatrix = Matrix4x4.identity;
-                        Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                        Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-
-                        if (m_Destination == RenderTargetHandle.CameraTarget)
-                            cmd.SetViewport(cameraData.camera.pixelRect);
-
-                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+                        Blit(cmd, GetSource(), BuiltinRenderTextureType.CurrentActive, m_Materials.uber);
                     }
                     else
                     {
@@ -393,7 +393,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                     }
                 }
-
                 // Cleanup
                 if (bloomActive)
                     cmd.ReleaseTemporaryRT(ShaderConstants._BloomMipUp[0]);
@@ -842,7 +841,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Bloom
 
-        void SetupBloom(CommandBuffer cmd, int source, Material uberMaterial)
+        void SetupBloom(CommandBuffer cmd, int source, Material uberMaterial, ref CameraData cameraData)
         {
             // Start at half-res
             int tw = m_Descriptor.width >> 1;
@@ -869,41 +868,109 @@ namespace UnityEngine.Rendering.Universal.Internal
             var desc = GetStereoCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
             cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], desc, FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], desc, FilterMode.Bilinear);
-            cmd.Blit(source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
 
-            // Downsample - gaussian pyramid
-            int lastDown = ShaderConstants._BloomMipDown[0];
-            for (int i = 1; i < mipCount; i++)
+            if (cameraData.isPureURPCamera)
             {
-                tw = Mathf.Max(1, tw >> 1);
-                th = Mathf.Max(1, th >> 1);
-                int mipDown = ShaderConstants._BloomMipDown[i];
-                int mipUp = ShaderConstants._BloomMipUp[i];
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
 
-                desc.width = tw;
-                desc.height = th;
+                cmd.SetRenderTarget(ShaderConstants._BloomMipDown[0], RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, bloomMaterial, 0, 0);
 
-                cmd.GetTemporaryRT(mipDown, desc, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(mipUp, desc, FilterMode.Bilinear);
+                // Downsample - gaussian pyramid
+                int lastDown = ShaderConstants._BloomMipDown[0];
+                for (int i = 1; i < mipCount; i++)
+                {
+                    tw = Mathf.Max(1, tw >> 1);
+                    th = Mathf.Max(1, th >> 1);
+                    int mipDown = ShaderConstants._BloomMipDown[i];
+                    int mipUp = ShaderConstants._BloomMipUp[i];
 
-                // Classic two pass gaussian blur - use mipUp as a temporary target
-                //   First pass does 2x downsampling + 9-tap gaussian
-                //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
-                cmd.Blit(lastDown, mipUp, bloomMaterial, 1);
-                cmd.Blit(mipUp, mipDown, bloomMaterial, 2);
-                lastDown = mipDown;
+                    desc.width = tw;
+                    desc.height = th;
+
+                    cmd.GetTemporaryRT(mipDown, desc, FilterMode.Bilinear);
+                    cmd.GetTemporaryRT(mipUp, desc, FilterMode.Bilinear);
+
+                    // Classic two pass gaussian blur - use mipUp as a temporary target
+                    //   First pass does 2x downsampling + 9-tap gaussian
+                    //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
+                    // 1st Pass
+                    cmd.SetRenderTarget(mipUp, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                    cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), lastDown);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, bloomMaterial, 0, 1);
+                    // 2nd Pass
+                    cmd.SetRenderTarget(mipDown, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                    cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), mipUp);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, bloomMaterial, 0, 2);
+
+                    lastDown = mipDown;
+                }
+
+                // Upsample (bilinear by default, HQ filtering does bicubic instead
+                for (int i = mipCount - 2; i >= 0; i--)
+                {
+                    int lowMip = (i == mipCount - 2) ? ShaderConstants._BloomMipDown[i + 1] : ShaderConstants._BloomMipUp[i + 1];
+                    int highMip = ShaderConstants._BloomMipDown[i];
+                    int dst = ShaderConstants._BloomMipUp[i];
+
+                    cmd.SetGlobalTexture(ShaderConstants._MainTexLowMip, lowMip);
+
+                    cmd.SetRenderTarget(dst, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                    cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), highMip);
+                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, bloomMaterial, 0, 3);
+                }
+            }
+            else
+            {
+                cmd.Blit(source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
+
+                // Downsample - gaussian pyramid
+                int lastDown = ShaderConstants._BloomMipDown[0];
+                for (int i = 1; i < mipCount; i++)
+                {
+                    tw = Mathf.Max(1, tw >> 1);
+                    th = Mathf.Max(1, th >> 1);
+                    int mipDown = ShaderConstants._BloomMipDown[i];
+                    int mipUp = ShaderConstants._BloomMipUp[i];
+
+                    desc.width = tw;
+                    desc.height = th;
+
+                    cmd.GetTemporaryRT(mipDown, desc, FilterMode.Bilinear);
+                    cmd.GetTemporaryRT(mipUp, desc, FilterMode.Bilinear);
+
+                    // Classic two pass gaussian blur - use mipUp as a temporary target
+                    //   First pass does 2x downsampling + 9-tap gaussian
+                    //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
+                    cmd.Blit(lastDown, mipUp, bloomMaterial, 1);
+                    cmd.Blit(mipUp, mipDown, bloomMaterial, 2);
+                    lastDown = mipDown;
+                }
+
+                // Upsample (bilinear by default, HQ filtering does bicubic instead
+                for (int i = mipCount - 2; i >= 0; i--)
+                {
+                    int lowMip = (i == mipCount - 2) ? ShaderConstants._BloomMipDown[i + 1] : ShaderConstants._BloomMipUp[i + 1];
+                    int highMip = ShaderConstants._BloomMipDown[i];
+                    int dst = ShaderConstants._BloomMipUp[i];
+
+                    cmd.SetGlobalTexture(ShaderConstants._MainTexLowMip, lowMip);
+                    cmd.Blit(highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, 3);
+                }
             }
 
-            // Upsample (bilinear by default, HQ filtering does bicubic instead
-            for (int i = mipCount - 2; i >= 0; i--)
-            {
-                int lowMip = (i == mipCount - 2) ? ShaderConstants._BloomMipDown[i + 1] : ShaderConstants._BloomMipUp[i + 1];
-                int highMip = ShaderConstants._BloomMipDown[i];
-                int dst = ShaderConstants._BloomMipUp[i];
-
-                cmd.SetGlobalTexture(ShaderConstants._MainTexLowMip, lowMip);
-                cmd.Blit(highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, 3);
-            }
 
             // Cleanup
             for (int i = 0; i < mipCount; i++)
