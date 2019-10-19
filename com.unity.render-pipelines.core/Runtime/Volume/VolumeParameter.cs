@@ -636,6 +636,7 @@ namespace UnityEngine.Rendering
         // TODO: RenderTexture interpolation
     }
 
+
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public class NoInterpRenderTextureParameter : VolumeParameter<RenderTexture>
     {
@@ -730,5 +731,12 @@ namespace UnityEngine.Rendering
             : base(value, overrideState) {}
 
         // TODO: Curve interpolation
+    }
+
+     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public class MaterialParameter : VolumeParameter<Material>
+    {
+        public MaterialParameter(Material value, bool overrideState = false)
+            : base(value, overrideState) {}
     }
 }

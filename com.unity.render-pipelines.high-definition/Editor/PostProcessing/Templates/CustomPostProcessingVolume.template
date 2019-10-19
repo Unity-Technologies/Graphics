@@ -8,33 +8,23 @@ using UnityEngine.Experimental.Rendering;
 [Serializable, VolumeComponentMenu("Post-processing/Custom/#NAME#")]
 public sealed class #SCRIPTNAME# : CustomPostProcessVolumeComponent, IPostProcessComponent
 {
-    [Tooltip("Controls the intensity of the effect.")]
-    public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
+    public MaterialParameter m_MaterialParameter = new MaterialParameter(null);
 
-    Material m_Material;
-
-    public bool IsActive() => m_Material != null && intensity.value > 0f;
+    public bool IsActive() => m_MaterialParameter.value != null;
 
     public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
 
-    public override void Setup()
-    {
-        if (Shader.Find("Hidden/Shader/#SCRIPTNAME#") != null)
-            m_Material = new Material(Shader.Find("Hidden/Shader/#SCRIPTNAME#"));
-    }
-
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination)
     {
-        if (m_Material == null)
+        if (m_MaterialParameter.value == null)
             return;
 
-        m_Material.SetFloat("_Intensity", intensity.value);
-        m_Material.SetTexture("_InputTexture", source);
-        HDUtils.DrawFullScreen(cmd, m_Material, destination);
+        m_MaterialParameter.value.SetTexture("_InputTexture", source);
+        HDUtils.DrawFullScreen(cmd, m_MaterialParameter.value, destination);
     }
 
     public override void Cleanup()
     {
-        CoreUtils.Destroy(m_Material);
+        CoreUtils.Destroy(m_MaterialParameter.value);
     }
 }
