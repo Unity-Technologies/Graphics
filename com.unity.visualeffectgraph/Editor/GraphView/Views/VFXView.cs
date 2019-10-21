@@ -284,14 +284,18 @@ namespace UnityEditor.VFX.UI
             return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
+        SelectionDragger m_SelectionDragger;
+        RectangleSelector m_RectangleSelector;
+
         public VFXView()
         {
             SetupZoom(0.125f, 8);
 
-            //this.AddManipulator(new SelectionSetter(this));
             this.AddManipulator(new ContentDragger());
-            this.AddManipulator(new SelectionDragger());
-            this.AddManipulator(new RectangleSelector());
+            m_SelectionDragger = new SelectionDragger();
+            m_RectangleSelector = new RectangleSelector();
+            this.AddManipulator(m_SelectionDragger);
+            this.AddManipulator(m_RectangleSelector);
             this.AddManipulator(new FreehandSelector());
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
@@ -388,6 +392,9 @@ namespace UnityEditor.VFX.UI
             m_LockedElement.style.fontSize = new StyleLength(72f);
             m_LockedElement.style.color = Color.white * 0.75f;
             m_LockedElement.style.display = DisplayStyle.None;
+            m_LockedElement.focusable = true;
+            //m_LockedElement.RegisterCallback<MouseDownEvent>(e => e.StopPropagation());
+            m_LockedElement.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
 
 
             m_Blackboard = new VFXBlackboard(this);
@@ -685,9 +692,24 @@ namespace UnityEditor.VFX.UI
         public void OnFocus()
         {
             if (controller != null && controller.model.asset != null && !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
-                m_LockedElement.style.display = DisplayStyle.Flex;
+            {
+                if (m_LockedElement.style.display != DisplayStyle.Flex)
+                {
+                    m_LockedElement.style.display = DisplayStyle.Flex;
+                    this.RemoveManipulator(m_SelectionDragger);
+                    this.RemoveManipulator(m_RectangleSelector);
+                }
+
+            }
             else
-                m_LockedElement.style.display = DisplayStyle.None;
+            {
+                if (m_LockedElement.style.display != DisplayStyle.None)
+                {
+                    m_LockedElement.style.display = DisplayStyle.None;
+                    this.AddManipulator(m_SelectionDragger);
+                    this.AddManipulator(m_RectangleSelector);
+                }
+            }
 
         }
 
