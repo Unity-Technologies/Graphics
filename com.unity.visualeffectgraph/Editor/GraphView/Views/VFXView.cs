@@ -677,7 +677,7 @@ namespace UnityEditor.VFX.UI
                 m_NoAssetLabel.RemoveFromHierarchy();
                 m_Toolbar.SetEnabled(true);
 
-                m_LockedElement.style.display = !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible) ? DisplayStyle.None: DisplayStyle.Flex;
+                m_LockedElement.style.display = AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible) ? DisplayStyle.None: DisplayStyle.Flex;
             }
             else
             {
@@ -698,6 +698,7 @@ namespace UnityEditor.VFX.UI
                     m_LockedElement.style.display = DisplayStyle.Flex;
                     this.RemoveManipulator(m_SelectionDragger);
                     this.RemoveManipulator(m_RectangleSelector);
+                    m_LockedElement.Focus();
                 }
 
             }
