@@ -28,18 +28,16 @@ Surface options control the overall look of your Material's surface and how Unit
 | **- Render Pass** | Use the drop-down to set the rendering pass that HDRP processes this Material in. For information on this property, see the [Surface Type documentation](Surface-Type.html). |
 | **Double-Sided**   | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the  list of properties enabling this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
 
-
 ### Shadow
 
 | Property| Description |
 |:---|:---|
-| **Color** | The texture and base color of the Material. The RGB values define the color and the alpha channel defines the opacity. If you set a texture to this field, HDRP multiplies the texture by the color. If you do not set a texture in this field then HDRP only uses the base color to draw Meshes that use this Material.|
+| **Shadow** | The texture and Shadow Tint of the surface. The RGB values define the color and the alpha channel defines the opacity. If you set a texture to this field. If you do not set a texture in this field then HDRP only uses the color to cast shadow with this color.|
 | **- Tiling** | HDRP uses the **X** and **Y** values of this property to tile the texture from the **Color** property on the object space x-axis and y-axis respectively. |
 | **- Offset** | HDRP uses the **X** and **Y** values of this property to offset the texture from the **Color** property on the object space x-axis and y-axis respectively. |
 | **- Point Light Shadow** | HDRP uses value of this property set if this surface receive of not the shadow from the point lights. |
 | **- Directional Light Shadow** | HDRP uses value of this property set if this surface receive of not the shadow from the directional light. |
 | **- Area Light Shadow** | HDRP uses value of this property set if this surface receive of not the shadow from the area lights. |
-
 
 ### Surface Inputs
 
