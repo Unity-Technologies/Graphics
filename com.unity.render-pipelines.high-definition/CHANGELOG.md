@@ -95,6 +95,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with screen space shadows fallback texture was not set as a texture array.
 - Fixed Pyramid Lights bounding box
 - Fixed terrain heightmap default/null values and epsilons
+- Fixed XR single-pass rendering in Editor by using ShaderConfig.s_XrMaxViews to allocate matrix array
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
