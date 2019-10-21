@@ -68,7 +68,7 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
 
-#define SUPPORTS_RAYTRACED_AREA_SHADOWS (SHADEROPTIONS_RAYTRACING && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING))
+#define SUPPORTS_RAYTRACED_AREA_SHADOWS (RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING))
 
 // It is safe to include this file after the G-Buffer macros above.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialGBufferMacros.hlsl"
