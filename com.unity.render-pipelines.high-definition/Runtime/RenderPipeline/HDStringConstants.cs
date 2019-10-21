@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingNumSamples            = Shader.PropertyToID("_RaytracingNumSamples");
         public static readonly int _RaytracingSampleIndex           = Shader.PropertyToID("_RaytracingSampleIndex");
         public static readonly int _RaytracingRayMaxLength          = Shader.PropertyToID("_RaytracingRayMaxLength");
-        public static readonly int _PixelSpreadAngle                = Shader.PropertyToID("_PixelSpreadAngle");
+        public static readonly int _PixelSpreadAngleTangent         = Shader.PropertyToID("_PixelSpreadAngleTangent");
         public static readonly int _RaytracingFrameIndex            = Shader.PropertyToID("_RaytracingFrameIndex");
         public static readonly int _RaytracingPixelSpreadAngle      = Shader.PropertyToID("_RaytracingPixelSpreadAngle");
         public static readonly string _RaytracingAccelerationStructureName          = "_RaytracingAccelerationStructure";

@@ -94,8 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameCount);
 
             // Compute an approximate pixel spread angle value (in radians)
-            float pixelSpreadAngle = hdCamera.camera.fieldOfView * (Mathf.PI / 180.0f) / Mathf.Min(hdCamera.actualWidth, hdCamera.actualHeight);
-            cmd.SetRayTracingFloatParam(pathTracingShader, HDShaderIDs._RaytracingPixelSpreadAngle, pixelSpreadAngle);
+            cmd.SetRayTracingFloatParam(pathTracingShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
             // LightLoop data
             cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());

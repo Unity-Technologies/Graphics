@@ -91,8 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
 
             // Compute the pixel spread value
-            float pixelSpreadAngle = Mathf.Atan(2.0f * Mathf.Tan(hdCamera.camera.fieldOfView * Mathf.PI / 360.0f) / Mathf.Min(hdCamera.actualWidth, hdCamera.actualHeight));
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, pixelSpreadAngle);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
             // Bind the lightLoop data
             lightCluster.BindLightClusterData(cmd);
