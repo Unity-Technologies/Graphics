@@ -1,18 +1,27 @@
 #ifndef UNITY_HD_SHADOW_LOOP_HLSL
 #define UNITY_HD_SHADOW_LOOP_HLSL
 
+//#define SHADOW_LOOP_MULTIPLY
+//#define SHADOW_LOOP_AVERAGE
+
 void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, float3 normalWS, uint featureFlags, uint renderLayer,
-                        out float shadow)
+                        out float3 shadow)
 {
-    shadow = 1.0f;
+    float weight = 0.0f;
     float shadowCount = 0.0f;
+#ifdef SHADOW_LOOP_MULTIPLY
+    shadow = float3(1, 1, 1);
+#elif defined(SHADOW_LOOP_AVERAGE)
+    shadow = 0;
+#else
+    shadow = float3(1, 1, 1);
+#endif
 
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
     ApplyCameraRelativeXR(posInput.positionWS);
 
     // Initialize the contactShadow and contactShadowFade fields
-    //InitContactShadow(posInput, context);
 
     // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
@@ -26,17 +35,20 @@ void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, floa
             float3 wi = -light.forward;
 
             // Is it worth sampling the shadow map?
-            if ((light.lightDimmer > 0) && (light.shadowDimmer > 0)
-                //&& // Note: Volumetric can have different dimmer, thus why we test it here
-                //IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
-                //!ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex)
-                )
+            if (light.lightDimmer > 0 && light.shadowDimmer > 0)
             {
                 float shadowD = GetDirectionalShadowAttenuation(shadowContext,
                                                                 posInput.positionSS, posInput.positionWS, normalWS,
                                                                 light.shadowIndex, wi);
-                shadow = min(shadow, shadowD);
+#ifdef SHADOW_LOOP_MULTIPLY
+                shadow *= lerp(light.shadowTint, float3(1, 1, 1), shadowD);
+#elif defined(SHADOW_LOOP_AVERAGE)
+                shadow += lerp(light.shadowTint, float3(1, 1, 1), shadowD);
+#else
+                shadow = min(shadow, shadowD.xxx);
+#endif
                 shadowCount += 1.0f;
+                weight += 1.0f - shadowD;
             }
         }
     }
@@ -88,14 +100,20 @@ void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, floa
                 v_lightListOffset++;
                 if (IsMatchingLightLayer(s_lightData.lightLayers, renderLayer))
                 {
-                    //DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, s_lightData, bsdfData, builtinData);
-                    //AccumulateDirectLighting(lighting, aggregateLighting);
                     float3 wi;
                     float4 distances; // {d, d^2, 1/d, d_proj}
                     GetPunctualLightVectors(posInput.positionWS, s_lightData, wi, distances);
                     float shadowP = GetPunctualShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, s_lightData.shadowIndex, wi, distances.x, s_lightData.lightType == GPULIGHTTYPE_POINT, s_lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
-                    shadow = min(shadow, shadowP);
+
+#ifdef SHADOW_LOOP_MULTIPLY
+                    shadow *= lerp(s_lightData.shadowTint, float3(1, 1, 1), shadowP);
+#elif defined(SHADOW_LOOP_AVERAGE)
+                    shadow += lerp(s_lightData.shadowTint, float3(1, 1, 1), shadowP);
+#else
+                    shadow = min(shadow, shadowP.xxx);
+#endif
                     shadowCount += 1.0f;
+                    weight += 1.0f - shadowP;
                 }
             }
         }
@@ -137,14 +155,40 @@ void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, floa
                 if (IsMatchingLightLayer(lightData.lightLayers, renderLayer))
                 {
                     float shadowA = GetAreaLightAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
-                    shadow = min(shadow, shadowA);
+
+#ifdef SHADOW_LOOP_MULTIPLY
+                    shadow *= lerp(lightData.shadowTint, float3(1, 1, 1), shadowA);
+#elif defined(SHADOW_LOOP_AVERAGE)
+                    shadow += lerp(lightData.shadowTint, float3(1, 1, 1), shadowA);
+#else
+                    shadow = min(shadow, shadowA.xxx);
+#endif
                     shadowCount += 1.0f;
+                    weight += 1.0f - shadowA;
                 }
 
                 lightData = FetchLight(lightStart, min(++i, last));
             }
         }
     }
+#ifdef SHADOW_LOOP_MULTIPLY
+    if (shadowCount == 0.0f)
+    {
+        shadow = float3(1, 1, 1);
+    }
+#elif defined(SHADOW_LOOP_AVERAGE)
+    if (shadowCount > 0.0f)
+    {
+        shadow /= shadowCount;
+    }
+    else
+    {
+        shadow = float3(1, 1, 1);
+    }
+#else
+    //  shadow = (1.0f - saturate(shadowCount)).xxx;
+    //shadow = (1.0f - saturate(weight)).xxx;
+#endif
 }
 
 #endif

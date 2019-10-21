@@ -54,6 +54,7 @@
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
     * [Unlit Shader](Unlit-Shader)
+    * [Shadow Matte](ShadowMatte-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
     * [Hair](Master-Node-Hair)

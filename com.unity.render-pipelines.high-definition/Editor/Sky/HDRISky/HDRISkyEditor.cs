@@ -98,10 +98,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Color hdriIntensity = m_ReadBackTexture.GetPixel(0, 0);
             m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.a;
             float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
-            if (max == 0.0f)
+            //if (max == 0.0f)
                 max = 1.0f;
             m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
-            m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Neutral Grey
+            //m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Neutral Grey
         }
 
         public override void OnInspectorGUI()

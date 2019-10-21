@@ -12,9 +12,16 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class ShadowMatteGUI : HDShaderGUI
     {
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
+            ^ SurfaceOptionUIBlock.Features.AlphaCutoff
+            ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
+            ^ SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold;
+
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
             new ShadowMatteUIBlock(MaterialUIBlock.Expandable.Input),
+            new UnlitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity)
         };
@@ -44,24 +51,19 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();
 
-            CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", true);
-
-            Shader.EnableKeyword("SHADOW_HIGH");
-
             var mainTex = material.GetTexture(ShadowMatteUIBlock.kColorMap);
             material.SetTexture("_ShadowTintMap", mainTex);
             Color color = material.GetColor(ShadowMatteUIBlock.kColor);
             material.SetColor("_ShadowTint", color);
-            float shadowFilterPoint  = material.GetFloat(ShadowMatteUIBlock.kShadowFilterPoint);
-            float shadowFilterDir    = material.GetFloat(ShadowMatteUIBlock.kShadowFilterDir);
-            float shadowFilterRect   = material.GetFloat(ShadowMatteUIBlock.kShadowFilterRect);
-            //uint shadowFilter = 0u;
+            int shadowFilterPoint  = material.GetInt(ShadowMatteUIBlock.kShadowFilterPoint);
+            int shadowFilterDir    = material.GetInt(ShadowMatteUIBlock.kShadowFilterDir);
+            int shadowFilterRect   = material.GetInt(ShadowMatteUIBlock.kShadowFilterArea);
             uint finalFlag = 0x00000000;
-            if (shadowFilterPoint == 1.0f)
+            if (shadowFilterPoint == 1)
                 finalFlag |= unchecked((uint)LightFeatureFlags.Punctual);
-            if (shadowFilterDir == 1.0f)
+            if (shadowFilterDir == 1)
                 finalFlag |= unchecked((uint)LightFeatureFlags.Directional);
-            if (shadowFilterRect == 1.0f)
+            if (shadowFilterRect == 1)
                 finalFlag |= unchecked((uint)LightFeatureFlags.Area);
             material.SetInt("_ShadowFilter", unchecked((int)finalFlag));
         }

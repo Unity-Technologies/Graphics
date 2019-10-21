@@ -6,12 +6,13 @@ Shader "HDRP/ShadowMatte"
         [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
         _ShadowFilterPoint("_ShadowFilterPoint", Int) = 0
-        _ShadowFilterDir("_ShadowFilterDir", Int) = 0
-        _ShadowFilterRect("_ShadowFilterRect", Int) = 0
+        _ShadowFilterDir("_ShadowFilterDir", Int) = 1
+        _ShadowFilterArea("_ShadowFilterArea", Int) = 0
+        _ShadowFilter("_ShadowFilter", Int) = 16384
         _ShadowTint("Color", Color) = (0,0,0,1)
         _ShadowTintMap("ColorMap", 2D) = "white" {}
         // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
-        _UnlitColor("Color", Color) = (1,1,1,1)
+        _UnlitColor("Color", Color) = (1,1,1,0)
         _UnlitColorMap("ColorMap", 2D) = "white" {}
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
@@ -48,7 +49,7 @@ Shader "HDRP/ShadowMatte"
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
         // Blending state
-        [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
+        [HideInInspector] _SurfaceType("__surfacetype", Float) = 1.0
         [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
@@ -105,13 +106,12 @@ Shader "HDRP/ShadowMatte"
     // Variant
     //-------------------------------------------------------------------------------------
 
-    #pragma shader_feature_local _ALPHATEST_ON
-    // #pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
+    //#pragma shader_feature_local _ALPHATEST_ON
+    //#pragma shader_feature_local _DOUBLESIDED_ON - We have no lighting, so no need to have this combination for shader, the option will just disable backface culling
 
-    #pragma shader_feature_local _EMISSIVE_COLOR_MAP
+    //#pragma shader_feature_local _EMISSIVE_COLOR_MAP // Disable Emissive Color
 
     // Keyword for transparent
-    #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
@@ -261,20 +261,22 @@ Shader "HDRP/ShadowMatte"
             ENDHLSL
         }
 
+        // TODO: add GBuffer pass to Output Normal & Write on the Z to have AO
+
         // Unlit shader always render in forward
         Pass
         {
             Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
 
-            Blend One OneMinusSrcAlpha
-            ZWrite [_ZWrite]
-            ZTest [_ZTestDepthEqualForOpaque]
+            Blend[_SrcBlend][_DstBlend],[_AlphaSrcBlend][_AlphaDstBlend]
+            ZWrite[_ZWrite]
+            ZTest[_ZTestDepthEqualForOpaque]
 
             Stencil
             {
-                WriteMask[_StencilWriteMask]
-                Ref[_StencilRef]
+                WriteMask [_StencilWriteMaskMV]
+                Ref [_StencilRefMV]
                 Comp Always
                 Pass Replace
             }
@@ -286,6 +288,7 @@ Shader "HDRP/ShadowMatte"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile _ _SURFACE_TYPE_TRANSPARENT
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -296,7 +299,7 @@ Shader "HDRP/ShadowMatte"
 
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
 
-            #define HAS_LIGHTLOOP
+            //#define HAS_LIGHTLOOP
 
             #ifdef DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -412,34 +415,9 @@ Shader "HDRP/ShadowMatte"
         }
     }
 
+    /*
     SubShader
     {
-        Pass
-        {
-            Name "IndirectDXR"
-            Tags{ "LightMode" = "IndirectDXR" }
-
-            HLSLPROGRAM
-
-            #pragma raytracing test
-
-            #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl"
-
-            ENDHLSL
-        }
-
         Pass
         {
             Name "ForwardDXR"
@@ -461,65 +439,6 @@ Shader "HDRP/ShadowMatte"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "GBufferDXR"
-            Tags{ "LightMode" = "GBufferDXR" }
-
-            HLSLPROGRAM
-
-            #pragma raytracing test
-
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-
-            #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "VisibilityDXR"
-            Tags{ "LightMode" = "VisibilityDXR" }
-
-            HLSLPROGRAM
-
-            #pragma raytracing test
-
-            #define SHADOW_LOW
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl"
 
             ENDHLSL
         }
@@ -552,6 +471,7 @@ Shader "HDRP/ShadowMatte"
             ENDHLSL
         }
     }
+    */
 
     CustomEditor "Rendering.HighDefinition.ShadowMatteGUI"
 }

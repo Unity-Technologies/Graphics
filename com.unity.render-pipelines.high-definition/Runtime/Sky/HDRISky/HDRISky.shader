@@ -127,26 +127,36 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         }
     }
 
-    bool IsBackplateHit(out float3 positionOnBackplatePlane, float3 dir)
+    void IsBackplateCommon(out float sdf, out float localScale, out float3 positionOnBackplatePlane, float3 dir)
     {
         positionOnBackplatePlane = GetPositionOnInfinitePlane(dir);
 
-        float localScale;
-        float sdf = GetSDF(localScale, positionOnBackplatePlane.xz);
+        sdf = GetSDF(localScale, positionOnBackplatePlane.xz);
+    }
 
-        return sdf < 0.0f && dir.y < 0.0f && _WorldSpaceCameraPos.y > _GroundLevel;
+    bool IsHit(float sdf, float dirY)
+    {
+        return sdf < 0.0f && dirY < 0.0f && GetPrimaryCameraPosition().y > _GroundLevel;
+    }
+
+    bool IsBackplateHit(out float3 positionOnBackplatePlane, float3 dir)
+    {
+        float sdf;
+        float localScale;
+        IsBackplateCommon(sdf, localScale, positionOnBackplatePlane, dir);
+
+        return IsHit(sdf, dir.y);
     }
 
     bool IsBackplateHitWithBlend(out float3 positionOnBackplatePlane, out float blend, float3 dir)
     {
-        positionOnBackplatePlane = GetPositionOnInfinitePlane(dir);
-
+        float sdf;
         float localScale;
-        float sdf = GetSDF(localScale, positionOnBackplatePlane.xz);
+        IsBackplateCommon(sdf, localScale, positionOnBackplatePlane, dir);
 
         blend = smoothstep(0.0f, localScale*_BlendAmount, max(-sdf, 0));
 
-        return sdf < 0.0f && dir.y < 0.0f && _WorldSpaceCameraPos.y > _GroundLevel;
+        return IsHit(sdf, dir.y);
     }
 
     float3 GetSkyColor(float3 dir)
@@ -180,15 +190,20 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float3 offset = RotationUp(float3(_OffsetTexX, 0, _OffsetTexY), _CosSinPhiPlate);
         float3 dir = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0) + offset; // No need for normalization
 
-        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
-        ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), _ShadowFilter, 0xFFFFFFFF, shadow);
+        // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+        uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+        float3 shadow3;
+        ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), _ShadowFilter, renderingLayers, shadow3);
+        shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
 
         float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint);
+        //float3 shadowColor = shadow3; // TODO: future use the ShadowTint from Light cf. HDShadowLoop.hlsl defines
 
-        float3 output = lerp(GetColorWithRotation(originalDir, exposure, _CosSinPhi).rgb,
-                             shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex),         exposure, _CosSinPhi).rgb, blend);
+        float3 output = lerp(            GetColorWithRotation(originalDir,                          exposure, _CosSinPhi).rgb,
+                             shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex),  exposure, _CosSinPhi).rgb, blend);
 
         return float4(output, exposure);
     }

@@ -9,12 +9,12 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public const string header = "Shadow Tint";
+            public const string header = "Shadow Inputs";
 
-            public static GUIContent colorText          = new GUIContent("Shadow Tint", " Shadow Tint (RGB) and Transparency (A).");
-            public static GUIContent pointLightShadow   = new GUIContent("Point Light Shadow", " Enable Point Light Shadow.");
-            public static GUIContent dirLightShadow     = new GUIContent("Directional Light Shadow", " Enable Directional Light Shadow.");
-            public static GUIContent rectLightShadow    = new GUIContent("Rectangular Light Shadow", " Enable Rectangular Light Shadow.");
+            public static GUIContent colorText          = new GUIContent("Shadow", " Shadow Tint (RGB) and Transparency (A).");
+            public static GUIContent pointLightShadow   = new GUIContent("Point Light", " Enable Point Light Shadow.");
+            public static GUIContent dirLightShadow     = new GUIContent("Directional Light", " Enable Directional Light Shadow.");
+            public static GUIContent areaLightShadow    = new GUIContent("Area Light", " Enable Area Light Shadow.");
         }
 
         Expandable m_ExpandableBit;
@@ -27,8 +27,17 @@ namespace UnityEditor.Rendering.HighDefinition
         public static string kShadowFilterPoint = "_ShadowFilterPoint";
         protected MaterialProperty shadowFilterDir = null;
         public static string kShadowFilterDir = "_ShadowFilterDir";
-        protected MaterialProperty shadowFilterRect = null;
-        public static string kShadowFilterRect = "_ShadowFilterRect";
+        protected MaterialProperty shadowFilterArea = null;
+        public static string kShadowFilterArea = "_ShadowFilterArea";
+
+        // Override the default
+        protected MaterialProperty surfaceType = null;
+        public const string kSurfaceType = "_SurfaceType";
+        SurfaceType defaultSurfaceType { get { return SurfaceType.Transparent; } }
+        SurfaceType surfaceTypeValue
+        {
+            get { return surfaceType != null ? (SurfaceType)surfaceType.floatValue : defaultSurfaceType; }
+        }
 
         public ShadowMatteUIBlock(Expandable expandableBit)
         {
@@ -41,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
             colorMap            = FindProperty(kColorMap);
             shadowFilterPoint   = FindProperty(kShadowFilterPoint);
             shadowFilterDir     = FindProperty(kShadowFilterDir);
-            shadowFilterRect    = FindProperty(kShadowFilterRect);
+            shadowFilterArea    = FindProperty(kShadowFilterArea);
         }
 
         public override void OnGUI()
@@ -64,8 +73,8 @@ namespace UnityEditor.Rendering.HighDefinition
             //EditorGUILayout.Toggle("BRDF Color Table Diagonal Clamping", (shadowFlags & 16) != 0);
             //bool usePointLightShadow    = EditorGUILayout.Toggle("Point Light Shadow", (shadowFlags & unchecked((uint)LightFeatureFlags.Punctual) != 0));
             shadowFilterPoint.floatValue    = EditorGUILayout.Toggle("Point Light Shadow", shadowFilterPoint.floatValue == 1.0f ? true : false) ? 1.0f : 0.0f;
-            shadowFilterDir.floatValue      = EditorGUILayout.Toggle("Directional Light Shadow", shadowFilterDir.floatValue == 1.0f ? true : false) ? 1.0f : 0.0f;
-            shadowFilterRect.floatValue     = EditorGUILayout.Toggle("Areaa Light Shadow", shadowFilterRect.floatValue == 1.0f ? true : false) ? 1.0f : 0.0f;
+            shadowFilterDir  .floatValue    = EditorGUILayout.Toggle("Directional Light Shadow", shadowFilterDir.floatValue == 1.0f ? true : false) ? 1.0f : 0.0f;
+            shadowFilterArea .floatValue    = EditorGUILayout.Toggle("Area Light Shadow", shadowFilterArea.floatValue == 1.0f ? true : false) ? 1.0f : 0.0f;
             //uint shadowFilter = 0u;
             //uint finalFlag = 0x00000000;
             //if (usePointLightShadow)

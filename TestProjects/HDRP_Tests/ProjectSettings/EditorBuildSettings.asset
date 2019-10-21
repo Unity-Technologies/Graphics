@@ -144,6 +144,15 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1901_AxF_SVBRDF.unity
     guid: 96afd39d83184974299cc32cded820c5
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1902_ShadowMatteDir.unity
+    guid: b79258ea8f839bf4e846f32dc1aab765
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1903_ShadowMattePointSpotFilters.unity
+    guid: 6061664a15c46714db647ebd9769c796
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1904_ShadowMatteAreaFilters.unity
+    guid: 87dd2c149cfc55f4ebfc63baf9fa06c5
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Light_DynamicDirectional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
   - enabled: 1
