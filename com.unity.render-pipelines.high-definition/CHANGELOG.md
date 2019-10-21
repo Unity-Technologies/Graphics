@@ -95,6 +95,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with screen space shadows fallback texture was not set as a texture array.
 - Fixed Pyramid Lights bounding box
 - Fixed terrain heightmap default/null values and epsilons
+- Fixed custom post-processing effects breaking when an abstract class inherited from `CustomPostProcessVolumeComponent`
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
