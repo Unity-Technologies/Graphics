@@ -674,6 +674,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ExposureParams                 = Shader.PropertyToID("_ExposureParams");
         public static readonly int _AdaptationParams               = Shader.PropertyToID("_AdaptationParams");
         public static readonly int _ExposureCurveTexture           = Shader.PropertyToID("_ExposureCurveTexture");
+        public static readonly int _ProbeExposureScale             = Shader.PropertyToID("_ProbeExposureScale");
         public static readonly int _Variants                       = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture                   = Shader.PropertyToID("_InputTexture");
         public static readonly int _OutputTexture                  = Shader.PropertyToID("_OutputTexture");
@@ -826,6 +827,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AOParams1                      = Shader.PropertyToID("_AOParams1");
         public static readonly int _AOParams2                      = Shader.PropertyToID("_AOParams2");
         public static readonly int _AOParams3                      = Shader.PropertyToID("_AOParams3");
+        public static readonly int _AOParams4                      = Shader.PropertyToID("_AOParams4");
         public static readonly int _OcclusionTexture               = Shader.PropertyToID("_OcclusionTexture");
         public static readonly int _BentNormalsTexture             = Shader.PropertyToID("_BentNormalsTexture");
         public static readonly int _AOPackedData                   = Shader.PropertyToID("_AOPackedData");
