@@ -15,7 +15,6 @@ testplatforms:
 projects:
   - name: Universal_Stereo
     folder: UniversalGfxTestStereo
-    packagename: com.unity.render-pipelines.universal
 ---
 {% for project in projects %}
 {% for editor in editors %}

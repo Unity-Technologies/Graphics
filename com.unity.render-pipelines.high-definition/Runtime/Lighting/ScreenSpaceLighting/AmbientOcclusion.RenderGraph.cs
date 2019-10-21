@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderAOPassData data, RenderGraphContext ctx) =>
                 {
-                    RenderAO(data.parameters, ctx.resources.GetTexture(data.packedData), ctx.cmd);
+                    RenderAO(data.parameters, ctx.resources.GetTexture(data.packedData), m_Resources, ctx.cmd);
                 });
 
                 return passData.packedData;

@@ -237,6 +237,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return data.mipMapDebugSettings.IsDebugDisplayEnabled();
         }
 
+        public bool IsMatcapViewEnabled(HDCamera camera)
+        {
+            bool sceneViewLightingDisabled = CoreUtils.IsSceneLightingDisabled(camera.camera);
+            return sceneViewLightingDisabled || GetDebugLightingMode() == DebugLightingMode.MatcapView;
+        }
+
         private void DisableNonMaterialDebugSettings()
         {
             data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;

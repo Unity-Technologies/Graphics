@@ -211,7 +211,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void RegisterDebug()
         {
-            m_DebugParameters.RegisterDebug();
+            //m_DebugParameters.RegisterDebug();
         }
 
         /// <summary>
@@ -219,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void UnRegisterDebug()
         {
-            m_DebugParameters.UnRegisterDebug();
+            //m_DebugParameters.UnRegisterDebug();
         }
 
         /// <summary>
