@@ -429,11 +429,11 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxViewCount = 1;
 
         // Matrix used for LightList building, keep them around to avoid GC
-        Matrix4x4[] m_LightListProjMatrices;
-        Matrix4x4[] m_LightListProjscrMatrices;
-        Matrix4x4[] m_LightListInvProjscrMatrices;
-        Matrix4x4[] m_LightListProjHMatrices;
-        Matrix4x4[] m_LightListInvProjHMatrices;
+        Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListProjscrMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListInvProjscrMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListInvProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
         internal class LightList
         {
@@ -925,17 +925,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
         {
             m_MaxViewCount = Math.Max(hdCamera.viewCount, m_MaxViewCount);
-
             m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_MaxLightsOnScreen);
-
-            // Allocate matrix arrays used for LightList building
-            {
-                m_LightListProjMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListProjscrMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListInvProjscrMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListProjHMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListInvProjHMatrices = new Matrix4x4[m_MaxViewCount];
-            }
         }
 
         internal static Matrix4x4 WorldToCamera(Camera camera)
