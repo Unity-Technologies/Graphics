@@ -101,6 +101,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             float spotAngle, float? innerSpotAngle,
             out Vector4 lightAttenuation, out Vector4 lightSpotDir)
         {
+#if UNITY_SWITCH
+            const bool isSwitch = true;
+#else
+            const bool isSwitch = false;
+#endif
+
             lightAttenuation = k_DefaultLightAttenuation;
             lightSpotDir = k_DefaultLightSpotDirection;
 
@@ -127,9 +133,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRange * lightRange);
 
-                // On mobile: Use the faster linear smoothing factor.
+                // On mobile and Nintendo Switch: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
                 // On other devices: Use the smoothing factor that matches the GI.
-                lightAttenuation.x = Application.isMobilePlatform ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
+                lightAttenuation.x = Application.isMobilePlatform || isSwitch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
             }
 
