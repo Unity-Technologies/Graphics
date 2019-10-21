@@ -41,10 +41,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/013_xr_PostFX_Simple.unity
     guid: 553df5bb3e439234fb07fc04c0a61198
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/014_xr_PostFX_Complex_NoAA.unity
     guid: 976626cc568ea4e40b8255c49e3d51c3
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/015_xr_PostFX_FXAA.unity
     guid: 87d52919694318342adeb912caaf63a1
   - enabled: 1
