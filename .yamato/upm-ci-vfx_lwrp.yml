@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: graphics/case-1176497
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
