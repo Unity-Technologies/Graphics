@@ -159,8 +159,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PortInputContainer.SendToBack();
 
             m_TitleContainer = this.Q("title");
-            m_Border = this.Q("selection-border");
-
+            m_Border = new VisualElement
+            {
+                name = "custom-border",
+            };
+            Add(m_Border);
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
@@ -243,52 +246,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         static readonly StyleColor clearColor = new StyleColor(Color.clear);
         public void SetColor(Color color)
         {
-            AddToClassList("UserDefinedColor");
-            //m_TitleContainer.style.borderBottomColor = color;
-
-
-//            m_Border.style.borderBottomColor = color;
-//            m_Border.style.borderTopColor = color;
-//            m_Border.style.borderLeftColor = color;
+            m_Border.style.borderBottomColor = color;
+            m_Border.style.borderTopColor = color;
+            m_Border.style.borderLeftColor = color;
             m_Border.style.borderRightColor = color;
-//
-
-//            m_Border.style.borderBottomWidth = 2;
-//            m_Border.style.borderTopWidth = 2;
-//            m_Border.style.borderLeftWidth = 2;
-//            m_Border.style.borderRightWidth = 2;
-
-
-
-
-//            m_Border.style.borderBottomColor = color;
-//            m_Border.style.borderLeftColor = color;
-//            m_Border.style.borderRightColor = color;
-//            m_Border.style.borderTopColor = color;
         }
 
         public void ResetColor()
         {
 
-//            //m_TitleContainer.style.borderBottomColor = noColor;
-//            m_Border.style.borderBottomColor = clearColor;
-//            m_Border.style.borderTopColor = clearColor;
-//            m_Border.style.borderLeftColor = clearColor;
-            m_Border.style.borderRightColor = clearColor;
-            RemoveFromClassList("UserDefinedColor");
-
         }
-
-//        void DefaultBorderStyle()
-//        {
-//            background-color:rgba(68,192,255,0.4);
-//            border-color:rgba(68,192,255,1);
-//            border-left-width: 2px;
-//            border-right-width: 2px;
-//            border-top-width: 2px;
-//            border-bottom-width: 2px;
-//        }
-
+        
         public Color GetColor()
         {
             //return m_TitleContainer.resolvedStyle.borderBottomColor;
