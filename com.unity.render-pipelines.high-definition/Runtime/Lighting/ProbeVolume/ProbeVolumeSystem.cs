@@ -100,7 +100,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount (12) bytes ~= 50.3 MB.
         static int s_MaxProbeVolumeProbeCount = 1024 * 1024;
         RTHandle m_ProbeVolumeAtlasSHRTHandle;
+        int m_ProbeVolumeAtlasSHRTDepthSliceCount = 3; // one texture per [RGB] SH coefficients
         Texture2DAtlasDynamic probeVolumeAtlas = null;
+        bool isClearProbeVolumeAtlasRequested = false;
 
         // Note: These max resolution dimensions are implicitly defined from the way probe volumes are laid out in our 2D atlas.
         // If this layout changes, these resolution constraints should be updated to reflect the actual constraint.
@@ -133,6 +135,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CreateBuffersDefault();
             }
+
+        #if UNITY_EDITOR
+            UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
+        #endif
         }
 
         void CreateBuffersDefault()
@@ -152,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProbeVolumeAtlasSHRTHandle = RTHandles.Alloc(
                 width: s_ProbeVolumeAtlasWidth,
                 height: s_ProbeVolumeAtlasHeight,
-                slices: 3, // one texture per [RGB] SH coefficients
+                slices: m_ProbeVolumeAtlasSHRTDepthSliceCount,
                 dimension: TextureDimension.Tex2DArray,
                 colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
                 enableRandomWrite: true,
@@ -184,6 +190,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Cleanup()
         {
             DestroyBuffers();
+
+        #if UNITY_EDITOR
+            UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
+        #endif
+        }
+
+        protected void OnLightingDataCleared()
+        {
+            // User requested all lighting data to be cleared.
+            // Clear out all block allocations in atlas, and clear out texture data.
+            // Clearing out texture data is not strictly necessary,
+            // but it makes the display atlas debug view more readable.
+            // Note: We do this lazily, in order to trigger the clear during the
+            // next frame's render loop on the command buffer.
+            isClearProbeVolumeAtlasRequested = true;
         }
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
@@ -293,6 +314,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        private void ClearProbeVolumeAtlasIfRequested(CommandBuffer cmd)
+        {
+            if (!isClearProbeVolumeAtlasRequested) { return; }
+            isClearProbeVolumeAtlasRequested = false;
+            probeVolumeAtlas.ResetAllocator();
+            for (int depthSlice = 0; depthSlice < m_ProbeVolumeAtlasSHRTDepthSliceCount; ++depthSlice)
+            {
+                cmd.SetRenderTarget(m_ProbeVolumeAtlasSHRTHandle.rt, 0, CubemapFace.Unknown, depthSlice);
+                cmd.ClearRenderTarget(false, true, Color.black, 0.0f);
+            }
+        }
+
         public ProbeVolumeList PrepareVisibleProbeVolumeList(ScriptableRenderContext renderContext, HDCamera hdCamera, CommandBuffer cmd)
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
@@ -302,6 +335,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingSample(cmd, "Prepare Probe Volume List", CustomSamplerId.PrepareProbeVolumeList.GetSampler()))
             {
+                ClearProbeVolumeAtlasIfRequested(cmd);
+
                 Vector3 camPosition = hdCamera.camera.transform.position;
                 Vector3 camOffset   = Vector3.zero;// World-origin-relative
 
