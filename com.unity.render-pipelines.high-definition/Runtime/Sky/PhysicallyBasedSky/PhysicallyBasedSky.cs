@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Sky/Physically Based Sky (Experimental)")]
@@ -161,9 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return hash;
         }
 
-        public override SkyRenderer CreateRenderer()
-        {
-            return new PhysicallyBasedSkyRenderer(this);
-        }
+        public override Type GetSkyRendererType() { return typeof(PhysicallyBasedSkyRenderer); }
     }
 }

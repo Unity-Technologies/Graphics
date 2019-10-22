@@ -2034,7 +2034,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
-                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape, 
+                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape,
                                                                 ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                         if (hasDebugLightFilter
@@ -2783,7 +2783,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.nearClipPlane = camera.nearClipPlane;
             parameters.farClipPlane = camera.farClipPlane;
             parameters.lightList = m_lightList;
-            parameters.skyEnabled = m_SkyManager.IsLightingSkyValid();
+            parameters.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
             parameters.screenSize = hdCamera.screenSize;
             parameters.msaaSamples = (int)hdCamera.msaaSamples;
             parameters.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
