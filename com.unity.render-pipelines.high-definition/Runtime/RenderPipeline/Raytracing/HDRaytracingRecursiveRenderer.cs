@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, m_lightList.directionalLights.Count);
 
             // Set the data for the ray miss
-            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
+            cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
 
             // If this is the right debug mode and we have at least one light, write the first shadow to the de-noised texture
             cmd.SetRayTracingTextureParam(forwardShader, HDShaderIDs._RaytracingPrimaryDebug, m_DebugRaytracingTexture);

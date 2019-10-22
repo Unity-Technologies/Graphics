@@ -106,14 +106,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingGBufferManager.DestroyBuffers();
         }
 
-        DeferredLightingRTResources PrepareDeferredLightingRTResources(RTHandle directionBuffer, RTHandle ouputBuffer)
+        DeferredLightingRTResources PrepareDeferredLightingRTResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle ouputBuffer)
         {
             DeferredLightingRTResources deferredResources = new DeferredLightingRTResources();
 
             deferredResources.directionBuffer = directionBuffer;
             deferredResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             deferredResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            deferredResources.skyTexture = m_SkyManager.skyReflection;
+            deferredResources.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
 
             // Temporary buffers
             deferredResources.gbuffer0 = m_RaytracingGBufferManager.GetBuffer(0);
