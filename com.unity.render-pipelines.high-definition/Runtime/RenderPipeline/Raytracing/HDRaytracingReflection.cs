@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
 
             // Set the data for the ray miss
-            cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
+            cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
         }
 
         DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     
                     // Prepare the components for the deferred lighting
                     DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera);
-                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(m_ReflIntermediateTexture1, m_ReflIntermediateTexture0);
+                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, m_ReflIntermediateTexture1, m_ReflIntermediateTexture0);
 
                     // Evaluate the deferred lighting
                     RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
