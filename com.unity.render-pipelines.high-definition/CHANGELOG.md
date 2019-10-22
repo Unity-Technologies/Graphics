@@ -111,6 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change default texture for detailmap to grey
 - Optimize Shadow RT load on Tile based architecture platforms. 
 - Improved quality of SSAO.
+- Changed the priority of the reflection probe from biggest to solid angle of spherical volume.
 
 ## [7.1.1] - 2019-09-05
 
