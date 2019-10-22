@@ -148,7 +148,8 @@ namespace UnityEditor.VFX
         // 1: Size refactor
         // 2: Change some SetAttribute to spaceable slot
         // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
-        public static readonly int CurrentVersion = 3;
+        // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
+        public static readonly int CurrentVersion = 4;
 
         string shaderNamePrefix = "Hidden/VFX";
         public string GetContextShaderName(VFXContext context)
