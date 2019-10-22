@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            var result = renderpipeline.ExportSkyToTexture();
+            var result = renderpipeline.ExportSkyToTexture(Camera.main);
             if (result == null)
                 return;
 

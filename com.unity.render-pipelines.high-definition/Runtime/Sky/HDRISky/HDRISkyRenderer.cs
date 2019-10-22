@@ -3,13 +3,10 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDRISkyRenderer : SkyRenderer
     {
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
-        MaterialPropertyBlock m_PropertyBlock;
-        HDRISky m_HdriSkyParams;
+        MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
-        public HDRISkyRenderer(HDRISky hdriSkyParams)
+        public HDRISkyRenderer()
         {
-            m_HdriSkyParams = hdriSkyParams;
-            m_PropertyBlock = new MaterialPropertyBlock();
         }
 
         public override void Build()
@@ -25,12 +22,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
-            float luxMultiplier = m_HdriSkyParams.desiredLuxValue.value / m_HdriSkyParams.upperHemisphereLuxValue.value;
-            float multiplier = (m_HdriSkyParams.skyIntensityMode.value == SkyIntensityMode.Exposure) ? m_HdriSkyParams.multiplier.value : luxMultiplier;
-            float exposure = (m_HdriSkyParams.skyIntensityMode.value == SkyIntensityMode.Exposure) ? GetExposure(m_HdriSkyParams, builtinParams.debugSettings) : 1;
-            float phi = Mathf.Deg2Rad * -m_HdriSkyParams.rotation.value; // -rotation to match Legacy...
+            var hdriSky = builtinParams.skySettings as HDRISky;
+            float luxMultiplier = hdriSky.desiredLuxValue.value / hdriSky.upperHemisphereLuxValue.value;
+            float multiplier = (hdriSky.skyIntensityMode.value == SkyIntensityMode.Exposure) ? hdriSky.multiplier.value : luxMultiplier;
+            float exposure = (hdriSky.skyIntensityMode.value == SkyIntensityMode.Exposure) ? GetExposure(hdriSky, builtinParams.debugSettings) : 1;
+            float phi = Mathf.Deg2Rad * -hdriSky.rotation.value; // -rotation to match Legacy...
 
-            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky.value);
+            m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, Mathf.Cos(phi), Mathf.Sin(phi)));
 
             using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
@@ -40,11 +38,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_SkyHDRIMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
             }
-        }
-
-        public override bool IsValid()
-        {
-            return m_HdriSkyParams != null && m_SkyHDRIMaterial != null;
         }
     }
 }
