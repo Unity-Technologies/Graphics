@@ -85,9 +85,17 @@ namespace UnityEditor.Rendering.LookDev
                     LookDev.currentContext.environmentLibrary[i],
                     EnvironmentElement.k_SkyThumbnailWidth);
             };
+#if UNITY_2020_1_OR_NEWER
+            m_EnvironmentList.onSelectionChange += objects =>
+            {
+                bool empty = !objects.GetEnumerator().MoveNext();
+                if (empty || (LookDev.currentContext.environmentLibrary?.Count ?? 0) == 0)
+#else
             m_EnvironmentList.onSelectionChanged += objects =>
+
             {
                 if (objects.Count == 0 || (LookDev.currentContext.environmentLibrary?.Count ?? 0) == 0)
+#endif
                 {
                     m_EnvironmentInspector.style.visibility = Visibility.Hidden;
                     m_EnvironmentInspector.style.height = 0;
@@ -108,8 +116,16 @@ namespace UnityEditor.Rendering.LookDev
                     m_EnvironmentInspector.Bind(environment, deportedLatLong);
                 }
             };
+#if UNITY_2020_1_OR_NEWER
+            m_EnvironmentList.onItemsChosen += objCollection =>
+            {
+                foreach(var obj in objCollection)
+                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary[(int)obj]);
+            };
+#else
             m_EnvironmentList.onItemChosen += obj =>
                 EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary[(int)obj]);
+#endif
             m_NoEnvironmentList = new Label(Style.k_DragAndDropLibrary);
             m_NoEnvironmentList.style.flexGrow = 1;
             m_NoEnvironmentList.style.unityTextAlign = TextAnchor.MiddleCenter;
