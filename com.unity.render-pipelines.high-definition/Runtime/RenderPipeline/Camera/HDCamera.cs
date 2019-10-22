@@ -67,6 +67,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
 
+        // We need to keep this here as culling is done before volume update. That means that culling for the light will be left with the state used by the last
+        // updated camera which is not necessarily the camera we are culling for. This should be fixed if we end up having scriptable culling, as the culling for
+        // the lights can be done after the volume update.
+        internal float shadowMaxDistance = 500.0f;
+
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
         public XRPass xr { get { return m_XRPass; } }

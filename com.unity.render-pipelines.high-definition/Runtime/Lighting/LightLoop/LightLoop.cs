@@ -1831,9 +1831,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowManager.GetShadowRequestCount();
         }
 
-        void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
+        void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams, HDCamera hdCamera)
         {
-            m_ShadowManager.UpdateCullingParameters(ref cullingParams);
+            // Note we are using hdCamera.shadowMaxDistance instead of the value coming from the volume stack.
+            // Check comment on hdCamera.shadowMaxDistance for more info.
+            m_ShadowManager.UpdateCullingParameters(ref cullingParams, hdCamera.shadowMaxDistance);
 
             // In HDRP we don't need per object light/probe info so we disable the native code that handles it.
             cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;

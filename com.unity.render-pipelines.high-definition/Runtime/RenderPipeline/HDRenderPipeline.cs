@@ -1785,6 +1785,9 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
             {
                 VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
+                // We need to cache the max shadow distance to make sure the culling uses the correct value. Refer to the comment
+                // above m_ShadowMaxDistance in hdCamera.
+                hdCamera.shadowMaxDistance = VolumeManager.instance.stack.GetComponent<HDShadowSettings>().maxShadowDistance.value;
                 CustomPassVolume.Update(hdCamera.volumeAnchor);
             }
 
@@ -2454,7 +2457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 frozenCullingParamAvailable = false;
             }
 
-            LightLoopUpdateCullingParameters(ref cullingParams);
+            LightLoopUpdateCullingParameters(ref cullingParams, hdCamera);
 
             // If we don't use environment light (like when rendering reflection probes)
             //   we don't have to cull them.
