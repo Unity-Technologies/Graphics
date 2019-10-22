@@ -43,6 +43,21 @@
 #define HALF_MAX 65504.0
 #define UINT_MAX 0xFFFFFFFFu
 
+
+#ifdef SHADER_API_GLES
+
+#define GENERATE_INT_FLOAT_1_ARG(FunctionName, Parameter1, FunctionBody) \
+    float  FunctionName(float  Parameter1) { FunctionBody; } \
+    int    FunctionName(int  Parameter1) { FunctionBody; } 
+#else
+
+#define GENERATE_INT_FLOAT_1_ARG(FunctionName, Parameter1, FunctionBody) \
+    float  FunctionName(float  Parameter1) { FunctionBody; } \
+    uint   FunctionName(uint  Parameter1) { FunctionBody; } \
+    int    FunctionName(int  Parameter1) { FunctionBody; } 
+
+#endif
+
 #define TEMPLATE_1_FLT(FunctionName, Parameter1, FunctionBody) \
     float  FunctionName(float  Parameter1) { FunctionBody; } \
     float2 FunctionName(float2 Parameter1) { FunctionBody; } \

@@ -24,11 +24,11 @@ float3 GetFogColor(float3 V, float fragDist)
     {
         // Based on Uncharted 4 "Mip Sky Fog" trick: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
         float mipLevel = (1.0 - _MipFogMaxMip * saturate((fragDist - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
-        // For the atmosphéric scattering, we use the GGX convoluted version of the cubemap. That matches the of the idnex 0
+        // For the atmospheric scattering, we use the GGX convoluted version of the cubemap. That matches the of the idnex 0
         return SampleSkyTexture(-V, mipLevel, 0).rgb;
     }
     else // Should not be possible.
-        return  float3(0.0, 0.0, 0.0);
+        return float3(0.0, 0.0, 0.0);
 }
 
 // All units in meters!
@@ -290,7 +290,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             float  trFallback = TransmittanceFromOpticalDepth(odFallback);
             float  trCamera = 1 - volFog.a;
 
-            volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * volAlbedo * (1 - trFallback);
+            volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * GetCurrentExposureMultiplier() * volAlbedo * (1 - trFallback);
             volFog.a = 1 - (trCamera * trFallback);
         }
 

@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Normal = 1,
             High = 2
         }
-        
+
         static Func<BuildTargetGroup, LightmapEncodingQualityCopy> GetLightmapEncodingQualityForPlatformGroup;
         static Action<BuildTargetGroup, LightmapEncodingQualityCopy> SetLightmapEncodingQualityForPlatformGroup;
         static Func<BuildTarget> CalculateSelectedBuildTarget;
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Running = true;
                 EditorApplication.update += Run;
             }
-            
+
             void End()
             {
                 EditorApplication.update -= Run;
@@ -162,7 +162,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 () => { if (!IsShadowmaskCorrect())     FixShadowmask();                    });
             FixHdrpAsset();
             m_Fixer.Add(
-                () => { if (!IsDefaultSceneCorrect())   FixDefaultScene(fromAsync: true);   });
+                () => { if (!IsDefaultSceneCorrect())               FixDefaultScene(fromAsync: true); },
+                () => { if (!IsDefaultVolumeProfileAssigned())      FixDefaultVolumeProfileAssigned(); }
+            );
         }
 
         bool IsHdrpAssetCorrect() =>
@@ -171,7 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
             && IsHdrpAssetEditorResourcesCorrect()
             && IsSRPBatcherCorrect()
             && IsHdrpAssetDiffusionProfileCorrect();
-        void FixHdrpAsset() 
+        void FixHdrpAsset()
         {
             m_Fixer.Add(
                 () => { if (!IsHdrpAssetUsedCorrect())              FixHdrpAssetUsed(fromAsync: true);  },
@@ -180,7 +182,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 () => { if (!IsSRPBatcherCorrect())                 FixSRPBatcher();                    },
                 () => { if (!IsHdrpAssetDiffusionProfileCorrect())  FixHdrpAssetDiffusionProfile();     });
         }
-        
+
         bool IsColorSpaceCorrect()
             => PlayerSettings.colorSpace == ColorSpace.Linear;
         void FixColorSpace()
@@ -254,13 +256,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsSRPBatcherCorrect()
-            => IsHdrpAssetUsedCorrect() && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher;
+            => IsHdrpAssetUsedCorrect() && HDRenderPipeline.currentAsset.enableSRPBatcher;
         void FixSRPBatcher()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher = true;
+            HDRenderPipeline.currentAsset.enableSRPBatcher = true;
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
@@ -274,7 +276,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdAsset = HDRenderPipeline.currentAsset;
             hdAsset.diffusionProfileSettingsList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
         }
 
@@ -293,7 +295,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 return false;
 
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdAsset = HDRenderPipeline.currentAsset;
             return hdAsset.defaultVolumeProfile != null && !hdAsset.defaultVolumeProfile.Equals(null);
         }
         void FixDefaultVolumeProfileAssigned()
@@ -301,7 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdAsset = HDRenderPipeline.currentAsset;
             EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdAsset);
         }
 
@@ -406,8 +408,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRAssetCorrect()
-            => GraphicsSettings.renderPipelineAsset != null
-            && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset
+            => HDRenderPipeline.defaultAsset != null
             && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null;
         void FixDXRAsset()
         {
@@ -419,15 +420,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRScreenSpaceShadowCorrect()
-            => GraphicsSettings.renderPipelineAsset != null
-            && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset
-            && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
+            => HDRenderPipeline.currentAsset != null
+            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
         void FixDXRScreenSpaceShadow()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
-            var serializedObject = new SerializedObject(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
             var propertySupportScreenSpaceShadow = serializedObject.FindProperty("m_RenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows");
             propertySupportScreenSpaceShadow.boolValue = true;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
@@ -439,20 +439,19 @@ namespace UnityEditor.Rendering.HighDefinition
             => SetStaticBatching(CalculateSelectedBuildTarget(), false);
 
         bool IsDXRActivationCorrect()
-            => GraphicsSettings.renderPipelineAsset != null
-            && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset
-            && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportRayTracing;
+            => HDRenderPipeline.currentAsset != null
+            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing;
         void FixDXRActivation()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
-            var serializedObject = new SerializedObject(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
             var propertySupportRayTracing = serializedObject.FindProperty("m_RenderPipelineSettings.supportRayTracing");
             propertySupportRayTracing.boolValue = true;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
-        
+
         bool IsDXRDefaultSceneCorrect()
             => HDProjectSettings.defaultDXRScenePrefab != null;
         void FixDXRDefaultScene(bool fromAsync)

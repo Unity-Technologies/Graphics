@@ -218,6 +218,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ? m_AdditionalCameraData.probeLayerMask
             : (LayerMask)~0;
 
+        internal float probeRangeCompressionFactor
+            => m_AdditionalCameraData != null
+            ? m_AdditionalCameraData.probeCustomFixedExposure
+            : 1.0f;
+
         static Dictionary<(Camera, int), HDCamera> s_Cameras = new Dictionary<(Camera, int), HDCamera>();
         static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure
 
@@ -712,13 +717,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return transform.transpose;
             }
 
-#if UNITY_2019_1_OR_NEWER
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
             Vector2 lensShift = camera.GetGateFittedLensShift();
-#else
-            float verticalFoV = camera.fieldOfView * Mathf.Deg2Rad;
-            Vector2 lensShift = Vector2.zero;
-#endif
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false);
         }
@@ -841,6 +841,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._TaaJitterStrength,         taaJitter);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
 
+
             // Time is also a part of the UnityPerView CBuffer.
             // Different views can have different values of the "Animated Materials" setting.
             bool animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(camera);
@@ -861,6 +862,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._LastTimeParameters,    new Vector4(pt, Mathf.Sin(pt), Mathf.Cos(pt), 0.0f));
 
             cmd.SetGlobalInt(HDShaderIDs._FrameCount,        frameCount);
+
+            float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
+            cmd.SetGlobalFloat(HDShaderIDs._ProbeExposureScale, exposureMultiplierForProbes);
 
             // TODO: qualify this code with xr.singlePassEnabled when compute shaders can use keywords
             if (true)
