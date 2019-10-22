@@ -78,6 +78,14 @@ namespace UnityEngine.Rendering.HighDefinition
             supportedRaytracingTier = RaytracingTier.Tier2,
             lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
             maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
+            lightLayerName0 = "Light Layer default",
+            lightLayerName1 = "Light Layer 1",
+            lightLayerName2 = "Light Layer 2",
+            lightLayerName3 = "Light Layer 3",
+            lightLayerName4 = "Light Layer 4",
+            lightLayerName5 = "Light Layer 5",
+            lightLayerName6 = "Light Layer 6",
+            lightLayerName7 = "Light Layer 7",
         };
 
         [Serializable]
@@ -95,6 +103,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportVolumetrics;
         public bool increaseResolutionOfVolumetrics;
         public bool supportLightLayers;
+        public string lightLayerName0;
+        public string lightLayerName1;
+        public string lightLayerName2;
+        public string lightLayerName3;
+        public string lightLayerName4;
+        public string lightLayerName5;
+        public string lightLayerName6;
+        public string lightLayerName7;
         public bool supportDistortion;
         public bool supportTransparentBackface;
         public bool supportTransparentDepthPrepass;
@@ -108,13 +124,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDecals;
 
         public MSAASamples msaaSampleCount;
-        public bool supportMSAA
-        {
-            get
-            {
-                return msaaSampleCount != MSAASamples.None;
-            }
-        }
+        public bool supportMSAA => msaaSampleCount != MSAASamples.None;
+
+        public bool keepAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
 
         public bool supportMotionVectors;
         public bool supportRuntimeDebugDisplay;

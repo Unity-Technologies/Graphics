@@ -90,6 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
+            // Propagate the desired custom exposure
+            cameraSettings.probeRangeCompressionFactor = settings.lighting.rangeCompressionFactor;
+
             // Frame Settings Overrides
             switch (settings.mode)
             {
@@ -205,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             var sourceProjection = Matrix4x4.Perspective(
-                cameraSettings.frustum.fieldOfView,
+                HDUtils.ClampFOV(cameraSettings.frustum.fieldOfView),
                 cameraSettings.frustum.aspect,
                 cameraSettings.frustum.nearClipPlane,
                 cameraSettings.frustum.farClipPlane

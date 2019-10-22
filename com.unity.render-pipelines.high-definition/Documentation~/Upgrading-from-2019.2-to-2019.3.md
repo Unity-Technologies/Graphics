@@ -38,5 +38,7 @@ Max Smoothness, Angular Diameter, Bake Shadows Angle was separate control for Di
 
 When upgrading, it mean slight shift of highlight shape or shadow penumbra size can happens if the drived parameters was different from what our automatic conversion from "Radius" or "Angular Diameter" is doing.
 
+## Custom Shaders
 
+In 2019.3, a change has been made to reflection probes, allowing you to compress the range used when rendering the probes content. This however comes with a small change to the Shader framework, the function  `SampleEnv()` will now require an additional parameters, the factor we need to apply to the probe data to compensate the range compression done at probe rendering time. This value is found in the data structure `EnvLightData` under the name of `rangeCompressionFactorCompensation`. 
 

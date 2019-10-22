@@ -62,9 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-
-                return hdPipelineAsset.currentPlatformRenderPipelineSettings;
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
         public static int debugStep => MousePositionDebug.instance.debugStep;
@@ -430,12 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
-#if !UNITY_2019_2_OR_NEWER
-                    buildTarget == UnityEditor.BuildTarget.StandaloneLinuxUniversal ||
-#endif
-#if UNITY_2019_3_OR_NEWER
                     buildTarget == UnityEditor.BuildTarget.Stadia ||
-#endif
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
@@ -469,12 +462,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case UnityEditor.BuildTarget.StandaloneWindows64:
                     return OperatingSystemFamily.Windows;
                 case UnityEditor.BuildTarget.StandaloneLinux64:
-#if !UNITY_2019_2_OR_NEWER
-                case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
-#endif
-#if UNITY_2019_3_OR_NEWER
                 case UnityEditor.BuildTarget.Stadia:
-#endif
                     return OperatingSystemFamily.Linux;
                 default:
                     return OperatingSystemFamily.Other;
@@ -513,6 +501,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        /// <summary>
+        /// Extract scale and bias from a fade distance to achieve a linear fading starting at 90% of the fade distance.
+        /// </summary>
+        /// <param name="fadeDistance">Distance at which object should be totally fade</param>
+        /// <param name="scale">[OUT] Slope of the fading on the fading part</param>
+        /// <param name="bias">[OUT] Ordinate of the fading part at abscissa 0</param>
         public static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
@@ -520,6 +514,13 @@ namespace UnityEngine.Rendering.HighDefinition
             scale = 1.0f / (fadeDistance - distanceFadeNear);
             bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
         }
+
+        /// <summary>
+        /// Compute the linear fade distance
+        /// </summary>
+        /// <param name="distanceToCamera">Distance from the object to fade from the camera</param>
+        /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
+        /// <returns>Computed fade factor</returns>
         public static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
         {
             float scale;
@@ -527,6 +528,21 @@ namespace UnityEngine.Rendering.HighDefinition
             GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
 
             return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
+        }
+
+        /// <summary>
+        /// Compute the linear fade distance between two position with an additional weight multiplier
+        /// </summary>
+        /// <param name="position1">Object/camera position</param>
+        /// <param name="position2">Camera/object position</param>
+        /// <param name="weight">Weight multiplior</param>
+        /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
+        /// <returns>Computed fade factor</returns>
+        public static float ComputeWeightedLinearFadeDistance(Vector3 position1, Vector3 position2, float weight, float fadeDistance)
+        {
+            float distanceToCamera = Vector3.Magnitude(position1 - position2);
+            float distanceFade = ComputeLinearDistanceFade(distanceToCamera, fadeDistance);
+            return distanceFade * weight;
         }
 
         public static bool PostProcessIsFinalPass()
@@ -672,5 +688,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s += pattern1.Length;
             return new string(buffer, 0, s);
         }
+
+        internal static float ClampFOV(float fov) => Mathf.Clamp(fov, 0.00001f, 179);
     }
 }

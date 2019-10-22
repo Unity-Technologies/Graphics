@@ -1,8 +1,4 @@
 TEXTURE2D(_Control0);
-#ifndef _TERRAIN_BASEMAP_GEN
-// To avoid duplicate definitions, we put this inside the #ifdef
-float4 _Control0_TexelSize;
-#endif
 
 #define DECLARE_TERRAIN_LAYER_TEXS(n)   \
     TEXTURE2D(_Splat##n);               \
@@ -19,7 +15,6 @@ DECLARE_TERRAIN_LAYER_TEXS(3);
     DECLARE_TERRAIN_LAYER_TEXS(6);
     DECLARE_TERRAIN_LAYER_TEXS(7);
     TEXTURE2D(_Control1);
-    float4 _Control1_TexelSize;
 #endif
 
 #undef DECLARE_TERRAIN_LAYER_TEXS
@@ -88,12 +83,12 @@ void TerrainSplatBlend(float2 controlUV, float2 splatBaseUV, inout TerrainLitSur
     #define SampleNormal(i) float3(0, 0, 0)
 #endif
 
-#define DefaultMask(i) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + _MaskMapRemapScale##i.z, albedo[i].a * _Smoothness##i)
+#define DefaultMask(i) float4(_Metallic##i, _MaskMapRemapOffset##i.y + _MaskMapRemapScale##i.y, _MaskMapRemapOffset##i.z + 0.5 * _MaskMapRemapScale##i.z, albedo[i].a * _Smoothness##i)
 
 #ifdef _MASKMAP
     #define MaskModeMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
 #define SampleMasks(i, blendMask) lerp(DefaultMask(i), MaskModeMasks(i, blendMask), _LayerHasMask##i)
-    #define NullMask(i)               float4(0, 1, _MaskMapRemapOffset##i.z + _MaskMapRemapScale##i.z, 0) // only height matters when weight is zero.
+    #define NullMask(i)               float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
 #else
     #define SampleMasks(i, blendMask) DefaultMask(i)
     #define NullMask(i)               float4(0, 1, 0, 0)

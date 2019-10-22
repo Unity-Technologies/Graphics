@@ -352,7 +352,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     // Inverse pre-exposure
     float prevExposure = GetPreviousExposureMultiplier();
     color /= prevExposure + (prevExposure == 0.0); // zero-div guard
-    
+
     // Disable SSR for negative, infinite and NaN history values.
     uint3 intCol   = asuint(color);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
