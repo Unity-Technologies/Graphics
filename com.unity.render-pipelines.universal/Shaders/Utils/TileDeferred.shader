@@ -126,11 +126,9 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 //                // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
 //                output.positionCS.y *= -1.0;
 
-                // flat interpolators are calculated by the provoking vertex of the triangles or quad.
+                // "nointerpolation" interpolators are calculated by the provoking vertex of the triangles or quad.
                 // Provoking vertex convention is different per platform.
-                #if defined(SHADER_API_METAL)
-                [branch] if (input.vertexID == 0 || input.vertexID == 1)
-                #elif SHADER_API_SWITCH
+                #if SHADER_API_SWITCH
 				[branch] if (input.vertexID == 3)
                 #else
                 [branch] if (input.vertexID == 0 || input.vertexID == 3)
@@ -215,7 +213,6 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
                 half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
 
-                // Temporary code to calculate fragment world space position.
                 float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
                 posWS.xyz *= 1.0 / posWS.w;
 
