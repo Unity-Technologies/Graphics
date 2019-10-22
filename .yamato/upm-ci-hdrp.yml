@@ -14,6 +14,8 @@ testplatforms:
     args: --suite=playmode
   - name: editmode
     args: --suite=editor --platform=editmode
+  - name: Standalone
+    args: --suite=playmode
 projects:
   - name: HDRP
     folder: HDRP_Tests
@@ -52,7 +54,8 @@ mac_apis:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli -b {{ editor.version }} -c editor --wait --published    
 
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200"
+      # - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200"
+      - cd TestProjects/{{ project.folder }} && python RunStandalone.py
     {% else %}
     - cd TestProjects/{{ project.folder }} && powershell -command "utr/utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results"
     {% endif %}
@@ -99,6 +102,7 @@ mac_apis:
         - "**/test-results/**"
 {% endif %}
 {% endfor %}
+
 
 
 All_{{ project.name }}:

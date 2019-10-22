@@ -29,6 +29,7 @@
 *.sublime-project
 *.sublime-workspace
 *.suo
+*.swp
 *.userprefs
 .npmrc
 .Editor
@@ -37,3 +38,9 @@ ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
 
+CurTestState.txt
+SetupLog.txt
+TestsDone.txt
+tempSceneStorage.txt
+upm-ci~/*
+utr/*

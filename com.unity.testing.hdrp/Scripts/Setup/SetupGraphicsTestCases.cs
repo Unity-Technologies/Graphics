@@ -6,7 +6,7 @@ using UnityEngine.TestTools;
 public class SetupGraphicsTestCases : IPrebuildSetup, IPostBuildCleanup
 {
     public void Cleanup() {
-        new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Cleanup();
+        //new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Cleanup();
     }
 
     public void Setup()
