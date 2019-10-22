@@ -1799,27 +1799,35 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex)
+        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex, float normalBiasDilation = 0.0f)
         {
             var bound      = new SFiniteLightBound();
             var volumeData = new LightVolumeData();
+
+            // Used in Probe Volumes:
+            // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
+            // Otherwise, surfaces could bias outside of valid data within a tile.
+            var extentConservativeX = obb.extentX + normalBiasDilation;
+            var extentConservativeY = obb.extentY + normalBiasDilation;
+            var extentConservativeZ = obb.extentZ + normalBiasDilation;
+            var extentConservativeMagnitude = Mathf.Sqrt(extentConservativeX * extentConservativeX + extentConservativeY * extentConservativeY + extentConservativeZ * extentConservativeZ);
 
             // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
             var positionVS = worldToView.MultiplyPoint(obb.center);
             var rightVS    = worldToView.MultiplyVector(obb.right);
             var upVS       = worldToView.MultiplyVector(obb.up);
             var forwardVS  = Vector3.Cross(upVS, rightVS);
-            var extents    = new Vector3(obb.extentX, obb.extentY, obb.extentZ);
+            var extents    = new Vector3(extentConservativeX, extentConservativeY, extentConservativeZ);
 
             volumeData.lightVolume   = (uint)LightVolumeType.Box;
             volumeData.lightCategory = (uint)category;
             volumeData.featureFlags  = (uint)featureFlags;
 
             bound.center   = positionVS;
-            bound.boxAxisX = obb.extentX * rightVS;
-            bound.boxAxisY = obb.extentY * upVS;
-            bound.boxAxisZ = obb.extentZ * forwardVS;
-            bound.radius   = extents.magnitude;
+            bound.boxAxisX = extentConservativeX * rightVS;
+            bound.boxAxisY = extentConservativeY * upVS;
+            bound.boxAxisZ = extentConservativeZ * forwardVS;
+            bound.radius   = extentConservativeMagnitude;
             bound.scaleXY.Set(1.0f, 1.0f);
 
             // The culling system culls pixels that are further
@@ -2047,7 +2055,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
-                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape, 
+                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape,
                                                                 ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                         if (hasDebugLightFilter
@@ -2352,6 +2360,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_densityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 m_probeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
+                var settings = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
+                float probeVolumeNormalBiasWS = (settings == null) ? 0.0f : settings.normalBiasWS.value;
+
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
                     Matrix4x4 worldToViewCR = GetWorldToViewMatrix(hdCamera, viewIndex);
@@ -2369,11 +2380,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
                     }
 
+
                     for (int i = 0, n = m_probeVolumeCount; i < n; i++)
                     {
                         // Probe volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, viewIndex);
+                        AddBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, viewIndex, probeVolumeNormalBiasWS);
                     }
                 }
 
