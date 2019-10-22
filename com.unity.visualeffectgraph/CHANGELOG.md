@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Selection Pass for Universal and High Definition Render Pipeline
 - Copy/Paste not deserializing correctly for Particle Strip data
 - WorldPosition, AbsoluteWorldPosition & ScreenPos in shadergraph integration
+- Optimize VFXAssetEditor when externalize is activated
+- TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
 
 ## [7.1.1] - 2019-09-05
 ### Added

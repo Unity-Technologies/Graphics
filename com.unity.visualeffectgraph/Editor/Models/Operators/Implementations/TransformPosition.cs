@@ -12,15 +12,24 @@ namespace UnityEditor.VFX.Operator
             [Tooltip("The transform.")]
             public Transform transform = Transform.defaultValue;
             [Tooltip("The position to be transformed.")]
-            public Position position = Position.defaultValue;
+            public Position position;
         }
 
         public class OutputProperties
         {
-            public Vector3 tPos = Vector3.zero;
+            public Position pos;
         }
 
         override public string name { get { return "Transform (Position)"; } }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "Position");
+            }
+            base.Sanitize(version);
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
