@@ -67,13 +67,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         static class ShaderConstants
         {
-            public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-            public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
-
             public static readonly string DOWNSAMPLING_SIZE_2 = "DOWNSAMPLING_SIZE_2";
             public static readonly string DOWNSAMPLING_SIZE_4 = "DOWNSAMPLING_SIZE_4";
             public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
             public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
+            public static readonly string SPOT = "SPOT";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
             public static readonly int _DepthRanges = Shader.PropertyToID("_DepthRanges");
@@ -102,6 +100,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
             public static readonly int _unproject0 = Shader.PropertyToID("_unproject0");
             public static readonly int _unproject1 = Shader.PropertyToID("_unproject1");
+
+            public static int _MainLightPosition = Shader.PropertyToID("_MainLightPosition");   // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _MainLightColor = Shader.PropertyToID("_MainLightColor");         // ForwardLights.LightConstantBuffer also refers to the same ShaderPropertyID - TODO: move this definition to a common location shared by other UniversalRP classes
+            public static int _SpotLightScale = Shader.PropertyToID("_SpotLightScale");
+            public static int _SpotLightBias = Shader.PropertyToID("_SpotLightBias");
+            public static int _SpotLightGuard = Shader.PropertyToID("_SpotLightGuard");
+            public static int _LightPosWS = Shader.PropertyToID("_LightPosWS");
+            public static int _LightColor = Shader.PropertyToID("_LightColor");
+            public static int _LightAttenuation = Shader.PropertyToID("_LightAttenuation");
+            public static int _LightSpotDirection = Shader.PropertyToID("_LightSpotDirection");
         }
 
         struct CullLightsJob : IJob
@@ -155,13 +163,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal static DeferredLights g_deferredLights;
 
-        
         static readonly string k_SetupLights = "SetupLights";
         static readonly string k_DeferredPass = "Deferred Pass";
         static readonly string k_TileDepthInfo = "Tile Depth Info";
         static readonly string k_TiledDeferredPass = "Tile-Based Deferred Shading";
         static readonly string k_StencilDeferredPass = "Stencil Deferred Shading";
         static readonly string k_SetupLightConstants = "Setup Light Constants";
+        static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes. 
 
         public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point lights without shadows) - false: use StencilDeferred.shader for all lights
         public readonly bool useJobSystem = true;
@@ -187,6 +195,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // For rendering stencil point lights.
         Mesh m_SphereMesh;
+        // For rendering stencil spot lights.
+        Mesh m_HemisphereMesh;
 
         // Max number of tile depth range data that can be referenced per draw call.
         int m_MaxDepthRangePerBatch;
@@ -701,63 +711,73 @@ namespace UnityEngine.Rendering.Universal.Internal
             const int lightTypeCount = (int)LightType.Disc + 1;
 
             // number of supported lights rendered by the TileDeferred system, for each light type (Spot, Directional, Point, Area, Rectangle, Disc, plus one slot at the end)
-            NativeArray<int> tileLightCount = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
-            int stencilLightCount = 0;
+            NativeArray<int> tileLightOffsets = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            NativeArray<int> stencilLightOffsets = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            NativeArray<int> tileLightCounts = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
+            NativeArray<int> stencilLightCounts = new NativeArray<int>(lightTypeCount, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
-            if (this.tiledDeferredShading)
+            // Count the number of lights per type.
+            for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
             {
-                // Count the number of lights per type.
-                for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
-                {
-                    VisibleLight vl = visibleLights[visLightIndex];
-                    if (IsTileLight(vl.light))
-                        ++tileLightCount[(int)vl.lightType];
-                    else // All remaining lights are processed as stencil volumes.
-                        ++stencilLightCount;
-                }
+                VisibleLight vl = visibleLights[visLightIndex];
+                if (this.tiledDeferredShading && IsTileLight(vl.light))
+                    ++tileLightOffsets[(int)vl.lightType];
+                else // All remaining lights are processed as stencil volumes.
+                    ++stencilLightOffsets[(int)vl.lightType];
             }
-            else
-                stencilLightCount = visibleLights.Length;
 
-            // for now we store spotlights and pointlights in the same list
-            prePointLights = new NativeArray<DeferredTiler.PrePointLight>(tileLightCount[(int)LightType.Point] + tileLightCount[(int)LightType.Spot], Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            stencilVisLights = new NativeArray<ushort>(stencilLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            int totalTileLightCount = tileLightOffsets[(int)LightType.Point] + tileLightOffsets[(int)LightType.Spot];
+            int totalStencilLightCount = stencilLightOffsets[(int)LightType.Spot] + stencilLightOffsets[(int)LightType.Directional] + stencilLightOffsets[(int)LightType.Point];
+            prePointLights = new NativeArray<DeferredTiler.PrePointLight>(totalTileLightCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            stencilVisLights = new NativeArray<ushort>(totalStencilLightCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            for (int i = 0; i < tileLightCount.Length; ++i)
-                tileLightCount[i] = 0;
-            stencilLightCount = 0;
+            // Calculate correct offsets now.
+            for (int i = 0, toffset = 0; i < tileLightOffsets.Length; ++i)
+            {
+                int c = tileLightOffsets[i];
+                tileLightOffsets[i] = toffset;
+                toffset += c;
+            }
+            for (int i = 0, soffset = 0; i < stencilLightOffsets.Length; ++i)
+            {
+                int c = stencilLightOffsets[i];
+                stencilLightOffsets[i] = soffset;
+                soffset += c;
+            }
 
             // Precompute point light data.
             for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
             {
                 VisibleLight vl = visibleLights[visLightIndex];
 
-                if (vl.lightType == LightType.Point || vl.lightType == LightType.Spot)
+                if (this.tiledDeferredShading && IsTileLight(vl.light))
                 {
-                    if (this.tiledDeferredShading && IsTileLight(vl.light))
-                    {
-                        DeferredTiler.PrePointLight ppl;
-                        ppl.posVS = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space
-                        ppl.radius = vl.light.range;
-                        ppl.minDist = max(0.0f, length(ppl.posVS) - ppl.radius);
+                    DeferredTiler.PrePointLight ppl;
+                    ppl.posVS = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space
+                    ppl.radius = vl.light.range;
+                    ppl.minDist = max(0.0f, length(ppl.posVS) - ppl.radius);
 
-                        ppl.screenPos = new Vector2(ppl.posVS.x, ppl.posVS.y);
-                        // Project on screen for perspective projections.
-                        if (!isOrthographic && ppl.posVS.z <= zNear)
-                            ppl.screenPos = ppl.screenPos * (-zNear / ppl.posVS.z);
+                    ppl.screenPos = new Vector2(ppl.posVS.x, ppl.posVS.y);
+                    // Project on screen for perspective projections.
+                    if (!isOrthographic && ppl.posVS.z <= zNear)
+                        ppl.screenPos = ppl.screenPos * (-zNear / ppl.posVS.z);
 
-                        ppl.visLightIndex = visLightIndex;
+                    ppl.visLightIndex = visLightIndex;
 
-                        int i = tileLightCount[(int)LightType.Point /*vl.lightType*/ ]++;  // for now we store spotlights and pointlights in the same list
-                        prePointLights[i] = ppl;
-                        continue;
-                    }
+                    int i = tileLightCounts[(int)vl.lightType]++;
+                    prePointLights[tileLightOffsets[(int)vl.lightType] + i] = ppl;
                 }
-
-                // All remaining lights are processed as stencil volumes.
-                stencilVisLights[stencilLightCount++] = visLightIndex;
+                else
+                {
+                    // All remaining lights are processed as stencil volumes.
+                    int i = stencilLightCounts[(int)vl.lightType]++;
+                    stencilVisLights[stencilLightOffsets[(int)vl.lightType] + i] = visLightIndex;
+                }
             }
-            tileLightCount.Dispose();
+            tileLightOffsets.Dispose();
+            stencilLightOffsets.Dispose();
+            tileLightCounts.Dispose();
+            stencilLightCounts.Dispose();
         }
 
         void RenderTiledPointLights(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
@@ -989,6 +1009,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
+            if (m_HemisphereMesh == null)
+                m_HemisphereMesh = CreateHemisphereMesh();
 
             using (new ProfilingSample(cmd, k_StencilDeferredPass))
             {
@@ -996,43 +1018,86 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
 
-                for (int i = 0; i < m_stencilVisLights.Length; ++i)
+                int soffset = 0;
+
+                cmd.EnableShaderKeyword(ShaderConstants.SPOT);
+                for (; soffset < m_stencilVisLights.Length; ++soffset)
                 {
-                    ushort visLightIndex = m_stencilVisLights[i];
+                    ushort visLightIndex = m_stencilVisLights[soffset];
                     VisibleLight vl = visibleLights[visLightIndex];
+                    if (vl.lightType != LightType.Spot)
+                        break;
 
-                    if (vl.light.type == LightType.Point || vl.light.type == LightType.Spot)
-                    {
-                        Vector3 posWS = vl.light.transform.position;
-                        float adjRadius = vl.light.range * 1.06067f; // adjust for approximate sphere geometry
+                    float alpha = Mathf.Deg2Rad * vl.light.spotAngle * 0.5f;
+                    float cosAlpha = Mathf.Cos(alpha);
+                    float sinAlpha = Mathf.Sin(alpha);
+                    // Artificially inflate the geometric shape to fit the analytic spot shape.
+                    // The tighter the spot shape, the lesser inflation is needed.
+                    float guard = Mathf.Lerp(1.0f, kStencilShapeGuard, sinAlpha);
 
-                        Matrix4x4 sphereMatrix = new Matrix4x4(
-                            new Vector4(adjRadius,      0.0f,      0.0f, 0.0f),
-                            new Vector4(     0.0f, adjRadius,      0.0f, 0.0f),
-                            new Vector4(     0.0f,      0.0f, adjRadius, 0.0f),
-                            new Vector4(  posWS.x,   posWS.y,   posWS.z, 1.0f)
-                        );
+                    Vector4 lightAttenuation;
+                    Vector4 lightSpotDir4;
+                    ForwardLights.GetLightAttenuationAndSpotDirection(
+                        vl.light.type, vl.range /*vl.light.range*/, vl.localToWorldMatrix,
+                        vl.spotAngle, vl.light?.innerSpotAngle,
+                        out lightAttenuation, out lightSpotDir4);
 
-                        cmd.SetGlobalVector("_LightPosWS", posWS);
-                        cmd.SetGlobalFloat("_LightRadius2", vl.light.range * vl.light.range);  // TODO is this still needed?
-                        cmd.SetGlobalVector("_LightColor", /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+                    cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.light.range));
+                    cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
+                    cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.light.range));
+                    cmd.SetGlobalVector(ShaderConstants._LightPosWS, vl.light.transform.position);
+                    cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+                    cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
+                    cmd.SetGlobalVector(ShaderConstants._LightSpotDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
 
-                        Vector4 lightAttenuation;
-                        Vector4 lightSpotDir4;
-                        ForwardLights.GetLightAttenuationAndSpotDirection(
-                            vl.light.type, vl.range /*vl.light.range*/, vl.localToWorldMatrix,
-                            vl.spotAngle, vl.light?.innerSpotAngle,
-                            out lightAttenuation, out lightSpotDir4);
-                        cmd.SetGlobalVector("_LightAttenuation", lightAttenuation);
-                        Vector3 lightSpotDir3 = new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z);
-                        cmd.SetGlobalVector("_LightSpotDirection", lightSpotDir3);
+                    // Stencil pass.
+                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
 
-                        // stencil pass
-                        cmd.DrawMesh(m_SphereMesh, sphereMatrix, m_StencilDeferredMaterial, 0, 0);
+                    // Lighting pass.
+                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1);
+                }
+                cmd.DisableShaderKeyword(ShaderConstants.SPOT);
 
-                        // point light pass
-                        cmd.DrawMesh(m_SphereMesh, sphereMatrix, m_StencilDeferredMaterial, 0, 1);
-                    }
+                for (; soffset < m_stencilVisLights.Length; ++soffset)
+                {
+                    ushort visLightIndex = m_stencilVisLights[soffset];
+                    VisibleLight vl = visibleLights[visLightIndex];
+                    if (vl.lightType != LightType.Directional)
+                        break;
+                }
+
+                for (; soffset < m_stencilVisLights.Length; ++soffset)
+                {
+                    ushort visLightIndex = m_stencilVisLights[soffset];
+                    VisibleLight vl = visibleLights[visLightIndex];
+                    if (vl.lightType != LightType.Point)
+                        break;
+
+                    Vector3 posWS = vl.light.transform.position;
+
+                    Matrix4x4 transformMatrix = new Matrix4x4(
+                        new Vector4(vl.light.range,           0.0f,           0.0f, 0.0f),
+                        new Vector4(          0.0f, vl.light.range,           0.0f, 0.0f),
+                        new Vector4(          0.0f,           0.0f, vl.light.range, 0.0f),
+                        new Vector4(       posWS.x,        posWS.y,         posWS.z, 1.0f)
+                    );
+
+                    Vector4 lightAttenuation;
+                    Vector4 lightSpotDir4;
+                    ForwardLights.GetLightAttenuationAndSpotDirection(
+                        vl.light.type, vl.range /*vl.light.range*/, vl.localToWorldMatrix,
+                        vl.spotAngle, vl.light?.innerSpotAngle,
+                        out lightAttenuation, out lightSpotDir4);
+
+                    cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
+                    cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+                    cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
+
+                    // Stencil pass.
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
+
+                    // Lighting pass.
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1);
                 }
             }
 
@@ -1079,49 +1144,50 @@ namespace UnityEngine.Rendering.Universal.Internal
             // tileDeferred might render a lot of point lights in the same draw call.
             // point light shadows require generating cube shadow maps in real-time, requiring extra CPU/GPU resources ; which can become expensive quickly
             return (light.type == LightType.Point && light.shadows == LightShadows.None)
-                || light.type == LightType.Spot ;
+                || (light.type == LightType.Spot && light.shadows == LightShadows.None);
         }
 
         Mesh CreateSphereMesh()
         {
             // TODO reorder for pre&post-transform cache optimisation.
-            Vector3 [] spherePos = {
-                new Vector3(0.000000f, -1.000000f, 0.000000f), new Vector3(1.000000f, 0.000000f, 0.000000f),
-                new Vector3(0.000000f, 1.000000f, 0.000000f), new Vector3(-1.000000f, 0.000000f, 0.000000f),
-                new Vector3(0.000000f, 0.000000f, 1.000000f), new Vector3(0.000000f, 0.000000f, -1.000000f),
-                new Vector3(0.707107f, -0.707107f, 0.000000f), new Vector3(0.707107f, 0.000000f, 0.707107f),
-                new Vector3(0.000000f, -0.707107f, 0.707107f), new Vector3(0.707107f, 0.707107f, 0.000000f),
-                new Vector3(0.000000f, 0.707107f, 0.707107f), new Vector3(-0.707107f, 0.707107f, 0.000000f),
-                new Vector3(-0.707107f, 0.000000f, 0.707107f), new Vector3(-0.707107f, -0.707107f, 0.000000f),
-                new Vector3(0.000000f, -0.707107f, -0.707107f), new Vector3(0.707107f, 0.000000f, -0.707107f),
-                new Vector3(0.000000f, 0.707107f, -0.707107f), new Vector3(-0.707107f, 0.000000f, -0.707107f),
-                new Vector3(0.816497f, -0.408248f, 0.408248f), new Vector3(0.408248f, -0.408248f, 0.816497f),
-                new Vector3(0.408248f, -0.816497f, 0.408248f), new Vector3(0.408248f, 0.816497f, 0.408248f),
-                new Vector3(0.408248f, 0.408248f, 0.816497f), new Vector3(0.816497f, 0.408248f, 0.408248f),
-                new Vector3(-0.816497f, 0.408248f, 0.408248f), new Vector3(-0.408248f, 0.408248f, 0.816497f),
-                new Vector3(-0.408248f, 0.816497f, 0.408248f), new Vector3(-0.408248f, -0.816497f, 0.408248f),
-                new Vector3(-0.408248f, -0.408248f, 0.816497f), new Vector3(-0.816497f, -0.408248f, 0.408248f),
-                new Vector3(0.408248f, -0.816497f, -0.408248f), new Vector3(0.408248f, -0.408248f, -0.816497f),
-                new Vector3(0.816497f, -0.408248f, -0.408248f), new Vector3(0.816497f, 0.408248f, -0.408248f),
-                new Vector3(0.408248f, 0.408248f, -0.816497f), new Vector3(0.408248f, 0.816497f, -0.408248f),
-                new Vector3(-0.408248f, 0.816497f, -0.408248f), new Vector3(-0.408248f, 0.408248f, -0.816497f),
-                new Vector3(-0.816497f, 0.408248f, -0.408248f), new Vector3(-0.816497f, -0.408248f, -0.408248f),
-                new Vector3(-0.408248f, -0.408248f, -0.816497f), new Vector3(-0.408248f, -0.816497f, -0.408248f),
-                new Vector3(0.382683f, -0.923880f, 0.000000f), new Vector3(0.000000f, -0.923880f, 0.382683f),
-                new Vector3(0.923880f, 0.000000f, 0.382683f), new Vector3(0.923880f, -0.382683f, 0.000000f),
-                new Vector3(0.000000f, -0.382683f, 0.923880f), new Vector3(0.382683f, 0.000000f, 0.923880f),
-                new Vector3(0.923880f, 0.382683f, 0.000000f), new Vector3(0.000000f, 0.923880f, 0.382683f),
-                new Vector3(0.382683f, 0.923880f, 0.000000f), new Vector3(0.000000f, 0.382683f, 0.923880f),
-                new Vector3(-0.382683f, 0.923880f, 0.000000f), new Vector3(-0.923880f, 0.000000f, 0.382683f),
-                new Vector3(-0.923880f, 0.382683f, 0.000000f), new Vector3(-0.382683f, 0.000000f, 0.923880f),
-                new Vector3(-0.923880f, -0.382683f, 0.000000f), new Vector3(-0.382683f, -0.923880f, 0.000000f),
-                new Vector3(0.923880f, 0.000000f, -0.382683f), new Vector3(0.000000f, -0.923880f, -0.382683f),
-                new Vector3(0.382683f, 0.000000f, -0.923880f), new Vector3(0.000000f, -0.382683f, -0.923880f),
-                new Vector3(0.000000f, 0.923880f, -0.382683f), new Vector3(0.000000f, 0.382683f, -0.923880f),
-                new Vector3(-0.923880f, 0.000000f, -0.382683f), new Vector3(-0.382683f, 0.000000f, -0.923880f),
+            // This sphere shape has been been slightly inflated to fit an unit sphere.
+            Vector3 [] positions = {
+                new Vector3(0.000000f, -1.060671f, 0.000000f), new Vector3(1.060671f, 0.000000f, 0.000000f), 
+                new Vector3(0.000000f, 1.060671f, 0.000000f), new Vector3(-1.060671f, 0.000000f, 0.000000f), 
+                new Vector3(0.000000f, 0.000000f, 1.060671f), new Vector3(0.000000f, 0.000000f, -1.060671f), 
+                new Vector3(0.750008f, -0.750008f, 0.000000f), new Vector3(0.750008f, 0.000000f, 0.750008f), 
+                new Vector3(0.000000f, -0.750008f, 0.750008f), new Vector3(0.750008f, 0.750008f, 0.000000f), 
+                new Vector3(0.000000f, 0.750008f, 0.750008f), new Vector3(-0.750008f, 0.750008f, 0.000000f), 
+                new Vector3(-0.750008f, 0.000000f, 0.750008f), new Vector3(-0.750008f, -0.750008f, 0.000000f), 
+                new Vector3(0.000000f, -0.750008f, -0.750008f), new Vector3(0.750008f, 0.000000f, -0.750008f), 
+                new Vector3(0.000000f, 0.750008f, -0.750008f), new Vector3(-0.750008f, 0.000000f, -0.750008f), 
+                new Vector3(0.866035f, -0.433017f, 0.433017f), new Vector3(0.433017f, -0.433017f, 0.866035f), 
+                new Vector3(0.433017f, -0.866035f, 0.433017f), new Vector3(0.433017f, 0.866035f, 0.433017f), 
+                new Vector3(0.433017f, 0.433017f, 0.866035f), new Vector3(0.866035f, 0.433017f, 0.433017f), 
+                new Vector3(-0.866035f, 0.433017f, 0.433017f), new Vector3(-0.433017f, 0.433017f, 0.866035f), 
+                new Vector3(-0.433017f, 0.866035f, 0.433017f), new Vector3(-0.433017f, -0.866035f, 0.433017f), 
+                new Vector3(-0.433017f, -0.433017f, 0.866035f), new Vector3(-0.866035f, -0.433017f, 0.433017f), 
+                new Vector3(0.433017f, -0.866035f, -0.433017f), new Vector3(0.433017f, -0.433017f, -0.866035f), 
+                new Vector3(0.866035f, -0.433017f, -0.433017f), new Vector3(0.866035f, 0.433017f, -0.433017f), 
+                new Vector3(0.433017f, 0.433017f, -0.866035f), new Vector3(0.433017f, 0.866035f, -0.433017f), 
+                new Vector3(-0.433017f, 0.866035f, -0.433017f), new Vector3(-0.433017f, 0.433017f, -0.866035f), 
+                new Vector3(-0.866035f, 0.433017f, -0.433017f), new Vector3(-0.866035f, -0.433017f, -0.433017f), 
+                new Vector3(-0.433017f, -0.433017f, -0.866035f), new Vector3(-0.433017f, -0.866035f, -0.433017f), 
+                new Vector3(0.405901f, -0.979933f, 0.000000f), new Vector3(0.000000f, -0.979933f, 0.405901f), 
+                new Vector3(0.979933f, 0.000000f, 0.405901f), new Vector3(0.979933f, -0.405901f, 0.000000f), 
+                new Vector3(0.000000f, -0.405901f, 0.979933f), new Vector3(0.405901f, 0.000000f, 0.979933f), 
+                new Vector3(0.979933f, 0.405901f, 0.000000f), new Vector3(0.000000f, 0.979933f, 0.405901f), 
+                new Vector3(0.405901f, 0.979933f, 0.000000f), new Vector3(0.000000f, 0.405901f, 0.979933f), 
+                new Vector3(-0.405901f, 0.979933f, 0.000000f), new Vector3(-0.979933f, 0.000000f, 0.405901f), 
+                new Vector3(-0.979933f, 0.405901f, 0.000000f), new Vector3(-0.405901f, 0.000000f, 0.979933f), 
+                new Vector3(-0.979933f, -0.405901f, 0.000000f), new Vector3(-0.405901f, -0.979933f, 0.000000f), 
+                new Vector3(0.979933f, 0.000000f, -0.405901f), new Vector3(0.000000f, -0.979933f, -0.405901f), 
+                new Vector3(0.405901f, 0.000000f, -0.979933f), new Vector3(0.000000f, -0.405901f, -0.979933f), 
+                new Vector3(0.000000f, 0.979933f, -0.405901f), new Vector3(0.000000f, 0.405901f, -0.979933f), 
+                new Vector3(-0.979933f, 0.000000f, -0.405901f), new Vector3(-0.405901f, 0.000000f, -0.979933f),
             };
 
-            int [] sphereIndices = {
+            int [] indices = {
                 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
                 36, 37, 38, 39, 40, 41, 42, 20, 43, 44, 18, 45, 46, 19, 47, 48, 23, 44,
                 49, 21, 50, 47, 22, 51, 52, 26, 49, 53, 24, 54, 51, 25, 55, 56, 29, 53,
@@ -1147,8 +1213,63 @@ namespace UnityEngine.Rendering.Universal.Internal
             };
             Mesh mesh = new Mesh();
             mesh.indexFormat = IndexFormat.UInt16;
-            mesh.vertices = spherePos;
-            mesh.triangles = sphereIndices;
+            mesh.vertices = positions;
+            mesh.triangles = indices;
+
+            return mesh;
+        }
+
+        Mesh CreateHemisphereMesh()
+        {
+            // TODO reorder for pre&post-transform cache optimisation.
+            // This capped hemisphere shape is in unit dimensions. It will be slightly inflated in the vertex shader
+            // to fit the cone analytical shape.
+            Vector3 [] positions = {
+                new Vector3(0.000000f, 0.000000f, 0.000000f), new Vector3(1.000000f, 0.000000f, 0.000000f), 
+                new Vector3(0.923880f, 0.382683f, 0.000000f), new Vector3(0.707107f, 0.707107f, 0.000000f), 
+                new Vector3(0.382683f, 0.923880f, 0.000000f), new Vector3(-0.000000f, 1.000000f, 0.000000f), 
+                new Vector3(-0.382684f, 0.923880f, 0.000000f), new Vector3(-0.707107f, 0.707107f, 0.000000f), 
+                new Vector3(-0.923880f, 0.382683f, 0.000000f), new Vector3(-1.000000f, -0.000000f, 0.000000f), 
+                new Vector3(-0.923880f, -0.382683f, 0.000000f), new Vector3(-0.707107f, -0.707107f, 0.000000f), 
+                new Vector3(-0.382683f, -0.923880f, 0.000000f), new Vector3(0.000000f, -1.000000f, 0.000000f), 
+                new Vector3(0.382684f, -0.923879f, 0.000000f), new Vector3(0.707107f, -0.707107f, 0.000000f), 
+                new Vector3(0.923880f, -0.382683f, 0.000000f), new Vector3(0.000000f, 0.000000f, 1.000000f), 
+                new Vector3(0.707107f, 0.000000f, 0.707107f), new Vector3(0.000000f, -0.707107f, 0.707107f), 
+                new Vector3(0.000000f, 0.707107f, 0.707107f), new Vector3(-0.707107f, 0.000000f, 0.707107f), 
+                new Vector3(0.816497f, -0.408248f, 0.408248f), new Vector3(0.408248f, -0.408248f, 0.816497f), 
+                new Vector3(0.408248f, -0.816497f, 0.408248f), new Vector3(0.408248f, 0.816497f, 0.408248f), 
+                new Vector3(0.408248f, 0.408248f, 0.816497f), new Vector3(0.816497f, 0.408248f, 0.408248f), 
+                new Vector3(-0.816497f, 0.408248f, 0.408248f), new Vector3(-0.408248f, 0.408248f, 0.816497f), 
+                new Vector3(-0.408248f, 0.816497f, 0.408248f), new Vector3(-0.408248f, -0.816497f, 0.408248f), 
+                new Vector3(-0.408248f, -0.408248f, 0.816497f), new Vector3(-0.816497f, -0.408248f, 0.408248f), 
+                new Vector3(0.000000f, -0.923880f, 0.382683f), new Vector3(0.923880f, 0.000000f, 0.382683f), 
+                new Vector3(0.000000f, -0.382683f, 0.923880f), new Vector3(0.382683f, 0.000000f, 0.923880f), 
+                new Vector3(0.000000f, 0.923880f, 0.382683f), new Vector3(0.000000f, 0.382683f, 0.923880f), 
+                new Vector3(-0.923880f, 0.000000f, 0.382683f), new Vector3(-0.382683f, 0.000000f, 0.923880f)
+            };
+
+            int [] indices = {
+                0, 2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 6, 5, 0, 
+                7, 6, 0, 8, 7, 0, 9, 8, 0, 10, 9, 0, 11, 10, 0, 12, 
+                11, 0, 13, 12, 0, 14, 13, 0, 15, 14, 0, 16, 15, 0, 1, 16, 
+                22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 14, 24, 34, 35, 
+                22, 16, 36, 23, 37, 2, 27, 35, 38, 25, 4, 37, 26, 39, 6, 30, 
+                38, 40, 28, 8, 39, 29, 41, 10, 33, 40, 34, 31, 12, 41, 32, 36, 
+                15, 22, 24, 18, 23, 22, 19, 24, 23, 3, 25, 27, 20, 26, 25, 18, 
+                27, 26, 7, 28, 30, 21, 29, 28, 20, 30, 29, 11, 31, 33, 19, 32, 
+                31, 21, 33, 32, 13, 14, 34, 15, 24, 14, 19, 34, 24, 1, 35, 16, 
+                18, 22, 35, 15, 16, 22, 17, 36, 37, 19, 23, 36, 18, 37, 23, 1, 
+                2, 35, 3, 27, 2, 18, 35, 27, 5, 38, 4, 20, 25, 38, 3, 4, 
+                25, 17, 37, 39, 18, 26, 37, 20, 39, 26, 5, 6, 38, 7, 30, 6, 
+                20, 38, 30, 9, 40, 8, 21, 28, 40, 7, 8, 28, 17, 39, 41, 20, 
+                29, 39, 21, 41, 29, 9, 10, 40, 11, 33, 10, 21, 40, 33, 13, 34, 
+                12, 19, 31, 34, 11, 12, 31, 17, 41, 36, 21, 32, 41, 19, 36, 32
+            };
+
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = IndexFormat.UInt16;
+            mesh.vertices = positions;
+            mesh.triangles = indices;
 
             return mesh;
         }

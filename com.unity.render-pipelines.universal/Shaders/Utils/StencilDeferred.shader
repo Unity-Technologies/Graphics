@@ -5,6 +5,56 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
 
+    struct Attributes
+    {
+        float4 positionOS : POSITION;
+        uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+    };
+
+    struct Varyings
+    {
+        float4 positionCS : SV_POSITION;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+        UNITY_VERTEX_OUTPUT_STEREO
+    };
+
+    #if defined(SPOT)
+    float4 _SpotLightScale;
+    float4 _SpotLightBias;
+    float4 _SpotLightGuard;
+    #endif
+
+    Varyings Vertex(Attributes input)
+    {
+        Varyings output = (Varyings)0;
+
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_TRANSFER_INSTANCE_ID(input, output);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+        float3 positionOS = input.positionOS.xyz;
+
+        #if defined(SPOT)
+        // Spot lights have an outer angle than can be up to 180 degrees, in which case the shape
+        // becomes a capped hemisphere. There is no affine transforms to handle the particular cone shape,
+        // so instead we will adjust the vertices positions in the vertex shader to get the tighest fit.
+        [flatten] if (any(positionOS.xyz))
+        {
+            // The hemisphere becomes the rounded cap of the cone.
+            positionOS.xyz = _SpotLightBias.xyz + _SpotLightScale.xyz * positionOS.xyz;
+            positionOS.xyz = normalize(positionOS.xyz) * _SpotLightScale.w;
+            // Slightly inflate the geometry to fit the analytic cone shape.
+            // We want the outer rim to be expanded along xy axis only, while the rounded cap is extended along all axis.
+            positionOS.xyz = (positionOS.xyz - float3(0, 0, _SpotLightGuard.w)) * _SpotLightGuard.xyz + float3(0, 0, _SpotLightGuard.w);
+        }
+        #endif
+
+        VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
+        output.positionCS = vertexInput.positionCS;
+
+        return output;
+    }
     ENDHLSL
 
     SubShader
@@ -35,28 +85,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
+            #pragma multi_compile_vertex __ SPOT
+
             #pragma vertex Vertex
             #pragma fragment Frag
             //#pragma enable_d3d11_debug_symbols
-
-            struct Attributes
-            {
-                float4 vertex : POSITION;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-            };
-
-            Varyings Vertex(Attributes input)
-            {
-                float4 csPos = mul(unity_MatrixVP, mul(unity_ObjectToWorld, input.vertex));
-
-                Varyings output;
-                output.positionCS = csPos;
-                return output;
-            }
 
             half4 Frag(Varyings input) : SV_Target
             {
@@ -65,10 +98,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 1 - Point Light
+        // 1 - Punctual Light
         Pass
         {
-            Name "Deferred Point Light"
+            Name "Deferred Punctual Light"
 
             ZTest GEqual
             ZWrite Off
@@ -92,36 +125,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
+            #pragma multi_compile_vertex __ SPOT
+
             #pragma vertex Vertex
-            #pragma fragment PointLightShading
+            #pragma fragment PunctualLightShading
             //#pragma enable_d3d11_debug_symbols
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            Varyings Vertex(Attributes input)
-            {
-                Varyings output = (Varyings)0;
-
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-                output.positionCS = vertexInput.positionCS;
-
-                return output;
-            }
 
             Texture2D _DepthTex;
             Texture2D _GBuffer0;
@@ -130,19 +138,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             float4x4 _ScreenToWorld;
 
             float3 _LightPosWS;
-            float _LightRadius2;
             float3 _LightColor;
             float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
             float3 _LightSpotDirection; // spotLights support
 
-            half4 PointLightShading(Varyings input) : SV_Target
+            half4 PunctualLightShading(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 PointLightData light;
                 light.posWS = _LightPosWS;
-                light.radius2 = _LightRadius2;
+                light.radius2 = 0.0; //  only used by tile-lights.
                 light.color = float4(_LightColor, 0.0);
                 light.attenuation = _LightAttenuation;
                 light.spotDirection = _LightSpotDirection;
