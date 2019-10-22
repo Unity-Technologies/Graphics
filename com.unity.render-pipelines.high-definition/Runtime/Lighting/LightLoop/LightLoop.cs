@@ -2241,7 +2241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 lightVolumeType = LightVolumeType.Sphere;
                             ++envLightCount;
 
-                            var volumePriority = CalculateProbeLogVolume(probe.reflectionProbe.transform.position, probe.bounds, camera);
+                            var volumePriority = CalculateProbePriority(probe.reflectionProbe.transform.position, probe.bounds, camera);
                             Debug.Log($"Probe: ${probe.reflectionProbe.name}: ${volumePriority}");
 
                             m_SortKeys[sortCount++] = PackProbeKey(volumePriority, lightVolumeType, 0u, probeIndex); // Sort by volume
@@ -2270,7 +2270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 lightVolumeType = LightVolumeType.Sphere;
                             ++envLightCount;
 
-                            var volumePriority = CalculateProbeLogVolume(probe.transform.position, probe.bounds, camera);
+                            var volumePriority = CalculateProbePriority(probe.transform.position, probe.bounds, camera);
                             Debug.Log($"Probe: ${probe.name}: ${volumePriority}");
 
                             m_SortKeys[sortCount++] = PackProbeKey(volumePriority, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
@@ -2403,15 +2403,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static uint CalculateProbeLogVolume(Vector3 probePosition, Bounds bounds, Camera camera)
+        static uint CalculateProbePriority(Vector3 probePosition, Bounds bounds, Camera camera)
         {
             float probeDistance = Vector3.Distance(probePosition, camera.transform.position);
             // We take the diagonal of the bounds and create a sphere of this diameter.
-            float diagonalBoundLength = Mathf.Sqrt(bounds.size.x * bounds.size.x + bounds.size.y * bounds.size.y + bounds.size.z * bounds.size.z);
+            float halfDiagonalBoundLength = Mathf.Sqrt(bounds.size.x * bounds.size.x + bounds.size.y * bounds.size.y + bounds.size.z * bounds.size.z) / 2;
             // We do this to compute the solid angle of the sphere instead of the solid angle of an OBB
-            float distanceDelta = Mathf.Sqrt((probeDistance * probeDistance) - (diagonalBoundLength * diagonalBoundLength));
+            float distanceDelta = Mathf.Sqrt((probeDistance * probeDistance) - (halfDiagonalBoundLength * halfDiagonalBoundLength));
             // Finally compute the solid angle of the sphere
-            float solidAngle = 2.0f * Mathf.PI * (1.0f - (distanceDelta / probeDistance));
+            float solidAngle = 2.0f * Mathf.PI * (distanceDelta / probeDistance);
             // Encode the solide angle into 20 bit integer:
             solidAngle = Mathf.Clamp(Mathf.Log(1 + solidAngle, 1.05f) * 1000, 0, 1048575);
             return (uint)solidAngle;
