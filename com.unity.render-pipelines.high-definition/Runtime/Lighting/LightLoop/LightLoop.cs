@@ -2241,9 +2241,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                 lightVolumeType = LightVolumeType.Sphere;
                             ++envLightCount;
 
-                            var logVolume = CalculateProbeLogVolume(probe.bounds);
+                            var volumePriority = CalculateProbeLogVolume(probe.reflectionProbe.transform.position, probe.bounds, camera);
+                            Debug.Log($"Probe: ${probe.reflectionProbe.name}: ${volumePriority}");
 
-                            m_SortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 0u, probeIndex); // Sort by volume
+                            m_SortKeys[sortCount++] = PackProbeKey(volumePriority, lightVolumeType, 0u, probeIndex); // Sort by volume
                         }
                         else
                         {
@@ -2269,9 +2270,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                 lightVolumeType = LightVolumeType.Sphere;
                             ++envLightCount;
 
-                            var logVolume = CalculateProbeLogVolume(probe.bounds);
+                            var volumePriority = CalculateProbeLogVolume(probe.transform.position, probe.bounds, camera);
+                            Debug.Log($"Probe: ${probe.name}: ${volumePriority}");
 
-                            m_SortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
+                            m_SortKeys[sortCount++] = PackProbeKey(volumePriority, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
                         }
                     }
 
@@ -2401,15 +2403,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static float CalculateProbeLogVolume(Bounds bounds)
+        static uint CalculateProbeLogVolume(Vector3 probePosition, Bounds bounds, Camera camera)
         {
-            //Notes:
-            // - 1+ term is to prevent having negative values in the log result
-            // - 1000* is too keep 3 digit after the dot while we truncate the result later
-            // - 1048575 is 2^20-1 as we pack the result on 20bit later
-            float boxVolume = 8f* bounds.extents.x * bounds.extents.y * bounds.extents.z;
-            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f)*1000, 0, 1048575);
-            return logVolume;
+            float probeDistance = Vector3.Distance(probePosition, camera.transform.position);
+            // We take the diagonal of the bounds and create a sphere of this diameter.
+            float diagonalBoundLength = Mathf.Sqrt(bounds.size.x * bounds.size.x + bounds.size.y * bounds.size.y + bounds.size.z * bounds.size.z);
+            // We do this to compute the solid angle of the sphere instead of the solid angle of an OBB
+            float distanceDelta = Mathf.Sqrt((probeDistance * probeDistance) - (diagonalBoundLength * diagonalBoundLength));
+            // Finally compute the solid angle of the sphere
+            float solidAngle = 2.0f * Mathf.PI * (1.0f - (distanceDelta / probeDistance));
+            // Encode the solide angle into 20 bit integer:
+            solidAngle = Mathf.Clamp(Mathf.Log(1 + solidAngle, 1.05f) * 1000, 0, 1048575);
+            return (uint)solidAngle;
         }
 
         static void UnpackProbeSortKey(uint sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
@@ -2419,10 +2424,10 @@ namespace UnityEngine.Rendering.HighDefinition
             listType = (int)((sortKey >> 8) & 1);
         }
 
-        static uint PackProbeKey(float logVolume, LightVolumeType lightVolumeType, uint listType, int probeIndex)
+        static uint PackProbeKey(uint priority, LightVolumeType lightVolumeType, uint listType, int probeIndex)
         {
             // 20 bit volume, 3 bit LightVolumeType, 1 bit list type, 8 bit index
-            return (uint)logVolume << 12 | (uint)lightVolumeType << 9 | listType << 8 | ((uint)probeIndex & 0xFF);
+            return priority << 12 | (uint)lightVolumeType << 9 | listType << 8 | ((uint)probeIndex & 0xFF);
         }
 
         struct BuildGPULightListParameters
