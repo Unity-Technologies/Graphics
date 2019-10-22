@@ -215,6 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            cmd.SetGlobalInt(HDShaderIDs._EnableProbeVolumes, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) ? 1 : 0);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBuffer);
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, m_VisibleProbeVolumeBounds.Count);
@@ -233,6 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static void PushGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
+            cmd.SetGlobalInt(HDShaderIDs._EnableProbeVolumes, 0);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBufferDefault);
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, 0);

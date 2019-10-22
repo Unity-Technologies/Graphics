@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DebugLightingAlbedo = Shader.PropertyToID("_DebugLightingAlbedo");
         public static readonly int _DebugLightingSmoothness = Shader.PropertyToID("_DebugLightingSmoothness");
         public static readonly int _DebugLightingNormal = Shader.PropertyToID("_DebugLightingNormal");
-        public static readonly int _DebugLightingAmbientOcclusion = Shader.PropertyToID("_DebugLightingAmbientOcclusion");        
+        public static readonly int _DebugLightingAmbientOcclusion = Shader.PropertyToID("_DebugLightingAmbientOcclusion");
         public static readonly int _DebugLightingSpecularColor = Shader.PropertyToID("_DebugLightingSpecularColor");
         public static readonly int _DebugLightingEmissiveColor = Shader.PropertyToID("_DebugLightingEmissiveColor");
         public static readonly int _AmbientOcclusionTexture = Shader.PropertyToID("_AmbientOcclusionTexture");
@@ -509,6 +509,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OffScreenDownsampleFactor      = Shader.PropertyToID("_OffScreenDownsampleFactor");
         public static readonly int _ReplaceDiffuseForIndirect      = Shader.PropertyToID("_ReplaceDiffuseForIndirect");
         public static readonly int _EnableSkyLighting               = Shader.PropertyToID("_EnableSkyLighting");
+
+        public static readonly int _EnableProbeVolumes             = Shader.PropertyToID("_EnableProbeVolumes");
 
         public static readonly int _GroundIrradianceTexture        = Shader.PropertyToID("_GroundIrradianceTexture");
         public static readonly int _GroundIrradianceTable          = Shader.PropertyToID("_GroundIrradianceTable");

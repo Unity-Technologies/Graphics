@@ -431,7 +431,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-    // TODO(Nicholas): verify this copy-pasted code against the source.
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
         float probeVolumeHierarchyWeight = 0.0; // Max: 1.0
@@ -602,15 +601,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
         else
 #endif
-        { 
+        {
             probeVolumeDiffuseLighting *= bsdfData.diffuseColor;
         }
 
-        // Lerp down any baked diffuse lighting where probe volume lighting data is present.
-        // This allows us to fallback to lightmaps and / or legacy probes for distant features (such as terrain).
-        // TODO: We may want to elect to fully disable the code paths + memory for baked diffuse lighting and simply anticipate a low resolution
-        // global volume will always be present. Needs discussion. For now, this lerp between baked and probe volumes is the least invasive approach.
-        builtinData.bakeDiffuseLighting = builtinData.bakeDiffuseLighting * (1.0 - probeVolumeHierarchyWeight) + probeVolumeDiffuseLighting;
+        // When probe volumes are enabled, builtinData.bakeDiffuseLighting only contains emissiveColor contribution.
+        builtinData.bakeDiffuseLighting += probeVolumeDiffuseLighting;
     }
 
     // Also Apply indiret diffuse (GI)
