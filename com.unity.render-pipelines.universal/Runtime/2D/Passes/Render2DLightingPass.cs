@@ -101,8 +101,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 Light2D.LightStats lightStats;
                 lightStats = Light2D.GetLightStatsByLayer(layerToRender);
 
-                if (lightStats.totalNormalMapUsage > 0)
-                    RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings);
+                //if (lightStats.totalNormalMapUsage > 0)
+                //    RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings);
 
                 cmd.Clear();
                 if (lightStats.totalLights > 0)
@@ -144,6 +144,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 context.EndSubPass();
             }
 
+            context.EndRenderPass();
+
             cmd.Clear();
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
             RendererLighting.ReleaseRenderTextures(cmd);
@@ -152,17 +154,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            //var colorOutputAttachment2 = new NativeArray<int>(1, Allocator.Temp);
-            //colorOutputAttachment2[0] = 0;
-            //context.BeginSubPass(colorOutputAttachment2);
-            //colorOutputAttachment2.Dispose();
-
-            //filterSettings.sortingLayerRange = SortingLayerRange.all;
-            //RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
-
-            //context.EndSubPass();
-
-            context.EndRenderPass();
+            filterSettings.sortingLayerRange = SortingLayerRange.all;
+            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
         }
     }
 }

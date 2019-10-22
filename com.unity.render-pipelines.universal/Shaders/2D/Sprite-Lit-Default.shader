@@ -66,22 +66,22 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
-            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(1);
+            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(0);
             #endif
 
             #if USE_SHAPE_LIGHT_TYPE_1
             SHAPE_LIGHT(1)
-            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(2);
+            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(1);
             #endif
 
             #if USE_SHAPE_LIGHT_TYPE_2
             SHAPE_LIGHT(2)
-            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
+            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(2);
             #endif
 
             #if USE_SHAPE_LIGHT_TYPE_3
             SHAPE_LIGHT(3)
-            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(4);
+            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
             #endif
 
             Varyings CombinedShapeLightVertex(Attributes v)
