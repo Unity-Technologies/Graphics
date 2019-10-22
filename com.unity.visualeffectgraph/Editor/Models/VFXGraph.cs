@@ -516,6 +516,11 @@ namespace UnityEditor.VFX
                         }
                     }
                 }
+                else if( child is VFXOperator operatorChild)
+                {
+                    operatorChild.UpdateOutputExpressions();
+                    operatorChild.ResyncSlots(true);
+                }
             }
         }
 
