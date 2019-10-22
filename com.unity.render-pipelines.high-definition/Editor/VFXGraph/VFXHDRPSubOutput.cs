@@ -18,7 +18,14 @@ namespace UnityEditor.VFX
 
         // Caps
         public override bool supportsExposure { get { return true; } } 
-        public override bool supportsMotionVector { get { return true; } }
+        public override bool supportsMotionVector
+        {
+            get
+            {
+                return transparentRenderQueue != TransparentRenderQueue.LowResolution
+                    && transparentRenderQueue != TransparentRenderQueue.AfterPostProcessing;
+            }
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {
