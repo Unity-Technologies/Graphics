@@ -66,14 +66,14 @@ namespace UnityEditor.VFX
 
         public class OptionalInputProperties
         {
-            [Tooltip("Texture to be applied to the mesh.")]
+            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
         public class InputProperties
         {
-            [Tooltip("Mesh to be used for particle rendering.")]
+            [Tooltip("Specifies the mesh used to render the particle.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
-            [Tooltip("Define a bitmask to control which submeshes are rendered."), BitField]
+            [Tooltip("Defines a bitmask to control which submeshes are rendered."), BitField]
             public uint subMeshMask = 0xffffffff;
         }
 

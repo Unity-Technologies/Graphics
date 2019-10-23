@@ -1,0 +1,43 @@
+editors:
+  - version: trunk
+projects:
+  - name: Universal
+    folder: UniversalGraphicsTest
+  - name: Universal_Stereo
+    folder: UniversalGfxTestStereo
+  - name: ShaderGraph
+    folder: ShaderGraph
+  - name: ShaderGraph_Stereo
+    folder: ShaderGraphUniversalStereo
+  - name: PostProcessing
+    folder: PostProcessing
+  - name: HDRP
+    folder: HDRP_Tests
+  - name: HDRP_Standalone
+    folder: HDRP_RuntimeTests
+  - name: VFXMain
+    folder: VisualEffectGraph
+  - name: VFX_LWRP
+    folder: VisualEffectGraph_LWRP
+---
+all_project_ci:
+  name: ABV for SRP repository
+  agent:
+    name: whatever
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:latest
+    flavor: b1.small
+  commands:
+  - dir
+  dependencies:
+  {% for project in projects %}
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
+  {% endfor %}
+  triggers:
+    recurring:
+      - branch: master
+        frequency: daily
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"

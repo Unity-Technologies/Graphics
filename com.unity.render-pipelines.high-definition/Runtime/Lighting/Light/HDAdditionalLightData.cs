@@ -1395,7 +1395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_Light;
             }
         }
-        
+
         MeshRenderer m_EmissiveMeshRenderer;
         internal MeshRenderer emissiveMeshRenderer
         {
@@ -1405,7 +1405,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
                 }
-                
+
                 return m_EmissiveMeshRenderer;
             }
         }
@@ -1419,7 +1419,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
                 }
-                
+
                 return m_EmissiveMeshFilter;
             }
         }
@@ -1602,7 +1602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
-             
+
             // Update the directional shadow atlas size
             if (legacyLight.type == LightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, m_ShadowSettings.cascadeShadowSplitCount.value);
@@ -2328,10 +2328,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Need to inverse scale because culling != rendering convention apparently
             Matrix4x4 scaleMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f));
             legacyLight.shadowMatrixOverride = HDShadowUtils.ExtractSpotLightProjectionMatrix(legacyLight.range, legacyLight.spotAngle, shadowNearPlane, aspectRatio, 0.0f) * scaleMatrix;
-
-            // Very conservative bounding sphere taking the diagonal of the shape as the radius
-            float diag = new Vector3(shapeWidth * 0.5f, m_ShapeHeight * 0.5f, legacyLight.range * 0.5f).magnitude;
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, legacyLight.range * 0.5f, diag);
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, legacyLight.range);
         }
 
         void UpdateBounds()
@@ -2678,7 +2675,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // A bunch of function that changes stuff on the legacy light so users don't have to get the
         // light component which would lead to synchronization problem with ou HD datas.
-        
+
         /// <summary>
         /// Set the range of the light.
         /// </summary>
@@ -2769,7 +2766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedTypes = Enum.GetValues(typeof(DirectionalLightUnit)).Cast<LightUnit>().ToArray();
             else
                 supportedTypes = Enum.GetValues(typeof(PunctualLightUnit)).Cast<LightUnit>().ToArray();
-            
+
             supportedLightTypeCache[cacheKey] = supportedTypes;
 
             return supportedTypes;

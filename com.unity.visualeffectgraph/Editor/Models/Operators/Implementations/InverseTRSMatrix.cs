@@ -9,12 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The Matrix4x4 to be inverted (should not be singular).")]
+            [Tooltip("Sets the Matrix4x4 to be inverted (should not be singular).")]
             public Matrix4x4 matrix = Matrix4x4.identity;
         }
 
         public class OutputProperties
         {
+            [Tooltip("Outputs the inverted Matrix4x4.")]
             public Matrix4x4 o = Matrix4x4.identity;
         }
 

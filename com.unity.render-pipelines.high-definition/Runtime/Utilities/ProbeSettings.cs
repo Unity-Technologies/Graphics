@@ -11,16 +11,17 @@ namespace UnityEngine.Rendering.HighDefinition
         lightingMultiplier = 1 << 2,
         lightingWeight = 1 << 3,
         lightingLightLayer = 1 << 4,
-        proxyUseInfluenceVolumeAsProxyVolume = 1 << 5,
-        proxyCapturePositionProxySpace = 1 << 6,
-        proxyCaptureRotationProxySpace = 1 << 7,
-        proxyMirrorPositionProxySpace = 1 << 8,
-        proxyMirrorRotationProxySpace = 1 << 9,
-        frustumFieldOfViewMode = 1 << 10,
-        frustumFixedValue = 1 << 11,
-        frustumAutomaticScale = 1 << 12,
-        frustumViewerScale = 1 << 13,
-        lightingFadeDistance = 1 << 14,
+        lightingRangeCompression = 1 << 5,
+        proxyUseInfluenceVolumeAsProxyVolume = 1 << 6,
+        proxyCapturePositionProxySpace = 1 << 7,
+        proxyCaptureRotationProxySpace = 1 << 8,
+        proxyMirrorPositionProxySpace = 1 << 9,
+        proxyMirrorRotationProxySpace = 1 << 10,
+        frustumFieldOfViewMode = 1 << 11,
+        frustumFixedValue = 1 << 12,
+        frustumAutomaticScale = 1 << 13,
+        frustumViewerScale = 1 << 14,
+        lightingFadeDistance = 1 << 15,
     }
 
     [Serializable]
@@ -89,7 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 multiplier = 1.0f,
                 weight = 1.0f,
                 lightLayer = LightLayerEnum.LightLayerDefault,
-                fadeDistance = 10000f
+                fadeDistance = 10000f,
+                rangeCompressionFactor = 1.0f
             };
 
             /// <summary>A multiplier applied to the radiance of the Probe.</summary>
@@ -100,6 +102,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public LightLayerEnum lightLayer;
             /// <summary>The distance at which reflections smoothly fade out before HDRP cut them completely.</summary>
             public float fadeDistance;
+            /// <summary>The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read.
+            /// This is to simply avoid issues with values clamping due to precision of the storing format.</summary>
+            public float rangeCompressionFactor;
         }
 
         /// <summary>Settings of this probe in the current proxy.</summary>
