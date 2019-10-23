@@ -51,9 +51,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Set to -1 to disable.
 #if UNITY_SWITCH
         public const int kTileDepthInfoIntermediateLevel = 1;
-        #else
+#else
         public const int kTileDepthInfoIntermediateLevel = -1;
-        #endif
+#endif
 
 #if !UNITY_EDITOR && UNITY_SWITCH
         public const bool kHasNativeQuadSupport = true;
@@ -518,6 +518,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
+            Assertions.Assert.IsTrue(
+                m_Tilers[0].GetTilePixelWidth() == m_Tilers[0].GetTilePixelHeight() || DeferredConfig.kTileDepthInfoIntermediateLevel <= 0,
+                "for non square tiles, cannot use intermediate mip level for TileDepthInfo texture generation (todo)"
+            );
+
             uint invalidDepthRange = (uint)Mathf.FloatToHalf(-2.0f) | (((uint)Mathf.FloatToHalf(-1.0f)) << 16);
 
             DeferredTiler tiler = m_Tilers[0];
@@ -912,9 +917,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // Add light list for the tile.
                         for (int l = 0; l < tileLightCount; ++l)
                         {
-                            int visLightIndex = tiles[tileOffset + l];
-                            ushort relLightIndex = visLightToRelLights[visLightIndex];
+                            ushort visLightIndex    = tiles[tileOffset                  + l];
                             ushort relLightBitRange = tiles[tileOffset + tileLightCount + l];
+                            ushort relLightIndex = visLightToRelLights[visLightIndex];
                             relLightList[relLightIndices++] = (uint)relLightIndex | (uint)(relLightBitRange << 16);
                         }
                     }
