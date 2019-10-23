@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
         Downsampling m_DownsamplingMethod;
+        Material m_CopyColorMaterial;
 
         private RenderTargetIdentifier source { get; set; }
         private RenderTargetHandle destination { get; set; }
@@ -22,9 +23,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Create the CopyColorPass
         /// </summary>
-        public CopyColorPass(RenderPassEvent evt, Material samplingMaterial)
+        public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material copyColorMaterial)
         {
             m_SamplingMaterial = samplingMaterial;
+            m_CopyColorMaterial = copyColorMaterial;
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
@@ -73,22 +75,63 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 
-            switch (m_DownsamplingMethod)
+            // Render the lut
+            if (renderingData.cameraData.isPureURPCamera)
             {
-                case Downsampling.None:
-                    Blit(cmd, source, opaqueColorRT);
-                    break;
-                case Downsampling._2xBilinear:
-                    Blit(cmd, source, opaqueColorRT);
-                    break;
-                case Downsampling._4xBox:
-                    m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    Blit(cmd, source, opaqueColorRT, m_SamplingMaterial);
-                    break;
-                case Downsampling._4xBilinear:
-                    Blit(cmd, source, opaqueColorRT);
-                    break;
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                switch (m_DownsamplingMethod)
+                {
+                    case Downsampling.None:
+                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
+                        break;
+                    case Downsampling._2xBilinear:
+                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
+                        break;
+                    case Downsampling._4xBox:
+                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_SamplingMaterial);
+                        break;
+                    case Downsampling._4xBilinear:
+                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
+                        break;
+                }
             }
+            else
+            {
+                switch (m_DownsamplingMethod)
+                {
+                    case Downsampling.None:
+                        Blit(cmd, source, opaqueColorRT);
+                        break;
+                    case Downsampling._2xBilinear:
+                        Blit(cmd, source, opaqueColorRT);
+                        break;
+                    case Downsampling._4xBox:
+                        m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
+                        Blit(cmd, source, opaqueColorRT, m_SamplingMaterial);
+                        break;
+                    case Downsampling._4xBilinear:
+                        Blit(cmd, source, opaqueColorRT);
+                        break;
+                }
+            }
+           
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
