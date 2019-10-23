@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (camera.scene.IsValid())
                 return EditorSceneManager.GetSceneCullingMask(camera.scene);
 
-    #if UNITY_2020_1_OR_NEWER
+            #if UNITY_2020_1_OR_NEWER
             switch (camera.cameraType)
             {
                 case CameraType.SceneView:
@@ -711,9 +711,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return SceneCullingMasks.GameViewObjects;
             }
-    #endif
-#endif
+            #else
             return 0;
+            #endif
+#else
+            return 0;
+#endif
+
         }
     }
 }
