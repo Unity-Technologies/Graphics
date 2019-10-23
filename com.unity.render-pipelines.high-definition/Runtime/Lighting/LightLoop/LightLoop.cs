@@ -1615,7 +1615,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Discard probe if disabled in debug menu
             if (!debugDisplaySettings.data.lightingDebugSettings.showReflectionProbe)
                 return false;
-            
+
             // Discard probe if its distance is too far or if its weight is at 0
             float weight = HDUtils.ComputeWeightedLinearFadeDistance(probe.transform.position, camera.transform.position, probe.weight, probe.fadeDistance);
             if (weight <= 0f)
@@ -1669,7 +1669,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
                         HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
                             probe.settings, probePositionSettings,
-                            out _, out var cameraPositionSettings
+                            out _, out var cameraPositionSettings, 0
                         );
                         capturePosition = cameraPositionSettings.position;
 

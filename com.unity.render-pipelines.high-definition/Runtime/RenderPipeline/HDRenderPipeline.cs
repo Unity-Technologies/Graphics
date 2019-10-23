@@ -1380,6 +1380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 visibleProbe,
                                 viewerTransform,
                                 Enumerable.Repeat(visibility, 1),
+                                HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView
                             );
                         }
@@ -1393,7 +1394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 visibleInOneViewer = true;
                         }
                         if (visibleInOneViewer)
-                            AddHDProbeRenderRequests(visibleProbe, null, visibilities);
+                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0);
                     }
                 }
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
@@ -1405,6 +1406,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDProbe visibleProbe,
                     Transform viewerTransform,
                     IEnumerable<(int index, float weight)> visibilities,
+                    ulong overrideSceneCullingMask,
                     float referenceFieldOfView = 90
                 )
                 {
@@ -1416,7 +1418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cameraPositionSettings.Clear();
                     HDRenderUtilities.GenerateRenderingSettingsFor(
                         visibleProbe.settings, position,
-                        cameraSettings, cameraPositionSettings,
+                        cameraSettings, cameraPositionSettings, overrideSceneCullingMask,
                         referenceFieldOfView: referenceFieldOfView
                     );
 
