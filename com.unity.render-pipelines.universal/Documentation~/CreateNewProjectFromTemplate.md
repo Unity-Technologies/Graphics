@@ -1,6 +1,6 @@
 # Create a Project from a template
 
-If you want to use the Universal Render Pipeline (URP) in a new Project, you can create a new Project with a Template. When you do this, Unity automatically creates a [Universal Render Pipeline Asset](universalrp-asset.md) and assigns it to your Graphics Settings (menu: __Edit__ &gt; __Project Settings...__ &gt; __Graphics__ &gt; __Scriptable Render Pipeline Settings__).
+If you want to use the Universal Render Pipeline (URP) in a new Project, you can create a new Project with a Template. When you do this, Unity automatically creates a [Universal Render Pipeline Asset](universalrp-asset.md) and assigns it to your Graphics Settings (menu: __Edit > Project Settings... > Graphics > Scriptable Render Pipeline Settings__).
 
 To create a Project via a Template:
 

@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, 4, SurfaceOptionUIBlock.Features.All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, kMaxLayerCount, features: commonLitSurfaceInputsFeatures),
-            new MaterialToCopyUIBlock(MaterialUIBlock.Expandable.MaterialReferences),
+            new LayerListUIBlock(MaterialUIBlock.Expandable.MaterialReferences),
             new LayersUIBlock(),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive, features: emissionFeatures),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),

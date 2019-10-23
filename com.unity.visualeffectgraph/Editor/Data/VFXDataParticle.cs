@@ -201,7 +201,7 @@ namespace UnityEditor.VFX
             ParticleStrip
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected DataType dataType = DataType.Particle;
         [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")]
         protected uint capacity = 128;

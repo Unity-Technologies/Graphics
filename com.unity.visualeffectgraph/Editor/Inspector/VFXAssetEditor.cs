@@ -587,8 +587,6 @@ class VisualEffectAssetEditor : Editor
 
             VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
 
-            var shaderSources = VFXExternalShaderProcessor.allowExternalization?resource.shaderSources:null;
-
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
@@ -600,7 +598,7 @@ class VisualEffectAssetEditor : Editor
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
-                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 250:160;
+                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 240:160;
 
 
                     Rect labelR = r;
@@ -609,17 +607,12 @@ class VisualEffectAssetEditor : Editor
                     int index = resource.GetShaderIndex(shader);
                     if (index >= 0)
                     {
-                        if (VFXExternalShaderProcessor.allowExternalization && index <shaderSources.Length)
+                        if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount() )
                         {
-                            string externalPath = directory + shaderSources[index].name;
-                            if (!shaderSources[index].compute)
-                            {
-                                externalPath = directory + shaderSources[index].name.Replace('/', '_') + VFXExternalShaderProcessor.k_ShaderExt;
-                            }
-                            else
-                            {
-                                externalPath = directory + shaderSources[index].name + VFXExternalShaderProcessor.k_ShaderExt;
-                            }
+                            string shaderSourceName = resource.GetShaderSourceName(index);
+                            string externalPath = directory + shaderSourceName;
+
+                            externalPath = directory + shaderSourceName.Replace('/', '_') + VFXExternalShaderProcessor.k_ShaderExt;
 
                             Rect buttonRect = r;
                             buttonRect.xMin = labelR.xMax;
@@ -638,7 +631,7 @@ class VisualEffectAssetEditor : Editor
                                 {
                                     Directory.CreateDirectory(directory);
 
-                                    File.WriteAllText(externalPath, "//" + shaderSources[index].name + "," + index.ToString() + "\n//Don't delete the previous line or this one\n" + shaderSources[index].source);
+                                    File.WriteAllText(externalPath, "//" + shaderSourceName + "," + index.ToString() + "\n//Don't delete the previous line or this one\n" + resource.GetShaderSource(index));
                                 }
                             }
                         }

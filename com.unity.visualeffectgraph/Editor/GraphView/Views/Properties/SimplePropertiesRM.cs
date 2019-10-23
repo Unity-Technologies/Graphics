@@ -22,7 +22,20 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 120;
+            int min = 120;
+            foreach(var str in Enum.GetNames(provider.portType))
+            {
+                Vector2 size = m_Field.Q<TextElement>().MeasureTextSize(str,0, VisualElement.MeasureMode.Undefined,0, VisualElement.MeasureMode.Undefined);
+
+                size.x += 60;
+                if (min < size.x)
+                    min = (int)size.x;
+            }
+            if (min > 200)
+                min = 200;
+
+            
+            return min;
         }
 
         public override ValueControl<int> CreateField()

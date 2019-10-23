@@ -38,7 +38,7 @@ struct ps_input
 	#endif
 	#endif
 	
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	float4 cPosPrevious : TEXCOORD6;
 	float4 cPosNonJiterred : TEXCOORD7;
 	#endif
@@ -55,7 +55,7 @@ struct ps_input
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
 #define VFX_VARYING_UV uv
 
-#if IS_MOTION_VECTORS_PASS
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
@@ -79,13 +79,18 @@ ${VFXIncludeRP("VFXLit.template")}
 			
 ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
 	
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#endif
+
 #pragma fragment frag
 void frag(ps_input i
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif
 
-#if IS_MOTION_VECTORS_PASS
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 	, out float4 outMotionVector : SV_Target0
 	#ifdef WRITE_NORMAL_BUFFER
 		, out float4 outNormalBuffer : SV_Target1
@@ -93,7 +98,7 @@ void frag(ps_input i
 #else
 	#ifdef WRITE_NORMAL_BUFFER
 		, out float4 outNormalBuffer : SV_Target0
-	#elif SCENESELECTIONPASS
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 		, out float4 outColor : SV_Target0
 	#endif
 #endif
@@ -132,13 +137,15 @@ void frag(ps_input i
         #endif
 	#endif
 
-	#if IS_MOTION_VECTORS_PASS
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 		${VFXComputeOutputMotionVector}
 		outMotionVector = encodedMotionVector;
-	#endif
-
-	#if SCENESELECTIONPASS
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 		// We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
 		outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+		//void
+	#else
+		#error VFX_PASSDEPTH undefined
 	#endif
 }

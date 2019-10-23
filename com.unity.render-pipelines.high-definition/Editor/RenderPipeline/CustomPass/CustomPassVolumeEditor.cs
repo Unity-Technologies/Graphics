@@ -20,16 +20,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class Styles
         {
-            public static readonly GUIContent isGlobal = new GUIContent("Is Global", "Is the volume for the entire scene.");
+            public static readonly GUIContent isGlobal = new GUIContent("Mode", "A global volume is applied to the whole scene.");
+            public static readonly GUIContent fadeRadius = new GUIContent("Fade Radius", "Radius from where your effect will be rendered, the _FadeValue in shaders will be updated using this radius");
             public static readonly GUIContent injectionPoint = new GUIContent("Injection Point", "Where the pass is going to be executed in the pipeline.");
         }
 
         class SerializedPassVolume
         {
             public SerializedProperty   isGlobal;
+            public SerializedProperty   fadeRadius;
             public SerializedProperty   customPasses;
             public SerializedProperty   injectionPoint;
         }
+
+        readonly GUIContent[]   m_Modes = { new GUIContent("Global"), new GUIContent("Local") };
 
         SerializedPassVolume    m_SerializedPassVolume;
 
@@ -44,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     isGlobal = o.Find(x => x.isGlobal),
                     injectionPoint = o.Find(x => x.injectionPoint),
                     customPasses = o.Find(x => x.customPasses),
+                    fadeRadius = o.Find(x => x.fadeRadius),
                 };
             }
             
@@ -93,7 +98,9 @@ namespace UnityEditor.Rendering.HighDefinition
             
             EditorGUI.BeginChangeCheck();
             {
-                EditorGUILayout.PropertyField(m_SerializedPassVolume.isGlobal, Styles.isGlobal);
+                m_SerializedPassVolume.isGlobal.boolValue = EditorGUILayout.Popup(Styles.isGlobal, m_SerializedPassVolume.isGlobal.boolValue ? 0 : 1, m_Modes) == 0;
+                if (!m_SerializedPassVolume.isGlobal.boolValue)
+                    EditorGUILayout.PropertyField(m_SerializedPassVolume.fadeRadius, Styles.fadeRadius);
                 EditorGUILayout.PropertyField(m_SerializedPassVolume.injectionPoint, Styles.injectionPoint);
             }
             if (EditorGUI.EndChangeCheck())
@@ -154,10 +161,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var menu = new GenericMenu();
                 foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
+                {
+                    if (customPassType.IsAbstract)
+                        continue;
+                    
                     menu.AddItem(new GUIContent(customPassType.Name), false, () => {
                         m_Volume.AddPassOfType(customPassType);
                         passList.serializedObject.Update();
                     });
+                }
                 menu.ShowAsContext();
 			};
 

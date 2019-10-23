@@ -304,7 +304,7 @@ namespace UnityEditor.Rendering.LookDev
             Stage stage = this[index];
             Environment environment = m_Contexts.GetViewContent(index).environment;
             provider.UpdateSky(stage.camera,
-                environment?.sky,
+                environment == null ? default : environment.sky,
                 stage.runtimeInterface);
         }
 

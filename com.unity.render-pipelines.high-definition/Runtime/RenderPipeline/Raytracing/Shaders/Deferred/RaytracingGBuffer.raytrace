@@ -52,6 +52,7 @@ RW_TEXTURE2D_X(float4, _GBufferTexture4RW); // Light layer or shadow mask
 RW_TEXTURE2D_X(float4, _GBufferTexture5RW); // shadow mask
 
 int _RaytracingHalfResolution;
+uint _RayTracingLayerMask;
 
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
@@ -136,7 +137,7 @@ void RayGenGBuffer()
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, _RayTracingLayerMask, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Output the gbuffer 
     _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(LinearToSRGB(rayIntersection.gBufferData.gbuffer0.xyz), rayIntersection.gBufferData.gbuffer0.w);
@@ -173,17 +174,16 @@ void RayGenGBufferBinned()
     uint packedPixelCoordinate = _RayBinResult[globalBinIndex];
     uint2 currentPixelCoord = uint2((packedPixelCoordinate & 0xffff0000) >> 16, packedPixelCoordinate & 0xffff);
 
+    // If the local index of this pixel is beyond the valid count, no need to compute it
+    if (localTileIndex > _RayBinSizeResult[tileIndex])
+        return;
+
     _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = _RaytracingRayMaxLength;
-    _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(1.0, 0.0, 0.5, 1.0);
     _GBufferTexture1RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
     _GBufferTexture2RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
     _GBufferTexture3RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
 
-    // If the local index of this pixel is beyond the valid count, no need to compute it
-    if(localTileIndex > _RayBinSizeResult[tileIndex])
-    {
-        return;
-    }
 
     // Read the depth value
     float depthValue  = _DepthTexture[COORD_TEXTURE2D_X(currentPixelCoord)].x;
@@ -240,7 +240,7 @@ void RayGenGBufferBinned()
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
     // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, _RayTracingLayerMask, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Output the gbuffer 
     _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(LinearToSRGB(rayIntersection.gBufferData.gbuffer0.xyz), rayIntersection.gBufferData.gbuffer0.w);

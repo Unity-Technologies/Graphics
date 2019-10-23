@@ -17,7 +17,16 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Vector3 tDir = Vector3.zero;
+            public DirectionType dir;
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "DirectionType");
+            }
+            base.Sanitize(version);
         }
 
         override public string name { get { return "Transform (Direction)"; } }

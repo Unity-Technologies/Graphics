@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_LightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
         static readonly GUIContent k_PostProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
 
+        static readonly GUIContent k_LightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
         static readonly GUIContent k_CookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
         static readonly GUIContent k_ReflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
         static readonly GUIContent k_SkySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -63,8 +64,18 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SSSSampleCountContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP processes higher quality subsurface scattering effects. Warning: There is a high performance cost, do not enable on consoles.");
         static readonly GUIContent k_SupportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
         static readonly GUIContent k_VolumetricResolutionContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
-        static readonly GUIContent k_SupportLightLayerContent = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
+        static readonly GUIContent k_SupportLightLayerContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
+        static readonly GUIContent k_LightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer Name 0", "The display name for Light Layer 0. This is purely cosmetic, and can be used to articulate intended use of Light Layer 0");
+        static readonly GUIContent k_LightLayerName1 = EditorGUIUtility.TrTextContent("Light Layer Name 1", "The display name for Light Layer 1. This is purely cosmetic, and can be used to articulate intended use of Light Layer 1");
+        static readonly GUIContent k_LightLayerName2 = EditorGUIUtility.TrTextContent("Light Layer Name 2", "The display name for Light Layer 2. This is purely cosmetic, and can be used to articulate intended use of Light Layer 2");
+        static readonly GUIContent k_LightLayerName3 = EditorGUIUtility.TrTextContent("Light Layer Name 3", "The display name for Light Layer 3. This is purely cosmetic, and can be used to articulate intended use of Light Layer 3");
+        static readonly GUIContent k_LightLayerName4 = EditorGUIUtility.TrTextContent("Light Layer Name 4", "The display name for Light Layer 4. This is purely cosmetic, and can be used to articulate intended use of Light Layer 4");
+        static readonly GUIContent k_LightLayerName5 = EditorGUIUtility.TrTextContent("Light Layer Name 5", "The display name for Light Layer 5. This is purely cosmetic, and can be used to articulate intended use of Light Layer 5");
+        static readonly GUIContent k_LightLayerName6 = EditorGUIUtility.TrTextContent("Light Layer Name 6", "The display name for Light Layer 6. This is purely cosmetic, and can be used to articulate intended use of Light Layer 6");
+        static readonly GUIContent k_LightLayerName7 = EditorGUIUtility.TrTextContent("Light Layer Name 7", "The display name for Light Layer 7. This is purely cosmetic, and can be used to articulate intended use of Light Layer 7");
         static readonly GUIContent k_ColorBufferFormatContent = EditorGUIUtility.TrTextContent("Color Buffer Format", "Specifies the format used by the scene color render target. R11G11B10 is a faster option and should have sufficient precision.");
+        static readonly GUIContent k_SupportCustomPassContent = EditorGUIUtility.TrTextContent("Custom Pass", "When enabled, HDRP allocates a custom pass buffer. It also enable custom passes inside Custom Pass Volume components.");
+        static readonly GUIContent k_CustomBufferFormatContent = EditorGUIUtility.TrTextContent("Custom Buffer Format", "Specifies the format used by the custom pass render target.");
         static readonly GUIContent k_SupportLitShaderModeContent = EditorGUIUtility.TrTextContent("Lit Shader Mode", "Specifies the rendering modes HDRP supports for Lit Shaders. HDRP removes all allocated memory and Shader variants for modes you do not specify.");
         static readonly GUIContent k_MSAASampleCountContent = EditorGUIUtility.TrTextContent("Multisample Anti-aliasing Quality", "Specifies the maximum quality HDRP supports for MSAA. Set Lit Shader Mode to Forward Only or Both to use this feature.");
         static readonly GUIContent k_SupportDecalContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory to the decals buffer and cluster decal. This allows you to use decals in your Unity Project.");
@@ -88,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent k_CoockieSizeContent = EditorGUIUtility.TrTextContent("Cookie Size", "Specifies the maximum size for the individual 2D cookies that HDRP uses for Directional and Spot Lights.");
         static readonly GUIContent k_CookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Texture Array Size", "Sets the maximum Texture Array size for the 2D cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
-        static readonly GUIContent k_PointCoockieSizeContent = EditorGUIUtility.TrTextContent("Point Cookie Size", "Specifies the maximum size for the Cube cookes HDRP uses for Point Lights.");
+        static readonly GUIContent k_PointCoockieSizeContent = EditorGUIUtility.TrTextContent("Point Cookie Size", "Specifies the maximum size for the Cube cookies HDRP uses for Point Lights.");
         static readonly GUIContent k_PointCookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Cubemap Array Size", "Sets the maximum Texture Array size for the Cube cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
 
 
@@ -109,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_MaxDirectionalContent = EditorGUIUtility.TrTextContent("Maximum Directional on Screen", "Sets the maximum number of Directional Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
-        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Environment Lights on Screen", "Sets the maximum number of environment Lights HDRP can handle on screen at once.");
+        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probe on Screen", "Sets the maximum number of Planar and Reflection Probe HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
 
         static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");

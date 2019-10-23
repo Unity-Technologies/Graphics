@@ -1,12 +1,7 @@
 using System;
 using UnityEngine.Rendering.HighDefinition;
 
-using Fence =
-#if UNITY_2019_1_OR_NEWER
-    UnityEngine.Rendering.GraphicsFence;
-#else
-    UnityEngine.Rendering.GPUFence;
-#endif
+using Fence = UnityEngine.Rendering.GraphicsFence;
 
 
 namespace UnityEngine.Rendering
@@ -49,12 +44,7 @@ namespace UnityEngine.Rendering
         {
             Debug.Assert(m_TaskStage == AsyncTaskStage.NotTriggered);
 
-            m_StartFence =
-#if UNITY_2019_1_OR_NEWER
-            cmd.CreateAsyncGraphicsFence();
-#else
-            cmd.CreateGPUFence();
-#endif
+            m_StartFence = cmd.CreateAsyncGraphicsFence();
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
@@ -70,26 +60,15 @@ namespace UnityEngine.Rendering
             }
 
             CommandBuffer asyncCmd = CommandBufferPool.Get(m_TaskName);
-#if UNITY_2019_1_OR_NEWER
             asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
-#endif
 
             if (pushStartFence)
             {
-#if UNITY_2019_1_OR_NEWER
                 asyncCmd.WaitOnAsyncGraphicsFence(m_StartFence);
-#else
-                asyncCmd.WaitOnGPUFence(m_StartFence);
-#endif
             }
 
             asyncTask(asyncCmd, asyncParams);
-
-#if UNITY_2019_1_OR_NEWER
             m_EndFence = asyncCmd.CreateAsyncGraphicsFence();
-#else
-            m_EndFence = asyncCmd.CreateGPUFence();
-#endif
             asyncParams.renderContext.ExecuteCommandBufferAsync(asyncCmd, m_QueueType);
             CommandBufferPool.Release(asyncCmd);
 
@@ -100,11 +79,7 @@ namespace UnityEngine.Rendering
         {
             Debug.Assert(m_TaskStage == AsyncTaskStage.AsyncCmdEnqueued);
 
-#if UNITY_2019_1_OR_NEWER
             cmd.WaitOnAsyncGraphicsFence(m_EndFence);
-#else
-            cmd.WaitOnGPUFence(m_EndFence);
-#endif
             postWork(cmd, hdCamera);
 
             m_TaskStage = AsyncTaskStage.TaskCompleted;

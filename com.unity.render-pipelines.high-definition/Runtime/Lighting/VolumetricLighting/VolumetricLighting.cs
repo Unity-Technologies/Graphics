@@ -589,11 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var cvp = currFrameParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-#if UNITY_2019_1_OR_NEWER
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-#else
-            var vFoV = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
-#endif
             // Compose the matrix which allows us to compute the world space view direction.
             hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, ref m_PixelCoordToViewDirWS);
             parameters.pixelCoordToViewDirWS = m_PixelCoordToViewDirWS;
@@ -734,11 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var cvp = currFrameParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-#if UNITY_2019_1_OR_NEWER
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-#else
-                var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
-#endif
             // Compose the matrix which allows us to compute the world space view direction.
             hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, ref m_PixelCoordToViewDirWS);
             parameters.pixelCoordToViewDirWS = m_PixelCoordToViewDirWS;

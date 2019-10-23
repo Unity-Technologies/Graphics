@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
         }
-        
+
         private struct Field
         {
             public FrameSettingsField field;
@@ -246,7 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 default:
                                     throw new ArgumentException("Unknown FrameSettingsFieldAttribute");
                             }
-                            
+
                         }
                     }
                     EditorGUI.showMixedValue = false;
@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     --EditorGUI.indentLevel;
                 }
             }
-        } 
+        }
 
         object DrawFieldShape(GUIContent label, object field)
         {
@@ -285,7 +285,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (field is Enum)
                 return EditorGUILayout.EnumPopup(label, (Enum)field);
             else if (field is LayerMask)
-                return EditorGUILayout.MaskField(label, (LayerMask)field, GraphicsSettings.renderPipelineAsset.renderingLayerMaskNames);
+                return EditorGUILayout.MaskField(label, (LayerMask)field, GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames);
             else if (field is UnityEngine.Object)
                 return EditorGUILayout.ObjectField(label, (UnityEngine.Object)field, field.GetType(), true);
             else if (field is SerializedProperty)

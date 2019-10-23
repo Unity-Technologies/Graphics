@@ -84,7 +84,7 @@ void RayGenRenderer()
 	rayIntersection.cone.width = 0.0f;
 	
 	// Evaluate the ray intersection
-	TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+	TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, rayDescriptor, rayIntersection);
 
     if (_RayCountEnabled > 0)
     {

@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
         {
         }
 
-        new void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
             if (!string.IsNullOrEmpty(shadergraphGUID))
@@ -426,27 +426,29 @@ namespace UnityEditor.VFX
                         {
                             yield return new KeyValuePair<string, VFXShaderWriter>("VFX_NEEDS_POSWS_INTERPOLATOR",new VFXShaderWriter("1"));
 
-                            callSG.builder.AppendLine("float3 WorldSpacePosition = i.posWS.xyz;");
+                            //TODO : replace posWS.xyz by VFX_VARYING_POSWS
+                            callSG.builder.AppendLine("float3 posRelativeWS = VFXGetPositionRWS(i.posWS.xyz);");
+                            callSG.builder.AppendLine("float3 posAbsoluteWS = VFXGetPositionAWS(i.posWS.xyz);");
+
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.World) != 0)
-                                callSG.builder.AppendLine("INSG.WorldSpacePosition = WorldSpacePosition;");
+                                callSG.builder.AppendLine("INSG.WorldSpacePosition = posRelativeWS;");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Object) != 0)
-                                callSG.builder.AppendLine("INSG.ObjectSpacePosition =  TransformWorldToObject(WorldSpacePosition);");
+                                callSG.builder.AppendLine("INSG.ObjectSpacePosition = TransformWorldToObject(posRelativeWS);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.View) != 0)
-                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformWorldToView(WorldSpacePosition);");
+                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformPositionVFXToView(i.posWS.xyz);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Tangent) != 0)
                                 callSG.builder.AppendLine("INSG.TangentSpacePosition = float3(0.0f, 0.0f, 0.0f);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) != 0)
-                                callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePosition = GetAbsolutePositionWS(WorldSpacePosition);");
+                                callSG.builder.AppendLine("INSG.AbsoluteWorldSpacePosition = posAbsoluteWS;");
 
                             if(graphCode.requirements.requiresScreenPosition)
-                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(i.posWS), _ProjectionParams.x);");
-
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.posWS.xyz), _ProjectionParams.x);");
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
-                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(i.posWS);");
+                                callSG.builder.AppendLine("float3 V = GetWorldSpaceNormalizeViewDir(VFXGetPositionRWS(i.posWS.xyz);");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.World) != 0)
-                                    callSG.builder.AppendLine("INSG.WorldSpaceViewDirection =  V;");
+                                    callSG.builder.AppendLine("INSG.WorldSpaceViewDirection = V;");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.Object) != 0)
                                     callSG.builder.AppendLine("INSG.ObjectSpaceViewDirection =  TransformWorldToObjectDir(V);");
                                 if ((graphCode.requirements.requiresViewDir & NeededCoordinateSpace.View) != 0)

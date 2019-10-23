@@ -186,6 +186,10 @@ namespace UnityEditor.VFX
                         original.onInvalidateDelegate += OnOriginalSlotModified;
                     }
                 }
+                else if( child.copy is VFXSubgraphBlock subgraphBlock)
+                {
+                    subgraphBlock.RecreateCopy();
+                }
             }
 
             List<string> newInputFlowNames = new List<string>();
@@ -332,9 +336,8 @@ namespace UnityEditor.VFX
 
             var inputExpressions = new List<VFXExpression>();
 
-            foreach (var slot in inputSlots)
-                foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
-                    inputExpressions.Add(subSlot.GetExpression());
+            foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
+                inputExpressions.Add(subSlot.GetExpression());
 
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetSortedInputParameters());
             foreach (var slot in toInvalidate)

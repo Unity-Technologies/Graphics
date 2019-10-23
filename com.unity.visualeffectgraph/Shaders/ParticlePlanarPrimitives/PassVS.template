@@ -88,7 +88,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	
 	// Orient strips along their tangents
 	attributes.axisX = GetStripTangent(attributes.position, currentIndex, stripData);
+#if !VFX_STRIPS_ORIENT_CUSTOM
 	attributes.axisZ = attributes.position - GetViewVFXPosition();
+#endif
 	attributes.axisY = normalize(cross(attributes.axisZ, attributes.axisX));
 	attributes.axisZ = normalize(cross(attributes.axisX, attributes.axisY));
 	

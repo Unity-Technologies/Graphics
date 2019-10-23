@@ -187,8 +187,7 @@ CBUFFER_START(UnityGlobal)
     float4 _ShadowFrustumPlanes[6];     // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
     // TAA Frame Index ranges from 0 to 7.
-    // First two channels of this gives you two rotations per cycle.
-    float4 _TaaFrameInfo;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), taaFrame, taaEnabled ? 1 : 0 }
+    float4 _TaaFrameInfo;               // { taaSharpenStrength, unused, taaFrameIndex, taaEnabled ? 1 : 0 }
 
     // Current jitter strength (0 if TAA is disabled)
     float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
@@ -247,6 +246,8 @@ CBUFFER_START(UnityGlobal)
 
     uint _XRViewCount;
     int  _FrameCount;
+
+    float _ProbeExposureScale;
 
 CBUFFER_END
 
@@ -370,18 +371,20 @@ void ApplyCameraRelativeXR(inout float3 positionWS)
 float GetCurrentExposureMultiplier()
 {
 #if SHADEROPTIONS_PRE_EXPOSITION
-    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+    // _ProbeExposureScale is a scale used to perform range compression to avoid saturation of the content of the probes. It is 1.0 if we are not rendering probes.
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x * _ProbeExposureScale;
 #else
-    return 1.0;
+    return _ProbeExposureScale;
 #endif
 }
 
 float GetPreviousExposureMultiplier()
 {
 #if SHADEROPTIONS_PRE_EXPOSITION
-    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;
+    // _ProbeExposureScale is a scale used to perform range compression to avoid saturation of the content of the probes. It is 1.0 if we are not rendering probes.
+    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x * _ProbeExposureScale;
 #else
-    return 1.0;
+    return _ProbeExposureScale;
 #endif
 }
 
@@ -393,7 +396,7 @@ float GetInverseCurrentExposureMultiplier()
 
 float GetInversePreviousExposureMultiplier()
 {
-    float exposure = GetCurrentExposureMultiplier();
+    float exposure = GetPreviousExposureMultiplier();
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
