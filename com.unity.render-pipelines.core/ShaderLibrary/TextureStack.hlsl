@@ -68,13 +68,16 @@
 struct StackInfo
 {
     GraniteLookupData lookupData;
+    GraniteLODLookupData lookupDataLOD;
 	float4 resolveOutput;
 };
 
 #ifdef TEXTURESTACK_CLAMP
     #define GR_LOOKUP Granite_Lookup_Clamp_Linear
+    #define GR_LOOKUP_LOD Granite_Lookup_Clamp
 #else
     #define GR_LOOKUP Granite_Lookup_Anisotropic
+    #define GR_LOOKUP_LOD Granite_Lookup
 #endif
 
 // This can be used by certain resolver implementations to override screen space derivatives
@@ -116,6 +119,32 @@ StackInfo PrepareVT_##stackName(float2 uv)\
 	StackInfo info;\
     GR_LOOKUP(grCB, translationTable, uv, info.lookupData, info.resolveOutput);\
 	return info;\
+} \
+StackInfo PrepareVT_Lod_##stackName(float2 uv, float mip) \
+{ \
+	GraniteStreamingTextureConstantBuffer textureParamBlock;\
+	textureParamBlock.data[0] = stackName##_atlasparams[0];\
+	textureParamBlock.data[1] = stackName##_atlasparams[1];\
+\
+    /* hack resolve scale into constant buffer here */\
+    stackName##_spaceparams[0][2][0] *= RESOLVE_SCALE_OVERRIDE.x;\
+    stackName##_spaceparams[0][3][0] *= RESOLVE_SCALE_OVERRIDE.y;\
+\
+	GraniteTilesetConstantBuffer graniteParamBlock;\
+	graniteParamBlock.data[0] = stackName##_spaceparams[0];\
+	graniteParamBlock.data[1] = stackName##_spaceparams[1];\
+\
+	GraniteConstantBuffers grCB;\
+	grCB.tilesetBuffer = graniteParamBlock;\
+	grCB.streamingTextureBuffer = textureParamBlock;\
+\
+	GraniteTranslationTexture translationTable;\
+	translationTable.Texture = stackName##_transtab;\
+	translationTable.Sampler = sampler##stackName##_transtab;\
+\
+	StackInfo info;\
+    GR_LOOKUP_LOD(grCB, translationTable, uv, mip, info.lookupDataLOD, info.resolveOutput);\
+	return info;\
 }
 
 #define jj2(a, b) a##b
@@ -154,6 +183,36 @@ float4 SampleVT_##layerSamplerName(StackInfo info)\
 float3 SampleVT_Normal_##layerSamplerName(StackInfo info, float scale)\
 {\
 	return Granite_UnpackNormal( jj(SampleVT_,layerSamplerName)( info ), scale ); \
+} \
+float4 SampleVT_Lod_##layerSamplerName(StackInfo info)\
+{\
+	GraniteStreamingTextureConstantBuffer textureParamBlock;\
+	textureParamBlock.data[0] = stackName##_atlasparams[0];\
+	textureParamBlock.data[1] = stackName##_atlasparams[1];\
+\
+    /* hack resolve scale into constant buffer here */\
+    stackName##_spaceparams[0][2][0] *= RESOLVE_SCALE_OVERRIDE.x;\
+    stackName##_spaceparams[0][3][0] *= RESOLVE_SCALE_OVERRIDE.y;\
+\
+	GraniteTilesetConstantBuffer graniteParamBlock;\
+	graniteParamBlock.data[0] = stackName##_spaceparams[0];\
+	graniteParamBlock.data[1] = stackName##_spaceparams[1];\
+\
+	GraniteConstantBuffers grCB;\
+	grCB.tilesetBuffer = graniteParamBlock;\
+	grCB.streamingTextureBuffer = textureParamBlock;\
+\
+	GraniteCacheTexture cache;\
+	cache.TextureArray = stackName##_c##layerIndex;\
+	cache.Sampler = sampler##stackName##_c##layerIndex;\
+\
+	float4 output;\
+	Granite_Sample(grCB, info.lookupDataLOD, cache, layerIndex, output);\
+	return output;\
+} \
+float3 SampleVT_Lod_Normal_##layerSamplerName(StackInfo info, float scale)\
+{\
+	return Granite_UnpackNormal( jj(SampleVT_Lod_,layerSamplerName)( info ), scale ); \
 }
 
 #define DECLARE_STACK_RESOLVE(stackName)\
@@ -205,8 +264,11 @@ float4 ResolveVT_##stackName(float2 uv)\
 	DECLARE_STACK_LAYER(stackName, layer3SamplerName,3)
 
 #define PrepareStack(uv, stackName) PrepareVT_##stackName(uv)
+#define PrepareStack_Lod(uv, stackName, mip) PrepareVT_Lod_##stackName(uv, mip)
 #define SampleStack(info, textureName) SampleVT_##textureName(info)
+#define SampleStack_Lod(info, textureName) SampleVT_Lod_##textureName(info)
 #define SampleStack_Normal(info, textureName, scale) SampleVT_Normal_##textureName(info, scale)
+#define SampleStack_Lod_Normal(info, textureName, scale) SampleVT_Lod_Normal_##textureName(info, scale)
 #define GetResolveOutput(info) info.resolveOutput
 #define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
@@ -230,6 +292,7 @@ float4 GetPackedVTFeedback(float4 feedback)
 struct StackInfo
 {
     float2 uv;
+    float lod;
 };
 
 StackInfo MakeStackInfo(float2 uv)
@@ -238,13 +301,26 @@ StackInfo MakeStackInfo(float2 uv)
     result.uv = uv;
     return result;
 }
+StackInfo MakeStackInfoLOD(float2 uv, float lod)
+{
+    StackInfo result;
+    result.uv = uv;
+    result.lod = lod;
+    return result;
+}
 
 // Prepare just passes the texture coord around
 #define PrepareStack(uv, stackName) MakeStackInfo(uv)
+#define PrepareStack_Lod(uv, stackName, mip) MakeStackInfoLOD(uv, mip)
+
 
 // Sample just samples the texture
 #define SampleStack(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
 #define SampleStack_Normal(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
+
+#define SampleStack_Lod(info, textureName) SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.uv, info.lod)
+#define SampleStack_Lod_Normal(info, textureName) SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.uv, info.lod)
+
 
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
