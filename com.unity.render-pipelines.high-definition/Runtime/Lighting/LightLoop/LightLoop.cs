@@ -2242,7 +2242,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             ++envLightCount;
 
                             var volumePriority = CalculateProbePriority(probe.reflectionProbe.transform.position, probe.bounds, camera);
-                            Debug.Log($"Probe: ${probe.reflectionProbe.name}: ${volumePriority}");
 
                             m_SortKeys[sortCount++] = PackProbeKey(volumePriority, lightVolumeType, 0u, probeIndex); // Sort by volume
                         }
@@ -2271,7 +2270,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             ++envLightCount;
 
                             var volumePriority = CalculateProbePriority(probe.transform.position, probe.bounds, camera);
-                            Debug.Log($"Probe: ${probe.name}: ${volumePriority}");
 
                             m_SortKeys[sortCount++] = PackProbeKey(volumePriority, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
                         }
@@ -2408,13 +2406,20 @@ namespace UnityEngine.Rendering.HighDefinition
             float probeDistance = Vector3.Distance(probePosition, camera.transform.position);
             // We take the diagonal of the bounds and create a sphere of this diameter.
             float halfDiagonalBoundLength = Mathf.Sqrt(bounds.size.x * bounds.size.x + bounds.size.y * bounds.size.y + bounds.size.z * bounds.size.z) / 2;
-            // We do this to compute the solid angle of the sphere instead of the solid angle of an OBB
+            // We do this to compute the spherical cap instead of the visibility of the bounds.
             float distanceDelta = Mathf.Sqrt((probeDistance * probeDistance) - (halfDiagonalBoundLength * halfDiagonalBoundLength));
             // Finally compute the solid angle of the sphere
-            float solidAngle = 2.0f * Mathf.PI * (distanceDelta / probeDistance);
+            float solidAngle = 2.0f * Mathf.PI * (1.0f - (distanceDelta / probeDistance));
+
+            // In case the camera is inside the volume, we put the maximum possible value + the radius of the sphere
+            if (halfDiagonalBoundLength > probeDistance)
+                solidAngle = 2.0f * Mathf.PI + halfDiagonalBoundLength;
+
             // Encode the solide angle into 20 bit integer:
             solidAngle = Mathf.Clamp(Mathf.Log(1 + solidAngle, 1.05f) * 1000, 0, 1048575);
-            return (uint)solidAngle;
+    
+            // Invert the result because we want probe with bigger priority first
+            return 1048575 - (uint)solidAngle;
         }
 
         static void UnpackProbeSortKey(uint sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
