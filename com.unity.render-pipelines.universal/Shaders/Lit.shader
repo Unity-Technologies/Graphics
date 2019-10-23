@@ -188,6 +188,15 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature _SPECULAR_SETUP
 
             // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+            // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
@@ -198,6 +207,7 @@ Shader "Universal Render Pipeline/Lit"
 
             #pragma vertex LitGBufferPassVertex
             #pragma fragment LitGBufferPassFragment
+            //#pragma enable_d3d11_debug_symbols
 
             #include "LitInput.hlsl"
             #include "LitGBufferPass.hlsl"

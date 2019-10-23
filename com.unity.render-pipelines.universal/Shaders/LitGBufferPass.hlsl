@@ -35,9 +35,9 @@ struct Varyings
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
 
-//#ifdef _MAIN_LIGHT_SHADOWS
-//    float4 shadowCoord              : TEXCOORD7;
-//#endif
+#ifdef _MAIN_LIGHT_SHADOWS
+    float4 shadowCoord              : TEXCOORD7;
+#endif
 
     float4 positionCS               : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -65,11 +65,11 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.viewDirectionWS = viewDirWS;
-//#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-//    inputData.shadowCoord = input.shadowCoord;
-//#else
-//    inputData.shadowCoord = float4(0, 0, 0, 0);
-//#endif
+#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+    inputData.shadowCoord = input.shadowCoord;
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -114,9 +114,9 @@ Varyings LitGBufferPassVertex(Attributes input)
 //    output.positionWS = vertexInput.positionWS;
 //#endif
 
-//#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
-//    output.shadowCoord = GetShadowCoord(vertexInput);
-//#endif
+#if defined(_MAIN_LIGHT_SHADOWS) && !defined(_RECEIVE_SHADOWS_OFF)
+    output.shadowCoord = GetShadowCoord(vertexInput);
+#endif
 
     output.positionCS = vertexInput.positionCS;
 
@@ -137,8 +137,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    //half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha);
-
+    // Stripped down version of UniversalFragmentPBR().
 
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer

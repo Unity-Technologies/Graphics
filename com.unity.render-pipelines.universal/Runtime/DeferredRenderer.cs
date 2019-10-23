@@ -8,7 +8,10 @@ namespace UnityEngine.Rendering.Universal
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
 
-//        DepthOnlyPass m_DepthPrepass;
+        DepthOnlyPass m_DepthPrepass;
+        MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
         GBufferPass m_GBufferPass;
         CopyDepthPass m_CopyDepthPass;
         TileDepthRangePass m_TileDepthRangePass;
@@ -43,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
 //            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
-//            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
+            Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
             Material tileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
             Material tileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
             Material stencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
@@ -61,7 +64,10 @@ namespace UnityEngine.Rendering.Universal
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
-//            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, screenspaceShadowsMaterial);
             m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, copyDepthMaterial);
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
@@ -92,7 +98,25 @@ namespace UnityEngine.Rendering.Universal
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
+            ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+
+            bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
+            bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
+            bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
+
+            // Depth prepass is generated in the following cases:
+            // - We resolve shadows in screen space
+            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
+            bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
+                (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
+            requiresDepthPrepass |= resolveShadowsInScreenSpace;
+
+            // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
+            // we have a proper fix.
+            if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
+                requiresDepthPrepass = true;
 
             //bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
             //                          || rendererFeatures.Count != 0;
@@ -130,6 +154,24 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
             }
             bool hasAfterRendering = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRendering) != null;
+
+            if (mainLightShadows)
+                EnqueuePass(m_MainLightShadowCasterPass);
+
+            if (additionalLightShadows)
+                EnqueuePass(m_AdditionalLightsShadowCasterPass);
+
+            if (requiresDepthPrepass)
+            {
+                m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
+                EnqueuePass(m_DepthPrepass);
+            }
+
+            if (resolveShadowsInScreenSpace)
+            {
+                m_ScreenSpaceShadowResolvePass.Setup(cameraTargetDescriptor);
+                EnqueuePass(m_ScreenSpaceShadowResolvePass);
+            }
 
             RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[GBufferSlicesCount + 1];
             for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
