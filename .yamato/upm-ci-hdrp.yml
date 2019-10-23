@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: draft/graphics/texture-gpu-pruning
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
