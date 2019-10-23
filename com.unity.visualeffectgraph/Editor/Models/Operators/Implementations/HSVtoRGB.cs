@@ -9,13 +9,14 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The Hue, Saturation and Value parameters.")]
-            public Vector3 hsv = new Vector3(1.0f, 0.5f, 0.5f);
+            [Tooltip("Sets the Hue, Saturation, and Value parameters to be converted to color values.")]
+            public Vector3 HSV = new Vector3(1.0f, 0.5f, 0.5f);
         }
 
         public class OutputProperties
         {
-            public Vector4 rgb = Vector4.zero;
+            [Tooltip("Outputs the color values derived from the Hue, Saturation, and Value parameters.")]
+            public Vector4 RGB = Vector4.zero;
         }
 
         override public string name { get { return "HSV to RGB"; } }
