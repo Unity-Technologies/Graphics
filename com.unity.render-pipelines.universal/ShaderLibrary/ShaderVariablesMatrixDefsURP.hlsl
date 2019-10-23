@@ -114,6 +114,7 @@ float4x4 _InvViewMatrix;
 float4x4 _InvProjMatrix;
 float4x4 BUILDIN_unity_CameraInvProjection;
 float4x4 BUILDIN_unity_CameraToWorld;
+int      BUILDIN_unity_StereoEyeIndex;
 
 #define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
 #define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
@@ -127,7 +128,6 @@ float4x4 BUILDIN_unity_CameraToWorld;
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-
 #endif // USING_STEREO_MATRICES
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

@@ -19,6 +19,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         #define _MainTex_TexelSize _BlitTex_TexelSize
 #else
         TEXTURE2D_X(_MainTex);
+        float4 _MainTex_TexelSize
 #endif
         TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 

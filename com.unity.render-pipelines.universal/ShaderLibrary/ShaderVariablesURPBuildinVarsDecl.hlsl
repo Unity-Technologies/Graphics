@@ -35,5 +35,5 @@
 
 #define BUILDIN_unity_CameraInvProjection  unity_CameraInvProjection
 #define BUILDIN_unity_CameraToWorld        unity_CameraToWorld
-
+#define BUILDIN_unity_StereoEyeIndex       unity_StereoEyeIndex
 #endif // UNITY_SHADER_VARIABLES_URP_BUILTIN_VARS_DECL_INCLUDED

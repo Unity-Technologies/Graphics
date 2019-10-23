@@ -5,7 +5,9 @@
 #define MAX_VISIBLE_LIGHTS_UBO  32
 
 // Experimental Code Path: Pure URP
+#if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON)
 #define USING_PUREURP
+#endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
@@ -44,6 +46,7 @@ struct InputData
 
 #if defined(USING_PUREURP)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesMatrixDefsURP.hlsl"
+
 #else
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
