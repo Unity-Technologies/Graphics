@@ -143,45 +143,46 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (profile.TryGet<VisualEnvironment>(out var visualEnv))
                 {
-                    if (visualEnv.fogType.value == FogType.Exponential)
+                    if (visualEnv.fogType.value == FogType.Exponential || visualEnv.fogType.value == FogType.Volumetric)
                     {
-                        if (profile.TryGet<ExponentialFog>(out var expFog))
-                        {
-                            var fog = CreateFogComponentIfNeeded(profile);
-                            fog.enabled.Override(true);
-                            // We only migrate distance because the height parameters are not compatible.
-                            if (expFog.fogDistance.overrideState)
-                                fog.meanFreePath.Override(expFog.fogDistance.value);
-
-                            OverrideCommonParameters(expFog, fog);
-                            EditorUtility.SetDirty(profile);
-                        }
+                        var fog = CreateFogComponentIfNeeded(profile);
+                        fog.enabled.Override(true);
                     }
+                }
 
-                    if (visualEnv.fogType.value == FogType.Volumetric)
-                    {
-                        if (profile.TryGet<VolumetricFog>(out var volFog))
-                        {
-                            var fog = CreateFogComponentIfNeeded(profile);
-                            fog.enabled.Override(true);
-                            fog.enableVolumetricFog.Override(true);
-                            if (volFog.meanFreePath.overrideState)
-                                fog.meanFreePath.Override(volFog.meanFreePath.value);
-                            if (volFog.albedo.overrideState)
-                                fog.albedo.Override(volFog.albedo.value);
-                            if (volFog.baseHeight.overrideState)
-                                fog.baseHeight.Override(volFog.baseHeight.value);
-                            if (volFog.maximumHeight.overrideState)
-                                fog.maximumHeight.Override(volFog.maximumHeight.value);
-                            if (volFog.anisotropy.overrideState)
-                                fog.anisotropy.Override(volFog.anisotropy.value);
-                            if (volFog.globalLightProbeDimmer.overrideState)
-                                fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
 
-                            OverrideCommonParameters(volFog, fog);
-                            EditorUtility.SetDirty(profile);
-                        }
-                    }
+                if (profile.TryGet<ExponentialFog>(out var expFog))
+                {
+                    var fog = CreateFogComponentIfNeeded(profile);
+
+                    // We only migrate distance because the height parameters are not compatible.
+                    if (expFog.fogDistance.overrideState)
+                        fog.meanFreePath.Override(expFog.fogDistance.value);
+
+                    OverrideCommonParameters(expFog, fog);
+                    EditorUtility.SetDirty(profile);
+                }
+
+                if (profile.TryGet<VolumetricFog>(out var volFog))
+                {
+                    var fog = CreateFogComponentIfNeeded(profile);
+
+                    fog.enableVolumetricFog.Override(true);
+                    if (volFog.meanFreePath.overrideState)
+                        fog.meanFreePath.Override(volFog.meanFreePath.value);
+                    if (volFog.albedo.overrideState)
+                        fog.albedo.Override(volFog.albedo.value);
+                    if (volFog.baseHeight.overrideState)
+                        fog.baseHeight.Override(volFog.baseHeight.value);
+                    if (volFog.maximumHeight.overrideState)
+                        fog.maximumHeight.Override(volFog.maximumHeight.value);
+                    if (volFog.anisotropy.overrideState)
+                        fog.anisotropy.Override(volFog.anisotropy.value);
+                    if (volFog.globalLightProbeDimmer.overrideState)
+                        fog.globalLightProbeDimmer.Override(volFog.globalLightProbeDimmer.value);
+
+                    OverrideCommonParameters(volFog, fog);
+                    EditorUtility.SetDirty(profile);
                 }
 
                 if (profile.TryGet<VolumetricLightingController>(out var volController))
