@@ -31,13 +31,13 @@ void Frag(VSOutput input, out float4 outColor : SV_Target)
     FragInputs fragInputs;
     PositionInputs posInputs;
     float3 V = float3(0, 0, 0);
-    PostProcessSurfaceData surfaceData;
+    SurfaceData surfaceData;
 
     fragInputs.positionSS.xy = input.texcoord * _ScreenSize.xy;
 
     GetSurfaceData(fragInputs, V, posInputs, surfaceData);
 
-    outColor = float4(surfaceData.output, 1);    
+    outColor = surfaceData.output;    
 }
 
 

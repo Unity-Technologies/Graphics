@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
@@ -7,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Volume component class to inherit when you implement a custom post process
     /// </summary>
+    ///
     public abstract class CustomPostProcessVolumeComponent : VolumeComponent
     {
         bool isInitialized = false;

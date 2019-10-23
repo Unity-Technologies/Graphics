@@ -6,9 +6,9 @@
 #define POSTPROCESSSURFACEDATA_CS_HLSL
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.PostProcessSurfaceData
 // PackingRules = Exact
-struct PostProcessSurfaceData
+struct SurfaceData
 {
-    float3 output;
+    float4 output;
 };
 
 

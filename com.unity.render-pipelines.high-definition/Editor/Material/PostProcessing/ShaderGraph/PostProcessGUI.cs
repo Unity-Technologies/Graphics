@@ -23,11 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
-        {
-            // always instanced
-            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
-            instancing.boolValue = true;
-
+        {           
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.OnGUI(materialEditor, props);

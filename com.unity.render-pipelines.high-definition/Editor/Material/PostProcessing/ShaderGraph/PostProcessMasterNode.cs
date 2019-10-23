@@ -15,64 +15,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     [Title("Master", "HDRP/PostProcess")]
-    class PostProcessMasterNode : MasterNode<IPostProcessSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
-    {
-        public const string PositionSlotName = "Position";
-        public const int PositionSlotId = 0;
-
-        public const string AlbedoSlotName = "Albedo";
-        public const string AlbedoDisplaySlotName = "BaseColor";
-        public const int AlbedoSlotId = 1;
-
-        public const string BaseColorOpacitySlotName = "AlphaAlbedo";
-        public const string BaseColorOpacityDisplaySlotName = "BaseColor Opacity";
-        public const int BaseColorOpacitySlotId = 2;
-
-        public const string NormalSlotName = "Normal";
-        public const int NormalSlotId = 3;
-
-        public const string NormaOpacitySlotName = "AlphaNormal";
-        public const string NormaOpacityDisplaySlotName = "Normal Opacity";
-        public const int NormaOpacitySlotId = 4;
-
-        public const string MetallicSlotName = "Metallic";
-        public const int MetallicSlotId = 5;
-
-        public const string AmbientOcclusionSlotName = "Occlusion";
-        public const string AmbientOcclusionDisplaySlotName = "Ambient Occlusion";
-        public const int AmbientOcclusionSlotId = 6;
-
-        public const string SmoothnessSlotName = "Smoothness";
-        public const int SmoothnessSlotId = 7;
-
-        public const string MAOSOpacitySlotName = "MAOSOpacity";
-        public const string MAOSOpacityDisplaySlotName = "MAOS Opacity";
-        public const int MAOSOpacitySlotId = 8;
-
-        public const string EmissionSlotName = "Emission";
-        public const string EmissionDisplaySlotName = "Emission";
-        public const int EmissionSlotId = 9;
-
-
-
+    class PostProcessMasterNode : MasterNode<IPostProcessSubShader>
+    {     
+        public const string BaseColorSlotName = "BaseColor";
+        public const string BaseColorDisplaySlotName = "BaseColor";
+        public const int BaseColorSlotId = 0;
+     
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
         enum SlotMask
         {
-            None = 0,
-            Position = 1 << PositionSlotId,
-            Albedo = 1 << AlbedoSlotId,
-            AlphaAlbedo = 1 << BaseColorOpacitySlotId,
-            Normal = 1 << NormalSlotId,
-            AlphaNormal = 1 << NormaOpacitySlotId,
-            Metallic = 1 << MetallicSlotId,
-            Occlusion = 1 << AmbientOcclusionSlotId,
-            Smoothness = 1 << SmoothnessSlotId,
-            AlphaMAOS = 1 << MAOSOpacitySlotId,
-            Emission = 1 << EmissionSlotId
+            None = 0,          
+            BaseColor = 1 << BaseColorSlotId
         }
 
-        const SlotMask PostProcessParameter = SlotMask.Position | SlotMask.Albedo | SlotMask.AlphaAlbedo | SlotMask.Normal | SlotMask.AlphaNormal | SlotMask.Metallic | SlotMask.Occlusion | SlotMask.Smoothness | SlotMask.AlphaMAOS | SlotMask.Emission;
+        const SlotMask PostProcessParameter = SlotMask.BaseColor ;
         
 
         // This could also be a simple array. For now, catch any mismatched data.
@@ -105,74 +62,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             List<int> validSlots = new List<int>();
 
             // Position
-            if (MaterialTypeUsesSlotMask(SlotMask.Position))
+            if (MaterialTypeUsesSlotMask(SlotMask.BaseColor))
             {
-                AddSlot(new PositionMaterialSlot(PositionSlotId, PositionSlotName, PositionSlotName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
-                validSlots.Add(PositionSlotId);
-            }
-
-            // Albedo
-            if (MaterialTypeUsesSlotMask(SlotMask.Albedo))
-            {
-                AddSlot(new ColorRGBMaterialSlot(AlbedoSlotId, AlbedoDisplaySlotName, AlbedoSlotName, SlotType.Input, Color.grey.gamma, ColorMode.Default, ShaderStageCapability.Fragment));
-                validSlots.Add(AlbedoSlotId);
-            }
-
-            // AlphaAlbedo
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaAlbedo))
-            {
-                AddSlot(new Vector1MaterialSlot(BaseColorOpacitySlotId, BaseColorOpacityDisplaySlotName, BaseColorOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(BaseColorOpacitySlotId);
-            }
-
-            // Normal
-            if (MaterialTypeUsesSlotMask(SlotMask.Normal))
-            {
-                AddSlot(new NormalMaterialSlot(NormalSlotId, NormalSlotName, NormalSlotName, CoordinateSpace.Tangent, ShaderStageCapability.Fragment));
-                validSlots.Add(NormalSlotId);
-            }
-
-            // AlphaNormal
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaNormal))
-            {
-                AddSlot(new Vector1MaterialSlot(NormaOpacitySlotId, NormaOpacityDisplaySlotName, NormaOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(NormaOpacitySlotId);
-            }
-
-            // Metal
-            if (MaterialTypeUsesSlotMask(SlotMask.Metallic))
-            {
-                AddSlot(new Vector1MaterialSlot(MetallicSlotId, MetallicSlotName, MetallicSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(MetallicSlotId);
-            }
-
-
-            // Ambient Occlusion
-            if (MaterialTypeUsesSlotMask(SlotMask.Occlusion))
-            {
-                AddSlot(new Vector1MaterialSlot(AmbientOcclusionSlotId, AmbientOcclusionDisplaySlotName, AmbientOcclusionSlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(AmbientOcclusionSlotId);
-            }
-
-            // Smoothness
-            if (MaterialTypeUsesSlotMask(SlotMask.Smoothness))
-            {
-                AddSlot(new Vector1MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, 0.5f, ShaderStageCapability.Fragment));
-                validSlots.Add(SmoothnessSlotId);
-            }
-
-            // Alpha MAOS
-            if (MaterialTypeUsesSlotMask(SlotMask.AlphaMAOS))
-            {
-                AddSlot(new Vector1MaterialSlot(MAOSOpacitySlotId, MAOSOpacityDisplaySlotName, MAOSOpacitySlotName, SlotType.Input, 1.0f, ShaderStageCapability.Fragment));
-                validSlots.Add(MAOSOpacitySlotId);
-            }
-
-            // Alpha MAOS
-            if (MaterialTypeUsesSlotMask(SlotMask.Emission))
-            {
-                AddSlot(new ColorRGBMaterialSlot(EmissionSlotId, EmissionDisplaySlotName, EmissionSlotName, SlotType.Input, Color.black, ColorMode.HDR, ShaderStageCapability.Fragment));
-                validSlots.Add(EmissionSlotId);
+                AddSlot(new ColorRGBAMaterialSlot(BaseColorSlotId, BaseColorDisplaySlotName, BaseColorSlotName, SlotType.Input, Color.grey.gamma, ShaderStageCapability.Fragment));
+                validSlots.Add(BaseColorSlotId);
             }
 
             RemoveSlotsNameNotMatching(validSlots, true);
@@ -232,130 +125,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
-        {
-            Vector1ShaderProperty drawOrder = new Vector1ShaderProperty();
-            drawOrder.overrideReferenceName = "_DrawOrder";
-            drawOrder.displayName = "Draw Order";
-            drawOrder.floatType = FloatType.Integer;
-            drawOrder.hidden = true;
-            drawOrder.value = 0;
-            collector.AddShaderProperty(drawOrder);
-
-            Vector1ShaderProperty PostProcessMeshDepthBias = new Vector1ShaderProperty();
-            PostProcessMeshDepthBias.overrideReferenceName = "_PostProcessMeshDepthBias";
-            PostProcessMeshDepthBias.displayName = "PostProcessMesh DepthBias";
-            PostProcessMeshDepthBias.hidden = true;
-            PostProcessMeshDepthBias.floatType = FloatType.Default;
-            PostProcessMeshDepthBias.value = 0;
-            collector.AddShaderProperty(PostProcessMeshDepthBias);
-
+        {           
             base.CollectShaderProperties(collector, generationMode);
-        }
-
-        [SerializeField]
-        bool m_AffectsMetal = true;
-
-        public ToggleData affectsMetal
-        {
-            get { return new ToggleData(m_AffectsMetal); }
-            set
-            {
-                if (m_AffectsMetal == value.isOn)
-                    return;
-                m_AffectsMetal = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_AffectsAO = true;
-
-        public ToggleData affectsAO
-        {
-            get { return new ToggleData(m_AffectsAO); }
-            set
-            {
-                if (m_AffectsAO == value.isOn)
-                    return;
-                m_AffectsAO = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_AffectsSmoothness = true;
-
-        public ToggleData affectsSmoothness
-        {
-            get { return new ToggleData(m_AffectsSmoothness); }
-            set
-            {
-                if (m_AffectsSmoothness == value.isOn)
-                    return;
-                m_AffectsSmoothness = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_AffectsAlbedo = true;
-
-        public ToggleData affectsAlbedo
-        {
-            get { return new ToggleData(m_AffectsAlbedo); }
-            set
-            {
-                if (m_AffectsAlbedo == value.isOn)
-                    return;
-                m_AffectsAlbedo = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_AffectsNormal = true;
-
-        public ToggleData affectsNormal
-        {
-            get { return new ToggleData(m_AffectsNormal); }
-            set
-            {
-                if (m_AffectsNormal == value.isOn)
-                    return;
-                m_AffectsNormal = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-        [SerializeField]
-        bool m_AffectsEmission = true;
-
-        public ToggleData affectsEmission
-        {
-            get { return new ToggleData(m_AffectsEmission); }
-            set
-            {
-                if (m_AffectsEmission == value.isOn)
-                    return;
-                m_AffectsEmission = value.isOn;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
-
-        [SerializeField]
-        int m_DrawOrder;
-
-        public int drawOrder
-        {
-            get { return m_DrawOrder; }
-            set
-            {
-                if (m_DrawOrder == value)
-                    return;
-                m_DrawOrder = value;
-                Dirty(ModificationScope.Graph);
-            }
         }
     }
 }

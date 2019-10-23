@@ -17,12 +17,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             LightMode = "PostProcess", 
             TemplateName = "PostProcessPass.template",
             MaterialName = "PostProcessing",
-            ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
+            ShaderPassName = "SHADERPASS_POSTPROCESS",
 
-            CullOverride = "Cull Front",
-            ZTestOverride = "ZTest Greater",
+            CullOverride = "Cull Off",
+            ZTestOverride = "ZTest Always",
             ZWriteOverride = "ZWrite Off",
-            BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
+          
 
             ExtraDefines = new List<string>()
             {
@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Includes = new List<string>()
             {
-               // "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPostProcess.hlsl\""
+               "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPostProcess.hlsl\""
             },
 
             RequiredFields = new List<string>()
@@ -40,14 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             PixelShaderSlots = new List<int>()
             {
-                PostProcessMasterNode.AlbedoSlotId,
-                PostProcessMasterNode.BaseColorOpacitySlotId,
-                PostProcessMasterNode.NormalSlotId,
-                PostProcessMasterNode.NormaOpacitySlotId,
-                PostProcessMasterNode.MetallicSlotId,
-                PostProcessMasterNode.AmbientOcclusionSlotId,
-                PostProcessMasterNode.SmoothnessSlotId,
-                PostProcessMasterNode.MAOSOpacitySlotId,
+                PostProcessMasterNode.BaseColorSlotId
             },
 
             VertexShaderSlots = new List<int>()
@@ -69,11 +62,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             MaterialName = "PostProcess",
             ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
 
-            CullOverride = "Cull Front",
-            ZTestOverride = "ZTest Greater",
+            CullOverride = "Cull Off",
+            ZTestOverride = "ZTest Always",
             ZWriteOverride = "ZWrite Off",
-            BlendOverride = "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
-
+       
             ExtraDefines = new List<string>()
             {
                // "#define PostProcessS_3RT",
@@ -90,14 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             PixelShaderSlots = new List<int>()
             {
-                PostProcessMasterNode.AlbedoSlotId,
-                PostProcessMasterNode.BaseColorOpacitySlotId,
-                PostProcessMasterNode.NormalSlotId,
-                PostProcessMasterNode.NormaOpacitySlotId,
-                PostProcessMasterNode.MetallicSlotId,
-                PostProcessMasterNode.AmbientOcclusionSlotId,
-                PostProcessMasterNode.SmoothnessSlotId,
-                PostProcessMasterNode.MAOSOpacitySlotId,
+                PostProcessMasterNode.BaseColorSlotId
             },
 
             VertexShaderSlots = new List<int>()
@@ -112,45 +97,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
        
         public int GetPreviewPassIndex() { return 0; }
 
-        private static string[] m_ColorMasks = new string[8]
-        {
-            "ColorMask 0 2 ColorMask 0 3",     // nothing
-            "ColorMask R 2 ColorMask R 3",     // metal
-            "ColorMask G 2 ColorMask G 3",     // AO
-            "ColorMask RG 2 ColorMask RG 3",    // metal + AO
-            "ColorMask BA 2 ColorMask 0 3",     // smoothness
-            "ColorMask RBA 2 ColorMask R 3",     // metal + smoothness
-            "ColorMask GBA 2 ColorMask G 3",     // AO + smoothness
-            "ColorMask RGBA 2 ColorMask RG 3",   // metal + AO + smoothness
-        };
-
-
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
-            HashSet<string> activeFields = new HashSet<string>();
-
-            PostProcessMasterNode masterNode = iMasterNode as PostProcessMasterNode;
-            if (masterNode == null)
-            {
-                return activeFields;
-            }
-            if(masterNode.affectsAlbedo.isOn)
-            {
-                activeFields.Add("Material.AffectsAlbedo");
-            }
-            if (masterNode.affectsNormal.isOn)
-            {
-                activeFields.Add("Material.AffectsNormal");
-            }
-            if (masterNode.affectsEmission.isOn)
-            {
-                activeFields.Add("Material.AffectsEmission");
-            }
-            if (masterNode.affectsSmoothness.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn)
-            {
-                activeFields.Add("Material.AffectsMaskMap");
-            }
-
+            HashSet<string> activeFields = new HashSet<string>();          
             return activeFields;
         }
 
@@ -164,8 +113,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(PostProcessMasterNode.PositionSlotId);
-                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
+                return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, false);
             }
             else
             {
@@ -178,7 +126,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (sourceAssetDependencyPaths != null)
             {
                 // PostProcessSubShader.cs
-                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3b523fb79ded88842bb5195be78e0354"));
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("9479058f49a0c45439570b0e30882800"));
                 // HDSubShaderUtilities.cs
                 sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
             }
@@ -189,10 +137,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
             subShader.Indent();
-            {
-                // Add tags at the SubShader level
-                int queue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, masterNode.drawOrder, false);
-                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName, HDRenderTypeTags.Opaque, queue);
+            {                
                 GenerateShaderPass(masterNode, m_PassPostProcess, mode, subShader, sourceAssetDependencyPaths);
 
                 if (mode.IsPreview())
