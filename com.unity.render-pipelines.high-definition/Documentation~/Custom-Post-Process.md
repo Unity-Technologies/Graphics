@@ -114,7 +114,7 @@ Shader "Hidden/Shader/GrayScale"
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
         float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
 
-        return float4(outColor, 1);
+        return float4(lerp(outColor, Luminance(outColor).xxx, _Intensity), 1);
     }
 
     ENDHLSL
@@ -139,6 +139,15 @@ Shader "Hidden/Shader/GrayScale"
     Fallback Off
 }
 ```
+
+By default the shader template will provide you these inputs
+
+name | description
+--- | ---
+positionCS | Clip space position of the pixel, between 0 and the screen size
+texcoord | FullScreen UVs, between 0 and 1
+_InputTexture | Is passed from the C# and will be your source texture (camera color buffer)
+_Intensity | Also passed from the C# component, it is the parameter exposed in the UI
 
 > **Look for clip() in your shaders**: don't use the clip() instruction in the shaders, it will break your effect
 
@@ -191,7 +200,7 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 
 Of course in this case, the custom editor isn't really useful but if you want to dynamically hide settings or display some more advanced views, you'll need that. By default the volume component editor also support advanced modes, to enable but button in the UI, you just have to change the `hasAdvancedMode` from `false` to `true`. Then inside the `OnInspectorGUI` you can use `isInAdvancedMode` boolean to show advanced settings.
 
-![CustomPostProcess_CustomEditor](CustomPostProcess_CustomEditor.png)
+![CustomPostProcess_CustomEditor](Images/CustomPostProcess_CustomEditor.png)
 
 ## TroubleShooting
 
