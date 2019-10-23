@@ -1461,7 +1461,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return (legacyLight.type == LightType.Point && lightTypeExtent == LightTypeExtent.Punctual) ? 6 : (legacyLight.type == LightType.Directional) ? m_ShadowSettings.cascadeShadowSplitCount.value : 1;
         }
 
-        internal void RequestShadowMapRendering()
+        /// <summary>
+        /// Request shadow map rendering when Update Mode is set to On Demand.
+        /// </summary>
+        public void RequestShadowMapRendering()
         {
             if(shadowUpdateMode == ShadowUpdateMode.OnDemand)
                 m_ShadowMapRenderedSinceLastRequest = false;
