@@ -126,6 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             deferredParameters.halfResolution = false;
             deferredParameters.rayCountFlag = m_RayCountManager.RayCountIsEnabled();
+            deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
             deferredParameters.preExpose = true;
 
             // Camera data

@@ -87,9 +87,11 @@ void RayGenRenderer()
 	// Evaluate the ray intersection
 	TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, rayDescriptor, rayIntersection);
 
+    // Count the number of rays that were traced
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_FORWARD] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_FORWARD] + rayIntersection.rayCount;
+        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_RECURSIVE));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + rayIntersection.rayCount;
     }
 
 	// Alright we are done :D 
