@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Logic")]
     class Switch : VFXOperatorDynamicBranch
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), SerializeField, Tooltip("Sets the number of switch cases.")]
         uint m_EntryCount = 2u;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         public class TestInputProperties
         {
-            [Tooltip("Integer value used for the test.")]
+            [Tooltip("Sets the integer value that determines which entry is output.")]
             public int testValue = 0;
         }
 

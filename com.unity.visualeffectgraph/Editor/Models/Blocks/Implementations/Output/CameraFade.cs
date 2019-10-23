@@ -18,16 +18,16 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Distance to camera at which the particle will be fully faded")]
+            [Tooltip("Sets the distance from the camera at which the particle is fully faded out.")]
             public float FadedDistance = 0.5f;
-            [Tooltip("Distance to camera at which the particle will be fully visible")]
+            [Tooltip("Sets the distance from the camera at which the particle is fully visible and not affected by the camera fade.")]
             public float VisibleDistance = 2.0f;
         }
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Cull the particle when fully faded, to reduce overdraw")]
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, the particle is culled when it is fully faded to reduce overdraw.")]
         private bool cullWhenFaded = true;
 
-        [SerializeField, VFXSetting, Tooltip("Whether fading should be applied to Color, Alpha or both")]
+        [SerializeField, VFXSetting, Tooltip("Specifies how the particle fades out when it gets near the camera. It can have its alpha fade out, its color fade to black, or both. ")]
         private FadeApplicationMode fadeMode = FadeApplicationMode.Alpha;
 
         public override string libraryName { get { return "Camera Fade"; } }
