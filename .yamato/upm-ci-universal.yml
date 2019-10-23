@@ -29,8 +29,8 @@ win_apis:
   - name: Vulkan
     cmd: -force-vulkan
 mac_apis:
-  - name: metal
-  - name: openglcore
+  - name: Metal
+  - name: OpenGLCore
 linux_apis:
   - name: OpenGLCore
     cmd: -force-glcore
@@ -63,6 +63,7 @@ linux_apis:
       paths:
         - "**/test-results/**"
 {% endfor %}
+
 {% for testplatform in testplatforms %}
 {% for win_api in win_apis %}
 {{ project.name }}_Windows64_{{ testplatform.name }}_{{ win_api.name }}_{{ editor.version }}:
@@ -93,7 +94,6 @@ linux_apis:
 {% endfor %}    
 {% endfor %}
 
-
 {% for testplatform in testplatforms %}
 {{ project.name }}_OSX_Metal_{{ testplatform.name }}_{{ editor.version }}:
   name : Build and Test {{ project.name }} on OSX_Metal_{{ testplatform.name }} on version {{ editor.version }}
@@ -114,10 +114,10 @@ linux_apis:
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli -u {{ editor.version }} -c editor --wait --published'
     {% if testplatform.name == "Standalone" %}
     - |
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200'
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX --extra-editor-arg="CustomBuild.BuildMacOSMetalLinear"  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200'
     {% else %}
     - |
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results'
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --extra-editor-arg="-force-metal" --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results'
     {% endif %}
       UTR_RESULT=$?
       mkdir -p TestProjects/{{ project.folder }}/test-results/
@@ -128,7 +128,6 @@ linux_apis:
     logs:
       paths:
         - "**/test-results/**"
-{% endif %}
 {% endfor %}
 
 {% for testplatform in testplatforms %}
