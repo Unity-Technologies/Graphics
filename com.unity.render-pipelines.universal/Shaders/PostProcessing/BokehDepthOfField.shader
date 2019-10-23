@@ -19,13 +19,20 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         // a small cost to the pre-filtering pass
         #define COC_LUMA_WEIGHTING      0
 
+#if defined(USING_PUREURP)
+        TEXTURE2D_X(_BlitTex);
+        float4 _BlitTex_TexelSize;
+        #define _MainTex _BlitTex
+        #define _MainTex_TexelSize _BlitTex_TexelSize
+#else
         TEXTURE2D_X(_MainTex);
+        float4 _MainTex_TexelSize;
+#endif
         TEXTURE2D_X(_DofTexture);
         TEXTURE2D_X(_FullCoCTexture);
 
         TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
-        float4 _MainTex_TexelSize;
         float4 _DofTexture_TexelSize;
         float4 _CoCParams;
         float4 _BokehKernel[SAMPLE_COUNT];

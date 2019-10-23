@@ -12,7 +12,13 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
+
+#if defined(USING_PUREURP)
+        TEXTURE2D_X(_BlitTex);
+        #define _MainTex _BlitTex
+#else
         TEXTURE2D_X(_MainTex);
+#endif
 
         float4 _Params;
 

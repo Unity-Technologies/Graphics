@@ -15,14 +15,21 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
+#if defined(USING_PUREURP)
+        TEXTURE2D_X(_BlitTex);
+        float4 _BlitTex_TexelSize;
+        #define _MainTex _BlitTex
+        #define _MainTex_TexelSize _BlitTex_TexelSize
+#else
         TEXTURE2D_X(_MainTex);
+        float4 _MainTex_TexelSize;
+#endif
         TEXTURE2D_X(_ColorTexture);
         TEXTURE2D_X(_FullCoCTexture);
         TEXTURE2D_X(_HalfCoCTexture);
 
         TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
-        float4 _MainTex_TexelSize;
         float4 _ColorTexture_TexelSize;
 
         float3 _CoCParams;

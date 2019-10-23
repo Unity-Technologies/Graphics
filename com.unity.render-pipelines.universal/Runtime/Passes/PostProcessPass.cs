@@ -242,6 +242,23 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             void Swap() => CoreUtils.Swap(ref source, ref destination);
 
+            // Use SRP managed View&Proj
+            if(cameraData.isPureURPCamera)
+            {
+                Matrix4x4 projMatrix;
+                Matrix4x4 viewMatrix;
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+            }
+
             // Optional NaN killer before post-processing kicks in
             // stopNaN may be null on Adreno 3xx. It doesn't support full shader level 3.5, but SystemInfo.graphicsShaderLevel is 35.
             if (cameraData.isStopNaNEnabled && m_Materials.stopNaN != null)
@@ -250,19 +267,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     if (cameraData.isPureURPCamera)
                     {
-                        Matrix4x4 projMatrix;
-                        Matrix4x4 viewMatrix;
-                        projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                        viewMatrix = Matrix4x4.identity;
-                        Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                        Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-
                         BlitDstDiscardContent(cmd, GetDestination());
                         cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), GetSource());
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.stopNaN);
@@ -305,7 +309,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingSample(cmd, "Motion Blur"))
                 {
-                    DoMotionBlur(cameraData.camera, cmd, GetSource(), GetDestination());
+                    DoMotionBlur(ref cameraData, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -316,7 +320,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingSample(cmd, "Panini Projection"))
                 {
-                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
+                    DoPaniniProjection(ref cameraData, cmd, GetSource(), GetDestination());
                     Swap();
                 }
             }
@@ -462,19 +466,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cameraData.isPureURPCamera)
             {
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-
                 cmd.SetViewport(camera.pixelRect);
                 // Pass 1: Edge detection
                 cmd.SetRenderTarget(ShaderConstants._EdgeTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
@@ -543,7 +534,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
                 DoGaussianDepthOfField(ref cameraData, cmd, source, destination);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
-                DoBokehDepthOfField(cmd, source, destination);
+                DoBokehDepthOfField(ref cameraData, cmd, source, destination);
         }
 
         // TODO: XR isn't working with Gaussian DOF
@@ -572,36 +563,47 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetStereoCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
 
-            // Compute CoC
-            cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
-
-            // Downscale & prefilter color + coc
-            m_MRT2[0] = ShaderConstants._HalfCoCTexture;
-            m_MRT2[1] = ShaderConstants._PingTexture;
-
             if (cameraData.isPureURPCamera)
             {
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                // Compute CoC
+                cmd.SetRenderTarget(ShaderConstants._FullCoCTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+
+                // Downscale & prefilter color + coc
+                m_MRT2[0] = ShaderConstants._HalfCoCTexture;
+                m_MRT2[1] = ShaderConstants._PingTexture;
 
                 cmd.SetViewport(camera.pixelRect);
                 cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
                 cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
                 cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
+
+                // Blur
+                cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
+                cmd.SetRenderTarget(ShaderConstants._PongTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), ShaderConstants._PingTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
+                cmd.SetRenderTarget(ShaderConstants._PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), ShaderConstants._PongTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 3);
+
+                // Composite
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
+                cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 4);
             }
             else
             {
+                // Compute CoC
+                cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
+
+                // Downscale & prefilter color + coc
+                m_MRT2[0] = ShaderConstants._HalfCoCTexture;
+                m_MRT2[1] = ShaderConstants._PingTexture;
 
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(camera.pixelRect);
@@ -610,17 +612,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+
+                // Blur
+                cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
+
+                cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+                cmd.Blit(ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+
+                // Composite
+                cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
+                cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+                cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, 4);
             }
-
-            // Blur
-            cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
-            cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
-            cmd.Blit(ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
-
-            // Composite
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
-            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, 4);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
@@ -679,7 +682,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return Mathf.Min(0.05f, kRadiusInPixels / viewportHeight);
         }
 
-        void DoBokehDepthOfField(CommandBuffer cmd, int source, int destination)
+        void DoBokehDepthOfField(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.bokehDepthOfField;
             int wh = m_Descriptor.width / 2;
@@ -710,22 +713,55 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetStereoCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetStereoCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
 
-            // Compute CoC
-            cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
-            cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
 
-            // Downscale & prefilter color + coc
-            cmd.Blit(source, ShaderConstants._PingTexture, material, 1);
+            if (cameraData.isPureURPCamera)
+            {
+                // Compute CoC
+                cmd.SetRenderTarget(ShaderConstants._FullCoCTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+                cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
 
-            // Bokeh blur
-            cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+                // Downscale & prefilter color + coc
+                cmd.SetRenderTarget(ShaderConstants._PingTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
 
-            // Post-filtering
-            cmd.Blit(ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+                // Bokeh blur
+                cmd.SetRenderTarget(ShaderConstants._PongTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), ShaderConstants._PingTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 2);
 
-            // Composite
-            cmd.SetGlobalTexture(ShaderConstants._DofTexture, ShaderConstants._PingTexture);
-            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, 4);
+                // Post-filtering
+                cmd.SetRenderTarget(ShaderConstants._PingTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), ShaderConstants._PongTexture);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 3);
+
+                // Composite
+                cmd.SetGlobalTexture(ShaderConstants._DofTexture, ShaderConstants._PingTexture);
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 4);
+            }
+            else
+            {
+                // Compute CoC
+                cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
+                cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+
+                // Downscale & prefilter color + coc
+                cmd.Blit(source, ShaderConstants._PingTexture, material, 1);
+
+                // Bokeh blur
+                cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+
+                // Post-filtering
+                cmd.Blit(ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+
+                // Composite
+                cmd.SetGlobalTexture(ShaderConstants._DofTexture, ShaderConstants._PingTexture);
+                cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, 4);
+            }
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
@@ -737,15 +773,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Motion Blur
 
-        void DoMotionBlur(Camera camera, CommandBuffer cmd, int source, int destination)
+        void DoMotionBlur(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             var material = m_Materials.cameraMotionBlur;
 
             // This is needed because Blit will reset viewproj matrices to identity and UniversalRP currently
             // relies on SetupCameraProperties instead of handling its own matrices.
             // TODO: We need get rid of SetupCameraProperties and setup camera matrices in Universal
-            var proj = camera.nonJitteredProjectionMatrix;
-            var view = camera.worldToCameraMatrix;
+            var proj = cameraData.camera.nonJitteredProjectionMatrix;
+            var view = cameraData.camera.worldToCameraMatrix;
             var viewProj = proj * view;
 
             material.SetMatrix("_ViewProjM", viewProj);
@@ -757,7 +793,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
-            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
+
+            if (cameraData.isPureURPCamera)
+            {
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, (int)m_MotionBlur.quality.value);
+            }
+            else
+            {
+                cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
+            }
 
             m_PrevViewProjM = viewProj;
         }
@@ -767,11 +813,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
-        void DoPaniniProjection(Camera camera, CommandBuffer cmd, int source, int destination)
+        void DoPaniniProjection(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             float distance = m_PaniniProjection.distance.value;
-            var viewExtents = CalcViewExtents(camera);
-            var cropExtents = CalcCropExtents(camera, distance);
+            var viewExtents = CalcViewExtents(cameraData.camera);
+            var cropExtents = CalcCropExtents(cameraData.camera, distance);
 
             float scaleX = cropExtents.x / viewExtents.x;
             float scaleY = cropExtents.y / viewExtents.y;
@@ -787,7 +833,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance
             );
 
-            cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material);
+            if (cameraData.isPureURPCamera)
+            { 
+                cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
+            }
+            else
+            {
+                cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material);
+            }
         }
 
         Vector2 CalcViewExtents(Camera camera)
@@ -871,19 +926,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cameraData.isPureURPCamera)
             {
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-
                 cmd.SetRenderTarget(ShaderConstants._BloomMipDown[0], RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
                 cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, bloomMaterial, 0, 0);
