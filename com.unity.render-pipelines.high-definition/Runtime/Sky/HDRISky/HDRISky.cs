@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Sky/HDRI Sky")]
@@ -19,11 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter            pointLightShadow    = new BoolParameter(false);
         public BoolParameter            dirLightShadow      = new BoolParameter(false);
         public BoolParameter            rectLightShadow     = new BoolParameter(false);
-
-        public override SkyRenderer CreateRenderer()
-        {
-            return new HDRISkyRenderer(this);
-        }
 
         public override int GetHashCode()
         {
@@ -49,5 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return hash;
         }
+
+        public override Type GetSkyRendererType() { return typeof(HDRISkyRenderer); }
     }
 }
