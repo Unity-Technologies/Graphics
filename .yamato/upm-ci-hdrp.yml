@@ -12,6 +12,8 @@ platforms:
 testplatforms:
   - name: playmode
     args: --suite=playmode
+  - name: playmode XR
+    args: --suite=playmode --extra-editor-arg="-xr-tests"
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:

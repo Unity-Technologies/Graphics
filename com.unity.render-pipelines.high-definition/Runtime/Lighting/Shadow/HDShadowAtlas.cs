@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ScriptableRenderContext renderContext,
                                     CommandBuffer           cmd)
         {
-            cmd.SetRenderTarget(atlasRenderTexture);
+            cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.SetGlobalVector(parameters.atlasSizeShaderID, new Vector4(atlasRenderTexture.rt.width, atlasRenderTexture.rt.height, 1.0f / atlasRenderTexture.rt.width, 1.0f / atlasRenderTexture.rt.height));
 
             // Clear the whole atlas to avoid garbage outside of current request when viewing it.

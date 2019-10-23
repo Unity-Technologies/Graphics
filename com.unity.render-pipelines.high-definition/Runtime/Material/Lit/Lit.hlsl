@@ -1862,7 +1862,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, lightData.rangeCompressionFactorCompensation);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
@@ -1877,7 +1877,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             envLighting *= Sq(1.0 - preLightData.coatIblF);
 
             // Evaluate the Clear Coat color
-            float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0);
+            float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0, lightData.rangeCompressionFactorCompensation);
             envLighting += preLightData.coatIblF * preLD.rgb;
 
             // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF

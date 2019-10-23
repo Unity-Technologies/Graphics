@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_LightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
         static readonly GUIContent k_PostProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
 
+        static readonly GUIContent k_LightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
         static readonly GUIContent k_CookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
         static readonly GUIContent k_ReflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
         static readonly GUIContent k_SkySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -63,7 +64,15 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SSSSampleCountContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP processes higher quality subsurface scattering effects. Warning: There is a high performance cost, do not enable on consoles.");
         static readonly GUIContent k_SupportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
         static readonly GUIContent k_VolumetricResolutionContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
-        static readonly GUIContent k_SupportLightLayerContent = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
+        static readonly GUIContent k_SupportLightLayerContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
+        static readonly GUIContent k_LightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer Name 0", "The display name for Light Layer 0. This is purely cosmetic, and can be used to articulate intended use of Light Layer 0");
+        static readonly GUIContent k_LightLayerName1 = EditorGUIUtility.TrTextContent("Light Layer Name 1", "The display name for Light Layer 1. This is purely cosmetic, and can be used to articulate intended use of Light Layer 1");
+        static readonly GUIContent k_LightLayerName2 = EditorGUIUtility.TrTextContent("Light Layer Name 2", "The display name for Light Layer 2. This is purely cosmetic, and can be used to articulate intended use of Light Layer 2");
+        static readonly GUIContent k_LightLayerName3 = EditorGUIUtility.TrTextContent("Light Layer Name 3", "The display name for Light Layer 3. This is purely cosmetic, and can be used to articulate intended use of Light Layer 3");
+        static readonly GUIContent k_LightLayerName4 = EditorGUIUtility.TrTextContent("Light Layer Name 4", "The display name for Light Layer 4. This is purely cosmetic, and can be used to articulate intended use of Light Layer 4");
+        static readonly GUIContent k_LightLayerName5 = EditorGUIUtility.TrTextContent("Light Layer Name 5", "The display name for Light Layer 5. This is purely cosmetic, and can be used to articulate intended use of Light Layer 5");
+        static readonly GUIContent k_LightLayerName6 = EditorGUIUtility.TrTextContent("Light Layer Name 6", "The display name for Light Layer 6. This is purely cosmetic, and can be used to articulate intended use of Light Layer 6");
+        static readonly GUIContent k_LightLayerName7 = EditorGUIUtility.TrTextContent("Light Layer Name 7", "The display name for Light Layer 7. This is purely cosmetic, and can be used to articulate intended use of Light Layer 7");
         static readonly GUIContent k_ColorBufferFormatContent = EditorGUIUtility.TrTextContent("Color Buffer Format", "Specifies the format used by the scene color render target. R11G11B10 is a faster option and should have sufficient precision.");
         static readonly GUIContent k_SupportCustomPassContent = EditorGUIUtility.TrTextContent("Custom Pass", "When enabled, HDRP allocates a custom pass buffer. It also enable custom passes inside Custom Pass Volume components.");
         static readonly GUIContent k_CustomBufferFormatContent = EditorGUIUtility.TrTextContent("Custom Buffer Format", "Specifies the format used by the custom pass render target.");

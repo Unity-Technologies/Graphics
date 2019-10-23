@@ -234,44 +234,54 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Provide a specific property drawer for LightLayer</summary>
-        /// <param name="label">The desired label</param>
-        /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        internal static void LightLayerMaskPropertyDrawer(GUIContent label, SerializedProperty property)
+        /// <summary>
+        /// This is to convert any int into LightLayer which is usefull for the version in shadow of lights.
+        /// LightLayer have a CustomPropertyDrawer so for SerializedProperty on LightLayer type,
+        /// prefer using EditorGUILayout.PropertyField.
+        /// </summary>
+        internal static void DrawLightLayerMaskFromInt(GUIContent label, SerializedProperty property)
         {
-            var renderingLayerMask = property.intValue;
-            int lightLayer;
-            if (property.hasMultipleDifferentValues)
-            {
-                EditorGUI.showMixedValue = true;
-                lightLayer = 0;
-            }
-            else
-                lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            DrawLightLayerMask_Internal(lineRect, label, property);
+        }
+        
+        internal static void DrawLightLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
+        {
+            EditorGUI.BeginProperty(rect, label, property);
+
             EditorGUI.BeginChangeCheck();
-            lightLayer = System.Convert.ToInt32(EditorGUILayout.EnumFlagsField(label, (LightLayerEnum)lightLayer));
+            int changedValue = DrawLightLayerMask(rect, property.intValue, label);
             if (EditorGUI.EndChangeCheck())
-            {
-                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                property.intValue = lightLayer;
-            }
-            EditorGUI.showMixedValue = false;
+                property.intValue = changedValue;
+
+            EditorGUI.EndProperty();
         }
 
-        /// <summary>Provide a specific property drawer for LightLayer (without label)</summary>
-        /// <param name="rect">The rect where to draw</param>
-        /// <param name="value">The value to display (representing an int that should be displayed as a LightLayer)</param>
-        /// <return> The value after modification</return>
-        internal static int LightLayerMaskPropertyDrawer(Rect rect, int value)
+        /// <summary>
+        /// Should be placed between BeginProperty / EndProperty
+        /// </summary>
+        internal static int DrawLightLayerMask(Rect rect, int value, GUIContent label = null)
         {
             int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
             EditorGUI.BeginChangeCheck();
-            lightLayer = System.Convert.ToInt32(EditorGUI.EnumFlagsField(rect, (LightLayerEnum)lightLayer));
+            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipeline.defaultAsset.lightLayerNames);
             if (EditorGUI.EndChangeCheck())
-            {
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
-            }
             return lightLayer;
+        }
+        
+        /// <summary>
+        /// Like EditorGUILayout.DrawTextField but for delayed text field
+        /// </summary>
+        internal static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
+        {
+            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            EditorGUI.BeginProperty(lineRect, label, property);
+            EditorGUI.BeginChangeCheck();
+            string lightLayerName0 = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
+            if (EditorGUI.EndChangeCheck())
+                property.stringValue = lightLayerName0;
+            EditorGUI.EndProperty();
         }
     }
 

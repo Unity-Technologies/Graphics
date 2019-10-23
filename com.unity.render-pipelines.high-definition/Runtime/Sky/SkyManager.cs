@@ -101,22 +101,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkyManager()
         {
 #if UNITY_EDITOR
-    #if UNITY_2019_2_OR_NEWER
             UnityEditor.Lightmapping.bakeStarted += OnBakeStarted;
-    #else
-            UnityEditor.Lightmapping.started += OnBakeStarted;
-    #endif
 #endif
         }
 
         ~SkyManager()
         {
 #if UNITY_EDITOR
-    #if UNITY_2019_2_OR_NEWER
             UnityEditor.Lightmapping.bakeStarted -= OnBakeStarted;
-    #else
-            UnityEditor.Lightmapping.started -= OnBakeStarted;
-    #endif
 #endif
         }
 
@@ -239,8 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_DefaultPreviewSky = ScriptableObject.CreateInstance<HDRISky>();
                 m_DefaultPreviewSky.hdriSky.overrideState = true;
-                var hdrpAsset = (GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset);
-                m_DefaultPreviewSky.hdriSky.value = hdrpAsset?.renderPipelineResources?.textures?.defaultHDRISky;
+                m_DefaultPreviewSky.hdriSky.value = HDRenderPipeline.currentAsset?.renderPipelineResources?.textures?.defaultHDRISky;
             }
 
             return m_DefaultPreviewSky;

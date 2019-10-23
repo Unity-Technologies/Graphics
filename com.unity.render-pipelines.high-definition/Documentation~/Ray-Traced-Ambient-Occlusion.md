@@ -1,18 +1,18 @@
-# Ray Traced Ambient Occlusion
+# Ray-Traced Ambient Occlusion
 
-Ray Traced Ambient Occlusion is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative to HDRP's screen space ambient occlusion, with a more accurate ray traced solution that can use off-screen data.
+Ray-Traced Ambient Occlusion is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative to HDRP's screen space ambient occlusion, with a more accurate ray-traced solution that can use off-screen data.
 
 ![](Images/RayTracedAmbientOcclusion1.png)
 
-Screen space ambient occlusion
+**Screen space ambient occlusion**
 
 ![](Images/RayTracedAmbientOcclusion2.png)
 
-Ray traced ambient occlusion
+**Ray-traced ambient occlusion**
 
 For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.html).
 
-## Using Ray Traced Ambient Occlusion
+## Using Ray-Traced Ambient Occlusion
 
 Because this feature is an alternative to the [screen space Ambient Occlusion](Override-Ambient-Occlusion.html) Volume Override, the initial setup is very similar. 
 
@@ -41,7 +41,8 @@ All Cameras can now process screen space ambient occlusion unless they use custo
 2. In the Custom Frame Settings, navigate to the Lighting section and enable Screen Space Ambient Occlusion.
 
 ### Volume setup
-**Ray Traced Ambient Occlusion** uses the [Volume](Volumes.html) framework, so to enable this feature and modify its properties, you need to add an Ambient Occlusion override to a [Volume](Volumes.html) in your Scene. To do this:
+
+Ray-Traced Ambient Occlusion uses the [Volume](Volumes.html) framework, so to enable this feature and modify its properties, you need to add an Ambient Occlusion override to a [Volume](Volumes.html) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to Add Override > Lighting and click on Ambient Occlusion. HDRP now applies screen space ambient occlusion to any Camera this Volume affects.
@@ -49,11 +50,9 @@ All Cameras can now process screen space ambient occlusion unless they use custo
 
 ## Properties
 
-![](Images/RayTracedAmbientOcclusion3.png)
-
 | Property                     | Description                                                  |
 | ---------------------------- | ------------------------------------------------------------ |
-| **Ray Tracing**              | Makes HDRP use ray tracing to evaluate ambient occlusion. Enable this to expose properties that you can use to adjust the quality of ray traced ambient occlusion. |
+| **Ray Tracing**              | Makes HDRP use ray tracing to evaluate ambient occlusion. Enable this to expose properties that you can use to adjust the quality of ray-traced ambient occlusion. |
 | **Intensity**                | Controls the strength of the ambient occlusion effect.       |
 | **Direct Lighting Strength** | Controls how much the ambient occlusion affects direct lighting. |
 | **Ray Length**               | Controls the length of the rays that HDRP uses for ray tracing. This allows you to have smaller scale, local, ambient occlusion. |

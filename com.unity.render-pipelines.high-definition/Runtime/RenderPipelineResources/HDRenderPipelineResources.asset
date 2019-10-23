@@ -122,6 +122,8 @@ MonoBehaviour:
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAODenoiseCS: {fileID: 7200000, guid: 414b49640e3c719488fae81080e089c5, type: 3}
     GTAOUpsampleCS: {fileID: 7200000, guid: 61b3fcbcdc928ef4e94363cb25b7cca7, type: 3}
+    GTAOBlurAndUpsample: {fileID: 7200000, guid: 9eb1abde882538a4ea46fa23e49ab9fa,
+      type: 3}
     depthValuesPS: {fileID: 4800000, guid: 6e6a4a3dbb788234594aa74f2d6aeb6f, type: 3}
     colorResolvePS: {fileID: 4800000, guid: dd7047092f3c82b40b3a07868f9c4de2, type: 3}
     copyAlphaCS: {fileID: 7200000, guid: c2c7eb6611725264187721ef9df0354b, type: 3}
