@@ -23,7 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
         // Remove this after updated to the correct API call has landed in trunk. ------------
-        VisualElement m_Border;
+        VisualElement m_InlineBorder;
+        VisualElement m_StylesheetBorder;
         VisualElement m_TitleContainer;
         new VisualElement m_ButtonContainer;
 
@@ -159,11 +160,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PortInputContainer.SendToBack();
 
             m_TitleContainer = this.Q("title");
-            m_Border = new VisualElement
+            m_InlineBorder = new VisualElement
             {
-                name = "custom-border",
+                name = "inline-border",
+                pickingMode = PickingMode.Ignore
             };
-            Add(m_Border);
+            m_StylesheetBorder = new VisualElement
+            {
+                name = "stylesheet-border",
+                pickingMode = PickingMode.Ignore
+            };
+            Add(m_InlineBorder);
+            Add(m_StylesheetBorder);
+
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
@@ -246,21 +255,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         static readonly StyleColor clearColor = new StyleColor(Color.clear);
         public void SetColor(Color color)
         {
-            m_Border.style.borderBottomColor = color;
-            m_Border.style.borderTopColor = color;
-            m_Border.style.borderLeftColor = color;
-            m_Border.style.borderRightColor = color;
+            AddToClassList("InlineColor");
+            m_InlineBorder.style.borderBottomColor = color;
+            m_InlineBorder.style.borderTopColor = color;
+            m_InlineBorder.style.borderLeftColor = color;
+            m_InlineBorder.style.borderRightColor = color;
         }
 
         public void ResetColor()
         {
-
+            RemoveFromClassList("InlineColor");
         }
-        
+
         public Color GetColor()
         {
             //return m_TitleContainer.resolvedStyle.borderBottomColor;
-            return m_Border.resolvedStyle.borderBottomColor;
+            return m_InlineBorder.resolvedStyle.borderBottomColor;
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
