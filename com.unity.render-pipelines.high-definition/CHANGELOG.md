@@ -110,6 +110,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change default texture for detailmap to grey
 - Optimize Shadow RT load on Tile based architecture platforms. 
 - Improved quality of SSAO.
+- Added SceneSelection pass for TerrainLit shader.
 
 ## [7.1.1] - 2019-09-05
 
