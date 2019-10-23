@@ -95,13 +95,14 @@ linux_apis:
 
 
 {% for testplatform in testplatforms %}
-{% if testplatform.name == "editmode" %}
-#skip because we don't need a GPU to run editmode tests
-{% else %}
 {{ project.name }}_OSX_Metal_{{ testplatform.name }}_{{ editor.version }}:
   name : Build and Test {{ project.name }} on OSX_Metal_{{ testplatform.name }} on version {{ editor.version }}
   agent:
+{% if testplatform.name == "editmode" %}
+    type: Unity::VM::osx
+{% else %}
     type: Unity::metal::macmini
+{% endif %}
     image: slough-ops/macos-10.14-xcode
     flavor: m1.mac
   commands:

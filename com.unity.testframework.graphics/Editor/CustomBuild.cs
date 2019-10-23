@@ -29,7 +29,7 @@ public static class CustomBuild
         GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Vulkan };
         BuildScenes(path, graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
-    
+
     [MenuItem("Tools/Build Android (GLES3 - Linear)")]
     static void BuildAndroidGLES3Linear()
     {
@@ -51,7 +51,7 @@ public static class CustomBuild
         BuildOptions buildOptions = BuildOptions.None;
 
         GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Metal };
-        BuildScenes(path, graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);        
+        BuildScenes(path, graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
 
     static void BuildWindowsVulkanLinear()
@@ -94,6 +94,26 @@ public static class CustomBuild
         BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
 
+    static void BuildWindowsDX12Linear()
+    {
+        PlayerSettings.colorSpace = ColorSpace.Linear;
+        BuildTarget buildTarget = BuildTarget.StandaloneWindows64;
+        BuildOptions buildOptions = BuildOptions.None;
+
+        GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Direct3D12 };
+        BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
+    }
+
+    static void BuildMacOSMetalLinear()
+    {
+        PlayerSettings.colorSpace = ColorSpace.Linear;
+        BuildTarget buildTarget = BuildTarget.StandaloneOSX;
+        BuildOptions buildOptions = BuildOptions.None;
+
+        GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Metal };
+        BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
+    }
+
     static void BuildScenes(string path, string name, BuildTarget buildTarget, BuildOptions buildOptions, GraphicsDeviceType[] graphicsAPIs)
     {
         string buildName = string.Format("{0}{1}", "TestScenes", name);
@@ -101,12 +121,12 @@ public static class CustomBuild
         PlayerSettings.SetGraphicsAPIs(buildTarget, graphicsAPIs);
         PlayerSettings.productName = buildName;
         PlayerSettings.applicationIdentifier = string.Format("com.unity.{0}", buildName);
-        
+
         List<string> scenesToBuild = new List<string>();
         foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
         	if (scene.enabled)
                 scenesToBuild.Add(scene.path);
-        
+
         string suffix = (buildTarget == BuildTarget.Android) ? ".apk" : "";
         BuildPipeline.BuildPlayer(scenesToBuild.ToArray(), string.Format("{0}/{1}{2}", path, buildName, suffix), buildTarget, buildOptions);
     }
