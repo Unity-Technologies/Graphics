@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
 - Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
 - Added non temporal version of SSAO.
+- Added more detailed ray tracing stats in the debug window
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -118,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimize Shadow RT load on Tile based architecture platforms. 
 - Improved quality of SSAO.
 - Moved RequestShadowMapRendering() back to public API.
+- Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
 
 ## [7.1.1] - 2019-09-05
 
