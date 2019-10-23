@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System.IO;
@@ -32,6 +33,10 @@ public class HDRP_GraphicTestRunner
         }
 
         Time.captureFramerate = settings.captureFramerate;
+
+        // Skip incompatible XR tests (layout set to None in the scene)
+        if (XRSystem.testModeEnabled && settings.xrLayout == XRLayoutOverride.None)
+            yield break;
 
         if (settings.doBeforeTest != null)
         {

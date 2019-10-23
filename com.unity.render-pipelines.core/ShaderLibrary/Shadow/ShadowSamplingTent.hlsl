@@ -103,33 +103,33 @@ void SampleShadow_GetTexelWeights_Tent_7x7(real offset, out real4 texelsWeightsA
 }
 
 // 3x3 Tent filter (45 degree sloped triangles in U and V)
-void SampleShadow_ComputeSamples_Tent_3x3(float4 shadowMapTexture_TexelSize, float2 coord, out real fetchesWeights[4], out float2 fetchesUV[4])
+void SampleShadow_ComputeSamples_Tent_3x3(real4 shadowMapTexture_TexelSize, real2 coord, out real fetchesWeights[4], out real2 fetchesUV[4])
 {
     // tent base is 3x3 base thus covering from 9 to 12 texels, thus we need 4 bilinear PCF fetches
-    float2 tentCenterInTexelSpace = coord.xy * shadowMapTexture_TexelSize.zw;
-    float2 centerOfFetchesInTexelSpace = floor(tentCenterInTexelSpace + 0.5);
-    float2 offsetFromTentCenterToCenterOfFetches = tentCenterInTexelSpace - centerOfFetchesInTexelSpace;
+    real2 tentCenterInTexelSpace = coord.xy * shadowMapTexture_TexelSize.zw;
+    real2 centerOfFetchesInTexelSpace = floor(tentCenterInTexelSpace + 0.5);
+    real2 offsetFromTentCenterToCenterOfFetches = tentCenterInTexelSpace - centerOfFetchesInTexelSpace;
 
     // find the weight of each texel based
-    float4 texelsWeightsU, texelsWeightsV;
+    real4 texelsWeightsU, texelsWeightsV;
     SampleShadow_GetTexelWeights_Tent_3x3(offsetFromTentCenterToCenterOfFetches.x, texelsWeightsU);
     SampleShadow_GetTexelWeights_Tent_3x3(offsetFromTentCenterToCenterOfFetches.y, texelsWeightsV);
 
     // each fetch will cover a group of 2x2 texels, the weight of each group is the sum of the weights of the texels
-    float2 fetchesWeightsU = texelsWeightsU.xz + texelsWeightsU.yw;
-    float2 fetchesWeightsV = texelsWeightsV.xz + texelsWeightsV.yw;
+    real2 fetchesWeightsU = texelsWeightsU.xz + texelsWeightsU.yw;
+    real2 fetchesWeightsV = texelsWeightsV.xz + texelsWeightsV.yw;
 
     // move the PCF bilinear fetches to respect texels weights
-    float2 fetchesOffsetsU = texelsWeightsU.yw / fetchesWeightsU.xy + float2(-1.5,0.5);
-    float2 fetchesOffsetsV = texelsWeightsV.yw / fetchesWeightsV.xy + float2(-1.5,0.5);
+    real2 fetchesOffsetsU = texelsWeightsU.yw / fetchesWeightsU.xy + real2(-1.5,0.5);
+    real2 fetchesOffsetsV = texelsWeightsV.yw / fetchesWeightsV.xy + real2(-1.5,0.5);
     fetchesOffsetsU *= shadowMapTexture_TexelSize.xx;
     fetchesOffsetsV *= shadowMapTexture_TexelSize.yy;
 
-    float2 bilinearFetchOrigin = centerOfFetchesInTexelSpace * shadowMapTexture_TexelSize.xy;
-    fetchesUV[0] = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.x);
-    fetchesUV[1] = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.x);
-    fetchesUV[2] = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.y);
-    fetchesUV[3] = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.y);
+    real2 bilinearFetchOrigin = centerOfFetchesInTexelSpace * shadowMapTexture_TexelSize.xy;
+    fetchesUV[0] = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.x);
+    fetchesUV[1] = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.x);
+    fetchesUV[2] = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.y);
+    fetchesUV[3] = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.y);
 
     fetchesWeights[0] = fetchesWeightsU.x * fetchesWeightsV.x;
     fetchesWeights[1] = fetchesWeightsU.y * fetchesWeightsV.x;
@@ -138,39 +138,39 @@ void SampleShadow_ComputeSamples_Tent_3x3(float4 shadowMapTexture_TexelSize, flo
 }
 
 // 5x5 Tent filter (45 degree sloped triangles in U and V)
-void SampleShadow_ComputeSamples_Tent_5x5(float4 shadowMapTexture_TexelSize, float2 coord, out real fetchesWeights[9], out float2 fetchesUV[9])
+void SampleShadow_ComputeSamples_Tent_5x5(real4 shadowMapTexture_TexelSize, real2 coord, out real fetchesWeights[9], out real2 fetchesUV[9])
 {
     // tent base is 5x5 base thus covering from 25 to 36 texels, thus we need 9 bilinear PCF fetches
-    float2 tentCenterInTexelSpace = coord.xy * shadowMapTexture_TexelSize.zw;
-    float2 centerOfFetchesInTexelSpace = floor(tentCenterInTexelSpace + 0.5);
-    float2 offsetFromTentCenterToCenterOfFetches = tentCenterInTexelSpace - centerOfFetchesInTexelSpace;
+    real2 tentCenterInTexelSpace = coord.xy * shadowMapTexture_TexelSize.zw;
+    real2 centerOfFetchesInTexelSpace = floor(tentCenterInTexelSpace + 0.5);
+    real2 offsetFromTentCenterToCenterOfFetches = tentCenterInTexelSpace - centerOfFetchesInTexelSpace;
 
     // find the weight of each texel based on the area of a 45 degree slop tent above each of them.
-    float3 texelsWeightsU_A, texelsWeightsU_B;
-    float3 texelsWeightsV_A, texelsWeightsV_B;
+    real3 texelsWeightsU_A, texelsWeightsU_B;
+    real3 texelsWeightsV_A, texelsWeightsV_B;
     SampleShadow_GetTexelWeights_Tent_5x5(offsetFromTentCenterToCenterOfFetches.x, texelsWeightsU_A, texelsWeightsU_B);
     SampleShadow_GetTexelWeights_Tent_5x5(offsetFromTentCenterToCenterOfFetches.y, texelsWeightsV_A, texelsWeightsV_B);
 
     // each fetch will cover a group of 2x2 texels, the weight of each group is the sum of the weights of the texels
-    float3 fetchesWeightsU = float3(texelsWeightsU_A.xz, texelsWeightsU_B.y) + float3(texelsWeightsU_A.y, texelsWeightsU_B.xz);
-    float3 fetchesWeightsV = float3(texelsWeightsV_A.xz, texelsWeightsV_B.y) + float3(texelsWeightsV_A.y, texelsWeightsV_B.xz);
+    real3 fetchesWeightsU = real3(texelsWeightsU_A.xz, texelsWeightsU_B.y) + real3(texelsWeightsU_A.y, texelsWeightsU_B.xz);
+    real3 fetchesWeightsV = real3(texelsWeightsV_A.xz, texelsWeightsV_B.y) + real3(texelsWeightsV_A.y, texelsWeightsV_B.xz);
 
     // move the PCF bilinear fetches to respect texels weights
-    float3 fetchesOffsetsU = float3(texelsWeightsU_A.y, texelsWeightsU_B.xz) / fetchesWeightsU.xyz + float3(-2.5,-0.5,1.5);
-    float3 fetchesOffsetsV = float3(texelsWeightsV_A.y, texelsWeightsV_B.xz) / fetchesWeightsV.xyz + float3(-2.5,-0.5,1.5);
+    real3 fetchesOffsetsU = real3(texelsWeightsU_A.y, texelsWeightsU_B.xz) / fetchesWeightsU.xyz + real3(-2.5,-0.5,1.5);
+    real3 fetchesOffsetsV = real3(texelsWeightsV_A.y, texelsWeightsV_B.xz) / fetchesWeightsV.xyz + real3(-2.5,-0.5,1.5);
     fetchesOffsetsU *= shadowMapTexture_TexelSize.xxx;
     fetchesOffsetsV *= shadowMapTexture_TexelSize.yyy;
 
-    float2 bilinearFetchOrigin = centerOfFetchesInTexelSpace * shadowMapTexture_TexelSize.xy;
-    fetchesUV[0] = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.x);
-    fetchesUV[1] = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.x);
-    fetchesUV[2] = bilinearFetchOrigin + float2(fetchesOffsetsU.z, fetchesOffsetsV.x);
-    fetchesUV[3] = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.y);
-    fetchesUV[4] = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.y);
-    fetchesUV[5] = bilinearFetchOrigin + float2(fetchesOffsetsU.z, fetchesOffsetsV.y);
-    fetchesUV[6] = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.z);
-    fetchesUV[7] = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.z);
-    fetchesUV[8] = bilinearFetchOrigin + float2(fetchesOffsetsU.z, fetchesOffsetsV.z);
+    real2 bilinearFetchOrigin = centerOfFetchesInTexelSpace * shadowMapTexture_TexelSize.xy;
+    fetchesUV[0] = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.x);
+    fetchesUV[1] = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.x);
+    fetchesUV[2] = bilinearFetchOrigin + real2(fetchesOffsetsU.z, fetchesOffsetsV.x);
+    fetchesUV[3] = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.y);
+    fetchesUV[4] = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.y);
+    fetchesUV[5] = bilinearFetchOrigin + real2(fetchesOffsetsU.z, fetchesOffsetsV.y);
+    fetchesUV[6] = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.z);
+    fetchesUV[7] = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.z);
+    fetchesUV[8] = bilinearFetchOrigin + real2(fetchesOffsetsU.z, fetchesOffsetsV.z);
 
     fetchesWeights[0] = fetchesWeightsU.x * fetchesWeightsV.x;
     fetchesWeights[1] = fetchesWeightsU.y * fetchesWeightsV.x;
@@ -184,46 +184,46 @@ void SampleShadow_ComputeSamples_Tent_5x5(float4 shadowMapTexture_TexelSize, flo
 }
 
 // 7x7 Tent filter (45 degree sloped triangles in U and V)
-void SampleShadow_ComputeSamples_Tent_7x7(float4 shadowMapTexture_TexelSize, float2 coord, out real fetchesWeights[16], out float2 fetchesUV[16])
+void SampleShadow_ComputeSamples_Tent_7x7(real4 shadowMapTexture_TexelSize, real2 coord, out real fetchesWeights[16], out real2 fetchesUV[16])
 {
     // tent base is 7x7 base thus covering from 49 to 64 texels, thus we need 16 bilinear PCF fetches
-    float2 tentCenterInTexelSpace = coord.xy * shadowMapTexture_TexelSize.zw;
-    float2 centerOfFetchesInTexelSpace = floor(tentCenterInTexelSpace + 0.5);
-    float2 offsetFromTentCenterToCenterOfFetches = tentCenterInTexelSpace - centerOfFetchesInTexelSpace;
+    real2 tentCenterInTexelSpace = coord.xy * shadowMapTexture_TexelSize.zw;
+    real2 centerOfFetchesInTexelSpace = floor(tentCenterInTexelSpace + 0.5);
+    real2 offsetFromTentCenterToCenterOfFetches = tentCenterInTexelSpace - centerOfFetchesInTexelSpace;
 
     // find the weight of each texel based on the area of a 45 degree slop tent above each of them.
-    float4 texelsWeightsU_A, texelsWeightsU_B;
-    float4 texelsWeightsV_A, texelsWeightsV_B;
+    real4 texelsWeightsU_A, texelsWeightsU_B;
+    real4 texelsWeightsV_A, texelsWeightsV_B;
     SampleShadow_GetTexelWeights_Tent_7x7(offsetFromTentCenterToCenterOfFetches.x, texelsWeightsU_A, texelsWeightsU_B);
     SampleShadow_GetTexelWeights_Tent_7x7(offsetFromTentCenterToCenterOfFetches.y, texelsWeightsV_A, texelsWeightsV_B);
 
     // each fetch will cover a group of 2x2 texels, the weight of each group is the sum of the weights of the texels
-    float4 fetchesWeightsU = float4(texelsWeightsU_A.xz, texelsWeightsU_B.xz) + float4(texelsWeightsU_A.yw, texelsWeightsU_B.yw);
-    float4 fetchesWeightsV = float4(texelsWeightsV_A.xz, texelsWeightsV_B.xz) + float4(texelsWeightsV_A.yw, texelsWeightsV_B.yw);
+    real4 fetchesWeightsU = real4(texelsWeightsU_A.xz, texelsWeightsU_B.xz) + real4(texelsWeightsU_A.yw, texelsWeightsU_B.yw);
+    real4 fetchesWeightsV = real4(texelsWeightsV_A.xz, texelsWeightsV_B.xz) + real4(texelsWeightsV_A.yw, texelsWeightsV_B.yw);
 
     // move the PCF bilinear fetches to respect texels weights
-    float4 fetchesOffsetsU = float4(texelsWeightsU_A.yw, texelsWeightsU_B.yw) / fetchesWeightsU.xyzw + float4(-3.5,-1.5,0.5,2.5);
-    float4 fetchesOffsetsV = float4(texelsWeightsV_A.yw, texelsWeightsV_B.yw) / fetchesWeightsV.xyzw + float4(-3.5,-1.5,0.5,2.5);
+    real4 fetchesOffsetsU = real4(texelsWeightsU_A.yw, texelsWeightsU_B.yw) / fetchesWeightsU.xyzw + real4(-3.5,-1.5,0.5,2.5);
+    real4 fetchesOffsetsV = real4(texelsWeightsV_A.yw, texelsWeightsV_B.yw) / fetchesWeightsV.xyzw + real4(-3.5,-1.5,0.5,2.5);
     fetchesOffsetsU *= shadowMapTexture_TexelSize.xxxx;
     fetchesOffsetsV *= shadowMapTexture_TexelSize.yyyy;
 
-    float2 bilinearFetchOrigin = centerOfFetchesInTexelSpace * shadowMapTexture_TexelSize.xy;
-    fetchesUV[0]  = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.x);
-    fetchesUV[1]  = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.x);
-    fetchesUV[2]  = bilinearFetchOrigin + float2(fetchesOffsetsU.z, fetchesOffsetsV.x);
-    fetchesUV[3]  = bilinearFetchOrigin + float2(fetchesOffsetsU.w, fetchesOffsetsV.x);
-    fetchesUV[4]  = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.y);
-    fetchesUV[5]  = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.y);
-    fetchesUV[6]  = bilinearFetchOrigin + float2(fetchesOffsetsU.z, fetchesOffsetsV.y);
-    fetchesUV[7]  = bilinearFetchOrigin + float2(fetchesOffsetsU.w, fetchesOffsetsV.y);
-    fetchesUV[8]  = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.z);
-    fetchesUV[9]  = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.z);
-    fetchesUV[10] = bilinearFetchOrigin + float2(fetchesOffsetsU.z, fetchesOffsetsV.z);
-    fetchesUV[11] = bilinearFetchOrigin + float2(fetchesOffsetsU.w, fetchesOffsetsV.z);
-    fetchesUV[12] = bilinearFetchOrigin + float2(fetchesOffsetsU.x, fetchesOffsetsV.w);
-    fetchesUV[13] = bilinearFetchOrigin + float2(fetchesOffsetsU.y, fetchesOffsetsV.w);
-    fetchesUV[14] = bilinearFetchOrigin + float2(fetchesOffsetsU.z, fetchesOffsetsV.w);
-    fetchesUV[15] = bilinearFetchOrigin + float2(fetchesOffsetsU.w, fetchesOffsetsV.w);
+    real2 bilinearFetchOrigin = centerOfFetchesInTexelSpace * shadowMapTexture_TexelSize.xy;
+    fetchesUV[0]  = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.x);
+    fetchesUV[1]  = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.x);
+    fetchesUV[2]  = bilinearFetchOrigin + real2(fetchesOffsetsU.z, fetchesOffsetsV.x);
+    fetchesUV[3]  = bilinearFetchOrigin + real2(fetchesOffsetsU.w, fetchesOffsetsV.x);
+    fetchesUV[4]  = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.y);
+    fetchesUV[5]  = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.y);
+    fetchesUV[6]  = bilinearFetchOrigin + real2(fetchesOffsetsU.z, fetchesOffsetsV.y);
+    fetchesUV[7]  = bilinearFetchOrigin + real2(fetchesOffsetsU.w, fetchesOffsetsV.y);
+    fetchesUV[8]  = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.z);
+    fetchesUV[9]  = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.z);
+    fetchesUV[10] = bilinearFetchOrigin + real2(fetchesOffsetsU.z, fetchesOffsetsV.z);
+    fetchesUV[11] = bilinearFetchOrigin + real2(fetchesOffsetsU.w, fetchesOffsetsV.z);
+    fetchesUV[12] = bilinearFetchOrigin + real2(fetchesOffsetsU.x, fetchesOffsetsV.w);
+    fetchesUV[13] = bilinearFetchOrigin + real2(fetchesOffsetsU.y, fetchesOffsetsV.w);
+    fetchesUV[14] = bilinearFetchOrigin + real2(fetchesOffsetsU.z, fetchesOffsetsV.w);
+    fetchesUV[15] = bilinearFetchOrigin + real2(fetchesOffsetsU.w, fetchesOffsetsV.w);
 
     fetchesWeights[0]  = fetchesWeightsU.x * fetchesWeightsV.x;
     fetchesWeights[1]  = fetchesWeightsU.y * fetchesWeightsV.x;

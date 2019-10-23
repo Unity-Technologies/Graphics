@@ -23,6 +23,7 @@
     DECLARE_TERRAIN_LAYER_PROPS(1)          \
     DECLARE_TERRAIN_LAYER_PROPS(2)          \
     DECLARE_TERRAIN_LAYER_PROPS(3)          \
+    float4 _Control0_TexelSize;             \
 
 #ifdef _TERRAIN_8_LAYERS
     #define UNITY_TERRAIN_CB_VARS \
@@ -31,6 +32,7 @@
         DECLARE_TERRAIN_LAYER_PROPS(5)      \
         DECLARE_TERRAIN_LAYER_PROPS(6)      \
         DECLARE_TERRAIN_LAYER_PROPS(7)      \
+        float4 _Control1_TexelSize;         \
         float _HeightTransition;
 #else
     #define UNITY_TERRAIN_CB_VARS \
@@ -39,7 +41,6 @@
 #endif
 
 #define UNITY_TERRAIN_CB_DEBUG_VARS \
-    float4 _Control0_TexelSize;     \
     float4 _Control0_MipInfo;       \
     float4 _Splat0_TexelSize;       \
     float4 _Splat0_MipInfo;         \

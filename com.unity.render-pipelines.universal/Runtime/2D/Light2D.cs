@@ -166,6 +166,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
         Bounds      m_LocalBounds;
+        
 
         [Range(0,1)]
         [SerializeField] float m_ShadowIntensity    = 0.0f;
@@ -233,6 +234,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
         internal int lightCullingIndex => m_LightCullingIndex;
+        static SortingLayer[] s_SortingLayers;
 
 #if UNITY_EDITOR
         public static string s_IconsPath = "Packages/com.unity.render-pipelines.universal/Editor/2D/Resources/SceneViewIcons/";
@@ -243,6 +245,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public static string s_GlobalLightIconPath = s_IconsPath + "GlobalLight.png";
         public static string[] s_LightIconPaths = new string[] { s_ParametricLightIconPath, s_FreeformLightIconPath, s_SpriteLightIconPath, s_PointLightIconPath, s_GlobalLightIconPath };
 #endif
+        
 
         internal static void SetupCulling(ScriptableRenderContext context, Camera camera)
         {
@@ -290,10 +293,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int largestIndex = -1;
             int largestLayer = 0;
 
-            // TODO: SortingLayer.layers allocates the memory for the returned array.
-            // An alternative to this is to keep m_ApplyToSortingLayers sorted by using SortingLayer.GetLayerValueFromID in the comparer.
-            SortingLayer[] layers = SortingLayer.layers;
-            for(int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+            SortingLayer[] layers;
+            if (Application.isPlaying)
+            {
+                if (s_SortingLayers == null)
+                    s_SortingLayers = SortingLayer.layers;
+
+                layers = s_SortingLayers;
+            }
+            else
+                layers = SortingLayer.layers;
+
+
+            for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
             {
                 for(int layer = layers.Length - 1; layer >= largestLayer; --layer)
                 {
@@ -401,9 +413,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            if (m_ShapePath == null || m_ShapePath.Length == 0)
-                m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
-
             GetMesh();
         }
 
@@ -531,6 +540,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawIcon(transform.position, s_LightIconPaths[(int)m_LightType], true);
+        }
+
+        void Reset()
+        {
+            m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
         }
 #endif
     }

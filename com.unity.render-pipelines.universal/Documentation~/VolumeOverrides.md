@@ -12,10 +12,10 @@ Override checkboxes allow you to override as many or as few values on a Volume c
 
 To render both a global vignette and a local vignette in a certain area of your Scene:
 
-1. Create a global Volume (menu: __GameObject__ &gt; __Volume__ &gt; __Global Volume__).
-2. Click the **New** button next to the **Profile** property to add a new Volume Profile to the Volume.
-3. Select __Add Override__ > __Vignette__, and leave it with the default settings.
-4. Create a local Volume. To add a **Local** Volume with a box boundary, select __GameObject__ &gt; __Volume__ &gt; __Box Volume__.
-5. Select __Add Override__ &gt; __Vignette__.Then, in the __Vignette__ Inspector, override the properties them with your preferred values.
+1. Create a global Volume (menu: __GameObjec > Volume > Global Volume__).
+2. Click the __New__ button next to the __Profile__ property to add a new Volume Profile to the Volume.
+3. Select __Add Override > Vignette__, and leave it with the default settings.
+4. Create a local Volume. To add a **Local** Volume with a box boundary, select __GameObject > Volume > Box Volume__.
+5. Select __Add Override > Vignette__.Then, in the __Vignette__ Inspector, override the properties them with your preferred values.
 
 Now, whenever your Camera is within the bounds of the local Volume's Collider, URP uses the __Vignette__ values from that Volume. Whenever your Camera is outside the bounds of the local Volume's Collider, URP uses the __Vignette__ values from the global Volume

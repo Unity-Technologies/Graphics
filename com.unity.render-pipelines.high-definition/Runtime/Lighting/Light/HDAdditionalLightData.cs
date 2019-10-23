@@ -1395,7 +1395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_Light;
             }
         }
-        
+
         MeshRenderer m_EmissiveMeshRenderer;
         internal MeshRenderer emissiveMeshRenderer
         {
@@ -1405,7 +1405,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     TryGetComponent<MeshRenderer>(out m_EmissiveMeshRenderer);
                 }
-                
+
                 return m_EmissiveMeshRenderer;
             }
         }
@@ -1419,19 +1419,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     TryGetComponent<MeshFilter>(out m_EmissiveMeshFilter);
                 }
-                
+
                 return m_EmissiveMeshFilter;
             }
         }
 
         private void DisableCachedShadowSlot()
         {
-            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-                  (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
-
             if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
             {
+                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+                                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
                 HDShadowManager.instance.MarkCachedShadowSlotsAsEmpty(shadowMapType, GetInstanceID());
+                HDShadowManager.instance.PruneEmptyCachedSlots(shadowMapType);  // We invalidate it all to be sure.
+                m_ShadowMapRenderedSinceLastRequest = false;
             }
         }
 
@@ -1704,6 +1706,17 @@ namespace UnityEngine.Rendering.HighDefinition
             int count = GetShadowRequestCount();
             bool shadowIsCached = !ShouldRenderShadows() && !lightingDebugSettings.clearShadowAtlas;
             bool isUpdatedEveryFrame = ShadowIsUpdatedEveryFrame();
+
+            ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
+              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
+
+            bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
+
+            bool shouldUseRequestFromCachedList = shadowIsCached && hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
+            bool cachedDataIsValid = shadowIsCached && m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
+            cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
+            shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
+
             for (int index = 0; index < count; index++)
             {
                 var         shadowRequest = shadowRequests[index];
@@ -1711,13 +1724,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Matrix4x4   invViewProjection = Matrix4x4.identity;
                 int         shadowRequestIndex = m_ShadowRequestIndices[index];
 
-                ShadowMapType shadowMapType = (lightTypeExtent == LightTypeExtent.Rectangle) ? ShadowMapType.AreaLightAtlas :
-                              (legacyLight.type != LightType.Directional) ? ShadowMapType.PunctualAtlas : ShadowMapType.CascadedDirectional;
-
-                bool hasCachedSlotInAtlas = !(ShadowIsUpdatedEveryFrame() || legacyLight.type == LightType.Directional);
-
-                bool shouldUseRequestFromCachedList = shadowIsCached && hasCachedSlotInAtlas && !manager.AtlasHasResized(shadowMapType);
-                bool cachedDataIsValid = shadowIsCached && m_CachedDataIsValid && (manager.GetAtlasShapeID(shadowMapType) == m_AtlasShapeID) && manager.CachedDataIsValid(shadowMapType);
                 HDShadowResolutionRequest resolutionRequest = manager.GetResolutionRequest(shadowMapType, shouldUseRequestFromCachedList, shouldUseRequestFromCachedList ? m_CachedResolutionRequestIndices[index] : shadowRequestIndex);
 
                 if (resolutionRequest == null)
@@ -1725,8 +1731,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 
-                cachedDataIsValid = cachedDataIsValid || (legacyLight.type == LightType.Directional);
-                shadowIsCached = shadowIsCached && (hasCachedSlotInAtlas && cachedDataIsValid || legacyLight.type == LightType.Directional);
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -2324,10 +2328,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Need to inverse scale because culling != rendering convention apparently
             Matrix4x4 scaleMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f));
             legacyLight.shadowMatrixOverride = HDShadowUtils.ExtractSpotLightProjectionMatrix(legacyLight.range, legacyLight.spotAngle, shadowNearPlane, aspectRatio, 0.0f) * scaleMatrix;
-
-            // Very conservative bounding sphere taking the diagonal of the shape as the radius
-            float diag = new Vector3(shapeWidth * 0.5f, m_ShapeHeight * 0.5f, legacyLight.range * 0.5f).magnitude;
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, legacyLight.range * 0.5f, diag);
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, legacyLight.range);
         }
 
         void UpdateBounds()
@@ -2674,7 +2675,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // A bunch of function that changes stuff on the legacy light so users don't have to get the
         // light component which would lead to synchronization problem with ou HD datas.
-        
+
         /// <summary>
         /// Set the range of the light.
         /// </summary>
@@ -2765,7 +2766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedTypes = Enum.GetValues(typeof(DirectionalLightUnit)).Cast<LightUnit>().ToArray();
             else
                 supportedTypes = Enum.GetValues(typeof(PunctualLightUnit)).Cast<LightUnit>().ToArray();
-            
+
             supportedLightTypeCache[cacheKey] = supportedTypes;
 
             return supportedTypes;
