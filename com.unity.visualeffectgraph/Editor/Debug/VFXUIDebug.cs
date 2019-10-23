@@ -289,7 +289,7 @@ namespace UnityEditor.VFX.UI
                     case Modes.Efficiency:
                         {
                             var stat = m_DebugUI.m_VFX.GetParticleSystemInfo(switchableCurve.id);
-                            float efficiency = (float)stat.alive / (float)stat.capacity;
+                            float efficiency = (float)stat.aliveCount / (float)stat.capacity;
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f);
                             switchableCurve.curve.AddPoint(efficiency);
@@ -307,7 +307,7 @@ namespace UnityEditor.VFX.UI
                             m_DebugUI.m_YaxisElts[2].text = superior2.ToString();
 
                             m_CurveMat.SetFloat("_OrdinateScale", 1.0f / (float)superior2);
-                            switchableCurve.curve.AddPoint(stat.alive);
+                            switchableCurve.curve.AddPoint(stat.aliveCount);
                             m_DebugUI.UpdateSystemInfoEntry(switchableCurve.id, stat);
 
                         }
@@ -935,16 +935,16 @@ namespace UnityEditor.VFX.UI
             return (e) => { };
         }
 
-        void UpdateSystemInfoEntry(int systemId, VFXSystemInfo stat)
+        void UpdateSystemInfoEntry(int systemId, VFXParticleSystemInfo stat)
         {
             var statUI = m_SystemInfos[systemId];// [0] is title bar
             if (statUI[3] is TextElement alive)
-                alive.text = stat.alive.ToString();
+                alive.text = stat.aliveCount.ToString();
             if (statUI[4] is TextElement maxAliveText)
-                maxAliveText.text = Mathf.Max(int.Parse(maxAliveText.text), stat.alive).ToString();
+                maxAliveText.text = Mathf.Max(int.Parse(maxAliveText.text), stat.aliveCount).ToString();
             if (statUI[5] is TextElement efficiency)
             {
-                var eff = (int)((float)stat.alive * 100.0f / (float)stat.capacity);
+                var eff = (int)((float)stat.aliveCount * 100.0f / (float)stat.capacity);
                 efficiency.text = string.Format("{0} %", eff);
                 if (eff < 51)
                     efficiency.style.color = Color.red.gamma;
