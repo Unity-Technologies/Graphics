@@ -66,13 +66,13 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
     class VFXAttributeParameter : VFXOperator
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider)), Tooltip("Specifies which attribute to use.")]
         public string attribute = VFXAttribute.AllIncludingVariadicExceptWriteOnly.First();
 
-        [VFXSetting, Tooltip("Select the version of this parameter that is used.")]
+        [VFXSetting, Tooltip("Specifies which version of the parameter to use. It can return the current value, or the source value derived from a GPU event or a spawn attribute.")]
         public VFXAttributeLocation location = VFXAttributeLocation.Current;
 
-        [VFXSetting, Regex("[^x-zX-Z]", 3)]
+        [VFXSetting, Regex("[^x-zX-Z]", 3), Tooltip("Sets the axes and the order in which they are derived. The input can be only the letters x, y, and z, in any combination, up to a length of 3 (i.e. xyz).")]
         public string mask = "xyz";
 
         protected override IEnumerable<string> filteredOutSettings
