@@ -9,14 +9,15 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The transform.")]
+            [Tooltip("Sets the transform to be used in the transformation.")]
             public Transform transform = Transform.defaultValue;
-            [Tooltip("The position to be transformed.")]
+            [Tooltip("Sets the position to be transformed.")]
             public Position position;
         }
 
         public class OutputProperties
         {
+            [Tooltip("Outputs the transformed position.")]
             public Position pos;
         }
 

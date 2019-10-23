@@ -9,14 +9,14 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The 2D coordinate to be converted into Polar space.")]
+            [Tooltip("Sets the rectangular (x,y) coordinates to convert to polar coordinates (r,θ).")]
             public Vector2 coordinate = Vector2.zero;
         }
         public class OutputProperties
         {
-            [Angle, Tooltip("The angular coordinate (Polar angle).")]
+            [Angle, Tooltip("Outputs the angular coordinate (Polar angle).")]
             public float theta = Mathf.PI / 2;
-            [Tooltip("The radial coordinate (Radius).")]
+            [Tooltip("Outputs the radial coordinates (Radius).")]
             public float distance = 1.0f;
         }
 

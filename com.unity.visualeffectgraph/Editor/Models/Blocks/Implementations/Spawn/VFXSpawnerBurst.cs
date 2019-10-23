@@ -39,10 +39,10 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private RepeatMode repeat = RepeatMode.Single;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies whether a constant number of particles is spawned, or a random number within the chosen range.")]
         private RandomMode spawnMode =  RandomMode.Constant;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies whether a constant delay is applied between bursts, or a random one within the chosen range.")]
         private RandomMode delayMode = RandomMode.Constant;
 
         public override string name { get { return repeat.ToString() + " Burst"; } }
@@ -50,17 +50,17 @@ namespace UnityEditor.VFX
 
         public class AdvancedInputProperties
         {
-            [Tooltip("Min/Max Count for each burst"), Min(0)]
+            [Tooltip("Sets the minimum and maximum number of particles to be spawned with each burst."), Min(0)]
             public Vector2 Count = new Vector2(0, 10);
-            [Tooltip("Min/Max Delay between each burst"), Min(0)]
+            [Tooltip("Sets the minimum and maximum delay in seconds between each burst."), Min(0)]
             public Vector2 Delay = new Vector2(0, 1);
         }
 
         public class SimpleInputProperties
         {
-            [Tooltip("Count for each burst"), Min(0)]
+            [Tooltip("Sets the number of particles to be spawned with each burst."), Min(0)]
             public float Count = 0.0f;
-            [Tooltip("Delay between each burst"), Min(0)]
+            [Tooltip("Sets the delay in seconds between each burst."), Min(0)]
             public float Delay = 0.0f;
         }
 
