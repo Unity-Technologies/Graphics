@@ -294,6 +294,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < 6; i++)
                         m_BlackCubemapArray.SetPixels32(black, (CubemapFace)i, element);
                 }
+
+                m_BlackCubemapArray.Apply();
             }
         }
 
