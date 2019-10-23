@@ -11,14 +11,15 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             static public uint FallbackValue = 0;
-            [Tooltip("The first operand.")]
+            [Tooltip("Sets the first operand.")]
             public uint a = FallbackValue;
-            [Tooltip("The second operand.")]
+            [Tooltip("Sets the second operand.")]
             public uint b = FallbackValue;
         }
 
         public class OutputProperties
         {
+            [Tooltip("Outputs the result of the logical OR operation between the two operands. For example, 5 (0101 in binary) with 3 (0011 in binary) returns 7 (0111 in binary).")]
             public uint o = 0;
         }
 

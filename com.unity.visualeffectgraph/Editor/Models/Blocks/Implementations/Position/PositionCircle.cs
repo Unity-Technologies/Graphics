@@ -12,13 +12,13 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The circle used for positioning particles.")]
+            [Tooltip("Sets the circle used for positioning the particles.")]
             public ArcCircle ArcCircle = ArcCircle.defaultValue;
         }
 
         public class CustomProperties
         {
-            [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
+            [Range(0, 1), Tooltip("Sets the position on the arc to emit particles from when ‘Custom Emission’ is used.")]
             public float ArcSequencer = 0.0f;
         }
 

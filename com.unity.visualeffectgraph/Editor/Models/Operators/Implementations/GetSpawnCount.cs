@@ -10,6 +10,7 @@ class GetSpawnCount : VFXOperator
 
     public class OutputProperties
     {
+        [Tooltip("Outputs the number of particles spawned in the same frame.")]
         public uint SpawnCount;
     }
 
