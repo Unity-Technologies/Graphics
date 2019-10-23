@@ -9,15 +9,16 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The transform.")]
+            [Tooltip("Sets the transform to be used in the transformation.")]
             public Transform transform = Transform.defaultValue;
-            [Tooltip("The vector to be transformed.")]
+            [Tooltip("Sets the vector to be transformed.")]
             public Vector vector = Vector.defaultValue;
         }
 
         public class OutputProperties
         {
-            public Vector vec;
+            [Tooltip("Outputs the transformed vector.")]
+            public Vector tVec;
         }
 
         override public string name { get { return "Transform (Vector)"; } }

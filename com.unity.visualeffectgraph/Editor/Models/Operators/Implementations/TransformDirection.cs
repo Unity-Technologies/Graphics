@@ -9,15 +9,16 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The transform.")]
+            [Tooltip("Sets the transform to be used in the transformation.")]
             public Transform transform = Transform.defaultValue;
-            [Tooltip("The normalized vector to be transformed.")]
+            [Tooltip("Sets the normalized vector to be transformed.")]
             public DirectionType direction = DirectionType.defaultValue;
         }
 
         public class OutputProperties
         {
-            public DirectionType dir;
+            [Tooltip("Outputs the transformed normalized vector.")]
+            public DirectionType tDir;
         }
 
         public override void Sanitize(int version)
