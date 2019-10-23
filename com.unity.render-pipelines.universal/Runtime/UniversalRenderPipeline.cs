@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
             // XRTODO: Wire this up with shader variants logic as pure mode requires pure version of shaders
-            cameraData.isPureURPCamera = true;
+            //cameraData.isPureURPCamera = true;
 
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)

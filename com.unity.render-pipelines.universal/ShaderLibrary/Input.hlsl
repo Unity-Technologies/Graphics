@@ -6,7 +6,7 @@
 
 // Experimental Code Path: Pure URP
 #if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON)
-#define USING_PUREURP
+//#define USING_PUREURP
 #endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
