@@ -551,6 +551,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("drawProbes").boolValue.CompareTo(rhs.FindPropertyRelative("drawProbes").boolValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("drawProbes").boolValue = source.FindPropertyRelative("drawProbes").boolValue;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Color, HDStyles.DebugColor, "parameters", 75, (r, prop, dep) =>       // 2: Debug Color
                 {
@@ -562,6 +565,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     Color.RGBToHSV(lhs.FindPropertyRelative("debugColor").colorValue, out lh, out ls, out lv);
                     Color.RGBToHSV(rhs.FindPropertyRelative("debugColor").colorValue, out rh, out rs, out rv);
                     return lh.CompareTo(rh);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("debugColor").colorValue = source.FindPropertyRelative("debugColor").colorValue;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionX, "parameters", 75, (r, prop, dep) =>      // 3: Resolution X
                 {
@@ -578,6 +584,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionX").intValue.CompareTo(rhs.FindPropertyRelative("resolutionX").intValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("resolutionX").intValue = source.FindPropertyRelative("resolutionX").intValue;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionY, "parameters", 75, (r, prop, dep) =>      // 4: Resolution Y
                 {
@@ -595,6 +604,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionY").intValue.CompareTo(rhs.FindPropertyRelative("resolutionY").intValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("resolutionY").intValue = source.FindPropertyRelative("resolutionY").intValue;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ResolutionZ, "parameters", 75, (r, prop, dep) =>      // 5: Resolution Z
                 {
@@ -612,6 +624,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("resolutionZ").intValue.CompareTo(rhs.FindPropertyRelative("resolutionZ").intValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("resolutionZ").intValue = source.FindPropertyRelative("resolutionZ").intValue;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeStart, "parameters", 65, (r, prop, dep) =>        // 6: Distance Fade Start
                 {
@@ -620,6 +635,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("distanceFadeStart").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeStart").floatValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("distanceFadeStart").floatValue = source.FindPropertyRelative("distanceFadeStart").floatValue;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeEnd, "parameters", 65, (r, prop, dep) =>          // 7: Distance Fade End
                 {
@@ -628,6 +646,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }, (lhs, rhs) =>
                 {
                     return lhs.FindPropertyRelative("distanceFadeEnd").floatValue.CompareTo(rhs.FindPropertyRelative("distanceFadeEnd").floatValue);
+                }, (target, source) => 
+                {
+                    target.FindPropertyRelative("distanceFadeEnd").floatValue = source.FindPropertyRelative("distanceFadeEnd").floatValue;
                 })
             };
         }
