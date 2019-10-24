@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
         /// </summary>
         /// <value>The fade value that should be applied to the custom pass effect</value>
-        protected float fadeValue { get; private set; }
+        public float fadeValue { get; private set; }
 
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDestroy() => Cleanup();
 
-        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CustomPass.RenderTargets targets)
+        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
             bool executed = false;
 
@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (pass != null && pass.enabled)
                     using (new ProfilingSample(cmd, pass.name))
                     {
-                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, targets, fadeValue);
+                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
                         executed = true;
                     }
             }

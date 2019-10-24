@@ -70,8 +70,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
 		void LoadUserProperties(SerializedProperty customPass)
 		{
-			foreach (var field in m_PassType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
+			// Store all fields in CustomPass so we can exclude them when retrieving the user custom pass type
+			var customPassFields = typeof(CustomPass).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+			foreach (var field in m_PassType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
 			{
+				var serializeField = field.GetCustomAttribute<SerializeField>();
+				var hideInInspector = field.GetCustomAttribute<HideInInspector>();
+				var nonSerialized = field.GetCustomAttribute<NonSerializedAttribute>();
+
+				if (customPassFields.Any(f => f.Name == field.Name))
+					continue;
+
+				if (nonSerialized != null || hideInInspector != null)
+					continue;
+
+				if (!field.IsPublic && serializeField == null)
+					continue;
+				
 				var prop = customPass.FindPropertyRelative(field.Name);
 				if (prop != null)
 					m_CustomPassUserProperties.Add(prop);
