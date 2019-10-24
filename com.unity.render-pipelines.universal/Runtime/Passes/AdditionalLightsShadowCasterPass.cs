@@ -257,7 +257,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public int GetShadowLightIndexForLightIndex(int i)
         {
-            return m_ShadowCastingLightIndicesMap[i];
+            if (m_ShadowCastingLightIndicesMap.IsCreated && i < m_ShadowCastingLightIndicesMap.Length)
+                return m_ShadowCastingLightIndicesMap[i];
+            else
+                return -1;
         }
 
         void Clear()
