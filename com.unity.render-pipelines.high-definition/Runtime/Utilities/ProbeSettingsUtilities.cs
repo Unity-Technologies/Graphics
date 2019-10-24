@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float referenceFieldOfView = 90
         )
         {
-            cameraSettings = settings.camera;
+            cameraSettings = settings.cameraSettings;
             // Compute the modes for each probe type
             PositionMode positionMode;
             bool useReferenceTransformAsNearClipPlane;
@@ -89,6 +89,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref cameraSettings, ref cameraPosition
                 );
             }
+
+            // Propagate the desired custom exposure
+            cameraSettings.probeRangeCompressionFactor = settings.lighting.rangeCompressionFactor;
 
             // Frame Settings Overrides
             switch (settings.mode)

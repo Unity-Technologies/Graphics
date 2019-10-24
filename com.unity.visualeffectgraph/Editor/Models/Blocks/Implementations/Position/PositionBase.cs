@@ -22,11 +22,11 @@ namespace UnityEditor.VFX.Block
 
         public class ThicknessProperties
         {
-            [Min(0), Tooltip("Controls whether particles are spawned on the surface of the shape, or inside the volume.")]
+            [Min(0), Tooltip("Sets the thickness of the spawning volume.")]
             public float Thickness = 0.1f;
         }
 
-        [VFXSetting, Tooltip("Controls whether particles are spawned on the surface of the shape, or inside the volume.")]
+        [VFXSetting, Tooltip("Specifies whether particles are spawned on the surface of the shape, inside the volume, or within a defined thickness.")]
         public PositionMode positionMode;
         [VFXSetting, Tooltip("Controls whether particles are spawned randomly, or can be controlled by a deterministic input.")]
         public SpawnMode spawnMode;

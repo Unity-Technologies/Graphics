@@ -1,26 +1,31 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
-#pragma kernel GTAODenoise_Spatial SPATIAL
+#pragma kernel GTAODenoise_Spatial_To_Temporal          SPATIAL_DENOISE_KERNEL_NAME=GTAODenoise_Spatial_To_Temporal TO_TEMPORAL SPATIAL
+#pragma kernel GTAODenoise_Spatial                      SPATIAL_DENOISE_KERNEL_NAME=GTAODenoise_Spatial SPATIAL 
 #pragma kernel GTAODenoise_Temporal                     TEMPORAL_DENOISE_KERNEL_NAME=GTAODenoise_Temporal         TEMPORAL  HALF_RES
 #pragma kernel GTAODenoise_Temporal_FullRes             TEMPORAL_DENOISE_KERNEL_NAME=GTAODenoise_Temporal_FullRes TEMPORAL  FULL_RES
 
 #pragma kernel GTAODenoise_CopyHistory HISTORY_COPY
 
+#define NEED_TEX_SPACE_GATHER defined(SHADER_API_METAL) && !defined(SHADER_API_MOBILE)
 
+#ifdef SPATIAL
 
 TEXTURE2D_X_UINT(_AOPackedData);
 
-#ifdef SPATIAL
+#ifdef TO_TEMPORAL
+RW_TEXTURE2D_X(uint, _AOPackedBlurred);
+#else
+RW_TEXTURE2D_X(float, _OcclusionTexture);
+#endif
 
 #define DEBUG_VISUALIZE_BILATERAL_WEIGHTS 0
 
 #define DEPTH_SCALE 1
 #define BILATERAL_EPSILON 0.01
 
-// TODO: This pass really could really use some quality improvement. 
-
-RW_TEXTURE2D_X(uint, _AOPackedBlurred);
+// TODO: This pass really could really use some quality improvement.
 
 float BilateralWeight(float sampleDepth, float linearCentralDepth)
 {
@@ -31,17 +36,19 @@ float BilateralWeight(float sampleDepth, float linearCentralDepth)
     return w;
 }
 
-float Blur(float2 centralPos, out float centralDepth)
+float Blur(float2 centralPos, out float centralDepth, out float centralAO)
 {
-    float2 temporalOffset = 0;
-
-    uint4 data_12_15 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(0.0, 0.0) + temporalOffset)  * _AOBufferSize.zw, _AOBufferSize.zw));
+    float2 UV = ClampAndScaleUVForBilinear((centralPos + float2(0.0, 0.0)) * _AOBufferSize.zw, _AOBufferSize.zw);
+#if NEED_TEX_SPACE_GATHER
+    UV = centralPos;
+#endif
+    uint4 data0 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV);
 
     float4 UnpackedAOs, UnpackedDepths;
-    UnpackGatheredData(data_12_15, UnpackedAOs, UnpackedDepths);
+    UnpackGatheredData(data0, UnpackedAOs, UnpackedDepths);
     centralDepth = UnpackedDepths.y;
     float linearCentralDepth = LinearEyeDepth(centralDepth, _ZBufferParams);
-
+    centralAO = UnpackedAOs.y;
     float total = UnpackedAOs.y;
     float totalWeight = 1;
 
@@ -61,15 +68,19 @@ float Blur(float2 centralPos, out float centralDepth)
     totalWeight += weight;
 
     // Second set of gathered data.
-    uint4 data_8_11 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(-2.0, 0.0) + temporalOffset)  * _AOBufferSize.zw, _AOBufferSize.zw));
-    UnpackGatheredData(data_8_11, UnpackedAOs, UnpackedDepths);
+    UV = ClampAndScaleUVForBilinear((centralPos + float2(2.0, 0.0)) * _AOBufferSize.zw, _AOBufferSize.zw);
+    uint4 data1 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV);
+#if NEED_TEX_SPACE_GATHER
+    UV = centralPos + float2(2.0, 0.0);
+#endif
+    UnpackGatheredData(data1, UnpackedAOs, UnpackedDepths);
 
     weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
     total += weight * UnpackedAOs.x;
     totalWeight += weight;
 
     weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
-    total += weight * UnpackedAOs.z;
+    total += weight * UnpackedAOs.y;
     totalWeight += weight;
 
     weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
@@ -82,15 +93,19 @@ float Blur(float2 centralPos, out float centralDepth)
 
 
     // Third set of gathered data.
-    uint4 data_4_7 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(0.0f, 2.0) + temporalOffset)  * _AOBufferSize.zw, _AOBufferSize.zw));
-    UnpackGatheredData(data_4_7, UnpackedAOs, UnpackedDepths);
+    UV = ClampAndScaleUVForBilinear((centralPos + float2(0.0, 2.0)) * _AOBufferSize.zw, _AOBufferSize.zw);
+#if NEED_TEX_SPACE_GATHER
+    UV = centralPos + float2(0.0, 2.0);
+#endif
+    uint4 data2 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV);
+    UnpackGatheredData(data2, UnpackedAOs, UnpackedDepths);
 
     weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
     total += weight * UnpackedAOs.x;
     totalWeight += weight;
 
     weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
-    total += weight * UnpackedAOs.z;
+    total += weight * UnpackedAOs.y;
     totalWeight += weight;
 
     weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
@@ -102,15 +117,19 @@ float Blur(float2 centralPos, out float centralDepth)
     totalWeight += weight;
 
     // Fourth set of gathered data.
-    uint4 data_0_3 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((centralPos + float2(-2.0, 2.0) + temporalOffset)  * _AOBufferSize.zw, _AOBufferSize.zw));
-    UnpackGatheredData(data_0_3, UnpackedAOs, UnpackedDepths);
+    UV = ClampAndScaleUVForBilinear((centralPos + float2(2.0, 2.0)) * _AOBufferSize.zw, _AOBufferSize.zw);
+#if NEED_TEX_SPACE_GATHER
+    UV = centralPos + float2(2.0, 2.0);
+#endif
+    uint4 data3 = GATHER_TEXTURE2D_X(_AOPackedData, s_linear_clamp_sampler, UV);
+    UnpackGatheredData(data3, UnpackedAOs, UnpackedDepths);
 
     weight = BilateralWeight(UnpackedDepths.x, linearCentralDepth);
     total += weight * UnpackedAOs.x;
     totalWeight += weight;
 
     weight = BilateralWeight(UnpackedDepths.y, linearCentralDepth);
-    total += weight * UnpackedAOs.z;
+    total += weight * UnpackedAOs.y;
     totalWeight += weight;
 
     weight = BilateralWeight(UnpackedDepths.z, linearCentralDepth);
@@ -131,22 +150,23 @@ float Blur(float2 centralPos, out float centralDepth)
 }
 
 [numthreads(8, 8, 1)]
-void GTAODenoise_Spatial(uint3 dispatchThreadId : SV_DispatchThreadID)
+void SPATIAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint currData = _AOPackedData[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    float centralDepth, centralAO;
+    float final = Blur(dispatchThreadId.xy, centralDepth, centralAO);
 
-    float centralDepth;
-    float final = Blur(dispatchThreadId.xy, centralDepth);
-
+#if TO_TEMPORAL
     _AOPackedBlurred[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
+#else
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = OutputFinalAO(final);
+#endif
 }
 #endif
 
 
 #ifdef TEMPORAL
-
 
 uint PackHistoryData(float AO, float depth, float mvLen)
 {
@@ -169,34 +189,39 @@ RW_TEXTURE2D_X(uint, _AOOutputHistory);
 TEXTURE2D_X_UINT(_AOPackedBlurred);
 TEXTURE2D_X_UINT(_AOPackedHistory);
 
-float3 FetchAO(float2 coords, float2 offset, float2 scale)
-{
-    float2 uv = (coords + offset * _AOBufferSize.zw) * scale;
-    uint data = LOAD_TEXTURE2D_X(_AOPackedBlurred, uv * _AOBufferSize.xy).x;
-    float AO, depth;
-    UnpackData(data, AO, depth);
-    return AO;
-}
-
-RW_TEXTURE2D_X(float4, _AODebug);
-TEXTURE2D_X(_AODebug2);
-
-
-
 #if HALF_RES
 RW_TEXTURE2D_X(uint, _OcclusionTexture);
 #else
 RW_TEXTURE2D_X(float, _OcclusionTexture);
 #endif
 
+float3 FindMinMaxAvgAO(float2 centralPos)
+{
+    float minAO = 2.0f;
+    float maxAO = -2.0f;
+    float avg = 0;
+    for (int i = -1; i <= 1; ++i)
+    {
+        for (int j = -1; j <= 1; ++j)
+        {
+            uint data = LOAD_TEXTURE2D_X(_AOPackedBlurred, (uint2)centralPos + uint2(i, j));
+            float currAO, ignored;
+            UnpackData(data, currAO, ignored);
+            avg += currAO;
+            minAO = min(minAO, currAO);
+            maxAO = max(maxAO, currAO);
+        }
+    }
+
+    return float3(minAO, maxAO, avg/9);
+}
+
 [numthreads(8, 8, 1)]
 void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float2 uv = (dispatchThreadId.xy + 0.5) * _AOBufferSize.zw;
-
-    uint currFrameData = _AOPackedBlurred[COORD_TEXTURE2D_X((uv)* _AOBufferSize.xy)];
+    uint currFrameData = _AOPackedBlurred[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
     float currDepth, currAO;
     UnpackData(currFrameData, currAO, currDepth);
 
@@ -211,46 +236,43 @@ void TEMPORAL_DENOISE_KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, closest), motionVector);
     float motionVecLength = length(motionVector);
 
+    float2 uv = (dispatchThreadId.xy + 0.5) * _AOBufferSize.zw;
     float2 prevFrameNDC = uv - motionVector;
 
     uint prevData = _AOPackedHistory[COORD_TEXTURE2D_X((prevFrameNDC) * _AOBufferSize.xy)];
     float prevMotionVecLen, prevAO, prevDepth;
     UnpackHistoryData(prevData, prevAO, prevDepth, prevMotionVecLen);
 
-    uint4 currDatas = GATHER_TEXTURE2D_X(_AOPackedBlurred, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, _AOBufferSize.zw));
-    float4 currAOs, currDepths;
-    UnpackGatheredData(currDatas, currAOs, currDepths);
-
     float motionVecWeighting = saturate(motionVecLength * 100.0);
-    float velWeight = 1.0f - abs(prevMotionVecLen - motionVecWeighting);
+    float velWeight = 1.0f - saturate((abs(prevMotionVecLen - motionVecWeighting)) * 3.0f);
 
-    float minAO = min(Min3(currAOs.x, currAOs.y, currAOs.z), currAOs.w);
-    float maxAO = max(Max3(currAOs.x, currAOs.y, currAOs.z), currAOs.w);
-
-    // TODO: This require a better investigation. Values in this are pretty much set without too much thought. 
-    float nudge = lerp(10, 2, motionVecWeighting) * abs(dot(currAOs, 0.25) - currAO);
-    nudge *= velWeight;
+    float3 minMax = FindMinMaxAvgAO(float2(dispatchThreadId.xy));
+    float minAO = minMax.x;
+    float maxAO = minMax.y;
+    float avg = minMax.z;
+    float nudge = lerp(_AOTemporalUpperNudgeLimit, _AOTemporalLowerNudgeLimit, motionVecWeighting) * abs(avg - currAO);
     minAO -= nudge;
     maxAO += nudge;
 
-    float diff = abs(currAOs.y - prevAO) / Max3(prevAO, currAO, 0.2);
+    float diff = abs(currAO - prevAO) / Max3(prevAO, currAO, 0.1f);
     float weight = 1.0 - diff;
     float feedback = lerp(0.85, 0.95, weight * weight);
 
     prevAO = clamp(prevAO, minAO, maxAO);
 
-    float depth_similarity = saturate(pow(prevDepth / currDepths.y, 1) + 0.01);
+    float depth_similarity = saturate(pow(prevDepth / currDepth, 1) + 0.01);
 
     float newAO = (lerp(currAO, prevAO, feedback * depth_similarity * velWeight));
 
-    _AOOutputHistory[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackHistoryData(newAO, currDepths.y, motionVecWeighting);
+    _AOOutputHistory[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackHistoryData(newAO, currDepth, motionVecWeighting);
 
 #ifdef HALF_RES
     // The conversion and the pow happens in upsample phase.
-    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(newAO, currDepths.y);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(newAO, currDepth);
 #else
-    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 1.0 - PositivePow(newAO, _AOIntensity);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = OutputFinalAO(newAO);
 #endif
+
 }
 #endif
 

@@ -290,6 +290,29 @@ void ToggleBit(inout uint data, uint offset)
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
+
+#ifndef INTRINSIC_QUAD_SHUFFLE
+    // Important! Only valid in pixel shaders!
+    float QuadReadAcrossX(float value, int2 screenPos)
+    {
+        return value - (ddx_fine(value) * (float(screenPos.x & 1) * 2.0 - 1.0));
+    }
+
+    float QuadReadAcrossY(float value, int2 screenPos)
+    {
+        return value - (ddy_fine(value) * (float(screenPos.y & 1) * 2.0 - 1.0));
+    }
+
+    float QuadReadAcrossDiagonal(float value, int2 screenPos)
+    {
+        float dX = ddx_fine(value);
+        float dY = ddy_fine(value);
+        float2 quadDir = float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
+        float X = value - (dX * quadDir.x);
+        return X - (ddy_fine(value) * quadDir.y);
+    }
+#endif
+
 TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 
 #define CUBEMAPFACE_POSITIVE_X 0

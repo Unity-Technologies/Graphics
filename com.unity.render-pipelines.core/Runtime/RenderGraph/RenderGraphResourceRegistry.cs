@@ -240,54 +240,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
         #endregion
-
-        #region Helpers
-        class ResourceArray<T>
-        {
-            // No List<> here because we want to be able to access and update elements by ref
-            // And we want to avoid allocation so TextureResource stays a struct
-            T[] m_ResourceArray = new T[32];
-            int m_ResourcesCount = 0;
-
-            public void Clear()
-            {
-                m_ResourcesCount = 0;
-            }
-
-            public int Add(T value)
-            {
-                int index = m_ResourcesCount;
-
-                // Grow array if needed;
-                if (index >= m_ResourceArray.Length)
-                {
-                    var newArray = new T[m_ResourceArray.Length * 2];
-                    Array.Copy(m_ResourceArray, newArray, m_ResourceArray.Length);
-                    m_ResourceArray = newArray;
-                }
-
-                m_ResourceArray[index] = value;
-                m_ResourcesCount++;
-                return index;
-            }
-
-            public ref T this[int index]
-            {
-                get
-                {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    if (index >= m_ResourcesCount)
-                        throw new IndexOutOfRangeException();
-#endif
-                    return ref m_ResourceArray[index];
-                }
-            }
-        }
-        #endregion
-
-        ResourceArray<TextureResource>      m_TextureResources = new ResourceArray<TextureResource>();
+        DynamicArray<TextureResource>       m_TextureResources = new DynamicArray<TextureResource>();
         Dictionary<int, Stack<RTHandle>>    m_TexturePool = new Dictionary<int, Stack<RTHandle>>();
-        ResourceArray<RendererListResource> m_RendererListResources = new ResourceArray<RendererListResource>();
+        DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;

@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where resetting a Freeform 2D Light would throw null reference exceptions. [case 1184536](https://issuetracker.unity3d.com/issues/lwrp-changing-light-type-to-freeform-after-clicking-on-reset-throws-multiple-arguementoutofrangeexception)
 - Fixed an issue where Freeform 2D Lights were not culled correctly when there was a Falloff Offset.
 - Fixed an issue where Tilemap palettes were invisible in the Tile Palette window when the 2D Renderer was in use. [case 1162550](https://issuetracker.unity3d.com/issues/adding-tiles-in-the-tile-palette-makes-the-tiles-invisible)
-
+- Fixed issue where black emission would cause unneccesary inspector UI repaints [case 1105661](https://issuetracker.unity3d.com/issues/lwrp-inspector-window-is-being-repainted-when-using-the-material-with-emission-enabled-and-set-to-black-00-0)
 ### Changed
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
 - Eliminated some GC allocations from the 2D Renderer.
