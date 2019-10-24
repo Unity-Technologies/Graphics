@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the matcap view is enabled, the sky isn't updated so we clear the background color
                 m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera) ||
                 // If we want the sky but the sky don't exist, still clear with background color
-                (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid()) ||
+                (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
                 // Special handling for Preview we force to clear with background color (i.e black)
                 // Note that the sky use in this case is the last one setup. If there is no scene or game, there is no sky use as reflection in the preview
                 HDUtils.IsRegularPreviewCamera(hdCamera.camera))

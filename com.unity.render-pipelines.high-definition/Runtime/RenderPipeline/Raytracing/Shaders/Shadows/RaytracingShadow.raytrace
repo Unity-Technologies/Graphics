@@ -181,9 +181,11 @@ void RayGenAreaShadows()
             continue;
         }
 
+        // Make sure it is taken into account in the ray counters
         if (_RayCountEnabled > 0)
         {
-            _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] + 1;
+            uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_SHADOW_AREA_LIGHT));
+            _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
         }
 
         // Let's shift the origin and destination positions by a bias
@@ -295,9 +297,11 @@ void RayGenAreaShadowSingle()
         return;
     }
 
+    // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] + 1;
+        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_SHADOW_AREA_LIGHT));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
 
     // Fetch the data of the area light
@@ -364,9 +368,11 @@ void RayGenDirectionalShadowSingle()
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
+    // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] + 1;
+        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_SHADOW_DIRECTIONAL));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
 
     // Compute the position input structure
@@ -436,9 +442,12 @@ void RayGenShadowSegmentSingle()
     // If the PDF is negative, means the ray means a hit (no need to shoot it)
     if (rayDirection.w < 0.0) return;
 
-    // Make sure it is taken into account in the ray conters
+    // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
-        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] + 1;
+    {
+        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_SHADOW_POINT_SPOT ));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
+    }
 
     // Compute the world space position of the source pixel
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
