@@ -455,7 +455,7 @@ class VisualEffectAssetEditor : Editor
 
         EditorGUI.BeginChangeCheck();
         EditorGUI.showMixedValue = resourceUpdateModeProperty.hasMultipleDifferentValues;
-        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode"), (VFXUpdateMode)resourceUpdateModeProperty.intValue);
+        VFXUpdateMode newUpdateMode = (VFXUpdateMode)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Update Mode", "Specifies whether particles are updated using a fixed timestep (Fixed Delta Time), or in a frame-rate independent manner (Delta Time)."), (VFXUpdateMode)resourceUpdateModeProperty.intValue);
         if (EditorGUI.EndChangeCheck())
         {
             resourceUpdateModeProperty.intValue = (int)newUpdateMode;
@@ -464,7 +464,7 @@ class VisualEffectAssetEditor : Editor
 
         EditorGUILayout.BeginHorizontal();
         EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
+        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen."));
         EditorGUI.BeginChangeCheck();
         int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
         if (EditorGUI.EndChangeCheck())
@@ -482,7 +482,7 @@ class VisualEffectAssetEditor : Editor
                 var currentStepCount = prewarmStepCount.intValue;
                 var currentTotalTime = currentDeltaTime * currentStepCount;
                 EditorGUI.BeginChangeCheck();
-                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time"), currentTotalTime);
+                currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (currentStepCount <= 0)
@@ -496,7 +496,7 @@ class VisualEffectAssetEditor : Editor
                 }
 
                 EditorGUI.BeginChangeCheck();
-                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count"), currentStepCount);
+                currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), currentStepCount);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (currentStepCount <= 0 && currentTotalTime != 0.0f)
@@ -511,7 +511,7 @@ class VisualEffectAssetEditor : Editor
                 }
 
                 EditorGUI.BeginChangeCheck();
-                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time"), currentDeltaTime);
+                currentDeltaTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."), currentDeltaTime);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (currentDeltaTime < k_MinimalCommonDeltaTime)
@@ -552,9 +552,9 @@ class VisualEffectAssetEditor : Editor
                 //Multi selection case, can't resolve total time easily
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = prewarmStepCount.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count"));
+                EditorGUILayout.PropertyField(prewarmStepCount, EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to."));
                 EditorGUI.showMixedValue = prewarmDeltaTime.hasMultipleDifferentValues;
-                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time"));
+                EditorGUILayout.PropertyField(prewarmDeltaTime, EditorGUIUtility.TrTextContent("PreWarm Delta Time", "Sets the time in seconds for each step to achieve the desired total prewarm time."));
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (prewarmDeltaTime.floatValue < k_MinimalCommonDeltaTime)
@@ -568,7 +568,7 @@ class VisualEffectAssetEditor : Editor
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = initialEventName.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(initialEventName);
+            EditorGUILayout.PropertyField(initialEventName, new GUIContent("Initial Event Name", "Sets the name of the event which triggers once the system is activated. Default: ‘OnPlay’."));
             if (EditorGUI.EndChangeCheck())
             {
                 resourceObject.ApplyModifiedProperties();
