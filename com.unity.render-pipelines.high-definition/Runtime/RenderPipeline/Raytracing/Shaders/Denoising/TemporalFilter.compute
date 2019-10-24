@@ -36,6 +36,8 @@ RW_TEXTURE2D_X(uint, _ValidationBufferRW);
 
 // The maximal world space distance
 #define MAX_WORLD_SPACE_DISTANCE 0.75
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
+float _PixelSpreadAngleTangent;
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -83,8 +85,13 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     // Compute the world space position (from previous frame)
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
+    // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
+    float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
+    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, -GetViewForwardDir()));
+    float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
+
     // Is it too far from the current position?
-    if (length(historyPositionWS - posInputs.positionWS) > MAX_WORLD_SPACE_DISTANCE)
+    if (length(historyPositionWS - posInputs.positionWS) > maxRadius)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
@@ -96,7 +103,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     DecodeFromNormalBuffer(historyNormal, uint2(0,0), historyNormalData);
     
     // Is its normal too different from the current normal?
-    if (dot(normalData.normalWS, historyNormalData.normalWS) < 0.25)
+    if (dot(normalData.normalWS, historyNormalData.normalWS) < 0.65)
     {
         _ValidationBufferRW[COORD_TEXTURE2D_X(centerCoord)] = 0;
         return;
