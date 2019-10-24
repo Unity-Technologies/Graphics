@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             type = ProbeType.ReflectionProbe,
             realtimeMode = RealtimeMode.EveryFrame,
             mode = Mode.Baked,
-            camera = CameraSettings.@default,
+            cameraSettings = CameraSettings.@default,
             influence = null,
             lighting = Lighting.@default,
             proxy = null,
@@ -205,7 +205,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The proxy settings of the probe for the current volume.</summary>
         public ProxySettings proxySettings;
         /// <summary>Camera settings to use when capturing data.</summary>
-        public CameraSettings camera;
+        [Serialization.FormerlySerializedAs("camera")]
+        public CameraSettings cameraSettings;
 
         public Hash128 ComputeHash()
         {
@@ -218,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HashUtilities.AppendHash(ref h2, ref h);
             HashUtilities.ComputeHash128(ref proxySettings, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
-            HashUtilities.ComputeHash128(ref camera, ref h2);
+            HashUtilities.ComputeHash128(ref cameraSettings, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
             if (influence != null)
             {

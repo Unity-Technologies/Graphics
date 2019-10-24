@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_SkySubTitle = EditorGUIUtility.TrTextContent("Sky");
         static readonly GUIContent k_DecalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
         static readonly GUIContent k_DecalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
-        static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadow");
+        static readonly GUIContent k_ShadowSubTitle = EditorGUIUtility.TrTextContent("Shadows");
         static readonly GUIContent k_DirectionalShadowsSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
         static readonly GUIContent k_PunctualShadowsSubTitle = EditorGUIUtility.TrTextContent("Punctual Light Shadows");
         static readonly GUIContent k_AreaShadowsSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_MaxDirectionalContent = EditorGUIUtility.TrTextContent("Maximum Directional on Screen", "Sets the maximum number of Directional Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
-        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probe on Screen", "Sets the maximum number of Planar and Reflection Probe HDRP can handle on screen at once.");
+        static readonly GUIContent k_MaxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probes on Screen", "Sets the maximum number of Planar and Reflection Probes HDRP can handle on screen at once.");
         static readonly GUIContent k_MaxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
 
         static readonly GUIContent k_ResolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
