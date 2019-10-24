@@ -19,8 +19,10 @@ public sealed class #SCRIPTNAME# : CustomPostProcessVolumeComponent, IPostProces
         if (m_MaterialParameter.value == null)
             return;
 
-        m_MaterialParameter.value.SetTexture("_InputTexture", source);
-        HDUtils.DrawFullScreen(cmd, m_MaterialParameter.value, destination);
+        m_MaterialParameter.value.SetTexture("_PostProcessInput", source);
+            
+        int passIndex = m_MaterialParameter.value.FindPass("PostProcess");
+        HDUtils.DrawFullScreen(cmd, m_MaterialParameter.value, destination, null, passIndex);
     }
 
     public override void Cleanup()
