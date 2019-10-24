@@ -11,10 +11,10 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
 
-        // 0 - Tiled Deferred Point Light
+        // 0 - Tiled Deferred Punctual Light
         Pass
         {
-            Name "Tiled Deferred Point Light"
+            Name "Tiled Deferred Punctual Light"
 
             ZTest Always
             ZWrite Off
@@ -25,7 +25,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             HLSLPROGRAM
 
             #pragma vertex Vertex
-            #pragma fragment PointLightShading
+            #pragma fragment PunctualLightShading
             //#pragma enable_d3d11_debug_symbols
 
             struct TileData
@@ -174,29 +174,29 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             }
 
             #if USE_CBUFFER_FOR_LIGHTDATA
-                CBUFFER_START(UPointLightBuffer)
+                CBUFFER_START(UPunctualLightBuffer)
                 // Unity does not support structure inside cbuffer unless for instancing case (not safe to use here).
-                uint4 _PointLightBuffer[MAX_POINTLIGHT_PER_CBUFFER_BATCH * SIZEOF_VEC4_POINTLIGHTDATA];
+                uint4 _PunctualLightBuffer[MAX_PUNCTUALLIGHT_PER_CBUFFER_BATCH * SIZEOF_VEC4_PUNCTUALLIGHTDATA];
                 CBUFFER_END
 
-                PointLightData LoadPointLightData(int relLightIndex)
+                PunctualLightData LoadPunctualLightData(int relLightIndex)
                 {
-                    uint i = relLightIndex * SIZEOF_VEC4_POINTLIGHTDATA;
-                    PointLightData pl;
-                    pl.posWS  = asfloat(_PointLightBuffer[i + 0].xyz);
-                    pl.radius2 = asfloat(_PointLightBuffer[i + 0].w);
-                    pl.color.rgb = asfloat(_PointLightBuffer[i + 1].rgb);
-                    pl.attenuation.xyzw = asfloat(_PointLightBuffer[i + 2].xyzw);
-                    pl.spotDirection.xyz = asfloat(_PointLightBuffer[i + 3].xyz);
-                    // pl.padding0 = asfloat(_PointLightBuffer[i + 3].w); // TODO use for something?
+                    uint i = relLightIndex * SIZEOF_VEC4_PUNCTUALLIGHTDATA;
+                    PunctualLightData pl;
+                    pl.posWS  = asfloat(_PunctualLightBuffer[i + 0].xyz);
+                    pl.radius2 = asfloat(_PunctualLightBuffer[i + 0].w);
+                    pl.color.rgb = asfloat(_PunctualLightBuffer[i + 1].rgb);
+                    pl.attenuation.xyzw = asfloat(_PunctualLightBuffer[i + 2].xyzw);
+                    pl.spotDirection.xyz = asfloat(_PunctualLightBuffer[i + 3].xyz);
+                    pl.shadowLightIndex = _PunctualLightBuffer[i + 3].w;
 
                     return pl;
                 }
 
             #else
-                StructuredBuffer<PointLightData> _PointLightBuffer;
+                StructuredBuffer<PunctualLightData> _PunctualLightBuffer;
 
-                PointLightData LoadPointLightData(int relLightIndex) { return _PointLightBuffer[relLightIndex]; }
+                PunctualLightData LoadPunctualLightData(int relLightIndex) { return _PunctualLightBuffer[relLightIndex]; }
 
             #endif
 
@@ -206,7 +206,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Texture2D _GBuffer2;
             float4x4 _ScreenToWorld;
 
-            half4 PointLightShading(Varyings input) : SV_Target
+            half4 PunctualLightShading(Varyings input) : SV_Target
             {
                 float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
                 half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
@@ -228,12 +228,12 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 [loop] do
                 {
                     uint relLightIndex = LoadRelLightIndex(li) & 0xFFFF;
-                    PointLightData light = LoadPointLightData(relLightIndex);
+                    PunctualLightData light = LoadPunctualLightData(relLightIndex);
 
                     float3 L = light.posWS - posWS.xyz;
                     [branch] if (dot(L, L) < light.radius2)
                     {
-                        Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, posWS.xyz);
+                        Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
                         color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
                     }
                 }

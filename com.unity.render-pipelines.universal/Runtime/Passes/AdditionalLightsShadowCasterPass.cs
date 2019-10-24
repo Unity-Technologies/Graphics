@@ -42,6 +42,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         List<int> m_AdditionalShadowCastingLightIndices = new List<int>();
         List<int> m_AdditionalShadowCastingLightIndicesMap = new List<int>();
+        NativeArray<int> m_ShadowCastingLightIndicesMap;
+
         bool m_SupportsBoxFilterForShadows;
         const string m_ProfilerTag = "Render Additional Shadows";
 
@@ -91,6 +93,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_AdditionalLightsShadowData == null || m_AdditionalLightsShadowData.Length < additionalLightsCount)
                 m_AdditionalLightsShadowData = new ShaderInput.ShadowData[additionalLightsCount];
 
+            m_ShadowCastingLightIndicesMap = new NativeArray<int>(visibleLights.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
             int validShadowCastingLights = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
             for (int i = 0; i < visibleLights.Length && m_AdditionalShadowCastingLightIndices.Count < additionalLightsCount; ++i)
@@ -99,7 +103,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Skip main directional light as it is not packed into the shadow atlas
                 if (i == renderingData.lightData.mainLightIndex)
+                {
+                    m_ShadowCastingLightIndicesMap[i] = -1;
                     continue;
+                }
 
                 int shadowCastingLightIndex = m_AdditionalShadowCastingLightIndices.Count;
                 bool isValidShadowSlice = false;
@@ -165,6 +172,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_AdditionalLightSlices[shadowCastingLightIndex].viewMatrix = identity;
                     m_AdditionalLightSlices[shadowCastingLightIndex].projectionMatrix = identity;
                 }
+
+                m_ShadowCastingLightIndicesMap[i] = (isValidShadowSlice) ? shadowCastingLightIndex : -1;
             }
 
             // Lights that need to be rendered in the shadow map atlas
@@ -241,6 +250,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTexture.ReleaseTemporary(m_AdditionalLightsShadowmapTexture);
                 m_AdditionalLightsShadowmapTexture = null;
             }
+
+            if (m_ShadowCastingLightIndicesMap.IsCreated)
+                m_ShadowCastingLightIndicesMap.Dispose();
+        }
+
+        public int GetShadowLightIndexForLightIndex(int i)
+        {
+            return m_ShadowCastingLightIndicesMap[i];
         }
 
         void Clear()

@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     internal class DeferredTiler
     {
         // Precomputed light data
-        internal struct PrePointLight
+        internal struct PrePunctualLight
         {
             // view-space position.
             public float3 posVS;
@@ -239,13 +239,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         // This differs from CullIntermediateLights in 3 ways:
         // - tile-frustums/light intersection use different algorithm
         // - depth range of the light shape intersecting the tile-frustums is output in the tile list header section
-        // - light indices written out are indexing visible_lights, rather than the array of PrePointLights.
-        unsafe public void CullFinalLights(ref NativeArray<PrePointLight> pointLights,
+        // - light indices written out are indexing visible_lights, rather than the array of PrePunctualLights.
+        unsafe public void CullFinalLights(ref NativeArray<PrePunctualLight> punctualLights,
                                            ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
                                            int istart, int iend, int jstart, int jend)
         {
             // Interestingly, 2-3% faster when using unsafe arrays.
-            PrePointLight* _pointLights = (PrePointLight*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(pointLights);
+            PrePunctualLight* _punctualLights = (PrePunctualLight*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(punctualLights);
             ushort* _lightIndices = (ushort*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(lightIndices);
             uint* _tileHeaders = (uint*)NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_TileHeaders);
 
@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
                         {
                             ushort lightIndex = _lightIndices[vi];
-                            PrePointLight ppl = _pointLights[lightIndex];
+                            PrePunctualLight ppl = _punctualLights[lightIndex];
 
                             // Offset tileCentre toward the light to calculate a more conservative minMax depth bound,
                             // but it must remains inside the tile and must not pass further than the light centre.
@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             listMaxDepth = listMaxDepth > t1 ? listMaxDepth : t1;
                             depthRanges[culledLightCount] = new float2(t0, t1);
                             // Because this always output to the finest tiles, contrary to CullLights(),
-                            // the result are indices into visibleLights, instead of indices into pointLights.
+                            // the result are indices into visibleLights, instead of indices into punctualLights.
                             tiles[culledLightCount] = ppl.visLightIndex;
                             ++culledLightCount;
                         }
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
                         {
                             ushort lightIndex = _lightIndices[vi];
-                            PrePointLight ppl = _pointLights[lightIndex];
+                            PrePunctualLight ppl = _punctualLights[lightIndex];
 
                             // Offset tileCentre toward the light to calculate a more conservative minMax depth bound,
                             // but it must remains inside the tile and must not pass further than the light centre.
@@ -349,7 +349,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             listMaxDepth = listMaxDepth > t1 ? listMaxDepth : t1;
                             depthRanges[culledLightCount] = new float2(t0, t1);
                             // Because this always output to the finest tiles, contrary to CullLights(),
-                            // the result are indices into visibleLights, instead of indices into pointLights.
+                            // the result are indices into visibleLights, instead of indices into punctualLights.
                             tiles[culledLightCount] = ppl.visLightIndex;
                             ++culledLightCount;
                         }
@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         // TODO: finer culling for spot lights
-        unsafe public void CullIntermediateLights(ref NativeArray<PrePointLight> pointLights,
+        unsafe public void CullIntermediateLights(ref NativeArray<PrePunctualLight> punctualLights,
                                                   ref NativeArray<ushort> lightIndices, int lightStartIndex, int lightCount,
                                                   int istart, int iend, int jstart, int jend)
         {
@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     for (int vi = lightStartIndex; vi < lightEndIndex; ++vi)
                     {
                         ushort lightIndex = lightIndices[vi];
-                        PrePointLight ppl = pointLights[lightIndex];
+                        PrePunctualLight ppl = punctualLights[lightIndex];
 
                         // This is slightly faster than IntersectionLineSphere().
                         if (!Clip(ref preTile, ppl.posVS, ppl.radius))

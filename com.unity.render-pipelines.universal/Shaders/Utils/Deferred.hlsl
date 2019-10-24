@@ -7,10 +7,10 @@
 
 #define PREFERRED_CBUFFER_SIZE (64 * 1024)
 #define SIZEOF_VEC4_TILEDATA 1 // uint4
-#define SIZEOF_VEC4_POINTLIGHTDATA 4 // 4 * float4
+#define SIZEOF_VEC4_PUNCTUALLIGHTDATA 4 // 4 * float4
 #define MAX_DEPTHRANGE_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 #define MAX_TILES_PER_CBUFFER_PATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_TILEDATA))
-#define MAX_POINTLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_POINTLIGHTDATA))
+#define MAX_PUNCTUALLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_PUNCTUALLIGHTDATA))
 #define MAX_REL_LIGHT_INDICES_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 
 // Keep in sync with kUseCBufferForDepthRange.
@@ -29,36 +29,33 @@
 #define USE_CBUFFER_FOR_LIGHTLIST 0
 #endif
 
-struct PointLightData
+struct PunctualLightData
 {
     float3 posWS;
-    float radius2; // squared radius
-
+    float radius2;           // squared radius
     float4 color;
-
-    float4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
-
-    float3 spotDirection;   // spotLights support
-    float padding0;  // TODO find something to put here? (or test other packing schemes?)
+    float4 attenuation;      // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+    float3 spotDirection;    // spotLights support
+    int shadowLightIndex;
 };
 
-Light UnityLightFromPointLightDataAndWorldSpacePosition(PointLightData pointLightData, float3 positionWS)
+Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS)
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
 
     Light light;
 
-    float3 lightVector = pointLightData.posWS - positionWS.xyz;
+    float3 lightVector = punctualLightData.posWS - positionWS.xyz;
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
     
-    half attenuation = DistanceAttenuation(distanceSqr, pointLightData.attenuation.xy) * AngleAttenuation(pointLightData.spotDirection.xyz, lightDirection, pointLightData.attenuation.zw);
+    half attenuation = DistanceAttenuation(distanceSqr, punctualLightData.attenuation.xy) * AngleAttenuation(punctualLightData.spotDirection.xyz, lightDirection, punctualLightData.attenuation.zw);
 
     light.direction = lightDirection;
-    light.color = pointLightData.color.rgb;
+    light.color = punctualLightData.color.rgb;
     light.distanceAttenuation = attenuation;
-    light.shadowAttenuation = 1.0;            // TODO fill with AdditionalLightRealtimeShadow
+    light.shadowAttenuation = AdditionalLightRealtimeShadow(punctualLightData.shadowLightIndex, positionWS);
     return light;
 }
 

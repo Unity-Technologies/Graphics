@@ -107,18 +107,15 @@ namespace UnityEngine.Rendering.Universal
         public uint unused;
     }
 
-    // Actual point light data passed to the deferred shaders.
-    public struct PointLightData
+    // Actual point/spot light data passed to the deferred shaders.
+    public struct PunctualLightData
     {
         public Vector3 wsPos;
         public float radius; // TODO remove? included in attenuation
-
         public Vector4 color;
-
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
-
         public Vector3 spotDirection;   // for spotLights
-        public float padding0;          // TODO find something to put here? (or test other packing schemes?)
+        public int lightIndex;
     }
 
     public struct PostProcessingData

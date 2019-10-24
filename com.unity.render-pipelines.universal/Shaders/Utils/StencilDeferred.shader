@@ -19,7 +19,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_VERTEX_OUTPUT_STEREO
     };
 
-    #if defined(SPOT)
+    #if defined(_SPOT)
     float4 _SpotLightScale;
     float4 _SpotLightBias;
     float4 _SpotLightGuard;
@@ -35,7 +35,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         float3 positionOS = input.positionOS.xyz;
 
-        #if defined(SPOT)
+        #if defined(_SPOT)
         // Spot lights have an outer angle than can be up to 180 degrees, in which case the shape
         // becomes a capped hemisphere. There is no affine transforms to handle the particular cone shape,
         // so instead we will adjust the vertices positions in the vertex shader to get the tighest fit.
@@ -55,6 +55,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         return output;
     }
+
     ENDHLSL
 
     SubShader
@@ -85,7 +86,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
-            #pragma multi_compile_vertex __ SPOT
+            #pragma multi_compile _ _SPOT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
             #pragma vertex Vertex
             #pragma fragment Frag
@@ -125,7 +129,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
-            #pragma multi_compile_vertex __ SPOT
+            #pragma multi_compile _ _SPOT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+
 
             #pragma vertex Vertex
             #pragma fragment PunctualLightShading
@@ -141,18 +149,20 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             float3 _LightColor;
             float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
             float3 _LightSpotDirection; // spotLights support
+            int _ShadowLightIndex;
 
             half4 PunctualLightShading(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                PointLightData light;
+                PunctualLightData light;
                 light.posWS = _LightPosWS;
                 light.radius2 = 0.0; //  only used by tile-lights.
                 light.color = float4(_LightColor, 0.0);
                 light.attenuation = _LightAttenuation;
                 light.spotDirection = _LightSpotDirection;
+                light.shadowLightIndex = _ShadowLightIndex;
 
                 float3 color = 0.0.xxx;
 
@@ -169,7 +179,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-                Light unityLight = UnityLightFromPointLightDataAndWorldSpacePosition(light, posWS.xyz);
+                Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
                 color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
             #if 0 // Temporary debug output
                 // TO CHECK (does Forward support works??):
@@ -184,6 +194,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 //color.rgb = half3(inputData.fogCoord, inputData.fogCoord, inputData.fogCoord);
                 //color.rgb = inputData.vertexLighting;
             #endif
+
                 return half4(color, 0.0);
             }
             ENDHLSL
