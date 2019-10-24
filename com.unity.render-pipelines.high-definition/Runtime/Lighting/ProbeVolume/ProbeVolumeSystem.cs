@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var data = volume.GetData();
 
-                    if (data == null || data.Length == 0)
+                    if (data == null || data.Length == 0 || !volume.IsAssetCompatible())
                         // TODO: Implement clear/removal from atlas
                         return false;
 

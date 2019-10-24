@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Note: This creates a coupling between ProbeVolumeManager and ProbeVolumeSystem which previously did not exist.
             // May want to rethink each system's responsibilities.
-            // An alternative approach might be to lazily remove things from the atlas as space is required via least recently used heristic.
+            // An alternative approach might be to lazily remove things from the atlas as space is required via least recently used heuristic.
             HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (hdrp != null)
                 hdrp.m_ProbeVolumeSystem.ReleaseProbeVolumeFromAtlas(volume);

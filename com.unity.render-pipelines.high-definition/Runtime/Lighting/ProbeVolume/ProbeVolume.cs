@@ -247,9 +247,31 @@ namespace UnityEngine.Rendering.HighDefinition
             Hash = Hash128.Compute(inputString);
 
             if (probeVolumeAsset)
+            {
+                if (!IsAssetCompatible())
+                {
+                    Debug.LogWarningFormat("The asset \"{0}\" assigned to Probe Volume \"{1}\" does not have matching data dimensions ({2}x{3}x{4} vs. {5}x{6}x{7}), please rebake.",
+                        probeVolumeAsset.name, this.name,
+                        probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
+                        parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
+                }
+
                 dataUpdated = true;
+            }
 
             SetupPositions();
+        }
+
+        public bool IsAssetCompatible()
+        {
+            if (probeVolumeAsset)
+            {
+                return parameters.resolutionX == probeVolumeAsset.resolutionX &&
+                       parameters.resolutionY == probeVolumeAsset.resolutionY &&
+                       parameters.resolutionZ == probeVolumeAsset.resolutionZ;
+            }
+
+            return false;
         }
 
         protected void OnLightingDataCleared()
@@ -291,6 +313,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             probeVolumeAsset.data = data;
+            probeVolumeAsset.resolutionX = parameters.resolutionX;
+            probeVolumeAsset.resolutionY = parameters.resolutionY;
+            probeVolumeAsset.resolutionZ = parameters.resolutionZ;
+
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
             UnityEditor.AssetDatabase.Refresh();
 
