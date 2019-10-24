@@ -1377,7 +1377,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.useContactShadow.Value(HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset)));
             lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
-#if ENABLE_RAYTRACING
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
                 && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows
@@ -1400,10 +1399,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.shadowIndex = shadowIndex;
                 additionalLightData.shadowIndex = shadowIndex;
             }
-#else
-            // fix up shadow information
-            lightData.shadowIndex = shadowIndex;
-#endif
+
             //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness

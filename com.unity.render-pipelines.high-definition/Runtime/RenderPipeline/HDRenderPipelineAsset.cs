@@ -249,11 +249,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public override Shader defaultShader
             => m_RenderPipelineResources?.shaders.defaultPS;
 
-        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
-        {
-            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
-        }
-
         // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
         [SerializeField]
         internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
@@ -329,12 +324,9 @@ namespace UnityEngine.Rendering.HighDefinition
             defineArray.Clear();
             defineArray.AddRange(currentDefineList.Split(';'));
 
-            // Is ray tracing supported for this project and this platform?
-            bool raytracingSupport = AggreateRayTracingSupport(currentPlatformRenderPipelineSettings);
-            
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(raytracingSupport, "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(HDRenderPipeline.AggreateRayTracingSupport(currentPlatformRenderPipelineSettings), "ENABLE_RAYTRACING");
 
             // Only set if it changed
             if (needUpdate)

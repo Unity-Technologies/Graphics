@@ -557,7 +557,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _RenderSunDisk                  = Shader.PropertyToID("_RenderSunDisk");
 
-#if ENABLE_RAYTRACING
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
         public static readonly int _RayTracingLayerMask             = Shader.PropertyToID("_RayTracingLayerMask");
@@ -664,7 +663,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
         public static readonly int _RayBinSizeResult                = Shader.PropertyToID("_RayBinSizeResult");
         public static readonly int _RayBinTileCountX                = Shader.PropertyToID("_RayBinTileCountX");
-#endif
+
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
         public static readonly int _PreIntegratedFGD_CharlieAndFabric = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndFabric");

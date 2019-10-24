@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightIndex;
     }
 
-#if ENABLE_RAYTRACING
     class HDRaytracingLightCluster
     {
         // External data
@@ -828,5 +827,4 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._EnvLightCountRT, GetEnvLightCount());
         }
     }
-#endif
 }

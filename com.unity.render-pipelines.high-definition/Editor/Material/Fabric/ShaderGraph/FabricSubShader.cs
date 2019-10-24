@@ -705,8 +705,7 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
 
-#if ENABLE_RAYTRACING
-            if(mode == GenerationMode.ForReals)
+            if (mode == GenerationMode.ForReals)
             {
                 subShader.AddShaderChunk("SubShader", false);
                 subShader.AddShaderChunk("{", false);
@@ -720,7 +719,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);
             }
-#endif
 
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.FabricGUI""");
 
