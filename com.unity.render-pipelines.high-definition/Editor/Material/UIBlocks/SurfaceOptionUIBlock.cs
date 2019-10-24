@@ -629,10 +629,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.AfterPostProcessing);
             }
 
-#if ENABLE_RAYTRACING
-            m_RenderingPassNames.Add("Raytracing");
-            m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
-#endif
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            {
+                m_RenderingPassNames.Add("Raytracing");
+                m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
+            }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
@@ -664,10 +665,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
             }
 
-#if ENABLE_RAYTRACING
-            m_RenderingPassNames.Add("Raytracing");
-            m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
-#endif
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            {
+                m_RenderingPassNames.Add("Raytracing");
+                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
+            }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }

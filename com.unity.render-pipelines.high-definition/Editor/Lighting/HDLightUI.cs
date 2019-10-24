@@ -697,50 +697,49 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.Slider(serialized.serializedLightData.areaLightShadowCone, HDAdditionalLightData.k_MinAreaLightShadowCone, HDAdditionalLightData.k_MaxAreaLightShadowCone, s_Styles.areaLightShadowCone);
                     }
                 }
-#if ENABLE_RAYTRACING
-                var spotLightShape = (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex;
-                if (LightShape.Rectangle == serialized.editorLightShape || LightShape.Point == serialized.editorLightShape || (LightShape.Spot == serialized.editorLightShape && SpotLightShape.Cone == spotLightShape))
+                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
                 {
-                    EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
-                    if(serialized.serializedLightData.useRayTracedShadows.boolValue)
+                    var spotLightShape = (SpotLightShape)serialized.serializedLightData.spotLightShape.enumValueIndex;
+                    if (LightShape.Rectangle == serialized.editorLightShape || LightShape.Point == serialized.editorLightShape || (LightShape.Spot == serialized.editorLightShape && SpotLightShape.Cone == spotLightShape))
                     {
-                        EditorGUI.indentLevel++;
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.denoiseTracedShadow);
-                        EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.denoiserRadius);
-                        EditorGUI.indentLevel--;
-                    }
-                }
-
-#if ENABLE_RAYTRACING
-                // For the moment, we only support screen space rasterized shadows for directional lights
-                if (serialized.settings.lightType.enumValueIndex == (int)LightType.Directional)
-                {
-                    EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
-                    using (new EditorGUI.DisabledScope(!serialized.serializedLightData.useScreenSpaceShadows.boolValue))
-                    {
-                        EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
-                        using (new EditorGUI.DisabledScope(!serialized.serializedLightData.useRayTracedShadows.boolValue))
+                        if (serialized.serializedLightData.useRayTracedShadows.boolValue)
                         {
                             EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
                             EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.denoiseTracedShadow);
-                            using (new EditorGUI.DisabledScope(!serialized.serializedLightData.filterTracedShadow.boolValue))
-                            {
-                                EditorGUI.indentLevel++;
-                                EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.denoiserRadius);
-                                EditorGUI.indentLevel--;
-                            }
-
+                            EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.denoiserRadius);
                             EditorGUI.indentLevel--;
                         }
-                        EditorGUI.indentLevel--;
                     }
-                }
-#endif
 
-#endif
+                    // For the moment, we only support screen space rasterized shadows for directional lights
+                    if (serialized.settings.lightType.enumValueIndex == (int)LightType.Directional)
+                    {
+                        EditorGUILayout.PropertyField(serialized.serializedLightData.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
+                        using (new EditorGUI.DisabledScope(!serialized.serializedLightData.useScreenSpaceShadows.boolValue))
+                        {
+                            EditorGUI.indentLevel++;
+                            EditorGUILayout.PropertyField(serialized.serializedLightData.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                            using (new EditorGUI.DisabledScope(!serialized.serializedLightData.useRayTracedShadows.boolValue))
+                            {
+                                EditorGUI.indentLevel++;
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                                EditorGUILayout.PropertyField(serialized.serializedLightData.filterTracedShadow, s_Styles.denoiseTracedShadow);
+                                using (new EditorGUI.DisabledScope(!serialized.serializedLightData.filterTracedShadow.boolValue))
+                                {
+                                    EditorGUI.indentLevel++;
+                                    EditorGUILayout.PropertyField(serialized.serializedLightData.filterSizeTraced, s_Styles.denoiserRadius);
+                                    EditorGUI.indentLevel--;
+                                }
+
+                                EditorGUI.indentLevel--;
+                            }
+                            EditorGUI.indentLevel--;
+                        }
+                    }
+
+                }
             }
         }
 

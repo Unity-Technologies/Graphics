@@ -761,7 +761,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if ENABLE_RAYTRACING
         [SerializeField, FormerlySerializedAs("useRayTracedShadows")]
         bool m_UseRayTracedShadows = false;
         /// <summary>
@@ -866,7 +865,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LightShadowRadius = Mathf.Max(value, 0.001f);
             }
         }
-#endif
 
         [Range(k_MinEvsmExponent, k_MaxEvsmExponent)]
         [SerializeField, FormerlySerializedAs("evsmExponent")]
@@ -1351,9 +1349,7 @@ namespace UnityEngine.Rendering.HighDefinition
         HDShadowRequest[]   shadowRequests;
         bool                m_WillRenderShadowMap;
         bool                m_WillRenderScreenSpaceShadow;
-#if ENABLE_RAYTRACING
         bool                m_WillRenderRayTracedShadow;
-#endif
         int[]               m_ShadowRequestIndices;
         bool                m_ShadowMapRenderedSinceLastRequest = false;
 
@@ -1369,10 +1365,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
-        #if ENABLE_RAYTRACING
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex;
-        #endif
 
         [System.NonSerialized] HDShadowSettings    _ShadowSettings = null;
         HDShadowSettings    m_ShadowSettings
@@ -1503,22 +1497,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
-#if ENABLE_RAYTRACING
             m_WillRenderRayTracedShadow = false;
-#endif
 
             // If this camera does not allow screen space shadows we are done, set the target parameters to false and leave the function
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !m_WillRenderShadowMap)
                 return;
 
-#if ENABLE_RAYTRACING
             LightCategory lightCategory = LightCategory.Count;
             GPULightType gpuLightType = GPULightType.Point;
             LightVolumeType lightVolumeType = LightVolumeType.Count;
             HDRenderPipeline.EvaluateGPULightType(legacyLight.type, lightTypeExtent, spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
             // Flag the ray tracing only shadows
-            if (m_UseRayTracedShadows && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone)))
+            if (frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                && m_UseRayTracedShadows
+                && (gpuLightType == GPULightType.Rectangle || gpuLightType == GPULightType.Point || (gpuLightType == GPULightType.Spot && lightVolumeType == LightVolumeType.Cone)))
             {
                 m_WillRenderScreenSpaceShadow = true;
                 m_WillRenderRayTracedShadow = true;
@@ -1528,12 +1521,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (useScreenSpaceShadows && gpuLightType == GPULightType.Directional)
             {
                 m_WillRenderScreenSpaceShadow = true;
-                if (m_UseRayTracedShadows)
+                if (frameSettings.IsEnabled(FrameSettingsField.RayTracing) && m_UseRayTracedShadows)
                 {
                     m_WillRenderRayTracedShadow = true;
                 }
             }
-#endif
         }
 
         private int GetResolutionFromSettings(ShadowMapType shadowMapType, HDShadowInitParameters initParameters)
@@ -1629,12 +1621,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_WillRenderScreenSpaceShadow;
         }
 
-#if ENABLE_RAYTRACING
         internal bool WillRenderRayTracedShadow()
         {
             return m_WillRenderRayTracedShadow;
         }
-#endif
 
         // This offset shift the position of the spotlight used to approximate the area light shadows. The offset is the minimum such that the full
         // area light shape is included in the cone spanned by the spot light.
