@@ -3,6 +3,7 @@
 
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_HDSampleSceneDepth(uv)
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
+#define SHADERGRAPH_LOAD_POST_PROCESS_INPUT(uv) shadergraph_HDLoadPostProcessInput(uv)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_OBJECT_POSITION GetAbsolutePositionWS(UNITY_MATRIX_M._m03_m13_m23)
 
@@ -21,6 +22,11 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
 	return SampleCameraColor(uv) * GetInverseCurrentExposureMultiplier();
 #endif
     return float3(0, 0, 0);
+}
+
+float4 shadergraph_HDLoadPostProcessInput(float2 uv)
+{
+    return LoadPostProcessInput(uv);
 }
 
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)

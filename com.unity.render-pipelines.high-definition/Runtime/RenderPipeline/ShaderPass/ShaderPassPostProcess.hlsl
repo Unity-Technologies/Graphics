@@ -1,4 +1,4 @@
-#if (SHADERPASS != SHADERPASS_POSTPROCESS) 
+#if (SHADERPASS != SHADERPASS_POSTPROCESS) && (SHADERPASS != SHADERPASS_POSTPROCESS_PREVIEW)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -33,7 +33,7 @@ void Frag(VSOutput input, out float4 outColor : SV_Target)
     float3 V = float3(0, 0, 0);
     SurfaceData surfaceData;
 
-    fragInputs.positionSS.xy = input.texcoord * _ScreenSize.xy;
+    fragInputs.texCoord0.xy = input.texcoord * _ScreenSize.xy;
 
     GetSurfaceData(fragInputs, V, posInputs, surfaceData);
 

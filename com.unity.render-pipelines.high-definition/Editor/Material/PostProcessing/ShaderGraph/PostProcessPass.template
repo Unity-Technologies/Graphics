@@ -77,12 +77,12 @@ Pass
     //-------------------------------------------------------------------------------------
     // End graph generated code
     //-------------------------------------------------------------------------------------
-
+    $include("SharedCode.template.hlsl")
 
     void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, out SurfaceData surfaceData)
     {
 
-        SurfaceDescriptionInputs surfaceDescriptionInputs;// = SurfaceDescriptionInputs(0); //FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+        SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);      
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         // setup defaults -- these are used if the graph doesn't output a value

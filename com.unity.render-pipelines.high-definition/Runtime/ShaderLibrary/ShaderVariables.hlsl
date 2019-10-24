@@ -87,6 +87,9 @@ SAMPLER(sampler_CameraDepthTexture);
 // Color pyramid (width, height, lodcount, Unused)
 TEXTURE2D_X(_ColorPyramidTexture);
 
+// for custom post process shaders
+TEXTURE2D_X(_PostProcessInput);
+
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -294,6 +297,11 @@ float3 LoadCameraColor(uint2 pixelCoords)
 float3 SampleCameraColor(float2 uv)
 {
     return SampleCameraColor(uv, 0);
+}
+
+float4 LoadPostProcessInput(float2 uv)
+{
+    return LOAD_TEXTURE2D_X(_PostProcessInput, uv);
 }
 
 float4x4 OptimizeProjectionMatrix(float4x4 M)

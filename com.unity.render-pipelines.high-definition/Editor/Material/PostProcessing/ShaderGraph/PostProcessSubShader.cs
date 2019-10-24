@@ -26,7 +26,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             ExtraDefines = new List<string>()
             {
-               // "#define PostProcessS_3RT",
             },
 
             Includes = new List<string>()
@@ -36,6 +35,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             RequiredFields = new List<string>()
             {
+                "AttributesMesh.uv0",
+                "FragInputs.texCoord0"
             },
 
             PixelShaderSlots = new List<int>()
@@ -59,8 +60,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Name = "PostProcessPreview", 
             LightMode = "PostProcessPreview", 
             TemplateName = "PostProcessPass.template",
-            MaterialName = "PostProcess",
-            ShaderPassName = "SHADERPASS_DBUFFER_PROJECTOR",
+            MaterialName = "PostProcessing",
+            ShaderPassName = "SHADERPASS_POSTPROCESS_PREVIEW",
 
             CullOverride = "Cull Off",
             ZTestOverride = "ZTest Always",
@@ -68,16 +69,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
        
             ExtraDefines = new List<string>()
             {
-               // "#define PostProcessS_3RT",
             },
 
             Includes = new List<string>()
             {
-               // "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPostProcess.hlsl\""
+               "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPostProcess.hlsl\""
             },
 
             RequiredFields = new List<string>()
             {
+                "AttributesMesh.uv0",
+                "FragInputs.texCoord0"
             },
 
             PixelShaderSlots = new List<int>()
@@ -89,13 +91,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = false,
+            UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {         
             }
         };
        
-        public int GetPreviewPassIndex() { return 0; }
+        public int GetPreviewPassIndex() { return 1; }
 
         private static HashSet<string> GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
         {
@@ -147,7 +149,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
-            subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Experimental.Rendering.HDPipeline.PostProcessGUI""");
             string s = subShader.GetShaderString(0);
             return s;
         }
