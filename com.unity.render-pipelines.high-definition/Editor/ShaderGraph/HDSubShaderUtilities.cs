@@ -1291,10 +1291,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 case HDRenderQueue.RenderQueueType.AfterPostprocessTransparent:
                     return "After Post-process";
 
-#if ENABLE_RAYTRACING
-                case HDRenderQueue.RenderQueueType.RaytracingOpaque: return "Raytracing";
-                case HDRenderQueue.RenderQueueType.RaytracingTransparent: return "Raytracing";
-#endif
+                case HDRenderQueue.RenderQueueType.RaytracingOpaque:
+                {
+                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                        return "RayTracing";
+                    return "None";
+                }
+                case HDRenderQueue.RenderQueueType.RaytracingTransparent:
+                {
+                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                        return "RayTracing";
+                    return "None";
+                }
                 default:
                     return "None";
             }
@@ -1308,9 +1316,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 result.Add(HDRenderQueue.RenderQueueType.Opaque);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostProcessOpaque);
-#if ENABLE_RAYTRACING
-                result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
-#endif
+                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                    result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
             }
             else
             {
@@ -1319,9 +1326,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
-#if ENABLE_RAYTRACING
-                result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
-#endif
+                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                    result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
             }
 
             return result;

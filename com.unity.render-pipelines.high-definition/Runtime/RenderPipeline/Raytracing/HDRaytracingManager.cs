@@ -1,12 +1,6 @@
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HighDefinition;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -23,7 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracing = 0x80
     }
 
-#if ENABLE_RAYTRACING
     class HDRayTracingLights
     {
         // The list of non-directional lights in the sub-scene
@@ -378,6 +371,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        // Ray Tracing is supported if the asset setting supports it and the platform supports it
+        static internal bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
+        {
+            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing
+#if UNITY_EDITOR
+                && UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows
+#endif
+            ;
+        }
+        
+
         internal BlueNoise GetBlueNoiseManager()
         {
             return m_BlueNoise;
@@ -422,5 +426,4 @@ namespace UnityEngine.Rendering.HighDefinition
             return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
         }
     }
-#endif
 }

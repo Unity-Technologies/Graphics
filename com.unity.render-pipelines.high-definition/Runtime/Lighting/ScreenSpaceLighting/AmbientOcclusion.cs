@@ -46,9 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool m_RunningFullRes = false;
 
-#if ENABLE_RAYTRACING
         readonly HDRaytracingAmbientOcclusion m_RaytracingAmbientOcclusion = new HDRaytracingAmbientOcclusion();
-#endif
 
         private void ReleaseRT()
         {
@@ -95,19 +93,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Cleanup()
         {
-#if ENABLE_RAYTRACING
-            m_RaytracingAmbientOcclusion.Release();
-#endif
+            if (HDRenderPipeline.AggreateRayTracingSupport(m_Settings))
+            {
+                m_RaytracingAmbientOcclusion.Release();
+            }
 
             ReleaseRT();
         }
 
-#if ENABLE_RAYTRACING
         public void InitRaytracing(HDRenderPipeline renderPipeline)
         {
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
         }
-#endif
 
         public bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
@@ -124,11 +121,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-#if ENABLE_RAYTRACING
                 if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
                     m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
                 else
-#endif
                 {
                     Dispatch(cmd, camera, frameCount);
                     PostDispatchWork(cmd, camera);

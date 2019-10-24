@@ -92,11 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public uint screenSpaceShadowIndex = 0;
             // Raytracing
-#if ENABLE_RAYTRACING
             public bool countRays = false;
             public bool showRaysPerFrame = false;
             public Color raysPerFrameFontColor = Color.white;
-#endif
 
             public int debugCameraToFreeze = 0;
 
@@ -373,7 +371,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 30f });
             list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 30f });
-#if ENABLE_RAYTRACING
             list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
             if (data.countRays)
             {
@@ -398,7 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 });
             }
-#endif
+               
             m_DebugDisplayStatsItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
             panel.flags = DebugUI.Flags.RuntimeOnly;

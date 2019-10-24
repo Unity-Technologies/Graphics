@@ -3,7 +3,6 @@ using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // Buffers used for the evaluation
@@ -382,5 +381,4 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
-#endif
 }

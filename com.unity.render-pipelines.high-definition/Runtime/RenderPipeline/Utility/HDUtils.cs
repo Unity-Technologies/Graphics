@@ -703,6 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (camera.scene.IsValid())
                 return EditorSceneManager.GetSceneCullingMask(camera.scene);
 
+            #if UNITY_2020_1_OR_NEWER
             switch (camera.cameraType)
             {
                 case CameraType.SceneView:
@@ -710,9 +711,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return SceneCullingMasks.GameViewObjects;
             }
+            #else
+            return 0;
+            #endif
 #else
             return 0;
 #endif
+
+        }
+
+        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+        {
+            if (camera == null || camera.Equals(null))
+                return s_DefaultHDAdditionalCameraData;
+
+            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
+                return hdCamera;
+
+            return s_DefaultHDAdditionalCameraData;
         }
     }
 }

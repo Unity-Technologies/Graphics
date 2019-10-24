@@ -17,13 +17,13 @@ namespace UnityEditor.VFX
             Opaque,
         }
 
-        [VFXSetting, Header("Render States")]
+        [VFXSetting, Header("Render States"), Tooltip("Specifies the transparency and blending method for rendering the particles to the screen.")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        [VFXSetting,Tooltip("Use Pixel Clipping using an alpha threshold.")]
+        [VFXSetting,Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded.")]
         public bool useAlphaClipping = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
         protected bool generateMotionVector = false;
 
         public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
