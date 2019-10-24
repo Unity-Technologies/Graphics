@@ -1,6 +1,6 @@
 # Getting started with ray tracing
 
-The High Definition Render Pipeline (HDRP) includes ray tracing support from Unity 2019.3. Ray tracing hardware acceleration is a feature that allows you to access data that is not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques. 
+The High Definition Render Pipeline (HDRP) includes preview ray tracing support from Unity 2019.3. Ray tracing is a feature that allows you to access data that is not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques.
 
 While film production uses ray tracing extensively, its resource intensity has limited its use to offline rendering for a long time. Now, with recent advances in GPU hardware, you can make use of ray tracing effect in real time.
 
@@ -89,9 +89,8 @@ Now that Unity is running in DirectX 12, and you have disabled static batching, 
 
 | Tier       | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
-| **Tier 1** | Balances performance with quality. Use this tier for games and other high-frame rate applications. |
-| **Tier 2** | A ray tracing implementation that is significantly more resource-intensive than Tier 1. This allows for effects with higher image quality. Use this tier for automotive, production, or graphics demos. |
-| **Tier 3** | This tier enables the path tracer which sends rays from the Camera. When a ray hits a reflective or refractive surface, it recurses the process until it reaches a light source. The series of rays from the Camera to the Light forms a "path". This is the most resource intensive ray tracing method in HDRP. Use this tier for automotive, production, or graphics demos. |
+| **Tier 1** | Balances performance with quality. Use this tier for games and other high-frame rate applications. This tier does not support multiple bounces for lighting effects and you can only use non-recursive effects.|
+| **Tier 2** | A ray tracing implementation that is significantly more resource-intensive than Tier 1. This tier allows for effects with higher image quality, supports multiple bounces for lighting effects, and supports recursive effects. It also enables the path tracer. The path tracer casts rays from the Camera and traces them until they hit a reflective or refractive surface. It then changes the ray's direction according to the surface's properties and then recurses the process until the ray reaches a light source. The series of rays from the Camera to the Light forms a "path". This is the most resource intensive ray tracing method in HDRP. Use this tier for automotive, production, or graphics demos. |
 
 <a name="ManualSetup-RayTracingResources"></a>
 
@@ -169,3 +168,23 @@ HDRP uses ray tracing to replace some of its screen space effects, shadowing tec
 - [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection ray recursively.
+
+## Ray tracing project
+
+You can find a small ray tracing project that contains all the effects mention above here:
+https://github.com/Unity-Technologies/SmallOfficeRayTracing
+This Project is already set up with ray tracing support.
+
+## Advice and supported feature of preview ray tracing
+
+DX12 and DXR are currently in preview and are thus missing some functionnality. 
+When you enable DX12, Unity shows this error message:
+d3d12: generating mipmaps for array textures is not yet supported.
+
+There is no support for ray tracing on other platform than DX12 for now.
+
+HDRP ray tracing in Unity 2019.3 has the following limitations:
+- Does not support deformers (skin, vertex animation).
+- Does not support VFX and Terrain.
+- Does not support several of HDRP's Materials. This includes Hair, Fabric, StackLit, and AxF Materials.
+- Does not have correct culling for shadows. It uses frustum culling instead.
