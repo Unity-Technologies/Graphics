@@ -21,7 +21,7 @@ VSOutput Vert(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-    output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+    output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID) * _ScreenSize.xy;
     return output;
 }
 
@@ -32,11 +32,8 @@ void Frag(VSOutput input, out float4 outColor : SV_Target)
     PositionInputs posInputs;
     float3 V = float3(0, 0, 0);
     SurfaceData surfaceData;
-
-    fragInputs.texCoord0.xy = input.texcoord * _ScreenSize.xy;
-
+    fragInputs.texCoord0.xy = input.texcoord;   
     GetSurfaceData(fragInputs, V, posInputs, surfaceData);
-
     outColor = surfaceData.output;    
 }
 
