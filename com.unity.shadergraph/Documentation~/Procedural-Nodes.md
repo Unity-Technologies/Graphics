@@ -23,4 +23,7 @@
 | Generates an ellipse shape based on input UV at the size specified by inputs Width and Height. | Generates a regular polygon shape based on input UV at  the size specified by inputs Width and Height. The polygon's amount of  sides is determined by input Sides. |
 | [**Rectangle**](Rectangle-Node.md) | [**Rounded Rectangle**](Rounded-Rectangle-Node.md) |
 | ![Image](images/RectangleNodeThumb.png)                      | ![Image](images/RoundedRectangleNodeThumb.png)               |
-| Generates a rectangle shape based on input UV at the size specified by inputs Width and Height. | Generates a rounded rectangle shape based on input UV at the size specified by inputs Width and Height. The radius of each  corner is defined by input Radius. |
+| Generates a rectangle shape based on input UV at the size specified by inputs Width and Height. | Generates a rounded rectangle shape based on input UV at the size specified by inputs Width and Height. The input Radius defines the radius of each corner. |
+| [Rounded Polygon](Rounded-Polygon-Node.md) ||
+|![](images/RoundedPolygonNodeThumb.png) ||
+| Generates a rounded polygon shape based on input UV at the size specified by inputs Width and Height. The input Sides specifies the number of sides, and the input Roundness defines the roundness of each corner. ||

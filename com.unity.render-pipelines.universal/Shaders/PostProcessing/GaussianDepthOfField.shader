@@ -161,7 +161,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
                 acc += half4(sampColor, premultiply ? sampCoC : 1.0) * kCoeffs[i] * weight;
             }
 
-            acc.xyz /= acc.w + 1e-5; // Zero-div guard
+            acc.xyz /= acc.w + 1e-4; // Zero-div guard
             return half4(acc.xyz, 1.0);
         }
 

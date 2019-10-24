@@ -31,9 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Light cluster
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute")]
         public ComputeShader lightClusterBuildCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.shader")]
+        public Shader lightClusterDebugS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")]
         public ComputeShader lightClusterDebugCS;
-
+        
         // Indirect Diffuse
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.raytrace")]
         public RayTracingShader indirectDiffuseRaytracingRT;

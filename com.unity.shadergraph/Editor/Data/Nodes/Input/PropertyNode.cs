@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -23,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_PropertyGuid; }
             set
-            {
+        {
                 if (m_PropertyGuid == value)
                     return;
 
@@ -34,7 +35,7 @@ namespace UnityEditor.ShaderGraph
                 
                 AddOutputSlot(property);
                 Dirty(ModificationScope.Topological);
-            }
+        }
         }
         public override bool canSetPrecision => false;
 
@@ -114,7 +115,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
@@ -164,10 +165,10 @@ namespace UnityEditor.ShaderGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
+                if (property == null)
                 throw new NullReferenceException();
             
-            if (!(property is TextureShaderProperty) &&
+            if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
                 !(property is CubemapShaderProperty))
@@ -200,14 +201,14 @@ namespace UnityEditor.ShaderGraph
                 concretePrecision = precision.ToConcrete();
             else
                 concretePrecision = owner.concretePrecision;
-            return false;
-        }
+                return false;
+            }
         
         public override void OnBeforeSerialize()
-        {
+            {
             base.OnBeforeSerialize();
             m_PropertyGuidSerialized = m_PropertyGuid.ToString();
-        }
+            }
 
         public override void OnAfterDeserialize()
         {

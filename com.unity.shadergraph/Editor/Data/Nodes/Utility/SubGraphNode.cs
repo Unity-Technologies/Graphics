@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph
             get { return false; }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             if (asset == null || hasError)
             {
@@ -214,6 +215,10 @@ namespace UnityEditor.ShaderGraph
         
         public void Reload(HashSet<string> changedFileDependencies)
         {
+            if (asset == null || hasError)
+            {
+                return;
+            }
             if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
             {
                 m_SubGraph = null;
@@ -277,7 +282,7 @@ namespace UnityEditor.ShaderGraph
                     case ConcreteSlotValueType.Texture2D:
                         {
                             var tSlot = slot as Texture2DInputMaterialSlot;
-                            var tProp = prop as TextureShaderProperty;
+                            var tProp = prop as Texture2DShaderProperty;
                             if (tSlot != null && tProp != null)
                                 tSlot.texture = tProp.value.texture;
                         }
@@ -481,7 +486,7 @@ namespace UnityEditor.ShaderGraph
         }
         }
 
-        public virtual void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             if (asset == null || hasError)
                 return;

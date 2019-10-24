@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -43,7 +44,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            properties.AddShaderProperty(new TextureShaderProperty()
+            properties.AddShaderProperty(new Texture2DShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
                 generatePropertyBlock = true,
@@ -63,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            var prop = new TextureShaderProperty { value = m_Texture };
+            var prop = new Texture2DShaderProperty { value = m_Texture };
             if (texture != null)
                 prop.displayName = texture.name;
             return prop;

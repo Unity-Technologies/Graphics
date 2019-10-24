@@ -578,6 +578,12 @@ namespace UnityEditor.ShaderGraph
             {
                 activeFields.Add($"{structName}.TimeParameters");
             }
+
+            if (requirements.requiresVertexSkinning)
+            {
+                activeFields.Add($"{structName}.BoneWeights");
+                activeFields.Add($"{structName}.BoneIndices");
+            }
         }
 
         static void AddRequiredFields(

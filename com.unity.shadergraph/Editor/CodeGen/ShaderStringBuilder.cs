@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
 using UnityEditor.Graphing;
+using System.Globalization;
 
 namespace UnityEditor.ShaderGraph
 {
     struct ShaderStringMapping
     {
         public AbstractMaterialNode node { get; set; }
+//        public List<AbstractMaterialNode> nodes { get; set; }
         public int startIndex { get; set; }
         public int count { get; set; }
     }
@@ -44,6 +46,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        internal List<ShaderStringMapping> mappings
+        {
+            get { return m_Mappings; }
+        }
+
         public ShaderStringBuilder()
         {
             m_StringBuilder = new StringBuilder();
@@ -77,7 +84,7 @@ namespace UnityEditor.ShaderGraph
         public void AppendLine(string formatString, params object[] args)
         {
             AppendIndentation();
-            m_StringBuilder.AppendFormat(formatString, args);
+            m_StringBuilder.AppendFormat(CultureInfo.InvariantCulture,formatString, args);
             AppendNewLine();
         }
 

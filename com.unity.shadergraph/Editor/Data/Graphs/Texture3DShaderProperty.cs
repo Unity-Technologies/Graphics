@@ -1,34 +1,35 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class Texture3DShaderProperty : AbstractShaderProperty<SerializableTexture>
+    [FormerName("UnityEditor.ShaderGraph.Texture3DShaderProperty")]
+    public sealed class Texture3DShaderProperty : AbstractShaderProperty<SerializableTexture>
     {
-        public Texture3DShaderProperty()
+        internal Texture3DShaderProperty()
         {
             displayName = "Texture3D";
             value = new SerializableTexture();
         }
-        
-        public override PropertyType propertyType => PropertyType.Texture3D;
-        
-        public override bool isExposable => true;
-        public override bool isRenamable => true;
-        
-        public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
-        public override string GetPropertyBlockString()
+        public override PropertyType propertyType => PropertyType.Texture3D;
+
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+
+        internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
+
+        internal override string GetPropertyBlockString()
         {
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
-        
-        public override string GetPropertyAsArgumentString()
+
+        internal override string GetPropertyAsArgumentString()
         {
             return $"TEXTURE3D({referenceName})";
         }
-        
+
         [SerializeField]
         bool m_Modifiable = true;
 
@@ -37,13 +38,13 @@ namespace UnityEditor.ShaderGraph
             get => m_Modifiable;
             set => m_Modifiable = value;
         }
-        
-        public override AbstractMaterialNode ToConcreteNode()
+
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new Texture3DAssetNode { texture = value.texture as Texture3D };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -52,7 +53,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new Texture3DShaderProperty()
             {

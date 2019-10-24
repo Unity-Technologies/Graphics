@@ -30,8 +30,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ProbeSettingsOverride displayedAdvancedCaptureSettings { get; }
             ProbeSettingsOverride overrideableCaptureSettings { get; }
             ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
-            ProbeSettingsOverride displayedAdvancedSettings { get; }
-            ProbeSettingsOverride overrideableAdvancedSettings { get; }
+            ProbeSettingsOverride displayedCustomSettings { get; }
+            ProbeSettingsOverride displayedAdvancedCustomSettings { get; }
+            ProbeSettingsOverride overrideableCustomSettings { get; }
+            ProbeSettingsOverride overrideableAdvancedCustomSettings { get; }
             Type customTextureType { get; }
             ToolBar[] toolbars { get; }
             Dictionary<KeyCode, ToolBar> shortcuts { get; }
@@ -225,7 +227,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProbeSettingsUI.Draw(
                     serialized.probeSettings, owner,
                     serialized.probeSettingsOverride,
-                    provider.displayedAdvancedSettings, provider.overrideableAdvancedSettings
+                    provider.displayedCustomSettings, provider.overrideableCustomSettings
+                );
+            }
+
+            public static void DrawAdvancedCustomSettings(SerializedHDProbe serialized, Editor owner)
+            {
+                var provider = new TProvider();
+                ProbeSettingsUI.Draw(
+                    serialized.probeSettings, owner,
+                    serialized.probeSettingsOverride,
+                    provider.displayedAdvancedCustomSettings, provider.overrideableAdvancedCustomSettings
                 );
             }
 

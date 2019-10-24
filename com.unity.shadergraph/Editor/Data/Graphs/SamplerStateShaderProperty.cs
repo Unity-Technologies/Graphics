@@ -11,33 +11,33 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override PropertyType propertyType => PropertyType.SamplerState;
-        
-        public override bool isExposable => false;
-        public override bool isRenamable => false;
 
-        public static string GetSystemSamplerName(TextureSamplerState.FilterMode filterMode, TextureSamplerState.WrapMode wrapMode)
+        internal override bool isExposable => false;
+        internal override bool isRenamable => false;
+
+        internal static string GetSystemSamplerName(TextureSamplerState.FilterMode filterMode, TextureSamplerState.WrapMode wrapMode)
             => $"{PropertyType.SamplerState.ToConcreteShaderValueType().ToShaderString()}_{filterMode}_{wrapMode}";
 
-        public override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString()
         {
             return $"SAMPLER({referenceName})";
         }
-        
-        public override AbstractMaterialNode ToConcreteNode()
+
+        internal override AbstractMaterialNode ToConcreteNode()
         {
-            return new SamplerStateNode() 
+            return new SamplerStateNode()
             {
                 filter = value.filter,
                 wrap = value.wrap
             };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return default(PreviewProperty);
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new SamplerStateShaderProperty()
             {
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public string GetSamplerPropertyDeclarationString(HashSet<string> systemSamplerNames)
+        internal string GetSamplerPropertyDeclarationString(HashSet<string> systemSamplerNames)
         {
             if (overrideReferenceName == null)
             {
@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
                 return $"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, referenceName)};";
         }
 
-        public static void GenerateSystemSamplerNames(ShaderStringBuilder sb, HashSet<string> systemSamplerNames)
+        internal static void GenerateSystemSamplerNames(ShaderStringBuilder sb, HashSet<string> systemSamplerNames)
         {
             foreach (var systemSamplerName in systemSamplerNames)
                 sb.AppendLine($"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, systemSamplerName)};");

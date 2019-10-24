@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -11,13 +13,13 @@ namespace UnityEditor.ShaderGraph
             displayName = "Gradient";
             value = new Gradient();
         }
-        
+
         public override PropertyType propertyType => PropertyType.Gradient;
-        
-        public override bool isExposable => false;
-        public override bool isRenamable => true;
-        
-        public string GetGraidentPropertyDeclarationString()
+
+        internal override bool isExposable => false;
+        internal override bool isRenamable => true;
+
+        internal string GetGraidentPropertyDeclarationString()
         {
             ShaderStringBuilder s = new ShaderStringBuilder();
             s.AppendLine("Gradient {0}_Definition()", referenceName);
@@ -60,21 +62,22 @@ namespace UnityEditor.ShaderGraph
                     s.AppendLine(alphas[i]);
                 s.AppendLine("return g;", true);
             }
-            s.AppendLine("#define {0} {0}_Definition()", referenceName);
+            s.AppendIndentation();
+            s.Append("#define {0} {0}_Definition()", referenceName);
             return s.ToString();
         }
 
-        public override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString()
         {
             return "Gradient " + referenceName;
         }
-        
-        public override AbstractMaterialNode ToConcreteNode()
+
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new GradientNode { gradient = value };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -83,7 +86,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new GradientShaderProperty
             {
