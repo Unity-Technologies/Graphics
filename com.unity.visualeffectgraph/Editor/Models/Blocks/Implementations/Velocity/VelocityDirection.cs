@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The direction of the velocity to add to the particles.")]
+            [Tooltip("Sets the direction in which particles should move.")]
             public DirectionType Direction = new DirectionType() { direction = Vector3.forward };
         }
 
