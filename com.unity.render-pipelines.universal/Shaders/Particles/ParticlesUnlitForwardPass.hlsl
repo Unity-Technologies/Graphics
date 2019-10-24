@@ -149,9 +149,9 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     projectedPosition = input.projectedPosition;
 #endif
 
-    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, input.color, projectedPosition, _BaseMap, sampler_BaseMap);
+    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, input.color, projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
 
-    half3 normalTS = SampleNormalTS(uv, blendUv, _BumpMap, sampler_BumpMap);
+    half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
 #if defined (_DISTORTION_ON)
     albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, projectedPosition);
@@ -161,7 +161,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     half alpha = albedo.a;
 
 #if defined(_EMISSION)
-    half3 emission = BlendTexture(_EmissionMap, sampler_EmissionMap, uv, blendUv) * _EmissionColor.rgb;
+    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv) * _EmissionColor.rgb;
 #else
     half3 emission = half3(0, 0, 0);
 #endif

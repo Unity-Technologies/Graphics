@@ -192,12 +192,12 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             // Color grading is always enabled when post-processing/uber is active
             {
-                color = ApplyColorGrading(color, PostExposure, _InternalLut, sampler_LinearClamp, LutParams, _UserLut, sampler_LinearClamp, UserLutParams, UserLutContribution);
+                color = ApplyColorGrading(color, PostExposure, TEXTURE2D_ARGS(_InternalLut, sampler_LinearClamp), LutParams, TEXTURE2D_ARGS(_UserLut, sampler_LinearClamp), UserLutParams, UserLutContribution);
             }
 
             #if _FILM_GRAIN
             {
-                color = ApplyGrain(color, uv, _Grain_Texture, sampler_LinearRepeat, GrainIntensity, GrainResponse, GrainScale, GrainOffset);
+                color = ApplyGrain(color, uv, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
             }
             #endif
 
@@ -210,7 +210,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
             #if _DITHERING
             {
-                color = ApplyDithering(color, uv, _BlueNoise_Texture, sampler_PointRepeat, DitheringScale, DitheringOffset);
+                color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
             }
             #endif
 

@@ -113,7 +113,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _FILM_GRAIN
             {
-                color = ApplyGrain(color, positionNDC, _Grain_Texture, sampler_LinearRepeat, GrainIntensity, GrainResponse, GrainScale, GrainOffset);
+                color = ApplyGrain(color, positionNDC, TEXTURE2D_ARGS(_Grain_Texture, sampler_LinearRepeat), GrainIntensity, GrainResponse, GrainScale, GrainOffset);
             }
             #endif
 			
@@ -125,7 +125,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
             #if _DITHERING
             {
-                color = ApplyDithering(color, positionNDC, _BlueNoise_Texture, sampler_PointRepeat, DitheringScale, DitheringOffset);
+                color = ApplyDithering(color, positionNDC, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
             }
             #endif
 

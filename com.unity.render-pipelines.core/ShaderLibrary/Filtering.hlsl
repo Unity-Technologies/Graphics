@@ -91,7 +91,7 @@ void BiquadraticFilter(float2 fracCoord, out float2 weights[2], out float2 offse
 }
 
 // texSize = (width, height, 1/width, 1/height)
-float4 SampleTexture2DBiquadratic(TEXTURE2D(tex), SAMPLER(smp), float2 coord, float4 texSize)
+float4 SampleTexture2DBiquadratic(TEXTURE2D_PARAM(tex, smp), float2 coord, float4 texSize)
 {
     float2 xy = coord * texSize.xy;
     float2 ic = floor(xy);
@@ -108,7 +108,7 @@ float4 SampleTexture2DBiquadratic(TEXTURE2D(tex), SAMPLER(smp), float2 coord, fl
 }
 
 // texSize = (width, height, 1/width, 1/height)
-float4 SampleTexture2DBicubic(TEXTURE2D(tex), SAMPLER(smp), float2 coord, float4 texSize, float2 maxCoord, uint unused /* needed to match signature of texarray version below */)
+float4 SampleTexture2DBicubic(TEXTURE2D_PARAM(tex, smp), float2 coord, float4 texSize, float2 maxCoord, uint unused /* needed to match signature of texarray version below */)
 {
     float2 xy = coord * texSize.xy + 0.5;
     float2 ic = floor(xy);
@@ -126,7 +126,7 @@ float4 SampleTexture2DBicubic(TEXTURE2D(tex), SAMPLER(smp), float2 coord, float4
 #if !defined(SHADER_API_GLES)
 // texSize = (width, height, 1/width, 1/height)
 // texture array version for XR single-pass
-float4 SampleTexture2DBicubic(TEXTURE2D_ARRAY(tex), SAMPLER(smp), float2 coord, float4 texSize, float2 maxCoord, uint slice)
+float4 SampleTexture2DBicubic(TEXTURE2D_ARRAY_PARAM(tex, smp), float2 coord, float4 texSize, float2 maxCoord, uint slice)
 {
     float2 xy = coord * texSize.xy + 0.5;
     float2 ic = floor(xy);

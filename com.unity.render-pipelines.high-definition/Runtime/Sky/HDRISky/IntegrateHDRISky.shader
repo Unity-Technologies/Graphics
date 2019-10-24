@@ -76,7 +76,7 @@ Shader "Hidden/HDRP/IntegrateHDRI"
                 // Integrate upper hemisphere (Y up)
                 float3 N = float3(0.0, 1.0, 0.0);
 
-                float intensity = GetUpperHemisphereLuxValue(_Cubemap, s_trilinear_clamp_sampler, N);
+                float intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_trilinear_clamp_sampler), N);
 
                 return float4(intensity, 1.0, 1.0, 1.0);
             }

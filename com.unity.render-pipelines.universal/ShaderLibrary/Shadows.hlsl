@@ -124,7 +124,7 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
     return attenuation;
 }
 
-real SampleShadowmapFiltered(TEXTURE2D_SHADOW(ShadowMap), SAMPLER_CMP(sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
 {
     real attenuation;
 
@@ -155,7 +155,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW(ShadowMap), SAMPLER_CMP(sampler_Sh
     return attenuation;
 }
 
-real SampleShadowmap(TEXTURE2D_SHADOW(ShadowMap), SAMPLER_CMP(sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
+real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
 {
     // Compiler will optimize this branch away as long as isPerspectiveProjection is known at compile time
     if (isPerspectiveProjection)
@@ -166,7 +166,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW(ShadowMap), SAMPLER_CMP(sampler_ShadowMap)
 
     // TODO: We could branch on if this light has soft shadows (shadowParams.y) to save perf on some platforms.
 #ifdef _SHADOWS_SOFT
-    attenuation = SampleShadowmapFiltered(ShadowMap, sampler_ShadowMap, shadowCoord, samplingData);
+    attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
 #else
     // 1-tap hardware comparison
     attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
@@ -214,7 +214,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 #else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
-    return SampleShadowmap(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture, shadowCoord, shadowSamplingData, shadowParams, false);
+    return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
 #endif
 }
 
@@ -241,7 +241,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 #endif
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
-    return SampleShadowmap(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture, shadowCoord, shadowSamplingData, shadowParams, true);
+    return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
@@ -288,10 +288,10 @@ half GetAdditionalLightShadowStrenth(int lightIndex)
 }
 
 // Deprecated: Use SampleShadowmap that takes shadowParams instead of strength.
-real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW(ShadowMap), SAMPLER_CMP(sampler_ShadowMap), ShadowSamplingData samplingData, half shadowStrength, bool isPerspectiveProjection = true)
+real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), ShadowSamplingData samplingData, half shadowStrength, bool isPerspectiveProjection = true)
 {
     half4 shadowParams = half4(shadowStrength, 1.0, 0.0, 0.0);
-    return SampleShadowmap(ShadowMap, sampler_ShadowMap, shadowCoord, samplingData, shadowParams, isPerspectiveProjection);
+    return SampleShadowmap(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, shadowParams, isPerspectiveProjection);
 }
 
 #endif

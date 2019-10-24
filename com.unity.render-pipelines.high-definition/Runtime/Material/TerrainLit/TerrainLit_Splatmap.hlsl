@@ -42,7 +42,7 @@ float GetSumHeight(float4 heights0, float4 heights1)
     return sumHeight;
 }
 
-float3 SampleNormalGrad(TEXTURE2D(textureName), SAMPLER(samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
+float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale)
 {
     float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
 #ifdef SURFACE_GRADIENT

@@ -207,7 +207,7 @@ float3 Tonemap(float3 colorLinear)
     #elif defined(TONEMAPPING_EXTERNAL)
     {
         float3 colorLutSpace = saturate(LinearToLogC(colorLinear));
-        float3 colorLut = ApplyLut3D(_LogLut3D, sampler_LogLut3D, colorLutSpace, _LogLut3D_Params.xy);
+        float3 colorLut = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
         colorLinear = lerp(colorLinear, colorLut, _LogLut3D_Params.z);
     }
     #endif

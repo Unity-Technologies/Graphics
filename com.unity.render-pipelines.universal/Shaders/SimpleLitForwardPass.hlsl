@@ -118,7 +118,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    half4 diffuseAlpha = SampleAlbedoAlpha(uv, _BaseMap, sampler_BaseMap);
+    half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     half3 diffuse = diffuseAlpha.rgb * _BaseColor.rgb;
 
     half alpha = diffuseAlpha.a * _BaseColor.a;
@@ -127,9 +127,9 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     diffuse *= alpha;
 #endif
 
-    half3 normalTS = SampleNormal(uv, _BumpMap, sampler_BumpMap);
-    half3 emission = SampleEmission(uv, _EmissionColor.rgb, _EmissionMap, sampler_EmissionMap);
-    half4 specular = SampleSpecularSmoothness(uv, alpha, _SpecColor, _SpecGlossMap, sampler_SpecGlossMap);
+    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
+    half4 specular = SampleSpecularSmoothness(uv, alpha, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     half smoothness = specular.a;
 
     InputData inputData;

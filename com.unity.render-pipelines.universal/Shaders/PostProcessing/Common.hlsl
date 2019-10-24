@@ -74,7 +74,7 @@ half3 ApplyTonemap(half3 input)
     return saturate(input);
 }
 
-half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D(lutTex), SAMPLER(lutSampler), float3 lutParams, TEXTURE2D(userLutTex), SAMPLER(userLutSampler), float3 userLutParams, float userLutContrib)
+half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex, lutSampler), float3 lutParams, TEXTURE2D_PARAM(userLutTex, userLutSampler), float3 userLutParams, float userLutContrib)
 {
     // Artist request to fine tune exposure in post without affecting bloom, dof etc
     input *= postExposure;
@@ -85,13 +85,13 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D(lutTex), SAMP
     #if _HDR_GRADING
     {
         float3 inputLutSpace = saturate(LinearToLogC(input)); // LUT space is in LogC
-        input = ApplyLut2D(lutTex, lutSampler, inputLutSpace, lutParams);
+        input = ApplyLut2D(TEXTURE2D_ARGS(lutTex, lutSampler), inputLutSpace, lutParams);
 
         UNITY_BRANCH
         if (userLutContrib > 0.0)
         {
             input = saturate(input);
-            half3 outLut = ApplyLut2D(userLutTex, userLutSampler, input, userLutParams);
+            half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
         }
     }
@@ -107,18 +107,18 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D(lutTex), SAMP
         UNITY_BRANCH
         if (userLutContrib > 0.0)
         {
-            half3 outLut = ApplyLut2D(userLutTex, userLutSampler, input, userLutParams);
+            half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
         }
 
-        input = ApplyLut2D(lutTex, lutSampler, input, lutParams);
+        input = ApplyLut2D(TEXTURE2D_ARGS(lutTex, lutSampler), input, lutParams);
     }
     #endif
 
     return input;
 }
 
-half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D(GrainTexture), SAMPLER(GrainSampler), float intensity, float response, float2 scale, float2 offset)
+half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D_PARAM(GrainTexture, GrainSampler), float intensity, float response, float2 scale, float2 offset)
 {
     // Grain in range [0;1] with neutral at 0.5
     half grain = SAMPLE_TEXTURE2D(GrainTexture, GrainSampler, uv * scale + offset).w;
@@ -133,7 +133,7 @@ half3 ApplyGrain(half3 input, float2 uv, TEXTURE2D(GrainTexture), SAMPLER(GrainS
     return input + input * grain * intensity * lum;
 }
 
-half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D(BlueNoiseTexture), SAMPLER(BlueNoiseSampler), float2 scale, float2 offset)
+half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, BlueNoiseSampler), float2 scale, float2 offset)
 {
     // Symmetric triangular distribution on [-1,1] with maximal density at 0
     float noise = SAMPLE_TEXTURE2D(BlueNoiseTexture, BlueNoiseSampler, uv * scale + offset).a * 2.0 - 1.0;

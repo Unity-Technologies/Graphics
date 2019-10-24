@@ -439,16 +439,16 @@ uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
 }
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"
-real4 IntegrateLD(TEXTURECUBE(tex), SAMPLER(sampl),
-                  TEXTURE2D(ggxIblSamples),
-                  real3 V,
-                  real3 N,
-                  real roughness,
-                  real index,      // Current MIP level minus one
-                  real invOmegaP,
-                  uint sampleCount, // Must be a Fibonacci number
-                  bool prefilter,
-                  bool usePrecomputedSamples)
+real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
+                   TEXTURE2D(ggxIblSamples),
+                   real3 V,
+                   real3 N,
+                   real roughness,
+                   real index,      // Current MIP level minus one
+                   real invOmegaP,
+                   uint sampleCount, // Must be a Fibonacci number
+                   bool prefilter,
+                   bool usePrecomputedSamples)
 {
     real3x3 localToWorld = GetLocalFrame(N);
 
@@ -555,7 +555,7 @@ real4 IntegrateLD(TEXTURECUBE(tex), SAMPLER(sampl),
     return real4(lightInt / cbsdfInt, 1.0);
 }
 
-real4 IntegrateLDCharlie(TEXTURECUBE(tex), SAMPLER(sampl),
+real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
                    real3 V,
                    real3 N,
                    real roughness,
@@ -665,7 +665,7 @@ uint BinarySearchRow(uint j, real needle, TEXTURE2D(haystack), uint n)
 }
 
 #if !defined SHADER_API_GLES
-real4 IntegrateLD_MIS(TEXTURECUBE(envMap), SAMPLER(sampler_envMap),
+real4 IntegrateLD_MIS(TEXTURECUBE_PARAM(envMap, sampler_envMap),
                        TEXTURE2D(marginalRowDensities),
                        TEXTURE2D(conditionalDensities),
                        real3 V,
