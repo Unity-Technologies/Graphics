@@ -55,6 +55,7 @@ Ray-Traced Ambient Occlusion uses the [Volume](Volumes.html) framework, so to en
 | **Ray Tracing**              | Makes HDRP use ray tracing to evaluate ambient occlusion. Enable this to expose properties that you can use to adjust the quality of ray-traced ambient occlusion. |
 | **Intensity**                | Controls the strength of the ambient occlusion effect.       |
 | **Direct Lighting Strength** | Controls how much the ambient occlusion affects direct lighting. |
+| **LayerMask**                | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Ray Length**               | Controls the length of the rays that HDRP uses for ray tracing. This allows you to have smaller scale, local, ambient occlusion. |
 | **Sample Count**             | Controls the number of rays that HDRP uses per pixel, per frame. Increasing this value increases execution time linearly. |
 | **Denoise**                  | Enables the spatio-temporal filter that HDRP uses to remove noise from the ambient occlusion. |
