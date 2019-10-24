@@ -86,6 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string dxrResourcesError = "There is an issue with the DXR resources!";
             public const string dxrActivatedLabel = "DXR activated";
             public const string dxrActivatedError = "DXR is not activated!";
+            public const string dxrShaderConfigLabel = "DXR shader config";
+            public const string dxrShaderConfigError = "There is an issue with the DXR shader config!";
             public const string defaultDXRSceneLabel = "Default DXR scene prefab";
             public const string defaultDXRSceneError = "Default DXR scene prefab must be set to create HD templated scene!";
 
@@ -380,6 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(new ConfigInfoLine(Style.dxrScreenSpaceShadowLabel, Style.dxrScreenSpaceShadowError, Style.resolve, IsDXRScreenSpaceShadowCorrect, FixDXRScreenSpaceShadow));
             container.Add(new ConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.resolve, IsDXRActivationCorrect, FixDXRActivation));
             container.Add(new ConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.resolve, IsDXRAssetCorrect, FixDXRAsset));
+            container.Add(new ConfigInfoLine(Style.dxrShaderConfigLabel, Style.dxrShaderConfigError, Style.resolve, IsDXRShaderConfigCorrect, FixDXRShaderConfig));
             container.Add(new ConfigInfoLine(Style.defaultDXRSceneLabel, Style.defaultDXRSceneError, Style.resolve, IsDXRDefaultSceneCorrect, () => FixDXRDefaultScene(fromAsync: false)));
         }
 

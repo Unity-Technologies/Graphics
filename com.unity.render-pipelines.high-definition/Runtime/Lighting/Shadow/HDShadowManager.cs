@@ -555,9 +555,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
+        public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams, float maxShadowDistance)
         {
-            cullingParams.shadowDistance = Mathf.Min(VolumeManager.instance.stack.GetComponent<HDShadowSettings>().maxShadowDistance.value, cullingParams.shadowDistance);
+            cullingParams.shadowDistance = Mathf.Min(maxShadowDistance, cullingParams.shadowDistance);
         }
 
         public void LayoutShadowMaps(LightingDebugSettings lightingDebugSettings)
