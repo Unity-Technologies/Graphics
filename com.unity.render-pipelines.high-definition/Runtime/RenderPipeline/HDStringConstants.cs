@@ -727,6 +727,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AOPackedBlurred                = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory                = Shader.PropertyToID("_AOOutputHistory");
 
+        public static readonly int _PostProcessInput               = Shader.PropertyToID("_PostProcessInput");
+
         // custom-begin
         public static readonly int _BlueNoiseRGBTexture            = Shader.PropertyToID("_BlueNoiseRGBTexture");
         public static readonly int _BlueNoiseRGBTextureResolutionMinusOne = Shader.PropertyToID("_BlueNoiseRGBTextureResolutionMinusOne");
