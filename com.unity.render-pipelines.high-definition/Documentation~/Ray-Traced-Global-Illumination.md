@@ -27,6 +27,7 @@ Alongside the standard properties, Unity makes different properties available de
 | Property                       | Description                                                  |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ray Tracing**                | Enable this to make HDRP use ray tracing to evaluate indirect diffuse lighting. This makes extra properties available that you can use to adjust the quality of Ray-Traced Global Illumination. |
+| **LayerMask**                  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Ray Length**                 | Set a value to control the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
 | **Clamp Value**                | Set a value to control the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the global illumination more stable to denoise, but reduces quality. |
 | **Denoise**                    | Enable this to enable the spatio-temporal filter that HDRP uses to remove noise from the Ray-Traced Global Illumination. |
