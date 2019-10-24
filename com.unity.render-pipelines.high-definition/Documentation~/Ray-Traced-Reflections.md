@@ -60,6 +60,7 @@ Alongside the standard properties, Unity exposes extra properties depending on t
 | **Minimum Smoothness**    | Controls the minimum smoothness value for a pixel at which HDRP processes ray-traced reflections. If the smoothness value of the pixel is lower than this value, HDRP falls back to the next available reflection method in the [reflection hierarchy](Reflection-in-HDRP.html#ReflectionHierarchy). |
 | **Smoothness Fade Start** | This feature has not been implemented yet and currently does nothing. Ray tracing in HDRP is experimental so some features have not been implemented yet. |
 | **Reflect Sky**           | Enable this feature to specify to HDRP that it should use the sky as a fall-back for ray-traced reflections when a ray doesn't find an intersection. |
+| **LayerMask**             | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Ray Length**            | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky if Reflect Sky is enabled, or black if not. |
 | **Clamp Value**           | Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality. |
 | **Denoise**               | Enables the spatio-temporal filter that HDRP uses to remove noise from the reflections. |
