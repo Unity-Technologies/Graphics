@@ -341,6 +341,7 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
+            var systemSamplerNames = new HashSet<string>();
             foreach (var property in graph.properties)
             {
                 if (property.isExposable && property.generatePropertyBlock)
@@ -357,10 +358,22 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
 
-                codeSnippets.Add($"// Property: {property.displayName}{nl}{property.GetPropertyDeclarationString()}{nl}{nl}");
+                codeSnippets.Add($"// Property: {property.displayName}{nl}");
+                // TODO:
+                if (property is GradientShaderProperty gradientProperty)
+                    codeSnippets.Add(gradientProperty.GetGraidentPropertyDeclarationString());
+                else if (property is SamplerStateShaderProperty samplerProperty)
+                    codeSnippets.Add(samplerProperty.GetSamplerPropertyDeclarationString(systemSamplerNames));
+                else
+                    codeSnippets.Add($"{property.propertyType.FormatDeclarationString(property.concretePrecision, property.referenceName)};");
+                codeSnippets.Add($"{nl}{nl}");
             }
 
-
+            if (systemSamplerNames.Count > 0)
+            {
+                foreach (var systemSamplerName in systemSamplerNames)
+                    codeSnippets.Add($"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, systemSamplerName)};{nl}");
+            }
 
             var inputStructName = $"SG_Input_{assetGuid}";
             var outputStructName = $"SG_Output_{assetGuid}";

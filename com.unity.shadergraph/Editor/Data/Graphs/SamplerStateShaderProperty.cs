@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -58,12 +59,6 @@ namespace UnityEditor.ShaderGraph
             }
             else
                 return $"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, referenceName)};";
-        }
-
-        internal static void GenerateSystemSamplerNames(ShaderStringBuilder sb, HashSet<string> systemSamplerNames)
-        {
-            foreach (var systemSamplerName in systemSamplerNames)
-                sb.AppendLine($"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, systemSamplerName)};");
         }
 
         void UnityEngine.ISerializationCallbackReceiver.OnAfterDeserialize()

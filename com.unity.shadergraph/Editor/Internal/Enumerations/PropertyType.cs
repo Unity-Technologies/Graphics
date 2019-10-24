@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEditor.ShaderGraph.Internal
 {
     public enum PropertyType

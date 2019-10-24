@@ -119,6 +119,7 @@ namespace UnityEditor.ShaderGraph
                             instancedProps.Add(prop);
                     }
 
+                    // TODO:
                     if (prop is GradientShaderProperty gradientProperty)
                         builder.AppendLine(gradientProperty.GetGraidentPropertyDeclarationString());
                     else if (prop is SamplerStateShaderProperty samplerProperty)
@@ -136,7 +137,8 @@ namespace UnityEditor.ShaderGraph
                 if (systemSamplerNames.Count > 0)
                 {
                     UnityEngine.Debug.Assert(cbName == string.Empty);
-                    SamplerStateShaderProperty.GenerateSystemSamplerNames(builder, systemSamplerNames);
+                    foreach (var systemSamplerName in systemSamplerNames)
+                        builder.AppendLine($"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, systemSamplerName)};");
                     systemSamplerNames.Clear();
                 }
 

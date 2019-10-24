@@ -15,7 +15,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Cubemap;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 

@@ -229,7 +229,7 @@ namespace UnityEditor.ShaderGraph
                 }
             });
 
-            asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x])));
+            asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
 
             asset.OnBeforeSerialize();
         }
