@@ -719,5 +719,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         }
+
+        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+        {
+            if (camera == null || camera.Equals(null))
+                return s_DefaultHDAdditionalCameraData;
+
+            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
+                return hdCamera;
+
+            return s_DefaultHDAdditionalCameraData;
+        }
     }
 }
