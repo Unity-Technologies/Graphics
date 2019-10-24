@@ -16,9 +16,8 @@ testplatforms:
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:
-  - name: Universal_Stereo
-    folder: UniversalGfxTestStereo
-    packagename: com.unity.render-pipelines.universal
+  - name: ShaderGraph_Stereo
+    folder: ShaderGraphUniversalStereo
 ---
 {% for project in projects %}
 {% for editor in editors %}
@@ -68,5 +67,6 @@ All_{{ project.name }}:
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_2019.3
   {% endfor %}
   {% endfor %}
+
   
 {% endfor %}
