@@ -79,6 +79,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         transmittedIntersection.t = 0.0f;
         transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
         transmittedIntersection.rayCount = 1;
+        transmittedIntersection.pixelCoord = rayIntersection.pixelCoord;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         transmittedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
@@ -119,6 +120,7 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         reflectedIntersection.t = 0.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
         reflectedIntersection.rayCount = 1;
+        reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
