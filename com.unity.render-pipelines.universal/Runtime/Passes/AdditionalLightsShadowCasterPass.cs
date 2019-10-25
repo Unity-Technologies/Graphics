@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             if (renderingData.shadowData.supportsAdditionalLightShadows)
-                RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData, renderingData.cameraData.isPureURPCamera);
+                RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData, ref renderingData.cameraData.isPureURPCamera);
         }
 
         public override void FrameCleanup(CommandBuffer cmd)
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsShadowmapTexture = null;
         }
 
-        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData, bool isPureURPCamera)
+        void RenderAdditionalShadowmapAtlas(ref ScriptableRenderContext context, ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData, ref bool isPureURPCamera)
         {
             NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
 
@@ -279,7 +279,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex,
                         ref shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
-                    ShadowUtils.RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, isPureURPCamera);
+                    if(isPureURPCamera)
+                        ShadowUtils.RenderShadowSlicePure(cmd, ref context, ref shadowSliceData, ref settings);
+                    else
+                        ShadowUtils.RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings);
                     additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
                     anyShadowSliceRenderer = true;
                 }

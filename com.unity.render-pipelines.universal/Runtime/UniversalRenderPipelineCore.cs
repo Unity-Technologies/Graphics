@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
 
-        public bool isPureURPCamera;
+        internal bool isPureURPCamera;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData

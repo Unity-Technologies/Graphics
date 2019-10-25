@@ -67,33 +67,26 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
-        public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
+        public static void RenderShadowSlicePure(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
-            Matrix4x4 proj, Matrix4x4 view, bool isPureURPCamera)
+            Matrix4x4 proj, Matrix4x4 view)
         {
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
 
-            if (isPureURPCamera)
-            {
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-                projMatrix = GL.GetGPUProjectionMatrix(proj, true);
-                viewMatrix = view;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-            }
-            else
-            {
-                cmd.SetViewProjectionMatrices(view, proj);
-            }
+            Matrix4x4 projMatrix;
+            Matrix4x4 viewMatrix;
+            projMatrix = GL.GetGPUProjectionMatrix(proj, true);
+            viewMatrix = view;
+            Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+            Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+            cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+            cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+            cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+            cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+            cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+            cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+            
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             context.DrawShadows(ref settings);
@@ -103,10 +96,33 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
-            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings, bool isPureURPCamera)
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
+            Matrix4x4 proj, Matrix4x4 view)
+        {
+            cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
+            cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
+            cmd.SetViewProjectionMatrices(view, proj);
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            context.DrawShadows(ref settings);
+            cmd.DisableScissorRect();
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+        }
+
+        public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
         {
             RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
-                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, isPureURPCamera);
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
+        }
+
+        public static void RenderShadowSlicePure(CommandBuffer cmd, ref ScriptableRenderContext context,
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
+        {
+            RenderShadowSlicePure(cmd, ref context, ref shadowSliceData, ref settings,
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix);
         }
 
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
