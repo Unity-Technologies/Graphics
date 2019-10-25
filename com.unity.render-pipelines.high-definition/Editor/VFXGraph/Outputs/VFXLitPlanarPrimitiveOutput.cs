@@ -89,6 +89,8 @@ namespace UnityEditor.VFX
                 if (normalBending)
                     yield return "USE_NORMAL_BENDING";
 
+                yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest
+
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(primitiveType);
             }
         }
