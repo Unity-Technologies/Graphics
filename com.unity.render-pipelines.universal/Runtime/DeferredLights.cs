@@ -1059,7 +1059,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                         out lightAttenuation, out lightSpotDir4);
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
-                    Assertions.Assert.IsTrue(vl.light.shadows == LightShadows.None || shadowLightIndex >= 0);
+                    if (vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
+                        cmd.EnableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
+                    else
+                        cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.light.range));
                     cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
@@ -1069,11 +1072,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
                     cmd.SetGlobalVector(ShaderConstants._LightSpotDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
-
-                    if (vl.light.shadows != LightShadows.None)
-                        cmd.EnableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
-                    else
-                        cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
 
                     // Stencil pass.
                     cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
@@ -1121,7 +1119,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                         out lightAttenuation, out lightSpotDir4);
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
-                    Assertions.Assert.IsTrue(vl.light.shadows == LightShadows.None || shadowLightIndex >= 0);
+                    if (vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
+                        cmd.EnableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
+                    else
+                        cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
                     cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
