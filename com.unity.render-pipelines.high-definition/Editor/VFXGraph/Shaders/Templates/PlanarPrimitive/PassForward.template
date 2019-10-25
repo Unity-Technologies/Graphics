@@ -53,7 +53,7 @@ Pass
 		float4 cPosNonJiterred : TEXCOORD8;
 		#endif
 		
-		float3 posWS : TEXCOOR9;
+		float3 posWS : TEXCOOR9; // Needed for fog
         
         ${VFXAdditionalInterpolantsDeclaration}
 		
