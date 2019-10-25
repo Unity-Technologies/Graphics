@@ -358,15 +358,7 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
 
-                codeSnippets.Add($"// Property: {property.displayName}{nl}");
-                // TODO:
-                if (property is GradientShaderProperty gradientProperty)
-                    codeSnippets.Add(gradientProperty.GetGraidentPropertyDeclarationString());
-                else if (property is SamplerStateShaderProperty samplerProperty)
-                    codeSnippets.Add(samplerProperty.GetSamplerPropertyDeclarationString(systemSamplerNames));
-                else
-                    codeSnippets.Add($"{property.propertyType.FormatDeclarationString(property.concretePrecision, property.referenceName)};");
-                codeSnippets.Add($"{nl}{nl}");
+                codeSnippets.Add($"// Property: {property.displayName}{nl}{property.GetShaderVariableDeclarationString(systemSamplerNames)}{nl}{nl}");
             }
 
             if (systemSamplerNames.Count > 0)
@@ -502,7 +494,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 inputProperties.Add(property);
                 codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
-                }
+            }
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");

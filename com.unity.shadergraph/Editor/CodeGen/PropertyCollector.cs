@@ -98,6 +98,8 @@ namespace UnityEditor.ShaderGraph
                 // Use OrderBy for stable sort
                 var props = kvp.Value.OrderBy(p => !p.gpuInstanced).ToList();
                 int startIndex = 0;
+
+                // Declare instanced properties as normal properties if UNITY_DOTS_INSTANCING_ENABLED is NOT defined. Otherwise, suffix the names with "_dummy".
                 if (instancedProps != null)
                 {
                     startIndex = props.FindIndex(prop => !prop.gpuInstanced);
@@ -118,21 +120,14 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                // Declare the regular properties.
                 for (int i = startIndex; i < props.Count; ++i)
-                {
-                    var prop = props[i];
+                    builder.AppendLine(props[i].GetShaderVariableDeclarationString(systemSamplerNames));
 
-                    // TODO:
-                    if (prop is GradientShaderProperty gradientProperty)
-                        builder.AppendLine(gradientProperty.GetGraidentPropertyDeclarationString());
-                    else if (prop is SamplerStateShaderProperty samplerProperty)
-                        builder.AppendLine(samplerProperty.GetSamplerPropertyDeclarationString(systemSamplerNames));
-                    else
-                        builder.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, prop.referenceName)};");
-                }
-
+                // Declare collected system samplers (e.g. SamplerState_linear_wrap), so that they are not declared multiple times.
                 if (systemSamplerNames.Count > 0)
                 {
+                    // Make sure this code is only hit on global CB and once.
                     UnityEngine.Debug.Assert(cbName == string.Empty);
                     foreach (var systemSamplerName in systemSamplerNames)
                         builder.AppendLine($"{PropertyType.SamplerState.FormatDeclarationString(ConcretePrecision.Float, systemSamplerName)};");
