@@ -113,9 +113,9 @@ VFXBlackboardCategory > .mainContainer > #rowsContainer
 VFXBlackboardCategory > #dragIndicator
 {
     position:absolute;
-    left:2;
-    right:2;
-    height:2;
+    left:2px;
+    right:2px;
+    height:2px;
 }
 
 VFXBlackboardCategory.expanded > .mainContainer > #rowsContainer
