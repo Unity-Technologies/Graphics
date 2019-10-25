@@ -83,6 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   specularDimmer;
         public float   angularDiameter;         // Units: radians
         public float   distanceFromCamera;      // -1 -> no sky interaction. Units: km
+        public float   isRayTracedContactShadow;
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
@@ -135,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 size;                    // Used by area (X = length or width, Y = height) and punctual lights (X = radius)
         public float   diffuseDimmer;
         public float   specularDimmer;
+        public float   isRayTracedContactShadow;
     };
 
 

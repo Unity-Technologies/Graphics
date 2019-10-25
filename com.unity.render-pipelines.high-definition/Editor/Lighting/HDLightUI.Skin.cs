@@ -88,6 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
+            public readonly GUIContent rayTracedContactShadow = new GUIContent("Ray Tracing", "Uses ray tracing to compute the contact shadow for a light.");
             public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
             public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "When enabled, this Spot Light uses the custom angle for shadow map rendering.");
             public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");

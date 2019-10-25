@@ -885,6 +885,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDAdditionalLightData.ScalableSettings.UseContactShadow(hdrp),
                 hdrp.name
             );
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported 
+                && serialized.contactShadows.@override.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(serialized.rayTracedContactShadow, s_Styles.rayTracedContactShadow);
+                EditorGUI.indentLevel--;
+            }
         }
 
         static bool HasShadowQualitySettingsUI(HDShadowFilteringQuality quality, SerializedHDLight serialized, Editor owner)
