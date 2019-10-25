@@ -346,10 +346,22 @@ namespace UnityEditor.VFX
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if( cause == InvalidationCause.kSettingChanged || cause == InvalidationCause.kExpressionInvalidated)
+            if (cause == InvalidationCause.kSettingChanged || cause == InvalidationCause.kExpressionInvalidated)
             {
-                if( cause == InvalidationCause.kSettingChanged && (m_Subgraph != null || object.ReferenceEquals(m_Subgraph,null))) // do not recreate subchildren if the subgraph is not available but is not null
-                    RecreateCopy();
+
+                if (cause == InvalidationCause.kSettingChanged)
+                {
+                    if (m_Subgraph != null)
+                    {
+                        var graph = GetGraph();
+                        var otherGraph = m_Subgraph.GetResource().GetOrCreateGraph();
+                        if (otherGraph == graph || otherGraph.subgraphDependencies.Contains(graph.GetResource().visualEffectObject))
+                            m_Subgraph = null; // prevent cyclic dependencies.
+
+                    }
+                    if (m_Subgraph != null || object.ReferenceEquals(m_Subgraph, null)) // do not recreate subchildren if the subgraph is not available but is not null
+                        RecreateCopy();
+                }
 
                 base.OnInvalidate(model, cause);
                 PatchInputExpressions();
@@ -372,15 +384,17 @@ namespace UnityEditor.VFX
 
             if( m_Subgraph != null && m_SubChildren == null)
                 RecreateCopy();
-
-            foreach (var child in m_SubChildren)
+            if(m_SubChildren != null)
             {
-                if( ! (child is VFXParameter) )
+                foreach (var child in m_SubChildren)
                 {
-                    objs.Add(child);
+                    if (!(child is VFXParameter))
+                    {
+                        objs.Add(child);
 
-                    if (child is VFXModel)
-                        (child as VFXModel).CollectDependencies(objs, false);
+                        if (child is VFXModel)
+                            (child as VFXModel).CollectDependencies(objs, false);
+                    }
                 }
             }
         }
