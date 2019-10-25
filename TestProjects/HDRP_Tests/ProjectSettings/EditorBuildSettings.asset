@@ -183,7 +183,7 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2104_GI_Instancing.unity
     guid: 9fdfbe7bced924d4791cf6fa031218d2
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2105_GI_BakedSpotShape.unity
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2105_GI_BakedLightShape.unity
     guid: c034386e3fb58f44783743edf9b0f4a4
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2106_GI_EmissionSG.unity

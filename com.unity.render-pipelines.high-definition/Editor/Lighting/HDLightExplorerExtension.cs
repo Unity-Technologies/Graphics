@@ -384,7 +384,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else
                     {
-                        var lightShape = SerializedHDLight.ResolveLightShape(lightData.lightTypeExtent, light.type);
+                        var lightShape = lightDataPairing[light].hdAdditionalLightData.type;
                         var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightShape, hdrp);
 
                         using (new EditorGUI.DisabledScope(true))
@@ -403,8 +403,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     var hdrp = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
                     var lShadowResolution = lLightData.shadowResolution;
                     var rShadowResolution = rLightData.shadowResolution;
-                    var lLightShape = SerializedHDLight.ResolveLightShape(lLightData.lightTypeExtent, lLight.type);
-                    var rLightShape = SerializedHDLight.ResolveLightShape(rLightData.lightTypeExtent, rLight.type);
+                    var lLightShape = lLightData.type;
+                    var rLightShape = rLightData.type;
 
                     int lResolution = lShadowResolution.useOverride ? lShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(lLightShape, hdrp)[lShadowResolution.level]);
                     int rResolution = rShadowResolution.useOverride ? rShadowResolution.@override : (hdrp == null ? -1 : HDLightUI.ScalableSettings.ShadowResolution(rLightShape, hdrp)[rShadowResolution.level]); 

@@ -211,24 +211,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Check if there is a ray traced shadow in the scene
                     rayTracedShadow |= hdLight.useRayTracedShadows;
 
-                    if (hdLight.GetComponent<Light>().type == LightType.Directional)
+                    switch (hdLight.type)
                     {
-                        m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
-                    }
-                    else
-                    {
-                        if (hdLight.lightTypeExtent == LightTypeExtent.Punctual)
-                        {
+                        case HDLightType.Directional:
+                            m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
+                            break;
+                        case HDLightType.Point:
                             m_RayTracingLights.hdPointLightArray.Add(hdLight);
-                        }
-                        else if (hdLight.lightTypeExtent == LightTypeExtent.Tube)
-                        {
-                            m_RayTracingLights.hdLineLightArray.Add(hdLight);
-                        }
-                        else
-                        {
-                            m_RayTracingLights.hdRectLightArray.Add(hdLight);
-                        }
+                            break;
+                        case HDLightType.Area:
+                            switch (hdLight.areaLightShape)
+                            {
+                                case AreaLightShape.Rectangle:
+                                    m_RayTracingLights.hdRectLightArray.Add(hdLight);
+                                    break;
+                                case AreaLightShape.Tube:
+                                    m_RayTracingLights.hdLineLightArray.Add(hdLight);
+                                    break;
+                                //TODO: case AreaLightShape.Disc:
+                            }
+                            break;
                     }
                 }
             }

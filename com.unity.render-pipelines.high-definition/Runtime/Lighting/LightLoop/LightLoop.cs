@@ -1347,20 +1347,22 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = -1;
 
+            HDLightType lightType = additionalLightData.ComputeLightType(lightComponent);
+
             if (lightComponent != null && lightComponent.cookie != null)
             {
                 // TODO: add texture atlas support for cookie textures.
-                switch (light.lightType)
+                switch (lightType)
                 {
-                    case LightType.Spot:
+                    case HDLightType.Spot:
                         lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
                         break;
-                    case LightType.Point:
+                    case HDLightType.Point:
                         lightData.cookieIndex = m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, lightComponent.cookie);
                         break;
                 }
             }
-            else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
+            else if (lightType == HDLightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
             {
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
@@ -1588,6 +1590,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightVolumeData.boxInnerDist = extents;
                 lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
+            }
+            else if (gpuLightType == GPULightType.Disc)
+            {
+                //not supported at real time at the moment
             }
             else
             {
@@ -1869,76 +1875,81 @@ namespace UnityEngine.Rendering.HighDefinition
             throw new ArgumentException();
         }
 
-        internal static void EvaluateGPULightType(LightType lightType, LightTypeExtent lightTypeExtent, SpotLightShape spotLightShape,
+        internal static void EvaluateGPULightType(HDLightType lightType, SpotLightShape spotLightShape, AreaLightShape areaLightShape,
             ref LightCategory lightCategory, ref GPULightType gpuLightType, ref LightVolumeType lightVolumeType)
         {
             lightCategory = LightCategory.Count;
             gpuLightType = GPULightType.Point;
             lightVolumeType = LightVolumeType.Count;
 
-            if (lightTypeExtent == LightTypeExtent.Punctual)
+            switch (lightType)
             {
-                lightCategory = LightCategory.Punctual;
+                case HDLightType.Spot:
+                    lightCategory = LightCategory.Punctual;
 
-                switch (lightType)
-                {
-                    case LightType.Spot:
-                        switch (spotLightShape)
-                        {
-                            case SpotLightShape.Cone:
-                                gpuLightType = GPULightType.Spot;
-                                lightVolumeType = LightVolumeType.Cone;
-                                break;
-                            case SpotLightShape.Pyramid:
-                                gpuLightType = GPULightType.ProjectorPyramid;
-                                lightVolumeType = LightVolumeType.Cone;
-                                break;
-                            case SpotLightShape.Box:
-                                gpuLightType = GPULightType.ProjectorBox;
-                                lightVolumeType = LightVolumeType.Box;
-                                break;
-                            default:
-                                Debug.Assert(false, "Encountered an unknown SpotLightShape.");
-                                break;
-            }
-                        break;
+                    switch (spotLightShape)
+                    {
+                        case SpotLightShape.Cone:
+                            gpuLightType = GPULightType.Spot;
+                            lightVolumeType = LightVolumeType.Cone;
+                            break;
+                        case SpotLightShape.Pyramid:
+                            gpuLightType = GPULightType.ProjectorPyramid;
+                            lightVolumeType = LightVolumeType.Cone;
+                            break;
+                        case SpotLightShape.Box:
+                            gpuLightType = GPULightType.ProjectorBox;
+                            lightVolumeType = LightVolumeType.Box;
+                            break;
+                        default:
+                            Debug.Assert(false, "Encountered an unknown SpotLightShape.");
+                            break;
+                    }
+                    break;
 
-                    case LightType.Directional:
-                        gpuLightType = GPULightType.Directional;
-                        // No need to add volume, always visible
-                        lightVolumeType = LightVolumeType.Count; // Count is none
-                        break;
+                case HDLightType.Directional:
+                    lightCategory = LightCategory.Punctual;
+                    gpuLightType = GPULightType.Directional;
+                    // No need to add volume, always visible
+                    lightVolumeType = LightVolumeType.Count; // Count is none
+                    break;
 
-                    case LightType.Point:
-                        gpuLightType = GPULightType.Point;
-                        lightVolumeType = LightVolumeType.Sphere;
-                        break;
+                case HDLightType.Point:
+                    lightCategory = LightCategory.Punctual;
+                    gpuLightType = GPULightType.Point;
+                    lightVolumeType = LightVolumeType.Sphere;
+                    break;
 
-                    default:
-                        Debug.Assert(false, "Encountered an unknown LightType.");
-                        break;
-                }
-            }
-            else
-            {
-                lightCategory = LightCategory.Area;
+                case HDLightType.Area:
+                    lightCategory = LightCategory.Area;
 
-                switch (lightTypeExtent)
-                {
-                    case LightTypeExtent.Rectangle:
-                        gpuLightType = GPULightType.Rectangle;
-                        lightVolumeType = LightVolumeType.Box;
-                        break;
+                    switch (areaLightShape)
+                    {
+                        case AreaLightShape.Rectangle:
+                            gpuLightType = GPULightType.Rectangle;
+                            lightVolumeType = LightVolumeType.Box;
+                            break;
 
-                    case LightTypeExtent.Tube:
-                        gpuLightType = GPULightType.Tube;
-                        lightVolumeType = LightVolumeType.Box;
-                        break;
+                        case AreaLightShape.Tube:
+                            gpuLightType = GPULightType.Tube;
+                            lightVolumeType = LightVolumeType.Box;
+                            break;
 
-                    default:
-                        Debug.Assert(false, "Encountered an unknown LightType.");
-                        break;
-                }
+                        case AreaLightShape.Disc:
+                            //not used in real-time at the moment anyway
+                            gpuLightType = GPULightType.Disc;
+                            lightVolumeType = LightVolumeType.Sphere;
+                            break;
+
+                        default:
+                            Debug.Assert(false, "Encountered an unknown AreaLightShape.");
+                            break;
+                    }
+                    break;
+
+                default:
+                    Debug.Assert(false, "Encountered an unknown LightType.");
+                    break;
             }
         }
 
@@ -2015,8 +2026,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
+                        HDLightType lightType = additionalData.ComputeLightType(lightComponent);
 
-                        if (ShaderConfig.s_AreaLights == 0 && (additionalData.lightTypeExtent == LightTypeExtent.Rectangle || additionalData.lightTypeExtent == LightTypeExtent.Tube))
+                        if (ShaderConfig.s_AreaLights == 0 && (lightType == HDLightType.Area && (additionalData.areaLightShape == AreaLightShape.Rectangle || additionalData.areaLightShape == AreaLightShape.Tube)))
                             continue;
 
                         // First we should evaluate the shadow information for this frame
@@ -2032,7 +2044,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
-                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape,
+                        HDRenderPipeline.EvaluateGPULightType(lightType, additionalData.spotLightShape, additionalData.areaLightShape, 
                                                                 ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                         if (hasDebugLightFilter
