@@ -444,6 +444,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderShadows(CullingResults cullResults, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
+            if (m_LightingDebugSettings.clearShadowAtlas)
+            {
+                // Clear the whole atlas to avoid garbage outside of current request when viewing it.
+                cmd.SetRenderTarget(m_Atlas, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                CoreUtils.ClearRenderTarget(cmd, ClearFlag.Depth, Color.black);
+            }
+
             if (m_ShadowRequests.Count == 0)
                 return;
 
@@ -508,10 +515,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.SetGlobalVector(parameters.atlasSizeShaderID, new Vector4(atlasRenderTexture.rt.width, atlasRenderTexture.rt.height, 1.0f / atlasRenderTexture.rt.width, 1.0f / atlasRenderTexture.rt.height));
-
-            // Clear the whole atlas to avoid garbage outside of current request when viewing it.
-            if (parameters.debugClearAtlas)
-                CoreUtils.DrawFullScreen(cmd, parameters.clearMaterial, null, 0);
 
             foreach (var shadowRequest in parameters.shadowRequests)
             {
