@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimize VFXAssetEditor when externalize is activated
 - TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
 - Filter out motion vector output for lower resolution & after post-process render passes [Case 1192932] (https://issuetracker.unity3d.com/product/unity/issues/guid/1192932/)
+- Sort compute on metal failing with BitonicSort128 [Case 1126095] (https://issuetracker.unity3d.com/issues/osx-unexpected-spawn-slash-capacity-results-when-sorting-is-set-to-auto-slash-on)
 
 ## [7.1.1] - 2019-09-05
 ### Added
