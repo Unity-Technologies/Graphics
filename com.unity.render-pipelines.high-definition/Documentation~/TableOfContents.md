@@ -102,8 +102,6 @@
     * [White Balance](Post-Processing-White-Balance)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
-  * Components
-    * [Ray Tracing Environment](Ray-Tracing-Environment)
   * Effects and Volume Overrides
     * [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)

@@ -7,25 +7,29 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 
 #define REDUCTION_GROUP_SIZE 32
 #define REDUCTION_TOTAL_THREADS 1024
 
-RWStructuredBuffer<uint4>       _OutputRayCountBuffer;
+RWStructuredBuffer<uint>        _OutputRayCountBuffer;
 uint                            _OutputBufferDimension;
 
 [numthreads(REDUCTION_GROUP_SIZE, REDUCTION_GROUP_SIZE,1)]
 void ClearBuffer(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID)
 {
     uint2 sampleIdx = groupId.xy * REDUCTION_GROUP_SIZE + groupThreadId.xy;
-    _OutputRayCountBuffer[sampleIdx.y * _OutputBufferDimension + sampleIdx.x] = uint4(0, 0, 0, 0);
+    for (uint counterType = 0; counterType < RAYCOUNTVALUES_COUNT; counterType++)
+    {
+        _OutputRayCountBuffer[sampleIdx.y * _OutputBufferDimension + sampleIdx.x * RAYCOUNTVALUES_COUNT + counterType] = 0;
+    }
 }
 
-TEXTURE2D_X_UINT4(              _InputRayCountTexture);
-StructuredBuffer<uint4>         _InputRayCountBuffer;
+Texture2DArray<uint>            _InputRayCountTexture;
+StructuredBuffer<uint>          _InputRayCountBuffer;
 uint                            _InputBufferDimension;
 
-groupshared uint4 gs_rayCount[REDUCTION_TOTAL_THREADS];
+groupshared uint gs_rayCount[REDUCTION_TOTAL_THREADS];
 
 [numthreads(REDUCTION_GROUP_SIZE, REDUCTION_GROUP_SIZE, 1)]
 void TextureReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID)
@@ -34,34 +38,41 @@ void TextureReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_Group
     uint threadIdx = groupThreadId.y * REDUCTION_GROUP_SIZE + groupThreadId.x;
     uint2 sampleIdx = groupId.xy * REDUCTION_GROUP_SIZE + groupThreadId.xy;
 
-    // Copy the local values to to kernel
-    gs_rayCount[threadIdx] = _InputRayCountTexture[COORD_TEXTURE2D_X(sampleIdx)];
+    for (uint counterType = 0; counterType < RAYCOUNTVALUES_COUNT; counterType++)
+    {
+        // Copy the local values to to kernel
+        uint3 counterIdx = uint3(sampleIdx, INDEX_TEXTURE2D_ARRAY_X(counterType));
+        gs_rayCount[threadIdx] = _InputRayCountTexture[counterIdx];
 
 #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(UNITY_STEREO_INSTANCING_ENABLED)
-    // Accumulate results from all remaining XR single-pass views
-    for (uint viewIndex = 1; viewIndex < _XRViewCount; ++viewIndex)
-        gs_rayCount[threadIdx] += _InputRayCountTexture[uint3(sampleIdx, viewIndex)];
+        // Accumulate results from all remaining XR single-pass views.
+        for (uint viewIndex = 1; viewIndex < _XRViewCount; ++viewIndex)
+        {
+            counterIdx.z = counterIdx.z + 1;
+            gs_rayCount[threadIdx] += _InputRayCountTexture[counterIdx];
+        }
 #endif
 
-    // Make sure everyone has copied it value to the LDS
-    GroupMemoryBarrierWithGroupSync();
+        // Make sure everyone has copied it value to the LDS
+        GroupMemoryBarrierWithGroupSync();
 
-    // do reduction in shared mem
-    UNITY_UNROLL
-    for(uint s = REDUCTION_TOTAL_THREADS / 2u; s > 0u; s >>= 1u)
-    {
-        if(threadIdx < s)
+        // do reduction in shared mem
+        UNITY_UNROLL
+        for (uint s = REDUCTION_TOTAL_THREADS / 2u; s > 0u; s >>= 1u)
         {
-            gs_rayCount[threadIdx] += gs_rayCount[threadIdx + s];
+            if (threadIdx < s)
+            {
+                gs_rayCount[threadIdx] += gs_rayCount[threadIdx + s];
+            }
+
+            GroupMemoryBarrierWithGroupSync();
         }
 
-        GroupMemoryBarrierWithGroupSync();
-    }
-
-    // write result for this block to global mem
-    if (threadIdx == 0u)
-    {
-        _OutputRayCountBuffer[groupId.y * _OutputBufferDimension + groupId.x] = gs_rayCount[0];
+        // write result for this block to global mem
+        if (threadIdx == 0u)
+        {
+            _OutputRayCountBuffer[groupId.y * _OutputBufferDimension + groupId.x * RAYCOUNTVALUES_COUNT + counterType] = gs_rayCount[0];
+        }
     }
 }
 
@@ -72,27 +83,31 @@ void BufferReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupT
     uint threadIdx = groupThreadId.y * REDUCTION_GROUP_SIZE + groupThreadId.x;
     uint2 sampleIdx = groupId.xy * REDUCTION_GROUP_SIZE + groupThreadId.xy;
 
-    // Copy the local values to to kernel
-    gs_rayCount[threadIdx] = _InputRayCountBuffer[sampleIdx.x + _InputBufferDimension * sampleIdx.y];
-
-    // Make sure everyone has copied it value to the LDS
-    GroupMemoryBarrierWithGroupSync();
-
-    // do reduction in shared mem
-    UNITY_UNROLL
-    for(uint s = REDUCTION_TOTAL_THREADS / 2u; s > 0u; s >>= 1u)
+    for (uint counterType = 0; counterType < RAYCOUNTVALUES_COUNT; counterType++)
     {
-        if(threadIdx < s)
+        // Copy the local values to to kernel
+        int counterIdx = sampleIdx.y * _InputBufferDimension + sampleIdx.x * RAYCOUNTVALUES_COUNT + counterType;
+        gs_rayCount[threadIdx] = _InputRayCountBuffer[counterIdx];
+
+        // Make sure everyone has copied it value to the LDS
+        GroupMemoryBarrierWithGroupSync();
+
+        // do reduction in shared mem
+        UNITY_UNROLL
+        for (uint s = REDUCTION_TOTAL_THREADS / 2u; s > 0u; s >>= 1u)
         {
-            gs_rayCount[threadIdx] += gs_rayCount[threadIdx + s];
+            if (threadIdx < s)
+            {
+                gs_rayCount[threadIdx] += gs_rayCount[threadIdx + s];
+            }
+
+            GroupMemoryBarrierWithGroupSync();
         }
 
-        GroupMemoryBarrierWithGroupSync();
-    }
-
-    // write result for this block to global mem
-    if (threadIdx == 0u)
-    {
-        _OutputRayCountBuffer[groupId.y * _OutputBufferDimension + groupId.x] = gs_rayCount[0];
+        // write result for this block to global mem
+        if (threadIdx == 0u)
+        {
+            _OutputRayCountBuffer[groupId.y * _OutputBufferDimension + groupId.x * RAYCOUNTVALUES_COUNT + counterType] = gs_rayCount[0];
+        }
     }
 }
