@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdLight.enabled)
                 {
                     // Check if there is a ray traced shadow in the scene
-                    rayTracedShadow |= hdLight.useRayTracedShadows;
+                    rayTracedShadow |= (hdLight.useRayTracedShadows || (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow));
 
                     switch (hdLight.type)
                     {
@@ -378,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing
 #if UNITY_EDITOR
-                && UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows
+                && UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
 #endif
             ;
         }
