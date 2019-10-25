@@ -35,6 +35,7 @@ Shader "HDRP/PostProcess"
 
             HLSLPROGRAM
             #define SHADERPASS SHADERPASS_POSTPROCESS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PostProcessing/ShaderPass/PostProcessSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PostProcessing/PostProcessData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPostProcess.hlsl"
 

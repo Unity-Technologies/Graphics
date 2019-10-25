@@ -26,6 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             ExtraDefines = new List<string>()
             {
+                "#define BLIT_PASS"
             },
 
             Includes = new List<string>()
@@ -36,6 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
                 "AttributesMesh.uv0",
+                "AttributesMesh.vertexID",
                 "FragInputs.texCoord0"
             },
 
@@ -69,6 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
        
             ExtraDefines = new List<string>()
             {
+                "#define BLIT_PASS"
             },
 
             Includes = new List<string>()
@@ -79,6 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
                 "AttributesMesh.uv0",
+                "AttributesMesh.vertexID",
                 "FragInputs.texCoord0"
             },
 

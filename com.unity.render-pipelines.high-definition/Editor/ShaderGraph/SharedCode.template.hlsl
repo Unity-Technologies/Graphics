@@ -51,7 +51,11 @@
         $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToObject(input.positionRWS);
         $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(input.positionRWS);
         $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
+#if defined (BLIT_PASS)
+        $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              float4(input.positionSS.xy / _ScreenSize.xy, 1.0f, 1.0f);
+#else
         $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
+#endif
         $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         input.texCoord0;
         $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         input.texCoord1;
         $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         input.texCoord2;
@@ -59,7 +63,6 @@
         $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
         $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
         $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
-
         return output;
     }
 

@@ -2,6 +2,18 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+
+
+PackedVaryingsType Vert(AttributesMesh inputMesh)
+{
+    VaryingsType varyingsType;
+    varyingsType.vmesh = TransformBlit(inputMesh);
+    return PackVaryingsType(varyingsType);
+}
+
+
+/*
 struct Attributes
 {
     uint vertexID : SV_VertexID;
@@ -37,4 +49,16 @@ void Frag(VSOutput input, out float4 outColor : SV_Target)
     outColor = surfaceData.output;    
 }
 
+*/
 
+void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target)
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
+    FragInputs fragInputs = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    fragInputs.texCoord0.xy *= _ScreenSize.xy;
+    PositionInputs posInputs;
+    float3 V = float3(0, 0, 0);
+    SurfaceData surfaceData;
+    GetSurfaceData(fragInputs, V, posInputs, surfaceData);
+    outColor = surfaceData.output;
+}
