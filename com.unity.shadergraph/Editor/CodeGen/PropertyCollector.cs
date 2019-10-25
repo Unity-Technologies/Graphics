@@ -95,29 +95,32 @@ namespace UnityEditor.ShaderGraph
                     builder.IncreaseIndent();
                 }
 
-                bool insideGpuInstancedBlock = false;
-
                 // Use OrderBy for stable sort
-                var props = kvp.Value.OrderBy(p => p.gpuInstanced);
-                foreach (var prop in kvp.Value)
+                var props = kvp.Value.OrderBy(p => !p.gpuInstanced).ToList();
+                int startIndex = 0;
+                if (instancedProps != null)
                 {
-                    if (instancedProps != null)
+                    startIndex = props.FindIndex(prop => !prop.gpuInstanced);
+                    if (startIndex > 0)
                     {
-                        if (!insideGpuInstancedBlock && prop.gpuInstanced)
-                        {
-                            insideGpuInstancedBlock = true;
-                            builder.AppendLine("#ifndef UNITY_DOTS_INSTANCING_ENABLED");
-                            builder.IncreaseIndent();
-                        }
-                        else if (insideGpuInstancedBlock && !prop.gpuInstanced)
-                        {
-                            insideGpuInstancedBlock = false;
-                            builder.DecreaseIndent();
-                            builder.AppendLine("#endif");
-                        }
-                        if (prop.gpuInstanced)
-                            instancedProps.Add(prop);
+                        instancedProps.AddRange(props.Take(startIndex));
+                        builder.AppendLine("#ifdef UNITY_DOTS_INSTANCING_ENABLED");
+                        builder.IncreaseIndent();
+                        for (int i = 0; i < startIndex; ++i)
+                            builder.AppendLine($"{props[i].propertyType.FormatDeclarationString(props[i].concretePrecision, $"{props[i].referenceName}_dummy")};");
+                        builder.DecreaseIndent();
+                        builder.AppendLine("#else");
+                        builder.IncreaseIndent();
+                        for (int i = 0; i < startIndex; ++i)
+                            builder.AppendLine($"{props[i].propertyType.FormatDeclarationString(props[i].concretePrecision, $"{props[i].referenceName}")};");
+                        builder.DecreaseIndent();
+                        builder.AppendLine("#endif");
                     }
+                }
+
+                for (int i = startIndex; i < props.Count; ++i)
+                {
+                    var prop = props[i];
 
                     // TODO:
                     if (prop is GradientShaderProperty gradientProperty)
@@ -126,12 +129,6 @@ namespace UnityEditor.ShaderGraph
                         builder.AppendLine(samplerProperty.GetSamplerPropertyDeclarationString(systemSamplerNames));
                     else
                         builder.AppendLine($"{prop.propertyType.FormatDeclarationString(prop.concretePrecision, prop.referenceName)};");
-                }
-
-                if (insideGpuInstancedBlock)
-                {
-                    builder.DecreaseIndent();
-                    builder.AppendLine("#endif");
                 }
 
                 if (systemSamplerNames.Count > 0)
