@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The cone used for the volume calculation.")]
+            [Tooltip("Sets the cone used for the volume calculation.")]
             public Cone cone = new Cone();
         }
 
         public class OutputProperties
         {
-            [Tooltip("The volume of the cone.")]
+            [Tooltip("Outputs the volume of the cone.")]
             public float volume;
         }
 

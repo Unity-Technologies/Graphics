@@ -11,15 +11,16 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The period of time being looped over (in seconds)")]
+            [Tooltip("Sets the period of time to be looped over (in seconds).")]
             [Min(0.001f)]
             public float Period = 5.0f;
-            [Tooltip("The output value range interpolated over the period of time")]
+            [Tooltip("Sets the output value range interpolated over the period of time.")]
             public Vector2 Range = new Vector2(0.0f, 1.0f);
         }
 
         public class OutputProperties
         {
+            [Tooltip("Outputs the current time within the specified time period.")]
             public float t = 0;
         }
 

@@ -19,11 +19,11 @@ namespace UnityEditor.VFX.Block
             Custom,
         }
 
-        [VFXSetting, Tooltip("The Collider can be either a solid volume, or an empty volume, with an infinite filled volume surrounding it.")]
+        [VFXSetting, Tooltip("Specifies the collision shape mode. The collider can either be a solid volume which particles cannot enter, or an empty volume which particles cannot leave.")]
         public Mode mode = Mode.Solid;
-        [VFXSetting]
+        [VFXSetting, Tooltip("Specifies the collision radius of each particle. This can be set to none (zero), automatically inherited from the particle size, or a custom value.")]
         public RadiusMode radiusMode = RadiusMode.None;
-        [VFXSetting, Tooltip("Enable random bending of the collision normal to simulate collision with a rough surface.")]
+        [VFXSetting, Tooltip("When enabled, randomness is added to the direction in which particles bounce back to simulate collision with a rough surface.")]
         public bool roughSurface = false;
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX.Block
     float3 tangentVelocity = velocity - normalVelocity;
 
     if (projVelocity < 0)
-        velocity -= ((1 + Elasticity) * projVelocity) * n;
+        velocity -= ((1 + Bounce) * projVelocity) * n;
     velocity -= Friction * tangentVelocity;
 
     age += (LifetimeLoss * lifetime);
@@ -145,23 +145,23 @@ namespace UnityEditor.VFX.Block
 
         public class CollisionProperties
         {
-            [Min(0), Tooltip("How much bounce to apply after a collision.")]
-            public float Elasticity = 0.1f;
-            [Min(0), Tooltip("How much speed is lost after a collision.")]
+            [Min(0), Tooltip("Sets how much bounce to apply after a collision.")]
+            public float Bounce = 0.1f;
+            [Min(0), Tooltip("Sets how much speed is lost after a collision.")]
             public float Friction = 0.0f;
-            [Range(0, 1), Tooltip("The proportion of a particle's life that is lost after a collision.")]
+            [Range(0, 1), Tooltip("Sets what proportion of a particle’s life is lost after a collision.")]
             public float LifetimeLoss = 0.0f;
         }
 
         public class RoughnessProperties
         {
-            [Range(0, 1), Tooltip("How much to randomly adjust the normal after a collision.")]
+            [Range(0, 1), Tooltip("Sets how much to randomly adjust the direction after a collision.")]
             public float Roughness = 0.0f;
         }
 
         public class RadiusProperties
         {
-            [Tooltip("The radius of the particle used for collision detection.")]
+            [Tooltip("Sets the radius of the particle used for collision detection.")]
             public float radius = 0.1f;
         }
     }

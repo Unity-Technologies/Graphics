@@ -9,16 +9,16 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The 3D coordinate to be converted into Spherical space.")]
+            [Tooltip("Sets the rectangular (x,y,z) coordinates to convert to spherical coordinates (r,θ,ϕ).")]
             public Vector3 coordinate = Vector3.zero;
         }
         public class OutputProperties
         {
-            [Tooltip("The radial coordinate (Radius).")]
+            [Tooltip("Outputs the radial coordinate (Radius r).")]
             public float distance = 1.0f;
-            [Angle, Tooltip("The angular coordinate (Polar angle).")]
+            [Angle, Tooltip("Outputs the angular coordinate (Polar angle θ) in radians.")]
             public float theta = Mathf.PI / 2;
-            [Angle, Tooltip("The pitch coordinate (Azimuth angle).")]
+            [Angle, Tooltip("Outputs the pitch coordinate (Azimuth angle ϕ) in radians.")]
             public float phi = Mathf.PI / 2;
         }
         override public string name { get { return "Rectangular to Spherical"; } }

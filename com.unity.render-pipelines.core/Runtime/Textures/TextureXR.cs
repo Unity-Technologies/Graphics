@@ -71,6 +71,7 @@ namespace UnityEngine.Rendering
         static RTHandle         m_BlackTexture2DArrayRTH;
         static RTHandle         m_BlackTextureRTH;
         public static RTHandle GetBlackTexture() { return useTexArray ? m_BlackTexture2DArrayRTH : m_BlackTextureRTH; }
+        public static RTHandle GetBlackTextureArray() { return m_BlackTexture2DArrayRTH; }
 
         static Texture2DArray   m_WhiteTexture2DArray;
         static RTHandle         m_WhiteTexture2DArrayRTH;
