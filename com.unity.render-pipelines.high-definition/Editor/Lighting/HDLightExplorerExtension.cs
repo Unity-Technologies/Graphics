@@ -384,8 +384,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else
                     {
-                        var lightShape = lightDataPairing[light].hdAdditionalLightData.type;
-                        var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightShape, hdrp);
+                        var lightType = lightData.type;
+                        var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
 
                         using (new EditorGUI.DisabledScope(true))
                         {

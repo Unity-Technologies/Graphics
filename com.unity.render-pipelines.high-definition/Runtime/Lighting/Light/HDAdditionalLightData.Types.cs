@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool SupportRuntimeOnly(this HDLightTypeAndShape type)
+        public static bool SupportsRuntimeOnly(this HDLightTypeAndShape type)
             => type != HDLightTypeAndShape.DiscArea;
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool SupportBakedOnly(this HDLightTypeAndShape type)
+        public static bool SupportsBakedOnly(this HDLightTypeAndShape type)
             => type != HDLightTypeAndShape.TubeArea;
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool SupportMixed(this HDLightTypeAndShape type)
+        public static bool SupportsMixed(this HDLightTypeAndShape type)
             => type != HDLightTypeAndShape.TubeArea
             && type != HDLightTypeAndShape.DiscArea;
     }
