@@ -419,7 +419,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_FieldClear(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.clearColorMode, clearModeContent);
-            //if(p.clearColorMode.enumValueIndex == (int)HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
+            // if(p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
             EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
 
             if(p.clearDepth.boolValue == false)

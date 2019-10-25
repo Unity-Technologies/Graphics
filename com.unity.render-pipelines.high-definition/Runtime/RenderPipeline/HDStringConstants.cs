@@ -239,6 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ContactShadowTexture = Shader.PropertyToID("_ContactShadowTexture");
         public static readonly int _ContactShadowTextureUAV = Shader.PropertyToID("_ContactShadowTextureUAV");
         public static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
+        public static readonly int _ContactShadowOpacity = Shader.PropertyToID("_ContactShadowOpacity");
         public static readonly int _ContactShadowParamsParameters = Shader.PropertyToID("_ContactShadowParamsParameters");
         public static readonly int _ContactShadowParamsParameters2 = Shader.PropertyToID("_ContactShadowParamsParameters2");
         public static readonly int _DirectionalContactShadowSampleCount = Shader.PropertyToID("_SampleCount");

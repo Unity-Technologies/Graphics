@@ -77,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store the final shadow indice in the shadow data array
         // Warning: the index is computed during ProcessShadowRequest and so is invalid before calling this function
         public int                  shadowIndex;
-        public int                  lightType;
 
         // Determine in which atlas the shadow will be rendered
         public ShadowMapType        shadowMapType = ShadowMapType.PunctualAtlas;

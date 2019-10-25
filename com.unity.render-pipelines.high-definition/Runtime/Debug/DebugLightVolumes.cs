@@ -126,61 +126,55 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyLight.transform.position);
 
-                if (currentLegacyLight.type == LightType.Point || currentLegacyLight.type == LightType.Area)
+                switch(currentHDRLight.ComputeLightType(currentLegacyLight))
                 {
-                    mpb.SetVector(_RangeShaderID, new Vector3(currentLegacyLight.range, currentLegacyLight.range, currentLegacyLight.range));
-                    switch (currentHDRLight.lightTypeExtent)
-                    {
-                        case LightTypeExtent.Punctual:
-                            {
-                                mpb.SetColor(_ColorShaderID, new Color(0.0f, 0.5f, 0.0f, 1.0f));
+                    case HDLightType.Point:
+                        mpb.SetColor(_ColorShaderID, new Color(0.0f, 0.5f, 0.0f, 1.0f));
+                        mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                        cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, parameters.debugLightVolumeMaterial, 0, 0, mpb);
+                        break;
+                    case HDLightType.Spot:
+                        switch (currentHDRLight.spotLightShape)
+                        {
+                            case SpotLightShape.Cone:
+                                float bottomRadius = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
+                                mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
+                                mpb.SetVector(_RangeShaderID, new Vector3(bottomRadius, bottomRadius, currentLegacyLight.range));
                                 mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                                cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, parameters.debugLightVolumeMaterial, 0, 0, mpb);
-                            }
-                            break;
-                        case LightTypeExtent.Rectangle:
-                            {
+                                cmd.DrawMesh(DebugShapes.instance.RequestConeMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, parameters.debugLightVolumeMaterial, 0, 0, mpb);
+                                break;
+                            case SpotLightShape.Box:
+                                mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
+                                mpb.SetVector(_RangeShaderID, new Vector3(currentHDRLight.shapeWidth, currentHDRLight.shapeHeight, currentLegacyLight.range));
+                                mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, currentLegacyLight.range / 2.0f));
+                                cmd.DrawMesh(DebugShapes.instance.RequestBoxMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, parameters.debugLightVolumeMaterial, 0, 0, mpb);
+                                break;
+                            case SpotLightShape.Pyramid:
+                                float bottomWidth = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
+                                mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
+                                mpb.SetVector(_RangeShaderID, new Vector3(currentHDRLight.aspectRatio * bottomWidth * 2, bottomWidth * 2, currentLegacyLight.range));
+                                mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
+                                cmd.DrawMesh(DebugShapes.instance.RequestPyramidMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, parameters.debugLightVolumeMaterial, 0, 0, mpb);
+                                break;
+                        }
+                        break;
+                    case HDLightType.Area:
+                        switch (currentHDRLight.areaLightShape)
+                        {
+                            case AreaLightShape.Rectangle:
                                 mpb.SetColor(_ColorShaderID, new Color(0.0f, 1.0f, 1.0f, 1.0f));
                                 mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
                                 cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, parameters.debugLightVolumeMaterial, 0, 0, mpb);
-                            }
-                            break;
-                        case LightTypeExtent.Tube:
-                            {
+                                break;
+                            case AreaLightShape.Tube:
                                 mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.0f, 0.5f, 1.0f));
                                 mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
                                 cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, parameters.debugLightVolumeMaterial, 0, 0, mpb);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else if (currentLegacyLight.type == LightType.Spot)
-                {
-                    if (currentHDRLight.spotLightShape == SpotLightShape.Cone)
-                    {
-                        float bottomRadius = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
-                        mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
-                        mpb.SetVector(_RangeShaderID, new Vector3(bottomRadius, bottomRadius, currentLegacyLight.range));
-                        mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                        cmd.DrawMesh(DebugShapes.instance.RequestConeMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, parameters.debugLightVolumeMaterial, 0, 0, mpb);
-                    }
-                    else if (currentHDRLight.spotLightShape == SpotLightShape.Box)
-                    {
-                        mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
-                        mpb.SetVector(_RangeShaderID, new Vector3(currentHDRLight.shapeWidth, currentHDRLight.shapeHeight, currentLegacyLight.range));
-                        mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, currentLegacyLight.range / 2.0f));
-                        cmd.DrawMesh(DebugShapes.instance.RequestBoxMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, parameters.debugLightVolumeMaterial, 0, 0, mpb);
-                    }
-                    else if (currentHDRLight.spotLightShape == SpotLightShape.Pyramid)
-                    {
-                        float bottomWidth = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
-                        mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
-                        mpb.SetVector(_RangeShaderID, new Vector3(currentHDRLight.aspectRatio * bottomWidth * 2, bottomWidth * 2, currentLegacyLight.range));
-                        mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
-                        cmd.DrawMesh(DebugShapes.instance.RequestPyramidMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, parameters.debugLightVolumeMaterial, 0, 0, mpb);
-                    }
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
                 }
             }
 
