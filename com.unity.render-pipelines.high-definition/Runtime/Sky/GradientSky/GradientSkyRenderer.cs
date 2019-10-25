@@ -25,10 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_GradientSkyMaterial);
         }
 
-        public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
-        {
-        }
-
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var gradientSky = builtinParams.skySettings as GradientSky;

@@ -313,10 +313,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
-        {
-        }
-
         // 'renderSunDisk' parameter is not supported.
         // Users should instead create an emissive (or lit) mesh for every relevant light source
         // (to support multiple stars in space, moons with moon phases, etc).
