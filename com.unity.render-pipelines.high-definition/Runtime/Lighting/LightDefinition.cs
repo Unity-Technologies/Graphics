@@ -18,8 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Tube, // Keep Line lights before Rectangle. This is needed because of a compiler bug (see LightLoop.hlsl)
         Rectangle,
         // Currently not supported in real time (just use for reference)
+        Disc,
         // Sphere,
-        // Disk,
     };
 
     public static class GPULightTypeExtension
