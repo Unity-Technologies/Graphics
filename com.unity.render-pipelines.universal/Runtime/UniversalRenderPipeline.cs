@@ -605,7 +605,7 @@ namespace UnityEngine.Rendering.Universal
                 Shader.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
                 Shader.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
                 Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), invViewProjMatrix);
             }
         }
 

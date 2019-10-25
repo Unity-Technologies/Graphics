@@ -121,9 +121,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_TargetDimension);
 
                 Camera camera = cameraData.camera;
-
-                cmd.SetViewport(cameraData.camera.pixelRect);
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, blitMaterial);
