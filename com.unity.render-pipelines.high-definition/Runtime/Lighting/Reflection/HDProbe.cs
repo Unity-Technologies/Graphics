@@ -200,8 +200,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Camera
         /// <summary>Frame settings in use with this probe.</summary>
-        public ref FrameSettings frameSettings => ref m_ProbeSettings.camera.renderingPathCustomFrameSettings;
-        public FrameSettingsOverrideMask frameSettingsOverrideMask => m_ProbeSettings.camera.renderingPathCustomFrameSettingsOverrideMask;
+        public ref FrameSettings frameSettings => ref m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettings;
+        public FrameSettingsOverrideMask frameSettingsOverrideMask => m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettingsOverrideMask;
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
             => proxyVolume != null
