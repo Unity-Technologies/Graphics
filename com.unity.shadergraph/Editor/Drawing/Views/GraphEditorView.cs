@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider.assetName = value;
             }
         }
-        
+
         public ColorManager colorManager
         {
             get => m_ColorManager;
@@ -92,6 +92,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
+            m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
+            m_GraphViewElementsAddedToGroup = OnElementsAddedToGroup;
+            m_GraphViewElementsRemovedFromGroup = OnElementsRemovedFromGroup;
+
             m_Graph = graph;
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
@@ -178,7 +182,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
                             m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
                         }
-                    
+
                         m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
                         m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
                         var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
@@ -197,9 +201,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
-                m_GraphView.groupTitleChanged = OnGroupTitleChanged;
-                m_GraphView.elementsAddedToGroup = OnElementsAddedToGroup;
-                m_GraphView.elementsRemovedFromGroup = OnElementsRemovedFromGroup;
+                RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
                 m_BlackboardProvider = new BlackboardProvider(graph);
@@ -236,6 +238,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEdge(edge);
 
             Add(content);
+        }
+
+        Action<Group, string> m_GraphViewGroupTitleChanged;
+        Action<Group, IEnumerable<GraphElement>> m_GraphViewElementsAddedToGroup;
+        Action<Group, IEnumerable<GraphElement>> m_GraphViewElementsRemovedFromGroup;
+
+        void RegisterGraphViewCallbacks()
+        {
+            m_GraphView.groupTitleChanged = m_GraphViewGroupTitleChanged;
+            m_GraphView.elementsAddedToGroup = m_GraphViewElementsAddedToGroup;
+            m_GraphView.elementsRemovedFromGroup = m_GraphViewElementsRemovedFromGroup;
+        }
+
+        void UnregisterGraphViewCallbacks()
+        {
+            m_GraphView.groupTitleChanged = null;
+            m_GraphView.elementsAddedToGroup = null;
+            m_GraphView.elementsRemovedFromGroup = null;
         }
 
         void CreateMasterPreview()
@@ -454,7 +474,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-            if (previewManager.HandleGraphChanges())
+            UnregisterGraphViewCallbacks();
+
+            if(previewManager.HandleGraphChanges())
             {
                 var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
 
@@ -576,7 +598,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     materialNodeView.OnModified(ModificationScope.Topological);
                 }
-
             }
 
             UpdateEdgeColors(nodesToUpdate);
@@ -596,6 +617,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             UpdateBadges();
+
+            RegisterGraphViewCallbacks();
         }
 
         void UpdateBadges()
