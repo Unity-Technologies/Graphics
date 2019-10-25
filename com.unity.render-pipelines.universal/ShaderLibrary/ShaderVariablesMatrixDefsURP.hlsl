@@ -7,12 +7,18 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesURPBuildinVarsDecl.hlsl"
 
+// Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
+// Space block feature
 float4x4 BUILDIN_unity_ObjectToWorld;
 float4x4 BUILDIN_unity_WorldToObject;
+float4   BUILDIN_unity_LODFade;
 real4    BUILDIN_unity_WorldTransformParams;
-real4    BUILDIN_unity_LightData;
-real4    BUILDIN_unity_LightIndices[2];
+// LightMap block feature
+// These are set internally by the engine upon request by RendererConfiguration.
+float4   BUILDIN_unity_LightmapST;
+float4   BUILDIN_unity_DynamicLightmapST;
+// SH block feature
 real4    BUILDIN_unity_SHAr;
 real4    BUILDIN_unity_SHAg;
 real4    BUILDIN_unity_SHAb;
@@ -20,11 +26,14 @@ real4    BUILDIN_unity_SHBr;
 real4    BUILDIN_unity_SHBg;
 real4    BUILDIN_unity_SHBb;
 real4    BUILDIN_unity_SHC;
-real4    BUILDIN_unity_SpecCube0_HDR;
-float4   BUILDIN_unity_LightmapST;
-float4   BUILDIN_unity_DynamicLightmapST;
-float4   BUILDIN_unity_LODFade;
+// Probe Occlusion block feature
 float4   BUILDIN_unity_ProbesOcclusion;
+// Light Indices block feature
+real4    BUILDIN_unity_LightData;
+real4    BUILDIN_unity_LightIndices[2];
+// Reflection Probe 0 block feature
+// HDR environment map decode instructions
+real4    BUILDIN_unity_SpecCube0_HDR;
 CBUFFER_END
 
 CBUFFER_START(UnityPerCamera)
@@ -81,10 +90,10 @@ real4 BUILDIN_unity_FogColor;
 CBUFFER_END
 
 // Descriptors
-TEXTURECUBE(BUILDIN_unity_SpecCube0);
-SAMPLER(BUILDIN_samplerunity_SpecCube0);
 TEXTURE2D(BUILDIN_unity_Lightmap);
 SAMPLER(BUILDIN_samplerunity_Lightmap);
+TEXTURECUBE(BUILDIN_unity_SpecCube0);
+SAMPLER(BUILDIN_samplerunity_SpecCube0);
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesURPBuildinVarsImpl.hlsl"
 
