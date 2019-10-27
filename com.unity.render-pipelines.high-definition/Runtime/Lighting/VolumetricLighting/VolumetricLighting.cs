@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         List<OrientedBBox>            m_VisibleVolumeBounds       = null;
         List<DensityVolumeEngineData> m_VisibleVolumeData         = null;
-        const int              k_MaxVisibleVolumeCount     = 512;
+        const int                     k_MaxVisibleVolumeCount     = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         ComputeBuffer                 m_VisibleVolumeBoundsBuffer = null;
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_xySeq = new Vector2[7];
 
-            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.slices];
+            m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
             CreateVolumetricLightingBuffers();
         }
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector3Int viewportResolution = ComputeVBufferResolution(volumetricLightingPreset, hdCamera.actualWidth, hdCamera.actualHeight);
 
-            var controller = VolumeManager.instance.stack.GetComponent<VolumetricLightingController>();
+            var controller = VolumeManager.instance.stack.GetComponent<Fog>();
 
             return new VBufferParameters(viewportResolution, controller.depthExtent.value,
                                          hdCamera.camera.nearClipPlane,
@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (accountForXR)
             {
-                // With stereo instancing, the VBuffer is doubled and split into 2 compartments for each eye
+                // With XR single-pass, the VBuffer size is increased and split into compartments for each eye
                 if (TextureXR.useTexArray)
                     result = result * TextureXR.slices;
             }
@@ -459,18 +459,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-
-            // VisualEnvironment sets global fog parameters
-
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) || visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
             {
                 cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
                 return;
             }
 
             // Get the interpolated anisotropy value.
-            var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
+            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
 
             SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
 
@@ -504,11 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DensityVolumeList densityVolumes = new DensityVolumeList();
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return densityVolumes;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return densityVolumes;
 
             using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
@@ -525,9 +517,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                DensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera.camera, time);
+                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera.camera, time);
 
-                for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
+                for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleVolumeCount); i++)
                 {
                     DensityVolume volume = volumes[i];
 
@@ -540,8 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.
                     // TODO: account for custom near and far planes of the V-Buffer's frustum.
                     // It's typically much shorter (along the Z axis) than the camera's frustum.
-                    // XRTODO: fix combined frustum culling
-                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8) || hdCamera.xr.instancingEnabled)
+                    if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8))
                     {
                         // TODO: cache these?
                         var data = volume.parameters.ConvertToEngineData();
@@ -598,11 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var cvp = currFrameParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-#if UNITY_2019_1_OR_NEWER
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-#else
-            var vFoV = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
-#endif
             // Compose the matrix which allows us to compute the world space view direction.
             hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, ref m_PixelCoordToViewDirWS);
             parameters.pixelCoordToViewDirWS = m_PixelCoordToViewDirWS;
@@ -658,11 +645,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return;
 
             using (new ProfilingSample(cmd, "Volume Voxelization"))
@@ -731,7 +714,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new VolumetricLightingParameters();
 
             // Get the interpolated anisotropy value.
-            var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
+            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
@@ -747,11 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var cvp = currFrameParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-#if UNITY_2019_1_OR_NEWER
             var vFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-#else
-                var vFoV        = hdCamera.camera.fieldOfView * Mathf.Deg2Rad;
-#endif
             // Compose the matrix which allows us to compute the world space view direction.
             hdCamera.GetPixelCoordToViewDirWS(parameters.resolution, ref m_PixelCoordToViewDirWS);
             parameters.pixelCoordToViewDirWS = m_PixelCoordToViewDirWS;
@@ -809,11 +788,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return;
 
             using (new ProfilingSample(cmd, "Volumetric Lighting"))

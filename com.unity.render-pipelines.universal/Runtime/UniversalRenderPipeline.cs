@@ -4,7 +4,6 @@ using Unity.Collections;
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
 #endif
-using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
@@ -13,6 +12,9 @@ namespace UnityEngine.Rendering.LWRP
     [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.UniversalRenderPipeline", true)]
     public class LightweightRenderPipeline
     {
+        public LightweightRenderPipeline(LightweightRenderPipelineAsset asset)
+        {
+        }
     }
 }
 
@@ -57,28 +59,58 @@ namespace UnityEngine.Rendering.Universal
 
         public static float maxRenderScale
         {
-            get => 4.0f;
+            get => 2.0f;
         }
 
         // Amount of Lights that can be shaded per object (in the for loop in the shader)
-        // This uses unity_4LightIndices to store an array of 4 light indices
         public static int maxPerObjectLights
         {
-            get => 4;
+            // No support to bitfield mask and int[] in gles2. Can't index fast more than 4 lights.
+            // Check Lighting.hlsl for more details.
+            get => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ? 4 : 8;
         }
 
-        // Light data is stored in a constant buffer (uniform array)
-        // This value has to match MAX_VISIBLE_LIGHTS in Input.hlsl
+        // These limits have to match same limits in Input.hlsl
+        const int k_MaxVisibleAdditionalLightsSSBO  = 256;
+        const int k_MaxVisibleAdditionalLightsUBO   = 32;
         public static int maxVisibleAdditionalLights
         {
-            get => 16;
+            get
+            {
+                // There are some performance issues by using SSBO in mobile.
+                // Also some GPUs don't supports SSBO in vertex shader.
+                if (RenderingUtils.useStructuredBuffer)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We don't use SSBO in D3D because we can't figure out without adding shader variants if platforms is D3D10.
+                // We don't use SSBO on Nintendo Switch as UBO path is faster.
+                // However here we use same limits as SSBO path. 
+                var deviceType = SystemInfo.graphicsDeviceType;
+                if (deviceType == GraphicsDeviceType.Direct3D11 || deviceType == GraphicsDeviceType.Direct3D12 ||
+                    deviceType == GraphicsDeviceType.Switch)
+                    return k_MaxVisibleAdditionalLightsSSBO;
+
+                // We use less limits for mobile as some mobile GPUs have small SP cache for constants
+                // Using more than 32 might cause spilling to main memory.
+                return k_MaxVisibleAdditionalLightsUBO;
+            }
         }
 
+        // Internal max count for how many ScriptableRendererData can be added to a single Universal RP asset
+        internal static int maxScriptableRenderers
+        {
+            get => 8;
+        }
+
+        /// <summary>
+        /// Returns the current render pipeline asset for the current quality setting.
+        /// If no render pipeline asset is assigned in QualitySettings, then returns the one assigned in GraphicsSettings.
+        /// </summary>
         public static UniversalRenderPipelineAsset asset
         {
             get
             {
-                return GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+                return GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             }
         }
 
@@ -104,7 +136,8 @@ namespace UnityEngine.Rendering.Universal
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 
-            Shader.globalRenderPipeline = "UniversalPipeline";
+            // For compatibility reasons we also match old LightweightPipeline tag.
+            Shader.globalRenderPipeline = "UniversalPipeline,LightweightPipeline";
 
             Lightmapping.SetDelegate(lightsDelegate);
 
@@ -118,11 +151,11 @@ namespace UnityEngine.Rendering.Universal
             base.Dispose(disposing);
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+            ShaderData.instance.Dispose();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 #endif
-
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
         }
@@ -139,8 +172,10 @@ namespace UnityEngine.Rendering.Universal
             foreach (Camera camera in cameras)
             {
                 BeginCameraRendering(renderContext, camera);
-
-                VFX.VFXManager.ProcessCamera(camera); //Visual Effect Graph is not yet a required package but calling this method when there isn't any VisualEffect component has no effect (but needed for Camera sorting in Visual Effect Graph context)
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                VFX.VFXManager.PrepareCamera(camera);
+#endif
                 RenderSingleCamera(renderContext, camera);
 
                 EndCameraRendering(renderContext, camera);
@@ -157,11 +192,7 @@ namespace UnityEngine.Rendering.Universal
             var settings = asset;
             UniversalAdditionalCameraData additionalCameraData = null;
             if (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR)
-#if UNITY_2019_3_OR_NEWER
                 camera.gameObject.TryGetComponent(out additionalCameraData);
-#else
-                additionalCameraData = camera.gameObject.GetComponent<LWRPAdditionalCameraData>();
-#endif
 
             InitializeCameraData(settings, camera, additionalCameraData, out var cameraData);
             SetupPerCameraShaderConstants(cameraData);
@@ -173,11 +204,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-#if UNITY_EDITOR
-            string tag = camera.name;
-#else
-            string tag = k_RenderCameraTag;
-#endif
+            string tag = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? camera.name: k_RenderCameraTag;
             CommandBuffer cmd = CommandBufferPool.Get(tag);
             using (new ProfilingSample(cmd, tag))
             {
@@ -225,6 +252,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+		static bool PlatformNeedsToKillAlpha()
+		{
+			return Application.platform == RuntimePlatform.IPhonePlayer ||
+                Application.platform == RuntimePlatform.Android ||
+                Application.platform == RuntimePlatform.tvOS;
+		}
+
         static void InitializeCameraData(UniversalRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
@@ -235,10 +269,9 @@ namespace UnityEngine.Rendering.Universal
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
-            
+
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-            cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
 
             // Disables postprocessing in mobile VR. It's not stable on mobile yet.
             // TODO: enable postfx for stereo rendering
@@ -257,8 +290,10 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
-            cameraData.maxShadowDistance = (anyShadowsEnabled) ? settings.shadowDistance : 0.0f;
-            
+            cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
+            cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ?
+                cameraData.maxShadowDistance : 0.0f;
+
             if (additionalCameraData != null)
             {
                 cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
@@ -266,11 +301,23 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.volumeLayerMask = additionalCameraData.volumeLayerMask;
                 cameraData.volumeTrigger = additionalCameraData.volumeTrigger == null ? camera.transform : additionalCameraData.volumeTrigger;
-                cameraData.postProcessEnabled &= additionalCameraData.renderPostProcessing;
+                cameraData.postProcessEnabled = additionalCameraData.renderPostProcessing;
                 cameraData.isStopNaNEnabled = cameraData.postProcessEnabled && additionalCameraData.stopNaN && SystemInfo.graphicsShaderLevel >= 35;
                 cameraData.isDitheringEnabled = cameraData.postProcessEnabled && additionalCameraData.dithering;
                 cameraData.antialiasing = cameraData.postProcessEnabled ? additionalCameraData.antialiasing : AntialiasingMode.None;
                 cameraData.antialiasingQuality = additionalCameraData.antialiasingQuality;
+            }
+            else if(camera.cameraType == CameraType.SceneView)
+            {
+                cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
+                cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
+                cameraData.volumeLayerMask = 1; // "Default"
+                cameraData.volumeTrigger = null;
+                cameraData.postProcessEnabled = CoreUtils.ArePostProcessesEnabled(camera);
+                cameraData.isStopNaNEnabled = false;
+                cameraData.isDitheringEnabled = false;
+                cameraData.antialiasing = AntialiasingMode.None;
+                cameraData.antialiasingQuality = AntialiasingQuality.High;
             }
             else
             {
@@ -278,11 +325,15 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.volumeLayerMask = 1; // "Default"
                 cameraData.volumeTrigger = null;
+                cameraData.postProcessEnabled = false;
                 cameraData.isStopNaNEnabled = false;
                 cameraData.isDitheringEnabled = false;
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
             }
+
+            // Disables post if GLes2
+            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= cameraData.isSceneViewCamera || cameraData.postProcessEnabled;
 
@@ -294,8 +345,9 @@ namespace UnityEngine.Rendering.Universal
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(camera);
 
+			bool needsAlphaChannel = camera.targetTexture == null && Graphics.preserveFramebufferAlpha && PlatformNeedsToKillAlpha();
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
-                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples);
+                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
@@ -340,10 +392,8 @@ namespace UnityEngine.Rendering.Universal
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
 
-            bool platformNeedsToKillAlpha = Application.platform == RuntimePlatform.IPhonePlayer ||
-                Application.platform == RuntimePlatform.Android ||
-                Application.platform == RuntimePlatform.tvOS;
-            renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && platformNeedsToKillAlpha;
+			bool isOffscreenCamera = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
+            renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && PlatformNeedsToKillAlpha() && !isOffscreenCamera;
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)
@@ -459,7 +509,13 @@ namespace UnityEngine.Rendering.Universal
             var configuration = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightData | PerObjectData.OcclusionProbe;
 
             if (additionalLightsCount > 0)
-                configuration |= PerObjectData.LightIndices;
+            {
+                configuration |= PerObjectData.LightData;
+
+                // In this case we also need per-object indices (unity_LightIndices)
+                if (!RenderingUtils.useStructuredBuffer)
+                    configuration |= PerObjectData.LightIndices;
+            }
 
             return configuration;
         }
@@ -531,39 +587,8 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
 
-        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
-        {
-            LightDataGI lightData = new LightDataGI();
 
-            for (int i = 0; i < requests.Length; i++)
-            {
-                Light light = requests[i];
-                switch (light.type)
-                {
-                    case LightType.Directional:
-                        DirectionalLight directionalLight = new DirectionalLight();
-                        LightmapperUtils.Extract(light, ref directionalLight); lightData.Init(ref directionalLight);
-                        break;
-                    case LightType.Point:
-                        PointLight pointLight = new PointLight();
-                        LightmapperUtils.Extract(light, ref pointLight); lightData.Init(ref pointLight);
-                        break;
-                    case LightType.Spot:
-                        SpotLight spotLight = new SpotLight();
-                        LightmapperUtils.Extract(light, ref spotLight); lightData.Init(ref spotLight);
-                        break;
-                    case LightType.Area:
-                        RectangleLight rectangleLight = new RectangleLight();
-                        LightmapperUtils.Extract(light, ref rectangleLight); lightData.Init(ref rectangleLight);
-                        break;
-                    default:
-                        lightData.InitNoBake(light.GetInstanceID());
-                        break;
-                }
 
-                lightData.falloff = FalloffType.InverseSquared;
-                lightsOutput[i] = lightData;
-            }
-        };
+
     }
 }

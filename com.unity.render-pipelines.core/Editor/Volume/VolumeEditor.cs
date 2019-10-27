@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering
 
             if (isGlobal != 0) // Blend radius is not needed for global volumes
             {
-                if (actualTarget.GetComponent<Collider>() == null)
+                if (!actualTarget.TryGetComponent<Collider>(out _))
                 {
                     EditorGUILayout.HelpBox("Add a Collider to this GameObject to set boundaries for the local Volume.", MessageType.Info);
 

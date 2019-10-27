@@ -9,6 +9,7 @@ using UnityEditor.Graphs;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
@@ -85,10 +86,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is GraphView || evt.target is Node)
             {
                 InitializeViewSubMenu(evt);
+                InitializePrecisionSubMenu(evt);
 
-                evt.menu.AppendAction("Convert To Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
-                evt.menu.AppendAction("Convert To Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
-                evt.menu.AppendAction("Convert To Property", ConvertToProperty, ConvertToPropertyStatus);
+                evt.menu.AppendAction("Convert To/Sub-graph", ConvertToSubgraph, ConvertToSubgraphStatus);
+                evt.menu.AppendAction("Convert To/Inline Node", ConvertToInlineNode, ConvertToInlineNodeStatus);
+                evt.menu.AppendAction("Convert To/Property", ConvertToProperty, ConvertToPropertyStatus);
+                evt.menu.AppendSeparator();
 
                 evt.menu.AppendAction("Group Selection", _ => GroupSelection(), (a) =>
                 {
@@ -192,6 +195,30 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        private void InitializePrecisionSubMenu(ContextualMenuPopulateEvent evt)
+        {
+            // Default the menu buttons to disabled
+            DropdownMenuAction.Status inheritPrecisionAction = DropdownMenuAction.Status.Disabled;
+            DropdownMenuAction.Status floatPrecisionAction = DropdownMenuAction.Status.Disabled;
+            DropdownMenuAction.Status halfPrecisionAction = DropdownMenuAction.Status.Disabled;
+
+            // Check which precisions are available to switch to
+            foreach (MaterialNodeView selectedNode in selection.Where(x => x is MaterialNodeView).Select(x => x as MaterialNodeView))
+            {
+                if (selectedNode.node.precision != Precision.Inherit)
+                    inheritPrecisionAction = DropdownMenuAction.Status.Normal;
+                if (selectedNode.node.precision != Precision.Float)
+                    floatPrecisionAction = DropdownMenuAction.Status.Normal;
+                if (selectedNode.node.precision != Precision.Half)
+                    halfPrecisionAction = DropdownMenuAction.Status.Normal;
+            }
+
+            // Create the menu options
+            evt.menu.AppendAction("Precision/Inherit", _ => SetNodePrecisionOnSelection(Precision.Inherit), (a) => inheritPrecisionAction);
+            evt.menu.AppendAction("Precision/Float", _ => SetNodePrecisionOnSelection(Precision.Float), (a) => floatPrecisionAction);
+            evt.menu.AppendAction("Precision/Half", _ => SetNodePrecisionOnSelection(Precision.Half), (a) => halfPrecisionAction);
+        }
+
         private void InitializeViewSubMenu(ContextualMenuPopulateEvent evt)
         {
             // Default the menu buttons to disabled
@@ -239,8 +266,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             evt.menu.AppendAction(expandPreviewText, _ => SetPreviewExpandedOnSelection(true), (a) => expandPreviewAction);
             evt.menu.AppendAction(collapsePreviewText, _ => SetPreviewExpandedOnSelection(false), (a) => collapsePreviewAction);
-
-            evt.menu.AppendSeparator();
         }
 
         void ChangeCustomNodeColor(DropdownMenuAction menuAction)
@@ -346,6 +371,28 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        public void SetNodePrecisionOnSelection(Precision inPrecision)
+        {
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            IEnumerable<MaterialNodeView> nodes = selection.Where(x => x is MaterialNodeView node && node.node.canSetPrecision).Select(x => x as MaterialNodeView);
+
+            graph.owner.RegisterCompleteObjectUndo("Set Precisions");
+            editorView.colorManager.SetNodesDirty(nodes);
+
+            foreach (MaterialNodeView selectedNode in nodes)
+            {
+                selectedNode.node.precision = inPrecision;
+            }
+
+            // Reflect the data down
+            graph.ValidateGraph();
+            editorView.colorManager.UpdateNodeViews(nodes);
+
+            // Update the views
+            foreach (MaterialNodeView selectedNode in nodes)
+                selectedNode.node.Dirty(ModificationScope.Topological);
+        }
+
         void CollapsePreviews(DropdownMenuAction action)
         {
             graph.owner.RegisterCompleteObjectUndo("Collapse Previews");
@@ -408,8 +455,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var converter = node as IPropertyFromNode;
                 var prop = converter.AsShaderProperty();
-                prop.displayName = graph.SanitizePropertyName(prop.displayName, prop.guid);
-                graph.AddShaderProperty(prop);
+                graph.SanitizeGraphInputName(prop);
+                graph.AddGraphInput(prop);
 
                 var propNode = new PropertyNode();
                 propNode.drawState = node.drawState;
@@ -488,14 +535,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             var groups = elements.OfType<ShaderGroup>().Select(x => x.userData);
             var nodes = elements.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.canCopyNode);
             var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
-            var properties = selection.OfType<BlackboardField>().Select(x => x.userData as AbstractShaderProperty);
+            var inputs = selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, properties, metaProperties, notes);
+            // Collect the keyword nodes and get the corresponding keywords
+            var keywordNodeGuids = nodes.OfType<KeywordNode>().Select(x => x.keywordGuid);
+            var metaKeywords = this.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
+
+            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -513,34 +564,87 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DeleteSelectionImplementation(string operationName, GraphView.AskUser askUser)
         {
+            bool containsProperty = false;
+
+            // Keywords need to be tested against variant limit based on multiple factors
+            bool keywordsDirty = false;
+
+            // Track dependent keyword nodes to remove them
+            List<KeywordNode> keywordNodes = new List<KeywordNode>();
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    if (graph.isSubGraph)
+                    switch(field.userData)
                     {
-                        if (EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        case AbstractShaderProperty property:
+                            containsProperty = true;
                             break;
-                        return;
+                        case ShaderKeyword keyword:
+                            keywordNodes.AddRange(graph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid));
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
             }
 
+            if(containsProperty)
+            {
+                if (graph.isSubGraph)
+                {
+                    if (!EditorUtility.DisplayDialog("Sub Graph Will Change", "If you remove a property and save the sub graph, you might change other graphs that are using this sub graph.\n\nDo you want to continue?", "Yes", "No"))
+                        return;
+                }
+            }
+
+            // Filter nodes that cannot be deleted
+            var nodesToDelete = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node);
+            
+            // Add keyword nodes dependent on deleted keywords
+            nodesToDelete = nodesToDelete.Union(keywordNodes);
+
+            // If deleting a Sub Graph node whose asset contains Keywords test variant limit
+            foreach(SubGraphNode subGraphNode in nodesToDelete.OfType<SubGraphNode>())
+            {
+                if (subGraphNode.asset == null)
+                {
+                    continue;
+                }
+                if(subGraphNode.asset.keywords.Count > 0)
+                {
+                    keywordsDirty = true;
+                }
+            }
+            
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node).ToArray(),
+            graph.RemoveElements(nodesToDelete.ToArray(),
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
-
+            
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
                 if (field != null && field.userData != null)
                 {
-                    var property = (AbstractShaderProperty)field.userData;
-                    graph.RemoveShaderProperty(property.guid);
+                    var input = (ShaderInput)field.userData;
+                    graph.RemoveGraphInput(input);
+
+                    // If deleting a Keyword test variant limit
+                    if(input is ShaderKeyword keyword)
+                    {
+                        keywordsDirty = true;
+                    }
                 }
+            }
+
+            // Test Keywords against variant limit
+            if(keywordsDirty)
+            {
+                graph.OnKeywordChangedNoValidate();
             }
 
             selection.Clear();
@@ -553,7 +657,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return EditorUtility.IsPersistent(obj) && (
                 obj is Texture2D ||
                 obj is Cubemap ||
-                obj is SubGraphAsset asset && !asset.descendents.Contains(graph.assetGuid) ||
+                obj is SubGraphAsset asset && !asset.descendents.Contains(graph.assetGuid) && asset.assetGuid != graph.assetGuid ||
                 obj is Texture2DArray ||
                 obj is Texture3D);
         }
@@ -635,7 +739,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 var node = new SampleTexture2DNode();
-
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
@@ -653,13 +756,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (textureArray != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
-                var property = new Texture2DArrayShaderProperty { displayName = textureArray.name, value = { textureArray = textureArray } };
-                graph.AddShaderProperty(property);
+                
                 var node = new SampleTexture2DArrayNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 graph.AddNode(node);
+
                 var inputslot = node.FindSlot<Texture2DArrayInputMaterialSlot>(SampleTexture2DArrayNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.textureArray = textureArray;
@@ -669,13 +772,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (texture3D != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture 3D");
-                var property = new Texture3DShaderProperty { displayName = texture3D.name, value = { texture = texture3D } };
-                graph.AddShaderProperty(property);
+
                 var node = new SampleTexture3DNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
                 graph.AddNode(node);
+
                 var inputslot = node.FindSlot<Texture3DInputMaterialSlot>(SampleTexture3DNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.texture = texture3D;
@@ -685,10 +788,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (cubemap != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
-                var property = new CubemapShaderProperty { displayName = cubemap.name, value = { cubemap = cubemap } };
-                graph.AddShaderProperty(property);
+                
                 var node = new SampleCubemapNode();
-
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
@@ -714,20 +815,37 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardField = obj as BlackboardField;
             if (blackboardField != null)
-            {
-                AbstractShaderProperty property = blackboardField.userData as AbstractShaderProperty;
-                if (property != null)
+            {   
+                graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
+
+                switch(blackboardField.userData)
                 {
-                    graph.owner.RegisterCompleteObjectUndo("Drag Property");
-                    var node = new PropertyNode();
+                    case AbstractShaderProperty property:
+                    {
+                        var node = new PropertyNode();
+                        var drawState = node.drawState;
+                        drawState.position =  new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
 
-                    var drawState = node.drawState;
-                    drawState.position =  new Rect(nodePosition, drawState.position.size);
-                    node.drawState = drawState;
-                    graph.AddNode(node);
+                        // Setting the guid requires the graph to be set first.
+                        node.propertyGuid = property.guid;
+                        break;
+                    }
+                    case ShaderKeyword keyword:
+                    {
+                        var node = new KeywordNode();
+                        var drawState = node.drawState;
+                        drawState.position =  new Rect(nodePosition, drawState.position.size);
+                        node.drawState = drawState;
+                        graph.AddNode(node);
 
-                    // Setting the guid requires the graph to be set first.
-                    node.propertyGuid = property.guid;
+                        // Setting the guid requires the graph to be set first.
+                        node.keywordGuid = keyword.guid;
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
         }
@@ -759,22 +877,68 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (copyGraph == null)
                 return;
 
+
             // Sort based on order
-            List<AbstractShaderProperty> sortedProperties = copyGraph.properties.ToList();
-            sortedProperties.Sort(new PropertyOrder(graphView.graph));
+            // List<AbstractShaderProperty> sortedProperties = copyGraph.properties.ToList();
+            // sortedProperties.Sort(new PropertyOrder(graphView.graph));
 
-            // Make new properties from the copied graph
-            foreach (AbstractShaderProperty property in sortedProperties)
+            // // Make new properties from the copied graph
+            // foreach (AbstractShaderProperty property in sortedProperties)
+            // {
+            //     AbstractShaderProperty copiedProperty = DuplicateProperty(property, graphView.graph);
+
+            // Keywords need to be tested against variant limit based on multiple factors
+            bool keywordsDirty = false;
+
+            // Make new inputs from the copied graph
+            foreach (ShaderInput input in copyGraph.inputs)
             {
-                AbstractShaderProperty copiedProperty = DuplicateProperty(property, graphView.graph);
+                ShaderInput copiedInput = input.Copy();
+                graphView.graph.SanitizeGraphInputName(copiedInput);
+                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
+                graphView.graph.AddGraphInput(copiedInput);
 
-                // Update the property nodes that depends on the copied node
-                var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == property.guid);
-                foreach (var node in dependentPropertyNodes)
+                switch(input)
                 {
-                    node.owner = graphView.graph;
-                    node.propertyGuid = copiedProperty.guid;
+                    case AbstractShaderProperty property:
+                        // Update the property nodes that depends on the copied node
+                        var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid);
+                        foreach (var node in dependentPropertyNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.propertyGuid = copiedInput.guid;
+                        }
+                        break;
+                    case ShaderKeyword shaderKeyword:
+                        // Update the keyword nodes that depends on the copied node
+                        var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keywordGuid == input.guid);
+                        foreach (var node in dependentKeywordNodes)
+                        {
+                            node.owner = graphView.graph;
+                            node.keywordGuid = copiedInput.guid;
+                        }
+
+                        // Pasting a new Keyword so need to test against variant limit
+                        keywordsDirty = true;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
+            }
+
+            // Pasting a Sub Graph node that contains Keywords so need to test against variant limit
+            foreach(SubGraphNode subGraphNode in copyGraph.GetNodes<SubGraphNode>())
+            {
+                if(subGraphNode.asset.keywords.Count > 0)
+                {
+                    keywordsDirty = true;
+                }
+            }
+
+            // Test Keywords against variant limit
+            if(keywordsDirty)
+            {
+                graphView.graph.OnKeywordChangedNoValidate();
             }
 
             using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())

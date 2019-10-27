@@ -12,8 +12,12 @@ namespace UnityEngine.Rendering.HighDefinition
             UpgradeFrameSettingsToStruct,
             AddAfterPostProcessFrameSetting,
             AddFrameSettingSpecularLighting = 5, // Not used anymore - don't removed the number
+            AddReflectionSettings,
             AddPostProcessFrameSettings,
-            AddReflectionSettings
+            AddRayTracingFrameSettings,
+            AddFrameSettingDirectSpecularLighting,
+            AddCustomPostprocessAndCustomPass,
+            ScalableSettingsRefactor,
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -33,15 +37,36 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 FrameSettings.MigrateToAfterPostprocess(ref data.m_RenderingPathDefaultCameraFrameSettings);
             }),
-            MigrationStep.New(Version.AddPostProcessFrameSettings, (HDRenderPipelineAsset data) =>
-            {
-                FrameSettings.MigrateToPostProcess(ref data.m_RenderingPathDefaultCameraFrameSettings);
-            }),
             MigrationStep.New(Version.AddReflectionSettings, (HDRenderPipelineAsset data) =>
             {
                 FrameSettings.MigrateToDefaultReflectionSettings(ref data.m_RenderingPathDefaultCameraFrameSettings);
                 FrameSettings.MigrateToNoReflectionSettings(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
                 FrameSettings.MigrateToNoReflectionRealtimeSettings(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            }),
+            MigrationStep.New(Version.AddPostProcessFrameSettings, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToPostProcess(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            }),
+            MigrationStep.New(Version.AddRayTracingFrameSettings, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToRayTracing(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            }),
+            MigrationStep.New(Version.AddFrameSettingDirectSpecularLighting, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToDirectSpecularLighting(ref data.m_RenderingPathDefaultCameraFrameSettings);
+                FrameSettings.MigrateToNoDirectSpecularLighting(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
+                FrameSettings.MigrateToDirectSpecularLighting(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            }),
+            MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.m_RenderingPathDefaultCameraFrameSettings);
+            }),
+            MigrationStep.New(Version.ScalableSettingsRefactor, (HDRenderPipelineAsset data) =>
+            {
+                ref var shadowInit = ref data.m_RenderPipelineSettings.hdShadowInitParams;
+                shadowInit.shadowResolutionArea.schemaId = ScalableSettingSchemaId.With4Levels;
+                shadowInit.shadowResolutionDirectional.schemaId = ScalableSettingSchemaId.With4Levels;
+                shadowInit.shadowResolutionPunctual.schemaId = ScalableSettingSchemaId.With4Levels;
             })
         );
 

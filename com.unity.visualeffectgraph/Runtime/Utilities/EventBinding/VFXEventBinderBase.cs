@@ -4,7 +4,7 @@ using UnityEngine.VFX;
 
 namespace UnityEngine.VFX.Utility
 {
-    public abstract class VFXEventBinderBase : MonoBehaviour
+    abstract class VFXEventBinderBase : MonoBehaviour
     {
         [SerializeField]
         protected VisualEffect target;

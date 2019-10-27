@@ -123,7 +123,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         {
             half3 highMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv));
 
-        #if _BLOOM_HQ
+        #if _BLOOM_HQ && !defined(SHADER_API_GLES)
             half3 lowMip = DecodeHDR(SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_MainTexLowMip, sampler_LinearClamp), uv, _MainTexLowMip_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex));
         #else
             half3 lowMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTexLowMip, sampler_LinearClamp, uv));

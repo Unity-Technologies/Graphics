@@ -52,10 +52,10 @@ namespace UnityEngine.Experimental.Rendering
             if (desc.overrideMaterial != null)
             {
                 drawSettings.overrideMaterial = desc.overrideMaterial;
-                drawSettings.overrideMaterialPassIndex = 0;
+                drawSettings.overrideMaterialPassIndex = desc.overrideMaterialPassIndex;
             }
 
-            var filterSettings = new FilteringSettings(desc.renderQueueRange)
+            var filterSettings = new FilteringSettings(desc.renderQueueRange, desc.layerMask)
             {
                 excludeMotionVectorObjects = desc.excludeObjectMotionVectors
             };
@@ -78,6 +78,8 @@ namespace UnityEngine.Experimental.Rendering
         public RenderStateBlock? stateBlock;
         public Material overrideMaterial;
         public bool excludeObjectMotionVectors;
+        public int layerMask;
+        public int overrideMaterialPassIndex;
 
         // Mandatory parameters passed through constructors
         public CullingResults cullingResult { get; private set; }
@@ -92,6 +94,8 @@ namespace UnityEngine.Experimental.Rendering
             this.passNames = null;
             this.cullingResult = cullingResult;
             this.camera = camera;
+            this.layerMask = -1;
+            this.overrideMaterialPassIndex = 0;
         }
 
         public RendererListDesc(ShaderTagId[] passNames, CullingResults cullingResult, Camera camera)
@@ -101,6 +105,8 @@ namespace UnityEngine.Experimental.Rendering
             this.passName = ShaderTagId.none;
             this.cullingResult = cullingResult;
             this.camera = camera;
+            this.layerMask = -1;
+            this.overrideMaterialPassIndex = 0;
         }
 
         public bool IsValid()

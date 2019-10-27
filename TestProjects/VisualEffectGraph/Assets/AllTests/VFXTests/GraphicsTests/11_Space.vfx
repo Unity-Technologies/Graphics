@@ -281,12 +281,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614581}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -294,6 +296,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114036124727929684
@@ -674,12 +678,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614582}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -687,6 +693,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114103004838022920
@@ -825,7 +833,10 @@ MonoBehaviour:
   - {fileID: 114063386016050250}
   - {fileID: 114295252955033220}
   - {fileID: 114033152555091602}
-  m_Capacity: 44
+  dataType: 0
+  capacity: 44
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 1
 --- !u!114 &114131131502761872
 MonoBehaviour:
@@ -849,7 +860,10 @@ MonoBehaviour:
   - {fileID: 114948833932143152}
   - {fileID: 114700733874330126}
   - {fileID: 114102368234356244}
-  m_Capacity: 44
+  dataType: 0
+  capacity: 44
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114143981825511226
 MonoBehaviour:
@@ -1695,7 +1709,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114587308783928508}
   m_ParameterInfo: []
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1917,6 +1931,10 @@ MonoBehaviour:
       slotIndex: 0
     - context: {fileID: 114948833932143152}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114427304455695846
 MonoBehaviour:
   m_ObjectHideFlags: 1

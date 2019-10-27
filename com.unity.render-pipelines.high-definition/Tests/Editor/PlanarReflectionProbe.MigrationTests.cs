@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEditor.Rendering.TestFramework;
+using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -128,16 +129,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     probe.enabled = true;
 
                     var settings = probe.settings;
-                    Assert.AreEqual((HDAdditionalCameraData.ClearColorMode)legacyProbeData.clearColorMode, settings.camera.bufferClearing.clearColorMode);
-                    Assert.AreEqual(legacyProbeData.backgroundColorHDR, settings.camera.bufferClearing.backgroundColorHDR);
-                    Assert.AreEqual(legacyProbeData.clearDepth, settings.camera.bufferClearing.clearDepth);
-                    Assert.AreEqual(legacyProbeData.cullingMask, (int)settings.camera.culling.cullingMask);
-                    Assert.AreEqual(legacyProbeData.useOcclusionCulling, settings.camera.culling.useOcclusionCulling);
-                    Assert.AreEqual(legacyProbeData.volumeLayerMask, (int)settings.camera.volumes.layerMask);
-                    Assert.AreEqual(legacyProbeData.nearClipPlane, settings.camera.frustum.nearClipPlane);
-                    Assert.AreEqual(legacyProbeData.farClipPlane, settings.camera.frustum.farClipPlane);
-                    Assert.AreEqual(legacyProbeData.fieldOfview, settings.camera.frustum.fieldOfView);
-                    Assert.AreEqual(legacyProbeData.renderingPath == (int)LegacyRenderingPath.Custom, settings.camera.customRenderingSettings);
+                    Assert.AreEqual((HDAdditionalCameraData.ClearColorMode)legacyProbeData.clearColorMode, settings.cameraSettings.bufferClearing.clearColorMode);
+                    Assert.AreEqual(legacyProbeData.backgroundColorHDR, settings.cameraSettings.bufferClearing.backgroundColorHDR);
+                    Assert.AreEqual(legacyProbeData.clearDepth, settings.cameraSettings.bufferClearing.clearDepth);
+                    Assert.AreEqual(legacyProbeData.cullingMask, (int)settings.cameraSettings.culling.cullingMask);
+                    Assert.AreEqual(legacyProbeData.useOcclusionCulling, settings.cameraSettings.culling.useOcclusionCulling);
+                    Assert.AreEqual(legacyProbeData.volumeLayerMask, (int)settings.cameraSettings.volumes.layerMask);
+                    Assert.AreEqual(legacyProbeData.nearClipPlane, settings.cameraSettings.frustum.nearClipPlane);
+                    Assert.AreEqual(legacyProbeData.farClipPlane, settings.cameraSettings.frustum.farClipPlane);
+                    Assert.AreEqual(legacyProbeData.fieldOfview, settings.cameraSettings.frustum.fieldOfView);
+                    Assert.AreEqual(legacyProbeData.renderingPath == (int)LegacyRenderingPath.Custom, settings.cameraSettings.customRenderingSettings);
                     Assert.IsTrue((influencePositionWS - probe.transform.position).sqrMagnitude < 0.001f);
                     Assert.IsTrue((mirrorPositionPS - settings.proxySettings.mirrorPositionProxySpace).sqrMagnitude < 0.001f);
                     Assert.AreEqual(ProbeSettings.ProbeType.PlanarProbe, settings.type);
@@ -152,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             }
 
             string GeneratePrefabYAML(LegacyProbeData legacyProbeData)
-                => $@"%YAML 1.1
+                => FormattableString.Invariant($@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &6171638715142251291
 GameObject:
@@ -298,7 +299,7 @@ MonoBehaviour:
   m_ObsoleteOverrideFieldOfView: 0
   m_ObsoleteFieldOfViewOverride: 90
   m_ObsoleteCaptureNearPlane: 0.3
-  m_ObsoleteCaptureFarPlane: 1000";
+  m_ObsoleteCaptureFarPlane: 1000");
         }
     }
 }

@@ -8,9 +8,11 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXLitCubeOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Lit Cube Output"; } }
+        public override string name { get { return "Output Particle Lit Cube"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
+        public override bool implementsMotionVector { get { return true; } }
+
 
         public override void OnEnable()
         {
@@ -51,6 +53,7 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 yield return "blendMode";
+                yield return "shaderGraph";
             }
         }
     }

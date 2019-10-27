@@ -267,11 +267,13 @@ namespace UnityEditor.Rendering.LookDev
             {
                 case ViewIndex.First:
                     stage = new Stage(firstStageName);
-                    stage.camera.backgroundColor = Compositer.firstViewGizmoColor;
+                    stage.camera.backgroundColor = new Color32(5, 5, 5, 255);
+                    stage.camera.name += "_1";
                     break;
                 case ViewIndex.Second:
                     stage = new Stage(secondStageName);
-                    stage.camera.backgroundColor = Compositer.secondViewGizmoColor;
+                    stage.camera.backgroundColor = new Color32(5, 5, 5, 255);
+                    stage.camera.name += "_2";
                     break;
                 default:
                     throw new ArgumentException("Unknown ViewIndex: " + index);
@@ -302,7 +304,7 @@ namespace UnityEditor.Rendering.LookDev
             Stage stage = this[index];
             Environment environment = m_Contexts.GetViewContent(index).environment;
             provider.UpdateSky(stage.camera,
-                environment?.sky,
+                environment == null ? default : environment.sky,
                 stage.runtimeInterface);
         }
 

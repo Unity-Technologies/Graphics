@@ -3,14 +3,21 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
         [Reload("Editor/DefaultScene/DefaultSceneRoot.prefab")]
         public GameObject defaultScene;
-        [Reload("Editor/DefaultScene/DefaultRenderingSettings.asset")]
-        public VolumeProfile defaultRenderSettingsProfile;
-        [Reload("Editor/DefaultScene/DefaultPostProcessingSettings.asset")]
+        [Reload("Editor/DefaultDXRScene/DefaultSceneRoot.prefab")]
+        public GameObject defaultDXRScene;
+        [Reload("Editor/DefaultScene/Sky and Fog Settings Profile.asset")]
+        public VolumeProfile defaultSkyAndFogProfile;
+        [Reload("Editor/DefaultDXRScene/Sky and Fog Settings Profile.asset")]
+        public VolumeProfile defaultDXRSkyAndFogProfile;
+        [Reload("Editor/DefaultScene/Scene PostProcess Profile.asset")]
         public VolumeProfile defaultPostProcessingProfile;
+        [Reload("Editor/DefaultDXRScene/Scene PostProcess Profile.asset")]
+        public VolumeProfile defaultDXRPostProcessingProfile;
         [Reload(new[]
         {
             "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
@@ -79,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var resources = target as HDRenderPipelineEditorResources;
                 resources.defaultScene = null;
-                resources.defaultRenderSettingsProfile = null;
+                resources.defaultSkyAndFogProfile = null;
                 resources.defaultPostProcessingProfile = null;
                 resources.defaultDiffusionProfileSettingsList = null;
                 resources.materials = null;

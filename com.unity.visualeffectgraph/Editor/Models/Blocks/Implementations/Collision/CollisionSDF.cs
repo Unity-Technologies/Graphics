@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var input in GetExpressionsFromSlots(this))
                 {
                     if (input.name == "FieldTransform")
-                        yield return new VFXNamedExpression(new VFXExpressionInverseMatrix(input.exp), "InvFieldTransform");
+                        yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
                 }
             }
         }

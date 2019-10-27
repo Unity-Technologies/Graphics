@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
         public VFXParameterUI() : base("uxml/VFXParameter")
         {
             RemoveFromClassList("VFXNodeUI");
-            styleSheets.Add(Resources.Load<StyleSheet>("VFXParameter"));
+            styleSheets.Add(VFXView.LoadStyleSheet("VFXParameter"));
             styleSheets.Add(EditorGUIUtility.Load("StyleSheets/GraphView/Node.uss") as StyleSheet);
 
             RegisterCallback<MouseEnterEvent>(OnMouseHover);

@@ -1,69 +1,151 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    struct ShaderGraphRequirements
+    public struct ShaderGraphRequirements
     {
-        public NeededCoordinateSpace requiresNormal;
-        public NeededCoordinateSpace requiresBitangent;
-        public NeededCoordinateSpace requiresTangent;
-        public NeededCoordinateSpace requiresViewDir;
-        public NeededCoordinateSpace requiresPosition;
-        public bool requiresScreenPosition;
-        public bool requiresVertexColor;
-        public bool requiresFaceSign;
-        public List<UVChannel> requiresMeshUVs;
-        public bool requiresDepthTexture;
-        public bool requiresCameraOpaqueTexture;
-        public bool requiresTime;
+        [SerializeField] NeededCoordinateSpace m_RequiresNormal;
+        [SerializeField] NeededCoordinateSpace m_RequiresBitangent;
+        [SerializeField] NeededCoordinateSpace m_RequiresTangent;
+        [SerializeField] NeededCoordinateSpace m_RequiresViewDir;
+        [SerializeField] NeededCoordinateSpace m_RequiresPosition;
+        [SerializeField] bool m_RequiresScreenPosition;
+        [SerializeField] bool m_RequiresVertexColor;
+        [SerializeField] bool m_RequiresFaceSign;
+        [SerializeField] List<UVChannel> m_RequiresMeshUVs;
+        [SerializeField] bool m_RequiresDepthTexture;
+        [SerializeField] bool m_RequiresCameraOpaqueTexture;
+        [SerializeField] bool m_RequiresTime;
+        [SerializeField] bool m_RequiresVertexSkinning;
 
-        public static ShaderGraphRequirements none
+        internal static ShaderGraphRequirements none
         {
             get
             {
                 return new ShaderGraphRequirements
                 {
-                    requiresMeshUVs = new List<UVChannel>()
+                    m_RequiresMeshUVs = new List<UVChannel>()
                 };
             }
         }
 
-        public bool NeedsTangentSpace()
+        public NeededCoordinateSpace requiresNormal
         {
-            var compoundSpaces = requiresBitangent | requiresNormal | requiresPosition
-                | requiresTangent | requiresViewDir | requiresPosition
-                | requiresNormal;
+            get { return m_RequiresNormal; }
+            internal set { m_RequiresNormal = value; }
+        }
+
+        public NeededCoordinateSpace requiresBitangent
+        {
+            get { return m_RequiresBitangent; }
+            internal set { m_RequiresBitangent = value; }
+        }
+
+        public NeededCoordinateSpace requiresTangent
+        {
+            get { return m_RequiresTangent; }
+            internal set { m_RequiresTangent = value; }
+        }
+
+        public NeededCoordinateSpace requiresViewDir
+        {
+            get { return m_RequiresViewDir; }
+            internal set { m_RequiresViewDir = value; }
+        }
+
+        public NeededCoordinateSpace requiresPosition
+        {
+            get { return m_RequiresPosition; }
+            internal set { m_RequiresPosition = value; }
+        }
+
+        public bool requiresScreenPosition
+        {
+            get { return m_RequiresScreenPosition; }
+            internal set { m_RequiresScreenPosition = value; }
+        }
+
+        public bool requiresVertexColor
+        {
+            get { return m_RequiresVertexColor; }
+            internal set { m_RequiresVertexColor = value; }
+        }
+
+        public bool requiresFaceSign
+        {
+            get { return m_RequiresFaceSign; }
+            internal set { m_RequiresFaceSign = value; }
+        }
+
+        public List<UVChannel> requiresMeshUVs
+        {
+            get { return m_RequiresMeshUVs; }
+            internal set { m_RequiresMeshUVs = value; }
+        }
+
+        public bool requiresDepthTexture
+        {
+            get { return m_RequiresDepthTexture; }
+            internal set { m_RequiresDepthTexture = value; }
+        }
+
+        public bool requiresCameraOpaqueTexture
+        {
+            get { return m_RequiresCameraOpaqueTexture; }
+            internal set { m_RequiresCameraOpaqueTexture = value; }
+        }
+
+        public bool requiresTime
+        {
+            get { return m_RequiresTime; }
+            internal set { m_RequiresTime = value; }
+        }
+
+        public bool requiresVertexSkinning
+        {
+            get { return m_RequiresVertexSkinning; }
+            internal set { m_RequiresVertexSkinning = value; }
+        }
+
+        internal bool NeedsTangentSpace()
+        {
+            var compoundSpaces = m_RequiresBitangent | m_RequiresNormal | m_RequiresPosition
+                | m_RequiresTangent | m_RequiresViewDir | m_RequiresPosition
+                | m_RequiresNormal;
 
             return (compoundSpaces & NeededCoordinateSpace.Tangent) > 0;
         }
 
-        public ShaderGraphRequirements Union(ShaderGraphRequirements other)
+        internal ShaderGraphRequirements Union(ShaderGraphRequirements other)
         {
             var newReqs = new ShaderGraphRequirements();
-            newReqs.requiresNormal = other.requiresNormal | requiresNormal;
-            newReqs.requiresTangent = other.requiresTangent | requiresTangent;
-            newReqs.requiresBitangent = other.requiresBitangent | requiresBitangent;
-            newReqs.requiresViewDir = other.requiresViewDir | requiresViewDir;
-            newReqs.requiresPosition = other.requiresPosition | requiresPosition;
-            newReqs.requiresScreenPosition = other.requiresScreenPosition | requiresScreenPosition;
-            newReqs.requiresVertexColor = other.requiresVertexColor | requiresVertexColor;
-            newReqs.requiresFaceSign = other.requiresFaceSign | requiresFaceSign;
-            newReqs.requiresDepthTexture = other.requiresDepthTexture | requiresDepthTexture;
-            newReqs.requiresCameraOpaqueTexture = other.requiresCameraOpaqueTexture | requiresCameraOpaqueTexture;
-            newReqs.requiresTime = other.requiresTime | requiresTime;
+            newReqs.m_RequiresNormal = other.m_RequiresNormal | m_RequiresNormal;
+            newReqs.m_RequiresTangent = other.m_RequiresTangent | m_RequiresTangent;
+            newReqs.m_RequiresBitangent = other.m_RequiresBitangent | m_RequiresBitangent;
+            newReqs.m_RequiresViewDir = other.m_RequiresViewDir | m_RequiresViewDir;
+            newReqs.m_RequiresPosition = other.m_RequiresPosition | m_RequiresPosition;
+            newReqs.m_RequiresScreenPosition = other.m_RequiresScreenPosition | m_RequiresScreenPosition;
+            newReqs.m_RequiresVertexColor = other.m_RequiresVertexColor | m_RequiresVertexColor;
+            newReqs.m_RequiresFaceSign = other.m_RequiresFaceSign | m_RequiresFaceSign;
+            newReqs.m_RequiresDepthTexture = other.m_RequiresDepthTexture | m_RequiresDepthTexture;
+            newReqs.m_RequiresCameraOpaqueTexture = other.m_RequiresCameraOpaqueTexture | m_RequiresCameraOpaqueTexture;
+            newReqs.m_RequiresTime = other.m_RequiresTime | m_RequiresTime;
+            newReqs.m_RequiresVertexSkinning = other.m_RequiresVertexSkinning | m_RequiresVertexSkinning;
 
-            newReqs.requiresMeshUVs = new List<UVChannel>();
-            if (requiresMeshUVs != null)
-                newReqs.requiresMeshUVs.AddRange(requiresMeshUVs);
-            if (other.requiresMeshUVs != null)
-                newReqs.requiresMeshUVs.AddRange(other.requiresMeshUVs);
+
+            newReqs.m_RequiresMeshUVs = new List<UVChannel>();
+            if (m_RequiresMeshUVs != null)
+                newReqs.m_RequiresMeshUVs.AddRange(m_RequiresMeshUVs);
+            if (other.m_RequiresMeshUVs != null)
+                newReqs.m_RequiresMeshUVs.AddRange(other.m_RequiresMeshUVs);
             return newReqs;
         }
 
-        public static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true)
+        internal static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true)
             where T : AbstractMaterialNode
         {
             NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
@@ -77,6 +159,7 @@ namespace UnityEditor.ShaderGraph
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
             bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
             bool requiresTime = nodes.Any(x => x.RequiresTime());
+            bool requiresVertexSkinning = nodes.OfType<IMayRequireVertexSkinning>().Any(x => x.RequiresVertexSkinning(stageCapability));
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
@@ -105,18 +188,19 @@ namespace UnityEditor.ShaderGraph
 
             var reqs = new ShaderGraphRequirements()
             {
-                requiresNormal = requiresNormal,
-                requiresBitangent = requiresBitangent,
-                requiresTangent = requiresTangent,
-                requiresViewDir = requiresViewDir,
-                requiresPosition = requiresPosition,
-                requiresScreenPosition = requiresScreenPosition,
-                requiresVertexColor = requiresVertexColor,
-                requiresFaceSign = requiresFaceSign,
-                requiresMeshUVs = meshUV,
-                requiresDepthTexture = requiresDepthTexture,
-                requiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
-                requiresTime = requiresTime
+                m_RequiresNormal = requiresNormal,
+                m_RequiresBitangent = requiresBitangent,
+                m_RequiresTangent = requiresTangent,
+                m_RequiresViewDir = requiresViewDir,
+                m_RequiresPosition = requiresPosition,
+                m_RequiresScreenPosition = requiresScreenPosition,
+                m_RequiresVertexColor = requiresVertexColor,
+                m_RequiresFaceSign = requiresFaceSign,
+                m_RequiresMeshUVs = meshUV,
+                m_RequiresDepthTexture = requiresDepthTexture,
+                m_RequiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
+                m_RequiresTime = requiresTime,
+                m_RequiresVertexSkinning = requiresVertexSkinning
             };
 
             return reqs;

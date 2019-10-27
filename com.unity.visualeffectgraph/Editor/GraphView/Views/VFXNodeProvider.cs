@@ -213,7 +213,7 @@ namespace UnityEditor.VFX.UI
                     new Descriptor
                     {
                         modelDescriptor = t,
-                        category = string.IsNullOrEmpty(t.model.category) ? "Parameter" : string.Format("Parameter/{0}", t.model.category),
+                        category = string.IsNullOrEmpty(t.model.category) ? "Property" : string.Format("Property/{0}", t.model.category),
                         name = t.exposedName
                     }
                     ).OrderBy(t => t.category);

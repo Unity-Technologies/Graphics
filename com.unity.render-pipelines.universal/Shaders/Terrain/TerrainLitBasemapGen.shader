@@ -37,6 +37,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
         
         #define _METALLICSPECGLOSSMAP 1
         #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
+        #define _TERRAIN_BASEMAP_GEN
 
         #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
         #pragma shader_feature_local _MASKMAP
@@ -89,7 +90,8 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
                 half4 defaultSmoothness = 0.0h;
     
                 half4 masks[4];
-                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
+                float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
+                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
                 
                 masks[0] = 1.0h;
                 masks[1] = 1.0h;
@@ -168,7 +170,8 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
                 half4 defaultSmoothness;
     
                 half4 masks[4];
-                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
+                float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;                
+                splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
                 
                 masks[0] = 1.0h;
                 masks[1] = 1.0h;

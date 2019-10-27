@@ -6,6 +6,7 @@
 #define SPECULAR_OCCLUSION_FROM_AO 0
 #define SPECULAR_OCCLUSION_CONECONE 1
 #define SPECULAR_OCCLUSION_SPTD 2
+#define SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT 3
 
 // Choice of formulas to infer bent visibility: see SPTDistribution.hlsl : GetBentVisibility()
 #define BENT_VISIBILITY_FROM_AO_UNIFORM 0

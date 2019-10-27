@@ -46,28 +46,16 @@ namespace UnityEditor.Rendering
                 .Where(ass => !(ass.ManifestModule is System.Reflection.Emit.ModuleBuilder))
                 .ToList();
 
-            foreach (var assembly in assemblyList)
+            foreach (var type in TypeCache.GetTypesWithAttribute<GenerateHLSL>())
             {
-                var types = assembly.GetExportedTypes();
-
-                foreach (var type in types)
+                var attr = type.GetCustomAttributes(typeof(GenerateHLSL), false).First() as GenerateHLSL;
+                ShaderTypeGenerator gen;
+                if (s_TypeName.TryGetValue(type.FullName, out gen))
                 {
-                    var attributes = type.GetCustomAttributes(true);
-
-                    foreach (var attr in attributes)
-                    {
-                        if (attr is GenerateHLSL)
-                        {
-                            ShaderTypeGenerator gen;
-                            if (s_TypeName.TryGetValue(type.FullName, out gen))
-                            {
-                                Debug.LogError("Duplicate typename with the GenerateHLSL attribute detected: " + type.FullName +
-                                    " declared in both " + gen.type.Assembly.FullName + " and " + type.Assembly.FullName + ".  Skipping the second instance.");
-                            }
-                            s_TypeName[type.FullName] = new ShaderTypeGenerator(type, attr as GenerateHLSL);
-                        }
-                    }
+                    Debug.LogError("Duplicate typename with the GenerateHLSL attribute detected: " + type.FullName +
+                        " declared in both " + gen.type.Assembly.FullName + " and " + type.Assembly.FullName + ".  Skipping the second instance.");
                 }
+                s_TypeName[type.FullName] = new ShaderTypeGenerator(type, attr);
             }
 
 
@@ -131,21 +119,24 @@ namespace UnityEditor.Rendering
 
                 using (var writer = File.CreateText(fileName))
                 {
+                    writer.NewLine = Environment.NewLine;
+
                     var guard = Path.GetFileName(fileName).Replace(".", "_").ToUpper();
                     if (!char.IsLetter(guard[0]))
                         guard = "_" + guard;
 
-                    writer.Write("//\n");
-                    writer.Write("// This file was automatically generated. Please don't edit by hand.\n");
-                    writer.Write("//\n\n");
-                    writer.Write("#ifndef " + guard + "\n");
-                    writer.Write("#define " + guard + "\n");
+                    writer.WriteLine("//");
+                    writer.WriteLine("// This file was automatically generated. Please don't edit by hand.");
+                    writer.WriteLine("//");
+                    writer.WriteLine();
+                    writer.WriteLine("#ifndef " + guard);
+                    writer.WriteLine("#define " + guard);
 
                     foreach (var gen in it.Value)
                     {
                         if (gen.hasStatics)
                         {
-                            writer.Write(gen.EmitDefines() + "\n");
+                            writer.WriteLine(gen.EmitDefines().Replace("\n", writer.NewLine));
                         }
                     }
 
@@ -153,7 +144,7 @@ namespace UnityEditor.Rendering
                     {
                         if (gen.hasFields)
                         {
-                            writer.Write(gen.EmitTypeDecl() + "\n");
+                            writer.WriteLine(gen.EmitTypeDecl().Replace("\n", writer.NewLine));
                         }
                     }
 
@@ -161,10 +152,10 @@ namespace UnityEditor.Rendering
                     {
                         if (gen.hasFields && gen.needAccessors && !gen.hasPackedInfo)
                         {
-                            writer.Write(gen.EmitAccessors());
-                            writer.Write(gen.EmitSetters());
+                            writer.Write(gen.EmitAccessors().Replace("\n", writer.NewLine));
+                            writer.Write(gen.EmitSetters().Replace("\n", writer.NewLine));
                             const bool emitInitters = true;
-                            writer.Write(gen.EmitSetters(emitInitters));
+                            writer.Write(gen.EmitSetters(emitInitters).Replace("\n", writer.NewLine));
                         }
                     }
 
@@ -172,7 +163,7 @@ namespace UnityEditor.Rendering
                     {
                         if (gen.hasStatics && gen.hasFields && gen.needParamDebug && !gen.hasPackedInfo)
                         {
-                            writer.Write(gen.EmitFunctions() + "\n");
+                            writer.WriteLine(gen.EmitFunctions().Replace("\n", writer.NewLine));
                         }
                     }
 
@@ -180,11 +171,13 @@ namespace UnityEditor.Rendering
                     {
                         if(gen.hasPackedInfo)
                         {
-                            writer.Write(gen.EmitPackedInfo() + "\n");
+                            writer.WriteLine(gen.EmitPackedInfo().Replace("\n", writer.NewLine));
                         }
                     }
 
-                    writer.Write("\n#endif\n");
+                    writer.WriteLine();
+
+                    writer.WriteLine("#endif");
 
                     var customFile = it.Key + ".custom.hlsl";
                     if (File.Exists(customFile))

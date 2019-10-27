@@ -8,7 +8,17 @@
 
 // We can't use multi_compile for compute shaders so we force the shadow algorithm
 #if SHADERPASS == SHADERPASS_DEFERRED_LIGHTING
-#define SHADOW_MEDIUM 
+
+    #if SHADEROPTIONS_DEFERRED_SHADOW_FILTERING == HDSHADOWFILTERINGQUALITY_LOW
+        #define SHADOW_LOW
+    #elif SHADEROPTIONS_DEFERRED_SHADOW_FILTERING == HDSHADOWFILTERINGQUALITY_MEDIUM
+        #define SHADOW_MEDIUM
+    #elif SHADEROPTIONS_DEFERRED_SHADOW_FILTERING == HDSHADOWFILTERINGQUALITY_HIGH
+        #define SHADOW_HIGH
+    #else
+        #define SHADOW_MEDIUM
+    #endif
+
 #endif
 
 #if (SHADERPASS == SHADERPASS_VOLUMETRIC_LIGHTING || SHADERPASS == SHADERPASS_VOLUME_VOXELIZATION)
@@ -284,6 +294,7 @@ float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D t
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+        positionWS = positionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
         float worldTexelSize = sd.worldTexelSize;

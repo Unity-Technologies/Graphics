@@ -1,3 +1,6 @@
+#ifndef UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED
+#define UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -28,6 +31,7 @@ CBUFFER_START(UnityPhysicallyBasedSky)
     float  _AerosolSeaLevelScattering;
 
     float3 _GroundAlbedo;
+    float  _IntensityMultiplier;
 
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
 CBUFFER_END
@@ -69,24 +73,20 @@ float AerosolPhase(float LdotV)
     return _AerosolPhasePartConstant * CornetteShanksPhasePartVarying(_AerosolAnisotropy, -LdotV);
 }
 
-// AerosolPhase / AirPhase.
-float AerosolToAirPhaseRatio(float LdotV)
-{
-    float k = 3 / (16 * PI);
-    return _AerosolPhasePartConstant * rcp(k) * CornetteShanksPhasePartAsymmetrical(_AerosolAnisotropy, -LdotV);
-}
-
+// For multiple scattering.
+// Assume that, after multiple bounces, the effect of anisotropy is lost.
 float3 AtmospherePhaseScatter(float LdotV, float height)
 {
-    return AirPhase(LdotV) * AirScatter(height) + AerosolPhase(LdotV) * AerosolScatter(height);
+    return AirPhase(LdotV) * (AirScatter(height) + AerosolScatter(height));
 }
 
 // Returns the closest hit in X and the farthest hit in Y.
 // Returns a negative number if there's no intersection.
-float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
+// (result.y >= 0) indicates success.
+// (result.x < 0) indicates that we are inside the sphere.
+float2 IntersectSphere(float sphereRadius, float cosChi,
+                       float radialDistance, float rcpRadialDistance)
 {
-    float r = radialDistance;
-
     // r_o = float2(0, r)
     // r_d = float2(sinChi, cosChi)
     // p_s = r_o + t * r_d
@@ -98,23 +98,29 @@ float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
     // t^2 + 2 * dot(r_o, r_d) + dot(r_o, r_o) - R^2 = 0
     //
     // Solve: t^2 + (2 * b) * t + c = 0, where
-    // b = -r * cosChi,
+    // b = r * cosChi,
     // c = r^2 - R^2.
     //
     // t = (-2 * b + sqrt((2 * b)^2 - 4 * c)) / 2
     // t = -b + sqrt(b^2 - c)
-    // t = -b + sqrt((r * cosChi)^2 + R^2 - r^2)
-    // t = -b + r * sqrt((cosChi)^2 + (R/r)^2 - 1)
+    // t = -b + sqrt((r * cosChi)^2 - (r^2 - R^2))
+    // t = -b + r * sqrt((cosChi)^2 - 1 + (R/r)^2)
     // t = -b + r * sqrt(d)
     // t = r * (-cosChi + sqrt(d))
     //
     // Why do we do this? Because it is more numerically robust.
 
-    float d = Sq(sphereRadius * rcp(r)) - saturate(1 - cosChi * cosChi);
+    float d = Sq(sphereRadius * rcpRadialDistance) - saturate(1 - cosChi * cosChi);
 
     // Return the value of 'd' for debugging purposes.
-    return (d < 0) ? d : (r * float2(-cosChi - sqrt(d),
-                                     -cosChi + sqrt(d)));
+    return (d < 0) ? d : (radialDistance * float2(-cosChi - sqrt(d),
+                                                  -cosChi + sqrt(d)));
+}
+
+// TODO: remove.
+float2 IntersectSphere(float sphereRadius, float cosChi, float radialDistance)
+{
+    return IntersectSphere(sphereRadius, cosChi, radialDistance, rcp(radialDistance));
 }
 
 float2 IntersectRayCylinder(float3 cylAxis, float cylRadius,
@@ -149,9 +155,9 @@ float UnmapQuadraticHeight(float v)
 
 float ComputeCosineOfHorizonAngle(float r)
 {
-    float R        = _PlanetaryRadius;
-    float sinHoriz = R * rcp(r);
-    return -sqrt(saturate(1 - sinHoriz * sinHoriz));
+    float R      = _PlanetaryRadius;
+    float sinHor = R * rcp(r);
+    return -sqrt(saturate(1 - sinHor * sinHor));
 }
 
 // We use the parametrization from "Outdoor Light Scattering Sample Update" by E. Yusov.
@@ -265,7 +271,7 @@ float RescaledChapmanFunction(float z, float Z, float cosTheta)
     return ch;
 }
 
-float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveHorizon = false)
+float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon)
 {
     const float2 n = float2(_AirDensityFalloff, _AerosolDensityFalloff);
     const float2 H = float2(_AirScaleHeight,    _AerosolScaleHeight);
@@ -274,14 +280,13 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveH
     float2 z = n * r;
     float2 Z = n * R;
 
-    float cosHoriz = ComputeCosineOfHorizonAngle(r);
 	float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
 
     float2 ch;
     ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
     ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
 
-    if ((!alwaysAboveHorizon) && (cosTheta < cosHoriz)) // Below horizon, intersect sphere
+    if (!aboveHorizon) // Below horizon, intersect sphere
 	{
 		float sinGamma = (r / R) * sinTheta;
 		float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
@@ -309,6 +314,13 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool alwaysAboveH
     float2 optDepth = ch * H;
 
     return optDepth.x * _AirSeaLevelExtinction + optDepth.y * _AerosolSeaLevelExtinction;
+}
+
+float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)
+{
+    float cosHor = ComputeCosineOfHorizonAngle(r);
+
+    return ComputeAtmosphericOpticalDepth(r, cosTheta, cosTheta >= cosHor);
 }
 
 // Map: [cos(120 deg), 1] -> [0, 1].
@@ -365,32 +377,25 @@ TexCoord4D ConvertPositionAndOrientationToTexCoords(float height, float NdotV, f
 }
 
 // O must be planet-relative.
-float IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
+float2 IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
 {
     const float A = _AtmosphericRadius;
-    const float R = _PlanetaryRadius;
 
     float3 P = O;
 
     N = normalize(P);
-    r = max(length(P), R); // Must not be inside the planet
+    r = length(P);
 
-    float t;
+    float2 t = IntersectSphere(A, dot(N, -V), r);
 
-    if (r <= A)
+    if (t.y >= 0) // Success?
     {
-        // We are inside the atmosphere.
-        t = 0;
-    }
-    else
-    {
-        // We are observing the planet from space.
-        t = IntersectSphere(A, dot(N, -V), r).x; // Min root
+        // If we are already inside, do not step back.
+        t.x = max(t.x, 0);
 
-        if (t >= 0)
+        if (t.x > 0)
         {
-            // It's in the view.
-            P = P + t * -V;
+            P = P + t.x * -V;
             N = normalize(P);
             r = A;
         }
@@ -398,3 +403,5 @@ float IntersectAtmosphere(float3 O, float3 V, out float3 N, out float r)
 
     return t;
 }
+
+#endif // UNITY_PHYSICALLY_BASED_SKY_COMMON_INCLUDED

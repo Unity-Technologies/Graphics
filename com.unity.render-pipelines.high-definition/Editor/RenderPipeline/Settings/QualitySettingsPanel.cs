@@ -1,5 +1,3 @@
-#if QUALITY_SETTINGS_GET_RENDER_PIPELINE_AT_AVAILABLE
-
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -18,7 +16,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 activateHandler = (searchContext, rootElement) =>
                 {
-                    HDEditorUtils.AddStyleSheets(rootElement);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.FormatingPath);
+                    HDEditorUtils.AddStyleSheets(rootElement, HDEditorUtils.QualitySettingsSheetPath);
 
                     var panel = new QualitySettingsPanelVisualElement(searchContext);
                     panel.style.flexGrow = 1;
@@ -145,7 +144,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     makeItem = () => new HDRPAssetHeaderEntry(),
                 };
                 m_HDRPAssetList.AddToClassList("unity-quality-header-list");
+#if UNITY_2020_1_OR_NEWER
+                m_HDRPAssetList.onSelectionChange += OnSelectionChange;
+#else
                 m_HDRPAssetList.onSelectionChanged += OnSelectionChanged;
+#endif
 
                 headerBox.Add(m_HDRPAssetList);
 
@@ -169,7 +172,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 Add(inspectorBox);
             }
 
+#if UNITY_2020_1_OR_NEWER
+            void OnSelectionChange(IEnumerable<object> obj)
+#else
             void OnSelectionChanged(List<object> obj)
+#endif
             {
                 m_InspectorTitle.text = m_HDRPAssets[m_HDRPAssetList.selectedIndex].asset.name;
             }
@@ -181,10 +188,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 Editor.CreateCachedEditor(m_HDRPAssets[selected].asset, typeof(HDRenderPipelineEditor), ref m_Cached);
-                ((HDRenderPipelineEditor) m_Cached).showInspector = true;
+                ((HDRenderPipelineEditor) m_Cached).largeLabelWidth = false;
                 m_Cached.OnInspectorGUI();
             }
         }
     }
 }
-#endif

@@ -277,15 +277,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ssrBlackTexture;
 
             RenderGraphResource result;
-
-#if ENABLE_RAYTRACING
-            var settings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-            if (settings.enableRaytracing.value)
-            {
-                RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount);
-            }
-            else
-#endif
             {
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
@@ -386,12 +377,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        bool IsVolumetricLightingEnabled(HDCamera hdCamera)
-        {
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            return hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) && visualEnvironment.fogType.value == FogType.Volumetric;
-        }
-
         class VolumeVoxelizationPassData
         {
             public VolumeVoxelizationParameters parameters;
@@ -407,7 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     ComputeBuffer       visibleVolumeDataBuffer,
                                                     ComputeBuffer       bigTileLightListBuffer)
         {
-            if (IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricLightingEnabled(hdCamera))
             {
                 using (var builder = renderGraph.AddRenderPass<VolumeVoxelizationPassData>("Volume Voxelization", out var passData))
                 {
@@ -456,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderGraphResource VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphResource densityBuffer, ComputeBuffer bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
-            if (IsVolumetricLightingEnabled(hdCamera))
+            if (Fog.IsVolumetricLightingEnabled(hdCamera))
             {
                 var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
 

@@ -13,6 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [InitializeOnLoad]
     class HDSceneManagement : UnityEditor.AssetPostprocessor
     {
+        const string defaultSceneNotSetWarning = "Default Scene not set! Set up it in Window > Render Pipeline > HD Render Pipeline Wizard\nStandard default unity scene used instead...";
+
         static Func<string, bool> s_CreateEmptySceneAsset;
 
         static HDSceneManagement()
@@ -42,9 +44,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!InHDRP())
                 return; // do not interfere outside of hdrp
 
-            if (HDProjectSettings.defaultScenePrefab == null)
+            if (((HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+                && HDProjectSettings.defaultDXRScenePrefab == null)
+                || HDProjectSettings.defaultScenePrefab == null)
             {
-                Debug.LogWarning("Default Scene not set! Please run Wizard...");
+                Debug.LogWarning(defaultSceneNotSetWarning);
                 return;
             }
 
@@ -53,6 +57,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 ClearScene(scene);
                 FillScene(scene);
             }
+        }
+
+        static GameObject GetScenePrefab()
+        {
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+                return HDProjectSettings.defaultDXRScenePrefab;
+            else
+                return HDProjectSettings.defaultScenePrefab;
         }
 
         // Note: Currently we do not add Empty scene in the HDRP package.
@@ -64,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Assets/Create/HD Template Scene", true, 200)]
         static bool InHDRP()
         {
-            return GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
+            return GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
         }
 
         // Note: Currently we do not add Empty scene in the HDRP package.
@@ -117,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (HDProjectSettings.defaultScenePrefab == null)
                 {
-                    Debug.LogWarning("Default Scene not set! Please run Wizard...");
+                    Debug.LogWarning(defaultSceneNotSetWarning);
                     return;
                 }
 
@@ -155,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            GameObject root = GameObject.Instantiate(HDProjectSettings.defaultScenePrefab);
+            GameObject root = GameObject.Instantiate(GetScenePrefab());
             SceneManager.MoveGameObjectToScene(root, scene);
             root.transform.DetachChildren();
             GameObject.DestroyImmediate(root);

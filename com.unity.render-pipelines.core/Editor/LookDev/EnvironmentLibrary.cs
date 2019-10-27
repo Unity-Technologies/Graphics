@@ -7,13 +7,14 @@ using System.Linq;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
+using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.LookDev
 {
     /// <summary>
     /// Class containing a collection of Environment
     /// </summary>
-    public class EnvironmentLibrary : ScriptableObject
+    public class EnvironmentLibrary : BaseEnvironmentLibrary
     {
         [field: SerializeField]
         List<Environment> environments { get; set; } = new List<Environment>();
@@ -131,19 +132,38 @@ namespace UnityEditor.Rendering.LookDev
 
     class EnvironmentLibraryCreator : ProjectWindowCallback.EndNameEditAction
     {
+        ObjectField m_Field = null;
+
+        public void SetField(ObjectField field)
+            => m_Field = field;
+
+        public override void Cancelled(int instanceId, string pathName, string resourceFile)
+            => m_Field = null;
+
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var newAsset = CreateInstance<EnvironmentLibrary>();
             newAsset.name = Path.GetFileName(pathName);
             AssetDatabase.CreateAsset(newAsset, pathName);
             ProjectWindowUtil.ShowCreatedAsset(newAsset);
+            if (m_Field != null)
+                m_Field.value = newAsset;
+            m_Field = null;
         }
 
         [MenuItem("Assets/Create/LookDev/Environment Library", priority = 2000)]
-        public static void Create()
+        static void Create()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<EnvironmentLibraryCreator>(), "EnvironmentLibrary.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<EnvironmentLibraryCreator>(), "New EnvironmentLibrary.asset", icon, null);
+        }
+
+        public static void CreateAndAssignTo(ObjectField field)
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            var assetCreator = ScriptableObject.CreateInstance<EnvironmentLibraryCreator>();
+            assetCreator.SetField(field);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, "New EnvironmentLibrary.asset", icon, null);
         }
     }
 

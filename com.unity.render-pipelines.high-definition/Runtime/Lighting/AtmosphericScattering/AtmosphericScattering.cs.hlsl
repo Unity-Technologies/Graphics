@@ -4,13 +4,6 @@
 
 #ifndef ATMOSPHERICSCATTERING_CS_HLSL
 #define ATMOSPHERICSCATTERING_CS_HLSL
-//
-// UnityEngine.Rendering.HighDefinition.FogType:  static fields
-//
-#define FOGTYPE_NONE (0)
-#define FOGTYPE_LINEAR (1)
-#define FOGTYPE_EXPONENTIAL (2)
-#define FOGTYPE_VOLUMETRIC (3)
 
 //
 // UnityEngine.Rendering.HighDefinition.FogColorMode:  static fields

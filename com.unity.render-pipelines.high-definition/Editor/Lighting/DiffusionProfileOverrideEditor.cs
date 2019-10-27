@@ -26,7 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Volume = (m_Inspector.target as Volume);
             m_DiffusionProfiles = Unpack(o.Find(x => x.diffusionProfiles));
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
         }
 
         public override void OnInspectorGUI()

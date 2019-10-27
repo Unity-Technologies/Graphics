@@ -3,16 +3,19 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+
     class SerializedHDRenderPipelineAsset
     {
         public SerializedObject serializedObject;
 
         public SerializedProperty renderPipelineResources;
+        public SerializedProperty currentMaterialQualityLevel;
+        public SerializedProperty materialQualityLevels;
         public SerializedProperty renderPipelineRayTracingResources;
-        public SerializedProperty diffusionProfileSettingsList; 
+        public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
-        public SerializedProperty shaderVariantLogLevel; 
+        public SerializedProperty shaderVariantLogLevel;
         public SerializedRenderPipelineSettings renderPipelineSettings;
         public SerializedFrameSettings defaultFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
@@ -45,6 +48,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedHDRenderPipelineAsset(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
+
+            currentMaterialQualityLevel = serializedObject.FindProperty("m_CurrentMaterialQualityLevel");
+            materialQualityLevels = serializedObject.Find((HDRenderPipelineAsset s) => s.materialQualityLevels);
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");

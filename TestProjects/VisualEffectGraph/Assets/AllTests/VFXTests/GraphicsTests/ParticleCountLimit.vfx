@@ -29,6 +29,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614627}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114340500867371532
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -341,7 +345,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -2410,7 +2414,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614627}
   - {fileID: 8926484042661615092}
   - {fileID: 8926484042661614896}
-  m_Capacity: 6291456
+  dataType: 0
+  capacity: 6291456
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614638
 MonoBehaviour:
@@ -6167,8 +6174,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614897}
   - {fileID: 8926484042661614988}
+  - {fileID: 8926484042661614897}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 8926484042661614637}
@@ -6178,13 +6185,15 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 2
+  blendMode: 3
+  useAlphaClipping: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661615737}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -6192,6 +6201,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614897
@@ -7428,6 +7439,12 @@ MonoBehaviour:
       m_Min: 0
       m_Max: 1
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Alpha threshold used for pixel clipping
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -12081,7 +12098,7 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615150}
-  shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
+  m_Shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
 --- !u!114 &8926484042661615172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12676,7 +12693,7 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615172}
-  shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
+  m_Shader: {fileID: 4800000, guid: 1315639ec2b0425429525dd2810b4c98, type: 3}
 --- !u!114 &8926484042661615191
 MonoBehaviour:
   m_ObjectHideFlags: 0

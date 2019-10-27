@@ -37,9 +37,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
                 m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                 // If the matcap view is enabled, the sky isn't updated so we clear the background color
-                m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.MatcapView ||
+                m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera) ||
                 // If we want the sky but the sky don't exist, still clear with background color
-                (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid()) ||
+                (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
                 // Special handling for Preview we force to clear with background color (i.e black)
                 // Note that the sky use in this case is the last one setup. If there is no scene or game, there is no sky use as reflection in the preview
                 HDUtils.IsRegularPreviewCamera(hdCamera.camera))
@@ -56,30 +56,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.MatcapView)
+                m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
                 clearColor = Color.black;
 
             return clearColor;
         }
 
         // XR Specific
-        class StereoRenderingPassData
+        class XRRenderingPassData
         {
             public Camera camera;
             public XRPass xr;
         }
 
-        void StartLegacyStereo(RenderGraph renderGraph, HDCamera hdCamera)
+        void StartSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (hdCamera.xr.enabled)
             {
-                using (var builder = renderGraph.AddRenderPass<StereoRenderingPassData>("Start Stereo Rendering", out var passData))
+                using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Start XR single-pass", out var passData))
                 {
                     passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (StereoRenderingPassData data, RenderGraphContext context) =>
+                    (XRRenderingPassData data, RenderGraphContext context) =>
                     {
                         data.xr.StartSinglePass(context.cmd, data.camera, context.renderContext);
                     });
@@ -87,17 +87,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void StopLegacyStereo(RenderGraph renderGraph, HDCamera hdCamera)
+        void StopSinglePass(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (hdCamera.xr.enabled && hdCamera.camera.stereoEnabled)
+            if (hdCamera.xr.enabled)
             {
-                using (var builder = renderGraph.AddRenderPass<StereoRenderingPassData>("Stop Stereo Rendering", out var passData))
+                using (var builder = renderGraph.AddRenderPass<XRRenderingPassData>("Stop XR single-pass", out var passData))
                 {
                     passData.camera = hdCamera.camera;
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (StereoRenderingPassData data, RenderGraphContext context) =>
+                    (XRRenderingPassData data, RenderGraphContext context) =>
                     {
                         data.xr.StopSinglePass(context.cmd, data.camera, context.renderContext);
                     });
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EndCameraXR(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (hdCamera.xr.enabled && hdCamera.camera.stereoEnabled)
+            if (hdCamera.xr.enabled)
             {
                 using (var builder = renderGraph.AddRenderPass<EndCameraXRPassData>("End Camera", out var passData))
                 {
@@ -122,6 +122,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     (EndCameraXRPassData data, RenderGraphContext ctx) =>
                     {
                         data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera, ctx.renderContext);
+                    });
+                }
+            }
+        }
+
+        class RenderOcclusionMeshesPassData
+        {
+            public HDCamera hdCamera;
+            public RenderGraphMutableResource depthBuffer;
+        }
+
+        void RenderOcclusionMeshes(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource depthBuffer)
+        {
+            if (hdCamera.xr.enabled && hdCamera.xr.xrSdkEnabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
+            {
+                using (var builder = renderGraph.AddRenderPass<RenderOcclusionMeshesPassData>("XR Occlusion Meshes", out var passData))
+                {
+                    passData.hdCamera = hdCamera;
+                    passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Write);
+
+                    builder.SetRenderFunc(
+                    (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
+                    {
+                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, ctx.resources.GetTexture(data.depthBuffer));
                     });
                 }
             }

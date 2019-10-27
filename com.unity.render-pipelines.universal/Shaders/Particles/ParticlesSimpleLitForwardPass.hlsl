@@ -27,12 +27,12 @@ struct VaryingsParticle
     float4 positionWS               : TEXCOORD1;
 
 #ifdef _NORMALMAP
-    half4 normalWS                  : TEXCOORD2;    // xyz: normal, w: viewDir.x
-    half4 tangentWS                 : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-    half4 bitangentWS               : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+    float4 normalWS                 : TEXCOORD2;    // xyz: normal, w: viewDir.x
+    float4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+    float4 bitangentWS              : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
 #else
-    half3 normalWS                  : TEXCOORD2;
-    half3 viewDirWS                 : TEXCOORD3;
+    float3 normalWS                 : TEXCOORD2;
+    float3 viewDirWS                : TEXCOORD3;
 #endif
 
 #if defined(_FLIPBOOKBLENDING_ON)

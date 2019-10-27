@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -62,9 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-
-                return hdPipelineAsset.currentPlatformRenderPipelineSettings;
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
             }
         }
         public static int debugStep => MousePositionDebug.instance.debugStep;
@@ -253,9 +254,18 @@ namespace UnityEngine.Rendering.HighDefinition
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material, RenderTargetIdentifier destination, MaterialPropertyBlock properties = null, int shaderPassId = 0, int depthSlice = -1)
         {
-            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, -1);
+            CoreUtils.SetRenderTarget(commandBuffer, destination, ClearFlag.None, 0, CubemapFace.Unknown, depthSlice);
+            commandBuffer.SetViewport(viewport);
+            commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
+        }
+
+        public static void DrawFullScreen(CommandBuffer commandBuffer, Rect viewport, Material material,
+            RenderTargetIdentifier destination, RTHandle depthStencilBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        {
+            CoreUtils.SetRenderTarget(commandBuffer, destination, depthStencilBuffer, ClearFlag.None, 0, CubemapFace.Unknown, -1);
             commandBuffer.SetViewport(viewport);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
@@ -278,8 +288,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
         public static bool IsRegularPreviewCamera(Camera camera)
         {
-            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-            return camera.cameraType == CameraType.Preview && ((additionalCameraData == null) || (additionalCameraData && !additionalCameraData.isEditorCameraPreview));
+            if (camera.cameraType == CameraType.Preview)
+            {
+                camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData);
+                return (additionalCameraData == null) || !additionalCameraData.isEditorCameraPreview;
+
+            }
+            return false;
         }
 
         // We need these at runtime for RenderPipelineResources upgrade
@@ -416,12 +431,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
-#if !UNITY_2019_2_OR_NEWER
-                    buildTarget == UnityEditor.BuildTarget.StandaloneLinuxUniversal ||
-#endif
-#if UNITY_2019_3_OR_NEWER
                     buildTarget == UnityEditor.BuildTarget.Stadia ||
-#endif
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
@@ -455,12 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case UnityEditor.BuildTarget.StandaloneWindows64:
                     return OperatingSystemFamily.Windows;
                 case UnityEditor.BuildTarget.StandaloneLinux64:
-#if !UNITY_2019_2_OR_NEWER
-                case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
-#endif
-#if UNITY_2019_3_OR_NEWER
                 case UnityEditor.BuildTarget.Stadia:
-#endif
                     return OperatingSystemFamily.Linux;
                 default:
                     return OperatingSystemFamily.Other;
@@ -499,6 +504,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
+        /// <summary>
+        /// Extract scale and bias from a fade distance to achieve a linear fading starting at 90% of the fade distance.
+        /// </summary>
+        /// <param name="fadeDistance">Distance at which object should be totally fade</param>
+        /// <param name="scale">[OUT] Slope of the fading on the fading part</param>
+        /// <param name="bias">[OUT] Ordinate of the fading part at abscissa 0</param>
         public static void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, out float scale, out float bias)
         {
             // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
@@ -506,6 +517,13 @@ namespace UnityEngine.Rendering.HighDefinition
             scale = 1.0f / (fadeDistance - distanceFadeNear);
             bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
         }
+
+        /// <summary>
+        /// Compute the linear fade distance
+        /// </summary>
+        /// <param name="distanceToCamera">Distance from the object to fade from the camera</param>
+        /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
+        /// <returns>Computed fade factor</returns>
         public static float ComputeLinearDistanceFade(float distanceToCamera, float fadeDistance)
         {
             float scale;
@@ -513,6 +531,21 @@ namespace UnityEngine.Rendering.HighDefinition
             GetScaleAndBiasForLinearDistanceFade(fadeDistance, out scale, out bias);
 
             return 1.0f - Mathf.Clamp01(distanceToCamera * scale + bias);
+        }
+
+        /// <summary>
+        /// Compute the linear fade distance between two position with an additional weight multiplier
+        /// </summary>
+        /// <param name="position1">Object/camera position</param>
+        /// <param name="position2">Camera/object position</param>
+        /// <param name="weight">Weight multiplior</param>
+        /// <param name="fadeDistance">Distance at witch the object is totally faded</param>
+        /// <returns>Computed fade factor</returns>
+        public static float ComputeWeightedLinearFadeDistance(Vector3 position1, Vector3 position2, float weight, float fadeDistance)
+        {
+            float distanceToCamera = Vector3.Magnitude(position1 - position2);
+            float distanceFade = ComputeLinearDistanceFade(distanceToCamera, fadeDistance);
+            return distanceFade * weight;
         }
 
         public static bool PostProcessIsFinalPass()
@@ -584,6 +617,118 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderStateBlock = rendererList.stateBlock.Value;
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
+        }
+
+        // $"HDProbe RenderCamera ({probeName}: {face:00} for viewer '{viewerName}')"
+        internal unsafe static string ComputeProbeCameraName(string probeName, int face, string viewerName)
+        {
+            // Interpolate the camera name with as few allocation as possible
+            const string pattern1 = "HDProbe RenderCamera (";
+            const string pattern2 = ": ";
+            const string pattern3 = " for viewer '";
+            const string pattern4 = "')";
+            const int maxCharCountPerName = 40;
+            const int charCountPerNumber = 2;
+
+            probeName = probeName ?? string.Empty;
+            viewerName = viewerName ?? "null";
+
+            var probeNameSize = Mathf.Min(probeName.Length, maxCharCountPerName);
+            var viewerNameSize = Mathf.Min(viewerName.Length, maxCharCountPerName);
+            int size = pattern1.Length + probeNameSize
+                + pattern2.Length + charCountPerNumber
+                + pattern3.Length + viewerNameSize
+                + pattern4.Length;
+
+            var buffer = stackalloc char[size];
+            var p = buffer;
+            int i, c, s = 0;
+            for (i = 0; i < pattern1.Length; ++i, ++p)
+                *p = pattern1[i];
+            for (i = 0, c = Mathf.Min(probeName.Length, maxCharCountPerName); i < c; ++i, ++p)
+                *p = probeName[i];
+            s += c;
+            for (i = 0; i < pattern2.Length; ++i, ++p)
+                *p = pattern2[i];
+
+            // Fast, no-GC index.ToString("2")
+            var temp = (face * 205) >> 11;  // 205/2048 is nearly the same as /10
+            *(p++) = (char)(temp + '0');
+            *(p++) = (char)((face - temp * 10) + '0');
+            s += charCountPerNumber;
+
+            for (i = 0; i < pattern3.Length; ++i, ++p)
+                *p = pattern3[i];
+            for (i = 0, c = Mathf.Min(viewerName.Length, maxCharCountPerName); i < c; ++i, ++p)
+                *p = viewerName[i];
+            s += c;
+            for (i = 0; i < pattern4.Length; ++i, ++p)
+                *p = pattern4[i];
+
+            s += pattern1.Length + pattern2.Length + pattern3.Length + pattern4.Length;
+            return new string(buffer, 0, s);
+        }
+
+        // $"HDRenderPipeline::Render {cameraName}"
+        internal unsafe static string ComputeCameraName(string cameraName)
+        {
+            // Interpolate the camera name with as few allocation as possible
+            const string pattern1 = "HDRenderPipeline::Render ";
+            const int maxCharCountPerName = 40;
+
+            var cameraNameSize = Mathf.Min(cameraName.Length, maxCharCountPerName);
+            int size = pattern1.Length + cameraNameSize;
+
+            var buffer = stackalloc char[size];
+            var p = buffer;
+            int i, c, s = 0;
+            for (i = 0; i < pattern1.Length; ++i, ++p)
+                *p = pattern1[i];
+            for (i = 0, c = cameraNameSize; i < c; ++i, ++p)
+                *p = cameraName[i];
+            s += c;
+
+            s += pattern1.Length;
+            return new string(buffer, 0, s);
+        }
+
+        internal static float ClampFOV(float fov) => Mathf.Clamp(fov, 0.00001f, 179);
+
+        internal static UInt64 GetSceneCullingMaskFromCamera(Camera camera)
+        {
+#if UNITY_EDITOR
+            if (camera.overrideSceneCullingMask != 0)
+                return camera.overrideSceneCullingMask;
+
+            if (camera.scene.IsValid())
+                return EditorSceneManager.GetSceneCullingMask(camera.scene);
+
+            #if UNITY_2020_1_OR_NEWER
+            switch (camera.cameraType)
+            {
+                case CameraType.SceneView:
+                    return SceneCullingMasks.MainStageSceneViewObjects;
+                default:
+                    return SceneCullingMasks.GameViewObjects;
+            }
+            #else
+            return 0;
+            #endif
+#else
+            return 0;
+#endif
+
+        }
+
+        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+        {
+            if (camera == null || camera.Equals(null))
+                return s_DefaultHDAdditionalCameraData;
+
+            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
+                return hdCamera;
+
+            return s_DefaultHDAdditionalCameraData;
         }
     }
 }

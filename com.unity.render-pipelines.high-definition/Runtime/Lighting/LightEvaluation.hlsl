@@ -11,13 +11,11 @@
 //  F, the *normalized* vector irradiance
 float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
 {
-    // L[0] = top-right
-    // L[1] = bottom-right
-    // L[2] = bottom-left
-    // L[3] = top-left
-    float3  origin = L[2];
-    float3  right = L[1] - origin;
-    float3  up = L[3] - origin;
+    // L[0..3] : LL UL UR LR
+
+    float3  origin = L[0];
+    float3  right = L[3] - origin;
+    float3  up = L[1] - origin;
 
     float3  normal = cross(right, up);
     float   sqArea = dot(normal, normal);
@@ -61,17 +59,17 @@ float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
     // TODO: Invesigate more!
     float2  hitUV = float2(1.0 - u, v);
 
-    // Assuming the original cosine lobe distribution Do is enclosed in a cone of 90° aperture,
+    // Assuming the original cosine lobe distribution Do is enclosed in a cone of 90 deg  aperture,
     //  following the idea of orthogonal projection upon the area light's plane we find the intersection
-    //  of the cone to be a disk of area PI*d² where d is the hit distance we computed above.
-    // We also know the area of the transformed polygon A = sqrt( sqArea ) and we pose the ratio of covered area as PI.d² / A.
+    //  of the cone to be a disk of area PI*d^2 where d is the hit distance we computed above.
+    // We also know the area of the transformed polygon A = sqrt( sqArea ) and we pose the ratio of covered area as PI.d^2 / A.
     //
     // Knowing the area in square texels of the cookie texture A_sqTexels = texture width * texture height (default is 128x128 square texels)
     //  we can deduce the actual area covered by the cone in square texels as:
-    //  A_covered = Pi.d² / A * A_sqTexels
+    //  A_covered = Pi.d^2 / A * A_sqTexels
     //
     // From this, we find the mip level as: mip = log2( sqrt( A_covered ) ) = log2( A_covered ) / 2
-    // Also, assuming that A_sqTexels is of the form 2^n * 2^n we get the simplified expression: mip = log2( Pi.d² / A ) / 2 + n
+    // Also, assuming that A_sqTexels is of the form 2^n * 2^n we get the simplified expression: mip = log2( Pi.d^2 / A ) / 2 + n
     //
     const float COOKIE_MIPS_COUNT = _CookieSizePOT;
     float   mipLevel = 0.5 * log2(1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea)) + COOKIE_MIPS_COUNT;
@@ -129,7 +127,10 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     // which makes it independent from the fragment's position, which is faster but wrong.
     // Basically, the code below runs on the CPU, using camera.positionWS, and modifies light.color.
 #else
-    if (light.interactsWithSky)
+    // Use scalar or integer cores (more efficient).
+    bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
+
+    if (interactsWithSky)
     {
         // TODO: should probably unify height attenuation somehow...
         // TODO: Not sure it's possible to precompute cam rel pos since variables
@@ -141,7 +142,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         float cosHoriz = ComputeCosineOfHorizonAngle(r);
         float cosTheta = dot(X - C, L) * rcp(r); // Normalize
 
-        if (cosTheta > cosHoriz) // Above horizon
+        if (cosTheta >= cosHoriz) // Above horizon
         {
             oDepth += ComputeAtmosphericOpticalDepth(r, cosTheta, true);
         }
@@ -385,6 +386,13 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
+#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+    if(light.screenSpaceShadowIndex >= 0)
+    {
+        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+    }
+    else
+#endif
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, distances.x, light.lightType == GPULIGHTTYPE_POINT, light.lightType != GPULIGHTTYPE_PROJECTOR_BOX);

@@ -7,66 +7,50 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEngine.UIElements;
+using System.Runtime.CompilerServices;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     public class HDEditorUtils
     {
-        const string EditorStyleSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditor.uss";
-        const string EditorStyleLightSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditorLight.uss";
-        const string EditorStyleDarkSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/HDRPEditorDark.uss";
+        internal const string FormatingPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Formating";
+        internal const string QualitySettingsSheetPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/QualitySettings";
+        internal const string WizardSheetPath =
+            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
+        internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
 
-        private static (StyleSheet, StyleSheet, StyleSheet) m_StyleSheets = (null, null, null);
-
-        static (StyleSheet, StyleSheet, StyleSheet) SpecificStyleSheets
-            => (m_StyleSheets.Item1) != null ? m_StyleSheets : (m_StyleSheets = (
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleSheetPath),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleLightSheetPath),
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(EditorStyleDarkSheetPath)
-            ));
-
-        internal static void AddStyleSheets(VisualElement element)
-        {
-            element.styleSheets.Add(SpecificStyleSheets.Item1);
-            element.styleSheets.Add(
-                EditorGUIUtility.isProSkin
-                ? SpecificStyleSheets.Item3
-                : SpecificStyleSheets.Item2
+        private static (StyleSheet baseSkin, StyleSheet professionalSkin, StyleSheet personalSkin) LoadStyleSheets(string basePath)
+            => (
+                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}.uss"),
+                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Light.uss"),
+                AssetDatabase.LoadAssetAtPath<StyleSheet>($"{basePath}Dark.uss")
             );
+
+        internal static void AddStyleSheets(VisualElement element, string baseSkinPath)
+        {
+            (StyleSheet @base, StyleSheet personal, StyleSheet professional) = LoadStyleSheets(baseSkinPath);
+            element.styleSheets.Add(@base);
+            if (EditorGUIUtility.isProSkin)
+            {
+                if (professional != null && !professional.Equals(null))
+                    element.styleSheets.Add(professional);
+            }
+            else
+            {
+                if (personal != null && !personal.Equals(null))
+                    element.styleSheets.Add(personal);
+            }
         }
 
 
         static readonly Action<SerializedProperty, GUIContent> k_DefaultDrawer = (p, l) => EditorGUILayout.PropertyField(p, l);
 
-        delegate void MaterialResetter(Material material);
-        static Dictionary<string, MaterialResetter> k_MaterialResetters = new Dictionary<string, MaterialResetter>()
-        {
-            { "HDRP/LayeredLit",  LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/LayeredLitTessellation", LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/Lit", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/LitTessellation", LitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/Unlit", UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
-            { "HDRP/Decal", DecalUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/TerrainLit", TerrainLitGUI.SetupMaterialKeywordsAndPass },
-            { "HDRP/AxF", AxFGUI.SetupMaterialKeywordsAndPass }
-        };
 
-        static Dictionary<Type, MaterialResetter> k_ShaderGraphMaterialResetters = new Dictionary<Type, MaterialResetter>
-        {
-            { typeof(HDUnlitMasterNode), UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
-            { typeof(HDLitMasterNode), HDLitGUI.SetupMaterialKeywordsAndPass },
-            { typeof(FabricMasterNode), FabricGUI.SetupMaterialKeywordsAndPass },
-            { typeof(HairMasterNode), HairGUI.SetupMaterialKeywordsAndPass },
-            { typeof(StackLitMasterNode), StackLitGUI.SetupMaterialKeywordsAndPass },
-        };
 
         internal static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
-        {
-            return AssetDatabase.LoadAssetAtPath<T>(HDUtils.GetHDRenderPipelinePath() + relativePath);
-        }
+            => AssetDatabase.LoadAssetAtPath<T>(HDUtils.GetHDRenderPipelinePath() + relativePath);
 
         /// <summary>
         /// Reset the dedicated Keyword and Pass regarding the shader kind.
@@ -77,59 +61,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// True: managed to do the operation.
         /// False: unknown shader used in material
         /// </returns>
+        [Obsolete("Use HDShaderUtils.ResetMaterialKeywords instead")]
         public static bool ResetMaterialKeywords(Material material)
-        {
-            MaterialResetter resetter = null;
-
-            // For shader graphs, we retrieve the master node type to get the materials resetter
-            if (material.shader.IsShaderGraph())
-            {
-                Type masterNodeType = null;
-                try
-                {
-                    // GraphUtil.GetOutputNodeType can throw if it's not able to parse the graph
-                    masterNodeType = GraphUtil.GetOutputNodeType(AssetDatabase.GetAssetPath(material.shader));
-                } catch {}
-
-                if (masterNodeType != null)
-                {
-                    k_ShaderGraphMaterialResetters.TryGetValue(masterNodeType, out resetter);
-                }
-            }
-            else
-            {
-                k_MaterialResetters.TryGetValue(material.shader.name, out resetter);
-            }
-
-            if (resetter != null)
-            {
-                CoreEditorUtils.RemoveMaterialKeywords(material);
-                // We need to reapply ToggleOff/Toggle keyword after reset via ApplyMaterialPropertyDrawers
-                MaterialEditor.ApplyMaterialPropertyDrawers(material);
-                resetter(material);
-                EditorUtility.SetDirty(material);
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>Gather all the shader preprocessors</summary>
-        /// <returns>The list of shader preprocessor</returns>
-        internal static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
-        {
-            var baseType = typeof(BaseShaderPreprocessor);
-            var assembly = baseType.Assembly;
-
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes()
-                    .Where(t => t.IsSubclassOf(baseType))
-                    .Select(Activator.CreateInstance)
-                    .Cast<BaseShaderPreprocessor>()
-                ).ToList();
-
-            return types;
-        }
+            => HDShaderUtils.ResetMaterialKeywords(material);
 
         static readonly GUIContent s_OverrideTooltip = EditorGUIUtility.TrTextContent("", "Override this setting in component.");
         internal static bool FlagToggle<TEnum>(TEnum v, SerializedProperty property)
@@ -300,52 +234,54 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Provide a specific property drawer for LightLayer</summary>
-        /// <param name="label">The desired label</param>
-        /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        internal static void LightLayerMaskPropertyDrawer(GUIContent label, SerializedProperty property)
+        /// <summary>
+        /// This is to convert any int into LightLayer which is usefull for the version in shadow of lights.
+        /// LightLayer have a CustomPropertyDrawer so for SerializedProperty on LightLayer type,
+        /// prefer using EditorGUILayout.PropertyField.
+        /// </summary>
+        internal static void DrawLightLayerMaskFromInt(GUIContent label, SerializedProperty property)
         {
-            var renderingLayerMask = property.intValue;
-            int lightLayer;
-            if (property.hasMultipleDifferentValues)
-            {
-                EditorGUI.showMixedValue = true;
-                lightLayer = 0;
-            }
-            else
-                lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            DrawLightLayerMask_Internal(lineRect, label, property);
+        }
+        
+        internal static void DrawLightLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
+        {
+            EditorGUI.BeginProperty(rect, label, property);
+
             EditorGUI.BeginChangeCheck();
-            lightLayer = System.Convert.ToInt32(EditorGUILayout.EnumFlagsField(label, (LightLayerEnum)lightLayer));
+            int changedValue = DrawLightLayerMask(rect, property.intValue, label);
             if (EditorGUI.EndChangeCheck())
-            {
-                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                property.intValue = lightLayer;
-            }
-            EditorGUI.showMixedValue = false;
+                property.intValue = changedValue;
+
+            EditorGUI.EndProperty();
         }
 
-        /// <summary>Provide a specific property drawer for LightLayer (without label)</summary>
-        /// <param name="rect">The rect where to draw</param>
-        /// <param name="property">The SerializedProperty (representing an int that should be displayed as a LightLayer)</param>
-        internal static void LightLayerMaskPropertyDrawer(Rect rect, SerializedProperty property)
+        /// <summary>
+        /// Should be placed between BeginProperty / EndProperty
+        /// </summary>
+        internal static int DrawLightLayerMask(Rect rect, int value, GUIContent label = null)
         {
-            var renderingLayerMask = property.intValue;
-            int lightLayer;
-            if (property.hasMultipleDifferentValues)
-            {
-                EditorGUI.showMixedValue = true;
-                lightLayer = 0;
-            }
-            else
-                lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(renderingLayerMask);
+            int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
             EditorGUI.BeginChangeCheck();
-            lightLayer = System.Convert.ToInt32(EditorGUI.EnumFlagsField(rect, (LightLayerEnum)lightLayer));
+            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDRenderPipeline.defaultAsset.lightLayerNames);
             if (EditorGUI.EndChangeCheck())
-            {
-                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, renderingLayerMask);
-                property.intValue = lightLayer;
-            }
-            EditorGUI.showMixedValue = false;
+                lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
+            return lightLayer;
+        }
+        
+        /// <summary>
+        /// Like EditorGUILayout.DrawTextField but for delayed text field
+        /// </summary>
+        internal static void DrawDelayedTextField(GUIContent label, SerializedProperty property)
+        {
+            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            EditorGUI.BeginProperty(lineRect, label, property);
+            EditorGUI.BeginChangeCheck();
+            string lightLayerName0 = EditorGUI.DelayedTextField(lineRect, label, property.stringValue);
+            if (EditorGUI.EndChangeCheck())
+                property.stringValue = lightLayerName0;
+            EditorGUI.EndProperty();
         }
     }
 
@@ -362,5 +298,162 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public static T GetEnumName<T>(this SerializedProperty property)
             => (T)System.Enum.GetNames(typeof(T)).GetValue(property.enumValueIndex);
+
+        /// <summary>
+        /// Get the value of a <see cref="SerializedProperty"/>.
+        ///
+        /// This function will be inlined by the compiler.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the value to get.
+        ///
+        /// It is expected to be a supported type by the <see cref="SerializedProperty"/>.
+        /// </typeparam>
+        /// <param name="serializedProperty">The property to get.</param>
+        /// <returns>The value of the property.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T GetInline<T>(this SerializedProperty serializedProperty)
+            where T : struct
+        {
+            if (typeof(T) == typeof(Color))
+                return (T)(object)serializedProperty.colorValue;
+            if (typeof(T) == typeof(string))
+                return (T)(object)serializedProperty.stringValue;
+            if (typeof(T) == typeof(double))
+                return (T)(object)serializedProperty.doubleValue;
+            if (typeof(T) == typeof(float))
+                return (T)(object)serializedProperty.floatValue;
+            if (typeof(T) == typeof(long))
+                return (T)(object)serializedProperty.longValue;
+            if (typeof(T) == typeof(int))
+                return (T)(object)serializedProperty.intValue;
+            if (typeof(T) == typeof(bool))
+                return (T)(object)serializedProperty.boolValue;
+            if (typeof(T) == typeof(int))
+                return (T)(object)serializedProperty.enumValueIndex;
+            if (typeof(T) == typeof(BoundsInt))
+                return (T)(object)serializedProperty.boundsIntValue;
+            if (typeof(T) == typeof(Bounds))
+                return (T)(object)serializedProperty.boundsValue;
+            if (typeof(T) == typeof(RectInt))
+                return (T)(object)serializedProperty.rectIntValue;
+            if (typeof(T) == typeof(Rect))
+                return (T)(object)serializedProperty.rectValue;
+            if (typeof(T) == typeof(Quaternion))
+                return (T)(object)serializedProperty.quaternionValue;
+            if (typeof(T) == typeof(Vector2Int))
+                return (T)(object)serializedProperty.vector2IntValue;
+            if (typeof(T) == typeof(Vector4))
+                return (T)(object)serializedProperty.vector4Value;
+            if (typeof(T) == typeof(Vector3))
+                return (T)(object)serializedProperty.vector3Value;
+            if (typeof(T) == typeof(Vector2))
+                return (T)(object)serializedProperty.vector2Value;
+            throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a valid type for a serialized property.");
+        }
+
+        /// <summary>
+        /// Set the value of a <see cref="SerializedProperty"/>.
+        ///
+        /// This function will be inlined by the compiler.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the value to set.
+        ///
+        /// It is expected to be a supported type by the <see cref="SerializedProperty"/>.
+        /// </typeparam>
+        /// <param name="serializedProperty">The property to set.</param>
+        /// <param name="value">The value to set.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetInline<T>(this SerializedProperty serializedProperty, T value)
+            where T : struct
+        {
+            if (typeof(T) == typeof(Color))
+            {
+                serializedProperty.colorValue = (Color)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(string))
+            {
+                serializedProperty.stringValue = (string)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(double))
+            {
+                serializedProperty.doubleValue = (double)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(float))
+            {
+                serializedProperty.floatValue = (float)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(long))
+            {
+                serializedProperty.longValue = (long)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(int))
+            {
+                serializedProperty.intValue = (int)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(bool))
+            {
+                serializedProperty.boolValue = (bool)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(int))
+            {
+                serializedProperty.enumValueIndex = (int)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(BoundsInt))
+            {
+                serializedProperty.boundsIntValue = (BoundsInt)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(Bounds))
+            {
+                serializedProperty.boundsValue = (Bounds)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(RectInt))
+            {
+                serializedProperty.rectIntValue = (RectInt)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(Rect))
+            {
+                serializedProperty.rectValue = (Rect)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(Quaternion))
+            {
+                serializedProperty.quaternionValue = (Quaternion)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(Vector2Int))
+            {
+                serializedProperty.vector2IntValue = (Vector2Int)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(Vector4))
+            {
+                serializedProperty.vector4Value = (Vector4)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(Vector3))
+            {
+                serializedProperty.vector3Value = (Vector3)(object)value;
+                return;
+            }
+            if (typeof(T) == typeof(Vector2))
+            {
+                serializedProperty.vector2Value = (Vector2)(object)value;
+                return;
+            }
+            throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a valid type for a serialized property.");
+        }
     }
 }

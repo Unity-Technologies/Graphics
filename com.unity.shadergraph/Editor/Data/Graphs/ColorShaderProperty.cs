@@ -3,119 +3,68 @@ using System.Text;
 using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class ColorShaderProperty : AbstractShaderProperty<Color>
+    [FormerName("UnityEditor.ShaderGraph.ColorShaderProperty")]
+    public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
-        [SerializeField]
-        private ColorMode m_ColorMode;
-
-        [SerializeField]
-        private bool m_Hidden = false;
-
-        public ColorMode colorMode
-        {
-            get { return m_ColorMode; }
-            set
-            {
-                if (m_ColorMode == value)
-                    return;
-
-                m_ColorMode = value;
-            }
-        }
-
-        public bool hidden
-        {
-            get { return m_Hidden; }
-            set { m_Hidden = value; }
-        }
-
-        public ColorShaderProperty()
+        internal ColorShaderProperty()
         {
             displayName = "Color";
         }
+        
+        public override PropertyType propertyType => PropertyType.Color;
+        
+        internal override bool isBatchable => true;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+        internal override bool isGpuInstanceable => true;
+        
+        internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
-        public override PropertyType propertyType
+        internal override string GetPropertyBlockString()
         {
-            get { return PropertyType.Color; }
+            return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
         }
 
-        public override Vector4 defaultValue
+        public override string GetDefaultReferenceName()
         {
-            get { return new Vector4(value.r, value.g, value.b, value.a); }
+            return $"Color_{GuidEncoder.Encode(guid)}";
         }
+        
+        [SerializeField]
+        ColorMode m_ColorMode;
 
-        public override bool isBatchable
+        public ColorMode colorMode
         {
-            get { return true; }
+            get => m_ColorMode;
+            set => m_ColorMode = value;
         }
-
-        public override bool isExposable
-        {
-            get { return true; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return true; }
-        }
-
-        public override string GetPropertyBlockString()
-        {
-            if (!generatePropertyBlock)
-                return string.Empty;
-
-            var result = new StringBuilder();
-            if (colorMode == ColorMode.HDR)
-                result.Append("[HDR]");
-            if (m_Hidden)
-            {
-                result.Append("[HideInInspector] ");
-            }
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", Color) = (");
-            result.Append(NodeUtils.FloatToShaderValue(value.r));
-            result.Append(",");
-            result.Append(NodeUtils.FloatToShaderValue(value.g));
-            result.Append(",");
-            result.Append(NodeUtils.FloatToShaderValue(value.b));
-            result.Append(",");
-            result.Append(NodeUtils.FloatToShaderValue(value.a));
-            result.Append(")");
-            return result.ToString();
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format("{0}4 {1}{2}", concretePrecision.ToShaderString(), referenceName, delimiter);
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return new PreviewProperty(PropertyType.Color)
-            {
-                name = referenceName,
-                colorValue = value
-            };
-        }
-
-        public override AbstractMaterialNode ToConcreteNode()
+        
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };
         }
 
-        public override AbstractShaderProperty Copy()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            var copied = new ColorShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            copied.hidden = hidden;
-            copied.colorMode = colorMode;
-            return copied;
+            return new PreviewProperty(propertyType)
+            {
+                name = referenceName,
+                colorValue = value
+            };
+        }        
+
+        internal override ShaderInput Copy()
+        {
+            return new ColorShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value,
+                colorMode = colorMode
+            };
         }
     }
 }

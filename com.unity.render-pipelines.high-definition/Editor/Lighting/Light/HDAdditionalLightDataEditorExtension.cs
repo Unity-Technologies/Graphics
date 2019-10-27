@@ -9,16 +9,6 @@ namespace UnityEditor.Rendering.HighDefinition
     public static class HDAdditionalLightDataEditorExtension
     {
         /// <summary>
-        /// Toggle the usage of color temperature.
-        /// </summary>
-        /// <param name="hdLight"></param>
-        /// <param name="enable"></param>
-        public static void EnableColorTemperature(this HDAdditionalLightData hdLight, bool enable)
-        {
-            hdLight.useColorTemperature = enable;
-        }
-
-        /// <summary>
         /// Set Lightmap Bake Type.
         /// </summary>
         /// <param name="hdLight"></param>
@@ -54,11 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
         
         internal static void UpdateEmissiveMeshComponents(this HDAdditionalLightData hdLight)
         {
-            MeshRenderer emissiveMeshRenderer = hdLight.GetComponent<MeshRenderer>();
-            MeshFilter emissiveMeshFilter = hdLight.GetComponent<MeshFilter>();
-
             // If the display emissive mesh is disabled, skip to the next selected light
-            if (emissiveMeshFilter == null || emissiveMeshRenderer == null)
+            if (hdLight.emissiveMeshFilter == null || hdLight.emissiveMeshRenderer == null)
                 return;
 
             // We only load the mesh and it's material here, because we can't do that inside HDAdditionalLightData (Editor assembly)
@@ -66,18 +53,18 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (hdLight.lightTypeExtent)
             {
                 case LightTypeExtent.Tube:
-                    emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
+                    hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
                     break;
                 case LightTypeExtent.Rectangle:
                 default:
-                    emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
+                    hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
                     break;
             }
-            if (emissiveMeshRenderer.sharedMaterial == null)
+            if (hdLight.emissiveMeshRenderer.sharedMaterial == null)
             {
-                emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
+                hdLight.emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
             }
-            emissiveMeshRenderer.sharedMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
+            hdLight.emissiveMeshRenderer.sharedMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
         }
     }
 }

@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
                     if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 
-                    foreach (var param in GetParameters(t => InputPredicate(t)))
+                    foreach (var param in GetParameters(t => InputPredicate(t)).OrderBy(t => t.order))
                     {
                         yield return VFXSubgraphUtility.GetPropertyFromInputParameter(param);
                     }
@@ -162,12 +162,12 @@ namespace UnityEditor.VFX
 
             var inputExpressions = new List<VFXExpression>();
 
-            foreach (var slot in inputSlots.SelectMany(t => t.GetVFXValueTypeSlots()))
+            foreach (var slot in inputSlots.SelectMany(t=>t.GetExpressionSlots()))
             {
                 inputExpressions.Add(slot.GetExpression());
             }
 
-            VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)));
+            VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetParameters(t => VFXSubgraphUtility.InputPredicate(t)).OrderBy(t => t.order));
         }
 
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -237,7 +237,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kSettingChanged)
             {

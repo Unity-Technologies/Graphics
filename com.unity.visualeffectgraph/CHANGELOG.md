@@ -4,9 +4,63 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.0] - 2019-XX-XX
+## [8.0.0] - 2019-XX-XX
 
-## [7.0.0] - 2019-07-10
+### Fixed
+- Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
+- Correct VFXSettings display in Shader Graph compatible outputs
+- No more NullReference on sub-outputs after domain reload
+- Fix typo in strip tangent computation
+- Infinite recompilation using subgraph [Case 1186191] (https://issuetracker.unity3d.com/product/unity/issues/guid/1186191/)
+- Modifying a shader used by an output mesh context now automatically updates the currently edited VFX
+- Possible loss of shadergraph reference in unlit output
+- ui : toolbar item wrap instead of overlapping.
+
+### Added
+- Custom Inspector for Spawn context, delay settings are more user friendly.
+- Quick Expose Property : Holding Alt + Release Click in an Empty space while making property edges creates a new exposed property of corresponding type with current slot value.
+- Custom Inspector for Update context, display update position/rotation instead of integration
+- Tooltips to blocks, nodes, contexts, and various menus and options
+
+## [7.1.1] - 2019-09-05
+### Added
+- Moved High Definition templates and includes to com.unity.render-pipelines.high-definition package
+- Navigation commands for subgraph.
+- Allow choosing the place to save vfx subgraph.
+- Particle strips for trails and ribbons. (Experimental)
+- Shadergraph integration into vfx. (Experimental)
+
+### Fixed
+- Using struct as subgraph parameters.
+- Objectproperty not consuming delete key.
+- Converting a subgraph operator inside a subgraph operator with outputs.
+- Selecting a GameObject with a VFX Property Binder spams exception.
+- Wrong motion vector while modifying local matrix of a VisualEffect.
+- Convert output settings copy.
+- Fixed some outputs failing to compile when used with certain UV Modes [Case 1126200] (https://issuetracker.unity3d.com/issues/output-some-outputs-fail-to-compile-when-used-with-certain-uv-modes)
+- Removed Gradient Mapping Mode from some outputs type where it was irrelevant [Case 1164045]
+- Soft Particles work with Distortion outputs [Case 1167426] (https://issuetracker.unity3d.com/issues/output-soft-particles-do-not-work-with-distortion-outputs)
+- category rename rect.
+- copy settings while converting an output
+- toolbar toggle appearing light with light skin.
+- multiselection of gradient in visual effect graph
+- clipped "reseed" in visual effect editor
+- Unlit outputs are no longer pre-exposed by default in HDRP
+- Augmented generated HLSL floatN precision [Case 1177730] (https://issuetracker.unity3d.com/issues/vfx-graph-7x7-flipbook-particles-flash-and-dont-animate-correctly-in-play-mode-or-in-edit-mode-with-vfx-graph-closed)
+- Spherical coordinates to Rectangular (Cartesians) coordinates node input: angles are now expressed in radians
+- Turbulence noise updated: noise type and frequency can be specified [Case  1141282] (https://issuetracker.unity3d.com/issues/vfx-particles-flicker-when-blend-mode-is-set-to-alpha-turbulence-block-is-enabled-and-there-is-more-than-50000-particles)
+- Color and Depth camera buffer access in HDRP now use Texture2DArray instead of Texture2D
+- Output Mesh with shader graph now works as expected
+
+## [7.0.1] - 2019-07-25
+### Added
+- Add Position depth operator along with TransformVector4 and LoadTexture2D expressions.
+
+### Fixed
+- Inherit attribute block appears three times [Case 1166905](https://issuetracker.unity3d.com/issues/attributes-each-inherit-attribute-block-appears-3-times-in-the-search-and-some-have-a-seed-attribute)
+- Unexpected exception : `Trying to modify space on a not spaceable slot` error when adding collision or conform blocks [Case 1163442](https://issuetracker.unity3d.com/issues/block-trying-to-modify-space-on-a-not-spaceable-slot-error-when-adding-collision-or-conform-blocks)
+
+## [7.0.0] - 2019-07-17
 ### Added
 - Make multiselection work in a way that do not assume that the same parameter will have the same index in the property sheet.
 - auto recompile when changing shaderpath
@@ -21,11 +75,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - XR single-pass instancing support for indirect draws
 - Inverse trigonometric operators (atan, atan2, asin, acos)
 - Replaced Orient : Fixed rotation with new option Orient : Advanced
+- Loop & Delay integrated to the spawn system
+- Motion Vector support for PlanarPrimitive & Mesh outputs
 
 ### Fixed
 - Handle a possible exception (ReflectionTypeLoadException) while using VFXParameterBinderEditor
 - Renamed Parameter Binders to Property Binders. (This will cause breaking serialization for these PropertyBinders : VFXAudioSpectrumBinder, VFXInputMouseBinder, VFXInputMouseBinder, VFXInputTouchBinder, VFXInputTouchBinder, VFXRaycastBinder, VFXTerrainBinder, VFXUIDropdownBinder, VFXUISliderBinder, VFXUIToggleBinder)
 - Renamed Namespace `UnityEngine.Experimental.VFX.Utility` to `UnityEngine.VFX.Utility`
+- Fix normal bending factor computation for primitive outputs
+- Automatic template path detection based on SRP in now working correctly
 
 ## [6.7.0-preview] - 2019-05-16
 ### Added

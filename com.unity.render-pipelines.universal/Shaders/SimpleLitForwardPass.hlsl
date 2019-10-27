@@ -21,12 +21,12 @@ struct Varyings
     float3 posWS                    : TEXCOORD2;    // xyz: posWS
 
 #ifdef _NORMALMAP
-    half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 bitangent                  : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
+    float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+    float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
 #else
-    half3  normal                   : TEXCOORD3;
-    half3 viewDir                   : TEXCOORD4;
+    float3  normal                  : TEXCOORD3;
+    float3 viewDir                  : TEXCOORD4;
 #endif
 
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light

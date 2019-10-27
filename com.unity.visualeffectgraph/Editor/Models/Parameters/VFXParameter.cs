@@ -328,10 +328,9 @@ namespace UnityEditor.VFX
 
         public void UpdateDefaultExpressionValue()
         {
-            for (int i = 0; i < m_ExprSlots.Length; ++i)
-            {
-                m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
-            }
+            if (!isOutput)
+                for (int i = 0; i < m_ExprSlots.Length; ++i)
+                    m_ValueExpr[i].SetContent(m_ExprSlots[i].value);
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties { 
@@ -542,6 +541,11 @@ namespace UnityEditor.VFX
                     if (info.expandedSlots == null)
                     {
                         info.expandedSlots = new List<VFXSlot>();
+                    }
+                    else
+                    {
+                        if (info.expandedSlots.Any(t => t == null))
+                            info.expandedSlots = info.expandedSlots.Where(t => t != null).ToList();
                     }
 
                     if (usedIds.Contains(info.id))

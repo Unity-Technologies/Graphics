@@ -16,13 +16,13 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected AttributeCompositionMode composition = AttributeCompositionMode.Add;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies whether the applied speed is constant or random.")]
         protected SpeedMode speedMode = SpeedMode.Constant;
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
-        public override string name { get { return string.Format("{0} Velocity ({1})", VFXBlockUtility.GetNameString(composition), "{0}"); } }
+        public override string name { get { return string.Format("{0} Velocity from Direction & Speed ({1})", VFXBlockUtility.GetNameString(composition), "{0}"); } }
 
         protected abstract bool altersDirection { get; }
 
@@ -51,28 +51,28 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesSpeedConstant
         {
-            [Tooltip("The speed to compute for the particles, in the new direction.")]
+            [Tooltip("Sets the speed by which the particles will move in the new direction.")]
             public float Speed = 1.0f;
         }
 
         public class InputPropertiesSpeedRandom
         {
-            [Tooltip("The minimum speed to compute for the particles, in the new direction.")]
+            [Tooltip("Sets the minimum speed by which the particles will move in the new direction.")]
             public float MinSpeed = 0.0f;
 
-            [Tooltip("The minimum speed to compute for the particles, in the new direction.")]
+            [Tooltip("Sets the maximum speed by which the particles will move in the new direction.")]
             public float MaxSpeed = 1.0f;
         }
 
         public class InputPropertiesDirectionBlend
         {
-            [Range(0, 1), Tooltip("Blend between the original emission direction and the new direction, based on this value.")]
+            [Range(0, 1), Tooltip("Controls the blend between the original emission direction and the new direction.")]
             public float DirectionBlend = 1.0f;
         }
 
         public class InputPropertiesVelocityBlend
         {
-            [Range(0, 1), Tooltip("Blend factor between the original velocity and the newly computed velocity.")]
+            [Range(0, 1), Tooltip("Controls the blend between the original velocity and the newly computed velocity.")]
             public float VelocityBlend = 1.0f;
         }
 

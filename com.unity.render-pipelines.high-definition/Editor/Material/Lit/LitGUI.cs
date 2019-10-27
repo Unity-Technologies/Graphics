@@ -130,8 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else // Object space
                 {
-                    // With details map, we always use a normal map but in case of objects space there is no good default, so the result will be weird until users fix it
-                    CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS) || material.GetTexture(kDetailMap));
+                    CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMapOS));
                     CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMapOS));
                     CoreUtils.SetKeyword(material, "_BENTNORMALMAP", material.GetTexture(kBentNormalMapOS));
                 }
@@ -209,9 +208,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }
 
-            if (material.HasProperty(kAdditionalVelocityChange))
+            if (material.HasProperty(kAddPrecomputedVelocity))
             {
-                CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
         }
     }

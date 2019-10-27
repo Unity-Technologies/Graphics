@@ -8,9 +8,9 @@
         "Unity.ugui",
         "Unity.ugui.Editor",
         "Unity.VisualEffectGraph.Editor",
-        "Unity.PackageManagerDocTools.Editor"
+        "Unity.PackageManagerDocTools.Editor",
+        "Unity.RenderPipelines.HighDefinition.Config.Runtime"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],

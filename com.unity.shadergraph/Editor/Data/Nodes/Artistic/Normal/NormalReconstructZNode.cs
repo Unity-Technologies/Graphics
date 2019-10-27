@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
 
         static string NormalReconstructZ(
             [Slot(0, Binding.None)] Vector2 In,
-            [Slot(2, Binding.None, ShaderStageCapability.Fragment)] out Vector3 Out)
+            [Slot(2, Binding.None)] out Vector3 Out)
         {
             Out = Vector3.zero;
             return

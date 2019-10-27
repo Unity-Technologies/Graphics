@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using PositionType = UnityEngine.UIElements.Position;
 
-namespace UnityEditor.VFX.UIElements
+namespace UnityEditor.VFX.UI
 {
     class VFXColorField : ValueControl<Color>
     {
@@ -26,6 +26,7 @@ namespace UnityEditor.VFX.UIElements
             m_Container.style.flexDirection = FlexDirection.Column;
             m_Container.style.alignItems = Align.Stretch;
             m_Container.style.flexGrow = 1f;
+            m_Container.style.flexShrink = 1f;
             m_Container.AddToClassList("colorcontainer");
 
             m_ColorDisplay = new VisualElement();

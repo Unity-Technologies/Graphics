@@ -2813,7 +2813,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -2886,6 +2886,12 @@ MonoBehaviour:
       m_Min: 0
       m_Max: 1
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Alpha threshold used for pixel clipping
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -3412,7 +3418,10 @@ MonoBehaviour:
   - {fileID: 114280324403005594}
   - {fileID: 114967288652437010}
   - {fileID: 114886110431456336}
-  m_Capacity: 1000000
+  dataType: 0
+  capacity: 1000000
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114807987250557806
 MonoBehaviour:
@@ -3876,13 +3885,15 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 2
+  blendMode: 3
+  useAlphaClipping: 1
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614542}
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -4322,6 +4333,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114280324403005594}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114985801467687074
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4515,7 +4530,7 @@ VisualEffectResource:
     m_Events: []
     m_RuntimeVersion: 10
     m_RendererSettings:
-      motionVectorGenerationMode: 1
+      motionVectorGenerationMode: 0
       shadowCastingMode: 0
       receiveShadows: 0
       reflectionProbeUsage: 0

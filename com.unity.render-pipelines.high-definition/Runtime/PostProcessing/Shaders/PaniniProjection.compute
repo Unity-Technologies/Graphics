@@ -104,7 +104,7 @@ float2 Panini_Generic(float2 view_pos, float d)
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return string.Format("{0}_Linear_Repeat", matOwner.GetVariableNameForSlot(id));
+            return $"{matOwner.GetVariableNameForSlot(id)}_Linear_Repeat";
         }
 
         public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
@@ -38,18 +38,15 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            if (generationMode != GenerationMode.Preview)
-                return;
-
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_Linear_Repeat", matOwner.GetVariableNameForSlot(id)),
-                generatePropertyBlock = false,
                 value = new TextureSamplerState()
                 {
                     filter = TextureSamplerState.FilterMode.Linear,
                     wrap = TextureSamplerState.WrapMode.Repeat
-                }
+                },
+                overrideReferenceName = $"{matOwner.GetVariableNameForSlot(id)}_Linear_Repeat",
+                generatePropertyBlock = false,
             });
         }
 

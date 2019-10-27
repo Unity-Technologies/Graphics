@@ -17,6 +17,13 @@ This feature is currently in preview. Some features may change or be removed bef
 
 ## How to use the latest version
 __Note: The Master branch is our current development branch and may not work on the latest publicly available version of Unity. To determine which version of SRP you should use with your version of Unity, go to Package Manager (Window > Package Manager > Show Preview Packages) to see what versions of SRP are available for your version of Unity Editor. Then you can search the Tags tab of the Branch dropdown in the SRP GitHub for that tag number.__
+
+__Regarding package number, we have adopted those numbers
+Unity binaries 2019.1 is compatible with 5.x version
+Unity binaries 2019.2 is compatible with 6.x version
+Unity binaries 2019.3 is compatible with 7.x version
+Unity binaries 2020.1 is compatible with 8.x version__
+
 To use the latest version of the SRP, follow the instructions below:
 
 This repository consists of a folder that should be cloned outside the Assets\ folder of your Unity project. We recommend creating a new project to test SRP. Do not clone this repo into an existing project unless you want to break it, or unless you are updating to a newer version of the SRP repo.

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -69,24 +70,21 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_useMIS = false;
         public bool useMIS { get { return m_useMIS; } }
 
+        static Dictionary<Type, int>  skyUniqueIDs = new Dictionary<Type, int>();
+
         public override int GetHashCode()
         {
             unchecked
             {
+                // UpdateMode and period should not be part of the hash as they do not influence rendering itself.
                 int hash = 13;
                 hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
                 hash = hash * 23 + desiredLuxValue.GetHashCode();
-
-                // TODO: Fixme once we switch to .Net 4.6+
-                //>>>
-                hash = hash * 23 + ((int)updateMode.value).GetHashCode();
-                hash = hash * 23 + ((int)skyIntensityMode.value).GetHashCode();
-                //<<<
-
-                hash = hash * 23 + updatePeriod.GetHashCode();
+                hash = hash * 23 + skyIntensityMode.value.GetHashCode();
                 hash = hash * 23 + includeSunInBaking.GetHashCode();
+
                 return hash;
             }
         }
@@ -98,13 +96,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static int GetUniqueID(Type type)
         {
-            var uniqueIDs = type.GetCustomAttributes(typeof(SkyUniqueID), false);
-            if (uniqueIDs.Length == 0)
-                return -1;
-            else
-                return ((SkyUniqueID)uniqueIDs[0]).uniqueID;
+            int uniqueID;
+
+            if (!skyUniqueIDs.TryGetValue(type, out uniqueID))
+            {
+                var uniqueIDs = type.GetCustomAttributes(typeof(SkyUniqueID), false);
+                uniqueID = (uniqueIDs.Length == 0) ? -1 : ((SkyUniqueID)uniqueIDs[0]).uniqueID;
+                skyUniqueIDs[type] = uniqueID;
+            }
+
+            return uniqueID;
         }
 
-        public abstract SkyRenderer CreateRenderer();
+        public abstract Type GetSkyRendererType();
     }
 }

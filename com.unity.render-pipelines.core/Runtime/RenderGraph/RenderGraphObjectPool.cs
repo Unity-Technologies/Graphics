@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    /// <summary>
+    /// Helper class provided in the RenderGraphContext to all Render Passes.
+    /// It allows you to do temporary allocations of various objects during a Render Pass.
+    /// </summary>
     public sealed class RenderGraphObjectPool
     {
         class SharedObjectPool<T> where T : new()
@@ -30,7 +34,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RenderGraphObjectPool() { }
 
-        // APIs for automatically released temporary object allocation
+        /// <summary>
+        /// Allocate a temporary typed array of a specific size.
+        /// Unity releases the array at the end of the Render Pass.
+        /// </summary>
+        /// <typeparam name="T">Type of the array to be allocated.</typeparam>
+        /// <param name="size">Number of element in the array.</param>
+        /// <returns>A new array of type T with size number of elements.</returns>
         public T[] GetTempArray<T>(int size)
         {
             if (!m_ArrayPool.TryGetValue((typeof(T), size), out var stack))
@@ -44,6 +54,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return result;
         }
 
+        /// <summary>
+        /// Allocate a temporary MaterialPropertyBlock for the Render Pass.
+        /// </summary>
+        /// <returns>A new clean MaterialPropertyBlock.</returns>
         public MaterialPropertyBlock GetTempMaterialPropertyBlock()
         {
             var result = SharedObjectPool<MaterialPropertyBlock>.sharedPool.Get();
@@ -71,14 +85,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_AllocatedMaterialPropertyBlocks.Clear();
         }
 
-        // Regular pooling API
-        public T Get<T>() where T : new()
+        // Regular pooling API. Only internal use for now
+        internal T Get<T>() where T : new()
         {
             var toto = SharedObjectPool<T>.sharedPool;
             return toto.Get();
         }
 
-        public void Release<T>(T value) where T : new()
+        internal void Release<T>(T value) where T : new()
         {
             var toto = SharedObjectPool<T>.sharedPool;
             toto.Release(value);

@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Camera-Switcher" + Documentation.endURL)]
     public class CameraSwitcher : MonoBehaviour
     {
         public Camera[] m_Cameras;

@@ -1,19 +1,12 @@
 // This file contain the two main data structures controlled by the XRSystem.
 // XRView contains the parameters required to render (proj and view matrices, viewport, etc)
 // XRPass holds the render target information and a list of XRView.
-// When a pass has 2+ views, hardware instancing will be active.
+// When a pass has 2+ views, single-pass will be active.
 // To avoid allocating every frame, XRView is a struct and XRPass is pooled.
-
-#if UNITY_2019_3_OR_NEWER && ENABLE_VR
-#define USE_XR_SDK
-#endif
 
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-#if USE_XR_SDK
-using UnityEngine.Experimental.XR;
-#endif
+using UnityEngine.XR;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -43,14 +36,20 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
         }
 
-#if USE_XR_SDK
-        internal XRView(XRDisplaySubsystem.XRRenderParameter renderParameter)
+#if ENABLE_XR_MODULE
+        internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
         {
             projMatrix = renderParameter.projection;
             viewMatrix = renderParameter.view;
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
+
+            // Convert viewport from normalized to screen space
+            viewport.x      *= renderPass.renderTargetDesc.width;
+            viewport.width  *= renderPass.renderTargetDesc.width;
+            viewport.y      *= renderPass.renderTargetDesc.height;
+            viewport.height *= renderPass.renderTargetDesc.height;
         }
 #endif
     }
@@ -64,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int multipassId    { get; private set; }
         internal int cullingPassId  { get; private set; }
+        internal int dstSliceIndex  { get; private set; }
 
         // Ability to specify where to render the pass
         internal RenderTargetIdentifier  renderTarget     { get; private set; }
@@ -76,23 +76,28 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Matrix4x4 GetViewMatrix(int viewIndex = 0) { return views[viewIndex].viewMatrix; }
         internal Rect GetViewport(int viewIndex = 0)        { return views[viewIndex].viewport; }
 
+        // Combined projection and view matrices for culling
+        internal ScriptableCullingParameters cullingParams { get; private set; }
+
         // Instanced views support (instanced draw calls or multiview extension)
         internal int viewCount { get => views.Count; }
-        internal bool instancingEnabled { get => viewCount > 1; }
+        internal bool singlePassEnabled { get => viewCount > 1; }
 
         // Occlusion mesh rendering
         Material occlusionMeshMaterial = null;
 
         // Legacy multipass support
         internal int  legacyMultipassEye      { get => (int)views[0].legacyStereoEye; }
-        internal bool legacyMultipassEnabled  { get => enabled && !instancingEnabled && legacyMultipassEye >= 0; }
+        internal bool legacyMultipassEnabled  { get => enabled && !singlePassEnabled && legacyMultipassEye >= 0; }
 
-        internal static XRPass Create(int multipassId, RenderTexture rt = null)
+        internal static XRPass Create(int multipassId, int cullingPassId, ScriptableCullingParameters cullingParameters, RenderTexture rt = null)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
-            passInfo.cullingPassId = multipassId;
+            passInfo.cullingPassId = cullingPassId;
+            passInfo.cullingParams = cullingParameters;
+            passInfo.dstSliceIndex = -1;
             passInfo.views.Clear();
 
             if (rt != null)
@@ -122,13 +127,15 @@ namespace UnityEngine.Rendering.HighDefinition
             AddViewInternal(new XRView(proj, view, vp));
         }
 
-#if USE_XR_SDK
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, Material occlusionMeshMaterial)
+#if ENABLE_XR_MODULE
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, int textureArraySlice, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
+            passInfo.cullingParams = cullingParameters;
+            passInfo.dstSliceIndex = textureArraySlice;
             passInfo.views.Clear();
             passInfo.renderTarget = xrRenderPass.renderTarget;
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
@@ -140,11 +147,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return passInfo;
         }
 
-        internal void AddView(XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
+        internal void AddView(XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
         {
-            AddViewInternal(new XRView(xrSdkRenderParameter));
+            AddViewInternal(new XRView(xrSdkRenderPass, xrSdkRenderParameter));
         }
 #endif
+
         internal static void Release(XRPass xrPass)
         {
             GenericPool<XRPass>.Release(xrPass);
@@ -152,13 +160,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddViewInternal(XRView xrView)
         {
-            if (views.Count < TextureXR.slices)
+            int maxSupportedViews = Math.Min(TextureXR.slices, ShaderConfig.s_XrMaxViews);
+
+            if (views.Count < maxSupportedViews)
             {
                 views.Add(xrView);
             }
             else
             {
-                throw new NotImplementedException($"Invalid XR setup for single-pass instancing, trying to add too many views! Max supported: {TextureXR.slices}");
+                throw new NotImplementedException($"Invalid XR setup for single-pass, trying to add too many views! Max supported: {maxSupportedViews}");
             }
         }
 
@@ -183,18 +193,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         renderContext.StartMultiEye(camera);
                 }
-                else if (instancingEnabled)
+                else if (singlePassEnabled)
                 {
                     if (viewCount <= TextureXR.slices)
                     {
                         cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
-#if UNITY_2019_3_OR_NEWER
-                        //cmd.SetInstanceMultiplier((uint)viewCount);
-#endif
+                        cmd.SetInstanceMultiplier((uint)viewCount);
                     }
                     else
                     {
-                        throw new NotImplementedException($"Invalid XR setup for single-pass instancing, trying to render too many views! Max supported: {TextureXR.slices}");
+                        throw new NotImplementedException($"Invalid XR setup for single-pass, trying to render too many views! Max supported: {TextureXR.slices}");
                     }
                 }
             }
@@ -213,9 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
-#if UNITY_2019_3_OR_NEWER
-                    //cmd.SetInstanceMultiplier(1);
-#endif
+                    cmd.SetInstanceMultiplier(1);
                 }
             }
         }
@@ -229,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Legacy VR - push to XR headset and/or display mirror
             if (hdCamera.camera.stereoEnabled)
-                        {
+            {
                 if (legacyMultipassEnabled)
                     renderContext.StereoEndRender(hdCamera.camera, legacyMultipassEye, legacyMultipassEye == 1);
                 else
@@ -239,23 +245,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)
         {
-            // XRTODO: uncomment when C++ code is ready and tested
-            //if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
-            //{
-            //    using (new ProfilingSample(cmd, "XR Occlusion Meshes"))
-            //    {
-            //        Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+            if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
+            {
+                using (new ProfilingSample(cmd, "XR Occlusion Mesh"))
+                {
+                    Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 
-            //        for (int viewId = 0; viewId < viewCount; ++viewId)
-            //        {
-            //            if (views[viewId].occlusionMesh != null)
-            //            {
-            //                HDUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
-            //                cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
-            //            }
-            //        }
-            //    }
-            //}
+                    for (int viewId = 0; viewId < viewCount; ++viewId)
+                    {
+                        if (views[viewId].occlusionMesh != null)
+                        {
+                            CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
+                            cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
+                        }
+                    }
+                }
+            }
         }
     }
 }

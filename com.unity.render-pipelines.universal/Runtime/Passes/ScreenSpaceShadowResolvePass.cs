@@ -1,8 +1,11 @@
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
-    internal class ScreenSpaceShadowResolvePass : ScriptableRenderPass
+    /// <summary>
+    /// Resolves shadows in a screen space texture.
+    /// </summary>
+    public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         Material m_ScreenSpaceShadowsMaterial;
         RenderTargetHandle m_ScreenSpaceShadowmap;

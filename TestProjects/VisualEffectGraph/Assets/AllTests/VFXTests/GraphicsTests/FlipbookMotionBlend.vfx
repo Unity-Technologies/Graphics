@@ -30,6 +30,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114946465509916290}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114063133802684794
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -50,10 +54,10 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114158099937248418}
   - {fileID: 8926484042661614530}
   - {fileID: 8926484042661614545}
   - {fileID: 8926484042661614546}
+  - {fileID: 114158099937248418}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 114428730288789306}
@@ -64,12 +68,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 1
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614802}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 4
   useSoftParticle: 0
   sortPriority: 0
@@ -77,6 +83,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114131763552434164
@@ -222,7 +230,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -282,7 +290,10 @@ MonoBehaviour:
   - {fileID: 114780028408030698}
   - {fileID: 114063133802684794}
   - {fileID: 8926484042661614607}
-  m_Capacity: 1
+  dataType: 0
+  capacity: 1
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -1097,13 +1108,15 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614803}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 4
   useSoftParticle: 0
   sortPriority: 0
@@ -1111,6 +1124,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &8926484042661614608
 MonoBehaviour:
   m_ObjectHideFlags: 0

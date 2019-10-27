@@ -40,18 +40,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
+            SynchronizeShaderGraphProperties(material);
+
             BaseLitGUI.SetupBaseLitKeywords(material);
+            BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false;
             bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
-            if (material.HasProperty(kAdditionalVelocityChange))
+            if (material.HasProperty(kAddPrecomputedVelocity))
             {
-                CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
 
         }
 
-        // Currently Lit material keyword setup is enough for fabric so we don't have a function for it
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
     }
 }

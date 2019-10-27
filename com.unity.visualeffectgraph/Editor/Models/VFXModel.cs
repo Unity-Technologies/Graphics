@@ -243,10 +243,29 @@ namespace UnityEditor.VFX
 
         public void SetSettingValue(string name, object value)
         {
-            SetSettingValue(name, value, true);
+            SetSettingValue(name, value, true);         
         }
 
+        public void SetSettingValues(IEnumerable<KeyValuePair<string, object>> nameValues)
+        {
+            bool hasChanged = false;
+            foreach (var kvp in nameValues)
+            {
+                if (SetSettingValueAndReturnIfChanged(kvp.Key, kvp.Value))
+                    hasChanged = true;
+            }
+
+            if (hasChanged)
+                Invalidate(InvalidationCause.kSettingChanged);
+        }
         protected void SetSettingValue(string name, object value, bool notify)
+        {
+            bool hasChanged = SetSettingValueAndReturnIfChanged(name, value);
+            if (hasChanged && notify)
+                Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        private bool SetSettingValueAndReturnIfChanged(string name, object value)
         {
             var setting = GetSetting(name);
             if (setting.field == null)
@@ -258,14 +277,19 @@ namespace UnityEditor.VFX
             if (currentValue != value)
             {
                 setting.field.SetValue(setting.instance, value);
-                if (notify)
-                {
-                    Invalidate(InvalidationCause.kSettingChanged);
-                }
+                OnSettingModified(setting);
+                if (setting.instance != this)
+                    setting.instance.OnSettingModified(setting);
+                return true;
             }
+            return false;
         }
 
-        public virtual VFXSetting GetSetting(string  name)
+        // Override this method to update other settings based on a setting modification
+        // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
+        protected virtual void OnSettingModified(VFXSetting setting) {}
+
+        public virtual VFXSetting GetSetting(string name)
         {
             return new VFXSetting(GetType().GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance), this);
         }
@@ -285,7 +309,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected virtual void Invalidate(VFXModel model, InvalidationCause cause)
+        protected internal virtual void Invalidate(VFXModel model, InvalidationCause cause)
         {
             OnInvalidate(model, cause);
             if (m_Parent != null)

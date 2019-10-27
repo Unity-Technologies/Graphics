@@ -27,13 +27,13 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         #pragma shader_feature_local _MASKMAP
 
         #pragma shader_feature_local _TERRAIN_BLEND_HEIGHT
+        #define _TERRAIN_BASEMAP_GEN
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
         CBUFFER_START(UnityTerrain)
             UNITY_TERRAIN_CB_VARS
             float4 _Control0_ST;
-            float4 _Control0_TexelSize;
         CBUFFER_END
 
         struct Varyings

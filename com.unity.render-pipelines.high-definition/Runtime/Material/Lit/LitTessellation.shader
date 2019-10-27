@@ -47,7 +47,7 @@ Shader "HDRP/LitTessellation"
         // These parameters are for pixel displacement
         _HeightPoMAmplitude("Height Amplitude", Float) = 2.0 // In centimeters
 
-        _DetailMap("DetailMap", 2D) = "black" {}
+        _DetailMap("DetailMap", 2D) = "linearGrey" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(0.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(0.0, 2.0)) = 1
@@ -231,7 +231,7 @@ Shader "HDRP/LitTessellation"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
-        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+        [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
     }
 
@@ -276,7 +276,7 @@ Shader "HDRP/LitTessellation"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
-    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent

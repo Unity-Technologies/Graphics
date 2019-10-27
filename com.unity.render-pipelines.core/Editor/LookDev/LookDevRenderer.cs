@@ -5,25 +5,13 @@ using IDataProvider = UnityEngine.Rendering.LookDev.IDataProvider;
 
 namespace UnityEditor.Rendering.LookDev
 {
-    /// <summary>
-    /// The RenderingPass inside the frame.
-    /// Useful for compositing.
-    /// <seealso cref="Renderer.Acquire(RenderingData, RenderingPass)"/>
-    /// </summary>
-    [Flags]
-    public enum RenderingPass
-    {
-        First = 1,
-        Last = 2
-    }
-
     /// <summary>Data container to be used with Renderer class</summary>
-    public class RenderingData
+    public class RenderingData : IDisposable
     {
         /// <summary>
         /// Internally set to true when the given RenderTexture <see cref="output"/> was not the good size regarding <see cref="viewPort"/> and needed to be recreated
         /// </summary>
-        public bool resized;
+        public bool sizeMissmatched;
         /// <summary>The stage that possess every object in your view</summary>
         public Stage stage;
         /// <summary>Callback to update the Camera position. Only done in First phase.</summary>
@@ -32,6 +20,20 @@ namespace UnityEditor.Rendering.LookDev
         public Rect viewPort;
         /// <summary>Render texture handling captured image</summary>
         public RenderTexture output;
+
+        private bool disposed = false;
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+            disposed = true;
+
+            stage?.Dispose();
+            stage = null;
+            updater = null;
+            output?.Release();
+            output = null;
+        }
     }
 
     /// <summary>Basic renderer to draw scene in texture</summary>
@@ -42,36 +44,31 @@ namespace UnityEditor.Rendering.LookDev
         public Renderer(bool pixelPerfect = false)
             => this.pixelPerfect = pixelPerfect;
 
-        void BeginRendering(RenderingData data, RenderingPass pass = 0)
+        public void BeginRendering(RenderingData data)
         {
             data.stage.SetGameObjectVisible(true);
             data.updater?.UpdateCamera(data.stage.camera);
             data.stage.camera.enabled = true;
-            UpdateOutputSize(data);
         }
 
-        void EndRendering(RenderingData data)
+        public void EndRendering(RenderingData data)
         {
             data.stage.camera.enabled = false;
             data.stage.SetGameObjectVisible(false);
         }
 
-        void UpdateOutputSize(RenderingData data)
+        bool CheckWrongSizeOutput(RenderingData data)
         {
-            var oldOutput = data.output;
-            data.output = RenderTextureCache.UpdateSize(
-                data.output, data.viewPort, pixelPerfect, data.stage.camera);
-            data.resized = oldOutput != data.output;
-        }
-
-        bool CheckInvertedOutput(RenderingData data)
-        {
-            if (data.viewPort.IsNullOrInverted())
+            if (data.viewPort.IsNullOrInverted()
+                || data.viewPort.width != data.output.width
+                || data.viewPort.height != data.viewPort.height)
             {
                 data.output = null;
-                data.resized = true;
+                data.sizeMissmatched = true;
                 return true;
             }
+
+            data.sizeMissmatched = false;
             return false;
         }
 
@@ -79,21 +76,16 @@ namespace UnityEditor.Rendering.LookDev
         /// Capture image of the scene.
         /// </summary>
         /// <param name="data">Datas required to compute the capture</param>
-        /// <param name="pass">
         /// [Optional] When drawing several time the scene, you can remove First and/or Last to not initialize objects.
         /// Be careful though to always start your frame with a First and always end with a Last.
         /// </param>
-        public void Acquire(RenderingData data, RenderingPass pass = RenderingPass.First | RenderingPass.Last)
+        public void Acquire(RenderingData data)
         {
-            if (CheckInvertedOutput(data))
+            if (CheckWrongSizeOutput(data))
                 return;
 
-            if ((pass & RenderingPass.First) != 0)
-                BeginRendering(data, pass);
             data.stage.camera.targetTexture = data.output;
             data.stage.camera.Render();
-            if ((pass & RenderingPass.Last) != 0)
-                EndRendering(data);
         }
 
         internal static void DrawFullScreenQuad(Rect rect)

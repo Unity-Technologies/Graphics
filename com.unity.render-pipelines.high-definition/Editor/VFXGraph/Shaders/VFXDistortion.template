@@ -1,0 +1,51 @@
+${VFXBegin:VFXVertexDistortionProcess}
+
+#if DISTORTION_SCREENSPACE
+		${VFXLoadParameter:{distortionScale}}
+		o.distortionInterpolants.xy = distortionScale;
+#endif
+
+#if DISTORTION_NORMALBASED
+		${VFXLoadParameter:{distortionScale}}
+		o.distortionInterpolants.x = distortionScale;
+		o.distortionInterpolants.y = 0.0;
+#endif
+
+		${VFXLoadParameter:{blurScale}}
+		o.distortionInterpolants.z = blurScale;
+
+#if DISTORTION_SCALE_BY_DISTANCE
+		// Scale Distortion by Distance
+		float clipPosW = o.VFX_VARYING_POSCS.w;
+		o.distortionInterpolants.xy /= clipPosW;
+#endif
+
+${VFXEnd}
+
+
+
+${VFXBegin:VFXFragmentDistortionProcess}
+
+		float2 distortion;
+		float blur;
+
+#if DISTORTION_SCREENSPACE
+		float3 smpDistort = VFXGetTextureColor(VFX_SAMPLER(distortionBlurMap),i).xyz;
+		distortion = (smpDistort.xy * 2.0 - 1.0) * i.distortionInterpolants.xy;
+		blur = smpDistort.z * i.distortionInterpolants.z;
+#endif
+
+#if DISTORTION_NORMALBASED
+		${VFXComputeNormalWS}
+		float3 viewNormal = mul(VFXGetWorldToViewRotMatrix(),normalWS);
+		float smpSmoothness = VFXGetTextureColor(VFX_SAMPLER(smoothnessMap),i).a;
+		float smpMask = VFXGetTextureColor(VFX_SAMPLER(alphaMask),i).a;
+		distortion = viewNormal.xy * i.distortionInterpolants.x * smpMask;
+		blur = (1.0-smpSmoothness) * i.distortionInterpolants.z * smpMask; 
+#endif
+		float fade = VFXGetSoftParticleFade(i);
+		o.distortion.xyw = fade * i.VFX_VARYING_ALPHA * float3(distortion.xy, blur);
+		o.distortion.z = 1.0;
+		return o;
+
+${VFXEnd}

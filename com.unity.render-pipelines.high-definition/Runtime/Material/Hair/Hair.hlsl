@@ -54,6 +54,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -71,6 +72,12 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     if (overrideNormal)
     {
         surfaceData.normalWS = tangentToWorld[2];
+    }
+
+    if (overrideAO)
+    {
+        float overrideAOValue = _DebugLightingAmbientOcclusion.y;
+        surfaceData.ambientOcclusion = overrideAOValue;
     }
 
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
@@ -562,7 +569,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, lightData.rangeCompressionFactorCompensation);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     envLighting = preLightData.specularFGD * preLD.rgb;

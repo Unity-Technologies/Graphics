@@ -1,99 +1,72 @@
 using System;
-using System.Text;
-using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
+    [FormerName("UnityEditor.ShaderGraph.Texture2DArrayShaderProperty")]
+    public sealed class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
     {
-        [SerializeField]
-        private bool m_Modifiable = true;
-
-        public Texture2DArrayShaderProperty()
+        internal Texture2DArrayShaderProperty()
         {
-            value = new SerializableTextureArray();
             displayName = "Texture2D Array";
+            value = new SerializableTextureArray();
         }
 
-        public override PropertyType propertyType
+        public override PropertyType propertyType => PropertyType.Texture2DArray;
+
+        internal override bool isBatchable => false;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+
+        internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
+
+        internal override string GetPropertyBlockString()
         {
-            get { return PropertyType.Texture2DArray; }
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
         }
 
-        public bool modifiable
+        internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            get { return m_Modifiable; }
-            set { m_Modifiable = value; }
+            return $"TEXTURE2D_ARRAY({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
         }
 
-        public override Vector4 defaultValue
+        internal override string GetPropertyAsArgumentString()
         {
-            get { return new Vector4(); }
+            return $"TEXTURE2D_ARRAY_PARAM({referenceName}, sampler{referenceName})";
         }
 
-        public override bool isBatchable
+        [SerializeField]
+        bool m_Modifiable = true;
+
+        internal bool modifiable
         {
-            get { return false; }
+            get => m_Modifiable;
+            set => m_Modifiable = value;
         }
 
-        public override bool isExposable
+        internal override AbstractMaterialNode ToConcreteNode()
         {
-            get { return true; }
+            return new Texture2DArrayAssetNode { texture = value.textureArray };
         }
 
-        public override bool isRenamable
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            get { return true; }
-        }
-
-        public override string GetPropertyBlockString()
-        {
-            var result = new StringBuilder();
-            if (!m_Modifiable)
-            {
-                result.Append("[NonModifiableTextureData] ");
-            }
-            result.Append("[NoScaleOffset] ");
-
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", 2DArray) = \"white\" {}");
-            return result.ToString();
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format("TEXTURE2D_ARRAY({0}){1} SAMPLER(sampler{0}){1}", referenceName, delimiter);
-        }
-
-        public override string GetPropertyAsArgumentString()
-        {
-            return string.Format("TEXTURE2D_ARRAY_PARAM({0}, sampler{0})", referenceName);
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return new PreviewProperty(PropertyType.Texture2D)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 textureValue = value.textureArray
             };
         }
 
-        public override AbstractMaterialNode ToConcreteNode()
+        internal override ShaderInput Copy()
         {
-            return new Texture2DArrayAssetNode { texture = value.textureArray };
-        }
-
-        public override AbstractShaderProperty Copy()
-        {
-            var copied = new Texture2DArrayShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new Texture2DArrayShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
     }
 }

@@ -680,7 +680,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class VFXDataAnchorGizmoContext : VFXGizmoUtility.Context
+    class VFXDataAnchorGizmoContext : VFXGizmoUtility.Context
     {
         // Provider
         internal VFXDataAnchorGizmoContext(VFXDataAnchorController controller)

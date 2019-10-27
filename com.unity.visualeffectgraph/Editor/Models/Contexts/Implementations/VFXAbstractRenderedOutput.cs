@@ -13,19 +13,45 @@ namespace UnityEditor.VFX
         {
             Additive,
             Alpha,
-            Masked,
             AlphaPremultiplied,
             Opaque,
         }
 
-        [VFXSetting, Header("Render States")]
+        [VFXSetting, Header("Render States"), Tooltip("Specifies the transparency and blending method for rendering the particles to the screen.")]
         public BlendMode blendMode = BlendMode.Alpha;
 
-        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked; } }
+        [VFXSetting,Tooltip("When enabled, transparent pixels under the specified alpha threshold will be discarded.")]
+        public bool useAlphaClipping = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
+        protected bool generateMotionVector = false;
+
+        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+
+        public virtual bool hasMotionVector
+        {
+            get
+            {
+                return subOutput.supportsMotionVector
+                    && implementsMotionVector
+                    && generateMotionVector;
+            }
+        }
+
+        public virtual bool implementsMotionVector { get { return false; } }
 
         protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
 
-        public VFXSRPSubOutput subOutput => m_CurrentSubOutput;
+        public VFXSRPSubOutput subOutput
+        {
+            get
+            {
+                if (m_CurrentSubOutput == null)
+                    GetOrCreateSubOutput();
+                return m_CurrentSubOutput;
+            }
+        }
+
         private VFXSRPSubOutput CreateDefaultSubOutput()
         {
             var defaultSubOutput  = ScriptableObject.CreateInstance<VFXSRPSubOutput>();
@@ -137,8 +163,38 @@ namespace UnityEditor.VFX
         protected virtual void WriteBlendMode(VFXShaderWriter writer)
         {
             var blendModeStr = subOutput.GetBlendModeStr();
-            if (!String.IsNullOrEmpty(blendModeStr))
+            if (!string.IsNullOrEmpty(blendModeStr))
                 writer.WriteLine(blendModeStr);
+            if (hasMotionVector && !isBlendModeOpaque)
+                writer.WriteLine("Blend 1 Off"); //Disable blending for velocity target in forward
+        }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 3) // Fix Blend Modes and useAlphaClipping
+            {
+                int blendModeValue = (int)blendMode; 
+                switch(blendModeValue)
+                {
+                    case 0: // No change required for 0 and 1 (Additive and AlphaBlend)
+                    case 1:
+                        break;
+                    case 2: // Masked
+                        SetSettingValue("useAlphaClipping", true);
+                        SetSettingValue("blendMode",(int)BlendMode.Opaque);
+                        break;
+                    case 3: // Alpha Premultiplied
+                        SetSettingValue("blendMode", (int)BlendMode.AlphaPremultiplied);
+
+                        break;
+                    case 4: // Opaque
+                        SetSettingValue("blendMode", (int)BlendMode.Opaque);
+                        break;
+                    default: 
+                        break;
+                }
+            }
+            base.Sanitize(version);
         }
 
         [SerializeField]

@@ -15,64 +15,73 @@ RWTexture2D<float4> output; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
 
 #pragma kernel ComputeGgxIblSampleData
 
-[numthreads(MAX_IBL_SAMPLE_CNT, UNITY_SPECCUBE_LOD_STEPS, 1)]
+// Cannot use (MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS) since
+// the thread group becomes too large for some platforms.
+[numthreads(8, UNITY_SPECCUBE_LOD_STEPS, 1)]
 void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
 {
-    uint  sampleIndex = groupThreadId.x;
-    uint  mipLevel    = groupThreadId.y + 1;
-    float roughness   = PerceptualRoughnessToRoughness(MipmapLevelToPerceptualRoughness(mipLevel));
-    uint  sampleCount = GetIBLRuntimeFilterSampleCount(mipLevel);
+    uint numSamplesPerThread = (MAX_IBL_SAMPLE_CNT + 7) / 8;
 
-    if (sampleIndex >= sampleCount)
+    for (uint s = 0; s < numSamplesPerThread; s++)
     {
-        output[groupThreadId.xy] = float4(0, 0, 0, 0);
-        return;
-    }
+        uint  sampleIndex = groupThreadId.x * numSamplesPerThread + s;
+        uint  mipLevel    = groupThreadId.y + 1;
+        float roughness   = PerceptualRoughnessToRoughness(MipmapLevelToPerceptualRoughness(mipLevel));
+        uint  sampleCount = GetIBLRuntimeFilterSampleCount(mipLevel);
 
-    float3 V     = float3(0, 0, 1);
-    float  NdotV = 1;
+        uint2 texCoord = uint2(sampleIndex, mipLevel - 1);
 
-    float3 localL;
-    float  NdotL, NdotH, LdotH;
-
-    const uint validSampleCount = sampleCount;
-
-    while (true)
-    {
-        uint acceptedSampleCount = 0;
-        uint shiftedSampleIndex  = 0;
-
-        for (uint i = 0; i < sampleCount; i++)
+        if (sampleIndex >= sampleCount)
         {
-            // We switch to the Golden sequence instead of the Fibonacci sequence
-            // since the sample count is not guaranteed to be a Fibonacci number.
-            // TODO: might be interesting to try Mitchell's Poisson disk sampling algorithm.
-            // In our case, samples would not have disks associated with them, but rather solid angles.
-            float2 u = Golden2dSeq(i, sampleCount);
-            SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
+            output[texCoord] = float4(0, 0, 0, 0);
+            return;
+        }
 
-            if (NdotL > 0)
+        float3 V     = float3(0, 0, 1);
+        float  NdotV = 1;
+
+        float3 localL;
+        float  NdotL, NdotH, LdotH;
+
+        const uint validSampleCount = sampleCount;
+
+        while (true)
+        {
+            uint acceptedSampleCount = 0;
+            uint shiftedSampleIndex  = 0;
+
+            for (uint i = 0; i < sampleCount; i++)
             {
-                if (acceptedSampleCount == sampleIndex) shiftedSampleIndex = i;
-                acceptedSampleCount++;
+                // We switch to the Golden sequence instead of the Fibonacci sequence
+                // since the sample count is not guaranteed to be a Fibonacci number.
+                // TODO: might be interesting to try Mitchell's Poisson disk sampling algorithm.
+                // In our case, samples would not have disks associated with them, but rather solid angles.
+                float2 u = Golden2dSeq(i, sampleCount);
+                SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
+
+                if (NdotL > 0)
+                {
+                    if (acceptedSampleCount == sampleIndex) shiftedSampleIndex = i;
+                    acceptedSampleCount++;
+                }
             }
+
+            if (acceptedSampleCount == validSampleCount)
+            {
+                sampleIndex = shiftedSampleIndex;
+                break;
+            }
+
+            sampleCount++;
         }
 
-        if (acceptedSampleCount == validSampleCount)
-        {
-            sampleIndex = shiftedSampleIndex;
-            break;
-        }
+        float2 u = Golden2dSeq(sampleIndex, sampleCount);
 
-        sampleCount++;
+        SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
+
+        float pdf    = 0.25 * D_GGX(NdotH, roughness);
+        float omegaS = rcp(sampleCount) * rcp(pdf);
+
+        output[texCoord] = float4(localL, omegaS);
     }
-
-    float2 u = Golden2dSeq(sampleIndex, sampleCount);
-
-    SampleGGXDir(u, V, k_identity3x3, roughness, localL, NdotL, NdotH, LdotH, true);
-
-    float pdf    = 0.25 * D_GGX(NdotH, roughness);
-    float omegaS = rcp(sampleCount) * rcp(pdf);
-
-    output[groupThreadId.xy] = float4(localL, omegaS);
 }

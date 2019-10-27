@@ -118,7 +118,7 @@ namespace LibTessDotNet
     {
         public const int Undef = ~0;
 
-            [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class Pooled<T> where T : Pooled<T>, new()
+            public abstract class Pooled<T> where T : Pooled<T>, new()
             {
                 private static Stack<T> _stack;
                 public abstract void Reset();
@@ -145,7 +145,7 @@ namespace LibTessDotNet
                 }
             }
 
-            [MovedFrom("UnityEngine.Rendering.LWRP")] public class Vertex : Pooled<Vertex>
+            public class Vertex : Pooled<Vertex>
         {
             internal Vertex _prev, _next;
             internal Edge _anEdge;
@@ -169,7 +169,7 @@ namespace LibTessDotNet
             }
         }
 
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public class Face : Pooled<Face>
+        public class Face : Pooled<Face>
         {
             internal Face _prev, _next;
             internal Edge _anEdge;
@@ -203,7 +203,7 @@ namespace LibTessDotNet
             }
         }
 
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public struct EdgePair
+        public struct EdgePair
         {
             internal Edge _e, _eSym;
 
@@ -223,7 +223,7 @@ namespace LibTessDotNet
             }
         }
 
-        [MovedFrom("UnityEngine.Rendering.LWRP")] public class Edge : Pooled<Edge>
+        public class Edge : Pooled<Edge>
         {
             internal EdgePair _pair;
             internal Edge _next, _Sym, _Onext, _Lnext;

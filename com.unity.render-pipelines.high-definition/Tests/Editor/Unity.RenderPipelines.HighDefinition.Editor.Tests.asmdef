@@ -3,6 +3,7 @@
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Core.Editor",
+        "Unity.RenderPipelines.Core.Editor.Tests",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.HighDefinition.Editor"
     ],

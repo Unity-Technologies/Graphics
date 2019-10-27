@@ -1,0 +1,189 @@
+#pragma kernel BilateralFilterSingle        BILATERAL_FILTER=BilateralFilterSingle     SINGLE_CHANNEL
+#pragma kernel BilateralFilterColor         BILATERAL_FILTER=BilateralFilterColor
+
+#pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
+#pragma kernel GatherColor                  GATHER_FILTER=GatherColor
+
+// Common includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
+// HDRP includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+
+// Ray Tracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/BilateralFilter.hlsl"
+
+// Tile size of this compute shaders
+#define DIFFUSE_DENOISER_TILE_SIZE 8
+
+// Noisy Input Buffer
+TEXTURE2D_X(_DenoiseInputTexture);
+
+// Filtered Output buffer (depends on the singel or color variant of the denoiser)
+#if SINGLE_CHANNEL
+RW_TEXTURE2D_X(float, _DenoiseOutputTextureRW);
+#else
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
+#endif
+
+// Radius of the filter (world space)
+float _DenoiserFilterRadius;
+float _PixelSpreadAngleTangent;
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
+
+// Flag used to do a half resolution filter
+int _HalfResolutionFilter;
+
+[numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
+void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
+
+    // Read the central position
+    const BilateralData center = TapBilateralData(centerCoord);
+
+    // If this is a background pixel, we are done
+    if (center.z01 == 1.0)
+    {
+        #if SINGLE_CHANNEL
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = 0.0;
+        #else
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 1.0);
+        #endif
+    }
+
+    // Create the local ortho basis for our sampling
+    float3x3 localToWorld = GetLocalFrame(center.normal);
+
+    // Intialize the accumulation values
+    #if SINGLE_CHANNEL
+    float colorSum = 0.0;
+    float wSum = 0.0;
+    #else
+    float3 colorSum = 0.0;
+    float wSum = 0.0;
+    #endif
+
+    // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
+    int numSamples = _HalfResolutionFilter ? 4 : 16;
+
+    // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
+    const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
+    const float realPixelFootPrint = parallelPixelFootPrint / abs(dot(center.normal, -GetViewForwardDir()));
+    const float denoisingRadius = max(_DenoiserFilterRadius, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
+
+    // Compute the sigma value
+    const float sigma = 0.5 * denoisingRadius;
+
+    // Index of the pixel in the 2x2 group that are used for the half res filter
+    int localIndex = (centerCoord.x & 1) + (centerCoord.y & 1) * 2;
+
+    // Loop through the samples that we need to aggrgate
+    for (uint sampleIndex = 0; sampleIndex < (uint)numSamples; ++sampleIndex)
+    {
+        // Fetch the noise value for the current sample
+        float2 newSample;
+        newSample.x = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 0);
+        newSample.y = GetLDSequenceSampleFloat(sampleIndex + (_HalfResolutionFilter != 0 ? localIndex * numSamples : 0), 1);
+        
+        // Convert the sample to a local unit disk
+        newSample = SampleDiskUniform(newSample.x * newSample.x, newSample.y);
+
+        // Distribute them according a square profile
+        newSample *= denoisingRadius * denoisingRadius;
+
+        // Convert the point to hemogenous clip space
+        float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;
+        float4 hClip = TransformWorldToHClip(wsPos);
+        hClip.xyz /= hClip.w;
+
+        // Is the target pixel in the screen?
+        if (hClip.x > 1.0 || hClip.x < -1.0 || hClip.y > 1.0 || hClip.y < -1.0 )
+            continue;
+
+        // Convert it to screen sample space
+        float2 nDC = hClip.xy * 0.5 + 0.5;
+    #if UNITY_UV_STARTS_AT_TOP
+        nDC.y = 1.0 - nDC.y;
+    #endif
+
+        // Tap the data for this pixel
+        uint2 tapCoord = nDC * _ScreenSize.xy;
+        const BilateralData tapData = TapBilateralData(tapCoord);
+
+        // If the tapped pixel is a background pixel or too far from the center pixel
+        if (tapData.z01 == UNITY_RAW_FAR_CLIP_VALUE || abs(tapData.zNF - hClip.w) > 0.1)
+            continue;
+
+        // Compute the radius of the sample
+        float r = length(newSample);
+
+        // Compute the weight (skip computation for the center)
+        const float w = r > 0.001f ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
+
+        // Accumulate the new sample
+    #if SINGLE_CHANNEL
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
+    #else
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+    #endif
+        wSum += w;
+    }
+
+    // If no samples were found, we take the center pixel only
+    if (wSum == 0.0)
+    {
+        #if SINGLE_CHANNEL
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x;
+        #else
+        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+        #endif
+        wSum += 1.0;
+    }
+
+    // Normalize the result
+    #if SINGLE_CHANNEL
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = colorSum / wSum;
+    #else
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(colorSum / wSum, 1.0);
+    #endif
+}
+
+// TODO: This needs to check depth before upscale to avoid artifacts
+[numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
+void GATHER_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Fetch the current pixel coordinate
+    uint2 centerCoord = groupId * DIFFUSE_DENOISER_TILE_SIZE + groupThreadId;
+
+    uint2 corner = centerCoord - uint2(centerCoord.x & 1, centerCoord.y & 1);
+    // TODO: The data is read 4 times while it should only be done once
+    #if SINGLE_CHANNEL
+    float color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner).x;
+    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 0)).x;
+    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(0, 1)).x;
+    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 1)).x;
+    color *= 0.25;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = color;
+    #else
+    float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner).xyz;
+    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 0)).xyz;
+    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(0, 1)).xyz;
+    color += LOAD_TEXTURE2D_X(_DenoiseInputTexture, corner + uint2(1, 1)).xyz;
+    color *= 0.25;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, 1.0);
+    #endif
+}

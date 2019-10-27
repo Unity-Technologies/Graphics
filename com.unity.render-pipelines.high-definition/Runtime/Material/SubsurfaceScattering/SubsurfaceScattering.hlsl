@@ -216,6 +216,10 @@ void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout
                                                         bsdfData.thickness);
 }
 
+#endif
+
+#if defined(MATERIAL_INCLUDE_SUBSURFACESCATTERING) || defined(MATERIAL_INCLUDE_TRANSMISSION)
+
 uint FindDiffusionProfileIndex(uint diffusionProfileHash)
 {
     if (diffusionProfileHash == 0)

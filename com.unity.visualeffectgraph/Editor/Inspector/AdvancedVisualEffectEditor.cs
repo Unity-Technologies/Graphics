@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
 
     [CustomEditor(typeof(VisualEffect))]
     [CanEditMultipleObjects]
-    public class AdvancedVisualEffectEditor : VisualEffectEditor, IToolModeOwner
+    class AdvancedVisualEffectEditor : VisualEffectEditor, IToolModeOwner
     {
         new void OnEnable()
         {
@@ -178,7 +178,7 @@ namespace UnityEditor.VFX
         {
             EditMode.DoEditModeInspectorModeButton(
                 EditMode.SceneViewEditMode.Collider,
-                "Show Parameter Gizmos",
+                "Show Property Gizmos",
                 EditorGUIUtility.IconContent("EditCollider"),
                 this
             );

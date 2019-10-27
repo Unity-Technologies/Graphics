@@ -133,10 +133,10 @@ Shader "HDRP/LayeredLitTessellation"
         _HeightPoMAmplitude2("Height Amplitude2", Float) = 2.0 // In centimeters
         _HeightPoMAmplitude3("Height Amplitude3", Float) = 2.0 // In centimeters
 
-        _DetailMap0("DetailMap0", 2D) = "black" {}
-        _DetailMap1("DetailMap1", 2D) = "black" {}
-        _DetailMap2("DetailMap2", 2D) = "black" {}
-        _DetailMap3("DetailMap3", 2D) = "black" {}
+        _DetailMap0("DetailMap0", 2D) = "linearGrey" {}
+        _DetailMap1("DetailMap1", 2D) = "linearGrey" {}
+        _DetailMap2("DetailMap2", 2D) = "linearGrey" {}
+        _DetailMap3("DetailMap3", 2D) = "linearGrey" {}
 
         _DetailAlbedoScale0("_DetailAlbedoScale0", Range(0.0, 2.0)) = 1
         _DetailAlbedoScale1("_DetailAlbedoScale1", Range(0.0, 2.0)) = 1
@@ -374,7 +374,7 @@ Shader "HDRP/LayeredLitTessellation"
 
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
-        [ToggleUI] _AddVelocityChange("EnableAdditionalVelocity", Float) = 0.0
+        [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
     }
 
@@ -446,7 +446,7 @@ Shader "HDRP/LayeredLitTessellation"
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
-    #pragma shader_feature_local _ADDITIONAL_VELOCITY_CHANGE
+    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent

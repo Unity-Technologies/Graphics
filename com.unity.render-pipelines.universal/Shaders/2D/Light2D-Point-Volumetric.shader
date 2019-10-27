@@ -18,6 +18,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             struct Attributes
             {
@@ -38,6 +39,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
 #else
                 float4	positionWS : TEXCOORD4;
 #endif
+                SHADOW_COORDS(TEXCOORD5)
             };
 
 #if USE_POINT_LIGHT_COOKIES
@@ -56,16 +58,19 @@ Shader "Hidden/Light2d-Point-Volumetric"
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
-            half4	_LightColor;
+            half4   _LightColor;
             float   _VolumeOpacity;
-            float4	_LightPosition;
-            half4x4	_LightInvMatrix;
-            half4x4	_LightNoRotInvMatrix;
-            half	_LightZDistance;
-            half	_OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half	_InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half	_InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
-            half	_InverseHDREmulationScale;
+            float4  _LightPosition;
+            half4x4 _LightInvMatrix;
+            half4x4 _LightNoRotInvMatrix;
+            half    _LightZDistance;
+            half    _OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
+            half    _InverseHDREmulationScale;
+            half    _IsFullSpotlight;
+
+            SHADOW_VARIABLES
 
             Varyings vert(Attributes input)
             {
@@ -95,6 +100,8 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float4 clipVertex = output.positionCS / output.positionCS.w;
                 output.screenUV = ComputeScreenPos(clipVertex).xy;
 
+                TRANSFER_SHADOWS(output)
+
                 return output;
             }
 
@@ -108,7 +115,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
 
                 // Spotlight
-                half  spotAttenuation = saturate((_OuterAngle - lookupValue.g) * _InnerAngleMult);
+                half  spotAttenuation = saturate((_OuterAngle - lookupValue.g + _IsFullSpotlight) * _InnerAngleMult);
                 attenuation = attenuation * spotAttenuation;
 
                 half2 mappedUV;
@@ -122,6 +129,8 @@ Shader "Hidden/Light2d-Point-Volumetric"
 #else
                 half4 lightColor = _LightColor * attenuation;
 #endif
+
+                APPLY_SHADOWS(input, lightColor, _ShadowVolumeIntensity);
 
                 return _VolumeOpacity * lightColor * _InverseHDREmulationScale;
             }

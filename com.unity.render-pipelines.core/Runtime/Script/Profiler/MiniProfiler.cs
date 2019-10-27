@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Mini-Profiler" + Documentation.endURL)]
     public class MiniProfiler : MonoBehaviour
     {
         private bool m_Enable = false;

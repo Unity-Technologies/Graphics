@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -80,8 +81,8 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
-            where T : AbstractMaterialNode
+        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, 
+            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -92,23 +93,67 @@ namespace UnityEditor.Graphing
                 return;
 
             IEnumerable<int> ids;
-            if (slotIds == null)
+
+            // If this node is a keyword node and we have an active keyword permutation
+            // The only valid port id is the port that corresponds to that keywords value in the active permutation
+            if(node is KeywordNode keywordNode && keywordPermutation != null)
+            {
+                var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
+                ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
+            }
+            else if (slotIds == null)
+            {
                 ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            }
             else
+            {
                 ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+            }
 
             foreach (var slot in ids)
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
             }
 
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
+        }
+
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, MaterialSlot slot)
+        {
+            var node = slot.owner;
+            var graph = node.owner;
+            foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
+            {
+                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                if (outputNode != null)
+                {
+                    CollectNodeSet(nodeSet, outputNode);
+                }
+            }
+        }
+
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, AbstractMaterialNode node)
+        {
+            if (!nodeSet.Add(node))
+            {
+                return;
+            }
+
+            using (var slotsHandle = ListPool<MaterialSlot>.GetDisposable())
+            {
+                var slots = slotsHandle.value;
+                node.GetInputSlots(slots);
+                foreach (var slot in slots)
+                {
+                    CollectNodeSet(nodeSet, slot);
+                }
+            }
         }
 
         public static void CollectNodesNodeFeedsInto(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include)
@@ -252,7 +297,7 @@ namespace UnityEditor.Graphing
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
             var safeName = new string(arr);
-            if (char.IsDigit(safeName[0]))
+            if (safeName.Length > 1 && char.IsDigit(safeName[0]))
             {
                 safeName = $"var{safeName}";
             }

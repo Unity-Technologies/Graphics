@@ -1,9 +1,9 @@
-# Inside UniversalRP
+# Inside Universal RP
 
-In the following sections, you can read more about the technology inside UniversalRP:
+In the following sections, you can read more about the technology inside Universal RP:
 
-- [The UniversalRP Asset](universalrp-asset.md)
+- [The Universal RP Asset](universalrp-asset.md)
 - [Shader stripping](shader-stripping.md)
-- [Built-in/UniversalRP comparison](universalrp-builtin-feature-comparison.md)
-- [Shading Models in UniversalRP](shading-model.md)
+- [Built-in/Universal RP comparison](universalrp-builtin-feature-comparison.md)
+- [Shading Models in Universal RP](shading-model.md)
 

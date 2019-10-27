@@ -19,7 +19,7 @@ Shader "Hidden/HDRP/CombineLighting"
             }
 
             Cull   Off
-            ZTest  Always
+            ZTest  Less	   // Required for XR occlusion mesh optimization
             ZWrite Off
             Blend  One One // Additive
 

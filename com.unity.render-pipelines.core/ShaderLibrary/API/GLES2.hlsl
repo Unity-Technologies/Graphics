@@ -18,11 +18,11 @@
 #define CBUFFER_END
 
 // flow control attributes
-#define UNITY_BRANCH
-#define UNITY_FLATTEN
-#define UNITY_UNROLL
-#define UNITY_UNROLLX(_x)
-#define UNITY_LOOP
+#define UNITY_BRANCH        [branch]
+#define UNITY_FLATTEN       [flatten]
+#define UNITY_UNROLL        [unroll]
+#define UNITY_UNROLLX(_x)   [unroll(_x)]
+#define UNITY_LOOP          [loop]
 
 #define uint int
 

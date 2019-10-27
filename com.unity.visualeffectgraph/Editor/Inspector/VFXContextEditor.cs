@@ -25,10 +25,6 @@ class VFXContextEditor : VFXSlotContainerEditor
 
     float m_Width;
 
-
-    VFXViewController m_ViewController;
-    VFXContextController m_ContextController;
-
     protected new void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
@@ -46,42 +42,29 @@ class VFXContextEditor : VFXSlotContainerEditor
         UnityEngine.Object[] allSRPSubOutputs = targets.OfType<VFXAbstractRenderedOutput>().Select(t => t.subOutput).Where(t => t != null).ToArray();
         srpSubOutputObject = allSRPSubOutputs.Length > 0 ? new SerializedObject(allSRPSubOutputs) : null;
 
-        if (!serializedObject.isEditingMultipleObjects)
-        {
-            m_ViewController = VFXViewController.GetController(((VFXContext)target).GetGraph().GetResource());
-            m_ViewController.useCount++;
-
-            m_ContextController = m_ViewController.GetRootNodeController((VFXContext)target, 0) as VFXContextController;
-        }
-
         base.OnEnable();
-    }
-
-    private new void OnDisable()
-    {
-        base.OnDisable();
-
-        if(m_ViewController != null)
-        {
-            m_ViewController.useCount--;
-            m_ViewController = null;
-        }
     }
 
     protected override SerializedProperty FindProperty(VFXSetting setting)
     {
         if (setting.instance is VFXContext)
-            return serializedObject.FindProperty(setting.field.Name);
+            return serializedObject.FindProperty(setting.name);
         if (setting.instance is VFXSRPSubOutput)
-            return srpSubOutputObject.FindProperty(setting.field.Name);
+            return srpSubOutputObject.FindProperty(setting.name);
+        if (setting.instance is VFXData)
+            return dataObject.FindProperty(setting.name);
         throw new ArgumentException("VFXSetting is from an unexpected instance: " + setting.instance);
+    }
+
+    protected void DisplaySpace()
+    {
+        if (spaceProperty != null)
+            EditorGUILayout.PropertyField(spaceProperty);
     }
 
     public override void DoInspectorGUI()
     {
-        if (spaceProperty != null)
-            EditorGUILayout.PropertyField(spaceProperty);
-
+        DisplaySpace();
         base.DoInspectorGUI();
     }
 
@@ -147,34 +130,9 @@ class VFXContextEditor : VFXSlotContainerEditor
         }
     }
 
-    public override void OnInspectorGUI()
+    protected void DisplaySummary()
     {
-        if (dataObject != null)
-            dataObject.Update();
-
-        if (srpSubOutputObject != null)
-            srpSubOutputObject.Update();
-
-        if (m_ContextController != null && m_ContextController.letter != '\0')
-        {
-            GUILayout.Label(m_ContextController.letter.ToString(),Styles.letter);
-        }
-
-        base.OnInspectorGUI();
-
-        bool invalidateContext = (dataObject != null && dataObject.ApplyModifiedProperties()) || (srpSubOutputObject != null && srpSubOutputObject.ApplyModifiedProperties());
-        if (invalidateContext)
-        {
-            foreach (VFXContext ctx in targets.OfType<VFXContext>())
-            {
-                // notify that something changed.
-                ctx.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-            }
-        }
-
         if (serializedObject.isEditingMultipleObjects) return; // Summary Only visible for single selection
-
-
 
         // Context / SystemData
         if (dataObject == null) return;
@@ -188,7 +146,7 @@ class VFXContextEditor : VFXSlotContainerEditor
             EditorGUILayout.Space();
             {
                 Styles.Row(Styles.header, "Name", "Value");
-                Styles.Row(Styles.cell, "Capacity", particleData.capacity.ToString());
+                Styles.Row(Styles.cell, "Capacity", particleData.GetSettingValue("capacity").ToString());
 
                 EditorGUILayout.Space();
 
@@ -205,7 +163,7 @@ class VFXContextEditor : VFXSlotContainerEditor
                             GUILayout.Label(attr.attrib.name, Styles.cell);
                             Styles.DataTypeLabel(attr.attrib.type.ToString(), attr.attrib.type, Styles.cell, GUILayout.Width(64));
                             int size = VFXExpressionHelper.GetSizeOfType(attr.attrib.type) * 4;
-                            GUILayout.Label(size + " byte" + (size > 1 ? "s" : "") , Styles.cell, GUILayout.Width(64));
+                            GUILayout.Label(size + " byte" + (size > 1 ? "s" : ""), Styles.cell, GUILayout.Width(64));
                             var mode = attr.mode;
                             GUILayout.Label(mode.ToString(), Styles.cell, GUILayout.Width(64));
                         }
@@ -277,5 +235,42 @@ class VFXContextEditor : VFXSlotContainerEditor
                 EditorGUILayout.Space();
             }
         }
+    }
+
+    protected void DisplayName()
+    {
+        if (!serializedObject.isEditingMultipleObjects)
+        {
+            VFXContext model = (VFXContext)target;
+            if (model != null && model.letter != '\0') //TODO: Is it still relevant ?
+            {
+                GUILayout.Label(model.letter.ToString(), Styles.letter);
+            }
+        }
+    }
+
+    public override void OnInspectorGUI()
+    {
+        if (dataObject != null)
+            dataObject.Update();
+
+        if (srpSubOutputObject != null)
+            srpSubOutputObject.Update();
+
+        DisplayName();
+
+        base.OnInspectorGUI();
+
+        bool invalidateContext = (dataObject != null && dataObject.ApplyModifiedProperties()) || (srpSubOutputObject != null && srpSubOutputObject.ApplyModifiedProperties());
+        if (invalidateContext)
+        {
+            foreach (VFXContext ctx in targets.OfType<VFXContext>())
+            {
+                // notify that something changed.
+                ctx.GetData().Invalidate(VFXModel.InvalidationCause.kSettingChanged); // This will also invalidate contexts
+            }
+        }
+
+        DisplaySummary();
     }
 }

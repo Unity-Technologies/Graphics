@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditorInternal;
 using System.Reflection;
 using UnityEngine;
@@ -29,8 +30,10 @@ namespace UnityEditor.Rendering.HighDefinition
             ProbeSettingsOverride displayedAdvancedCaptureSettings { get; }
             ProbeSettingsOverride overrideableCaptureSettings { get; }
             ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
-            ProbeSettingsOverride displayedAdvancedSettings { get; }
-            ProbeSettingsOverride overrideableAdvancedSettings { get; }
+            ProbeSettingsOverride displayedCustomSettings { get; }
+            ProbeSettingsOverride displayedAdvancedCustomSettings { get; }
+            ProbeSettingsOverride overrideableCustomSettings { get; }
+            ProbeSettingsOverride overrideableAdvancedCustomSettings { get; }
             Type customTextureType { get; }
             ToolBar[] toolbars { get; }
             Dictionary<KeyCode, ToolBar> shortcuts { get; }
@@ -224,7 +227,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProbeSettingsUI.Draw(
                     serialized.probeSettings, owner,
                     serialized.probeSettingsOverride,
-                    provider.displayedAdvancedSettings, provider.overrideableAdvancedSettings
+                    provider.displayedCustomSettings, provider.overrideableCustomSettings
+                );
+            }
+
+            public static void DrawAdvancedCustomSettings(SerializedHDProbe serialized, Editor owner)
+            {
+                var provider = new TProvider();
+                ProbeSettingsUI.Draw(
+                    serialized.probeSettings, owner,
+                    serialized.probeSettingsOverride,
+                    provider.displayedAdvancedCustomSettings, provider.overrideableAdvancedCustomSettings
                 );
             }
 
@@ -352,7 +365,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                     },
                                     GUILayout.ExpandWidth(true)))
                             {
-                                HDBakedReflectionSystem.BakeProbes(new HDProbe[] { serialized.target });
+                                HDBakedReflectionSystem.BakeProbes(serialized.serializedObject.targetObjects.OfType<HDProbe>().ToArray());
                                 GUIUtility.ExitGUI();
                             }
 
@@ -389,22 +402,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!string.IsNullOrEmpty(assetPath))
                 {
-                    var target = HDProbeSystem.CreateRenderTargetForMode(
+                    var target = (RenderTexture)HDProbeSystem.CreateRenderTargetForMode(
                         probe, ProbeSettings.Mode.Custom
                     );
-                    HDProbeSystem.Render(
-                        probe, null, target,
-                        out HDProbe.RenderData renderData,
-                        forceFlipY: probe.type == ProbeSettings.ProbeType.ReflectionProbe
+
+
+                    HDBakedReflectionSystem.RenderAndWriteToFile(
+                        probe, assetPath, target, null,
+                        out var cameraSettings, out var cameraPositionSettings
                     );
-                    HDTextureUtilities.WriteTextureFileToDisk(target, assetPath);
                     AssetDatabase.ImportAsset(assetPath);
                     HDBakedReflectionSystem.ImportAssetAt(probe, assetPath);
                     CoreUtils.Destroy(target);
 
                     var assetTarget = AssetDatabase.LoadAssetAtPath<Texture>(assetPath);
                     probe.SetTexture(ProbeSettings.Mode.Custom, assetTarget);
-                    probe.SetRenderData(ProbeSettings.Mode.Custom, renderData);
+                    probe.SetRenderData(ProbeSettings.Mode.Custom, new HDProbe.RenderData(cameraSettings, cameraPositionSettings));
                     EditorUtility.SetDirty(probe);
                 }
             }

@@ -15,6 +15,7 @@ namespace UnityEngine.TestTools.Graphics.Tests
             AssertAreEqual(deserialized, message);
         }
 
+#if UNITY_MONO // IL2CPP does not support attributes with object arguments that are array types.
         [TestCase(null, null, null, null, null)]
         [TestCase("", "", new byte[0], new byte[0], new byte[0])]
         [TestCase("Foo", "Bar", new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, null, null)]
@@ -36,6 +37,7 @@ namespace UnityEngine.TestTools.Graphics.Tests
 
             AssertAreEqual(deserialized, message);
         }
+#endif
 
         private static void AssertAreEqual(FailedImageMessage deserialized, FailedImageMessage message)
         {

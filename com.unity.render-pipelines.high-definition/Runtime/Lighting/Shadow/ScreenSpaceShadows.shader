@@ -38,6 +38,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
 
         float Frag(Varyings input) : SV_Target
         {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float depth = LoadCameraDepth(input.positionCS.xy);
 
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)

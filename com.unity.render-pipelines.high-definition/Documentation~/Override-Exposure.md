@@ -29,7 +29,7 @@ This is the simplest, and least flexible, method for calculating exposure but it
 | ------------------ | ------------------------------------------------------- |
 | **Fixed Exposure** | Set the exposure value for Cameras this Volume affects. |
 
-<a name=”AutomaticProperties”></a>
+<a name="AutomaticProperties"></a>
 
 ### Automatic
 
@@ -73,7 +73,7 @@ Now use the **Compensation** property to over or under-expose the Scene. This wo
 
 Finally, you can tweak the adaptation speed. This controls how fast the exposure adapts to exposure changes. The human eye adapts slower to darkness than to lightness, so use a lower value for **Speed Light to Dark** than for **Speed Dark to Light**.
 
-<a name=”CurveMappingProperties”></a>
+<a name="CurveMappingProperties"></a>
 
 ### Curve Mapping
 
@@ -85,7 +85,7 @@ The **Curve Mapping Mode** is a variant of [**Automatic**](#AutomaticProperties)
 | ------------- | ------------------------------------------------------------ |
 | **Curve Map** | Use the curve to remap the Scene exposure (x-axis) to the exposure you want (y-axis). |
 
-<a name=”UsePhysicalCameraProperties”></a>
+<a name="UsePhysicalCameraProperties"></a>
 
 ### Use Physical Camera
 

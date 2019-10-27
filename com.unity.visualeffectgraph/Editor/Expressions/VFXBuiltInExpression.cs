@@ -8,6 +8,7 @@ namespace UnityEditor.VFX
     #pragma warning disable 0659
     sealed class VFXBuiltInExpression : VFXExpression
     {
+        public static readonly VFXExpression FrameIndex = new VFXBuiltInExpression(VFXExpressionOperation.FrameIndex);
         public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOperation.TotalTime);
         public static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.DeltaTime);
         public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOperation.SystemSeed);

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Free-Camera" + Documentation.endURL)]
     [ExecuteAlways]
     public class FreeCamera : MonoBehaviour
     {

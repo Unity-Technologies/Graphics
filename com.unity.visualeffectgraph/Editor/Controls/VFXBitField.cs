@@ -6,14 +6,13 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 namespace UnityEditor.VFX
 { 
-
-    public class BitFieldAttribute : System.Attribute
+    class BitFieldAttribute : System.Attribute
     {
 
     }
 }
 
-namespace UnityEditor.VFX.UIElements
+namespace UnityEditor.VFX.UI
 {
 
     abstract class VFXBitField<T,U> : VFXControl<U>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -123,7 +124,7 @@ namespace UnityEditor.ShaderGraph
                 alphaChannel = TextureChannel.Red;
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             ValidateChannelCount();
             var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();

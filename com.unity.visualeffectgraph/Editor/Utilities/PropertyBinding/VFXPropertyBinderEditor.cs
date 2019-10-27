@@ -12,7 +12,7 @@ using UnityEditorInternal;
 namespace UnityEditor.Experimental.VFX.Utility
 {
     [CustomEditor(typeof(VFXPropertyBinder))]
-    public class VFXPropertyBinderEditor : Editor
+    class VFXPropertyBinderEditor : Editor
     {
         ReorderableList m_List;
         SerializedProperty m_Elements;
@@ -152,11 +152,14 @@ namespace UnityEditor.Experimental.VFX.Utility
             m_ElementEditor.serializedObject.ApplyModifiedProperties();
         }
 
-        private static readonly Type[] k_ConcreteBinders = VFXLibrary.FindConcreteSubclasses(typeof(VFXBinderBase), typeof(VFXBinderAttribute)).ToArray();
+        private static Type[] s_ConcreteBinders = null;
         public void BuildMenu()
         {
             m_Menu = new GenericMenu();
-            foreach (var type in k_ConcreteBinders)
+            if (s_ConcreteBinders == null)
+                s_ConcreteBinders = VFXLibrary.FindConcreteSubclasses(typeof(VFXBinderBase), typeof(VFXBinderAttribute)).ToArray();
+
+            foreach (var type in s_ConcreteBinders)
             {
                 string name = type.ToString();
                 var attrib = type.GetCustomAttributes(true).OfType<VFXBinderAttribute>().First();

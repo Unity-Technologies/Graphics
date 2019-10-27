@@ -131,7 +131,7 @@ void BlurVertically(uint2 pixelCoord, uint topMostIndex)
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Upper-left pixel coordinate of quad that this thread will read
     int2 threadUL = (groupThreadId << 1) + (groupId << 3) - 4;
@@ -163,7 +163,7 @@ void MAIN_GAUSSIAN(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThr
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
 void MAIN_DOWNSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 offset = dispatchThreadId.xy * 2u;
     uint2 size = uint2(_Size.xy) - 1u;

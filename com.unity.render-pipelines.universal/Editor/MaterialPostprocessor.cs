@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor.Rendering.Universal.ShaderGUI;
@@ -23,7 +23,9 @@ namespace UnityEditor.Rendering.Universal
     {
         const string Key = "LWRP-material-upgrader";
 
-        [InitializeOnLoadMethod]
+        // Upgrade materials only after we compiled shaders.
+        // This fixes a case that caused ReloadAllNullIn to be called before shaders finished compiling.
+        [Callbacks.DidReloadScripts]
         static void ReimportAllMaterials()
         {
             //Check to see if the upgrader has been run for this project/LWRP version
@@ -51,7 +53,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            var upgradeLog = "LWRP Material log:";
+            var upgradeLog = "UniversalRP Material log:";
             var upgradeCount = 0;
 
             foreach (var asset in importedAssets)
@@ -114,8 +116,10 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtility.SetDirty(assetVersion);
                 }
             }
-            if(upgradeCount > 0)
-                Debug.Log(upgradeLog);
+
+            // Don't print the log as we don't have any way to figure out if a material us upgraded or just created
+            //if(upgradeCount > 0)
+            //    Debug.Log(upgradeLog);
         }
 
         static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1 };

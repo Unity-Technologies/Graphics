@@ -536,6 +536,7 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -554,6 +555,12 @@ void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceD
     if (overrideNormal)
     {
         surfaceData.normalWS = tangentToWorld[2];
+    }
+
+    if (overrideAO)
+    {
+        float overrideAOValue = _DebugLightingAmbientOcclusion.y;
+        surfaceData.ambientOcclusion = overrideAOValue;
     }
 
     // There is no metallic with SSS and specular color mode
@@ -770,6 +777,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
+
+    // Blindly copy: will never be used if custom (ext) input is not used and selected as the SO method for baked/data-based specular occlusion.
+    bsdfData.specularOcclusionCustomInput = surfaceData.specularOcclusionCustomInput;
 
     bsdfData.geomNormalWS = surfaceData.geomNormalWS; // We should always have this whether we enable coat normals or not.
 
@@ -1362,7 +1372,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // More details:
 // -----------------------------
 //
-// There’s a couple of choices for formulating the adding equations in ComputeAdding( ).
+// There's a couple of choices for formulating the adding equations in ComputeAdding( ).
 // I discuss that here along with some information on the whole method.
 //
 // If the energy coefficients are intended to be used solely in a split sum IBL context,
@@ -1388,7 +1398,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // light evaluations instead of the full BSDF. However, test empirically, might still be
 // better to use the full BSDF even then.
 // (Using FGD means accounting an average omnidirectional-outgoing / unidirectional-incoming
-// energy transfer, “directional albedo” form. But in analytical lights, dirac vanishes
+// energy transfer, "directional albedo" form. But in analytical lights, dirac vanishes
 // the first FGD integral, and the "LD" part will be very sparse and punctual, hence this
 // might justify using more than D_GGX() ?)
 //
@@ -1411,12 +1421,12 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // propagation operators work: eg see p9 the Symmetric Model: it is as if roughness is not
 // "injected" in the direction of the macrosurface but in the H direction. Although
 // different, empirical results show that it is as valid. Note however that again, this
-// doesn’t change the lobe directions.
+// doesn't change the lobe directions.
 //
 // Offspecular effects:
 //
-// Since the ComputeAdding() method doesn’t really track mean directions but assume symmetry in
-// the incidence plane (perpendicular to the “up” vector of the parametrization - either N or H
+// Since the ComputeAdding() method doesn't really track mean directions but assume symmetry in
+// the incidence plane (perpendicular to the "up" vector of the parametrization - either N or H
 // depending on the given cti param - cos theta incident), only elevation angles are used, but
 // output lobe directions (by symmetry of reflection and symmetry of transmission top-to-bottom
 // + bottom-to-top), since only reflection lobes are outputted, are all in the same direction
@@ -1432,7 +1442,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // tilt still happens but after and based on the whole layered stack stats that have been
 // computed).
 //
-// Again, since we don’t change w_i when instantiating an analytic BSDF, the change in roughness
+// Again, since we don't change w_i when instantiating an analytic BSDF, the change in roughness
 // will incur that additional offspecular deviation naturally.
 // For IBLs however, we take the resulting output (vlayer) roughness and calculate a correction
 // to fetch through the dominant (central direction of the lobe) through GetSpecularDominantDir( )
@@ -1455,14 +1465,14 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 
 // TODO:
 // This creates another performance option: when in VLAYERED_RECOMPUTE_PERLIGHT mode, we
-// don’t recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
+// don't recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
 // and will require FGD fetches for each analytical light. (ie ComputeAdding( ) ideally should
 // always do calculations with FGD and do the fetches, so that even in GetPreLightData, nothing
-// would be done there). For now, and for performance reasons, we don’t provide the option.
+// would be done there). For now, and for performance reasons, we don't provide the option.
 //
 // However, when VLAYERED_RECOMPUTE_PERLIGHT is not used, we actually get usable terms that we
 // will apply to the specular lighting, but these are different, we have one per real interface
-// (so 2 vs the 3 “virtual” layer structure here).
+// (so 2 vs the 3 "virtual" layer structure here).
 // (FGDinf can be obtained from our FGD)
 //
 
@@ -2347,6 +2357,7 @@ float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
 //#define SPECULAR_OCCLUSION_FROM_AO 0
 //#define SPECULAR_OCCLUSION_CONECONE 1
 //#define SPECULAR_OCCLUSION_SPTD 2
+//#define SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT 3
 
 float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclusion, float specularOcclusionFromData, float3 fresnel0,
                                                   /* for debug: */
@@ -2359,6 +2370,8 @@ float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclu
         break;
     case SPECULAR_OCCLUSION_FROM_AO:
         //debugCoeff = float3(1.0,0.0,0.0);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
         break;
     case SPECULAR_OCCLUSION_CONECONE:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(1.0,0.0,0.0); } )
@@ -2380,7 +2393,7 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                         float3 bentNormalWS, int bentVisibilityAlgorithm,
                                         float3x3 orthoBasisViewNormal, bool useHemisphereClip,
                                         uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE,
-                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed */
+                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed or direct custom specular occlusion user input*/
 {
     SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
     //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
@@ -2416,6 +2429,10 @@ float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
                                                                 bsdfData.soFixupStrengthFactor,
                                                                 bsdfData.soFixupMaxAddedRoughness,
                                                                 bsdfData.geomNormalWS);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
+        //specularOcclusion = 1.0;
+        specularOcclusion = bsdfData.specularOcclusionCustomInput;
         break;
     }
 
@@ -2515,6 +2532,9 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
 
     // Get specular occlusion from data (baked) values temporarily in preLightData.hemiSpecularOcclusion[]
     // and combine those data-based SO values with the screen-space SO values into one final hemispherical specular occlusion:
+    //
+    // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+    // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
     dataBasedSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
                                                                                    bsdfData.ambientOcclusion,
                                                                                    V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
@@ -2549,6 +2569,8 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                                                                         bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
                                                                                         orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip);
 
+        // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+        // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
         dataBasedSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
                                                                                       bsdfData.ambientOcclusion,
                                                                                       V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,
@@ -3330,7 +3352,7 @@ void CalculateAnisoAngles(BSDFData bsdfData, float3 H, float3 L, float3 V, out f
     BdotL = dot(bsdfData.bitangentWS, L);
 }
 
-void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, inout float3 F)
+void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, float LdotH, inout float3 F)
 {
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
         {
@@ -3338,7 +3360,7 @@ void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightDa
 
 #ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
             float topIor = 1.0; // default air on top.
-            fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+            fresnelIridescent = EvalIridescence(topIor, LdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
 #endif
             F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
         }
@@ -3524,7 +3546,7 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
         // If we don't recompute the stack per dirac lights, we ensure the coatmask make us lerp
         // to the usual LdotH Schlick term.
         bottomF = F_Schlick(bsdfData.fresnel0, savedLdotH);
-        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, bottomF);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, bottomF);
 #endif
 
         bottomF = lerp(bottomF, preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX], bsdfData.coatMask);
@@ -3546,26 +3568,33 @@ CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData b
         // --------------------------------------------------------------------
         // NO VLAYERING:
         // --------------------------------------------------------------------
+
+        // Note: See GetPreLightData(), in that case, 
+        // preLightData.layeredRoughnessT[0] = bsdfData.roughnessAT;
+        // preLightData.layeredRoughnessB[0] = bsdfData.roughnessAB;
+        // preLightData.layeredRoughnessT[1] = bsdfData.roughnessBT;
+        // preLightData.layeredRoughnessB[1] = bsdfData.roughnessBB;
+
         // TODO: Proper Fresnel
         float3 F = F_Schlick(bsdfData.fresnel0, savedLdotH);
 
-        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, F);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, F);
 
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
             float TdotH, TdotL, BdotH, BdotL;
             CalculateAnisoAngles(bsdfData, H, L[0], V[0], TdotH, TdotL, BdotH, BdotL);
             DV[0] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessAT, bsdfData.roughnessAB,
+                                          preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0],
                                           preLightData.partLambdaV[0]);
             DV[1] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessBT, bsdfData.roughnessBB,
+                                          preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1],
                                           preLightData.partLambdaV[1]);
         }
         else
         {
-            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessAT, preLightData.partLambdaV[0]);
-            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[0], preLightData.partLambdaV[0]);
+            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[1], preLightData.partLambdaV[1]);
         }
 
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
@@ -3931,10 +3960,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     float4x3 lightVerts;
 
     // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+    lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+    lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+    lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
     // Rotate the endpoints into the local coordinate system.
     float4x3 localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));
@@ -4259,7 +4288,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]);
         }
 
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel);
+        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel, lightData.rangeCompressionFactorCompensation);
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;
 

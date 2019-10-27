@@ -691,6 +691,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114696786711219316}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114745731675519228
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -896,7 +900,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -930,12 +934,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 8926484042661614694}
+  - {fileID: 0}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -943,6 +949,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114799785256960774
@@ -1219,7 +1227,10 @@ MonoBehaviour:
   - {fileID: 114696786711219316}
   - {fileID: 114071411328686510}
   - {fileID: 114793310504714078}
-  m_Capacity: 128
+  dataType: 0
+  capacity: 128
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114990656135144038
 MonoBehaviour:
@@ -1877,7 +1888,10 @@ MonoBehaviour:
   - {fileID: 8926484042661614550}
   - {fileID: 8926484042661614557}
   - {fileID: 8926484042661614568}
-  m_Capacity: 128
+  dataType: 0
+  capacity: 128
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &8926484042661614550
 MonoBehaviour:
@@ -1944,13 +1958,15 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 4
+  blendMode: 3
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 8926484042661614695}
+  - {fileID: 0}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -1958,6 +1974,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
 --- !u!114 &8926484042661614558
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2116,12 +2134,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 8926484042661614696}
+  - {fileID: 0}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -2129,6 +2149,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614569
@@ -2307,6 +2329,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 8926484042661614534}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &8926484042661614592
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4595,60 +4621,3 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &8926484042661614694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  opaqueRenderQueue: 0
-  transparentRenderQueue: 1
---- !u!114 &8926484042661614695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  opaqueRenderQueue: 0
-  transparentRenderQueue: 1
---- !u!114 &8926484042661614696
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  opaqueRenderQueue: 0
-  transparentRenderQueue: 1

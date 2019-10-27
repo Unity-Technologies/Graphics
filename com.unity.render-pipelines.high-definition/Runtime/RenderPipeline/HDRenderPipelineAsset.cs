@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
+using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -12,12 +13,15 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineAsset : RenderPipelineAsset
     {
 
         HDRenderPipelineAsset()
         {
         }
+
+        void Reset() => OnValidate();
 
         protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
         {
@@ -43,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.
-            if (GraphicsSettings.renderPipelineAsset == this)
+            if (GraphicsSettings.currentRenderPipeline == this)
                 base.OnValidate();
         }
 
@@ -146,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderPipelineSettings m_RenderPipelineSettings = RenderPipelineSettings.@default;
 
         // Return the current use RenderPipelineSettings (i.e for the current platform)
-        internal RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
+        public RenderPipelineSettings currentPlatformRenderPipelineSettings => m_RenderPipelineSettings;
 
         [SerializeField]
         internal bool allowShaderVariantStripping = true;
@@ -154,6 +158,31 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool enableSRPBatcher = true;
         [SerializeField]
         internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
+
+        public MaterialQuality materialQualityLevels = (MaterialQuality)(-1);
+
+        [SerializeField]
+        private MaterialQuality m_CurrentMaterialQualityLevel = MaterialQuality.High;
+
+        public MaterialQuality currentMaterialQualityLevel
+        {
+            get
+            {
+                if ((m_CurrentMaterialQualityLevel & materialQualityLevels) != m_CurrentMaterialQualityLevel)
+                {
+                    // Current quality level is not supported,
+                    // Pick the highest one
+                    var highest = materialQualityLevels.GetHighestQuality();
+                    if (highest == 0)
+                        // If none are available, still pick the lowest one
+                        highest = MaterialQuality.Low;
+
+                    return highest;
+                }
+
+                return m_CurrentMaterialQualityLevel;
+            }
+        }
 
         [SerializeField]
         [Obsolete("Use diffusionProfileSettingsList instead")]
@@ -173,15 +202,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RenderingLayerNames == null)
                 {
                     m_RenderingLayerNames = new string[32];
-
-                    // By design we can't touch this one, but we can rename it
-                    m_RenderingLayerNames[0] = "Light Layer default";
-
-                    // We only support up to 7 layer + default.
-                    for (int i = 1; i < 8; ++i)
-                    {
-                        m_RenderingLayerNames[i] = string.Format("Light Layer {0}", i);
-                    }
+                    
+                    m_RenderingLayerNames[0] = m_RenderPipelineSettings.lightLayerName0;
+                    m_RenderingLayerNames[1] = m_RenderPipelineSettings.lightLayerName1;
+                    m_RenderingLayerNames[2] = m_RenderPipelineSettings.lightLayerName2;
+                    m_RenderingLayerNames[3] = m_RenderPipelineSettings.lightLayerName3;
+                    m_RenderingLayerNames[4] = m_RenderPipelineSettings.lightLayerName4;
+                    m_RenderingLayerNames[5] = m_RenderPipelineSettings.lightLayerName5;
+                    m_RenderingLayerNames[6] = m_RenderPipelineSettings.lightLayerName6;
+                    m_RenderingLayerNames[7] = m_RenderPipelineSettings.lightLayerName7;
 
                     // Unused
                     for (int i = 8; i < m_RenderingLayerNames.Length; ++i)
@@ -195,98 +224,77 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public override string[] renderingLayerMaskNames
+            => renderingLayerNames;
+        
+        [System.NonSerialized]
+        string[] m_LightLayerNames = null;
+        public string[] lightLayerNames
         {
             get
             {
-                return renderingLayerNames;
+                if (m_LightLayerNames == null)
+                {
+                    m_LightLayerNames = new string[8];
+                }
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    m_LightLayerNames[i] = renderingLayerNames[i];
+                }
+
+                return m_LightLayerNames;
             }
         }
 
         public override Shader defaultShader
+            => m_RenderPipelineResources?.shaders.defaultPS;
+
+        static public bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
         {
-            get
-            {
-                return m_RenderPipelineResources.shaders.defaultPS;
-            }
+            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing;
         }
+
+        // List of custom post process Types that will be executed in the project, in the order of the list (top to back)
+        [SerializeField]
+        internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
+        [SerializeField]
+        internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
+        [SerializeField]
+        internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
 
 #if UNITY_EDITOR
         public override Material defaultMaterial
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultDiffuseMat;
-            }
-        }
+            => renderPipelineEditorResources?.materials.defaultDiffuseMat;
 
         // call to GetAutodeskInteractiveShaderXXX are only from within editor
         public override Shader autodeskInteractiveShader
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractive;
-            }
-        }
+            => renderPipelineEditorResources?.shaderGraphs.autodeskInteractive;
 
         public override Shader autodeskInteractiveTransparentShader
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractiveTransparent;
-            }
-        }
+            => renderPipelineEditorResources?.shaderGraphs.autodeskInteractiveTransparent;
 
         public override Shader autodeskInteractiveMaskedShader
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaderGraphs.autodeskInteractiveMasked;
-            }
-        }
+            => renderPipelineEditorResources?.shaderGraphs.autodeskInteractiveMasked;
 
         public override Shader terrainDetailLitShader
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailLitShader;
-            }
-        }
+            => renderPipelineEditorResources?.shaders.terrainDetailLitShader;
 
         public override Shader terrainDetailGrassShader
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassShader;
-            }
-        }
+            => renderPipelineEditorResources?.shaders.terrainDetailGrassShader;
 
         public override Shader terrainDetailGrassBillboardShader
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.shaders.terrainDetailGrassBillboardShader;
-            }
-        }
+            => renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
 
         // Note: This function is HD specific
         public Material GetDefaultDecalMaterial()
-        {
-            return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultDecalMat;
-        }
+            => renderPipelineEditorResources?.materials.defaultDecalMat;
 
         // Note: This function is HD specific
         public Material GetDefaultMirrorMaterial()
-        {
-            return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultMirrorMat;
-        }
+            => renderPipelineEditorResources?.materials.defaultMirrorMat;
 
         public override Material defaultTerrainMaterial
-        {
-            get
-            {
-                return renderPipelineEditorResources == null ? null : renderPipelineEditorResources.materials.defaultTerrainMat;
-            }
-        }
+            => renderPipelineEditorResources?.materials.defaultTerrainMat;
 
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();
@@ -316,22 +324,39 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function allows us to raise or remove some preprocessing defines based on the render pipeline settings
         public void EvaluateSettings()
         {
-#if REALTIME_RAYTRACING_SUPPORT
             // Grab the current set of defines and split them
             string currentDefineList = UnityEditor.PlayerSettings.GetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone);
             defineArray.Clear();
             defineArray.AddRange(currentDefineList.Split(';'));
 
+            // Is ray tracing supported for this project and this platform?
+            bool raytracingSupport = AggreateRayTracingSupport(currentPlatformRenderPipelineSettings);
+            
             // Update all the individual defines
             bool needUpdate = false;
-            needUpdate |= UpdateDefineList(currentPlatformRenderPipelineSettings.supportRayTracing, "ENABLE_RAYTRACING");
+            needUpdate |= UpdateDefineList(raytracingSupport, "ENABLE_RAYTRACING");
 
             // Only set if it changed
             if (needUpdate)
             {
                 UnityEditor.PlayerSettings.SetScriptingDefineSymbolsForGroup(UnityEditor.BuildTargetGroup.Standalone, string.Join(";", defineArray.ToArray()));
             }
-#endif
+        }
+
+        public bool AddDiffusionProfile(DiffusionProfileSettings profile)
+        {
+            if (diffusionProfileSettingsList.Length < 15)
+            {
+                int index = diffusionProfileSettingsList.Length;
+                Array.Resize(ref diffusionProfileSettingsList, index + 1);
+                diffusionProfileSettingsList[index] = profile;
+                return true;
+            }
+            else
+            {
+                Debug.LogError("There are too many diffusion profile settings in your HDRP. Please remove one before adding a new one.");
+                return false;
+            }
         }
 #endif
     }

@@ -4,6 +4,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    /// <summary>
+    /// The mode that determines the size of a Texture.
+    /// </summary>
     #region Resource Descriptors
     public enum TextureSizeMode
     {
@@ -12,6 +15,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         Functor
     }
 
+    /// <summary>
+    /// Descriptor used to create texture resources
+    /// </summary>
     public struct TextureDesc
     {
         public TextureSizeMode sizeMode;
@@ -58,6 +64,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
+        /// <summary>
+        /// TextureDesc constructor for a texture using explicit size
+        /// </summary>
+        /// <param name="width">Texture width</param>
+        /// <param name="height">Texture height</param>
+        /// <param name="dynamicResolution">Use dynamic resolution</param>
+        /// <param name="xrReady">Set this to true if the Texture is a render texture in an XR setting.</param>
         public TextureDesc(int width, int height, bool dynamicResolution = false, bool xrReady = false)
             : this()
         {
@@ -70,6 +83,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             InitDefaultValues(dynamicResolution, xrReady);
         }
 
+        /// <summary>
+        /// TextureDesc constructor for a texture using a fixed scaling
+        /// </summary>
+        /// <param name="scale">RTHandle scale used for this texture</param>
+        /// <param name="dynamicResolution">Use dynamic resolution</param>
+        /// <param name="xrReady">Set this to true if the Texture is a render texture in an XR setting.</param>
         public TextureDesc(Vector2 scale, bool dynamicResolution = false, bool xrReady = false)
             : this()
         {
@@ -82,6 +101,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             InitDefaultValues(dynamicResolution, xrReady);
         }
 
+        /// <summary>
+        /// TextureDesc constructor for a texture using a functor for scaling
+        /// </summary>
+        /// <param name="func">Function used to determnine the texture size</param>
+        /// <param name="dynamicResolution">Use dynamic resolution</param>
+        /// <param name="xrReady">Set this to true if the Texture is a render texture in an XR setting.</param>
         public TextureDesc(ScaleFunc func, bool dynamicResolution = false, bool xrReady = false)
             : this()
         {
@@ -94,11 +119,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             InitDefaultValues(dynamicResolution, xrReady);
         }
 
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="input"></param>
         public TextureDesc(TextureDesc input)
         {
             this = input;
         }
 
+        /// <summary>
+        /// Hash function
+        /// </summary>
+        /// <returns>The texture descriptor hash.</returns>
         public override int GetHashCode()
         {
             int hashCode = 17;
@@ -146,6 +179,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
     #endregion
 
+    /// <summary>
+    /// The RenderGraphResourceRegistry holds all resource allocated during Render Graph execution.
+    /// </summary>
     public class RenderGraphResourceRegistry
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
@@ -204,54 +240,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
         #endregion
-
-        #region Helpers
-        class ResourceArray<T>
-        {
-            // No List<> here because we want to be able to access and update elements by ref
-            // And we want to avoid allocation so TextureResource stays a struct
-            T[] m_ResourceArray = new T[32];
-            int m_ResourcesCount = 0;
-
-            public void Clear()
-            {
-                m_ResourcesCount = 0;
-            }
-
-            public int Add(T value)
-            {
-                int index = m_ResourcesCount;
-
-                // Grow array if needed;
-                if (index >= m_ResourceArray.Length)
-                {
-                    var newArray = new T[m_ResourceArray.Length * 2];
-                    Array.Copy(m_ResourceArray, newArray, m_ResourceArray.Length);
-                    m_ResourceArray = newArray;
-                }
-
-                m_ResourceArray[index] = value;
-                m_ResourcesCount++;
-                return index;
-            }
-
-            public ref T this[int index]
-            {
-                get
-                {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    if (index >= m_ResourcesCount)
-                        throw new IndexOutOfRangeException();
-#endif
-                    return ref m_ResourceArray[index];
-                }
-            }
-        }
-        #endregion
-
-        ResourceArray<TextureResource>      m_TextureResources = new ResourceArray<TextureResource>();
+        DynamicArray<TextureResource>       m_TextureResources = new DynamicArray<TextureResource>();
         Dictionary<int, Stack<RTHandle>>    m_TexturePool = new Dictionary<int, Stack<RTHandle>>();
-        ResourceArray<RendererListResource> m_RendererListResources = new ResourceArray<RendererListResource>();
+        DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
@@ -260,6 +251,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<(int, RTHandle)>               m_AllocatedTextures = new List<(int, RTHandle)>();
 
         #region Public Interface
+        /// <summary>
+        /// Returns the RTHandle associated with the provided resource handle.
+        /// </summary>
+        /// <param name="handle">Handle to a texture resource.</param>
+        /// <returns>The RTHandle associated with the provided resource handle.</returns>
         public RTHandle GetTexture(in RenderGraphResource handle)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -277,6 +273,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_TextureResources[handle.handle].rt;
         }
 
+        /// <summary>
+        /// Returns the RendererList associated with the provided resource handle.
+        /// </summary>
+        /// <param name="handle">Handle to a Renderer List resource.</param>
+        /// <returns>The Renderer List associated with the provided resource handle.</returns>
         public RendererList GetRendererList(in RenderGraphResource handle)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR

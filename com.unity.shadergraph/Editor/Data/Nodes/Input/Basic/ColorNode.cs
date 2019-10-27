@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
-    enum ColorMode
+    public enum ColorMode
     {
         Default,
         HDR
     }
+}
 
+namespace UnityEditor.ShaderGraph
+{
     [Title("Input", "Basic", "Color")]
     class ColorNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
@@ -49,6 +53,21 @@ namespace UnityEditor.ShaderGraph
             {
                 if ((value.color == m_Color.color) && (value.mode == m_Color.mode))
                     return;
+
+                if(value.mode != m_Color.mode)
+                {
+                    if(value.mode == ColorMode.HDR)
+                        value.color = value.color.gamma;
+                    else
+                    {
+                        float r = Mathf.Clamp(value.color.r, 0, 1);
+                        float g = Mathf.Clamp(value.color.g, 0, 1);
+                        float b = Mathf.Clamp(value.color.b, 0, 1);
+                        float a = Mathf.Clamp(value.color.a, 0, 1);
+                        value.color = new UnityEngine.Color(r, g, b, a);
+                    }
+                }
+
                 m_Color = value;
                 Dirty(ModificationScope.Node);
             }
@@ -74,7 +93,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
                 return;
@@ -97,7 +116,7 @@ namespace UnityEditor.ShaderGraph
             properties.Add(new PreviewProperty(PropertyType.Color)
             {
                 name = GetVariableNameForNode(),
-                colorValue = color.color
+                colorValue = PlayerSettings.colorSpace == ColorSpace.Linear ? color.color.linear : color.color
             });
         }
 

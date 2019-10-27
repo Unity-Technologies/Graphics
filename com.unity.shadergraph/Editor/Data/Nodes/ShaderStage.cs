@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph
 
     enum ShaderStage
     {
-        Vertex,
-        Fragment
+        Vertex = 1 << 0,
+        Fragment = 1 << 1
     }
 
     static class ShaderStageExtensions

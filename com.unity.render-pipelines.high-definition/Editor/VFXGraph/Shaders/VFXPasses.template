@@ -1,0 +1,5 @@
+${VFXBegin:VFXPassDepth}"DepthForwardOnly"${VFXEnd}
+${VFXBegin:VFXPassForward}"ForwardOnly"${VFXEnd}
+${VFXBegin:VFXPassShadow}"ShadowCaster"${VFXEnd}
+${VFXBegin:VFXPassVelocity}"MotionVectors"${VFXEnd}
+${VFXBegin:VFXPassForwardAdditionalPragma}#pragma multi_compile _ DEBUG_DISPLAY${VFXEnd}

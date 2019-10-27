@@ -147,7 +147,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
-  m_GraphVersion: 2
+  m_GraphVersion: 3
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -654,7 +654,10 @@ MonoBehaviour:
   - {fileID: 114571923405776042}
   - {fileID: 114658178759232994}
   - {fileID: 114823831646293064}
-  m_Capacity: 65536
+  dataType: 0
+  capacity: 65536
+  stripCapacity: 16
+  particlePerStripCount: 16
   m_Space: 0
 --- !u!114 &114613810723286314
 MonoBehaviour:
@@ -787,6 +790,10 @@ MonoBehaviour:
   - link:
     - context: {fileID: 114571923405776042}
       slotIndex: 0
+  loopDuration: 0
+  loopCount: 0
+  delayBeforeLoop: 0
+  delayAfterLoop: 0
 --- !u!114 &114798257742309368
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -854,12 +861,14 @@ MonoBehaviour:
   m_OutputFlowSlot:
   - link: []
   blendMode: 0
+  useAlphaClipping: 0
+  generateMotionVector: 0
   m_SubOutputs:
   - {fileID: 8926484042661614555}
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -867,6 +876,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114880071494137674

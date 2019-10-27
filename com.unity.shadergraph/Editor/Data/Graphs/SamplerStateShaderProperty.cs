@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,79 +10,58 @@ namespace UnityEditor.ShaderGraph
         public SamplerStateShaderProperty()
         {
             displayName = "SamplerState";
-
-            if(value == null)
-                value = new TextureSamplerState();
-
-            if(string.IsNullOrEmpty(overrideReferenceName))
-                overrideReferenceName = string.Format("{0}_{1}_{2}_{3}"
-                    , propertyType
-                    , GuidEncoder.Encode(guid)
-                    , value.filter
-                    , value.wrap);
+            value = new TextureSamplerState();
         }
 
-        public override PropertyType propertyType
+        public override PropertyType propertyType => PropertyType.SamplerState;
+
+        internal override bool isBatchable => false;
+        internal override bool isExposable => false;
+        internal override bool isRenamable => false;
+
+        public override TextureSamplerState value
         {
-            get { return PropertyType.SamplerState; }
+            get => base.value;
+            set
+            {
+                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{value.filter}_{value.wrap}";
+                base.value = value;
+            }
         }
 
-        public override Vector4 defaultValue
+        internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            get { return new Vector4(); }
+            return $"SAMPLER({referenceName}){delimiter}";
         }
 
-        public override bool isBatchable
+        internal override string GetPropertyAsArgumentString()
         {
-            get { return false; }
+            return $"SamplerState {referenceName}";
         }
 
-        public override bool isExposable
+        internal override AbstractMaterialNode ToConcreteNode()
         {
-            get { return false; }
-        }
-
-        public override bool isRenamable
-        {
-            get { return false; }
-        }
-
-        public override string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return string.Format(@"SAMPLER({0}){1}", referenceName, delimiter);
-        }
-
-        public override string GetPropertyAsArgumentString()
-        {
-            return string.Format(@"SamplerState {0}", referenceName);
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return default(PreviewProperty);
-        }
-
-        public override AbstractMaterialNode ToConcreteNode()
-        {
-            return new SamplerStateNode() 
+            return new SamplerStateNode()
             {
                 filter = value.filter,
                 wrap = value.wrap
             };
         }
 
-        public override AbstractShaderProperty Copy()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            var copied = new SamplerStateShaderProperty();
-            copied.displayName = displayName;
-            copied.overrideReferenceName = overrideReferenceName;
-            copied.value = value;
-            return copied;
+            return default(PreviewProperty);
+        }
+
+        internal override ShaderInput Copy()
+        {
+            return new SamplerStateShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                overrideReferenceName = overrideReferenceName,
+                value = value
+            };
         }
     }
 }

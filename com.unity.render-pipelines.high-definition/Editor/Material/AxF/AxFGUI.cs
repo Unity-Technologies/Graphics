@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit),
             new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.AdditionalVelocity),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -112,9 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetInt(kStencilRefMV, stencilRefMV);
             material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
 
-            if (material.HasProperty(kAdditionalVelocityChange))
+            if (material.HasProperty(kAddPrecomputedVelocity))
             {
-                CoreUtils.SetKeyword(material, "_ADDITIONAL_VELOCITY_CHANGE", material.GetInt(kAdditionalVelocityChange) != 0);
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
 
         }

@@ -164,7 +164,7 @@ namespace UnityEditor.VFX.UI
                 if (model.spaceable && block.inputSlots.Any(o => o.spaceable))
                 {
                     var contextSpace = model.space;
-                    foreach (var inputSlot in block.inputSlots)
+                    foreach (var inputSlot in block.inputSlots.Where(o => o.spaceable))
                     {
                         inputSlot.space = contextSpace;
                     }

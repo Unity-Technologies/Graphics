@@ -214,10 +214,12 @@ CBUFFER_END
 
 float GetKeyWithCheck(uint index)
 {
-    if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
-        return REJECTED_VALUE;
+    float result = inputSequence[index].key;
 
-    return inputSequence[index].key;
+    if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
+        result = REJECTED_VALUE;
+
+    return result;
 }
 
 // Merge pass: take N sorted sub arrays as input and output N/2 sorted arrays twice bigger - execute in O(log(subArraySize))

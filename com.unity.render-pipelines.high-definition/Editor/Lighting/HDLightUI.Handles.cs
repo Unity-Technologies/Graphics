@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                         if (EditorGUI.EndChangeCheck())
                                         {
                                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
-                                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
+                                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / Mathf.Max(0.1f, outterAngleInnerAngleRange.x);
                                             light.spotAngle = outterAngleInnerAngleRange.x;
                                             light.range = outterAngleInnerAngleRange.z;
                                         }
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected)]
         static void DrawGizmoForHDAdditionalLightData(HDAdditionalLightData src, GizmoType gizmoType)
         {
-            if (!(UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset))
+            if (!(UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset))
                 return;
 
             var light = src.legacyLight;

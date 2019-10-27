@@ -17,6 +17,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!(GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset hdrpAsset))
                 return null;
 
+            return GetOrAssignDefaultVolumeProfile(hdrpAsset);
+        }
+
+        /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
+        /// <param name="hdrpAsset">Asset to check.</param>
+        /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
+        internal static VolumeProfile GetOrAssignDefaultVolumeProfile(HDRenderPipelineAsset hdrpAsset)
+        {
             if (hdrpAsset.defaultVolumeProfile == null || hdrpAsset.defaultVolumeProfile.Equals(null))
                 hdrpAsset.defaultVolumeProfile =
                     AssetDatabase.LoadAssetAtPath<VolumeProfile>(k_DefaultVolumeAssetPath);

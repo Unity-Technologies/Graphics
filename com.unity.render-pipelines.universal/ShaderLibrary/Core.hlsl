@@ -117,25 +117,6 @@ void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 #endif
 }
 
-real3 UnpackNormal(real4 packedNormal)
-{
-#if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGBNoScale(packedNormal);
-#else
-        // Compiler will optimize the scale away
-    return UnpackNormalmapRGorAG(packedNormal, 1.0);
-#endif
-}
-
-real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
-{
-#if defined(UNITY_NO_DXT5nm)
-    return UnpackNormalRGB(packedNormal, bumpScale);
-#else
-    return UnpackNormalmapRGorAG(packedNormal, bumpScale);
-#endif
-}
-
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation. 
@@ -191,21 +172,31 @@ real ComputeFogFactor(float z)
 #endif
 }
 
-half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
+real ComputeFogIntensity(real fogFactor)
 {
+    real fogIntensity = 0.0h;
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
 #if defined(FOG_EXP)
     // factor = exp(-density*z)
     // fogFactor = density*z compute at vertex
-    fogFactor = saturate(exp2(-fogFactor));
+    fogIntensity = saturate(exp2(-fogFactor));
 #elif defined(FOG_EXP2)
     // factor = exp(-(density*z)^2)
     // fogFactor = density*z compute at vertex
-    fogFactor = saturate(exp2(-fogFactor*fogFactor));
+    fogIntensity = saturate(exp2(-fogFactor * fogFactor));
+#elif defined(FOG_LINEAR)
+    fogIntensity = fogFactor;
 #endif
-    fragColor = lerp(fogColor, fragColor, fogFactor);
 #endif
+    return fogIntensity;
+}
 
+half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
+{
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    real fogIntensity = ComputeFogIntensity(fogFactor);
+    fragColor = lerp(fogColor, fragColor, fogIntensity);
+#endif
     return fragColor;
 }
 
