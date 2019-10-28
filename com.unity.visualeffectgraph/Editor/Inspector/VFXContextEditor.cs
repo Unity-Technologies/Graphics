@@ -165,7 +165,7 @@ class VFXContextEditor : VFXSlotContainerEditor
                             int size = VFXExpressionHelper.GetSizeOfType(attr.attrib.type) * 4;
                             GUILayout.Label(size + " byte" + (size > 1 ? "s" : ""), Styles.cell, GUILayout.Width(64));
                             var mode = attr.mode;
-                            GUILayout.Label(mode.ToString(), Styles.cell, GUILayout.Width(64));
+                            GUILayout.Label(mode.ToString(), Styles.cell, GUILayout.Width(72));
                         }
                     }
                 }
