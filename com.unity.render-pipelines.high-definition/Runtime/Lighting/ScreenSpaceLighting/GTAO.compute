@@ -48,7 +48,7 @@ float UpdateHorizon(float maxH, float candidateH, float distSq)
 {
     float falloff = saturate((1.0 - (distSq * _AOInvRadiusSq)));
 
-    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : maxH;        // TODO: Thickness heuristic here.
+    return (candidateH > maxH) ? lerp(maxH, candidateH, falloff) : lerp(maxH, candidateH, 0.03f);        // TODO: Thickness heuristic here.
 }
 
 // --------------------------------------------
