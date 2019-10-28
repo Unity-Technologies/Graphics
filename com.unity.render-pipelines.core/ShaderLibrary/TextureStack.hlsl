@@ -88,7 +88,7 @@ struct StackInfo
 
 #define DECLARE_STACK_CB(stackName) \
     float4x4 stackName##_spaceparams[2];\
-    float4 stackName##_atlasparams[2];\
+    float4 stackName##_atlasparams[2]
 
 #define DECLARE_STACK_BASE(stackName) \
 TEXTURE2D(stackName##_transtab);\
