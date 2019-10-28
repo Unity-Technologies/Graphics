@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter bilateralUpsample = new BoolParameter(true);
 
         // Non-temporal only parameters
-        public ClampedIntParameter directionCount = new ClampedIntParameter(2, 1, 8);
+        public ClampedIntParameter directionCount = new ClampedIntParameter(2, 1, 6);
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         // Ray tracing parameters    
