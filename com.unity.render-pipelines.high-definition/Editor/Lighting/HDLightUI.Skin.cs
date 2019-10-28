@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");
 
             // Bias control
-            public readonly GUIContent constantScale = new GUIContent("Constant Depth Bias", "Controls the bias that HDRP adds to the distance in this Light's shadow map.");
+            public readonly GUIContent slopeBias = new GUIContent("Slope-Scale Depth Bias", "Controls the bias that HDRP adds to the rendered shadow map, it is proportional to the slope of the polygons relative to the light.");
 
             public readonly GUIContent normalBias = new GUIContent("Normal Bias", "Controls the bias this Light applies along the normal of surfaces it illuminates.");
 

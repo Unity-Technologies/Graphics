@@ -518,6 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequest.shouldUseCachedShadow)
                     continue;
 
+                cmd.SetGlobalDepthBias(1.0f, shadowRequest.slopeBias);
                 cmd.SetViewport(shadowRequest.atlasViewport);
 
                 cmd.SetGlobalFloat(HDShaderIDs._ZClip, shadowRequest.zClip ? 1.0f : 0.0f);
@@ -543,6 +544,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.DrawShadows(ref shadowDrawSettings);
             }
             cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
+            cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.
+
         }
 
         public bool HasBlurredEVSM()
