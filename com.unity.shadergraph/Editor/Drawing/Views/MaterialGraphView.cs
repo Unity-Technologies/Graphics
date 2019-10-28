@@ -501,20 +501,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
 
             // Create list that we sorted based on position, so that duplication
-            List<AbstractShaderProperty> selectedProperties = new List<AbstractShaderProperty>();
+            List<ShaderInput> selectedProperties = new List<ShaderInput>();
             foreach (var selectable in selection)
             {
-                var field = selectable as BlackboardField;
-                var shaderProp = (AbstractShaderProperty) field.userData;
-                if (field != null && shaderProp != null)
+                BlackboardField field = selectable as BlackboardField;
+                ShaderInput shaderProp = (ShaderInput)field.userData;
+                if (shaderProp != null)
                 {
                     selectedProperties.Add(shaderProp);
                 }
             }
 
-            CopyPasteGraph copiedProperties = new CopyPasteGraph("", new List<GroupData>(),
-                new List<AbstractMaterialNode>(), new List<IEdge>(), selectedProperties,
-                new List<AbstractShaderProperty>(), new List<StickyNoteData>());
+            CopyPasteGraph copiedProperties = new CopyPasteGraph("", null, null, null, selectedProperties,
+                null, null, null);
 
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
         }
@@ -602,7 +601,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Filter nodes that cannot be deleted
             var nodesToDelete = selection.OfType<IShaderNodeView>().Where(v => !(v.node is SubGraphOutputNode) && v.node.canDeleteNode).Select(x => x.node);
-            
+
             // Add keyword nodes dependent on deleted keywords
             nodesToDelete = nodesToDelete.Union(keywordNodes);
 
@@ -618,13 +617,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     keywordsDirty = true;
                 }
             }
-            
+
             graph.owner.RegisterCompleteObjectUndo(operationName);
             graph.RemoveElements(nodesToDelete.ToArray(),
                 selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>().ToArray(),
                 selection.OfType<ShaderGroup>().Select(x => x.userData).ToArray(),
                 selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
-            
+
             foreach (var selectable in selection)
             {
                 var field = selectable as BlackboardField;
@@ -756,7 +755,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (textureArray != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
-                
+
                 var node = new SampleTexture2DArrayNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
@@ -788,7 +787,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (cubemap != null)
             {
                 graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
-                
+
                 var node = new SampleCubemapNode();
                 var drawState = node.drawState;
                 drawState.position = new Rect(nodePosition, drawState.position.size);
@@ -815,7 +814,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var blackboardField = obj as BlackboardField;
             if (blackboardField != null)
-            {   
+            {
                 graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
 
                 switch(blackboardField.userData)
@@ -856,7 +855,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     static class GraphViewExtensions
     {
         // Sorts based on their position on the blackboard
-        internal class PropertyOrder : IComparer<AbstractShaderProperty>
+        internal class PropertyOrder : IComparer<ShaderInput>
         {
             GraphData graphData;
 
@@ -865,27 +864,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphData = data;
             }
 
-            public int Compare(AbstractShaderProperty x, AbstractShaderProperty y)
+            public int Compare(ShaderInput x, ShaderInput y)
             {
-                if (graphData.GetShaderPropertyIndex(x) > graphData.GetShaderPropertyIndex(y)) return 1;
+                if (graphData.GetGraphInputIndex(x) > graphData.GetGraphInputIndex(y)) return 1;
                 else return -1;
             }
         }
 
         internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
         {
+            Debug.Log("InsertCopyPasteGraph");
+
             if (copyGraph == null)
                 return;
 
-
             // Sort based on order
-            // List<AbstractShaderProperty> sortedProperties = copyGraph.properties.ToList();
-            // sortedProperties.Sort(new PropertyOrder(graphView.graph));
-
-            // // Make new properties from the copied graph
-            // foreach (AbstractShaderProperty property in sortedProperties)
-            // {
-            //     AbstractShaderProperty copiedProperty = DuplicateProperty(property, graphView.graph);
+            List<ShaderInput> sortedInputs = copyGraph.inputs.ToList();
+            sortedInputs.Sort(new PropertyOrder(graphView.graph));
 
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
@@ -893,10 +888,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
-                ShaderInput copiedInput = input.Copy();
-                graphView.graph.SanitizeGraphInputName(copiedInput);
-                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
-                graphView.graph.AddGraphInput(copiedInput);
+                // Don't duplicate keywords
+                ShaderKeyword sKeyword = input as ShaderKeyword;
+                if (sKeyword != null && KeywordUtil.IsBuiltinKeyword(sKeyword) && graphView.graph.keywords.Contains(sKeyword))
+                {
+                    continue;
+                }
+
+                // TODO: exist?
+                ShaderInput copiedInput = DuplicateShaderInputs(input, graphView.graph);
 
                 switch(input)
                 {
@@ -990,12 +990,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        static AbstractShaderProperty DuplicateProperty(AbstractShaderProperty original, GraphData graph)
+        static ShaderInput DuplicateShaderInputs(ShaderInput original, GraphData graph)
         {
-            string propertyName = graph.SanitizePropertyName(original.displayName);
-            AbstractShaderProperty copy = original.Copy();
-            copy.displayName = propertyName;
-            graph.AddShaderProperty(copy);
+            ShaderInput copy = original.Copy();
+            graph.SanitizeGraphInputName(copy);
+            graph.AddGraphInput(copy);
             copy.generatePropertyBlock = original.generatePropertyBlock;
             return copy;
         }
