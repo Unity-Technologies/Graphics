@@ -3,7 +3,7 @@
     "description": "Helper library for SRP that contains a new Shader Library, and utility functions that can be used to implement a custom SRP. This library is currently used by both the High Definition Render Pipeline and the Lightweight Render Pipeline.",
     "version": "8.0.0",
     "unity": "2020.1",
-    "unityRelease": "0a3",
+    "unityRelease": "0a11",
     "displayName": "Core RP Library",
 	"dependencies": {
 	"com.unity.ugui" : "1.0.0"
