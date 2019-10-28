@@ -110,12 +110,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.shadowResolution.useOverride = !data.m_ObsoleteUseShadowQualitySettings;
                     data.useContactShadow.@override = data.m_ObsoleteContactShadows;
                 }),
-                MigrationStep.New(Version.RemoveAdditionalShadowData, (HDAdditionalLightData data) =>
-                {
-                    var shadow = data.GetComponent<AdditionalShadowData>();
-                    if (shadow != null)
-                        CoreUtils.Destroy(shadow);
-                }),
+                //MigrationStep.New(Version.RemoveAdditionalShadowData, (HDAdditionalLightData data) =>
+                //{
+                //    var shadow = data.GetComponent<AdditionalShadowData>();
+                //    if (shadow != null)
+                //        CoreUtils.Destroy(shadow);
+                //}),
                 MigrationStep.New(Version.AreaLightShapeTypeLogicIsolation, (HDAdditionalLightData data) =>
                 {
                     // It is now mixed in an other Enum: PointLightHDType
