@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float referenceFieldOfView = 90
         )
         {
-            cameraSettings = settings.camera;
+            cameraSettings = settings.cameraSettings;
             // Compute the modes for each probe type
             PositionMode positionMode;
             bool useReferenceTransformAsNearClipPlane;

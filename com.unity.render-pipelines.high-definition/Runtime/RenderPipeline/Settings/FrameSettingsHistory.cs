@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             aggregatedFrameSettings = defaultFrameSettings;
             bool updatedComponent = false;
 
-            if (historyContainer != null && !historyContainer.Equals(null) && historyContainer.hasCustomFrameSettings)
+            if (historyContainer.hasCustomFrameSettings)
             {
                 FrameSettings.Override(ref aggregatedFrameSettings, historyContainer.frameSettings, historyContainer.frameSettingsMask);
                 updatedComponent = history.customMask.mask != historyContainer.frameSettingsMask.mask;
