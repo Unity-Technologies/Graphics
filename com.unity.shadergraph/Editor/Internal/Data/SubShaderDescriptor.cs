@@ -5,6 +5,6 @@
         public string pipelineTag;
         public string renderQueueOverride;
         public string renderTypeOverride;
-        public ConditionalShaderPass[] passes;
+        public ShaderPassCollection passes;
     }
 }

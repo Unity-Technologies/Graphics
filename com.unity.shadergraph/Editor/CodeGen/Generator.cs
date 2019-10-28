@@ -291,20 +291,35 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Includes
-            using (var passIncludeBuilder = new ShaderStringBuilder())
+            using (var preGraphIncludeBuilder = new ShaderStringBuilder())
             {
-                if(pass.preGraphIncludes != null)
+                if(pass.includes != null)
                 {
-                    foreach(ConditionalInclude include in pass.preGraphIncludes)
+                    foreach(ConditionalInclude include in pass.includes.Where(x => x.include.location == Include.Location.Pregraph))
                     {
                         string value = null;
                         if(include.TestActive(activeFields, out value))
-                            passIncludeBuilder.AppendLine(value);
+                            preGraphIncludeBuilder.AppendLine(value);
                     }
                 }
 
-                string command = GenerationUtils.GetSpliceCommand(passIncludeBuilder.ToCodeBlock(), "PreGraphIncludes");
+                string command = GenerationUtils.GetSpliceCommand(preGraphIncludeBuilder.ToCodeBlock(), "PreGraphIncludes");
                 spliceCommands.Add("PreGraphIncludes", command);
+            }
+            using (var postGraphIncludeBuilder = new ShaderStringBuilder())
+            {
+                if(pass.includes != null)
+                {
+                    foreach(ConditionalInclude include in pass.includes.Where(x => x.include.location == Include.Location.Postgraph))
+                    {
+                        string value = null;
+                        if(include.TestActive(activeFields, out value))
+                            postGraphIncludeBuilder.AppendLine(value);
+                    }
+                }
+
+                string command = GenerationUtils.GetSpliceCommand(postGraphIncludeBuilder.ToCodeBlock(), "PostGraphIncludes");
+                spliceCommands.Add("PostGraphIncludes", command);
             }
 
             // Keywords
@@ -613,29 +628,6 @@ namespace UnityEditor.ShaderGraph
 
                 // Add to splice commands
                 spliceCommands.Add("GraphDefines", graphDefines.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Main
-
-            // Main include is expected to contain vert/frag definitions for the pass
-            // This must be defined after all graph code
-            using (var mainBuilder = new ShaderStringBuilder())
-            {
-                if(pass.postGraphIncludes != null)
-                {
-                    foreach(ConditionalInclude include in pass.postGraphIncludes)
-                    {
-                        string value = null;
-                        if(include.TestActive(activeFields, out value))
-                            mainBuilder.AppendLine(value);
-                    }
-                }
-
-                // Add to splice commands
-                if(mainBuilder.length == 0)
-                    mainBuilder.AppendLine("// Post Graph Includes: <None>");
-                spliceCommands.Add("PostGraphIncludes", mainBuilder.ToCodeBlock());
             }
 
             // --------------------------------------------------

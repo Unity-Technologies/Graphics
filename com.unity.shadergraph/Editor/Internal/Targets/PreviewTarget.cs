@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine.Rendering;
-
-namespace UnityEditor.ShaderGraph.Internal
+﻿namespace UnityEditor.ShaderGraph.Internal
 {
     class PreviewTarget : ITarget
     {
@@ -14,42 +11,57 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 renderQueueOverride = "Geometry",
                 renderTypeOverride = "Opaque",
-                passes = new ConditionalShaderPass[] { new ConditionalShaderPass(Passes.Preview) },
-            };
-        }
-#endregion
+                passes = new ShaderPassCollection { new ShaderPass()
+                {
+                    // Definition
+                    referenceName = "SHADERPASS_PREVIEW",
+                    useInPreview = true,
 
-#region Passes
-        public static class Passes
-        {
-            public static ShaderPass Preview = new ShaderPass()
-            {
-                // Definition
-                referenceName = "SHADERPASS_PREVIEW",
-                useInPreview = true,
+                    // Fields
+                    structs = new StructDescriptor[]
+                    {
+                        PreviewTarget.Attributes,
+                        PreviewTarget.Varyings,
+                        PreviewTarget.SurfaceDescriptionInputs,
+                        PreviewTarget.VertexDescriptionInputs,
+                    },
+                    fieldDependencies = FieldDependencies.Default,
 
-                // Fields
-                structs = Structs.Default,
-                fieldDependencies = FieldDependencies.Default,
+                    // Conditional State
+                    pragmas = new PragmaCollection
+                    {
+                        { Pragma.Vertex("vert") },
+                        { Pragma.Fragment("frag") },
+                    },
+                    defines = new DefineCollection
+                    {
+                        { new KeywordDescriptor()
+                            {
+                                displayName = "Preview",
+                                referenceName = "SHADERGRAPH_PREVIEW",
+                                type = KeywordType.Boolean,
+                                definition = KeywordDefinition.MultiCompile,
+                                scope = KeywordScope.Global,
+                            }, 1 },
+                    },
+                    includes = new IncludeCollection
+                    {
+                        // Pre-graph
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl", Include.Location.Pregraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl", Include.Location.Pregraph },
 
-                // Conditional State
-                pragmas = Pragmas.Default,
-                defines = Defines.Default,
-                preGraphIncludes = PreGraphIncludes.Default,
-                postGraphIncludes = PostGraphIncludes.Default,
-            };
-        }
-#endregion
-
-#region Structs
-        static class Structs
-        {
-            public static StructDescriptor[] Default = new StructDescriptor[]
-            {
-                PreviewTarget.Attributes,
-                PreviewTarget.Varyings,
-                PreviewTarget.SurfaceDescriptionInputs,
-                PreviewTarget.VertexDescriptionInputs,
+                        // Post-graph
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl", Include.Location.Postgraph },
+                        { "Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl", Include.Location.Postgraph },
+                    }
+                }},
             };
         }
 #endregion
@@ -141,54 +153,6 @@ namespace UnityEditor.ShaderGraph.Internal
                 new FieldDependency(MeshTarget.ShaderStructs.SurfaceDescriptionInputs.FaceSign,                     MeshTarget.ShaderStructs.Varyings.cullFace),
             };
         }
-#endregion
-
-#region Pragmas
-        static class Pragmas
-        {
-            public static ConditionalPragma[] Default = new ConditionalPragma[]
-            {
-                new ConditionalPragma(Pragma.Vertex("vert")),
-                new ConditionalPragma(Pragma.Fragment("frag")),
-            };
-        }
-#endregion
-
-#region Defines
-        static class Defines
-        {
-            public static ConditionalDefine[] Default = new ConditionalDefine[]
-            {
-                new ConditionalDefine(KeywordDescriptors.Preview, 1),
-            };
-        }
-#endregion
-
-#region Includes
-        static class PreGraphIncludes
-        {
-            public static ConditionalInclude[] Default = new ConditionalInclude[]
-            {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
-            };
-        }
-        static class PostGraphIncludes
-        {
-            public static ConditionalInclude[] Default = new ConditionalInclude[]
-            {
-                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewVaryings.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/PreviewPass.hlsl")),
-            };
-        }
-
 #endregion
 
 #region ShaderStructs
@@ -316,20 +280,6 @@ namespace UnityEditor.ShaderGraph.Internal
                 MeshTarget.ShaderStructs.SurfaceDescriptionInputs.FaceSign,
             }
         };
-#endregion
-
-#region KeywordDescriptorss
-        public static class KeywordDescriptors
-        {
-            public static KeywordDescriptor Preview = new KeywordDescriptor()
-            {
-                displayName = "Preview",
-                referenceName = "SHADERGRAPH_PREVIEW",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-            };
-        }
 #endregion
     }
 }

@@ -1,30 +1,8 @@
-﻿namespace UnityEditor.ShaderGraph.Internal
+﻿using System.Collections;
+using System.Collections.Generic;
+
+namespace UnityEditor.ShaderGraph.Internal
 {
-    public class ConditionalRenderState : IConditionalShaderString
-    {        
-        public RenderState renderState { get; }
-        public FieldCondition[] fieldConditions { get; }
-        public string value => renderState.value;
-
-        public ConditionalRenderState(RenderState renderState)
-        {
-            this.renderState = renderState;
-            this.fieldConditions = null;
-        }
-
-        public ConditionalRenderState(RenderState renderState, FieldCondition fieldCondition)
-        {
-            this.renderState = renderState;
-            this.fieldConditions = new FieldCondition[] { fieldCondition };
-        }
-
-        public ConditionalRenderState(RenderState renderState, FieldCondition[] fieldConditions)
-        {
-            this.renderState = renderState;
-            this.fieldConditions = fieldConditions;
-        }
-    }
-
     public class RenderState
     {
         public enum Type
@@ -136,6 +114,54 @@
         public static RenderState Stencil(Stencil value)
         {
             return new RenderState(Type.Stencil, value.ToShaderString());
+        }
+    }
+
+    public class RenderStateCollection : IEnumerable<ConditionalRenderState>
+    {
+        private readonly List<ConditionalRenderState> m_RenderStates;
+
+        public RenderStateCollection()
+        {
+            m_RenderStates = new List<ConditionalRenderState>();
+        }
+
+        public void Add(RenderState renderState)
+        {
+            m_RenderStates.Add(new ConditionalRenderState(renderState, null));
+        }
+
+        public void Add(RenderState renderState, FieldCondition fieldCondition)
+        {
+            m_RenderStates.Add(new ConditionalRenderState(renderState, new FieldCondition[]{ fieldCondition }));
+        }
+
+        public void Add(RenderState renderState, FieldCondition[] fieldConditions)
+        {
+            m_RenderStates.Add(new ConditionalRenderState(renderState, fieldConditions));
+        }
+
+        public IEnumerator<ConditionalRenderState> GetEnumerator()
+        {
+            return m_RenderStates.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    public class ConditionalRenderState : IConditionalShaderString
+    {        
+        public RenderState renderState { get; }
+        public FieldCondition[] fieldConditions { get; }
+        public string value => renderState.value;
+
+        public ConditionalRenderState(RenderState renderState, FieldCondition[] fieldConditions)
+        {
+            this.renderState = renderState;
+            this.fieldConditions = fieldConditions;
         }
     }
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
@@ -53,44 +50,44 @@ namespace UnityEditor.Rendering.Universal
             public static SubShaderDescriptor PBR = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ConditionalShaderPass[]
+                passes = new ShaderPassCollection
                 {
-                    new ConditionalShaderPass(Passes.Forward),
-                    new ConditionalShaderPass(Passes.ShadowCaster),
-                    new ConditionalShaderPass(Passes.DepthOnly),
-                    new ConditionalShaderPass(Passes.Meta),
-                    new ConditionalShaderPass(Passes._2D),
+                    { Passes.Forward },
+                    { Passes.ShadowCaster },
+                    { Passes.DepthOnly },
+                    { Passes.Meta },
+                    { Passes._2D },
                 },
             };
 
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ConditionalShaderPass[]
+                passes = new ShaderPassCollection
                 {
-                    new ConditionalShaderPass(Passes.Unlit),
-                    new ConditionalShaderPass(Passes.ShadowCaster),
-                    new ConditionalShaderPass(Passes.DepthOnly),
+                    { Passes.Unlit },
+                    { Passes.ShadowCaster },
+                    { Passes.DepthOnly },
                 },
             };
 
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ConditionalShaderPass[]
+                passes = new ShaderPassCollection
                 {
-                    new ConditionalShaderPass(Passes.SpriteLit),
-                    new ConditionalShaderPass(Passes.SpriteNormal),
-                    new ConditionalShaderPass(Passes.SpriteForward),
+                    { Passes.SpriteLit },
+                    { Passes.SpriteNormal },
+                    { Passes.SpriteForward },
                 },
             };
 
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ConditionalShaderPass[]
+                passes = new ShaderPassCollection
                 {
-                    new ConditionalShaderPass(Passes.SpriteUnlit),
+                    { Passes.SpriteUnlit },
                 },
             };
         }
@@ -120,8 +117,7 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Forward,
                 keywords = Keywords.PBRForward,
-                preGraphIncludes = PreGraphIncludes.PBRForward,
-                postGraphIncludes = PostGraphIncludes.PBRForward,
+                includes = Includes.Forward,
             };
 
             public static ShaderPass DepthOnly = new ShaderPass()
@@ -141,10 +137,9 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.DepthOnly,
+                renderStates = RenderStates.DepthOnly,
                 pragmas = Pragmas.Instanced,
-                preGraphIncludes = PreGraphIncludes.PBRDepthOnly,
-                postGraphIncludes = PostGraphIncludes.DepthOnly,
+                includes = Includes.DepthOnly,
             };
 
             public static ShaderPass ShadowCaster = new ShaderPass()
@@ -164,10 +159,9 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
+                renderStates = RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Instanced,
-                preGraphIncludes = PreGraphIncludes.PBRShadowCaster,
-                postGraphIncludes = PostGraphIncludes.ShadowCaster,
+                includes = Includes.ShadowCaster,
             };
 
             public static ShaderPass Meta = new ShaderPass()
@@ -187,11 +181,10 @@ namespace UnityEditor.Rendering.Universal
                 fieldDependencies = FieldDependencies.Default,
 
                 // Conditional State
-                renderStates = UniversalMeshTarget.RenderStates.ShadowCasterMeta,
+                renderStates = RenderStates.ShadowCasterMeta,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.PBRMeta,
-                preGraphIncludes = PreGraphIncludes.PBRMeta,
-                postGraphIncludes =PostGraphIncludes.LightingMeta,
+                includes = Includes.Meta,
             };
 
             public static ShaderPass _2D = new ShaderPass()
@@ -211,8 +204,7 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
-                preGraphIncludes = PreGraphIncludes.PBR2D,
-                postGraphIncludes = PostGraphIncludes.PBR2D,
+                includes = Includes.PBR2D,
             };
 
             public static ShaderPass Unlit = new ShaderPass
@@ -234,8 +226,7 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Instanced,
                 keywords = Keywords.Unlit,
-                preGraphIncludes = PreGraphIncludes.Basic,
-                postGraphIncludes = PostGraphIncludes.Unlit,
+                includes = Includes.Unlit,
             };
 
             public static ShaderPass SpriteLit = new ShaderPass
@@ -259,8 +250,7 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.SpriteLit,
-                preGraphIncludes = PreGraphIncludes.SpriteLit,
-                postGraphIncludes = PostGraphIncludes.SpriteLit,
+                includes = Includes.SpriteLit,
             };
 
             public static ShaderPass SpriteNormal = new ShaderPass
@@ -283,8 +273,7 @@ namespace UnityEditor.Rendering.Universal
                 // Conditional State
                 renderStates = UniversalMeshTarget.RenderStates.Default,
                 pragmas = Pragmas.Default,
-                preGraphIncludes = PreGraphIncludes.SpriteNormal,
-                postGraphIncludes = PostGraphIncludes.SpriteNormal,
+                includes = Includes.SpriteNormal,
             };
 
             public static ShaderPass SpriteForward = new ShaderPass
@@ -308,8 +297,7 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.ETCExternalAlpha,
-                preGraphIncludes = PreGraphIncludes.Basic,
-                postGraphIncludes = PostGraphIncludes.SpriteForward,
+                includes = Includes.SpriteForward,
             };
 
             public static ShaderPass SpriteUnlit = new ShaderPass
@@ -331,8 +319,7 @@ namespace UnityEditor.Rendering.Universal
                 renderStates = RenderStates.Default,
                 pragmas = Pragmas.Default,
                 keywords = Keywords.ETCExternalAlpha,
-                preGraphIncludes = PreGraphIncludes.Basic,
-                postGraphIncludes = PostGraphIncludes.SpriteUnlit,
+                includes = Includes.SpriteUnlit,
             };
         }
 #endregion
@@ -594,45 +581,45 @@ namespace UnityEditor.Rendering.Universal
 #region RenderStates
         static class RenderStates
         {
-            public static readonly ConditionalRenderState[] Default = new ConditionalRenderState[]
+            public static readonly RenderStateCollection Default = new RenderStateCollection
             {
-                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(DefaultFields.SurfaceTransparent, true)),
-                new ConditionalRenderState(RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false)),
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true)),
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On), new FieldCondition(DefaultFields.SurfaceOpaque, true) },
+                { RenderState.ZWrite(ZWrite.Off), new FieldCondition(DefaultFields.SurfaceTransparent, true) },
+                { RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false) },
+                { RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true) },
+                { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true) },
+                { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true) },
+                { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true) },
+                { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true) },
             };
 
-            public static readonly ConditionalRenderState[] ShadowCasterMeta = new ConditionalRenderState[]
+            public static readonly RenderStateCollection ShadowCasterMeta = new RenderStateCollection
             {
-                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
-                new ConditionalRenderState(RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false)),
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true)),
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false) },
+                { RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true) },
+                { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true) },
+                { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true) },
+                { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true) },
+                { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true) },
             };
 
-            public static readonly ConditionalRenderState[] DepthOnly = new ConditionalRenderState[]
+            public static readonly RenderStateCollection DepthOnly = new RenderStateCollection
             {
-                new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
-                new ConditionalRenderState(RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false)),
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
-                new ConditionalRenderState(RenderState.ColorMask("ColorMask 0")),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true)),
-                new ConditionalRenderState(RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true)),
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { RenderState.Cull(Cull.Back), new FieldCondition(DefaultFields.DoubleSided, false) },
+                { RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true) },
+                { RenderState.ColorMask("ColorMask 0") },
+                { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendAlpha, true) },
+                { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(DefaultFields.BlendPremultiply, true) },
+                { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(DefaultFields.BlendAdd, true) },
+                { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(DefaultFields.BlendMultiply, true) },
             };
         }
 #endregion
@@ -640,34 +627,34 @@ namespace UnityEditor.Rendering.Universal
 #region Pragmas
         static class Pragmas
         {
-            public static readonly ConditionalPragma[] Default = new ConditionalPragma[]
+            public static readonly PragmaCollection Default = new PragmaCollection
             {
-                new ConditionalPragma(Pragma.Target(2.0)),
-                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
-                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
-                new ConditionalPragma(Pragma.Vertex("vert")),
-                new ConditionalPragma(Pragma.Fragment("frag")),
+                { Pragma.Target(2.0) },
+                { Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 }) },
+                { Pragma.PreferHlslCC(new Platform[]{ Platform.GLES }) },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
             };
 
-            public static readonly ConditionalPragma[] Instanced = new ConditionalPragma[]
+            public static readonly PragmaCollection Instanced = new PragmaCollection
             {
-                new ConditionalPragma(Pragma.Target(2.0)),
-                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
-                new ConditionalPragma(Pragma.MultiCompileInstancing),
-                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
-                new ConditionalPragma(Pragma.Vertex("vert")),
-                new ConditionalPragma(Pragma.Fragment("frag")),
+                { Pragma.Target(2.0) },
+                { Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 }) },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.PreferHlslCC(new Platform[]{ Platform.GLES }) },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
             };
 
-            public static readonly ConditionalPragma[] Forward = new ConditionalPragma[]
+            public static readonly PragmaCollection Forward = new PragmaCollection
             {
-                new ConditionalPragma(Pragma.Target(2.0)),
-                new ConditionalPragma(Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 })),
-                new ConditionalPragma(Pragma.MultiCompileInstancing),
-                new ConditionalPragma(Pragma.MultiCompileFog),
-                new ConditionalPragma(Pragma.Custom("prefer_hlslcc gles")),
-                new ConditionalPragma(Pragma.Vertex("vert")),
-                new ConditionalPragma(Pragma.Fragment("frag")),
+                { Pragma.Target(2.0) },
+                { Pragma.ExcludeRenderers(new Platform[]{ Platform.D3D9 }) },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.MultiCompileFog },
+                { Pragma.PreferHlslCC(new Platform[]{ Platform.GLES }) },
+                { Pragma.Vertex("vert") },
+                { Pragma.Fragment("frag") },
             };
         }
 #endregion
@@ -675,198 +662,222 @@ namespace UnityEditor.Rendering.Universal
 #region Keywords
         static class Keywords
         {
-            public static ConditionalKeyword[] PBRForward = new ConditionalKeyword[]
+            public static KeywordCollection PBRForward = new KeywordCollection
             {
-                new ConditionalKeyword(KeywordDescriptors.Lightmap),
-                new ConditionalKeyword(KeywordDescriptors.DirectionalLightmapCombined),
-                new ConditionalKeyword(KeywordDescriptors.MainLightShadows),
-                new ConditionalKeyword(KeywordDescriptors.MainLightShadowsCascade),
-                new ConditionalKeyword(KeywordDescriptors.AdditionalLights),
-                new ConditionalKeyword(KeywordDescriptors.AdditionalLightShadows),
-                new ConditionalKeyword(KeywordDescriptors.ShadowsSoft),
-                new ConditionalKeyword(KeywordDescriptors.MixedLightingSubtractive),
+                { KeywordDescriptors.Lightmap },
+                { KeywordDescriptors.DirectionalLightmapCombined },
+                { KeywordDescriptors.MainLightShadows },
+                { KeywordDescriptors.MainLightShadowsCascade },
+                { KeywordDescriptors.AdditionalLights },
+                { KeywordDescriptors.AdditionalLightShadows },
+                { KeywordDescriptors.ShadowsSoft },
+                { KeywordDescriptors.MixedLightingSubtractive },
             };
 
-            public static ConditionalKeyword[] PBRMeta = new ConditionalKeyword[]
+            public static KeywordCollection PBRMeta = new KeywordCollection
             {
-                new ConditionalKeyword(KeywordDescriptors.SmoothnessChannel),
+                { KeywordDescriptors.SmoothnessChannel },
             };
 
-            public static ConditionalKeyword[] Unlit = new ConditionalKeyword[]
+            public static KeywordCollection Unlit = new KeywordCollection
             {
-                new ConditionalKeyword(KeywordDescriptors.Lightmap),
-                new ConditionalKeyword(KeywordDescriptors.DirectionalLightmapCombined),
-                new ConditionalKeyword(KeywordDescriptors.SampleGI),
+                { KeywordDescriptors.Lightmap },
+                { KeywordDescriptors.DirectionalLightmapCombined },
+                { KeywordDescriptors.SampleGI },
             };
 
-            public static ConditionalKeyword[] SpriteLit = new ConditionalKeyword[]
+            public static KeywordCollection SpriteLit = new KeywordCollection
             {
-                new ConditionalKeyword(KeywordDescriptors.ETCExternalAlpha),
-                new ConditionalKeyword(KeywordDescriptors.ShapeLightType0),
-                new ConditionalKeyword(KeywordDescriptors.ShapeLightType1),
-                new ConditionalKeyword(KeywordDescriptors.ShapeLightType2),
-                new ConditionalKeyword(KeywordDescriptors.ShapeLightType3),
+                { KeywordDescriptors.ETCExternalAlpha },
+                { KeywordDescriptors.ShapeLightType0 },
+                { KeywordDescriptors.ShapeLightType1 },
+                { KeywordDescriptors.ShapeLightType2 },
+                { KeywordDescriptors.ShapeLightType3 },
             };
 
-            public static ConditionalKeyword[] ETCExternalAlpha = new ConditionalKeyword[]
+            public static KeywordCollection ETCExternalAlpha = new KeywordCollection
             {
-                new ConditionalKeyword(KeywordDescriptors.ETCExternalAlpha),
+                { KeywordDescriptors.ETCExternalAlpha },
             };
         }
 #endregion
 
 #region Includes
-        static class PreGraphIncludes
+        static class Includes
         {
-            public static ConditionalInclude[] Basic = new ConditionalInclude[]
+            // Pre-graph
+            const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
+            const string kInstancing = "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl";
+            const string kCore = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl";
+            const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
+            const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
+            const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
+            const string kInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl";
+            const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
+            const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
+            const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
+
+            // Post-graph
+            const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
+            const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
+            const string kPBRForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+            const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
+            const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
+            const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
+            const string kPBR2DPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
+            const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+            const string kSpriteLitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl";
+            const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteNormalPass.hlsl";
+            const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl";
+            const string kSpriteUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl";
+
+            public static IncludeCollection Forward = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kInstancing, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kShadows, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+                { kInput, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kPBRForwardPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] PBRForward = new ConditionalInclude[]
+            public static IncludeCollection DepthOnly = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kInstancing, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kDepthOnlyPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] PBRDepthOnly = new ConditionalInclude[]
+            public static IncludeCollection ShadowCaster = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kInstancing, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kShadowCasterPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] PBRShadowCaster = new ConditionalInclude[]
+            public static IncludeCollection Meta = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+                { kMetaInput, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kLightingMetaPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] PBRMeta = new ConditionalInclude[]
+            public static IncludeCollection PBR2D = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kInstancing, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kPBR2DPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] PBR2D = new ConditionalInclude[]
+            public static IncludeCollection Unlit = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kUnlitPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] SpriteLit = new ConditionalInclude[]
+            public static IncludeCollection SpriteLit = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+                { k2DLightingUtil, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kSpriteLitPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] SpriteNormal = new ConditionalInclude[]
+            public static IncludeCollection SpriteNormal = new IncludeCollection
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl")),
-            };
-        }
-        static class PostGraphIncludes
-        {
-            private static ConditionalInclude varyingsInclude = new ConditionalInclude(
-                Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl"));
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+                { k2DNormal, Include.Location.Pregraph },
 
-            private static ConditionalInclude shaderPassInclude = new ConditionalInclude(
-                Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"));
-
-            public static ConditionalInclude[] PBRForward = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl")),
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kSpriteNormalPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] DepthOnly = new ConditionalInclude[]
+            public static IncludeCollection SpriteForward = new IncludeCollection
             {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl")),
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
+
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kSpriteForwardPass, Include.Location.Postgraph },
             };
 
-            public static ConditionalInclude[] ShadowCaster = new ConditionalInclude[]
+            public static IncludeCollection SpriteUnlit = new IncludeCollection
             {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl")),
-            };
+                // Pre-graph
+                { kColor, Include.Location.Pregraph },
+                { kCore, Include.Location.Pregraph },
+                { kLighting, Include.Location.Pregraph },
+                { kGraphFunctions, Include.Location.Pregraph },
 
-            public static ConditionalInclude[] LightingMeta = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl")),
-            };
-
-            public static ConditionalInclude[] PBR2D = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl")),
-            };
-
-            public static ConditionalInclude[] Unlit = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl")),
-            };
-
-            public static ConditionalInclude[] SpriteLit = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteLitPass.hlsl")),
-            };
-
-            public static ConditionalInclude[] SpriteNormal = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteNormalPass.hlsl")),
-            };
-
-            public static ConditionalInclude[] SpriteForward = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteForwardPass.hlsl")),
-            };
-
-            public static ConditionalInclude[] SpriteUnlit = new ConditionalInclude[]
-            {
-                PostGraphIncludes.shaderPassInclude,
-                PostGraphIncludes.varyingsInclude,
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl")),
+                // Post-graph
+                { kShaderPass, Include.Location.Postgraph },
+                { kVaryings, Include.Location.Postgraph },
+                { kSpriteUnlitPass, Include.Location.Postgraph },
             };
         }
 #endregion
@@ -887,6 +898,7 @@ namespace UnityEditor.Rendering.Universal
                     subscriptOptions : SubscriptOptions.Optional);
             }
         }
+
         public static StructDescriptor Attributes = new StructDescriptor()
         {
             name = "Attributes",
@@ -904,6 +916,7 @@ namespace UnityEditor.Rendering.Universal
                 MeshTarget.ShaderStructs.Attributes.instanceID,
             }
         };
+
         public static StructDescriptor Varyings = new StructDescriptor()
         {
             name = "Varyings",
