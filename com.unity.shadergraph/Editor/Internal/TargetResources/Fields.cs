@@ -1,6 +1,6 @@
 ﻿namespace UnityEditor.ShaderGraph.Internal
 {
-    public static class DefaultFields
+    public static class Fields
     {
 #region Tags
         public const string kFeatures = "features";

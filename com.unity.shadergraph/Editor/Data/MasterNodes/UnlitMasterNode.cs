@@ -155,28 +155,28 @@ namespace UnityEditor.ShaderGraph
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(DefaultFields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
                                                                         IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
                                                                         IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
-                new ConditionalField(DefaultFields.GraphPixel,          true),
+                new ConditionalField(Fields.GraphPixel,          true),
                 
                 // Surface Type
-                new ConditionalField(DefaultFields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
-                new ConditionalField(DefaultFields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
                 
                 // Blend Mode
-                new ConditionalField(DefaultFields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
-                new ConditionalField(DefaultFields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
-                new ConditionalField(DefaultFields.BlendMultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
-                new ConditionalField(DefaultFields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
+                new ConditionalField(Fields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
+                new ConditionalField(Fields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
+                new ConditionalField(Fields.BlendMultiply,       surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
+                new ConditionalField(Fields.BlendPremultiply,    surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
 
                 // Misc
-                new ConditionalField(DefaultFields.AlphaClip,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                new ConditionalField(Fields.AlphaClip,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                                                                         FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
-                new ConditionalField(DefaultFields.AlphaTest,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
+                new ConditionalField(Fields.AlphaTest,           IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId) ||
                                                                         FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
-                new ConditionalField(DefaultFields.VelocityPrecomputed, addPrecomputedVelocity.isOn),
-                new ConditionalField(DefaultFields.DoubleSided,         twoSided.isOn),
+                new ConditionalField(Fields.VelocityPrecomputed, addPrecomputedVelocity.isOn),
+                new ConditionalField(Fields.DoubleSided,         twoSided.isOn),
             };
         }
 

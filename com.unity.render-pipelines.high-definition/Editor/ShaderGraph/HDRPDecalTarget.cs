@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     new ConditionalPass(Passes.Mesh3RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
                     new ConditionalPass(Passes.Mesh4RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
                     new ConditionalPass(Passes.MeshEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
-                    new ConditionalPass(Passes.Preview, new FieldCondition(DefaultFields.IsPreview, true)),
+                    new ConditionalPass(Passes.Preview, new FieldCondition(Fields.IsPreview, true)),
                 },
             };
         }

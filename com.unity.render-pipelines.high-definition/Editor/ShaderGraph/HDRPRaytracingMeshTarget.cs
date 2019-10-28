@@ -57,10 +57,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 passes = new ConditionalPass[]
                 {
-                    new ConditionalPass(FabricPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(FabricPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(FabricPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(FabricPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.Indirect, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.Visibility, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.Forward, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.GBuffer, new FieldCondition(Fields.IsPreview, false)),
                 },
             };
             public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
@@ -68,10 +68,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 passes = new ConditionalPass[]
                 {
-                    new ConditionalPass(HDLitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(HDLitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(HDLitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(HDLitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.Indirect, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.Visibility, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.Forward, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.GBuffer, new FieldCondition(Fields.IsPreview, false)),
                 },
             };
             public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
@@ -79,10 +79,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 passes = new ConditionalPass[]
                 {
-                    new ConditionalPass(HDUnlitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(HDUnlitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(HDUnlitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalPass(HDUnlitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.Indirect, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.Visibility, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.Forward, new FieldCondition(Fields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.GBuffer, new FieldCondition(Fields.IsPreview, false)),
                 },
             };
         }

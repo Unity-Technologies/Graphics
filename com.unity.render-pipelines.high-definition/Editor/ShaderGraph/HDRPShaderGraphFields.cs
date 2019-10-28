@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor AlphaTestPrepass =        new FieldDescriptor(string.Empty, "AlphaTestPrepass", "_ALPHA_TEST_PREPASS 1");
         public static FieldDescriptor AlphaTestPostpass =       new FieldDescriptor(string.Empty, "AlphaTestPostpass", "_ALPHA_TEST_POSTPASS 1");
         public static FieldDescriptor AlphaFog =                new FieldDescriptor(string.Empty, "AlphaFog", "_ENABLE_FOG_ON_TRANSPARENT 1");
-        public static FieldDescriptor BlendPreserveSpecular =   new FieldDescriptor(DefaultFields.kBlendMode, "PreserveSpecular", "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1");
+        public static FieldDescriptor BlendPreserveSpecular =   new FieldDescriptor(Fields.kBlendMode, "PreserveSpecular", "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1");
         public static FieldDescriptor DisableDecals =           new FieldDescriptor(string.Empty, "DisableDecals", "_DISABLE_DECALS 1");
         public static FieldDescriptor DisableSSR =              new FieldDescriptor(string.Empty, "DisableSSR", "_DISABLE_SSR 1");
         public static FieldDescriptor BentNormal =              new FieldDescriptor(string.Empty, "BentNormal", "_BENT_NORMAL 1");

@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     public class IncludeCollection : IEnumerable<IncludeCollection.Item>
     {
-        public class Item : IConditionalShaderString
+        public class Item : IConditional, IShaderString
         {        
             public IncludeDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }

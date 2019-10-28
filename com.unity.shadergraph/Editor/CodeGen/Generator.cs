@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
             // Preview shader
             else
             {
-                activeFields.baseInstance.Add(DefaultFields.GraphPixel);
+                activeFields.baseInstance.Add(Fields.GraphPixel);
             }
             return activeFields;
         }
@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview) 
-                        activeFields.baseInstance.Add(DefaultFields.IsPreview);
+                        activeFields.baseInstance.Add(Fields.IsPreview);
 
                     // Check masternode fields for valid passes
                     if(pass.TestActive(activeFields)) 
@@ -259,10 +259,9 @@ namespace UnityEditor.ShaderGraph
                     {
                         foreach(RenderStateCollection.Item renderState in renderStates)
                         {
-                            string value = null;
-                            if(renderState.TestActive(activeFields, out value))
+                            if(renderState.TestActive(activeFields))
                             {
-                                renderStateBuilder.AppendLine(value);
+                                renderStateBuilder.AppendLine(renderState.value);
                                 break;
                             }
                         }
@@ -280,9 +279,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach(PragmaCollection.Item pragma in pass.pragmas)
                     {
-                        string value = null;
-                        if(pragma.TestActive(activeFields, out value))
-                            passPragmaBuilder.AppendLine(value);
+                        if(pragma.TestActive(activeFields))
+                            passPragmaBuilder.AppendLine(pragma.value);
                     }
                 }
 
@@ -297,9 +295,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
                     {
-                        string value = null;
-                        if(include.TestActive(activeFields, out value))
-                            preGraphIncludeBuilder.AppendLine(value);
+                        if(include.TestActive(activeFields))
+                            preGraphIncludeBuilder.AppendLine(include.value);
                     }
                 }
 
@@ -312,9 +309,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
                     {
-                        string value = null;
-                        if(include.TestActive(activeFields, out value))
-                            postGraphIncludeBuilder.AppendLine(value);
+                        if(include.TestActive(activeFields))
+                            postGraphIncludeBuilder.AppendLine(include.value);
                     }
                 }
 
@@ -329,9 +325,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach(KeywordCollection.Item keyword in pass.keywords)
                     {
-                        string value = null;
-                        if(keyword.TestActive(activeFields, out value))
-                            passKeywordBuilder.AppendLine(value);
+                        if(keyword.TestActive(activeFields))
+                            passKeywordBuilder.AppendLine(keyword.value);
                     }
                 }
 
@@ -425,7 +420,7 @@ namespace UnityEditor.ShaderGraph
             var vertexBuilder = new ShaderStringBuilder();
 
             // If vertex modification enabled
-            if (activeFields.baseInstance.Contains(DefaultFields.GraphVertex) && vertexSlots != null)
+            if (activeFields.baseInstance.Contains(Fields.GraphVertex) && vertexSlots != null)
             {
                 // Setup
                 string vertexGraphInputName = "VertexDescriptionInputs";
@@ -581,9 +576,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     foreach(DefineCollection.Item define in pass.defines)
                     {
-                        string value = null;
-                        if(define.TestActive(activeFields, out value))
-                            graphDefines.AppendLine(value);
+                        if(define.TestActive(activeFields))
+                            graphDefines.AppendLine(define.value);
                     }
                 }
 

@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     public class PragmaCollection : IEnumerable<PragmaCollection.Item>
     {
-        public class Item : IConditionalShaderString
+        public class Item : IConditional, IShaderString
         {        
             public PragmaDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }

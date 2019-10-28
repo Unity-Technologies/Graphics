@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     public class RenderStateCollection : IEnumerable<RenderStateCollection.Item>
     {
-        public class Item : IConditionalShaderString
+        public class Item : IConditional, IShaderString
         {        
             public RenderStateDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }

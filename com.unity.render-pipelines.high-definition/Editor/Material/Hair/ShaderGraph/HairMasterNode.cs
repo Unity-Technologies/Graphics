@@ -779,14 +779,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(DefaultFields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
+                new ConditionalField(Fields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
                                                                                         IsSlotConnected(VertexNormalSlotId) || 
                                                                                         IsSlotConnected(VertexTangentSlotId)),
-                new ConditionalField(DefaultFields.GraphPixel,                          true),
+                new ConditionalField(Fields.GraphPixel,                          true),
                 
                 // Surface Type
-                new ConditionalField(DefaultFields.SurfaceOpaque,                       surfaceType == SurfaceType.Opaque),
-                new ConditionalField(DefaultFields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceOpaque,                       surfaceType == SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
                 
                 // Structs
                 new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
@@ -800,7 +800,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionCustom,     specularOcclusionMode == SpecularOcclusionMode.Custom),
 
                 // Misc
-                new ConditionalField(DefaultFields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(Fields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AlphaTestShadow,             alphaTest.isOn && alphaTestShadow.isOn && 
                                                                                         pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AlphaTestPrepass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId)),
@@ -810,7 +810,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.TransparentWritesMotionVec,  surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
                 new ConditionalField(HDRPShaderGraphFields.DisableDecals,               !receiveDecals.isOn),
                 new ConditionalField(HDRPShaderGraphFields.DisableSSR,                  !receiveSSR.isOn),
-                new ConditionalField(DefaultFields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
+                new ConditionalField(Fields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
                 new ConditionalField(HDRPShaderGraphFields.BentNormal,                  IsSlotConnected(BentNormalSlotId) && 
                                                                                         pass.pixelPorts.Contains(BentNormalSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AmbientOcclusion,            pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&

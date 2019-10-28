@@ -5,7 +5,7 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     public class KeywordCollection : IEnumerable<KeywordCollection.Item>
     {
-        public class Item : IConditionalShaderString
+        public class Item : IConditional, IShaderString
         {        
             public KeywordDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }

@@ -373,10 +373,10 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(DefaultFields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
+                new ConditionalField(Fields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
                                                                                         IsSlotConnected(VertexNormalSlotId) || 
                                                                                         IsSlotConnected(VertexTangentSlotId)),
-                new ConditionalField(DefaultFields.GraphPixel,                          true),
+                new ConditionalField(Fields.GraphPixel,                          true),
 
                 // Distortion
                 new ConditionalField(HDRPShaderGraphFields.DistortionDepthTest,         distortionDepthTest.isOn),
@@ -386,9 +386,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
                 
                 // Misc
-                new ConditionalField(DefaultFields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
+                new ConditionalField(Fields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
                 new ConditionalField(HDRPShaderGraphFields.AlphaFog,                    surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
-                new ConditionalField(DefaultFields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
+                new ConditionalField(Fields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
             };
         }
 

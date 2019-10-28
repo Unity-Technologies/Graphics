@@ -342,10 +342,10 @@ namespace UnityEditor.ShaderGraph
             {
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ScreenPosition,          requirements.requiresScreenPosition),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ScreenPosition,           requirements.requiresScreenPosition &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexColor,             requirements.requiresVertexColor),
                 new ConditionalField(StructFields.VertexDescriptionInputs.VertexColor,              requirements.requiresVertexColor &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.FaceSign,                requirements.requiresFaceSign),
 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
@@ -353,52 +353,52 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,        (requirements.requiresNormal & NeededCoordinateSpace.World) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceNormal,      (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,        (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceNormal,          (requirements.requiresNormal & NeededCoordinateSpace.View) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceNormal,         (requirements.requiresNormal & NeededCoordinateSpace.World) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceViewDirection,   (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceTangent,        (requirements.requiresTangent & NeededCoordinateSpace.View) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,       (requirements.requiresTangent & NeededCoordinateSpace.World) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceTangent,     (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,       (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceTangent,         (requirements.requiresTangent & NeededCoordinateSpace.View) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceTangent,        (requirements.requiresTangent & NeededCoordinateSpace.World) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,    (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,      (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,     (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceBiTangent,   (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,     (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceBiTangent,       (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceBiTangent,      (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceBiTangent,    (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,     (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpacePosition,       (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
@@ -406,32 +406,32 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePosition,    (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,(requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpacePosition,     (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpacePosition,       (requirements.requiresPosition & NeededCoordinateSpace.View) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpacePosition,      (requirements.requiresPosition & NeededCoordinateSpace.World) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePosition,    (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,(requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0 &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv0,                     requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv1,                     requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv2,                     requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv3,                     requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv0,                      requirements.requiresMeshUVs.Contains(UVChannel.UV0) &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv1,                      requirements.requiresMeshUVs.Contains(UVChannel.UV1) &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv2,                      requirements.requiresMeshUVs.Contains(UVChannel.UV2) &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv3,                      requirements.requiresMeshUVs.Contains(UVChannel.UV3) &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TimeParameters,          requirements.requiresTime),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,           requirements.requiresTime &&
-                                                                                                                activeFields.Contains(DefaultFields.GraphVertex)),
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
             };
         }
 

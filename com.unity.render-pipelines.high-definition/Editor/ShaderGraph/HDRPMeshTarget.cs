@@ -78,8 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     new ConditionalPass(UnlitPasses.ShadowCaster),
                     new ConditionalPass(UnlitPasses.META),
                     new ConditionalPass(UnlitPasses.SceneSelection),
-                    new ConditionalPass(UnlitPasses.DepthForwardOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalPass(UnlitPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalPass(UnlitPasses.DepthForwardOnly, new FieldCondition(Fields.SurfaceOpaque, true)),
+                    new ConditionalPass(UnlitPasses.MotionVectors, new FieldCondition(Fields.SurfaceOpaque, true)),
                     new ConditionalPass(UnlitPasses.ForwardOnly),
                 },
             };
@@ -92,9 +92,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     new ConditionalPass(PBRPasses.ShadowCaster),
                     new ConditionalPass(PBRPasses.META),
                     new ConditionalPass(PBRPasses.SceneSelection),
-                    new ConditionalPass(PBRPasses.DepthOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalPass(PBRPasses.GBuffer, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalPass(PBRPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalPass(PBRPasses.DepthOnly, new FieldCondition(Fields.SurfaceOpaque, true)),
+                    new ConditionalPass(PBRPasses.GBuffer, new FieldCondition(Fields.SurfaceOpaque, true)),
+                    new ConditionalPass(PBRPasses.MotionVectors, new FieldCondition(Fields.SurfaceOpaque, true)),
                     new ConditionalPass(PBRPasses.Forward),
                 }
             };
@@ -2597,7 +2597,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static ConditionalRenderState[] ShadowCasterUnlit = new ConditionalRenderState[]
             {
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0")),
             };
@@ -2639,9 +2639,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static ConditionalRenderState[] SceneSelection = new ConditionalRenderState[]
             {
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(DefaultFields.SurfaceTransparent, true)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0")),
             };
 
@@ -2665,9 +2665,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // This is not a problem in no MSAA mode as there is no buffer bind
             public static ConditionalRenderState[] DepthForwardOnly = new ConditionalRenderState[]
             {
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(DefaultFields.SurfaceTransparent, true)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0 0")),
             };
 
@@ -2736,7 +2736,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // This is not a problem in no MSAA mode as there is no buffer bind
             public static ConditionalRenderState[] UnlitMotionVectors = new ConditionalRenderState[]
             {
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0 1")),
                 new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
@@ -2807,23 +2807,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static ConditionalRenderState[] UnlitForward = new ConditionalRenderState[]
             {
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(Fields.SurfaceOpaque, true)),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendAlpha, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendAlpha, true) }),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendAdd, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendAdd, true) }),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendPremultiply, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendPremultiply, true) }),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendMultiply, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendMultiply, true) }),
 
-                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(DefaultFields.SurfaceTransparent, true)),
+                new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(Fields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(Fields.SurfaceTransparent, true)),
                 new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.LightingMask}",
@@ -2835,23 +2835,23 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static ConditionalRenderState[] PBRForward = new ConditionalRenderState[]
             {
-                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(Fields.SurfaceOpaque, true)),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendAlpha, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendAlpha, true) }),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendAdd, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendAdd, true) }),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendPremultiply, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendPremultiply, true) }),
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceTransparent, true), 
-                    new FieldCondition(DefaultFields.BlendMultiply, true) }),
+                    new FieldCondition(Fields.SurfaceTransparent, true), 
+                    new FieldCondition(Fields.BlendMultiply, true) }),
                 
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Equal), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceOpaque, true), 
-                    new FieldCondition(DefaultFields.AlphaTest, true) }),
+                    new FieldCondition(Fields.SurfaceOpaque, true), 
+                    new FieldCondition(Fields.AlphaTest, true) }),
                 new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.LightingMask}",
@@ -2882,16 +2882,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullModeForward)),
                 new ConditionalRenderState(RenderState.ZWrite(Uniforms.zWrite)),
                 new ConditionalRenderState(RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                    new FieldCondition(DefaultFields.SurfaceOpaque, true),
-                    new FieldCondition(DefaultFields.AlphaTest, false)
+                    new FieldCondition(Fields.SurfaceOpaque, true),
+                    new FieldCondition(Fields.AlphaTest, false)
                 }),
                 new ConditionalRenderState(RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                    new FieldCondition(DefaultFields.SurfaceOpaque, false),
-                    new FieldCondition(DefaultFields.AlphaTest, true)
+                    new FieldCondition(Fields.SurfaceOpaque, false),
+                    new FieldCondition(Fields.AlphaTest, true)
                 }),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Equal), new FieldCondition[] {
-                    new FieldCondition(DefaultFields.SurfaceOpaque, true),
-                    new FieldCondition(DefaultFields.AlphaTest, true)
+                    new FieldCondition(Fields.SurfaceOpaque, true),
+                    new FieldCondition(Fields.AlphaTest, true)
                 }),
                 new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
@@ -2908,16 +2908,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullModeForward)),
                 new ConditionalRenderState(RenderState.ZWrite(Uniforms.zWrite)),
                 new ConditionalRenderState(RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                    new FieldCondition(DefaultFields.SurfaceOpaque, true),
-                    new FieldCondition(DefaultFields.AlphaTest, false)
+                    new FieldCondition(Fields.SurfaceOpaque, true),
+                    new FieldCondition(Fields.AlphaTest, false)
                 }),
                 new ConditionalRenderState(RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque), new FieldCondition[] {
-                    new FieldCondition(DefaultFields.SurfaceOpaque, false),
-                    new FieldCondition(DefaultFields.AlphaTest, true)
+                    new FieldCondition(Fields.SurfaceOpaque, false),
+                    new FieldCondition(Fields.AlphaTest, true)
                 }),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Equal), new FieldCondition[] {
-                    new FieldCondition(DefaultFields.SurfaceOpaque, true),
-                    new FieldCondition(DefaultFields.AlphaTest, true)
+                    new FieldCondition(Fields.SurfaceOpaque, true),
+                    new FieldCondition(Fields.AlphaTest, true)
                 }),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1")),
                 new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
@@ -2935,8 +2935,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalRenderState[] PBRGBuffer = new ConditionalRenderState[]
             {
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Equal), new FieldCondition[] { 
-                    new FieldCondition(DefaultFields.SurfaceOpaque, true), 
-                    new FieldCondition(DefaultFields.AlphaTest, true) }),
+                    new FieldCondition(Fields.SurfaceOpaque, true), 
+                    new FieldCondition(Fields.AlphaTest, true) }),
                 new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.LightingMask | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer}",
@@ -3201,8 +3201,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalDefine[] Forward = new ConditionalDefine[]
             {
                 new ConditionalDefine(KeywordDescriptors.HasLightloop, 1),
-                new ConditionalDefine(KeywordDescriptors.LightList, 1, new FieldCondition(DefaultFields.SurfaceTransparent, true)),
-                new ConditionalDefine(RayTracingNode.GetRayTracingKeyword(), 0, new FieldCondition(DefaultFields.SurfaceTransparent, true)),
+                new ConditionalDefine(KeywordDescriptors.LightList, 1, new FieldCondition(Fields.SurfaceTransparent, true)),
+                new ConditionalDefine(RayTracingNode.GetRayTracingKeyword(), 0, new FieldCondition(Fields.SurfaceTransparent, true)),
             };
 
             public static ConditionalDefine[] TransparentDepthPrepass = new ConditionalDefine[]
@@ -3272,7 +3272,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalKeyword(KeywordDescriptors.ShadowsShadowmask),
                 new ConditionalKeyword(KeywordDescriptors.Decals),
                 new ConditionalKeyword(KeywordDescriptors.Shadow),
-                new ConditionalKeyword(KeywordDescriptors.LightList, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalKeyword(KeywordDescriptors.LightList, new FieldCondition(Fields.SurfaceOpaque, true)),
             };
 
             public static ConditionalKeyword[] TransparentBlend = new ConditionalKeyword[]
@@ -3341,7 +3341,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalKeyword(KeywordDescriptors.ShadowsShadowmask),
                 new ConditionalKeyword(KeywordDescriptors.Shadow),
                 new ConditionalKeyword(KeywordDescriptors.Decals),
-                new ConditionalKeyword(KeywordDescriptors.LightList, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                new ConditionalKeyword(KeywordDescriptors.LightList, new FieldCondition(Fields.SurfaceOpaque, true)),
             };
 
             public static ConditionalKeyword[] HDDepthMotionVectorsNoNormal = new ConditionalKeyword[]

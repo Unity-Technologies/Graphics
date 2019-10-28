@@ -61,16 +61,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(DefaultFields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
+                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
                                                                         IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
                                                                         IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
-                new ConditionalField(DefaultFields.GraphPixel,          true),
+                new ConditionalField(Fields.GraphPixel,          true),
                 
                 // Surface Type
-                new ConditionalField(DefaultFields.SurfaceTransparent,  true),
+                new ConditionalField(Fields.SurfaceTransparent,  true),
                 
                 // Blend Mode
-                new ConditionalField(DefaultFields.BlendAlpha,          true),
+                new ConditionalField(Fields.BlendAlpha,          true),
             };
         }
 

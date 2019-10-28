@@ -247,10 +247,10 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(DefaultFields.GraphVertex,                 IsSlotConnected(PositionSlotId) || 
+                new ConditionalField(Fields.GraphVertex,                 IsSlotConnected(PositionSlotId) || 
                                                                                 IsSlotConnected(VertexNormalSlotID) || 
                                                                                 IsSlotConnected(VertexTangentSlotID)),
-                new ConditionalField(DefaultFields.GraphPixel,                  true),
+                new ConditionalField(Fields.GraphPixel,                  true),
                 
                 // Material
                 new ConditionalField(HDRPShaderGraphFields.AffectsAlbedo,       affectsAlbedo.isOn),
