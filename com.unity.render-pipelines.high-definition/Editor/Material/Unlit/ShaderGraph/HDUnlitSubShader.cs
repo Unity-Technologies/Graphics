@@ -519,6 +519,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.AddShaderChunk("SubShader", false);
                 subShader.AddShaderChunk("{", false);
                 subShader.Indent();
+                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName);
                 {
                     GenerateShaderPassUnlit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassUnlit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
