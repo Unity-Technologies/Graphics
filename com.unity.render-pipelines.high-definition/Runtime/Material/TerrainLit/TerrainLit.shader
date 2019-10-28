@@ -263,7 +263,7 @@ Shader "HDRP/TerrainLit"
 
         Pass
         {
-            Name "Selection"
+            Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
             HLSLPROGRAM
@@ -273,6 +273,8 @@ Shader "HDRP/TerrainLit"
             #define SCENESELECTIONPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
+
+            #pragma editor_sync_compilation
 
             ENDHLSL
         }
