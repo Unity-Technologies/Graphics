@@ -983,8 +983,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
                     cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, validIndirectDiffuse ? 1 : 0);
-                    cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
                 }
+                cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }
         }
 
