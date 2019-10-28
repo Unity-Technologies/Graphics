@@ -145,7 +145,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
         }
 
         UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
-        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
+        UsePass "Universal Render Pipeline/Terrain/Lit/SceneSelectionPass"
     }
     FallBack "Hidden/InternalErrorShader"
     //CustomEditor "LitShaderGUI"
