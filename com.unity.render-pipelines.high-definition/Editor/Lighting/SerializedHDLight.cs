@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSettingValue shadowResolution;
 
         // Bias control
-        public SerializedProperty constantBias;
+        public SerializedProperty slopeBias;
 
         public SerializedProperty normalBias;
 
@@ -226,7 +226,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
-                constantBias = o.Find("m_ConstantBias");
+				slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
             }
         }
