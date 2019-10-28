@@ -10,7 +10,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
-using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -242,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
         {
             return new ConditionalField[]
             {

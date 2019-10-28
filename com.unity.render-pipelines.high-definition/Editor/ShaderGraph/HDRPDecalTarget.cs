@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -40,15 +40,15 @@ namespace UnityEditor.Rendering.HighDefinition
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
                 pipelineTag = kPipelineTag,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(Passes.Projector3RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
-                    new ConditionalShaderPass(Passes.Projector4RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
-                    new ConditionalShaderPass(Passes.ProjectorEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
-                    new ConditionalShaderPass(Passes.Mesh3RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
-                    new ConditionalShaderPass(Passes.Mesh4RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
-                    new ConditionalShaderPass(Passes.MeshEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
-                    new ConditionalShaderPass(Passes.Preview, new FieldCondition(DefaultFields.IsPreview, true)),
+                    new ConditionalPass(Passes.Projector3RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
+                    new ConditionalPass(Passes.Projector4RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
+                    new ConditionalPass(Passes.ProjectorEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
+                    new ConditionalPass(Passes.Mesh3RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
+                    new ConditionalPass(Passes.Mesh4RT, new FieldCondition(HDRPShaderGraphFields.DecalDefault, true)),
+                    new ConditionalPass(Passes.MeshEmissive, new FieldCondition(HDRPShaderGraphFields.AffectsEmission, true)),
+                    new ConditionalPass(Passes.Preview, new FieldCondition(DefaultFields.IsPreview, true)),
                 },
             };
         }
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
             // and DecalSet.InitializeMaterialValues()
-            public static ShaderPass Projector3RT = new ShaderPass()
+            public static PassDescriptor Projector3RT = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 postGraphIncludes = PostGraphIncludes.Default,
             };
 
-            public static ShaderPass Projector4RT = new ShaderPass()
+            public static PassDescriptor Projector4RT = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT],
@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 postGraphIncludes = PostGraphIncludes.Default,
             };
 
-            public static ShaderPass ProjectorEmissive = new ShaderPass()
+            public static PassDescriptor ProjectorEmissive = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_ProjectorEmissive],
@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 postGraphIncludes = PostGraphIncludes.Default,
             };
 
-            public static ShaderPass Mesh3RT = new ShaderPass()
+            public static PassDescriptor Mesh3RT = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh3RT],
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 postGraphIncludes = PostGraphIncludes.Default,
             };
 
-            public static ShaderPass Mesh4RT = new ShaderPass()
+            public static PassDescriptor Mesh4RT = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferMesh4RT],
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 postGraphIncludes = PostGraphIncludes.Default,
             };
 
-            public static ShaderPass MeshEmissive = new ShaderPass()
+            public static PassDescriptor MeshEmissive = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_MeshEmissive],
@@ -198,7 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 postGraphIncludes = PostGraphIncludes.Default,
             };
 
-            public static ShaderPass Preview = new ShaderPass()
+            public static PassDescriptor Preview = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardOnly",
@@ -308,7 +308,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Greater)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
                 new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[4])),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
                     Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
@@ -323,7 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Cull(Cull.Front)),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Greater)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
                     Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
@@ -380,7 +380,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
                 new ConditionalRenderState(RenderState.ColorMask(s_ColorMasks[4])),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
                     Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
@@ -394,7 +394,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha Blend 3 Zero OneMinusSrcColor")),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
                     Ref = ((int)HDRenderPipeline.StencilBitMask.Decals).ToString(),
@@ -485,22 +485,22 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static ConditionalInclude[] Default = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl")),
             };
         }
         public class PostGraphIncludes
         {
             public static ConditionalInclude[] Default = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl")),
             };
         }
 #endregion

@@ -3,7 +3,7 @@
     public struct StructDescriptor
     {
         public string name;
-        public bool interpolatorPack;
+        public bool packFields;
         public SubscriptDescriptor[] subscripts;
     }
 }

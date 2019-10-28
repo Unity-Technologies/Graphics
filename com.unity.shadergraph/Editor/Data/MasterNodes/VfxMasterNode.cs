@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph
         public string renderQueueTag => null;
         public string renderTypeTag => null;
 
-        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
         {
             return null;
         }

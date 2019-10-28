@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph.Internal
 {
     public enum KeywordDefinition
     {

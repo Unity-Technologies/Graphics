@@ -10,7 +10,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.HighDefinition.Drawing;
-using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -646,7 +646,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
 

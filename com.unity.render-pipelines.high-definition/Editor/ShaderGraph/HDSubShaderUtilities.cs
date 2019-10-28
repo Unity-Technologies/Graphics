@@ -8,7 +8,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
-using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using ShaderPass = UnityEditor.ShaderGraph.Internal.PassDescriptor;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;

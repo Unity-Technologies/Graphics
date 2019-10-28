@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -55,34 +55,34 @@ namespace UnityEditor.Rendering.HighDefinition
             public static SubShaderDescriptor HDFabric = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(FabricPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(FabricPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(FabricPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(FabricPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(FabricPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
                 },
             };
             public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(HDLitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(HDLitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(HDLitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(HDLitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDLitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
                 },
             };
             public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(HDUnlitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(HDUnlitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(HDUnlitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
-                    new ConditionalShaderPass(HDUnlitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.Indirect, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.Visibility, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.Forward, new FieldCondition(DefaultFields.IsPreview, false)),
+                    new ConditionalPass(HDUnlitPasses.GBuffer, new FieldCondition(DefaultFields.IsPreview, false)),
                 },
             };
         }
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region HD Lit Passes
         public static class HDLitPasses
         {
-            public static ShaderPass Indirect = new ShaderPass()
+            public static PassDescriptor Indirect = new PassDescriptor()
             {
                 // Definition
                 displayName = "IndirectDXR",
@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass Visibility = new ShaderPass()
+            public static PassDescriptor Visibility = new PassDescriptor()
             {
                 // Definition
                 displayName = "VisibilityDXR",
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass Forward = new ShaderPass()
+            public static PassDescriptor Forward = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardDXR",
@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass GBuffer = new ShaderPass()
+            public static PassDescriptor GBuffer = new PassDescriptor()
             {
                 // Definition
                 displayName = "GBufferDXR",
@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region HD Unlit Passes
         public static class HDUnlitPasses
         {
-            public static ShaderPass Indirect = new ShaderPass()
+            public static PassDescriptor Indirect = new PassDescriptor()
             {
                 // Definition
                 displayName = "IndirectDXR",
@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
             };
 
-            public static ShaderPass Visibility = new ShaderPass()
+            public static PassDescriptor Visibility = new PassDescriptor()
             {
                 // Definition
                 displayName = "VisibilityDXR",
@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
             };
 
-            public static ShaderPass Forward = new ShaderPass()
+            public static PassDescriptor Forward = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardDXR",
@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitRaytracingPass.template",
             };
 
-            public static ShaderPass GBuffer = new ShaderPass()
+            public static PassDescriptor GBuffer = new PassDescriptor()
             {
                 // Definition
                 displayName = "GBufferDXR",
@@ -312,7 +312,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region Fabric Passes
         public static class FabricPasses
         {
-            public static ShaderPass Indirect = new ShaderPass()
+            public static PassDescriptor Indirect = new PassDescriptor()
             {
                 // Definition
                 displayName = "IndirectDXR",
@@ -339,7 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass Visibility = new ShaderPass()
+            public static PassDescriptor Visibility = new PassDescriptor()
             {
                 // Definition
                 displayName = "VisibilityDXR",
@@ -365,7 +365,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass Forward = new ShaderPass()
+            public static PassDescriptor Forward = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardDXR",
@@ -392,7 +392,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass GBuffer = new ShaderPass()
+            public static PassDescriptor GBuffer = new PassDescriptor()
             {
                 // Definition
                 displayName = "GBufferDXR",
@@ -614,163 +614,163 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static ConditionalInclude[] Lit = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] LitVisibility = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] LitGBuffer = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] Unlit = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] UnlitGBuffer = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] Fabric = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] FabricVisibility = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] FabricGBuffer = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
         }
 
@@ -778,19 +778,19 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static ConditionalInclude[] GBuffer = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl")),
             };
             public static ConditionalInclude[] Forward = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl")),
             };
             public static ConditionalInclude[] Visibility = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl")),
             };
             public static ConditionalInclude[] Indirect = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl")),
             };
         }
 #endregion

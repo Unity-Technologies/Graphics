@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
 using BlendOp = UnityEditor.ShaderGraph.Internal.BlendOp;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -73,117 +73,117 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 renderTypeOverride = HDRenderTypeTags.HDUnlitShader.ToString(),
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(UnlitPasses.ShadowCaster),
-                    new ConditionalShaderPass(UnlitPasses.META),
-                    new ConditionalShaderPass(UnlitPasses.SceneSelection),
-                    new ConditionalShaderPass(UnlitPasses.DepthForwardOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalShaderPass(UnlitPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalShaderPass(UnlitPasses.ForwardOnly),
+                    new ConditionalPass(UnlitPasses.ShadowCaster),
+                    new ConditionalPass(UnlitPasses.META),
+                    new ConditionalPass(UnlitPasses.SceneSelection),
+                    new ConditionalPass(UnlitPasses.DepthForwardOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalPass(UnlitPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalPass(UnlitPasses.ForwardOnly),
                 },
             };
             public static SubShaderDescriptor PBR = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 renderTypeOverride = HDRenderTypeTags.HDUnlitShader.ToString(),
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(PBRPasses.ShadowCaster),
-                    new ConditionalShaderPass(PBRPasses.META),
-                    new ConditionalShaderPass(PBRPasses.SceneSelection),
-                    new ConditionalShaderPass(PBRPasses.DepthOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalShaderPass(PBRPasses.GBuffer, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalShaderPass(PBRPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
-                    new ConditionalShaderPass(PBRPasses.Forward),
+                    new ConditionalPass(PBRPasses.ShadowCaster),
+                    new ConditionalPass(PBRPasses.META),
+                    new ConditionalPass(PBRPasses.SceneSelection),
+                    new ConditionalPass(PBRPasses.DepthOnly, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalPass(PBRPasses.GBuffer, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalPass(PBRPasses.MotionVectors, new FieldCondition(DefaultFields.SurfaceOpaque, true)),
+                    new ConditionalPass(PBRPasses.Forward),
                 }
             };
             public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(HDUnlitPasses.ShadowCaster),
-                    new ConditionalShaderPass(HDUnlitPasses.META),
-                    new ConditionalShaderPass(HDUnlitPasses.SceneSelection),
-                    new ConditionalShaderPass(HDUnlitPasses.DepthForwardOnly),
-                    new ConditionalShaderPass(HDUnlitPasses.MotionVectors),
-                    new ConditionalShaderPass(HDUnlitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
-                    new ConditionalShaderPass(HDUnlitPasses.ForwardOnly),
+                    new ConditionalPass(HDUnlitPasses.ShadowCaster),
+                    new ConditionalPass(HDUnlitPasses.META),
+                    new ConditionalPass(HDUnlitPasses.SceneSelection),
+                    new ConditionalPass(HDUnlitPasses.DepthForwardOnly),
+                    new ConditionalPass(HDUnlitPasses.MotionVectors),
+                    new ConditionalPass(HDUnlitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
+                    new ConditionalPass(HDUnlitPasses.ForwardOnly),
                 },
             };
             public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(HDLitPasses.ShadowCaster),
-                    new ConditionalShaderPass(HDLitPasses.META),
-                    new ConditionalShaderPass(HDLitPasses.SceneSelection),
-                    new ConditionalShaderPass(HDLitPasses.DepthOnly),
-                    new ConditionalShaderPass(HDLitPasses.GBuffer),
-                    new ConditionalShaderPass(HDLitPasses.MotionVectors),
-                    new ConditionalShaderPass(HDLitPasses.DistortionVectors, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
-                    new ConditionalShaderPass(HDLitPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
-                    new ConditionalShaderPass(HDLitPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
-                    new ConditionalShaderPass(HDLitPasses.Forward),
-                    new ConditionalShaderPass(HDLitPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
+                    new ConditionalPass(HDLitPasses.ShadowCaster),
+                    new ConditionalPass(HDLitPasses.META),
+                    new ConditionalPass(HDLitPasses.SceneSelection),
+                    new ConditionalPass(HDLitPasses.DepthOnly),
+                    new ConditionalPass(HDLitPasses.GBuffer),
+                    new ConditionalPass(HDLitPasses.MotionVectors),
+                    new ConditionalPass(HDLitPasses.DistortionVectors, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
+                    new ConditionalPass(HDLitPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
+                    new ConditionalPass(HDLitPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
+                    new ConditionalPass(HDLitPasses.Forward),
+                    new ConditionalPass(HDLitPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
                     }
             };
             public static SubShaderDescriptor HDEye = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(EyePasses.ShadowCaster),
-                    new ConditionalShaderPass(EyePasses.META),
-                    new ConditionalShaderPass(EyePasses.SceneSelection),
-                    new ConditionalShaderPass(EyePasses.DepthForwardOnly),
-                    new ConditionalShaderPass(EyePasses.MotionVectors),
-                    new ConditionalShaderPass(EyePasses.ForwardOnly),
+                    new ConditionalPass(EyePasses.ShadowCaster),
+                    new ConditionalPass(EyePasses.META),
+                    new ConditionalPass(EyePasses.SceneSelection),
+                    new ConditionalPass(EyePasses.DepthForwardOnly),
+                    new ConditionalPass(EyePasses.MotionVectors),
+                    new ConditionalPass(EyePasses.ForwardOnly),
                 }
             };
             public static SubShaderDescriptor HDFabric = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(FabricPasses.ShadowCaster),
-                    new ConditionalShaderPass(FabricPasses.META),
-                    new ConditionalShaderPass(FabricPasses.SceneSelection),
-                    new ConditionalShaderPass(FabricPasses.DepthForwardOnly),
-                    new ConditionalShaderPass(FabricPasses.MotionVectors),
-                    new ConditionalShaderPass(FabricPasses.FabricForwardOnly),
+                    new ConditionalPass(FabricPasses.ShadowCaster),
+                    new ConditionalPass(FabricPasses.META),
+                    new ConditionalPass(FabricPasses.SceneSelection),
+                    new ConditionalPass(FabricPasses.DepthForwardOnly),
+                    new ConditionalPass(FabricPasses.MotionVectors),
+                    new ConditionalPass(FabricPasses.FabricForwardOnly),
                 }
             };
             public static SubShaderDescriptor HDHair = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(HairPasses.ShadowCaster),
-                    new ConditionalShaderPass(HairPasses.META),
-                    new ConditionalShaderPass(HairPasses.SceneSelection),
-                    new ConditionalShaderPass(HairPasses.DepthForwardOnly),
-                    new ConditionalShaderPass(HairPasses.MotionVectors),
-                    new ConditionalShaderPass(HairPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
-                    new ConditionalShaderPass(HairPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
-                    new ConditionalShaderPass(HairPasses.ForwardOnly),
-                    new ConditionalShaderPass(HairPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
+                    new ConditionalPass(HairPasses.ShadowCaster),
+                    new ConditionalPass(HairPasses.META),
+                    new ConditionalPass(HairPasses.SceneSelection),
+                    new ConditionalPass(HairPasses.DepthForwardOnly),
+                    new ConditionalPass(HairPasses.MotionVectors),
+                    new ConditionalPass(HairPasses.TransparentBackface, new FieldCondition(HDRPShaderGraphFields.TransparentBackFace, true)),
+                    new ConditionalPass(HairPasses.TransparentDepthPrepass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPrePass, true)),
+                    new ConditionalPass(HairPasses.ForwardOnly),
+                    new ConditionalPass(HairPasses.TransparentDepthPostpass, new FieldCondition(HDRPShaderGraphFields.TransparentDepthPostPass, true)),
                 }
             };
             public static SubShaderDescriptor HDStackLit = new SubShaderDescriptor()
             {
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                passes = new ConditionalShaderPass[]
+                passes = new ConditionalPass[]
                 {
-                    new ConditionalShaderPass(StackLitPasses.ShadowCaster),
-                    new ConditionalShaderPass(StackLitPasses.META),
-                    new ConditionalShaderPass(StackLitPasses.SceneSelection),
-                    new ConditionalShaderPass(StackLitPasses.DepthForwardOnly),
-                    new ConditionalShaderPass(StackLitPasses.MotionVectors),
-                    new ConditionalShaderPass(StackLitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
-                    new ConditionalShaderPass(StackLitPasses.ForwardOnly),
+                    new ConditionalPass(StackLitPasses.ShadowCaster),
+                    new ConditionalPass(StackLitPasses.META),
+                    new ConditionalPass(StackLitPasses.SceneSelection),
+                    new ConditionalPass(StackLitPasses.DepthForwardOnly),
+                    new ConditionalPass(StackLitPasses.MotionVectors),
+                    new ConditionalPass(StackLitPasses.Distortion, new FieldCondition(HDRPShaderGraphFields.TransparentDistortion, true)),
+                    new ConditionalPass(StackLitPasses.ForwardOnly),
                 }
             };
         }
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region Unlit Passes
         public static class UnlitPasses
         {
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -244,7 +244,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -271,7 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             }; 
 
-            public static ShaderPass DepthForwardOnly = new ShaderPass()
+            public static PassDescriptor DepthForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthForwardOnly",
@@ -298,7 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -326,7 +326,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Unlit"),
             };
 
-            public static ShaderPass ForwardOnly = new ShaderPass()
+            public static PassDescriptor ForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardOnly",
@@ -358,7 +358,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region PBR Passes
         public static class PBRPasses
         {
-            public static ShaderPass GBuffer = new ShaderPass()
+            public static PassDescriptor GBuffer = new PassDescriptor()
             {
                 // Definition
                 displayName = "GBuffer",
@@ -386,7 +386,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("PBR"),
             };
 
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -413,7 +413,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("PBR"),
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -440,7 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("PBR"),
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -468,7 +468,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("PBR"),
             };
 
-            public static ShaderPass DepthOnly = new ShaderPass()
+            public static PassDescriptor DepthOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthOnly",
@@ -497,7 +497,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("PBR"),
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -526,7 +526,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("PBR"),
             };
 
-            public static ShaderPass Forward = new ShaderPass()
+            public static PassDescriptor Forward = new PassDescriptor()
             {
                 // Definition
                 displayName = "Forward",
@@ -560,7 +560,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region HD Unlit Passes
         public static class HDUnlitPasses
         {
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -587,7 +587,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -614,7 +614,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -642,7 +642,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
             };
 
-            public static ShaderPass DepthForwardOnly = new ShaderPass()
+            public static PassDescriptor DepthForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthForwardOnly",
@@ -669,7 +669,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -697,7 +697,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
             };
 
-            public static ShaderPass Distortion = new ShaderPass()
+            public static PassDescriptor Distortion = new PassDescriptor()
             {
                 // Definition
                 displayName = "DistortionVectors",
@@ -724,7 +724,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template",
             };
 
-            public static ShaderPass ForwardOnly = new ShaderPass()
+            public static PassDescriptor ForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardOnly",
@@ -756,7 +756,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region HD Lit Passes
         public static class HDLitPasses
         {
-            public static ShaderPass GBuffer = new ShaderPass()
+            public static PassDescriptor GBuffer = new PassDescriptor()
             {
                 // Definition
                 displayName = "GBuffer",
@@ -785,7 +785,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -813,7 +813,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -841,7 +841,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -869,7 +869,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass DepthOnly = new ShaderPass()
+            public static PassDescriptor DepthOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthOnly",
@@ -898,7 +898,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -927,7 +927,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass DistortionVectors = new ShaderPass()
+            public static PassDescriptor DistortionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "DistortionVectors",
@@ -955,7 +955,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass TransparentDepthPrepass = new ShaderPass()
+            public static PassDescriptor TransparentDepthPrepass = new PassDescriptor()
             {
                 // Definition
                 displayName = "TransparentDepthPrepass",
@@ -983,7 +983,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass TransparentBackface = new ShaderPass()
+            public static PassDescriptor TransparentBackface = new PassDescriptor()
             {
                 // Definition
                 displayName = "TransparentBackface",
@@ -1011,7 +1011,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass Forward = new ShaderPass()
+            public static PassDescriptor Forward = new PassDescriptor()
             {
                 // Definition
                 displayName = "Forward",
@@ -1040,7 +1040,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Lit"),
             };
 
-            public static ShaderPass TransparentDepthPostpass = new ShaderPass()
+            public static PassDescriptor TransparentDepthPostpass = new PassDescriptor()
             {
                 // Definition
                 displayName = "TransparentDepthPostpass",
@@ -1073,7 +1073,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region Eye Passes
         public static class EyePasses
         {
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -1100,7 +1100,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Eye"),
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -1127,7 +1127,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Eye"),
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -1155,7 +1155,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Eye"),
             };
 
-            public static ShaderPass DepthForwardOnly = new ShaderPass()
+            public static PassDescriptor DepthForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthForwardOnly",
@@ -1184,7 +1184,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Eye"),
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -1213,7 +1213,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Eye"),
             };
 
-            public static ShaderPass ForwardOnly = new ShaderPass()
+            public static PassDescriptor ForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardOnly",
@@ -1247,7 +1247,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region Fabric Passes
         public static class FabricPasses
         {
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -1274,7 +1274,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -1301,7 +1301,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -1329,7 +1329,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass DepthForwardOnly = new ShaderPass()
+            public static PassDescriptor DepthForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthForwardOnly",
@@ -1358,7 +1358,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -1387,7 +1387,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Fabric"),
             };
 
-            public static ShaderPass FabricForwardOnly = new ShaderPass()
+            public static PassDescriptor FabricForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardOnly",
@@ -1421,7 +1421,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region Hair Passes
         public static class HairPasses
         {
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -1448,7 +1448,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -1475,7 +1475,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -1503,7 +1503,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass DepthForwardOnly = new ShaderPass()
+            public static PassDescriptor DepthForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "DepthForwardOnly",
@@ -1532,7 +1532,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -1561,7 +1561,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass TransparentDepthPrepass = new ShaderPass()
+            public static PassDescriptor TransparentDepthPrepass = new PassDescriptor()
             {
                 // Definition
                 displayName = "TransparentDepthPrepass",
@@ -1589,7 +1589,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass TransparentBackface = new ShaderPass()
+            public static PassDescriptor TransparentBackface = new PassDescriptor()
             {
                 // Definition
                 displayName = "TransparentBackface",
@@ -1618,7 +1618,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass ForwardOnly = new ShaderPass()
+            public static PassDescriptor ForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardOnly",
@@ -1647,7 +1647,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("Hair"),
             };
 
-            public static ShaderPass TransparentDepthPostpass = new ShaderPass()
+            public static PassDescriptor TransparentDepthPostpass = new PassDescriptor()
             {
                 // Definition
                 displayName = "TransparentDepthPostpass",
@@ -1680,7 +1680,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #region StackLit Passes
         public static class StackLitPasses
         {
-            public static ShaderPass META = new ShaderPass()
+            public static PassDescriptor META = new PassDescriptor()
             {
                 // Definition
                 displayName = "META",
@@ -1707,7 +1707,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("StackLit"),
             };
 
-            public static ShaderPass ShadowCaster = new ShaderPass()
+            public static PassDescriptor ShadowCaster = new PassDescriptor()
             {
                 // Definition
                 displayName = "ShadowCaster",
@@ -1734,7 +1734,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("StackLit"),
             };
 
-            public static ShaderPass SceneSelection = new ShaderPass()
+            public static PassDescriptor SceneSelection = new PassDescriptor()
             {
                 // Definition
                 displayName = "SceneSelectionPass",
@@ -1762,7 +1762,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("StackLit"),
             };
 
-            public static ShaderPass DepthForwardOnly = new ShaderPass()
+            public static PassDescriptor DepthForwardOnly = new PassDescriptor()
             {
                 // // Code path for WRITE_NORMAL_BUFFER
                 // See StackLit.hlsl:ConvertSurfaceDataToNormalData()
@@ -1798,7 +1798,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("StackLit"),
             };
 
-            public static ShaderPass MotionVectors = new ShaderPass()
+            public static PassDescriptor MotionVectors = new PassDescriptor()
             {
                 // Definition
                 displayName = "MotionVectors",
@@ -1827,7 +1827,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("StackLit"),
             };
 
-            public static ShaderPass Distortion = new ShaderPass()
+            public static PassDescriptor Distortion = new PassDescriptor()
             {
                 // Definition
                 displayName = "DistortionVectors",
@@ -1854,7 +1854,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 passTemplatePath = GetPassTemplatePath("StackLit"),
             };
 
-            public static ShaderPass ForwardOnly = new ShaderPass()
+            public static PassDescriptor ForwardOnly = new PassDescriptor()
             {
                 // Definition
                 displayName = "ForwardOnly",
@@ -2679,7 +2679,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullMode)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0 0")),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMaskDepth,
                     Ref = Uniforms.stencilRefDepth,
@@ -2694,7 +2694,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalRenderState[] DepthOnly = new ConditionalRenderState[]
             {
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR}",
                     Ref = "0",
@@ -2707,7 +2707,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullMode)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMaskDepth,
                     Ref = Uniforms.stencilRefDepth,
@@ -2719,7 +2719,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static ConditionalRenderState[] HairDepthOnly = new ConditionalRenderState[]
             {
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMaskDepth,
                     Ref = Uniforms.stencilRefDepth,
@@ -2738,7 +2738,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0 1")),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
                     Ref = $"{(int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
@@ -2752,7 +2752,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Blend(Blend.One, Blend.Zero)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0")),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
                     Ref = $"{(int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors}",
@@ -2765,7 +2765,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullMode)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMaskMV,
                     Ref = Uniforms.stencilRefMV,
@@ -2782,7 +2782,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullMode)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On)),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask 0 1")),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMaskMV,
                     Ref = Uniforms.stencilRefMV,
@@ -2793,7 +2793,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static ConditionalRenderState[] HairMotionVectors = new ConditionalRenderState[]
             {
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMaskMV,
                     Ref = Uniforms.stencilRefMV,
@@ -2824,7 +2824,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Cull(Cull.Off), new FieldCondition(DefaultFields.DoubleSided, true)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.On), new FieldCondition(DefaultFields.SurfaceOpaque, true)),
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off), new FieldCondition(DefaultFields.SurfaceTransparent, true)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.LightingMask}",
                     Ref = $"{(int)StencilLightingUsage.NoLighting}",
@@ -2852,7 +2852,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Equal), new FieldCondition[] { 
                     new FieldCondition(DefaultFields.SurfaceOpaque, true), 
                     new FieldCondition(DefaultFields.AlphaTest, true) }),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.LightingMask}",
                     Ref = $"{(int)StencilLightingUsage.NoLighting}",
@@ -2867,7 +2867,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullMode)),
                 new ConditionalRenderState(RenderState.ZWrite(Uniforms.zWrite)),
                 new ConditionalRenderState(RenderState.ZTest(Uniforms.zTestTransparent)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMask,
                     Ref = Uniforms.stencilRef,
@@ -2893,7 +2893,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     new FieldCondition(DefaultFields.SurfaceOpaque, true),
                     new FieldCondition(DefaultFields.AlphaTest, true)
                 }),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMask,
                     Ref = Uniforms.stencilRef,
@@ -2920,7 +2920,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     new FieldCondition(DefaultFields.AlphaTest, true)
                 }),
                 new ConditionalRenderState(RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1")),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMask,
                     Ref = Uniforms.stencilRef,
@@ -2937,7 +2937,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Equal), new FieldCondition[] { 
                     new FieldCondition(DefaultFields.SurfaceOpaque, true), 
                     new FieldCondition(DefaultFields.AlphaTest, true) }),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.LightingMask | (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer}",
                     Ref = $"{(int)StencilLightingUsage.RegularLighting}",
@@ -2950,7 +2950,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new ConditionalRenderState(RenderState.Cull(Uniforms.cullMode)),
                 new ConditionalRenderState(RenderState.ZTest(Uniforms.zTestGBuffer)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilWriteMaskGBuffer,
                     Ref = Uniforms.stencilRefGBuffer,
@@ -2972,7 +2972,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Always), new FieldCondition(HDRPShaderGraphFields.DistortionDepthTest, false)),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDRPShaderGraphFields.DistortionDepthTest, true)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilRefDistortionVec,
                     Ref = Uniforms.stencilRefDistortionVec,
@@ -2990,7 +2990,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Always), new FieldCondition(HDRPShaderGraphFields.DistortionDepthTest, false)),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDRPShaderGraphFields.DistortionDepthTest, true)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = Uniforms.stencilRefDistortionVec,
                     Ref = Uniforms.stencilRefDistortionVec,
@@ -3009,7 +3009,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalRenderState(RenderState.ZWrite(ZWrite.Off)),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.Always), new FieldCondition(HDRPShaderGraphFields.DistortionDepthTest, false)),
                 new ConditionalRenderState(RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDRPShaderGraphFields.DistortionDepthTest, true)),
-                new ConditionalRenderState(RenderState.Stencil(new Stencil()
+                new ConditionalRenderState(RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{(int)HDRenderPipeline.StencilBitMask.DistortionVectors}",
                     Ref = $"{(int)HDRenderPipeline.StencilBitMask.DistortionVectors}",
@@ -3360,217 +3360,217 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static ConditionalInclude[] Unlit = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] Lit = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] LitForward = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] Eye = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] EyeForward = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] Fabric = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] FabricForward = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] Hair = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] HairForward = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] StackLit = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
 
             public static ConditionalInclude[] StackLitForward = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl")),
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SpecularOcclusionDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl")),
             };
         }
         static class PostGraphIncludes
         {
             public static ConditionalInclude[] DepthOnly = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl")),
             };
             public static ConditionalInclude[] Distortion = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl")),
             };
             public static ConditionalInclude[] Forward = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl")),
             };
             public static ConditionalInclude[] ForwardUnlit = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl")),
             };
             public static ConditionalInclude[] GBuffer = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl")),
             };
             public static ConditionalInclude[] LightTransport = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl")),
             };
             public static ConditionalInclude[] MotionVectors = new ConditionalInclude[]
             {
-                new ConditionalInclude(Include.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl")),
+                new ConditionalInclude(IncludeDescriptor.File("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl")),
             };
         }
 #endregion
@@ -3879,7 +3879,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static StructDescriptor AttributesMesh = new StructDescriptor()
         {
             name = "AttributesMesh",
-            interpolatorPack = false,
+            packFields = false,
             subscripts = new SubscriptDescriptor[]
             {
                 ShaderStructs.AttributesMesh.positionOS,
@@ -3896,7 +3896,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static StructDescriptor VaryingsMeshToPS = new StructDescriptor()
         {
             name = "VaryingsMeshToPS",
-            interpolatorPack = true,
+            packFields = true,
             subscripts = new SubscriptDescriptor[]
             {
                 ShaderStructs.VaryingsMeshToPS.positionCS,
@@ -3915,7 +3915,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static StructDescriptor VaryingsMeshToDS = new StructDescriptor()
         {
             name = "VaryingsMeshToDS",
-            interpolatorPack = true,
+            packFields = true,
             subscripts = new SubscriptDescriptor[]
             {
                 ShaderStructs.VaryingsMeshToDS.positionRWS,
@@ -3933,7 +3933,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static StructDescriptor VertexDescriptionInputs = new StructDescriptor()
         {
             name = "VertexDescriptionInputs",
-            interpolatorPack = false,
+            packFields = false,
             subscripts = new SubscriptDescriptor[]
             {
                 MeshTarget.ShaderStructs.VertexDescriptionInputs.ObjectSpaceNormal,
@@ -3975,7 +3975,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static StructDescriptor SurfaceDescriptionInputs = new StructDescriptor()
         {
             name = "SurfaceDescriptionInputs",
-            interpolatorPack = false,
+            packFields = false,
             subscripts = new SubscriptDescriptor[]
             {
                 MeshTarget.ShaderStructs.SurfaceDescriptionInputs.ObjectSpaceNormal,

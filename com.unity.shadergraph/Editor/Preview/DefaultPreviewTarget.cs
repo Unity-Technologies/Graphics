@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 
-namespace UnityEditor.ShaderGraph.Internal
+namespace UnityEditor.ShaderGraph
 {
     class DefaultPreviewTarget : ITargetImplementation
     {
@@ -21,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Internal
             context.AddAssetDependencyPath("7464b9fcde08e5645a16b9b8ae1e573c"); // PreviewTarget
             context.AddAssetDependencyPath("17beeb3de0d148c4091315e2775a46e3"); // DefaultPreviewTarget
 
-            context.SetupSubShader(PreviewTarget.SubShaders.Preview);
+            context.SetupSubShader(PreviewTargetResources.PreviewSubShader);
         }
     }
 }

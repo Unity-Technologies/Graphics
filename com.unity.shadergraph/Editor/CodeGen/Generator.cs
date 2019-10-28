@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, ShaderPass pass)
+        public static ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass)
         {
             var activeFields = new ActiveFields();
             if(outputNode is IMasterNode masterNode)
@@ -128,9 +128,9 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GenerateSubShaderTags(m_OutputNode as IMasterNode, descriptor, m_Builder);
 
-                foreach(ConditionalShaderPass pass in descriptor.passes)
+                foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.shaderPass);
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview) 
@@ -138,12 +138,12 @@ namespace UnityEditor.ShaderGraph
 
                     // Check masternode fields for valid passes
                     if(pass.TestActive(activeFields)) 
-                        GenerateShaderPass(targetIndex, pass.shaderPass, activeFields);
+                        GenerateShaderPass(targetIndex, pass.descriptor, activeFields);
                 }
             }
         }
 
-        void GenerateShaderPass(int targetIndex, ShaderPass pass, ActiveFields activeFields)
+        void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields)
         {
             // Early exit if pass is not used in preview
             if(m_Mode == GenerationMode.Preview && !pass.useInPreview)
@@ -252,12 +252,12 @@ namespace UnityEditor.ShaderGraph
             {
                 // Render states need to be separated by RenderState.Type
                 // The first passing ConditionalRenderState of each type is inserted 
-                foreach(RenderState.Type type in Enum.GetValues(typeof(RenderState.Type)))
+                foreach(RenderStateType type in Enum.GetValues(typeof(RenderStateType)))
                 {
-                    var renderStates = pass.renderStates?.Where(x => x.renderState.type == type);
+                    var renderStates = pass.renderStates?.Where(x => x.descriptor.type == type);
                     if(renderStates != null)
                     {
-                        foreach(ConditionalRenderState renderState in renderStates)
+                        foreach(RenderStateCollection.Item renderState in renderStates)
                         {
                             string value = null;
                             if(renderState.TestActive(activeFields, out value))
@@ -278,7 +278,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.pragmas != null)
                 {
-                    foreach(ConditionalPragma pragma in pass.pragmas)
+                    foreach(PragmaCollection.Item pragma in pass.pragmas)
                     {
                         string value = null;
                         if(pragma.TestActive(activeFields, out value))
@@ -295,7 +295,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.includes != null)
                 {
-                    foreach(ConditionalInclude include in pass.includes.Where(x => x.include.location == Include.Location.Pregraph))
+                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
                     {
                         string value = null;
                         if(include.TestActive(activeFields, out value))
@@ -310,7 +310,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.includes != null)
                 {
-                    foreach(ConditionalInclude include in pass.includes.Where(x => x.include.location == Include.Location.Postgraph))
+                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
                     {
                         string value = null;
                         if(include.TestActive(activeFields, out value))
@@ -327,7 +327,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(pass.keywords != null)
                 {
-                    foreach(ConditionalKeyword keyword in pass.keywords)
+                    foreach(KeywordCollection.Item keyword in pass.keywords)
                     {
                         string value = null;
                         if(keyword.TestActive(activeFields, out value))
@@ -346,11 +346,11 @@ namespace UnityEditor.ShaderGraph
 
             if(pass.structs != null)
             {
-                passStructs.AddRange(pass.structs);
+                passStructs.AddRange(pass.structs.Select(x => x.descriptor));
 
-                foreach (StructDescriptor shaderStruct in pass.structs)
+                foreach (StructCollection.Item shaderStruct in pass.structs)
                 {
-                    if(shaderStruct.interpolatorPack == false)
+                    if(shaderStruct.descriptor.packFields == false)
                         continue; //skip structs that do not need interpolator packs 
 
                     List<int> packedCounts = new List<int>();
@@ -363,7 +363,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
+                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, instance, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
@@ -390,10 +390,10 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, activeFields.baseInstance, out interpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor 
-                    GenerationUtils.GeneratePackedStruct(shaderStruct, activeFields, out packStruct);
+                    GenerationUtils.GeneratePackedStruct(shaderStruct.descriptor, activeFields, out packStruct);
                     passStructs.Add(packStruct);
                 }           
             }
@@ -579,7 +579,7 @@ namespace UnityEditor.ShaderGraph
                 
                 if(pass.defines != null)
                 {
-                    foreach(ConditionalDefine define in pass.defines)
+                    foreach(DefineCollection.Item define in pass.defines)
                     {
                         string value = null;
                         if(define.TestActive(activeFields, out value))

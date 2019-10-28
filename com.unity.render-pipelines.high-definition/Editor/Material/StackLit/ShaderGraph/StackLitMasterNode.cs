@@ -11,7 +11,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
-using ShaderPass = UnityEditor.ShaderGraph.Internal.ShaderPass;
+using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -1323,7 +1323,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // sortPriority (int)
         // geometricSpecularAA, energyConservingSpecular, specularOcclusion
 
-        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
         {
             var ambientOcclusionSlot = FindSlot<Vector1MaterialSlot>(AmbientOcclusionSlotId);
 

@@ -183,7 +183,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public ConditionalField[] GetConditionalFields(ShaderPass pass)
+        public ConditionalField[] GetConditionalFields(PassDescriptor pass)
         {
             return new ConditionalField[]
             {
