@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
 - Added non temporal version of SSAO.
 - Added more detailed ray tracing stats in the debug window
+- Added Disc area light (bake only)
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -109,6 +110,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with AO upsampling in XR
 - Fixed camera without HDAdditionalCameraData component not rendering
 - Removed the macro ENABLE_RAYTRACING for most of the ray tracing code
+- Fixed prefab containing camera reloading in loop while selected in the Project view
+- Fixed issue causing NaN wheh the Z scale of an object is set to 0.
+- Fixed DXR shader passes attempting to render before pipeline loaded
+- Fixed black ambient sky issue when importing a project after deleting Library.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -125,6 +130,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved quality of SSAO.
 - Moved RequestShadowMapRendering() back to public API.
 - Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
+- Added SceneSelection pass for TerrainLit shader.
+- Simplified Light's type API regrouping the logic in one place (Check type in HDAdditionalLightData)
+- The support of LOD CrossFade (Dithering transition) in master nodes now required to enable it in the master node settings (Save variant)
 
 ## [7.1.1] - 2019-09-05
 

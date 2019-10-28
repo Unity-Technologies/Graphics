@@ -51,7 +51,7 @@ You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html) to set up 
 2. Select the HDRP + DXR tab.
 3. Click the Fix All button.
 
-Your HDRP Project now supports ray tracing. For information on how to set up a ray tracing environment in your Scene, see [final setup](#FinalSetup).
+Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
 <a name="ManualSetup"></a>
 
@@ -62,6 +62,7 @@ To set up ray tracing manually, you need to:
 1. [Make your HDRP project use DirectX 12](#ManualSetup-EnablingDX12).
 2. [Enable and configure ray tracing in your HDRP Asset](#ManualSetup-EnablingRayTracing).
 3. [Ensure ray tracing resources are properly assigned](#ManualSetup-RayTracingResources).
+4. [Validate the ShaderConfig macro](#ManualSetup-Macros).
 
 <a name="ManualSetup-EnablingDX12"></a>
 
@@ -101,7 +102,15 @@ To verify that HDRP has properly assigned ray tracing resources:
 1. Open the Project Settings window (menu: Edit > Project Settings), then select the HDRP Default Settings tab.
 2. Make sure there is a Render Pipeline Resources Asset assigned to the Render Pipeline Resources field.
 
-Your HDRP Project now supports ray tracing. For information on how to set up a ray tracing environment in your Scene, see [final setup](#FinalSetup).
+<a name="ManualSetup-Macros"></a>
+
+#### ShaderConfig macro validation
+
+HDRP has the package com.unity.render-pipelines.high-definition-config as a dependency. You can use it to configure certain settings in HDRP without changing the HDRP package itself. To enable ray tracing in HDRP, you need to change the value of a macro in the ShaderConfig.cs.hlsl file.
+
+Open **Packages > High Definition RP Config > Runtime > ShaderConfig.cs.hlsl** and set the **SHADEROPTIONS_RAYTRACING** macro to **1**.
+
+Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
 <a name="FinalSetup"></a>
 
@@ -110,9 +119,7 @@ Your HDRP Project now supports ray tracing. For information on how to set up a r
 Now that your HDRP Project supports ray tracing, there are a few steps you must complete in order to actually use it in your Scene.
 
 1. [Disable static batching](#FinalSetup-DisablingStaticBatching)
-2. [ShaderConfig macro validation](#FinalSetup-Macros)
-3. [Frame Settings validation](#FinalSetup-FrameSettings)
-4. [Initialize a Ray Tracing Environment](#FinalSetup-RayTracingEnvironment)
+2. [Frame Settings validation](#FinalSetup-FrameSettings)
 
 <a name="FinalSetup-DisablingStaticBatching"></a>
 
@@ -120,16 +127,8 @@ Now that your HDRP Project supports ray tracing, there are a few steps you must 
 
 Next, you need to disable static batching, because HDRP does not support this feature with ray tracing in Play mode. To do this:
 
-1. Open the Project Settings window (menu: Edit > Project Settings), then select the Player tab.
-2. Select the Other Settings fold-out, then in the Rendering section, disable Static Batching.
-
-<a name="FinalSetup-Macros"></a>
-
-#### ShaderConfig macro validation
-
-HDRP has the package com.unity.render-pipelines.high-definition-config as a dependency. You can use it to configure certain settings in HDRP without changing the HDRP package itself. To enable ray tracing in HDRP, you need to change the value of a macro in the ShaderConfig.cs.hlsl file.
-
-Open Packages > High Definition RP Config > Runtime > ShaderConfig.cs.hlsl and set the SHADEROPTIONS_RAYTRACING macro to 1.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the **Player** tab.
+2. Select the Other Settings fold-out, then in the **Rendering** section, disable **Static Batching**.
 
 <a name="FinalSetup-FrameSettings"></a>
 
@@ -139,23 +138,15 @@ To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in y
 
 To enable ray tracing by default:
 
-1. Open the Project Settings window (menu: Edit > Project Settings), then select the HDRP Default Settings tab.
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
 2. Select Camera from the Default Frame Settings For drop-down.
-3. In the Rendering section, enable Ray Tracing.
+3. In the **Rendering** section, enable **Ray Tracing**.
 
 To enable ray tracing for a specific Camera:
 
 1. Click on the Camera in the Scene or Hierarchy to view it in the Inspector.
-2. In the General section, enable Custom Frame Settings. This exposes Frame Settings just for this Camera.
-3. in the Rendering section, enable Ray Tracing.
-
-<a name="FinalSetup-RayTracingEnvironment"></a>
-
-#### Initializing a Ray Tracing Environment
-
-Finally, to use ray tracing in your Scene, create a Ray Tracing Environment. To do this, select GameObject > Rendering > Ray Tracing Environment.
-
-For information about what the Ray Tracing Environment does, and what each of its properties affects, see [Ray Tracing Environment](Ray-Tracing-Environment-Component.html).
+2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
+3. in the **Rendering** section, enable **Ray Tracing**.
 
 <a name="RayTracingEffectsOverview"></a>
 

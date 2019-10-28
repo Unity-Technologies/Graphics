@@ -53,7 +53,7 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| **Type**        | Defines the Light’s type. Lights of different Types behave differently, so when you change the **Type**, the properties change in the Inspector. |
+| **Type**        | Defines the Light’s type. Lights of different Types behave differently, so when you change the **Type**, the properties change in the Inspector. Possible types are:<br />&#8226; Directional<br />&#8226; Point<br />&#8226; Spot<br />&#8226; Area |
 | **Mode**        | Specify the [Light Mode](https://docs.unity3d.com/Manual/LightModes.html) that HDRP uses to determine how to bake a Light, if at all. Possible modes are:<br />&#8226; [Realtime](https://docs.unity3d.com/Manual/LightMode-Realtime.html) <br />&#8226; [Mixed](https://docs.unity3d.com/Manual/LightMode-Mixed.html) <br />&#8226; [Baked](https://docs.unity3d.com/Manual/LightMode-Baked.html) |
 | **Light Layer** | A  mask that allows you to choose which Light Layers this Light affects. The affected Light only lights up Mesh Renderers with a matching **Rendering Layer Mask**.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
 
@@ -64,8 +64,7 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 | **Spot**        | Emits light from a specified location and range over which the light diminishes. A Spot Light constrains the light it emits to an angle, which results in a cone-shaped region of illumination. The center of the cone points in the forward direction (z-axis) of the Light GameObject. Light also diminishes at the edges of the Spot Light’s cone. Increase the **Spot Angle** to increase the width of the cone. |
 | **Directional** | Creates effects that are similar to sunlight in your Scene. Like sunlight, Directional Lights are distant light sources that HDRP treats as though they are infinitely far away. A Directional Light does not have any identifiable source position, and you can place the Light GameObject anywhere in the Scene. A **Directional Light** illuminates all GameObjects in the Scene as if the Light rays are parallel and always from the same direction. The Light disregards the distance between the Light itself and the target GameObject, so the Light does not diminish with distance. |
 | **Point**       | Projects light out equally in all directions from a point in space. The direction of light hitting a surface is the line from the point of contact back to the center of the Light GameObject. The light intensity diminishes with increased distance from the Light, and it reaches zero at the distance specified in the **Range** field. Light intensity is inversely proportional to the square of the distance from the source. This is known as the [Inverse-square law](https://en.wikipedia.org/wiki/Inverse-square_law), and is similar to how light behaves in the real world. |
-| **Rectangle**   | Projects light from a rectangle. Light shines in all directions uniformly from the surface of the rectangle. |
-| **Tube**        | Emits light in all directions equally along a line in space. |
+| **Area**        | Projects light from a surface. Light shines in all directions uniformly from the surface of the rectangle. |
 
 <a name="ShapeProperties"></a>
 
@@ -98,18 +97,15 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | ------------ | ------------------------------------------------------------ |
 | **Radius**   | Defines the radius of the light source. This has an impact on the size of specular highlights, diffuse lighting falloff and the smoothness of baked shadows and ray-traced shadows. |
 
-#### Rectangle Light
-
-| **Property** | **Description**                                     |
-| ------------ | --------------------------------------------------- |
-| **Size X**   | Defines the horizontal size of the Rectangle Light. |
-| **Size Y**   | Defines the vertical size of the Rectangle Light.   |
-
-#### Tube Light
+#### Area Light
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Length**   | Defines the length of the Tube Light. The center of the Light is the Transform Position and the Light itself extends out from the center symmetrically. The **Length** is the distance from one end of the tube to the other. |
+| **Shape**    | HDRP Area Lights can use three shapes. <br />• **Rectangle** : Projects light from a rectangle shape at the GameObject’s position and orientation, in perpendicular direction, out to a certain **Range**. <br />• **Tube** : Projects light from a single line at the GameObject’s position in every direction, out to a certain **Range**.  This shape is only **RealtimeOnly** at the moment.<br />• **Disc** : Projects light from a disc shape at the GameObject’s position and orientation, in perpendicular direction, out to a certain **Range**.  This shape is only **BakeOnly** at the moment. |
+| **Size X**   | For **Rectangle**. Defines the horizontal size of the Rectangle Light. |
+| **Size Y**   | For **Rectangle**. Defines the vertical size of the Rectangle Light. |
+| **Length**   | For **Tube**. Defines the length of the Tube Light. The center of the Light is the Transform Position and the Light itself extends out from the center symmetrically. The **Length** is the distance from one end of the tube to the other. |
+| **Radius**   | For **Disc**. Define the radius of the Disc Light.           |
 
 <a name="EmissionProperties"></a>
 
@@ -125,7 +121,7 @@ These settings define the emissive behavior of your Light. You can set the Light
 | **- Filter**              | Allows you to select the color of the Light’s filter using the colour picker. HDRP uses this and the **Temperature** property to calculate the final color of the Light. |
 | **- Temperature**         | Allows you to select a temperature that HDRP uses to calculate a color on a red-to-blue kelvin temperature scale. You can move the slider along the scale itself, or specify an exact temperature value in the field to the right of the slider scale. |
 | **Color**                 | Allows you to select the color of the Light using the colour picker. |
-| **Intensity**             | The strength of the Light. Intensity is expressed in the following units: <br />&#8226; A Spot Light can use [Lumen](Physical-Light-Units.html#Lumen), [Candela](Physical-Light-Units.html#Candela), [Lux](Physical-Light-Units.html#Lux), and [EV<sub>100</sub>](Physical-Light-Units.html#EV).<br />&#8226; A Directional Light can only use **Lumen**, **Candela**, **Lux**, and **EV<sub>100</sub>**.<br />&#8226; A Point Light can use **Lumen** and **Candela**.<br />&#8226; A Rectangle Light can use **Lumen**, [Luminance](Physical-Light-Units.html#Luminance), and **EV<sub>100</sub>**.<br />&#8226; A Tube Light can use **Lumen**, **Luminance**, and **EV<sub>100</sub>**.<br /><br />Generally, the further the light travels from its source, the weaker it gets. The only exception to this is the **Directional Light** which has the same intensity regardless of distance. For the rest of the Light types, lower values cause light to diminish closer to the source. Higher values cause light to diminish further away from the source. |
+| **Intensity**             | The strength of the Light. Intensity is expressed in the following units: <br />&#8226; A Spot Light can use [Lumen](Physical-Light-Units.html#Lumen), [Candela](Physical-Light-Units.html#Candela), [Lux](Physical-Light-Units.html#Lux), and [EV<sub>100</sub>](Physical-Light-Units.html#EV).<br />&#8226; A Directional Light can only use **Lumen**, **Candela**, **Lux**, and **EV<sub>100</sub>**.<br />&#8226; A Point Light can use **Lumen** and **Candela**.<br />&#8226; A Area Light can use **Lumen**, [Luminance](Physical-Light-Units.html#Luminance), and **EV<sub>100</sub>**.<br /><br />Generally, the further the light travels from its source, the weaker it gets. The only exception to this is the **Directional Light** which has the same intensity regardless of distance. For the rest of the Light types, lower values cause light to diminish closer to the source. Higher values cause light to diminish further away from the source. |
 | **Range**                 | The range of influence for this Light. Defines how far the emitted light reaches. This property is available for all **Light Types** except **Directional**. |
 | **Indirect Multiplier**   | The intensity of [indirect](https://docs.unity3d.com/Manual/LightModes-TechnicalInformation.html) light in your Scene. A value of 1 mimics realistic light behavior. A value of 0 disables indirect lighting for this Light. If both **Realtime** and **Baked** Global Illumination are disabled in Lighting Settings (menu: **Window > Rendering > Lighting Settings**), the Indirect Multiplier has no effect. |
 | **Cookie**                | An RGB Texture that the Light projects. For example, to create silhouettes or patterned illumination for the Light. Texture shapes should be 2D for Spot and Directional Lights and Cube for Point Lights. Always import **Cookie** textures as the default texture type. This property is available for **Spot**, **Directional**, and **Point** Lights. |
