@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
 - Improved overall memory bandwidth usage.
+- Added SceneSelection pass for TerrainLit shader.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

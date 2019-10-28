@@ -29,6 +29,10 @@ CBUFFER_START(UnityTerrain)
 #ifdef DEBUG_DISPLAY
     UNITY_TERRAIN_CB_DEBUG_VARS
 #endif
+#ifdef SCENESELECTIONPASS
+    int _ObjectId;
+    int _PassValue;
+#endif
 CBUFFER_END
 
 #ifdef UNITY_INSTANCING_ENABLED
