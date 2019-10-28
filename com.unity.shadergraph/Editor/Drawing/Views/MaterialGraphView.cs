@@ -524,20 +524,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
 
             // Create list that we sorted based on position, so that duplication
-            List<AbstractShaderProperty> selectedProperties = new List<AbstractShaderProperty>();
+            List<ShaderInput> selectedProperties = new List<ShaderInput>();
             foreach (var selectable in selection)
             {
-                var field = selectable as BlackboardField;
-                var shaderProp = (AbstractShaderProperty) field.userData;
-                if (field != null && shaderProp != null)
+                BlackboardField field = selectable as BlackboardField;
+                ShaderInput shaderProp = (ShaderInput)field.userData;
+                if (shaderProp != null)
                 {
                     selectedProperties.Add(shaderProp);
                 }
             }
 
-            CopyPasteGraph copiedProperties = new CopyPasteGraph("", new List<GroupData>(),
-                new List<AbstractMaterialNode>(), new List<IEdge>(), selectedProperties,
-                new List<AbstractShaderProperty>(), new List<StickyNoteData>());
+            CopyPasteGraph copiedProperties = new CopyPasteGraph("", null, null, null, selectedProperties,
+                null, null, null);
 
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
         }
@@ -879,7 +878,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     static class GraphViewExtensions
     {
         // Sorts based on their position on the blackboard
-        internal class PropertyOrder : IComparer<AbstractShaderProperty>
+        internal class PropertyOrder : IComparer<ShaderInput>
         {
             GraphData graphData;
 
@@ -888,15 +887,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphData = data;
             }
 
-            public int Compare(AbstractShaderProperty x, AbstractShaderProperty y)
+            public int Compare(ShaderInput x, ShaderInput y)
             {
-                if (graphData.GetShaderPropertyIndex(x) > graphData.GetShaderPropertyIndex(y)) return 1;
+                if (graphData.GetGraphInputIndex(x) > graphData.GetGraphInputIndex(y)) return 1;
                 else return -1;
             }
         }
 
         internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
         {
+            Debug.Log("InsertCopyPasteGraph");
+
             if (copyGraph == null)
                 return;
 
@@ -906,10 +907,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
-                ShaderInput copiedInput = input.Copy();
-                graphView.graph.SanitizeGraphInputName(copiedInput);
-                graphView.graph.SanitizeGraphInputReferenceName(copiedInput, input.overrideReferenceName);
-                graphView.graph.AddGraphInput(copiedInput);
+                // Don't duplicate keywords
+                ShaderKeyword sKeyword = input as ShaderKeyword;
+                if (sKeyword != null && KeywordUtil.IsBuiltinKeyword(sKeyword) && graphView.graph.keywords.Contains(sKeyword))
+                {
+                    continue;
+                }
+
+                // TODO: exist?
+                ShaderInput copiedInput = DuplicateShaderInputs(input, graphView.graph);
 
                 switch(input)
                 {
@@ -1003,12 +1009,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        static AbstractShaderProperty DuplicateProperty(AbstractShaderProperty original, GraphData graph)
+        static ShaderInput DuplicateShaderInputs(ShaderInput original, GraphData graph)
         {
-            string propertyName = graph.SanitizePropertyName(original.displayName);
-            AbstractShaderProperty copy = original.Copy();
-            copy.displayName = propertyName;
-            graph.AddShaderProperty(copy);
+            ShaderInput copy = original.Copy();
+            graph.SanitizeGraphInputName(copy);
+            graph.AddGraphInput(copy);
             copy.generatePropertyBlock = original.generatePropertyBlock;
             return copy;
         }

@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Internal
         SerializableGuid m_Guid = new SerializableGuid();
 
         internal Guid guid => m_Guid.guid;
-        
+
         [SerializeField]
         string m_Name;
 
