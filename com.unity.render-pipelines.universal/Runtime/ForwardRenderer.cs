@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.Universal
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
+            screenspaceShadowsMaterial.SetTexture("_NoiseTex", data.blueNoiseNormal);
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;

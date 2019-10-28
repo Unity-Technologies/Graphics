@@ -50,6 +50,9 @@ namespace UnityEngine.Rendering.Universal
         [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
 
+        [Reload("Textures/BlueNoiseNormal.png")]
+        public Texture2D blueNoiseNormal = null; // TODO - make into generic resources
+
         public ShaderResources shaders = null;
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;

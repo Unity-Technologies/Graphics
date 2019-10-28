@@ -113,7 +113,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
                 half3 bakedGI = SampleLightmap(input.LightmapUV, half3(0.0, 1.0, 0.0));
 
-                half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords) + bakedGI;
+                half3 lighting = input.LightingFog.rgb * MainLightRealtimeShadow(input.ShadowCoords).x + bakedGI;
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
                 half4 color = 1.0;

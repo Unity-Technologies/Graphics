@@ -43,6 +43,7 @@ struct Light
     half3   color;
     half    distanceAttenuation;
     half    shadowAttenuation;
+    half    occlusion;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,7 +115,9 @@ Light GetMainLight()
 Light GetMainLight(float4 shadowCoord)
 {
     Light light = GetMainLight();
-    light.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
+    half2 ScreenSpacePass = MainLightRealtimeShadow(shadowCoord); // shadows = x, occlusion = y
+    light.shadowAttenuation = ScreenSpacePass.x;
+    light.occlusion = ScreenSpacePass.y;
     return light;
 }
 
@@ -573,7 +576,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion * mainLight.occlusion, inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
 #ifdef _ADDITIONAL_LIGHTS
@@ -599,7 +602,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
-    half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+    half3 diffuseColor = (inputData.bakedGI * mainLight.occlusion) + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
     half3 specularColor = LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);
 
 #ifdef _ADDITIONAL_LIGHTS

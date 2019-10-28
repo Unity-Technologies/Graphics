@@ -108,7 +108,7 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
 #endif
 }
 
-half SampleScreenSpaceShadowmap(float4 shadowCoord)
+half2 SampleScreenSpaceShadowmap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
 
@@ -116,9 +116,9 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
+    half2 attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy, unity_StereoEyeIndex).xy;
 #else
-    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).x;
+    half2 attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowmapTexture, sampler_ScreenSpaceShadowmapTexture, shadowCoord.xy).xy;
 #endif
 
     return attenuation;
@@ -203,10 +203,10 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
 #endif
 }
 
-half MainLightRealtimeShadow(float4 shadowCoord)
+half2 MainLightRealtimeShadow(float4 shadowCoord)
 {
 #if !defined(_MAIN_LIGHT_SHADOWS) || defined(_RECEIVE_SHADOWS_OFF)
-    return 1.0h;
+    return half2(1.0h, 1.0h);
 #endif
 
 #if SHADOWS_SCREEN
@@ -214,7 +214,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 #else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
-    return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+    return half2(SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false), 1.0h);
 #endif
 }
 
