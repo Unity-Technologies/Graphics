@@ -7,8 +7,6 @@ projects:
     folder: UniversalGfxTestStereo
   - name: ShaderGraph
     folder: ShaderGraph
-  - name: ShaderGraph_Stereo
-    folder: ShaderGraphUniversalStereo
   - name: PostProcessing
     folder: PostProcessing
   - name: HDRP
