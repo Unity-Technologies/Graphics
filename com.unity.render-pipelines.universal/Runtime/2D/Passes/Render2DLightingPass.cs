@@ -97,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
 
                     cmd.Clear();
-                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment);
+                    RendererLighting.RenderLightVolumes(camera, cmd, layerToRender, colorAttachment[0]);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                 }
