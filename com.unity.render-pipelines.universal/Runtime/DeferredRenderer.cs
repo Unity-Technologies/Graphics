@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.Universal
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DeferredPass m_DeferredPass;
         DrawSkyboxPass m_DrawSkyboxPass;
+        DrawObjectsPass m_RenderTransparentForwardPass;
+        InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         FinalBlitPass m_FinalBlitPass;
 
         public const int GBufferSlicesCount = 3;
@@ -39,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
         StencilState m_DefaultStencilState;
 
+        ForwardLights m_ForwardLights; // Required for transparent pass
         DeferredLights m_DeferredLights;
 
         public DeferredRenderer(DeferredRendererData data) : base(data)
@@ -59,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
+            m_ForwardLights = new ForwardLights();
             m_DeferredLights = new DeferredLights(tileDepthInfoMaterial, tileDeferredMaterial, stencilDeferredMaterial);
             m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
 
@@ -75,6 +79,8 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 3, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, RenderQueueRange.opaque, m_DeferredLights);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -212,6 +218,9 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
+            EnqueuePass(m_RenderTransparentForwardPass);
+            EnqueuePass(m_OnRenderObjectCallbackPass);
+
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||
                                      hasAfterRendering;
 
@@ -232,9 +241,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            // We are caching tile data, so skip anything that is not the main scene camera.
-//            if (!renderingData.cameraData.isSceneViewCamera)
-//                return;
+            m_ForwardLights.Setup(context, ref renderingData);
 
             // Perform per-tile light culling on CPU
             m_DeferredLights.SetupLights(context, ref renderingData);
