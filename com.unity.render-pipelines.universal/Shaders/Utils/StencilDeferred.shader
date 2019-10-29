@@ -50,10 +50,84 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
+        #if defined(_DIRECTIONAL)
+        output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
+        #else
         VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
         output.positionCS = vertexInput.positionCS;
+        #endif
+
 
         return output;
+    }
+
+    Texture2D _DepthTex;
+    Texture2D _GBuffer0;
+    Texture2D _GBuffer1;
+    Texture2D _GBuffer2;
+    float4x4 _ScreenToWorld;
+
+    float3 _LightPosWS;
+    float3 _LightColor;
+    float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
+    float3 _LightDirection; // directional/spotLights support
+    int _ShadowLightIndex;
+
+    half4 DeferredShading(Varyings input) : SV_Target
+    {
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+        half3 color = 0.0.xxx;
+
+        float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
+        half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
+        half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
+        half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
+
+        float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
+        posWS.xyz *= 1.0 / posWS.w;
+
+        SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+        InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+        BRDFData brdfData;
+        InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+
+        Light unityLight;
+
+        #if _DIRECTIONAL
+            unityLight.direction = _LightDirection;
+            unityLight.color = _LightColor.rgb;
+            unityLight.distanceAttenuation = 1.0;
+            unityLight.shadowAttenuation = 1.0;
+        #else
+            PunctualLightData light;
+            light.posWS = _LightPosWS;
+            light.radius2 = 0.0; //  only used by tile-lights.
+            light.color = float4(_LightColor, 0.0);
+            light.attenuation = _LightAttenuation;
+            light.spotDirection = _LightDirection;
+            light.shadowLightIndex = _ShadowLightIndex;
+            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
+        #endif
+
+        color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+
+    #if 0 // Temporary debug output
+        // TO CHECK (does Forward support works??):
+        //color.rgb = surfaceData.emission;
+
+        // TO REVIEW (needed for cutouts?):
+        //color.rgb = half3(surfaceData.alpha, surfaceData.alpha, surfaceData.alpha);
+
+        // TODO (approach for shadows?)
+        //color.rgb = inputData.shadowCoord.xyz;
+        // TO REVIEW (support those? fog passed with VertexLight in forward)
+        //color.rgb = half3(inputData.fogCoord, inputData.fogCoord, inputData.fogCoord);
+        //color.rgb = inputData.vertexLighting;
+    #endif
+
+        return half4(color, 0.0);
     }
 
     ENDHLSL
@@ -102,7 +176,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 1 - Punctual Light
+        // 1 - Deferred Punctual Light
         Pass
         {
             Name "Deferred Punctual Light"
@@ -134,69 +208,36 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
-
             #pragma vertex Vertex
-            #pragma fragment PunctualLightShading
+            #pragma fragment DeferredShading
             //#pragma enable_d3d11_debug_symbols
 
-            Texture2D _DepthTex;
-            Texture2D _GBuffer0;
-            Texture2D _GBuffer1;
-            Texture2D _GBuffer2;
-            float4x4 _ScreenToWorld;
+            ENDHLSL
+        }
 
-            float3 _LightPosWS;
-            float3 _LightColor;
-            float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
-            float3 _LightSpotDirection; // spotLights support
-            int _ShadowLightIndex;
+        // 2 - Directional Light
+        Pass
+        {
+            Name "Deferred Directional Light"
 
-            half4 PunctualLightShading(Varyings input) : SV_Target
-            {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            ZTest Less
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One One, Zero One
+            BlendOp Add, Add
 
-                PunctualLightData light;
-                light.posWS = _LightPosWS;
-                light.radius2 = 0.0; //  only used by tile-lights.
-                light.color = float4(_LightColor, 0.0);
-                light.attenuation = _LightAttenuation;
-                light.spotDirection = _LightSpotDirection;
-                light.shadowLightIndex = _ShadowLightIndex;
+            HLSLPROGRAM
 
-                float3 color = 0.0.xxx;
+            #pragma multi_compile _DIRECTIONAL
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
-                float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-                half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
-                half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
-                half4 gbuffer2 = _GBuffer2.Load(int3(input.positionCS.xy, 0));
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
 
-                float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-                posWS.xyz *= 1.0 / posWS.w;
-
-                SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
-                InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
-                BRDFData brdfData;
-                InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-
-                Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
-                color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
-            #if 0 // Temporary debug output
-                // TO CHECK (does Forward support works??):
-                //color.rgb = surfaceData.emission;
-
-                // TO REVIEW (needed for cutouts?):
-                //color.rgb = half3(surfaceData.alpha, surfaceData.alpha, surfaceData.alpha);
-
-                // TODO (approach for shadows?)
-                //color.rgb = inputData.shadowCoord.xyz;
-                // TO REVIEW (support those? fog passed with VertexLight in forward)
-                //color.rgb = half3(inputData.fogCoord, inputData.fogCoord, inputData.fogCoord);
-                //color.rgb = inputData.vertexLighting;
-            #endif
-
-                return half4(color, 0.0);
-            }
             ENDHLSL
         }
     }

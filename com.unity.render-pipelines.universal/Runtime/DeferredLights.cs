@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly string DOWNSAMPLING_SIZE_8 = "DOWNSAMPLING_SIZE_8";
             public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
             public static readonly string _SPOT = "_SPOT";
+            public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
             public static readonly string _ADDITIONAL_LIGHT_SHADOWS = "_ADDITIONAL_LIGHT_SHADOWS";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
@@ -110,7 +111,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _LightPosWS = Shader.PropertyToID("_LightPosWS");
             public static int _LightColor = Shader.PropertyToID("_LightColor");
             public static int _LightAttenuation = Shader.PropertyToID("_LightAttenuation");
-            public static int _LightSpotDirection = Shader.PropertyToID("_LightSpotDirection");
+            public static int _LightDirection = Shader.PropertyToID("_LightDirection");
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
         }
 
@@ -201,6 +202,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         Mesh m_SphereMesh;
         // For rendering stencil spot lights.
         Mesh m_HemisphereMesh;
+        // For rendering directional lights.
+        Mesh m_FullscreenMesh;
 
         // Max number of tile depth range data that can be referenced per draw call.
         int m_MaxDepthRangePerBatch;
@@ -1024,6 +1027,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_SphereMesh = CreateSphereMesh();
             if (m_HemisphereMesh == null)
                 m_HemisphereMesh = CreateHemisphereMesh();
+            if (m_FullscreenMesh == null)
+                m_FullscreenMesh = CreateFullscreenMesh();
 
             using (new ProfilingSample(cmd, k_StencilDeferredPass))
             {
@@ -1070,7 +1075,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector(ShaderConstants._LightPosWS, vl.light.transform.position);
                     cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
                     cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
-                    cmd.SetGlobalVector(ShaderConstants._LightSpotDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
+                    cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
                     // Stencil pass.
@@ -1082,6 +1087,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.DisableShaderKeyword(ShaderConstants._SPOT);
                 cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
+                cmd.EnableShaderKeyword(ShaderConstants._DIRECTIONAL);
 
                 // Directional lights.
 
@@ -1091,7 +1097,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     VisibleLight vl = visibleLights[visLightIndex];
                     if (vl.lightType != LightType.Directional)
                         break;
+
+                    // Skip directional main light, as it is currently rendered as part of the GBuffer.
+                    if (visLightIndex == renderingData.lightData.mainLightIndex)
+                        continue;
+
+                    cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+                    cmd.SetGlobalVector(ShaderConstants._LightDirection, -(Vector3)vl.localToWorldMatrix.GetColumn(2));
+
+                    // Lighting pass.
+                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 2);
                 }
+
+                cmd.DisableShaderKeyword(ShaderConstants._DIRECTIONAL);
 
                 // Point lights.
 
@@ -1186,7 +1204,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 || (light.type == LightType.Spot && light.shadows == LightShadows.None);
         }
 
-        Mesh CreateSphereMesh()
+        static Mesh CreateSphereMesh()
         {
             // TODO reorder for pre&post-transform cache optimisation.
             // This sphere shape has been been slightly inflated to fit an unit sphere.
@@ -1258,7 +1276,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return mesh;
         }
 
-        Mesh CreateHemisphereMesh()
+        static Mesh CreateHemisphereMesh()
         {
             // TODO reorder for pre&post-transform cache optimisation.
             // This capped hemisphere shape is in unit dimensions. It will be slightly inflated in the vertex shader
@@ -1304,6 +1322,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 29, 39, 21, 41, 29, 9, 10, 40, 11, 33, 10, 21, 40, 33, 13, 34, 
                 12, 19, 31, 34, 11, 12, 31, 17, 41, 36, 21, 32, 41, 19, 36, 32
             };
+
+            Mesh mesh = new Mesh();
+            mesh.indexFormat = IndexFormat.UInt16;
+            mesh.vertices = positions;
+            mesh.triangles = indices;
+
+            return mesh;
+        }
+
+        static Mesh CreateFullscreenMesh()
+        {
+            // TODO reorder for pre&post-transform cache optimisation.
+            // This capped hemisphere shape is in unit dimensions. It will be slightly inflated in the vertex shader
+            // to fit the cone analytical shape.
+            Vector3 [] positions = {
+                new Vector3(-1.0f,  1.0f, 0.0f),
+                new Vector3(-1.0f, -3.0f, 0.0f),
+                new Vector3( 3.0f,  1.0f, 0.0f)
+            };
+
+            int [] indices = { 0, 1, 2 };
 
             Mesh mesh = new Mesh();
             mesh.indexFormat = IndexFormat.UInt16;
