@@ -227,8 +227,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 int li = input.relLightOffsets.x;
                 [loop] do
                 {
-                    uint relLightIndex = LoadRelLightIndex(li) & 0xFFFF;
-                    PunctualLightData light = LoadPunctualLightData(relLightIndex);
+                    uint relLightIndex = LoadRelLightIndex(li);
+                    PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
 
                     float3 L = light.posWS - posWS.xyz;
                     [branch] if (dot(L, L) < light.radius2)

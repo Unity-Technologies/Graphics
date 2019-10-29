@@ -203,7 +203,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
-            #pragma multi_compile _ _SPOT
+            #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT

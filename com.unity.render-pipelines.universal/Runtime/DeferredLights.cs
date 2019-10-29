@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly string DOWNSAMPLING_SIZE_16 = "DOWNSAMPLING_SIZE_16";
             public static readonly string _SPOT = "_SPOT";
             public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
+            public static readonly string _POINT = "_POINT";
             public static readonly string _ADDITIONAL_LIGHT_SHADOWS = "_ADDITIONAL_LIGHT_SHADOWS";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
@@ -1091,6 +1092,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Directional lights.
 
+                // TODO bundle extra directional lights rendering by batches of 8.
+                // Also separate shadow caster lights from non-shadow caster.
                 for (; soffset < m_stencilVisLights.Length; ++soffset)
                 {
                     ushort visLightIndex = m_stencilVisLights[soffset];
@@ -1110,6 +1113,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 cmd.DisableShaderKeyword(ShaderConstants._DIRECTIONAL);
+                cmd.EnableShaderKeyword(ShaderConstants._POINT);
 
                 // Point lights.
 
@@ -1153,6 +1157,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Lighting pass.
                     cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1);
                 }
+
+                cmd.DisableShaderKeyword(ShaderConstants._POINT);
             }
 
             Profiler.EndSample();
