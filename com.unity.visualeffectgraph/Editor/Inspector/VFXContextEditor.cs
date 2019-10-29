@@ -22,6 +22,7 @@ class VFXContextEditor : VFXSlotContainerEditor
     SerializedObject dataObject;
 
     SerializedObject srpSubOutputObject;
+    private bool subOutputObjectInitialized = false;
 
     float m_Width;
 
@@ -39,8 +40,7 @@ class VFXContextEditor : VFXSlotContainerEditor
             spaceProperty = null;
         }
 
-        UnityEngine.Object[] allSRPSubOutputs = targets.OfType<VFXAbstractRenderedOutput>().Select(t => t.subOutput).Where(t => t != null).ToArray();
-        srpSubOutputObject = allSRPSubOutputs.Length > 0 ? new SerializedObject(allSRPSubOutputs) : null;
+        subOutputObjectInitialized = false;
 
         base.OnEnable();
     }
@@ -64,6 +64,13 @@ class VFXContextEditor : VFXSlotContainerEditor
 
     public override void DoInspectorGUI()
     {
+        if (!subOutputObjectInitialized)
+        {
+            UnityEngine.Object[] allSRPSubOutputs = targets.OfType<VFXAbstractRenderedOutput>().Select(t => t.subOutput).Where(t => t != null).ToArray();
+            srpSubOutputObject = allSRPSubOutputs.Length > 0 ? new SerializedObject(allSRPSubOutputs) : null;
+            subOutputObjectInitialized = true;
+        }
+
         DisplaySpace();
         base.DoInspectorGUI();
     }

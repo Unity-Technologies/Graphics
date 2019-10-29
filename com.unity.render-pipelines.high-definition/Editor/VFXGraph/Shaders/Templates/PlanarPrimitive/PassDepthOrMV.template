@@ -2,8 +2,8 @@
 #define UNITY_MATERIAL_LIT
 #pragma multi_compile _ WRITE_NORMAL_BUFFER
 
-#define NEEDS_NORMAL	defined(WRITE_NORMAL_BUFFER) || FORCE_NORMAL_VARYING || SHADERGRAPH_HAS_NORMAL // TODO Should extract mv pass
-#define NEEDS_TANGENT	USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_DEPTH || SHADERGRAPH_HAS_NORMAL
+#define NEEDS_NORMAL	defined(WRITE_NORMAL_BUFFER) || FORCE_NORMAL_VARYING || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+#define NEEDS_TANGENT	USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
 
 struct ps_input
 {
@@ -113,6 +113,8 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+	
 	#ifdef VFX_SHADERGRAPH
     
         ${VFXAdditionalInterpolantsPreparation}
@@ -129,13 +131,11 @@ void frag(ps_input i
         VFXClipFragmentColor(alpha,i);
 	
 	#ifdef WRITE_NORMAL_BUFFER
-		${VFXComputeNormalWS}
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
         #else
            #if HAS_SHADERGRAPH_PARAM_NORMAL
                float3 n =  OUTSG.Normal_8;
-               float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
                normalWS = mul(n,tbn);
            #endif
            SurfaceData surface = (SurfaceData)0;
