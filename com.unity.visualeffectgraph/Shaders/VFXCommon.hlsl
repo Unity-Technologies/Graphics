@@ -116,6 +116,11 @@ float4 LoadTexture(VFXSampler2DArray s, int4 pixelCoords)
     return s.t.Load(pixelCoords);
 }
 
+float4 LoadTexture(VFXSampler3D s, int4 pixelCoords)
+{
+    return s.t.Load(pixelCoords);
+}
+
 float SampleSDF(VFXSampler3D s,float3 coords,float level = 0.0f)
 {
     return SampleTexture(s,coords,level).x;
