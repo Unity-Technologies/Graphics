@@ -1236,7 +1236,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
             collector.AddToggleProperty("_ZWrite", zWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
-            collector.AddIntProperty("_TransparentSortPriority", sortingPriority);
+            collector.AddIntProperty(kTransparentSortPriority, sortingPriority);
             collector.AddFloatProperty("_CullModeForward", (int)CullMode.Back);
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 overrideReferenceName = kTransparentCullMode,
@@ -1264,7 +1264,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);
-            collector.AddFloatProperty("_TransparentSortPriority", "_TransparentSortPriority", 0);
+            collector.AddFloatProperty(kTransparentSortPriority, kTransparentSortPriority, 0);
             collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold);
         }
 

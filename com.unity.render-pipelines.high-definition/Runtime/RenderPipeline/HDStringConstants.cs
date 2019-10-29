@@ -887,6 +887,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kDistortionOnly = "_DistortionOnly";
         public const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
         public const string kTransparentDepthPostpassEnable = "_TransparentDepthPostpassEnable";
+        public const string kTransparentSortPriority = "_TransparentSortPriority";
 
         public const int kMaxLayerCount = 4;
 

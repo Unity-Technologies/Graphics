@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty transparentBackfaceEnable = null;
         const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
         MaterialProperty transparentSortPriority = null;
-        const string kTransparentSortPriority = "_TransparentSortPriority";
+        const string kTransparentSortPriority = HDMaterialProperties.kTransparentSortPriority;
         MaterialProperty transparentWritingMotionVec = null;
         const string kTransparentWritingMotionVec = "_TransparentWritingMotionVec";
         MaterialProperty doubleSidedEnable = null;
