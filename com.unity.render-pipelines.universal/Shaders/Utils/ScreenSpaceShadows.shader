@@ -79,9 +79,9 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
             half4 shadowParams = GetMainLightShadowParams();
             half shadows = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), coords, shadowSamplingData, shadowParams, false).x;
-            half ao = SSAO(1, input.uv.xy); // TODO - should be split and separated via keyword
-            
-            return half4(shadows, max(ao, shadows), 0, 0);
+            half ao = SSAO(input.uv.xy); // TODO - should be split and separated via keyword
+
+            return half4(shadows, ao, 0, 0);
         }
 
         ENDHLSL

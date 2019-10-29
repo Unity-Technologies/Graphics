@@ -8,13 +8,15 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         Material m_ScreenSpaceShadowsMaterial;
+        Texture2D m_NoiseTexture;
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
         const string m_ProfilerTag = "Resolve Shadows";
 
-        public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
+        public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial, Texture2D noiseAsset)
         {
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
+            m_NoiseTexture = noiseAsset;
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
             renderPassEvent = evt;
         }
@@ -31,6 +33,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+            AmbientOcclusion ambientOcclusion = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+
+            // Ambient Occlusion Settings
+            m_ScreenSpaceShadowsMaterial.SetTexture("_NoiseTex", m_NoiseTexture);
+            m_ScreenSpaceShadowsMaterial.SetFloat("_AO_Intensity", ambientOcclusion.intensity.value);
+            m_ScreenSpaceShadowsMaterial.SetFloat("_AO_Radius", ambientOcclusion.radius.value);
+
+            // SSAO settings
+            m_ScreenSpaceShadowsMaterial.SetInt("_SSAO_Samples", ambientOcclusion.sampleCount.value);
+            m_ScreenSpaceShadowsMaterial.SetFloat("_SSAO_Area", ambientOcclusion.area.value);
+
             cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
 
             RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
