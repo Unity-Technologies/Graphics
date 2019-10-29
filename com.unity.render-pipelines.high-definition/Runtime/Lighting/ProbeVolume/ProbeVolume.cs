@@ -292,19 +292,23 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!this.gameObject.activeInHierarchy)
                 return;
 
-            SphericalHarmonicsL1[] data = new SphericalHarmonicsL1[parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ];
+            int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
+            SphericalHarmonicsL1[] data = new SphericalHarmonicsL1[numProbes];
 
-            var nativeData = new NativeArray<SphericalHarmonicsL2>(data.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), nativeData);
+            var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity);
 
             for (int i = 0, iLen = data.Length; i < iLen; ++i)
             {
-                data[i].shAr = new Vector4(nativeData[i][0, 1], nativeData[i][0, 2], nativeData[i][0, 3], nativeData[i][0, 0]);
-                data[i].shAg = new Vector4(nativeData[i][1, 1], nativeData[i][1, 2], nativeData[i][1, 3], nativeData[i][1, 0]);
-                data[i].shAb = new Vector4(nativeData[i][2, 1], nativeData[i][2, 2], nativeData[i][2, 3], nativeData[i][2, 0]);
+                data[i].shAr = new Vector4(sh[i][0, 1], sh[i][0, 2], sh[i][0, 3], sh[i][0, 0]);
+                data[i].shAg = new Vector4(sh[i][1, 1], sh[i][1, 2], sh[i][1, 3], sh[i][1, 0]);
+                data[i].shAb = new Vector4(sh[i][2, 1], sh[i][2, 2], sh[i][2, 3], sh[i][2, 0]);
             }
 
-            nativeData.Dispose();
+            sh.Dispose();
+            validity.Dispose();
 
             if (!probeVolumeAsset)
             {
