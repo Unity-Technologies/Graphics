@@ -31,9 +31,9 @@ struct ps_input
 	// y: motion vector scale v
 	nointerpolation float2 builtInInterpolants2 : TEXCOORD3;
 	#endif
-	#ifdef WRITE_NORMAL_BUFFER
-	float4 normal : TEXCOORD4; // normal scale is stored in w
-	#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
+	#if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+	float3 normal : TEXCOORD4;
+	#if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
 	float4 tangent : TEXCOORD5;
 	#endif
 	#endif
@@ -60,13 +60,14 @@ struct ps_input
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
-#ifdef WRITE_NORMAL_BUFFER
-#define VFX_VARYING_NORMAL normal.xyz
-#define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
-#if HDRP_USE_NORMAL_MAP || SHADERGRAPH_HAS_NORMAL
-#define VFX_VARYING_TANGENT tangent
-#define VFX_VARYING_NORMALSCALE normal.w
+#if defined(WRITE_NORMAL_BUFFER) || SHADERGRAPH_NEEDS_NORMAL_DEPTHONLY
+#define VFX_VARYING_NORMAL normal
 #endif
+#ifdef WRITE_NORMAL_BUFFER
+#define VFX_VARYING_SMOOTHNESS builtInInterpolants.w
+#endif
+#if SHADERGRAPH_NEEDS_TANGENT_DEPTHONLY
+#define VFX_VARYING_TANGENT tangent
 #endif
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
@@ -106,6 +107,8 @@ void frag(ps_input i
 {
 	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+	
 	#ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
         ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
@@ -120,13 +123,11 @@ void frag(ps_input i
 	VFXClipFragmentColor(alpha,i);
 	
 	#ifdef WRITE_NORMAL_BUFFER
-		${VFXComputeNormalWS}
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
         #else
            #if HAS_SHADERGRAPH_PARAM_NORMAL
                float3 n =  OUTSG.Normal_8;
-               float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
                normalWS = mul(n,tbn);
            #endif
            SurfaceData surface = (SurfaceData)0;

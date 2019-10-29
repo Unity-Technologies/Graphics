@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(experimental = true)]
-    class VFXQuadStripOutput : VFXAbstractParticleOutput
+    class VFXQuadStripOutput : VFXShaderGraphParticleOutput
     {
         [VFXSetting, SerializeField]
         protected StripTilingMode tilingMode = StripTilingMode.Stretch;
@@ -21,10 +21,21 @@ namespace UnityEditor.VFX
 
         public override bool supportsUV { get { return true; } }
 
-        public class InputProperties
+        public class OptionalInputProperties
         {
             [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
+                if (shaderGraph == null)
+                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                return properties;
+            }
         }
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
@@ -32,7 +43,8 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            yield return slotExpressions.First(o => o.name == "mainTexture");
+            if (shaderGraph == null)
+                yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -54,6 +66,8 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Size, VFXAttributeMode.Read);
             }
         }
+
+
 
         public override IEnumerable<string> additionalDefines
         {
