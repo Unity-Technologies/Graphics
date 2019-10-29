@@ -74,6 +74,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly string _SPOT = "_SPOT";
             public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
             public static readonly string _POINT = "_POINT";
+            public static readonly string _FOG = "_FOG";
+            public static readonly string FOG_LINEAR = "FOG_LINEAR";
+            public static readonly string FOG_EXP = "FOG_EXP";
+            public static readonly string FOG_EXP2 = "FOG_EXP2";
             public static readonly string _ADDITIONAL_LIGHT_SHADOWS = "_ADDITIONAL_LIGHT_SHADOWS";
 
             public static readonly int UDepthRanges = Shader.PropertyToID("UDepthRanges");
@@ -170,8 +174,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         static readonly string k_SetupLights = "SetupLights";
         static readonly string k_DeferredPass = "Deferred Pass";
         static readonly string k_TileDepthInfo = "Tile Depth Info";
-        static readonly string k_TiledDeferredPass = "Tile-Based Deferred Shading";
-        static readonly string k_StencilDeferredPass = "Stencil Deferred Shading";
+        static readonly string k_DeferredTiledPass = "Deferred Shading (Tile-Based)";
+        static readonly string k_DeferredStencilPass = "Deferred Shading (Stencil)";
+        static readonly string k_DeferredFogPass = "Deferred Fog";
         static readonly string k_SetupLightConstants = "Setup Light Constants";
         static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes. 
 
@@ -693,6 +698,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             RenderStencilLights(context, cmd, ref renderingData);
 
+            // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
+            RenderFog(context, cmd, ref renderingData);
+
             Profiler.EndSample();
 
             context.ExecuteCommandBuffer(cmd);
@@ -808,7 +816,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!m_HasTileVisLights)
                 return;
 
-            Profiler.BeginSample(k_TiledDeferredPass);
+            Profiler.BeginSample(k_DeferredTiledPass);
 
             // Allow max 256 draw calls for rendering all the batches of tiles
             DrawCall[] drawCalls = new DrawCall[256];
@@ -966,7 +974,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Now draw all tile batches.
-            using (new ProfilingSample(cmd, k_TiledDeferredPass))
+            using (new ProfilingSample(cmd, k_DeferredTiledPass))
             {
                 MeshTopology topology = DeferredConfig.kHasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
                 int vertexCount = DeferredConfig.kHasNativeQuadSupport ? 4 : 6;
@@ -1022,7 +1030,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_stencilVisLights.Length == 0)
                 return;
 
-            Profiler.BeginSample(k_StencilDeferredPass);
+            Profiler.BeginSample(k_DeferredStencilPass);
 
             if (m_SphereMesh == null)
                 m_SphereMesh = CreateSphereMesh();
@@ -1031,7 +1039,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            using (new ProfilingSample(cmd, k_StencilDeferredPass))
+            using (new ProfilingSample(cmd, k_DeferredStencilPass))
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
@@ -1162,6 +1170,35 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             Profiler.EndSample();
+        }
+
+        void RenderFog(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            // Legacy fog does not work in orthographic mode.
+            if (!RenderSettings.fog || renderingData.cameraData.camera.orthographic)
+                return;
+
+            if (m_FullscreenMesh == null)
+                m_FullscreenMesh = CreateFullscreenMesh();
+
+            string fogModeVariant = null;
+            switch (RenderSettings.fogMode)
+            {
+                case FogMode.Linear:                fogModeVariant = ShaderConstants.FOG_LINEAR; break;
+                case FogMode.Exponential:           fogModeVariant = ShaderConstants.FOG_EXP; break;
+                case FogMode.ExponentialSquared:    fogModeVariant = ShaderConstants.FOG_EXP2; break;
+            }
+
+            using (new ProfilingSample(cmd, k_DeferredFogPass))
+            {
+                cmd.EnableShaderKeyword(ShaderConstants._FOG);
+                cmd.EnableShaderKeyword(fogModeVariant);
+
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3);
+
+                cmd.DisableShaderKeyword(ShaderConstants._FOG);
+                cmd.DisableShaderKeyword(fogModeVariant);
+            }
         }
 
         int TrimLights(ref NativeArray<ushort> trimmedLights, ref NativeArray<ushort> tiles, int offset, int lightCount, ref BitArray usedLights)

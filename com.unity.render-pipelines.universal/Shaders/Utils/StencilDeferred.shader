@@ -50,7 +50,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
-        #if defined(_DIRECTIONAL)
+        #if defined(_DIRECTIONAL) || defined(_FOG)
         output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
         #else
         VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
@@ -72,6 +72,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
     float3 _LightDirection; // directional/spotLights support
     int _ShadowLightIndex;
+
+    half4 FragWhite(Varyings input) : SV_Target
+    {
+        return half4(1.0, 1.0, 1.0, 1.0);
+    }
 
     half4 DeferredShading(Varyings input) : SV_Target
     {
@@ -130,6 +135,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         return half4(color, 0.0);
     }
 
+    half4 FragFog(Varyings input) : SV_Target
+    {
+        float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x;
+        float z = LinearEyeDepth(d, _ZBufferParams);
+        half fogFactor = ComputeFogFactorFromLinearEyeDepth(z);
+        half fogIntensity = ComputeFogIntensity(fogFactor);
+        return half4(unity_FogColor.rgb, fogIntensity);
+    }
+
     ENDHLSL
 
     SubShader
@@ -166,13 +180,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
 
             #pragma vertex Vertex
-            #pragma fragment Frag
+            #pragma fragment FragWhite
             //#pragma enable_d3d11_debug_symbols
 
-            half4 Frag(Varyings input) : SV_Target
-            {
-                return half4(1.0, 1.0, 1.0, 1.0);
-            }
             ENDHLSL
         }
 
@@ -236,6 +246,30 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 3 - Legacy fog
+        Pass
+        {
+            Name "Fog"
+
+            ZTest Less
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend OneMinusSrcAlpha SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _FOG
+            #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
+
+            #pragma vertex Vertex
+            #pragma fragment FragFog
             //#pragma enable_d3d11_debug_symbols
 
             ENDHLSL

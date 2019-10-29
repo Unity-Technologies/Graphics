@@ -151,9 +151,6 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS); // TODO move this to a separate full-screen single gbuffer pass?
 
-    // Forward also has this step (TODO: support equivalent in Deferred?)
-    //color.rgb = MixFog(color.rgb, inputData.fogCoord);
-
     return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color);
 }
 
