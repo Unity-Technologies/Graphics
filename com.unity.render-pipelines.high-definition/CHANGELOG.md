@@ -114,7 +114,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed black ambient sky issue when importing a project after deleting Library.
 - Fixed issue when upgrading a Standard transparent material (case 1186874)
 - Fixed area light cookies not working properly with stack lit
-- Allowing ray tracing in the editor when the deployment target is StandaloneWindows
+- Fixed material render queue not updated when the shader is changed in the material inspector.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
