@@ -1200,21 +1200,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR)
         {
+            BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,
+                out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
+                out int stencilRefMV, out int stencilWriteMaskMV
+            );
+
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", 0); // StencilLightingUsage.NoLighting
-            collector.AddIntProperty("_StencilWriteMask", 3); // StencilMask.Lighting
+            collector.AddIntProperty("_StencilRef", stencilRef); // StencilLightingUsage.NoLighting
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); // StencilMask.Lighting
             // Depth prepass
-            collector.AddIntProperty("_StencilRefDepth", 0); // Nothing
-            collector.AddIntProperty("_StencilWriteMaskDepth", 32); // DoesntReceiveSSR
+            collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
+            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // DoesntReceiveSSR
             // Motion vector pass
-            collector.AddIntProperty("_StencilRefMV", 128); // StencilBitMask.ObjectMotionVectors
-            collector.AddIntProperty("_StencilWriteMaskMV", 128); // StencilBitMask.ObjectMotionVectors
+            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilBitMask.ObjectMotionVectors
+            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilBitMask.ObjectMotionVectors
             // Distortion vector pass
             collector.AddIntProperty("_StencilRefDistortionVec", 64); // StencilBitMask.DistortionVectors
             collector.AddIntProperty("_StencilWriteMaskDistortionVec", 64); // StencilBitMask.DistortionVectors
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", 3); // StencilMask.Lighting
-            collector.AddIntProperty("_StencilRefGBuffer", 2); // StencilLightingUsage.RegularLighting
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); // StencilMask.Lighting
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); // StencilLightingUsage.RegularLighting
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
@@ -1322,13 +1327,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
+            // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
+            bool supportsRayTracing = HDRenderPipeline.AggreateRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {
                 result.Add(HDRenderQueue.RenderQueueType.Opaque);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostProcessOpaque);
-                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                if (supportsRayTracing)
                     result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
             }
             else
@@ -1338,7 +1345,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
-                if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                if (supportsRayTracing)
                     result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
             }
 
