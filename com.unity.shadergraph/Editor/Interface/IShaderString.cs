@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph.Internal
+﻿namespace UnityEditor.ShaderGraph
 {
     interface IShaderString
     {

@@ -4,6 +4,6 @@
     {
         public string name;
         public bool packFields;
-        public SubscriptDescriptor[] subscripts;
+        public FieldDescriptor[] fields;
     }
 }

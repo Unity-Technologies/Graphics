@@ -2,10 +2,10 @@
 {
     public struct FieldDependency
     {
-        public IField field;
-        public IField dependsOn;
+        public FieldDescriptor field;
+        public FieldDescriptor dependsOn;
 
-        public FieldDependency(IField field, IField dependsOn)
+        public FieldDependency(FieldDescriptor field, FieldDescriptor dependsOn)
         {
             this.field = field;
             this.dependsOn = dependsOn;

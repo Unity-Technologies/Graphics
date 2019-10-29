@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     static class UniversalRequiredFields
     {
-        public static IField[] PBRForward = new IField[]
+        public static FieldDescriptor[] PBRForward = new FieldDescriptor[]
         {
             StructFields.Attributes.uv1,                            // needed for meta vertex position
             StructFields.Varyings.positionWS,
@@ -18,38 +18,38 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
         };
 
-        public static IField[] PBRShadowCaster = new IField[]
+        public static FieldDescriptor[] PBRShadowCaster = new FieldDescriptor[]
         {
             StructFields.Attributes.normalOS,
         };
 
-        public static IField[] PBRMeta = new IField[]
+        public static FieldDescriptor[] PBRMeta = new FieldDescriptor[]
         {
             StructFields.Attributes.uv1,                            // needed for meta vertex position
             StructFields.Attributes.uv2,                            //needed for meta vertex position
         };
 
-        public static IField[] SpriteLit = new IField[]
+        public static FieldDescriptor[] SpriteLit = new FieldDescriptor[]
         {
             StructFields.Varyings.color,
             StructFields.Varyings.texCoord0,
             StructFields.Varyings.screenPosition,
         };
 
-        public static IField[] SpriteNormal = new IField[]
+        public static FieldDescriptor[] SpriteNormal = new FieldDescriptor[]
         {
             StructFields.Varyings.normalWS,
             StructFields.Varyings.tangentWS,
             StructFields.Varyings.bitangentWS,
         };
 
-        public static IField[] SpriteForward = new IField[]
+        public static FieldDescriptor[] SpriteForward = new FieldDescriptor[]
         {
             StructFields.Varyings.color,
             StructFields.Varyings.texCoord0,
         };
 
-        public static IField[] SpriteUnlit = new IField[]
+        public static FieldDescriptor[] SpriteUnlit = new FieldDescriptor[]
         {
             StructFields.Attributes.color,
             StructFields.Attributes.uv0,

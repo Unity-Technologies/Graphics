@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             if(outputNode is IMasterNode masterNode)
             {
                 var fields = GenerationUtils.GetActiveFieldsFromConditionals(masterNode.GetConditionalFields(pass));
-                foreach(IField field in fields)
+                foreach(FieldDescriptor field in fields)
                     activeFields.baseInstance.Add(field);
             }
             // Preview shader
@@ -635,7 +635,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Active fields
                     debugBuilder.AppendLine("// ACTIVE FIELDS:");
-                    foreach (IField field in activeFields.baseInstance.fields)
+                    foreach (FieldDescriptor field in activeFields.baseInstance.fields)
                     {
                         debugBuilder.AppendLine($"//{field.tag}.{field.name}");
                     }

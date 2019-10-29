@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Varyings",
             packFields = true,
-            subscripts = new SubscriptDescriptor[]
+            fields = new FieldDescriptor[]
             {
                 StructFields.Varyings.positionCS,
                 StructFields.Varyings.positionWS,

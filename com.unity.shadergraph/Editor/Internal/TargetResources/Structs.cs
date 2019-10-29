@@ -6,7 +6,7 @@
         {
             name = "Attributes",
             packFields = false,
-            subscripts = new SubscriptDescriptor[]
+            fields = new FieldDescriptor[]
             {
                 StructFields.Attributes.positionOS,
                 StructFields.Attributes.normalOS,
@@ -24,7 +24,7 @@
         {
             name = "VertexDescriptionInputs",
             packFields = false,
-            subscripts = new SubscriptDescriptor[]
+            fields = new FieldDescriptor[]
             {
                 StructFields.VertexDescriptionInputs.ObjectSpaceNormal,
                 StructFields.VertexDescriptionInputs.ViewSpaceNormal,
@@ -66,7 +66,7 @@
         {
             name = "SurfaceDescriptionInputs",
             packFields = false,
-            subscripts = new SubscriptDescriptor[]
+            fields = new FieldDescriptor[]
             {
                 StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,
                 StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,

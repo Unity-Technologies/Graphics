@@ -12,9 +12,9 @@ namespace UnityEditor.ShaderGraph
     {
         const string kErrorString = @"ERROR!";
 
-        internal static List<IField> GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
+        internal static List<FieldDescriptor> GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
         {
-            var fields = new List<IField>();
+            var fields = new List<FieldDescriptor>();
             foreach(ConditionalField conditionalField in conditionalFields)
             {
                 if(conditionalField.condition == true)
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static bool IsFieldActive(IField field, IActiveFields activeFields, bool isOptional)
+        static bool IsFieldActive(FieldDescriptor field, IActiveFields activeFields, bool isOptional)
         {
             bool fieldActive = true;
             if (!activeFields.Contains(field) && isOptional)
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
             structBuilder.AppendLine($"struct {shaderStruct.name}");
             using(structBuilder.BlockSemicolonScope())
             {
-                foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
+                foreach(FieldDescriptor subscript in shaderStruct.fields)
                 {
                     bool fieldIsActive;
                     var keywordIfDefs = string.Empty;
@@ -78,19 +78,19 @@ namespace UnityEditor.ShaderGraph
                     {
                         //find all active fields per permutation
                         var instances = activeFields.allPermutations.instances
-                            .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional))).ToList();
+                            .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
                         fieldIsActive = instances.Count > 0;
                         if (fieldIsActive)
                             keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
                     }
                     else
-                        fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional));
+                        fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));
                         //else just find active fields
 
                     if (fieldIsActive)
                     {
                         //if field is active:
-                        if(subscript.hasPreprocessor())
+                        if(subscript.HasPreprocessor())
                             structBuilder.AppendLine($"#if {subscript.preprocessor}");
 
                         //if in permutation, add permutation ifdef
@@ -98,14 +98,14 @@ namespace UnityEditor.ShaderGraph
                             structBuilder.AppendLine(keywordIfDefs);
                         
                         //check for a semantic, build string if valid
-                        string semantic = subscript.hasSemantic() ? $" : {subscript.semantic}" : string.Empty;
+                        string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
                         structBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
 
                         //if in permutation, add permutation endif
                         if (!string.IsNullOrEmpty(keywordIfDefs))
                             structBuilder.AppendLine("#endif"); //TODO: add debug collector 
 
-                        if(subscript.hasPreprocessor())
+                        if(subscript.HasPreprocessor())
                             structBuilder.AppendLine("#endif");                        
                     }            
                 }
@@ -115,11 +115,11 @@ namespace UnityEditor.ShaderGraph
         internal static void GeneratePackedStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out StructDescriptor packStruct)
         {
             packStruct = new StructDescriptor() { name = "Packed" + shaderStruct.name, packFields = true,
-                subscripts = new SubscriptDescriptor[]{} };
-            List<SubscriptDescriptor> packedSubscripts = new List<SubscriptDescriptor>();
+                fields = new FieldDescriptor[]{} };
+            List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
 
-            foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
+            foreach(FieldDescriptor subscript in shaderStruct.fields)
             {
                 var fieldIsActive = false;
                 var keywordIfDefs = string.Empty;
@@ -128,19 +128,19 @@ namespace UnityEditor.ShaderGraph
                 {
                     //find all active fields per permutation
                     var instances = activeFields.allPermutations.instances
-                        .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional))).ToList();
+                        .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
                     fieldIsActive = instances.Count > 0;
                     if (fieldIsActive)
                         keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
                 }
                 else
-                    fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional));
+                    fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));
                     //else just find active fields
 
                 if (fieldIsActive)
                 {
                     //if field is active:
-                    if(subscript.hasSemantic() || subscript.vectorCount == 0)  
+                    if(subscript.HasSemantic() || subscript.vectorCount == 0)  
                         packedSubscripts.Add(subscript);
                     else
                     {
@@ -162,13 +162,13 @@ namespace UnityEditor.ShaderGraph
                             firstChannel = packedCounts[interpIndex];
                             packedCounts[interpIndex] += vectorCount;
                         }
-                        var packedSubscript = new SubscriptDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
-                            "TEXCOORD" + interpIndex, subscript.preprocessor, SubscriptOptions.Static);
+                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
+                            "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
                         packedSubscripts.Add(packedSubscript);                        
                     }
                 }            
             }
-            packStruct.subscripts = packedSubscripts.ToArray();
+            packStruct.fields = packedSubscripts.ToArray();
         }
 
         internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
@@ -191,17 +191,17 @@ namespace UnityEditor.ShaderGraph
             unpackBuilder.IncreaseIndent();
             unpackBuilder.AppendLine($"{shaderStruct.name} output;");
 
-            foreach(SubscriptDescriptor subscript in shaderStruct.subscripts)
+            foreach(FieldDescriptor subscript in shaderStruct.fields)
             {
-                if(IsFieldActive(subscript, activeFields, subscript.subscriptOptions.HasFlag(SubscriptOptions.Optional)))
+                if(IsFieldActive(subscript, activeFields, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional)))
                 {
                     int vectorCount = subscript.vectorCount;
-                    if(subscript.hasPreprocessor())
+                    if(subscript.HasPreprocessor())
                     {
                         packBuilder.AppendLine($"#if {subscript.preprocessor}");
                         unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
                     }
-                    if(subscript.hasSemantic() || vectorCount == 0)
+                    if(subscript.HasSemantic() || vectorCount == 0)
                     {
                         packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
                         unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph
                         unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
                     }
                     
-                    if(subscript.hasPreprocessor())
+                    if(subscript.HasPreprocessor())
                     {
                         packBuilder.AppendLine("#endif");
                         unpackBuilder.AppendLine("#endif");
@@ -435,7 +435,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        internal static void AddRequiredFields(IField[] passRequiredFields,IActiveFieldsSet activeFields)
+        internal static void AddRequiredFields(FieldDescriptor[] passRequiredFields,IActiveFieldsSet activeFields)
         {
             if (passRequiredFields != null)
             {
@@ -449,7 +449,7 @@ namespace UnityEditor.ShaderGraph
         internal static void ApplyFieldDependencies(IActiveFields activeFields, FieldDependency[] dependencies)
         {
             // add active fields to queue
-            Queue<IField> fieldsToPropagate = new Queue<IField>();
+            Queue<FieldDescriptor> fieldsToPropagate = new Queue<FieldDescriptor>();
             foreach (var f in activeFields.fields)
             {
                 fieldsToPropagate.Enqueue(f);
@@ -458,7 +458,7 @@ namespace UnityEditor.ShaderGraph
             // foreach field in queue:
             while (fieldsToPropagate.Count > 0)
             {
-                IField field = fieldsToPropagate.Dequeue();
+                FieldDescriptor field = fieldsToPropagate.Dequeue();
                 if (activeFields.Contains(field))           // this should always be true
                 {
                     if(dependencies == null)

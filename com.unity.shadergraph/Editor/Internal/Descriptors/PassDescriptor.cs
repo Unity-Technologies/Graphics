@@ -14,7 +14,7 @@
 
         // Collections
         public StructCollection structs;
-        public IField[] requiredFields;
+        public FieldDescriptor[] requiredFields;
         public FieldDependency[] fieldDependencies;
         public RenderStateCollection renderStates;
         public PragmaCollection pragmas;
