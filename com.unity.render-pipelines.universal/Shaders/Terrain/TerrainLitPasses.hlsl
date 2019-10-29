@@ -11,8 +11,6 @@
     TEXTURE2D(_TerrainHeightmapTexture);
     TEXTURE2D(_TerrainNormalmapTexture);
     SAMPLER(sampler_TerrainNormalmapTexture);
-    float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
 #endif
 
 UNITY_INSTANCING_BUFFER_START(Terrain)
@@ -403,6 +401,10 @@ float4 DepthOnlyVertex(AttributesLean v) : SV_POSITION
 
 half4 DepthOnlyFragment() : SV_TARGET
 {
+#ifdef SCENESELECTIONPASS
+    // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
+    return half4(_ObjectId, _PassValue, 1.0, 1.0);
+#endif
     return 0;
 }
 
