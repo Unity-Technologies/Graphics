@@ -49,7 +49,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 
     surfaceData.normalTS = (half3)0; // Note: does this normalTS member need to be in SurfaceData? It looks like an intermediate value
 
-    half2 metallicAlpha = Unpack8ToFloat2(gbuffer2.z);
+    half2 metallicAlpha = Unpack8ToFloat2(gbuffer2.w);
     surfaceData.metallic = metallicAlpha.x;
     surfaceData.alpha = metallicAlpha.y;
 
