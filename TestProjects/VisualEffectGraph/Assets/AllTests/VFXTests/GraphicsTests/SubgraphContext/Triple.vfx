@@ -103,7 +103,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
-  m_GraphVersion: 3
+  m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies:
   - {fileID: 8926484042661614526, guid: 797365d0f3886af418d3e1d776f8a9b3, type: 3}
