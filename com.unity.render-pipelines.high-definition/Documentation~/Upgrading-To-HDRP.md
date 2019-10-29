@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and new lighting units, both of which are incompatible with the built-in Unity rendering pipeline. To upgrade a Unity Project to HDRP, you must first [convert](#MaterialConversion) all of the [Materials](https://docs.unity3d.com/Manual/class-Material.html) and Shaders in your Project, and then [edit](#LightAdjustment) your individual Light settings accordingly. 
 
-This tutorial explains the HDRP upgrade process using a sample [Scene](https://docs.unity3d.com/Manual/CreatingScenes.html) containing Assets from Unity’s [Viking Village Asset package](https://assetstore.unity.com/packages/essentials/tutorial-projects/viking-village-29140). To get the Scene used in this example, download this [LegacyScene package](https://drive.google.com/open?id=1TQN3XotIBI_xHlq-jdbBm09iDd2tHTam).
+This tutorial explains the HDRP upgrade process using a sample [Scene](https://docs.unity3d.com/Manual/CreatingScenes.html) containing Assets from Unity’s [Viking Village Asset package](https://assetstore.unity.com/packages/essentials/tutorial-projects/viking-village-29140). To get the Scene that the example uses, download the [LegacyScene package](https://drive.google.com/open?id=1TQN3XotIBI_xHlq-jdbBm09iDd2tHTam) and add it to a Unity Project. To open the example Scene, in the Project window, go to **Assets > Legacy > _Scene** and double-click the **LegacyScene** Scene file.
 
 ![](Images/UpgradingToHDRP1Main.png)
 <a name="ImportingHDRP"></a>
@@ -33,13 +33,11 @@ If your Project contains any custom Materials or Shaders then this script can no
 
 ### Adjusting Lights
 
-Firstly, you need to change your Color Space to **Linear**. Navigate to **Edit &gt; Project Settings &gt; Player** and, in the **Other Settings** section, set the **Color Space** to **Linear**.
-
-HDRP uses [physical Light units](Physical-Light-Units.html) to control the intensity of Lights. These units do not match the arbitrary units that the built-in render pipeline uses. Directional Light intensities are expressed in [Lux]([https://en.wikipedia.org/wiki/Lux](https://en.wikipedia.org/wiki/Lux)) and other Light intensities are expressed in [Lumen]([https://en.wikipedia.org/wiki/Lumen_(unit)](https://en.wikipedia.org/wiki/Lumen_(unit)).
+HDRP uses [physical Light units](Physical-Light-Units.html) to control the intensity of Lights. These units do not match the arbitrary units that the built-in render pipeline uses. Directional Light intensities are expressed in [Lux](https://en.wikipedia.org/wiki/Lux)) and other Light intensities are expressed in [Lumen](https://en.wikipedia.org/wiki/Lumen_(unit)).
 
 So, in the case of the example Scene, start by adding a Directional Light to represent the main, natural light in this Scene: the Moon. A full Moon, on a clear night sky, has a luminous flux of around 0.25 Lux.
 
-Disable all other Lights in the Scene to exclusively see the effect of the Light representing the Moon.
+To exclusively see the effect of the Light representing the moon, delete the **Fill_Directional** GameObject and disable all other Lights in the Scene.
 
 Note: If your Scene does not render correctly at this point, you must  remove a legacy component from the **Main Camera**. To do this:
 
@@ -62,13 +60,15 @@ This adds a GameObject to your Scene called **Sky and Fog Volume**. Select this 
 #### Lighting 
 The Physically Based Sky’s light intensity is expressed as **Exposure** (units are EV) and **Multiplier**. To convert to Lux, set exposure to 0 Exposure Value (EV) and use the Multiplier as the Lux value. To create believable visuals in this example, set the Multiplier to 0.02 Lux. You can increase the value to 0.05 to make the Scene more visible, while still being low enough to be plausible.
 
-At this point, you can **Generate Lighting** in this Scene to create light bounces and directional soft shadows. To do this, go to **Window &gt; Rendering &gt; Lighting Settings** and, near the bottom of the **Scene** tab, click **Generate Lighting**.![](Images/UpgradingToHDRP5.png)
+At this point, you can **Generate Lighting** in this Scene to create light bounces and directional soft shadows. To do this, go to **Window &gt; Rendering &gt; Lighting Settings** and, near the bottom of the **Scene** tab, click **Generate Lighting**.
 
-Fire-lit torches are usually around 100 to 140 Lumen so set the **Intensity** of the Point Lights in the Sene to somewhere between these two values, and make sure you set their **Mode** to **Baked**. Baked lighting allows you to use smooth shadows baked into lightmaps.
+For information on environment lighting, specifically baked lighting and global illumination, see [Environment Lighting](Environment-Lighting.html#LightingEnvironment).
+
+![](Images/UpgradingToHDRP5.png)
 
 <a name="CookieCorrection"></a>
 
-You’ll also notice that the Light Cookie no longer works. That’s because HDRP uses standard textures as Light Cookies, and handles colored cookies. Simply change the cookie texture (named "TorchCookie") import settings to these:
+You may notice that the Light Cookie no longer works. That’s because HDRP uses standard Textures as Light Cookies, and handles colored cookies. Simply change the cookie texture (named "TorchCookie") import settings to match the following:
 
 * **Texture Type** to **default**
 
@@ -85,6 +85,8 @@ You’ll also notice that the Light Cookie no longer works. That’s because HDR
 * **Wrap Mode** to **Clamp**
 
 ![](Images/UpgradingToHDRP6.png)
+
+Fire-lit torches are usually around 100 to 140 Lumen so set the **Intensity** of the Point Lights in the Sene to somewhere between these two values, and make sure you set their **Mode** to **Baked**. Baked lighting allows you to use smooth shadows baked into lightmaps.
 
 Click **Generate Lighting** again. The Scene now looks like this:
 
@@ -104,7 +106,7 @@ The **3D With Extras** template Scene is another Scene that is interesting to te
 
 Like with the previous conversion example, [import the HDRP package](#ImportingHDRP) (menu: **Window &gt; Package Manager**) and open the Render Pipeline Wizard, to upgrade the Project and the Materials. Then add the **Sky and Fog Volume**.
 
-HDRP has its own integrated post-processing solution that uses the Volumes in HDRP. This means that you must remove the built-in post-processing components. To do this:
+HDRP has its own integrated [post-processing solution](Post-Processing-Main.html) that uses the Volumes in HDRP. This means that you must remove the built-in post-processing components. To do this:
 
 * Delete the GameObject called **Post-process Volume**.
 * Remove the Post-Processing Layer component from the GameObject called **Main Camera**.
@@ -123,7 +125,7 @@ This accommodates the high difference in light exposition values (Min and Max) a
 
 4. Set the **Intensity** of the Light representing the Sun (the Light attached to the **Directional Light** GameObject in the Scene) to 100000.
 
-5. Create a Scene Settings GameObject (**GameObject &gt; Rendering &gt; Scene Settings**) and set the sky **Exposure** to 0 and the **Multiplier** to 20000.
+5. Create a global [Volume](Volumes.html) (menu: **GameObject > Volume > Global Volume**), next to **Profile** click the **New** button, then add one of HDRP's [sky types](HDRP-Features.html#SkyOverview). Set the sky **Exposure** to 0 and the **Multiplier** to 20000.
 
 6. Set the intensity of the Light attached to the **Spot Light** GameObject to 17000. This is because there are two 8500 lumen lamps. Enable **Angle Affect Intensity** to compensate for the spot angle and its reflector.
 

@@ -68,6 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string hdrpSRPBatcherError = "SRP Batcher must be enabled!";
             public const string defaultSceneLabel = "Default scene prefab";
             public const string defaultSceneError = "Default scene prefab must be set to create HD templated scene!";
+            public const string defaultVolumeProfileLabel = "Default volume profile";
+            public const string defaultVolumeProfileError = "Default volume profile must be assigned in the HDRP asset!";
             public const string vrSupportedLabel = "VR activated";
             public const string vrSupportedError = "VR need to be enabled in Player Settings!";
             public const string dxrAutoGraphicsAPILabel = "Auto graphics API";
@@ -84,6 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string dxrResourcesError = "There is an issue with the DXR resources!";
             public const string dxrActivatedLabel = "DXR activated";
             public const string dxrActivatedError = "DXR is not activated!";
+            public const string dxrShaderConfigLabel = "DXR shader config";
+            public const string dxrShaderConfigError = "There is an issue with the DXR shader config!";
             public const string defaultDXRSceneLabel = "Default DXR scene prefab";
             public const string defaultDXRSceneError = "Default DXR scene prefab must be set to create HD templated scene!";
 
@@ -201,20 +205,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     },
                 out m_BaseUpdatable));
 
-            AddHDRPConfigInfo(m_BaseUpdatable);
-
-            var vrScope = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_VR);
-            AddVRConfigInfo(vrScope);
-            vrScope.Init();
-            m_BaseUpdatable.Add(vrScope);
-            
-            var dxrScope = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_DXR);
-            AddDXRConfigInfo(dxrScope);
-            dxrScope.Init();
-            m_BaseUpdatable.Add(dxrScope);
-
             m_BaseUpdatable.Add(new FixAllButton(
                 Style.resolveAll,
                 () =>
@@ -244,6 +234,20 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                     }
                 }));
+
+            AddHDRPConfigInfo(m_BaseUpdatable);
+
+            var vrScope = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_VR);
+            AddVRConfigInfo(vrScope);
+            vrScope.Init();
+            m_BaseUpdatable.Add(vrScope);
+            
+            var dxrScope = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_DXR);
+            AddDXRConfigInfo(dxrScope);
+            dxrScope.Init();
+            m_BaseUpdatable.Add(dxrScope);
             
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateMigrationButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
@@ -364,6 +368,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(new ConfigInfoLine(Style.hdrpSRPBatcherLabel, Style.hdrpSRPBatcherError, Style.resolve, IsSRPBatcherCorrect, FixSRPBatcher, indent: 1));
             container.Add(new ConfigInfoLine(Style.hdrpAssetDiffusionProfileLabel, Style.hdrpAssetDiffusionProfileError, Style.resolve, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile, indent: 1));
             container.Add(new ConfigInfoLine(Style.defaultSceneLabel, Style.defaultSceneError, Style.resolve, IsDefaultSceneCorrect, () => FixDefaultScene(fromAsync: false)));
+            container.Add(new ConfigInfoLine(Style.defaultVolumeProfileLabel, Style.defaultVolumeProfileError, Style.resolve, IsDefaultVolumeProfileAssigned, FixDefaultVolumeProfileAssigned));
         }
 
         void AddVRConfigInfo(VisualElement container)
@@ -377,6 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(new ConfigInfoLine(Style.dxrScreenSpaceShadowLabel, Style.dxrScreenSpaceShadowError, Style.resolve, IsDXRScreenSpaceShadowCorrect, FixDXRScreenSpaceShadow));
             container.Add(new ConfigInfoLine(Style.dxrActivatedLabel, Style.dxrActivatedError, Style.resolve, IsDXRActivationCorrect, FixDXRActivation));
             container.Add(new ConfigInfoLine(Style.dxrResourcesLabel, Style.dxrResourcesError, Style.resolve, IsDXRAssetCorrect, FixDXRAsset));
+            container.Add(new ConfigInfoLine(Style.dxrShaderConfigLabel, Style.dxrShaderConfigError, Style.resolve, IsDXRShaderConfigCorrect, FixDXRShaderConfig));
             container.Add(new ConfigInfoLine(Style.defaultDXRSceneLabel, Style.defaultDXRSceneError, Style.resolve, IsDXRDefaultSceneCorrect, () => FixDXRDefaultScene(fromAsync: false)));
         }
 

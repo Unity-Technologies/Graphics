@@ -172,6 +172,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Weight for blending amongst probes (non PBR parameter).</summary>
         public float weight
         { get => m_ProbeSettings.lighting.weight; set => m_ProbeSettings.lighting.weight = value; }
+        /// <summary>The distance at which reflections smoothly fade out before HDRP cut them completely.</summary>
+        public float fadeDistance
+        { get => m_ProbeSettings.lighting.fadeDistance; set => m_ProbeSettings.lighting.fadeDistance = value; }
+        /// <summary>The result of the rendering of the probe will be divided by this factor. When the probe is read, this factor is undone as the probe data is read. This is to simply avoid issues with values clamping due to precision of the storing format.</summary>
+        public float rangeCompressionFactor
+        { get => m_ProbeSettings.lighting.rangeCompressionFactor; set => m_ProbeSettings.lighting.rangeCompressionFactor = value; }
+
 
         // Proxy
         /// <summary>ProxyVolume currently used by this probe.</summary>
@@ -193,8 +200,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Camera
         /// <summary>Frame settings in use with this probe.</summary>
-        public ref FrameSettings frameSettings => ref m_ProbeSettings.camera.renderingPathCustomFrameSettings;
-        public FrameSettingsOverrideMask frameSettingsOverrideMask => m_ProbeSettings.camera.renderingPathCustomFrameSettingsOverrideMask;
+        public ref FrameSettings frameSettings => ref m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettings;
+        public FrameSettingsOverrideMask frameSettingsOverrideMask => m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettingsOverrideMask;
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
             => proxyVolume != null

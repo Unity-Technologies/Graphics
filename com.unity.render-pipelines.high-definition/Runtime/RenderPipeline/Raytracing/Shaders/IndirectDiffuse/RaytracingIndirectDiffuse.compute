@@ -139,7 +139,7 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-#if SHADEROPTIONS_RAYTRACING
+#if RAYTRACING_ENABLED
     #ifdef HALF_RESOLUTION
     // Compute the half res coordinate that we shall be using for our effect
     uint2 targetCoord = dispatchThreadId.xy;
@@ -250,7 +250,7 @@ void IndirectDiffuseAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, u
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-#if SHADEROPTIONS_RAYTRACING
+#if RAYTRACING_ENABLED
     // Fetch the current pixel coordinate
     uint2 currentPixelCoordinate = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
 

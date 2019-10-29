@@ -34,7 +34,6 @@ Shader "Hidden/HDRP/TerrainLit_BasemapGen"
         CBUFFER_START(UnityTerrain)
             UNITY_TERRAIN_CB_VARS
             float4 _Control0_ST;
-            float4 _Control0_TexelSize;
         CBUFFER_END
 
         struct Varyings

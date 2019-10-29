@@ -1,0 +1,41 @@
+editors:
+  - version: 2019.3/staging
+projects:
+  - name: Universal
+    folder: UniversalGraphicsTest
+  - name: Universal_Stereo
+    folder: UniversalGfxTestStereo
+  - name: ShaderGraph
+    folder: ShaderGraph
+  - name: PostProcessing
+    folder: PostProcessing
+  - name: HDRP
+    folder: HDRP_Tests
+  - name: HDRP_Standalone
+    folder: HDRP_RuntimeTests
+  - name: VFXMain
+    folder: VisualEffectGraph
+  - name: VFX_LWRP
+    folder: VisualEffectGraph_LWRP
+---
+all_project_ci:
+  name: ABV for SRP repository
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:latest
+    flavor: b1.small
+  commands:
+  - dir
+  dependencies:
+  {% for project in projects %}
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
+      rerun: always
+  {% endfor %}
+  triggers:
+    recurring:
+      - branch: release/2019.3
+        frequency: daily
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
