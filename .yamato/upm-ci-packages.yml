@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: graphics/vfx/feature/compile-on-import
 packages:
   - name: Core
     id: core

@@ -1,6 +1,5 @@
 editors:
-  - version: trunk
-  - version: fast-trunk
+  - version: graphics/vfx/feature/compile-on-import
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
