@@ -50,10 +50,9 @@ projects:
         - "**/upm-ci~/test-results/**/*"       
 {% endfor %}
 {% endfor %}
-{% endfor %}
 
-All_{{ project.name }}:
-  name: All {{ project.name }} CI
+All_{{ project.name }}_{{ editor.version }}:
+  name: All {{ project.name }} CI - {{ editor.version }}
   agent:
     name: whatever
     type: Unity::VM
@@ -64,9 +63,9 @@ All_{{ project.name }}:
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_trunk
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endfor %}
   {% endfor %}
-
   
+{% endfor %}
 {% endfor %}
