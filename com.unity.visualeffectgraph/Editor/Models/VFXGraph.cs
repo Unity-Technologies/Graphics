@@ -15,6 +15,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
+    [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
         void OnPreprocessAsset()
@@ -25,8 +26,39 @@ namespace UnityEditor.VFX
                 if( resource != null)
                 {
                     Debug.Log("Recompiling before import: "+assetPath);
-                    resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
+
+
+                    VFXGraph graph = resource.GetOrCreateGraph();
+                    if( graph != null)
+                    {
+                        graph.SetExpressionGraphDirty();
+                        graph.RecompileIfNeeded(false, true);
+                    }
                 }
+            }
+        }
+
+        static VFXGraphPreprocessor()
+        {
+            string[] allVisualEffectAssets = AssetDatabase.FindAssets("t:VisualEffectAsset");
+
+            UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
+            SerializedObject serializedVFXManager = new SerializedObject(vfxmanager);
+            var compiledVersionProperty = serializedVFXManager.FindProperty("m_CompiledVersion");
+
+            if (compiledVersionProperty.intValue != VFXGraphCompiledData.compiledVersion)
+            {
+                compiledVersionProperty.intValue = (int)VFXGraphCompiledData.compiledVersion;
+                serializedVFXManager.ApplyModifiedProperties();
+
+                AssetDatabase.StartAssetEditing();
+                foreach (var guid in allVisualEffectAssets)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+
+                    AssetDatabase.ImportAsset(path);
+                }
+                AssetDatabase.StopAssetEditing();
             }
         }
     }

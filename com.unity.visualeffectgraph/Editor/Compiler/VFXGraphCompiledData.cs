@@ -38,6 +38,8 @@ namespace UnityEditor.VFX
 
     class VFXGraphCompiledData
     {
+        public const uint compiledVersion = 2;
+
         public VFXGraphCompiledData(VFXGraph graph)
         {
             if (graph == null)
@@ -647,7 +649,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VisualEffectResource resource, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static VFXShaderSourceDesc[] SaveShaderFiles(VisualEffectResource resource, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
@@ -668,8 +670,6 @@ namespace UnityEditor.VFX
                     descs[i].compute = generated.computeShader;
                 }
 
-                resource.shaderSources = descs;
-
                 for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
                     var generated = generatedCodeData[i];
@@ -677,6 +677,8 @@ namespace UnityEditor.VFX
                     contextData.indexInShaderSource = i;
                     contextToCompiledData[generated.context] = contextData;
                 }
+
+                return descs;
             }
             finally
             {
@@ -921,7 +923,7 @@ namespace UnityEditor.VFX
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode, dependencies);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 8 / nbSteps);
-                SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
+                VFXShaderSourceDesc[] shaderSources = SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var temporaryBufferDescs = new List<VFXTemporaryGPUBufferDesc>();
@@ -970,7 +972,7 @@ namespace UnityEditor.VFX
                 expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
 
 
-                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray());
+                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
 
                 foreach (var dep in dependencies)
