@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.Universal
         public static uint NonNullColorBuffersCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
-            foreach(var identifier in colorBuffers)
+            foreach (var identifier in colorBuffers)
             {
                 if (identifier != 0)
                     ++nonNullColorBuffers;
@@ -413,6 +413,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
+            // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if(IsMRT(renderPass.colorAttachments))
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
