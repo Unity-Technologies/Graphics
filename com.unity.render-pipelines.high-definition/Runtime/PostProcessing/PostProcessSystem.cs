@@ -31,6 +31,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SMAAMaterial;
         Material m_TemporalAAMaterial;
 
+        //TEMP: Accumulation Motion Blur lives here until disucssion about moving to volume
+        Material m_AccumulationMotionBlurMaterial;
+
         MaterialPropertyBlock m_TAAHistoryBlitPropertyBlock = new MaterialPropertyBlock();
         MaterialPropertyBlock m_TAAPropertyBlock = new MaterialPropertyBlock();
 
@@ -133,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.temporalAntialiasingPS);
+            m_AccumulationMotionBlurMaterial = CoreUtils.CreateEngineMaterial(m_Resources.shaders.accumulationMotionBlurPS);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -464,6 +468,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 PoolSource(ref source, destination);
                             }
                         }
+                    }
+
+                    // TEMP: Place accumulation here for now.
+                    if (true)
+                    {
+                        var destination = m_Pool.Get(Vector2.one, k_AccumulationFormat);
+                        DoAccumulationMotionBlur(cmd, camera, source, destination, depthBuffer);
+                        PoolSource(ref source, destination);
                     }
 
                     if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
@@ -1437,6 +1449,8 @@ namespace UnityEngine.Rendering.HighDefinition
             //TODO: Property Block?
 
             //TODO: Draw
+            CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
+            cmd.DrawProcedural(Matrix4x4.identity, m_AccumulationMotionBlurMaterial, 0, MeshTopology.Triangles, 3, 1);
         }
 
         static void GrabAccumulationMotionBlurHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
