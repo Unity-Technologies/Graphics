@@ -1,4 +1,5 @@
 editors:
+  - version: graphics/bugfix/fix-shadow-culling
   - version: trunk
     cmd: -u trunk
   - version: fast-trunk
