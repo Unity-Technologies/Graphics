@@ -203,7 +203,7 @@ float4 SampleVT_Lod_##layerSamplerName(StackInfo info)\
 	grCB.streamingTextureBuffer = textureParamBlock;\
 \
 	GraniteCacheTexture cache;\
-	cache.TextureArray = stackName##_c##layerIndex;\
+	cache.Texture = stackName##_c##layerIndex;\
 	cache.Sampler = sampler##stackName##_c##layerIndex;\
 \
 	float4 output;\
