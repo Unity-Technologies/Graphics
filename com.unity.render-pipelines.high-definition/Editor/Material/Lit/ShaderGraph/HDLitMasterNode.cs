@@ -10,7 +10,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.HighDefinition.Drawing;
 using UnityEditor.ShaderGraph.Internal;
-using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -984,93 +984,93 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
-                                                                                        IsSlotConnected(VertexNormalSlotID) || 
-                                                                                        IsSlotConnected(VertexTangentSlotID)),
-                new ConditionalField(Fields.GraphPixel,                          true),
+                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) || 
+                                                                                IsSlotConnected(VertexNormalSlotID) || 
+                                                                                IsSlotConnected(VertexTangentSlotID)),
+                new ConditionalField(Fields.GraphPixel,                     true),
                 
                 // Structs
-                new ConditionalField(HDRPMeshTarget.ShaderStructs.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
+                new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
+                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
                 
                 // Dots
-                new ConditionalField(HDRPShaderGraphFields.DotsInstancing,              dotsInstancing.isOn),
-                new ConditionalField(HDRPShaderGraphFields.DotsProperties,              hasDotsProperties),
+                new ConditionalField(HDFields.DotsInstancing,               dotsInstancing.isOn),
+                new ConditionalField(HDFields.DotsProperties,               hasDotsProperties),
 
                 // Material
-                new ConditionalField(HDRPShaderGraphFields.Anisotropy,                  materialType == MaterialType.Anisotropy),
-                new ConditionalField(HDRPShaderGraphFields.Iridescence,                 materialType == MaterialType.Iridescence),
-                new ConditionalField(HDRPShaderGraphFields.SpecularColor,               materialType == MaterialType.SpecularColor),
-                new ConditionalField(HDRPShaderGraphFields.Standard,                    materialType == MaterialType.Standard),
-                new ConditionalField(HDRPShaderGraphFields.SubsurfaceScattering,        materialType == MaterialType.SubsurfaceScattering &&
-                                                                                        surfaceType != SurfaceType.Transparent),
-                new ConditionalField(HDRPShaderGraphFields.Transmission,                (materialType == MaterialType.SubsurfaceScattering && sssTransmission.isOn) ||
-                                                                                        (materialType == MaterialType.Translucent)),
-                new ConditionalField(HDRPShaderGraphFields.Translucent,                 materialType == MaterialType.Translucent),
+                new ConditionalField(HDFields.Anisotropy,                   materialType == MaterialType.Anisotropy),
+                new ConditionalField(HDFields.Iridescence,                  materialType == MaterialType.Iridescence),
+                new ConditionalField(HDFields.SpecularColor,                materialType == MaterialType.SpecularColor),
+                new ConditionalField(HDFields.Standard,                     materialType == MaterialType.Standard),
+                new ConditionalField(HDFields.SubsurfaceScattering,         materialType == MaterialType.SubsurfaceScattering &&
+                                                                                surfaceType != SurfaceType.Transparent),
+                new ConditionalField(HDFields.Transmission,                (materialType == MaterialType.SubsurfaceScattering && sssTransmission.isOn) ||
+                                                                                (materialType == MaterialType.Translucent)),
+                new ConditionalField(HDFields.Translucent,                 materialType == MaterialType.Translucent),
 
                 // Surface Type
-                new ConditionalField(Fields.SurfaceOpaque,                       surfaceType == SurfaceType.Opaque),
-                new ConditionalField(Fields.SurfaceTransparent,                  surfaceType != SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceOpaque,                  surfaceType == SurfaceType.Opaque),
+                new ConditionalField(Fields.SurfaceTransparent,             surfaceType != SurfaceType.Opaque),
                 
                 // Blend Mode
-                new ConditionalField(Fields.BlendAdd,                            surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
-                new ConditionalField(Fields.BlendAlpha,                          surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
-                new ConditionalField(Fields.BlendMultiply,                       surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
-                new ConditionalField(Fields.BlendPremultiply,                    surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
+                new ConditionalField(Fields.BlendAdd,                       surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
+                new ConditionalField(Fields.BlendAlpha,                     surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
+                new ConditionalField(Fields.BlendMultiply,                  surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Multiply),
+                new ConditionalField(Fields.BlendPremultiply,               surfaceType != SurfaceType.Opaque && alphaMode == AlphaMode.Premultiply),
 
                 // Double Sided
-                new ConditionalField(HDRPShaderGraphFields.DoubleSided,                 doubleSidedMode != DoubleSidedMode.Disabled),
-                new ConditionalField(HDRPShaderGraphFields.DoubleSidedFlip,             doubleSidedMode == DoubleSidedMode.FlippedNormals &&
-                                                                                        !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
-                new ConditionalField(HDRPShaderGraphFields.DoubleSidedMirror,           doubleSidedMode == DoubleSidedMode.MirroredNormals &&
-                                                                                        !pass.Equals(HDRPMeshTarget.HDLitPasses.MotionVectors)),
+                new ConditionalField(HDFields.DoubleSided,                  doubleSidedMode != DoubleSidedMode.Disabled),
+                new ConditionalField(HDFields.DoubleSidedFlip,              doubleSidedMode == DoubleSidedMode.FlippedNormals &&
+                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                new ConditionalField(HDFields.DoubleSidedMirror,            doubleSidedMode == DoubleSidedMode.MirroredNormals &&
+                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
 
                 // Specular Occlusion
-                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionFromAO,     specularOcclusionMode == SpecularOcclusionMode.FromAO),
-                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionFromAOBentNormal, specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal),
-                new ConditionalField(HDRPShaderGraphFields.SpecularOcclusionCustom,     specularOcclusionMode == SpecularOcclusionMode.Custom),
+                new ConditionalField(HDFields.SpecularOcclusionFromAO,      specularOcclusionMode == SpecularOcclusionMode.FromAO),
+                new ConditionalField(HDFields.SpecularOcclusionFromAOBentNormal, specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal),
+                new ConditionalField(HDFields.SpecularOcclusionCustom,      specularOcclusionMode == SpecularOcclusionMode.Custom),
 
                 //Distortion
-                new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
+                new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
 
                 // Refraction
-                new ConditionalField(HDRPShaderGraphFields.Refraction,                  HasRefraction()),
-                new ConditionalField(HDRPShaderGraphFields.RefractionBox,               HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Box),
-                new ConditionalField(HDRPShaderGraphFields.RefractionSphere,            HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere),
+                new ConditionalField(HDFields.Refraction,                   HasRefraction()),
+                new ConditionalField(HDFields.RefractionBox,                HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Box),
+                new ConditionalField(HDFields.RefractionSphere,             HasRefraction() && refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere),
 
                 // Misc
-                new ConditionalField(Fields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.AlphaTestShadow,             alphaTest.isOn && alphaTestShadow.isOn && 
-                                                                                        pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.AlphaTestPrepass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.AlphaTestPostpass,           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.AlphaFog,                    surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
-                new ConditionalField(HDRPShaderGraphFields.BlendPreserveSpecular,       surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
-                new ConditionalField(HDRPShaderGraphFields.TransparentWritesMotionVec,  surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
-                new ConditionalField(HDRPShaderGraphFields.DisableDecals,               !receiveDecals.isOn),
-                new ConditionalField(HDRPShaderGraphFields.DisableSSR,                  !receiveSSR.isOn),
-                new ConditionalField(Fields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
-                new ConditionalField(HDRPShaderGraphFields.SpecularAA,                  specularAA.isOn && 
-                                                                                        pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
-                                                                                        pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.EnergyConservingSpecular,    energyConservingSpecular.isOn),
-                new ConditionalField(HDRPShaderGraphFields.BentNormal,                  IsSlotConnected(BentNormalSlotId) && 
-                                                                                        pass.pixelPorts.Contains(BentNormalSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.AmbientOcclusion,            pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
-                                                                                        (IsSlotConnected(AmbientOcclusionSlotId) ||
-                                                                                        ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
-                new ConditionalField(HDRPShaderGraphFields.CoatMask,                    pass.pixelPorts.Contains(CoatMaskSlotId) &&
-                                                                                        (IsSlotConnected(CoatMaskSlotId) || coatMaskSlot.value > 0.0f)),
-                new ConditionalField(HDRPShaderGraphFields.Tangent,                     IsSlotConnected(TangentSlotId) && 
-                                                                                        pass.pixelPorts.Contains(TangentSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.LightingGI,                  IsSlotConnected(LightingSlotId) && 
-                                                                                        pass.pixelPorts.Contains(LightingSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.BackLightingGI,              IsSlotConnected(BackLightingSlotId) && 
-                                                                                        pass.pixelPorts.Contains(BackLightingSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.DepthOffset,                 depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.TransparentBackFace,         surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
-                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPrePass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
-                new ConditionalField(HDRPShaderGraphFields.TransparentDepthPostPass,    surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
+                new ConditionalField(HDFields.AlphaTestShadow,              alphaTest.isOn && alphaTestShadow.isOn && 
+                                                                                pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
+                new ConditionalField(HDFields.AlphaTestPrepass,             alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
+                new ConditionalField(HDFields.AlphaTestPostpass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
+                new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
+                new ConditionalField(HDFields.BlendPreserveSpecular,        surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
+                new ConditionalField(HDFields.TransparentWritesMotionVec,   surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
+                new ConditionalField(HDFields.DisableDecals,                !receiveDecals.isOn),
+                new ConditionalField(HDFields.DisableSSR,                   !receiveSSR.isOn),
+                new ConditionalField(Fields.VelocityPrecomputed,                addPrecomputedVelocity.isOn),
+                new ConditionalField(HDFields.SpecularAA,                   specularAA.isOn && 
+                                                                                pass.pixelPorts.Contains(SpecularAAThresholdSlotId) &&
+                                                                                pass.pixelPorts.Contains(SpecularAAScreenSpaceVarianceSlotId)),
+                new ConditionalField(HDFields.EnergyConservingSpecular,     energyConservingSpecular.isOn),
+                new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) && 
+                                                                                pass.pixelPorts.Contains(BentNormalSlotId)),
+                new ConditionalField(HDFields.AmbientOcclusion,             pass.pixelPorts.Contains(AmbientOcclusionSlotId) &&
+                                                                                (IsSlotConnected(AmbientOcclusionSlotId) ||
+                                                                                ambientOcclusionSlot.value != ambientOcclusionSlot.defaultValue)),
+                new ConditionalField(HDFields.CoatMask,                     pass.pixelPorts.Contains(CoatMaskSlotId) &&
+                                                                                (IsSlotConnected(CoatMaskSlotId) || coatMaskSlot.value > 0.0f)),
+                new ConditionalField(HDFields.Tangent,                      IsSlotConnected(TangentSlotId) && 
+                                                                                pass.pixelPorts.Contains(TangentSlotId)),
+                new ConditionalField(HDFields.LightingGI,                   IsSlotConnected(LightingSlotId) && 
+                                                                                pass.pixelPorts.Contains(LightingSlotId)),
+                new ConditionalField(HDFields.BackLightingGI,               IsSlotConnected(BackLightingSlotId) && 
+                                                                                pass.pixelPorts.Contains(BackLightingSlotId)),
+                new ConditionalField(HDFields.DepthOffset,                  depthOffset.isOn && pass.pixelPorts.Contains(DepthOffsetSlotId)),
+                new ConditionalField(HDFields.TransparentBackFace,          surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
+                new ConditionalField(HDFields.TransparentDepthPrePass,      surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(HDFields.TransparentDepthPostPass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
             };
         }
 

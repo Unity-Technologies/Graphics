@@ -2,7 +2,7 @@
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public static class HDRPShaderGraphFields
+    public static class HDFields
     {
 #region Tags
         const string kMaterial = "Material";

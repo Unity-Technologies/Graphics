@@ -12,7 +12,7 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
-using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -373,22 +373,22 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                         IsSlotConnected(PositionSlotId) || 
-                                                                                        IsSlotConnected(VertexNormalSlotId) || 
-                                                                                        IsSlotConnected(VertexTangentSlotId)),
-                new ConditionalField(Fields.GraphPixel,                          true),
+                new ConditionalField(Fields.GraphVertex,                    IsSlotConnected(PositionSlotId) || 
+                                                                                IsSlotConnected(VertexNormalSlotId) || 
+                                                                                IsSlotConnected(VertexTangentSlotId)),
+                new ConditionalField(Fields.GraphPixel,                     true),
 
                 // Distortion
-                new ConditionalField(HDRPShaderGraphFields.DistortionDepthTest,         distortionDepthTest.isOn),
-                new ConditionalField(HDRPShaderGraphFields.DistortionAdd,               distortionMode == DistortionMode.Add),
-                new ConditionalField(HDRPShaderGraphFields.DistortionMultiply,          distortionMode == DistortionMode.Multiply),
-                new ConditionalField(HDRPShaderGraphFields.DistortionReplace,           distortionMode == DistortionMode.Replace),
-                new ConditionalField(HDRPShaderGraphFields.TransparentDistortion,       surfaceType != SurfaceType.Opaque && distortion.isOn),
+                new ConditionalField(HDFields.DistortionDepthTest,          distortionDepthTest.isOn),
+                new ConditionalField(HDFields.DistortionAdd,                distortionMode == DistortionMode.Add),
+                new ConditionalField(HDFields.DistortionMultiply,           distortionMode == DistortionMode.Multiply),
+                new ConditionalField(HDFields.DistortionReplace,            distortionMode == DistortionMode.Replace),
+                new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
                 
                 // Misc
-                new ConditionalField(Fields.AlphaTest,                           alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
-                new ConditionalField(HDRPShaderGraphFields.AlphaFog,                    surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
-                new ConditionalField(Fields.VelocityPrecomputed,                 addPrecomputedVelocity.isOn),
+                new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
+                new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
+                new ConditionalField(Fields.VelocityPrecomputed,            addPrecomputedVelocity.isOn),
             };
         }
 

@@ -10,7 +10,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
-using PassDescriptor = UnityEditor.ShaderGraph.Internal.PassDescriptor;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -247,21 +247,21 @@ namespace UnityEditor.Rendering.HighDefinition
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,                 IsSlotConnected(PositionSlotId) || 
-                                                                                IsSlotConnected(VertexNormalSlotID) || 
-                                                                                IsSlotConnected(VertexTangentSlotID)),
-                new ConditionalField(Fields.GraphPixel,                  true),
+                new ConditionalField(Fields.GraphVertex,            IsSlotConnected(PositionSlotId) || 
+                                                                        IsSlotConnected(VertexNormalSlotID) || 
+                                                                        IsSlotConnected(VertexTangentSlotID)),
+                new ConditionalField(Fields.GraphPixel,             true),
                 
                 // Material
-                new ConditionalField(HDRPShaderGraphFields.AffectsAlbedo,       affectsAlbedo.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsNormal,       affectsNormal.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsEmission,     affectsEmission.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsMetal,        affectsMetal.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsAO,           affectsAO.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsSmoothness,   affectsSmoothness.isOn),
-                new ConditionalField(HDRPShaderGraphFields.AffectsMaskMap,      affectsSmoothness.isOn || affectsMetal.isOn || affectsAO.isOn),
-                new ConditionalField(HDRPShaderGraphFields.DecalDefault,        affectsAlbedo.isOn || affectsNormal.isOn || affectsMetal.isOn ||
-                                                                                affectsAO.isOn || affectsSmoothness.isOn ),
+                new ConditionalField(HDFields.AffectsAlbedo,        affectsAlbedo.isOn),
+                new ConditionalField(HDFields.AffectsNormal,        affectsNormal.isOn),
+                new ConditionalField(HDFields.AffectsEmission,      affectsEmission.isOn),
+                new ConditionalField(HDFields.AffectsMetal,         affectsMetal.isOn),
+                new ConditionalField(HDFields.AffectsAO,            affectsAO.isOn),
+                new ConditionalField(HDFields.AffectsSmoothness,    affectsSmoothness.isOn),
+                new ConditionalField(HDFields.AffectsMaskMap,       affectsSmoothness.isOn || affectsMetal.isOn || affectsAO.isOn),
+                new ConditionalField(HDFields.DecalDefault,         affectsAlbedo.isOn || affectsNormal.isOn || affectsMetal.isOn ||
+                                                                        affectsAO.isOn || affectsSmoothness.isOn ),
             };
         }
 
