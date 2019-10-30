@@ -40,6 +40,11 @@ namespace UnityEngine.Rendering.Universal
             get => m_ColorAttachment;
         }
 
+        public RenderTargetIdentifier colorAttachment
+        {
+            get => m_ColorAttachments[0];
+        }
+
         public RenderTargetIdentifier depthAttachment
         {
             get => m_DepthAttachment;
