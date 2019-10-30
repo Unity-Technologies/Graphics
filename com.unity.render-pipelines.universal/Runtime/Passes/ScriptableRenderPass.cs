@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
+            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
@@ -88,7 +88,13 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
-            ConfigureTarget(new RenderTargetIdentifier[] { colorAttachment }, depthAttachment);
+            overrideCameraTarget = true;
+
+            m_ColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+                m_ColorAttachments[i] = 0;
+
+            m_DepthAttachment = depthAttachment;
         }
 
         /// <summary>
@@ -113,7 +119,11 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
-            ConfigureTarget(new RenderTargetIdentifier[]{ colorAttachment });
+            overrideCameraTarget = true;
+
+            m_ColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+                m_ColorAttachments[i] = 0;
         }
 
         /// <summary>

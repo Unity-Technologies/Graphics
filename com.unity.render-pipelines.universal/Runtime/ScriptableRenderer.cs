@@ -99,14 +99,17 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
-        static RenderTargetIdentifier[] m_ActiveColorAttachments;
+        static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
         static bool m_InsideStereoRenderBlock;
 
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
-            m_ActiveColorAttachments = new RenderTargetIdentifier[]{colorAttachment };
+            m_ActiveColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+
             m_ActiveDepthAttachment = depthAttachment;
         }
 
@@ -341,7 +344,10 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
             m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
 
-            m_ActiveColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
+            m_ActiveColorAttachments[0] = BuiltinRenderTextureType.CameraTarget;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
             m_FirstCameraRenderPassExecuted = false;
@@ -503,7 +509,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            m_ActiveColorAttachments = new RenderTargetIdentifier[]{colorAttachment};
+            m_ActiveColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+
             m_ActiveDepthAttachment = depthAttachment;
 
             RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
