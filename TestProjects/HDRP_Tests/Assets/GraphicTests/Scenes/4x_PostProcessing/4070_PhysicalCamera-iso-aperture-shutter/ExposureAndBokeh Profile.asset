@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DepthOfField
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
+  m_AdvancedMode: 1
   quality:
     m_OverrideState: 1
     m_Value: 2
@@ -21,8 +21,8 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   focusDistance:
-    m_OverrideState: 0
-    m_Value: 0.29
+    m_OverrideState: 1
+    m_Value: 0.8
     min: 0.1
   nearFocusStart:
     m_OverrideState: 0
