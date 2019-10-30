@@ -99,14 +99,14 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
-        static RenderTargetIdentifier[] m_ActiveColorAttachment;
+        static RenderTargetIdentifier[] m_ActiveColorAttachments;
         static RenderTargetIdentifier m_ActiveDepthAttachment;
         static bool m_InsideStereoRenderBlock;
 
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
         {
-            m_ActiveColorAttachment = new RenderTargetIdentifier[]{colorAttachment };
+            m_ActiveColorAttachments = new RenderTargetIdentifier[]{colorAttachment };
             m_ActiveDepthAttachment = depthAttachment;
         }
 
@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorTarget = BuiltinRenderTextureType.CameraTarget;
             m_CameraDepthTarget = BuiltinRenderTextureType.CameraTarget;
 
-            m_ActiveColorAttachment = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
+            m_ActiveColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
             m_FirstCameraRenderPassExecuted = false;
@@ -402,11 +402,11 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
-            if(IsMRT(renderPass.colorAttachment))
+            if(IsMRT(renderPass.colorAttachments))
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
 
-                if( Contains(renderPass.colorAttachment, m_CameraColorTarget) && !m_FirstCameraRenderPassExecuted)
+                if( Contains(renderPass.colorAttachments, m_CameraColorTarget) && !m_FirstCameraRenderPassExecuted)
                 {
                     m_FirstCameraRenderPassExecuted = true;
 
@@ -419,17 +419,17 @@ namespace UnityEngine.Rendering.Universal
 //                        clearFlag = ClearFlag.None;
 
                     //SetRenderTarget(cmd, renderPass.colorAttachment, m_CameraDepthTarget, clearFlag,
-                    SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, clearFlag,
+                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, clearFlag,
                         CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
                 }
 
                 // Only setup render target if current render pass attachments are different from the active ones
-                else if ( !SequenceEqual(renderPass.colorAttachment, m_ActiveColorAttachment)  || renderPass.depthAttachment != m_ActiveDepthAttachment)
-                    SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
+                else if ( !SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments)  || renderPass.depthAttachment != m_ActiveDepthAttachment)
+                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
             }
             else
             {
-                RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment[0];
+                RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
                 RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
                 ref CameraData cameraData = ref renderingData.cameraData;
 
@@ -469,7 +469,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Only setup render target if current render pass attachments are different from the active ones
-                else if (passColorAttachment != m_ActiveColorAttachment[0] || passDepthAttachment != m_ActiveDepthAttachment)
+                else if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment)
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, renderPass.clearFlag, renderPass.clearColor);
             }
 
@@ -494,7 +494,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            m_ActiveColorAttachment = new RenderTargetIdentifier[]{colorAttachment};
+            m_ActiveColorAttachments = new RenderTargetIdentifier[]{colorAttachment};
             m_ActiveDepthAttachment = depthAttachment;
 
             RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
@@ -551,12 +551,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
+        static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            m_ActiveColorAttachment = colorAttachment;
+            m_ActiveColorAttachments = colorAttachments;
             m_ActiveDepthAttachment = depthAttachment;
 
-            CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, clearFlag, clearColor);
+            CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
 
         [Conditional("UNITY_EDITOR")]

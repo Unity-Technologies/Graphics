@@ -35,9 +35,9 @@ namespace UnityEngine.Rendering.Universal
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
-        public RenderTargetIdentifier[] colorAttachment
+        public RenderTargetIdentifier[] colorAttachments
         {
-            get => m_ColorAttachment;
+            get => m_ColorAttachments;
         }
 
         public RenderTargetIdentifier colorAttachment
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        RenderTargetIdentifier[] m_ColorAttachment = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachment = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
+            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
@@ -98,10 +98,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachment, RenderTargetIdentifier depthAttachment)
+        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
             overrideCameraTarget = true;
-            m_ColorAttachment = colorAttachment;
+            m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
         }
 
@@ -122,10 +122,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachment)
+        public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
             overrideCameraTarget = true;
-            m_ColorAttachment = colorAttachment;
+            m_ColorAttachments = colorAttachments;
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         }
 
