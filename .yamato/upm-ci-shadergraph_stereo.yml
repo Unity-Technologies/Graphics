@@ -1,5 +1,6 @@
 editors:
   - version: graphics/bugfix/fix-shadow-culling
+    cmd: -u graphics/bugfix/fix-shadow-culling
   - version: trunk
     cmd: -u trunk
   - version: fast-trunk
@@ -44,11 +45,11 @@ projects:
       {% else %}
       - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
       {% endif %}
-            
+
   artifacts:
     logs:
       paths:
-        - "**/upm-ci~/test-results/**/*"       
+        - "**/upm-ci~/test-results/**/*"
 {% endfor %}
 {% endfor %}
 
@@ -67,6 +68,6 @@ All_{{ project.name }}_{{ editor.version }}:
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endfor %}
   {% endfor %}
-  
+
 {% endfor %}
 {% endfor %}
