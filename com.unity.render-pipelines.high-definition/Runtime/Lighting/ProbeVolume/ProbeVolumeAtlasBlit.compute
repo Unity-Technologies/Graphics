@@ -10,6 +10,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeSystem.cs.hlsl"
 
 StructuredBuffer<SphericalHarmonicsL1> _ProbeVolumeAtlasReadBuffer;
+StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
 RWTexture2DArray<float4> _ProbeVolumeAtlasWriteTextureSH;
 
 uint _ProbeVolumeAtlasReadBufferCount;
@@ -63,4 +64,13 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 0)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAr;
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 1)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAg;
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 2)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAb;
+
+    // Convert from "Occlusion" representation from Lightmapper into "Validity" representation which can be directly fed into bilateral filter.
+    // This avoids computing 1.0 - occlusion terms per 8 probes per volume per pixel per frame.
+    // TODO: Could additionally pre-compute and power transform here to modify curvature of validity data for filter.
+    // i.e: validity = pow(validity, 4.0);
+    float occlusion = _ProbeVolumeAtlasReadValidityBuffer[readIndex];
+    float validity = 1.0 - occlusion;
+
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, 3)] = float4(validity, 0.0, 0.0, 0.0);
 }

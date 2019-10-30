@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int Version { get => m_Version; }
 
         public SphericalHarmonicsL1[] data = null;
+        public float[] dataValidity = null;
 
         public int resolutionX;
         public int resolutionY;

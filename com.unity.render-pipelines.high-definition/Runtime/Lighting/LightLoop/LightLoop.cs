@@ -2361,7 +2361,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_probeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
                 var settings = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
-                float probeVolumeNormalBiasWS = (settings == null) ? 0.0f : settings.normalBiasWS.value;
+                float probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode != LeakMitigationMode.NormalBias))
+                    ? 0.0f
+                    : settings.normalBiasWS.value;
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {

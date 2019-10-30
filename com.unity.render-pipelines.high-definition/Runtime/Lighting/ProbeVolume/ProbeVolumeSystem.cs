@@ -56,6 +56,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    [GenerateHLSL]
+    public enum LeakMitigationMode
+    {
+        NormalBias = 0,
+        GeometricFilter,
+        ProbeValidityFilter
+    }
+
     public struct ProbeVolumeList
     {
         public List<OrientedBBox> bounds;
@@ -92,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeShader s_ProbeVolumeAtlasBlitCS = null;
         static int s_ProbeVolumeAtlasBlitKernel = -1;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
+        static ComputeBuffer s_ProbeVolumeAtlasBlitDataValidityBuffer = null;
         static int s_ProbeVolumeAtlasWidth = 1024;
         static int s_ProbeVolumeAtlasHeight = 1024;
 
@@ -100,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // With current settings this compute buffer will take  1024 * 1024 * sizeof(float) * coefficientCount (12) bytes ~= 50.3 MB.
         static int s_MaxProbeVolumeProbeCount = 1024 * 1024;
         RTHandle m_ProbeVolumeAtlasSHRTHandle;
-        int m_ProbeVolumeAtlasSHRTDepthSliceCount = 3; // one texture per [RGB] SH coefficients
+        int m_ProbeVolumeAtlasSHRTDepthSliceCount = 4; // one texture per [RGB] SH coefficients + one texture for float4(validity, unassigned, unassigned, unassigned).
         Texture2DAtlasDynamic probeVolumeAtlas = null;
         bool isClearProbeVolumeAtlasRequested = false;
 
@@ -154,6 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
             s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(SphericalHarmonicsL1)));
+            s_ProbeVolumeAtlasBlitDataValidityBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(float)));
 
             m_ProbeVolumeAtlasSHRTHandle = RTHandles.Alloc(
                 width: s_ProbeVolumeAtlasWidth,
@@ -176,6 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBuffer);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBuffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataBuffer);
+            CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataValidityBuffer);
 
             if (m_ProbeVolumeAtlasSHRTHandle != null)
                 RTHandles.Release(m_ProbeVolumeAtlasSHRTHandle);
@@ -228,8 +239,22 @@ namespace UnityEngine.Rendering.HighDefinition
             ));
 
             var settings = VolumeManager.instance.stack.GetComponent<ProbeVolumeController>();
+            LeakMitigationMode leakMitigationMode = (settings == null)
+                ? LeakMitigationMode.NormalBias
+                : settings.leakMitigationMode.value;
             float normalBiasWS = (settings == null) ? 0.0f : settings.normalBiasWS.value;
+            float bilateralFilterWeight = (settings == null) ? 0.0f : settings.bilateralFilterWeight.value;
+            if (leakMitigationMode != LeakMitigationMode.NormalBias && bilateralFilterWeight < 1e-5f)
+            {
+                // If bilateralFilterWeight is effectively zero, then we are simply doing trilinear filtering.
+                // In this case we can avoid the performance cost of computing our bilateral filter entirely.
+                leakMitigationMode = LeakMitigationMode.NormalBias;
+                normalBiasWS = 0.0f;
+            }
+            cmd.SetGlobalInt("_ProbeVolumeLeakMitigationMode", (int)leakMitigationMode);
             cmd.SetGlobalFloat("_ProbeVolumeNormalBiasWS", normalBiasWS);
+            cmd.SetGlobalFloat("_ProbeVolumeBilateralFilterWeightMin", 1e-5f);
+            cmd.SetGlobalFloat("_ProbeVolumeBilateralFilterWeight", bilateralFilterWeight);
         }
 
         private static void PushGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
@@ -239,7 +264,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeDatas, s_VisibleProbeVolumeDataBufferDefault);
             cmd.SetGlobalInt(HDShaderIDs._ProbeVolumeCount, 0);
             cmd.SetGlobalTexture("_ProbeVolumeAtlasSH", TextureXR.GetBlackTexture());
+            cmd.SetGlobalInt("_ProbeVolumeLeakMitigationMode", (int)LeakMitigationMode.NormalBias);
             cmd.SetGlobalFloat("_ProbeVolumeNormalBiasWS", 0.0f);
+            cmd.SetGlobalFloat("_ProbeVolumeBilateralFilterWeightMin", 0.0f);
+            cmd.SetGlobalFloat("_ProbeVolumeBilateralFilterWeight", 0.0f);
         }
 
         public void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
@@ -274,6 +302,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         // TODO: Implement clear/removal from atlas
                         return false;
 
+                    var dataValidity = volume.GetDataValidity();
+
                     //Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
                     cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeResolution", new Vector3(
                         volume.parameters.resolutionX,
@@ -298,8 +328,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(data.Length == size, "Error: ProbeVolumeSystem: volume data length = " + data.Length + ", resolution size = " + size);
 
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
+                    s_ProbeVolumeAtlasBlitDataValidityBuffer.SetData(dataValidity);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeAtlasReadBufferCount", size);
                     cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasReadBuffer", s_ProbeVolumeAtlasBlitDataBuffer);
+                    cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasReadValidityBuffer", s_ProbeVolumeAtlasBlitDataValidityBuffer);
                     cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, "_ProbeVolumeAtlasWriteTextureSH", m_ProbeVolumeAtlasSHRTHandle);
 
                     // TODO: Determine optimal batch size.

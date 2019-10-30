@@ -514,8 +514,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.right, s_probeVolumeBounds.up));
                         float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
 
-                        // TODO: Need to adjust tile / cluster culling code to handle this bias off the surface position.
-                        // One option is to conservatively dilate the volumes in the tile / cluster culling + assignment phase based on the normal bias.
+                        // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
                         float3 samplePositionWS = bsdfData.normalWS * _ProbeVolumeNormalBiasWS + posInput.positionWS;
                         float3 samplePositionBS = mul(obbFrame, samplePositionWS - s_probeVolumeBounds.center);
                         float3 samplePositionBCS = samplePositionBS * rcp(obbExtents);
@@ -542,6 +541,109 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                             // TODO: Cleanup / optimize this math.
                             float3 probeVolumeUVW = clamp(samplePositionBNDC.xyz, 0.5 * s_probeVolumeData.resolutionInverse, 1.0 - s_probeVolumeData.resolutionInverse * 0.5);
                             float3 probeVolumeTexel3D = probeVolumeUVW * s_probeVolumeData.resolution;
+
+                            if (_ProbeVolumeLeakMitigationMode != LEAKMITIGATIONMODE_NORMALBIAS)
+                            {
+                                float3 probeVolumeTexel3DMin = floor(probeVolumeTexel3D - 0.5) + 0.5;
+
+                                float probeWeightBSW = 1.0;
+                                float probeWeightBSE = 1.0;
+                                float probeWeightBNW = 1.0;
+                                float probeWeightBNE = 1.0;
+                                float probeWeightTSW = 1.0;
+                                float probeWeightTSE = 1.0;
+                                float probeWeightTNW = 1.0;
+                                float probeWeightTNE = 1.0;
+                                if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_GEOMETRICFILTER)
+                                {
+                                    // Compute Geometric Weights based on surface position + normal, and direction to probe (similar to projected area calculation for point lights).
+                                    // source: https://advances.realtimerendering.com/s2015/SIGGRAPH_2015_Remedy_Notes.pdf
+                                    probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                    probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                    probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+                                    probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 0.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+
+                                    probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                    probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 0.0) - probeVolumeTexel3D))));
+                                    probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+                                    probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
+                                }
+                                else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_VALIDITYFILTER)
+                                {
+                                    float2 probeVolumeTexel2DBackSW = float2(
+                                        max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + floor(probeVolumeTexel3D.x - 0.5) + 0.5,
+                                        floor(probeVolumeTexel3D.y - 0.5) + 0.5
+                                    );
+                                    float2 probeVolumeTexel2DFrontSW = float2(probeVolumeTexel2DBackSW.x + s_probeVolumeData.resolution.x, probeVolumeTexel2DBackSW.y);
+
+                                    // TODO: Rather than sampling validity data from a slice in our texture array, we could place it in a different texture resource entirely.
+                                    // This would allow us to use a single channel format, rather than wasting memory with float4(validity, unused, unused, unused).
+                                    // It would also allow us to use a different texture format (i.e: 1x8bpp rather than 4x16bpp).
+                                    // Currently just using a texture slice for convenience, and with the idea that MAYBE we will end up using the remaining 3 channels.
+                                    probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 0.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
+                                    probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 1.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
+                                    probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 0.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
+                                    probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 1.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
+
+                                    probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 0.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
+                                    probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 1.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
+                                    probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 0.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
+                                    probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 1.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
+                                }
+
+                                // Blend between Geometric Weights and simple trilinear filter weights based on user defined _ProbeVolumeBilateralFilterWeight.
+                                {
+                                    float3 probeWeightTrilinearMax = frac(probeVolumeTexel3D - 0.5);
+                                    float3 probeWeightTrilinearMin = 1.0 - probeWeightTrilinearMax;
+
+                                    probeWeightBSW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMin.y * probeWeightTrilinearMin.z, probeWeightBSW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightBSE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMin.y * probeWeightTrilinearMin.z, probeWeightBSE, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightBNW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMin.y * probeWeightTrilinearMax.z, probeWeightBNW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightBNE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMin.y * probeWeightTrilinearMax.z, probeWeightBNE, _ProbeVolumeBilateralFilterWeight);
+
+                                    probeWeightTSW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMax.y * probeWeightTrilinearMin.z, probeWeightTSW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightTSE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMax.y * probeWeightTrilinearMin.z, probeWeightTSE, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightTNW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMax.y * probeWeightTrilinearMax.z, probeWeightTNW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightTNE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMax.y * probeWeightTrilinearMax.z, probeWeightTNE, _ProbeVolumeBilateralFilterWeight);
+                                }
+
+                                float probeWeightTotal =
+                                    probeWeightBSW +
+                                    probeWeightBSE +
+                                    probeWeightBNW +
+                                    probeWeightBNE +
+                                    probeWeightTSW +
+                                    probeWeightTSE +
+                                    probeWeightTNW +
+                                    probeWeightTNE;
+
+                                // Weights are enforced to be > 0.0 to guard against divide by zero.
+                                float probeWeightNormalization = 1.0 / probeWeightTotal;
+
+                                probeWeightBSW *= probeWeightNormalization;
+                                probeWeightBSE *= probeWeightNormalization;
+                                probeWeightBNW *= probeWeightNormalization;
+                                probeWeightBNE *= probeWeightNormalization;
+                                probeWeightTSW *= probeWeightNormalization;
+                                probeWeightTSE *= probeWeightNormalization;
+                                probeWeightTNW *= probeWeightNormalization;
+                                probeWeightTNE *= probeWeightNormalization;
+
+                                // Finally, update our texture coordinate based on our weights.
+                                // Half-texel offset has been baked into the coordinates.
+                                float3 probeVolumeTexel3DFrac =
+                                    float3(0.5, 0.5, 0.5) * probeWeightBSW +
+                                    float3(1.5, 0.5, 0.5) * probeWeightBSE +
+                                    float3(0.5, 0.5, 1.5) * probeWeightBNW +
+                                    float3(1.5, 0.5, 1.5) * probeWeightBNE +
+                                    float3(0.5, 1.5, 0.5) * probeWeightTSW +
+                                    float3(1.5, 1.5, 0.5) * probeWeightTSE +
+                                    float3(0.5, 1.5, 1.5) * probeWeightTNW +
+                                    float3(1.5, 1.5, 1.5) * probeWeightTNE;
+
+                                probeVolumeTexel3D = floor(probeVolumeTexel3D - 0.5) + probeVolumeTexel3DFrac;
+                            }
+
                             float2 probeVolumeTexel2DBack = float2(
                                 max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + probeVolumeTexel3D.x,
                                 probeVolumeTexel3D.y

@@ -29,6 +29,13 @@ struct SphericalHarmonicsL1
 };
 
 //
+// UnityEngine.Rendering.HighDefinition.LeakMitigationMode:  static fields
+//
+#define LEAKMITIGATIONMODE_NORMALBIAS (0)
+#define LEAKMITIGATIONMODE_GEOMETRICFILTER (1)
+#define LEAKMITIGATIONMODE_VALIDITYFILTER (2)
+
+//
 // Accessors for UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 //
 float3 GetDebugColor(ProbeVolumeEngineData value)

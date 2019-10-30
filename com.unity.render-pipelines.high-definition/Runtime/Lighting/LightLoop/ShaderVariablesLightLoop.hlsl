@@ -48,8 +48,11 @@
     TEXTURE2D_X(_IndirectDiffuseTexture);
 #endif
 
-    TEXTURE2D_ARRAY(_ProbeVolumeAtlasSH);   
+    TEXTURE2D_ARRAY(_ProbeVolumeAtlasSH);
     float4 _ProbeVolumeAtlasResolutionAndInverse;
+    int _ProbeVolumeLeakMitigationMode;
     float _ProbeVolumeNormalBiasWS;
+    float _ProbeVolumeBilateralFilterWeightMin;
+    float _ProbeVolumeBilateralFilterWeight;
 
 #endif
