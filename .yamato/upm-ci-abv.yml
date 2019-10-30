@@ -23,6 +23,7 @@ projects:
 all_project_ci:
   name: ABV for SRP repository
   agent:
+    name: whatever
     type: Unity::VM
     image: cds-ops/ubuntu-18.04-agent:latest
     flavor: b1.small
@@ -30,8 +31,7 @@ all_project_ci:
   - dir
   dependencies:
   {% for project in projects %}
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
-      rerun: always
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
   {% endfor %}
   triggers:
     recurring:
