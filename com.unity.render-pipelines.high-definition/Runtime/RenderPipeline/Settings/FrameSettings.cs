@@ -117,6 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfField = 81,
         [FrameSettingsField(0, autoName: MotionBlur, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP adds motion blur to Cameras affected by a Volume containing the Blur override.")]
         MotionBlur = 82,
+        [FrameSettingsField(0, displayedName: "Accumulation Motion Blur", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "TODO.")]
+        AccumulationMotionBlur = 46,
         [FrameSettingsField(0, autoName: PaniniProjection, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP adds panini projection to Cameras affected by a Volume containing the Panini Projection override.")]
         PaniniProjection = 83,
         [FrameSettingsField(0, autoName: Bloom, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 17, tooltip: "When enabled, HDRP adds bloom to Cameras affected by a Volume containing the Bloom override.")]

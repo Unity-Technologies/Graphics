@@ -91,6 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_StopNaNFS;
         bool m_DepthOfFieldFS;
         bool m_MotionBlurFS;
+        bool m_AccumulationMotionBlurFS;
         bool m_PaniniProjectionFS;
         bool m_BloomFS;
         bool m_ChromaticAberrationFS;
@@ -324,19 +325,20 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
             var frameSettings = camera.frameSettings;
-            m_ExposureControlFS     = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
-            m_StopNaNFS             = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
-            m_DepthOfFieldFS        = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
-            m_MotionBlurFS          = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
-            m_PaniniProjectionFS    = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
-            m_BloomFS               = frameSettings.IsEnabled(FrameSettingsField.Bloom);
-            m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
-            m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
-            m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
-            m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
-            m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
-            m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
-            m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+            m_ExposureControlFS        = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
+            m_StopNaNFS                = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
+            m_DepthOfFieldFS           = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
+            m_MotionBlurFS             = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
+            m_AccumulationMotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.AccumulationMotionBlur);
+            m_PaniniProjectionFS       = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
+            m_BloomFS                  = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_ChromaticAberrationFS    = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
+            m_LensDistortionFS         = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
+            m_VignetteFS               = frameSettings.IsEnabled(FrameSettingsField.Vignette);
+            m_ColorGradingFS           = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_FilmGrainFS              = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
+            m_DitheringFS              = frameSettings.IsEnabled(FrameSettingsField.Dithering);
+            m_AntialiasingFS           = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
@@ -472,7 +474,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // TEMP: Place accumulation here for now.
-                    if (true)
+                    if (m_AccumulationMotionBlurFS)
                     {
                         var destination = m_Pool.Get(Vector2.one, k_AccumulationFormat);
                         DoAccumulationMotionBlur(cmd, camera, source, destination, depthBuffer);
