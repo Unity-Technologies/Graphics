@@ -205,9 +205,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 BindRayTracedIndirectDiffuseData(cmd, hdCamera, rtEnvironment, indirectDiffuseRT, settings, lightClusterSettings);
 
-                // Set the data for the ray miss
-                cmd.SetRayTracingTextureParam(indirectDiffuseRT, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
-
                 // Run the computation
                 CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", true);
                 CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);

@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    int qualityLevel = (int)quality.value;
+                    int qualityLevel = (int)quality.levelAndOverride.level;
                     return GetPostProcessingQualitySettings().ChromaticAberrationMaxSamples[qualityLevel];
                 }
             }

@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpgradeFrameSettingsToStruct,
             AddFrameSettingSpecularLighting, // Not use anymore
             AddReflectionFrameSetting,
+            AddFrameSettingDirectSpecularLighting,
         }
 
         protected static readonly MigrationDescription<Version, HDProbe> k_Migration = MigrationDescription.New(
@@ -65,6 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.AddReflectionFrameSetting, (HDProbe data) =>
             {
                 FrameSettings.MigrateToNoReflectionSettings(ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings);
+            }),
+            MigrationStep.New(Version.AddFrameSettingDirectSpecularLighting, (HDProbe data) =>
+            {
+                FrameSettings.MigrateToNoDirectSpecularLighting(ref data.m_ProbeSettings.camera.renderingPathCustomFrameSettings);
             })
         );
 

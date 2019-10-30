@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using Utilities;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -30,34 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
         OffsetQualitySettings,
         /// <summary>Set the current quality settings value.</summary>
         OverrideQualitySettings,
-    }
-
-    public static class LODBiasModeExtensions
-    {
-        public static float ComputeValue(this LODBiasMode mode, float qualitySettingValue, float inputValue)
-        {
-            switch (mode)
-            {
-                case LODBiasMode.FromQualitySettings: return qualitySettingValue;
-                case LODBiasMode.OverrideQualitySettings: return inputValue;
-                case LODBiasMode.ScaleQualitySettings: return inputValue * qualitySettingValue;
-                default: throw new ArgumentOutOfRangeException(nameof(mode));
-            }
-        }
-    }
-
-    public static class MaximumLODLevelModeExtensions
-    {
-        public static int ComputeValue(this MaximumLODLevelMode mode, int qualitySettingsValue, int inputValue)
-        {
-            switch (mode)
-            {
-                case MaximumLODLevelMode.FromQualitySettings: return qualitySettingsValue;
-                case MaximumLODLevelMode.OffsetQualitySettings: return qualitySettingsValue + inputValue;
-                case MaximumLODLevelMode.OverrideQualitySettings: return inputValue;
-                default: throw new ArgumentOutOfRangeException(nameof(mode));
-            }
-        }
     }
 
     /* ////// HOW TO ADD FRAME SETTINGS //////
@@ -169,16 +142,23 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the LOD Bias with the value in <see cref="FrameSettings.lodBias"/>.</summary>
         [FrameSettingsField(0, autoName: LODBias, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { LODBiasMode }, tooltip: "Sets the Level Of Detail Bias or the Scale on it.")]
         LODBias = 61,
+        /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
+        [FrameSettingsField(0, autoName: LODBiasQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 100, positiveDependencies: new[] { LODBiasMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        LODBiasQualityLevel = 64,
         // true <=> Fixed, false <=> FromQualitySettings (default)
         [FrameSettingsField(0, autoName: MaximumLODLevelMode, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MaximumLODLevelMode), tooltip: "Specifies the Maximum Level Of Detail Mode for Cameras using these Frame Settings to use to render the Scene. Offset allows you to add an offset factor while Override allows you to set a specific value.")]
         MaximumLODLevelMode = 62,
         /// <summary>Set the LOD Bias with the value in <see cref="FrameSettings.maximumLODLevel"/>.</summary>
         [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "Sets the Maximum Level Of Detail Level or the Offset on it.")]
         MaximumLODLevel = 63,
+        /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
+        [FrameSettingsField(0, autoName: MaximumLODLevelQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        MaximumLODLevelQualityLevel = 65,
+        /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
+        [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
+        MaterialQualityLevel = 66,
 
         //lighting settings from 20 to 39
-        [FrameSettingsField(1, autoName: SkyLighting, customOrderInGroup: 0, tooltip: "When enabled, the Sky Ambient Light Probe affects diffuse lighting for Cameras that use these Frame Settings.")]
-        SkyLighting = 37,
         [FrameSettingsField(1, autoName: ShadowMaps, customOrderInGroup: 1, tooltip: "When enabled, Cameras using these Frame Settings render shadows.")]
         ShadowMaps = 20,
         [FrameSettingsField(1, autoName: ContactShadows, tooltip: "When enabled, Cameras using these Frame Settings render Contact Shadows.")]
@@ -209,10 +189,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProbe = 33,
         [FrameSettingsField(1, displayedName: "Planar Reflection Probe", customOrderInGroup: 36, tooltip: "When enabled, Cameras that use these Frame Settings calculate reflection from Planar Reflection Probes.")]
         PlanarProbe = 35,
-
-        // TODO: This should be something like "Metalic Indirect Diffuse Fallback". To be checked.
-        [FrameSettingsField(1, autoName: ReplaceDiffuseForIndirect, tooltip: "When enabled, Cameras that use these Frame Settings render Materials with base color as diffuse. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting.")]
+        [FrameSettingsField(1, displayedName: "Metallic Indirect Fallback", tooltip: "When enabled, Cameras that use these Frame Settings render Materials with base color as diffuse. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting.")]
         ReplaceDiffuseForIndirect = 36,
+        [FrameSettingsField(1, autoName: SkyLighting, tooltip: "When enabled, the Sky Ambient Light Probe affects diffuse lighting for Cameras that use these Frame Settings.")]
+        SkyLighting = 37,
+        [FrameSettingsField(1, autoName: DirectSpecularLighting, tooltip: "When enabled, Cameras that use these Frame Settings render Direct Specular lighting. This is a useful Frame Setting to use for baked Reflection Probes to remove view dependent lighting.")]
+        DirectSpecularLighting = 38,
 
         //async settings from 40 to 59
         [FrameSettingsField(2, displayedName: "Asynchronous Execution", tooltip: "When enabled, HDRP executes certain Compute Shader commands in parallel. This only has an effect if the target platform supports async compute.")]
@@ -242,7 +224,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeLightVariants = 124,
         [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile })]
         ComputeMaterialVariants = 125,
-        Reflection = 126, //set by engine, not for DebugMenu/Inspector
 
         //only 128 booleans saved. For more, change the BitArray used
     }
@@ -322,6 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.PlanarProbe,
                 (uint)FrameSettingsField.SkyLighting,
+                (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
             }),
             lodBias = 1,
@@ -371,6 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
                 // (uint)FrameSettingsField.EnableSkyLighting,
+                (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
         };
@@ -417,6 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.BigTilePrepass,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
                 // (uint)FrameSettingsField.EnableSkyLighting,
+                // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
         };
@@ -437,6 +421,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Define how the <c>QualitySettings.lodBias</c> value is set.</summary>
         [SerializeField]
         public LODBiasMode lodBiasMode;
+        /// <summary>The quality level to use when fetching the quality setting value.</summary>
+        [SerializeField]
+        public ScalableSetting.Level lodBiasQualityLevel;
         /// <summary>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.FromQualitySettings</c>, then this value will overwrite <c>QualitySettings.maximumLODLevel</c>
         /// if <c>maximumLODLevelMode == MaximumLODLevelMode.OffsetQualitySettings</c>, then this value will offset <c>QualitySettings.maximumLODLevel</c>
@@ -446,6 +433,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Define how the <c>QualitySettings.maximumLODLevel</c> value is set.</summary>
         [SerializeField]
         public MaximumLODLevelMode maximumLODLevelMode;
+        /// <summary>The quality level to use when fetching the quality setting value.</summary>
+        [SerializeField]
+        public ScalableSetting.Level maximumLODLevelQualityLevel;
+
+        /// <summary>
+        /// The material quality level to use for this rendering.
+        /// if <c>materialQuality == 0</c>, then the material quality from the current quality settings
+        /// (in HDRP Asset) will be used.
+        /// </summary>
+        public MaterialQuality materialQuality;
 
         /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
         public LitShaderMode litShaderMode
@@ -459,9 +456,33 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set stored data for this field.</summary>
         public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
 
+        public float GetResolvedLODBias(HDRenderPipelineAsset hdrp)
+        {
+            var source = hdrp.currentPlatformRenderPipelineSettings.lodBias;
+            switch (lodBiasMode)
+            {
+                case LODBiasMode.FromQualitySettings: return source[lodBiasQualityLevel];
+                case LODBiasMode.OverrideQualitySettings: return lodBias;
+                case LODBiasMode.ScaleQualitySettings: return lodBias * source[lodBiasQualityLevel];
+                default: throw new ArgumentOutOfRangeException(nameof(lodBiasMode));
+            }
+        }
+
+        public int GetResolvedMaximumLODLevel(HDRenderPipelineAsset hdrp)
+        {
+            var source = hdrp.currentPlatformRenderPipelineSettings.maximumLODLevel;
+            switch (maximumLODLevelMode)
+            {
+                case MaximumLODLevelMode.FromQualitySettings: return source[maximumLODLevelQualityLevel];
+                case MaximumLODLevelMode.OffsetQualitySettings: return source[maximumLODLevelQualityLevel] + maximumLODLevel;
+                case MaximumLODLevelMode.OverrideQualitySettings: return maximumLODLevel;
+                default: throw new ArgumentOutOfRangeException(nameof(maximumLODLevelMode));
+            }
+        }
+
         // followings are helper for engine.
         internal bool fptl => litShaderMode == LitShaderMode.Deferred || bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque];
-        internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.Reflection] ? 1f : 0f;
+        internal float specularGlobalDimmer => bitDatas[(int)FrameSettingsField.DirectSpecularLighting] ? 1f : 0f;
 
         internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
         internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
@@ -484,10 +505,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 overriddenFrameSettings.lodBias = overridingFrameSettings.lodBias;
             if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.LODBiasMode])
                 overriddenFrameSettings.lodBiasMode = overridingFrameSettings.lodBiasMode;
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.LODBiasQualityLevel])
+                overriddenFrameSettings.lodBiasQualityLevel = overridingFrameSettings.lodBiasQualityLevel;
             if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaximumLODLevel])
                 overriddenFrameSettings.maximumLODLevel = overridingFrameSettings.maximumLODLevel;
             if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaximumLODLevelMode])
                 overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaximumLODLevelQualityLevel])
+                overriddenFrameSettings.maximumLODLevelQualityLevel = overridingFrameSettings.maximumLODLevelQualityLevel;
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaterialQualityLevel])
+                overriddenFrameSettings.materialQuality = overridingFrameSettings.materialQuality;
         }
 
         /// <summary>Check FrameSettings with what is supported in RenderPipelineSettings and change value in order to be compatible.</summary>
@@ -499,9 +526,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool reflection = camera.cameraType == CameraType.Reflection;
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
-
-            // When rendering reflection probe we disable specular as it is view dependent
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Reflection] = !reflection;
 
             switch (renderPipelineSettings.supportedLitShaderMode)
             {
@@ -601,23 +625,32 @@ namespace UnityEngine.Rendering.HighDefinition
             => a.bitDatas == b.bitDatas
             && a.lodBias == b.lodBias
             && a.lodBiasMode == b.lodBiasMode
+            && a.lodBiasQualityLevel == b.lodBiasQualityLevel
             && a.maximumLODLevel == b.maximumLODLevel
-            && a.maximumLODLevelMode == b.maximumLODLevelMode;
+            && a.maximumLODLevelMode == b.maximumLODLevelMode
+            && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel
+            && a.materialQuality == b.materialQuality;
 
         public static bool operator !=(FrameSettings a, FrameSettings b)
             => a.bitDatas != b.bitDatas
             || a.lodBias != b.lodBias
             || a.lodBiasMode != b.lodBiasMode
+            || a.lodBiasQualityLevel != b.lodBiasQualityLevel
             || a.maximumLODLevel != b.maximumLODLevel
-            || a.maximumLODLevelMode != b.maximumLODLevelMode;
+            || a.maximumLODLevelMode != b.maximumLODLevelMode
+            || a.maximumLODLevelQualityLevel != b.maximumLODLevelQualityLevel
+            || a.materialQuality != b.materialQuality;
 
         public override bool Equals(object obj)
             => (obj is FrameSettings)
             && bitDatas.Equals(((FrameSettings)obj).bitDatas)
             && lodBias.Equals(((FrameSettings)obj).lodBias)
             && lodBiasMode.Equals(((FrameSettings)obj).lodBiasMode)
+            && lodBiasQualityLevel.Equals(((FrameSettings)obj).lodBiasQualityLevel)
             && maximumLODLevel.Equals(((FrameSettings)obj).maximumLODLevel)
-            && maximumLODLevelMode.Equals(((FrameSettings)obj).maximumLODLevelMode);
+            && maximumLODLevelMode.Equals(((FrameSettings)obj).maximumLODLevelMode)
+            && maximumLODLevelQualityLevel.Equals(((FrameSettings)obj).maximumLODLevelQualityLevel)
+            && materialQuality.Equals(((FrameSettings)obj).materialQuality);
 
         public override int GetHashCode()
         {
@@ -625,8 +658,11 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + bitDatas.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBias.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBiasMode.GetHashCode();
+            hashCode = hashCode * -1521134295 + lodBiasQualityLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelMode.GetHashCode();
+            hashCode = hashCode * -1521134295 + maximumLODLevelQualityLevel.GetHashCode();
+            hashCode = hashCode * -1521134295 + materialQuality.GetHashCode();
             return hashCode;
         }
 
@@ -701,8 +737,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     groups.Add(new DebuggerGroup("Non Bit data", new DebuggerEntry[] {
                         new DebuggerEntry("lodBias", m_FrameSettings.lodBias),
                         new DebuggerEntry("lodBiasMode", m_FrameSettings.lodBiasMode),
+                        new DebuggerEntry("lodBiasQualityLevel", m_FrameSettings.lodBiasQualityLevel),
                         new DebuggerEntry("maximumLODLevel", m_FrameSettings.maximumLODLevel),
                         new DebuggerEntry("maximumLODLevelMode", m_FrameSettings.maximumLODLevelMode),
+                        new DebuggerEntry("maximumLODLevelQualityLevel", m_FrameSettings.maximumLODLevelQualityLevel),
+                        new DebuggerEntry("materialQuality", m_FrameSettings.materialQuality),
                     }));
 
                     return groups.ToArray();

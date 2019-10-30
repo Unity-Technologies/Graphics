@@ -8,50 +8,99 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDAdditionalLightData : ISerializationCallbackReceiver
+    public partial class HDAdditionalLightData : ISerializationCallbackReceiver, IVersionable<HDAdditionalLightData.Version>
     {
         // TODO: Use proper migration toolkit
-        // 3. Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
-        // 4. Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
-        // 5. Added the ShadowLayer
+
         enum Version
         {
-            Initial,
-            Intensity,
+            _Unused00,
+            _Unused01,
             ShadowNearPlane,
             LightLayer,
             ShadowLayer,
-
-            // Note: Latest must be at the end of the enum
-            Latest,
+            _Unused02,
+            ShadowResolution,
         }
 
+        /// <summary>
+        /// Shadow Resolution Tier
+        /// </summary>
+        [Obsolete]
+        enum ShadowResolutionTier
+        {
+            Low = 0,
+            Medium,
+            High,
+            VeryHigh
+        }
+
+        Version IVersionable<Version>.version
+        {
+            get => m_Version;
+            set => m_Version = value;
+        }
+
+#pragma warning disable 0618, 0612
         [SerializeField]
-        private Version m_Version = Version.Latest;
+        private Version m_Version = Version.ShadowResolution;
 
-        // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
-        // we add intensity (for each type of light we want to manage).
-        [System.Obsolete("directionalIntensity is deprecated, use intensity and lightUnit instead")]
-        /// <summary>
-        /// Obsolete, use intensity instead
-        /// </summary>
-        public float directionalIntensity = k_DefaultDirectionalLightIntensity;
-        [System.Obsolete("punctualIntensity is deprecated, use intensity and lightUnit instead")]
-        /// <summary>
-        /// Obsolete, use intensity instead
-        /// </summary>
-        public float punctualIntensity = k_DefaultPunctualLightIntensity;
-        [System.Obsolete("areaIntensity is deprecated, use intensity and lightUnit instead")]
-        /// <summary>
-        /// Obsolete, use intensity instead
-        /// </summary>
-        public float areaIntensity = k_DefaultAreaLightIntensity;
+        private static readonly MigrationDescription<Version, HDAdditionalLightData> k_HDLightMigrationSteps
+            = MigrationDescription.New(
+                MigrationStep.New(Version.ShadowNearPlane, (HDAdditionalLightData t) =>
+                {
+                    // Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
+                    // ShadowNearPlane have been move to HDRP as default legacy unity clamp it to 0.1 and we need to be able to go below that
+                    t.shadowNearPlane = t.legacyLight.shadowNearPlane;
+                }),
+                MigrationStep.New(Version.LightLayer, (HDAdditionalLightData t) =>
+                {
+                    // Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
+                    t.legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)t.m_LightLayers, t.legacyLight.renderingLayerMask);
+                }),
+                MigrationStep.New(Version.ShadowLayer, (HDAdditionalLightData t) =>
+                {
+                    // Added the ShadowLayer
+                    // When we upgrade the option to decouple light and shadow layers will be disabled
+                    // so we can sync the shadow layer mask (from the legacyLight) and the new light layer mask
+                    t.lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(t.legacyLight.renderingLayerMask);
+                }),
+                MigrationStep.New(Version.ShadowResolution, (HDAdditionalLightData t) =>
+                {
+                    var additionalShadow = t.GetComponent<AdditionalShadowData>();
+                    if (additionalShadow != null)
+                    {
+                        t.m_ObsoleteCustomShadowResolution = additionalShadow.customResolution;
+                        t.m_ObsoleteContactShadows = additionalShadow.contactShadows;
 
-        [Obsolete("Use Light.renderingLayerMask instead")]
-        /// <summary>
-        /// Obsolete, use Light.renderingLayerMask instead
-        /// </summary>
-        public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
+                        t.shadowDimmer = additionalShadow.shadowDimmer;
+                        t.volumetricShadowDimmer = additionalShadow.volumetricShadowDimmer;
+                        t.shadowFadeDistance = additionalShadow.shadowFadeDistance;
+                        t.shadowTint = additionalShadow.shadowTint;
+                        t.normalBias = additionalShadow.normalBias;
+                        t.constantBias = additionalShadow.constantBias;
+                        t.shadowUpdateMode = additionalShadow.shadowUpdateMode;
+                        t.shadowCascadeRatios = additionalShadow.shadowCascadeRatios;
+                        t.shadowCascadeBorders = additionalShadow.shadowCascadeBorders;
+                        t.shadowAlgorithm = additionalShadow.shadowAlgorithm;
+                        t.shadowVariant = additionalShadow.shadowVariant;
+                        t.shadowPrecision = additionalShadow.shadowPrecision;
+                        CoreUtils.Destroy(additionalShadow);
+                    }
+
+                    t.shadowResolution.@override = t.m_ObsoleteCustomShadowResolution;
+                    switch (t.m_ObsoleteShadowResolutionTier)
+                    {
+                        case ShadowResolutionTier.Low: t.shadowResolution.level = 0; break;
+                        case ShadowResolutionTier.Medium: t.shadowResolution.level = 1; break;
+                        case ShadowResolutionTier.High: t.shadowResolution.level = 2; break;
+                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = 3; break;
+                    }
+                    t.shadowResolution.useOverride = !t.m_ObsoleteUseShadowQualitySettings;
+                    t.useContactShadow.@override = t.m_ObsoleteContactShadows;
+                })
+            );
+#pragma warning restore 0618, 0612
 
         void ISerializationCallbackReceiver.OnAfterDeserialize() {}
 
@@ -62,36 +111,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            UpgradeLight();
-
             if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
                 m_ShadowMapRenderedSinceLastRequest = false;
         }
 
-        internal void UpgradeLight()
+        void Awake()
         {
-// Disable the warning generated by deprecated fields (areaIntensity, directionalIntensity, ...)
-#pragma warning disable 618
-
-            if ((int)m_Version <= 2)
-            {
-                // ShadowNearPlane have been move to HDRP as default legacy unity clamp it to 0.1 and we need to be able to go below that
-                shadowNearPlane = legacyLight.shadowNearPlane;
-            }
-            if ((int)m_Version <= 3)
-            {
-                legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)lightLayers, legacyLight.renderingLayerMask);
-            }
-            if ((int)m_Version <= 4)
-            {
-                // When we upgrade the option to decouple light and shadow layers will be disabled
-                // so we can sync the shadow layer mask (from the legacyLight) and the new light layer mask
-                lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(legacyLight.renderingLayerMask);
-            }
-
-            m_Version = Version.Latest;
-
+            k_HDLightMigrationSteps.Migrate(this);
+#pragma warning disable 0618
+            var shadow = GetComponent<AdditionalShadowData>();
+            if (shadow != null)
+                CoreUtils.Destroy(shadow);
 #pragma warning restore 0618
         }
+
+        #region Obsolete fields
+        // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
+        // we add intensity (for each type of light we want to manage).
+        [Obsolete("Use Light.renderingLayerMask instead")]
+        [FormerlySerializedAs("lightLayers")]
+        LightLayerEnum m_LightLayers = LightLayerEnum.LightLayerDefault;
+
+        [Obsolete]
+        [SerializeField]
+        [FormerlySerializedAs("m_ShadowResolutionTier")]
+        ShadowResolutionTier m_ObsoleteShadowResolutionTier = ShadowResolutionTier.Medium;
+        [Obsolete]
+        [SerializeField]
+        [FormerlySerializedAs("m_UseShadowQualitySettings")]
+        bool m_ObsoleteUseShadowQualitySettings = false;
+
+        [FormerlySerializedAs("m_CustomShadowResolution")]
+        [Obsolete]
+        [SerializeField]
+        int m_ObsoleteCustomShadowResolution = k_DefaultShadowResolution;
+
+        [FormerlySerializedAs("m_ContactShadows")]
+        [Obsolete]
+        [SerializeField]
+        bool m_ObsoleteContactShadows = false;
+        #endregion
     }
 }

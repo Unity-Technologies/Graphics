@@ -51,6 +51,8 @@ namespace UnityEditor.Rendering.LookDev
             AddToClassList(ussClassName);
 
             m_CanDeselectAll = canDeselectAll;
+            if (m_CanDeselectAll)
+                m_Value = -1;
             if (label != null)
                 Add(new Label() { text = label });
         }

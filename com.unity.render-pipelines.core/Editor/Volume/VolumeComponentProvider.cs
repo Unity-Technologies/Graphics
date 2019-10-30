@@ -51,7 +51,6 @@ namespace UnityEditor.Rendering
         {
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            var attrType = typeof(VolumeComponentMenu);
             var types = VolumeManager.instance.baseComponentTypes;
             var rootNode = new PathNode();
 
@@ -64,13 +63,22 @@ namespace UnityEditor.Rendering
                 string path = string.Empty;
 
                 // Look for a VolumeComponentMenu attribute
-                var attrs = t.GetCustomAttributes(attrType, false);
-                if (attrs.Length > 0)
+                var attrs = t.GetCustomAttributes(false);
+
+                bool skipComponent = false;
+                foreach (var attr in attrs)
                 {
-                    var attr = attrs[0] as VolumeComponentMenu;
-                    if (attr != null)
-                        path = attr.menu;
+                    var attrMenu = attr as VolumeComponentMenu;
+                    if (attrMenu != null)
+                        path = attrMenu.menu;
+
+                    var attrDeprecated = attr as VolumeComponentDeprecated;
+                    if (attrDeprecated != null)
+                        skipComponent = true;
                 }
+
+                if (skipComponent)
+                    continue;
 
                 // If no attribute or in case something went wrong when grabbing it, fallback to a
                 // beautified class name

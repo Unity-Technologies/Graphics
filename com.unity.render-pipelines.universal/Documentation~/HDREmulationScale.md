@@ -1,4 +1,4 @@
-## HDR Emulation Scale
+## HDR emulation scale
 
 All Lights in the 2D lighting system support HDR. While a typical RGBA32 color channel has the range of zero to one, a HDR channel can go beyond one. 
 

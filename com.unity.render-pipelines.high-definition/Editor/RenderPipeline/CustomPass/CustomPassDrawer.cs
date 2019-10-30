@@ -75,7 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition
 	    {
 			rect.height = EditorGUIUtility.singleLineHeight;
 			EditorGUI.BeginChangeCheck();
-			EditorGUI.BeginProperty(rect, label, property);
 
 			if (firstTime)
 			    InitInternal(property);
@@ -93,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
 			}
 			EditorGUI.EndDisabledGroup();
 
-			EditorGUI.EndProperty();
 			if (EditorGUI.EndChangeCheck())
 				property.serializedObject.ApplyModifiedProperties();
 	    }
@@ -147,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
 			enabledRect.x = rect.xMax - enabledSize.x;
 			enabledRect.width = enabledSize.x;
 
-			m_PassFoldout.boolValue = EditorGUI.Foldout(headerRect, m_PassFoldout.boolValue, m_Name.stringValue, true, EditorStyles.boldLabel);
+			m_PassFoldout.boolValue = EditorGUI.Foldout(headerRect, m_PassFoldout.boolValue, $"{m_Name.stringValue} ({m_PassType.Name})", true, EditorStyles.boldLabel);
 			EditorGUIUtility.labelWidth = enabledRect.width - 14;
 			m_Enabled.boolValue = EditorGUI.Toggle(enabledRect, Styles.enabled, m_Enabled.boolValue);
 			EditorGUIUtility.labelWidth = 0;

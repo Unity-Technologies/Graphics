@@ -1,4 +1,5 @@
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 
@@ -41,8 +42,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            if (!UsesQualitySettings())
-                PropertyField(m_SampleCount);
+            GUI.enabled = useCustomValue;
+            PropertyField(m_SampleCount);
+            GUI.enabled = true;
 
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);

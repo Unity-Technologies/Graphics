@@ -417,6 +417,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
             cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
             cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
+            cmdBuffer.SetGlobalFloat("_IsFullSpotlight", innerAngle == 1 ? 1.0f : 0.0f);
 
             cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
 

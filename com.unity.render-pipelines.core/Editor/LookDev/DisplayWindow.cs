@@ -111,65 +111,24 @@ namespace UnityEditor.Rendering.LookDev
             {
                 if (layout.viewLayout != value)
                 {
-                    OnLayoutChangedInternal?.Invoke(value, layout.showedSidePanel);
+                    OnLayoutChangedInternal?.Invoke(value, sidePanel);
                     ApplyLayout(value);
                 }
             }
         }
-
-        bool environmentSidePanel
+        
+        SidePanel sidePanel
         {
-            get => (layout.showedSidePanel & SidePanel.Environment) != 0;
+            get => layout.showedSidePanel;
             set
             {
-                bool stored = (layout.showedSidePanel & SidePanel.Environment) != 0;
-                if (value != stored)
+                if (layout.showedSidePanel != value)
                 {
-                    if (value)
-                        layout.showedSidePanel |= SidePanel.Environment;
-                    else
-                        layout.showedSidePanel &= ~SidePanel.Environment;
+                    OnLayoutChangedInternal?.Invoke(viewLayout, value);
                     ApplySidePanelChange(layout.showedSidePanel);
                 }
             }
         }
-
-        bool debugView1SidePanel
-        { 
-            get => (layout.showedSidePanel & SidePanel.DebugView1) != 0;
-            set
-            {
-                bool stored = (layout.showedSidePanel & SidePanel.DebugView1) != 0;
-                if (value != stored)
-                {
-                    if (value)
-                        layout.showedSidePanel |= SidePanel.DebugView1;
-                    else
-                        layout.showedSidePanel &= ~SidePanel.DebugView1;
-                    ApplySidePanelChange(layout.showedSidePanel);
-                }
-            }
-        }
-
-        bool debugView2SidePanel
-        { 
-            get => (layout.showedSidePanel & SidePanel.DebugView2) != 0;
-            set
-            {
-                bool stored = (layout.showedSidePanel & SidePanel.DebugView2) != 0;
-                if (value != stored)
-                {
-                    if (value)
-                        layout.showedSidePanel |= SidePanel.DebugView2;
-                    else
-                        layout.showedSidePanel &= ~SidePanel.DebugView2;
-                    ApplySidePanelChange(layout.showedSidePanel);
-                }
-            }
-        }
-
-        bool debugOneOfViewSidePanel
-            => (layout.showedSidePanel & SidePanel.DebugViewBoth) != 0;
 
         event Action<Layout, SidePanel> OnLayoutChangedInternal;
         event Action<Layout, SidePanel> IViewDisplayer.OnLayoutChanged
@@ -312,41 +271,17 @@ namespace UnityEditor.Rendering.LookDev
                 DropdownMenuAction.AlwaysEnabled);
 
             // Side part
-            var sideEnvironmentToggle = new ToolbarToggle()
-            {
-                text = Style.k_EnvironmentSidePanelName,
-                name = Style.k_TabsRadioName
-            };
-            sideEnvironmentToggle.SetValueWithoutNotify(environmentSidePanel);
-            sideEnvironmentToggle.RegisterCallback((ChangeEvent<bool> evt)
-                => environmentSidePanel = evt.newValue);
-
-            var sideDebugToggleView1 = new ToolbarToggle()
+            var sideRadio = new ToolbarRadio(canDeselectAll: true)
             {
                 name = Style.k_TabsRadioName
             };
-            var sideDebugToggleView1Container = sideDebugToggleView1.Q(className:"unity-toggle__input");
-            sideDebugToggleView1Container.Add(new Label(Style.k_DebugSidePanelName));
-            sideDebugToggleView1Container.Add(new Image() { image = Style.k_Camera1Icon });
-            sideDebugToggleView1.SetValueWithoutNotify(debugView1SidePanel);
-            sideDebugToggleView1.RegisterCallback((ChangeEvent<bool> evt)
-                => debugView1SidePanel = evt.newValue);
-
-            var sideDebugToggleView2 = new ToolbarToggle()
-            {
-                name = Style.k_TabsRadioName
-            };
-            var sideDebugToggleView2Container = sideDebugToggleView2.Q(className: "unity-toggle__input");
-            sideDebugToggleView2Container.Add(new Label(Style.k_DebugSidePanelName));
-            sideDebugToggleView2Container.Add(new Image() { image = Style.k_Camera2Icon });
-            sideDebugToggleView2.SetValueWithoutNotify(debugView2SidePanel);
-            sideDebugToggleView2.RegisterCallback((ChangeEvent<bool> evt)
-                => debugView2SidePanel = evt.newValue);
-
-            var sideToolbar = new Toolbar() { name = Style.k_SideToolbarName };
-            sideToolbar.Add(sideEnvironmentToggle);
-            sideToolbar.Add(sideDebugToggleView1);
-            sideToolbar.Add(sideDebugToggleView2);
+            sideRadio.AddRadios(new[] {
+                Style.k_EnvironmentSidePanelName,
+                Style.k_DebugSidePanelName,
+                });
+            sideRadio.SetValueWithoutNotify((int)sidePanel);
+            sideRadio.RegisterCallback((ChangeEvent<int> evt)
+                => sidePanel = (SidePanel)evt.newValue);
 
             // Aggregate parts
             var toolbar = new Toolbar() { name = Style.k_ToolbarName };
@@ -366,7 +301,7 @@ namespace UnityEditor.Rendering.LookDev
                 toolbar.Add(renderDocButton);
                 toolbar.Add(new ToolbarSpacer());
             }
-            toolbar.Add(sideToolbar);
+            toolbar.Add(sideRadio);
             rootVisualElement.Add(toolbar);
         }
 
@@ -396,7 +331,7 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     LookDev.currentContext.SetFocusedCamera(index);
                     var environment = LookDev.currentContext.GetViewContent(index).environment;
-                    if (environmentSidePanel && environment != null)
+                    if (sidePanel == SidePanel.Environment && environment != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var secondManipulator = new CameraController(
@@ -406,7 +341,7 @@ namespace UnityEditor.Rendering.LookDev
                 {
                     LookDev.currentContext.SetFocusedCamera(ViewIndex.Second);
                     var environment = LookDev.currentContext.GetViewContent(ViewIndex.Second).environment;
-                    if (environmentSidePanel && environment != null)
+                    if (sidePanel == SidePanel.Environment && environment != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
             var gizmoManipulator = new ComparisonGizmoController(LookDev.currentContext.layout.gizmoState, firstOrCompositeManipulator);
@@ -604,7 +539,7 @@ namespace UnityEditor.Rendering.LookDev
             IStyle GetEnvironmentContenairDraggerStyle()
                 => m_EnvironmentContainer.Q(className: "unity-base-slider--vertical").Q("unity-dragger").style;
 
-            if (environmentSidePanel)
+            if (sidePanel == SidePanel.Environment)
             {
                 if (!m_MainContainer.ClassListContains(Style.k_ShowEnvironmentPanelClass))
                     m_MainContainer.AddToClassList(Style.k_ShowEnvironmentPanelClass);
@@ -624,7 +559,7 @@ namespace UnityEditor.Rendering.LookDev
                 m_EnvironmentContainer.style.display = DisplayStyle.None;
             }
 
-            if (debugOneOfViewSidePanel)
+            if (sidePanel == SidePanel.Debug)
             {
                 if (!m_MainContainer.ClassListContains(Style.k_ShowDebugPanelClass))
                     m_MainContainer.AddToClassList(Style.k_ShowDebugPanelClass);

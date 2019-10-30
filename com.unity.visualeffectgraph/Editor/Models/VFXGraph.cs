@@ -12,7 +12,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    public class VFXCacheManager : EditorWindow
+    class VFXCacheManager : EditorWindow
     {
         private static List<VisualEffectAsset> GetAllVisualEffectAssets()
         {
@@ -67,7 +67,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    public class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
+    class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
 
         public static bool HasVFXExtension(string filePath)

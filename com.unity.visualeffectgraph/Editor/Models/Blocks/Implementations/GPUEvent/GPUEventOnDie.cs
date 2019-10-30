@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.Block.Test
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "GPUEvent", experimental = true)]
     class GPUEventOnDie : VFXBlock

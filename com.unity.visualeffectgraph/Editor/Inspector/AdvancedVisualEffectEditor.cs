@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
 
     [CustomEditor(typeof(VisualEffect))]
     [CanEditMultipleObjects]
-    public class AdvancedVisualEffectEditor : VisualEffectEditor, IToolModeOwner
+    class AdvancedVisualEffectEditor : VisualEffectEditor, IToolModeOwner
     {
         new void OnEnable()
         {

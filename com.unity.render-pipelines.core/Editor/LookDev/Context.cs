@@ -39,14 +39,22 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Status of the side panel of the LookDev window
     /// </summary>
-    [Flags]
     public enum SidePanel
     {
-        Environment = 1,
-        DebugView1 = 2,
-        DebugView2 = 4,
-        DebugViewBoth = 6,
+        None = -1,
+        Environment,
+        Debug,
     }
+
+    /// <summary>
+    /// The target views of the debug panel 
+    /// </summary>
+    public enum TargetDebugView
+    {
+        First,
+        Both,
+        Second
+    };
 
     /// <summary>
     /// Class containing all data used by the LookDev Window to render
@@ -198,6 +206,9 @@ namespace UnityEditor.Rendering.LookDev
         public ViewIndex lastFocusedView = ViewIndex.First;
         /// <summary>The state of the side panel</summary>
         public SidePanel showedSidePanel;
+        /// <summary>The view to change when manipulating the Debug side panel</summary>
+        [NonSerialized]
+        public TargetDebugView debugPanelSource = TargetDebugView.Both;
 
         [SerializeField]
         internal ComparisonGizmoState gizmoState = new ComparisonGizmoState();

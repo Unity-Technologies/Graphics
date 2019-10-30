@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.LookDev
             internal static readonly Texture2D k_AddIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Add", forceLowRes: true);
             internal static readonly Texture2D k_RemoveIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Remove", forceLowRes: true);
             internal static readonly Texture2D k_DuplicateIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Duplicate", forceLowRes: true);
+
+            internal const string k_DragAndDropLibrary = "Drag and drop EnvironmentLibrary here";
         }
 
         VisualElement m_EnvironmentContainer;
@@ -59,7 +61,7 @@ namespace UnityEditor.Rendering.LookDev
 
             m_EnvironmentContainer = new VisualElement() { name = Style.k_EnvironmentContainerName };
             m_MainContainer.Add(m_EnvironmentContainer);
-            if (environmentSidePanel)
+            if (sidePanel == SidePanel.Environment)
                 m_MainContainer.AddToClassList(Style.k_ShowEnvironmentPanelClass);
 
             m_EnvironmentInspector = new EnvironmentElement(withPreview: false, () =>
@@ -108,7 +110,7 @@ namespace UnityEditor.Rendering.LookDev
             };
             m_EnvironmentList.onItemChosen += obj =>
                 EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary[(int)obj]);
-            m_NoEnvironmentList = new Label("Drag'n'drop EnvironmentLibrary here");
+            m_NoEnvironmentList = new Label(Style.k_DragAndDropLibrary);
             m_NoEnvironmentList.style.flexGrow = 1;
             m_NoEnvironmentList.style.unityTextAlign = TextAnchor.MiddleCenter;
             m_EnvironmentContainer.Add(m_EnvironmentInspector);
@@ -279,9 +281,13 @@ namespace UnityEditor.Rendering.LookDev
                     OnChangingEnvironmentInViewInternal?.Invoke(environment, ViewCompositionIndex.Composite, mouseWorldPosition);
                 else
                     OnChangingEnvironmentInViewInternal?.Invoke(environment, ViewCompositionIndex.First, mouseWorldPosition);
+                m_NoEnvironment1.style.visibility = environment == null || environment.Equals(null) ? Visibility.Visible : Visibility.Hidden;
             }
             else
+            {
                 OnChangingEnvironmentInViewInternal?.Invoke(environment, ViewCompositionIndex.Second, mouseWorldPosition);
+                m_NoEnvironment2.style.visibility = environment == null || environment.Equals(null) ? Visibility.Visible : Visibility.Hidden;
+            }
         }
 
         class DraggingContext : IDisposable

@@ -30,13 +30,24 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	uint index = id;
 	if (id < nbMax)
 	{
+		Attributes attributes = (Attributes)0;
+		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		
 		${VFXLoadAttributes:{alive}}
-		if (alive)
+		if (attributes.alive)
 		{
 			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
+			
 			${VFXLoadSize}
-			float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),float3(pivotX,pivotY,pivotZ),size3,position);
+			float4x4 elementToVFX = GetElementToVFXMatrix(
+				attributes.axisX,
+				attributes.axisY,
+				attributes.axisZ,
+				float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+				float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+				size3,
+				attributes.position);
 		
 			UNITY_UNROLL
 			for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
@@ -49,7 +60,8 @@ void CSMain(uint3 groupId		: SV_GroupID,
 					elementToVFXBuffer.Store((index * 16 + itIndexMatrix) << 2, asuint(value));
 				}
 			}
-		}
-		elementToVFXBuffer.Store((index*16 + 15) << 2, alive ? asuint(currentFrameIndex) : 0u);
+
+            elementToVFXBuffer.Store((index*16 + 15) << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
+		}		
 	}
 }

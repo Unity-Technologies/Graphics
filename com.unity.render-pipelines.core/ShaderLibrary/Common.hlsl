@@ -562,6 +562,11 @@ float3 NLerp(float3 A, float3 B, float t)
     return normalize(lerp(A, B, t));
 }
 
+float Length2(float3 v)
+{
+    return dot(v, v);
+}
+
 real Pow4(real x)
 {
     return (x * x) * (x * x);

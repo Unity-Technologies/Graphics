@@ -14,12 +14,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public SerializedObject serializedObject;
             public Object[]         targets;
             public int              layerID;
+            public System.Action<SerializedObject> onSelectionChanged;
 
-            public LayerSelectionData(SerializedObject so, int lid, Object[] tgts)
+            public LayerSelectionData(SerializedObject so, int lid, Object[] tgts, System.Action<SerializedObject> selectionChangedCallback)
             {
                 serializedObject = so;
                 layerID = lid;
                 targets = tgts;
+                onSelectionChanged = selectionChangedCallback;
             }
         }
 
@@ -65,7 +67,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 m_ApplyToSortingLayers.GetArrayElementAtIndex(i).intValue = m_ApplyToSortingLayersList[i];
             }
 
-            //AnalyticsTrackChanges(updateSelectionData.serializedObject);
+            if (layerSelectionData.onSelectionChanged != null)
+                layerSelectionData.onSelectionChanged(layerSelectionData.serializedObject);
+            
             layerSelectionData.serializedObject.ApplyModifiedProperties();
 
             if (layerSelectionData.targets is Light2D[])
@@ -106,7 +110,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             UpdateApplyToSortingLayersArray(layerSelectionDataObject);
         }
 
-        public void OnTargetSortingLayers(SerializedObject serializedObject, Object[] targets, GUIContent labelContent)
+        public void OnTargetSortingLayers(SerializedObject serializedObject, Object[] targets, GUIContent labelContent, System.Action<SerializedObject> selectionChangedCallback)
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(labelContent);
@@ -131,7 +135,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 GenericMenu menu = new GenericMenu();
                 menu.allowDuplicateNames = true;
 
-                LayerSelectionData layerSelectionData = new LayerSelectionData(serializedObject, 0, targets);
+                LayerSelectionData layerSelectionData = new LayerSelectionData(serializedObject, 0, targets, selectionChangedCallback);
                 menu.AddItem(Styles.sortingLayerNone, m_ApplyToSortingLayersList.Count == 0, OnNoSortingLayerSelected, layerSelectionData);
                 menu.AddItem(Styles.sortingLayerAll, m_ApplyToSortingLayersList.Count == m_AllSortingLayers.Length, OnAllSortingLayersSelected, layerSelectionData);
                 menu.AddSeparator("");
@@ -139,7 +143,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 for (int i = 0; i < m_AllSortingLayers.Length; ++i)
                 {
                     var sortingLayer = m_AllSortingLayers[i];
-                    layerSelectionData = new LayerSelectionData(serializedObject, sortingLayer.id, targets);
+                    layerSelectionData = new LayerSelectionData(serializedObject, sortingLayer.id, targets, selectionChangedCallback);
                     menu.AddItem(m_AllSortingLayerNames[i], m_ApplyToSortingLayersList.Contains(sortingLayer.id), OnSortingLayerSelected, layerSelectionData);
                 }
 

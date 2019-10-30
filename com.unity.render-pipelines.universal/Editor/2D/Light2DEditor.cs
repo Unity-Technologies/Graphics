@@ -569,11 +569,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        public void AnalyticsTrackingCallback(SerializedObject serializedObject)
-        {
-            AnalyticsTrackChanges(serializedObject);
-        }
-
         public override void OnInspectorGUI()
         {
             UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
@@ -653,7 +648,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     EditorGUILayout.Slider(m_ShadowVolumeIntensity, 0, 1, Styles.generalShadowVolumeIntensity);
             }
 
-            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel);
+            m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
 
             if (m_LightType.intValue == (int)Light2D.LightType.Freeform)
             {

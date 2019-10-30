@@ -59,7 +59,7 @@ int _RaytracingHalfResolution;
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
 {
-    if(_RaytracingIncludeSky != 0)
+    if (_RaytracingIncludeSky != 0)
     {
         rayIntersection.gBufferData.gbuffer3 = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0);
     }

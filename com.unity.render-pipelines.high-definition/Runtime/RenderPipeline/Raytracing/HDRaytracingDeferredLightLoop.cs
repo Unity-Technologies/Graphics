@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle directionBuffer;
             public RTHandle depthStencilBuffer;
             public RTHandle normalBuffer;
+            public Texture skyTexture;
 
             // Temporary buffers
             public RTHandle gbuffer0;
@@ -111,6 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredResources.directionBuffer = directionBuffer;
             deferredResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             deferredResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
+            deferredResources.skyTexture = m_SkyManager.skyReflection;
 
             // Temporary buffers
             deferredResources.gbuffer0 = m_RaytracingGBufferManager.GetBuffer(0);
@@ -233,7 +235,8 @@ namespace UnityEngine.Rendering.HighDefinition
             uint heightResolution = (uint)parameters.height;
 
             // Include the sky if required
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingIncludeSky, parameters.includeSky ? 1 : 0);
+            cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingIncludeSky, parameters.includeSky ? 1 : 0);
+            cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._SkyTexture, buffers.skyTexture);
 
             // Only compute diffuse lighting if required
             CoreUtils.SetKeyword(cmd, "DIFFUSE_LIGHTING_ONLY", parameters.diffuseLightingOnly);

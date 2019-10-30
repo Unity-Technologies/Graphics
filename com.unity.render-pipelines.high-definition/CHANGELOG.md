@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
 - Support for XR SDK mirror view modes
 - HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage. 
+- DepthOfFieldCoC option in the fullscreen debug modes.
+- Added override Ambient Occlusion option on debug windows
+- Added Custom Post Processes with 3 injection points: Before Transparent, Before Post Process and After Post Process
+- Add draft of minimal interactive path tracing (experimental) based on DXR API - Support only 4 area light, lit and unlit shader (non-shadergraph)
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation
@@ -38,22 +42,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed toggle volumetric lighting in the light UI
 - Fixed post-processing history reset handling rt-scale incorrectly
 - Fixed crash with terrain and XR multi-pass
+- Fixed ShaderGraph material synchronization issues
 
 ### Changed
 - Update Wizard layout.
 - Remove almost all Garbage collection call within a frame.
-- Rename property AdditionalVeclocityChange to AddPrecomputeVelocity 
+- Rename property AdditionalVeclocityChange to AddPrecomputeVelocity
 - Call the End/Begin camera rendering callbacks for camera with customRender enabled
 - Changeg framesettings migration order of postprocess flags as a pr for reflection settings flags have been backported to 2019.2
 - Replaced usage of ENABLE_VR in XRSystem.cs by version defines based on the presence of the built-in VR and XR modules
 - Added an update virtual function to the SkyRenderer class. This is called once per frame. This allows a given renderer to amortize heavy computation at the rate it chooses. Currently only the physically based sky implements this.
 - Removed mandatory XRPass argument in HDCamera.GetOrCreate()
 - Restored the HDCamera parameter to the sky rendering builtin parameters.
+- Removed usage of StructuredBuffer for XR View Constants
+- Expose Direct Specular Lighting control in FrameSettings
+- Deprecated ExponentialFog and VolumetricFog volume components. Now there is only one exponential fog component (Fog) which can add Volumetric Fog as an option. Added a script in Edit -> Render Pipeline -> Upgrade Fog Volume Components.
 
 ## [7.0.1] - 2019-07-25
 
 ### Added
-- Added option in the config package to disable globally Area Lights and to select shadow quality settings for the deferred pipeline. 
+- Added option in the config package to disable globally Area Lights and to select shadow quality settings for the deferred pipeline.
 - When shader log stripping is enabled, shader stripper statistics will be written at `Temp/shader-strip.json`
 - Occlusion mesh support from XR SDK
 
@@ -81,12 +89,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now control ZTest, ZWrite, and CullMode for transparent Materials.
 - Materials that use Unlit Shaders or Unlit Master Node Shaders now cast shadows.
 - Added an option to enable the ztest on **After Post Process** materials when TAA is disabled.
-- Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one. 
+- Added a new SSAO (based on Ground Truth Ambient Occlusion algorithm) to replace the previous one.
 - Added support for shadow tint on light
 - BeginCameraRendering and EndCameraRendering callbacks are now called with probes
-- Adding option to update shadow maps only On Enable and On Demand. 
+- Adding option to update shadow maps only On Enable and On Demand.
 - Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
-- Added option to allow a custom spot angle for spot light shadow maps. 
+- Added option to allow a custom spot angle for spot light shadow maps.
 - Added frame settings for individual post-processing effects
 - Added dither transition between cascades for Low and Medium quality settings
 - Added single-pass instancing support with XR SDK
@@ -177,7 +185,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HDRPWizard window is now in Window > General > HD Render Pipeline Wizard
 - Moved StaticLightingSky to LightingWindow
 - Removes the current "Scene Settings" and replace them with "Sky & Fog Settings" (with Physically Based Sky and Volumetric Fog).
-- Changed how cached shadow maps are placed inside the atlas to minimize re-rendering of them. 
+- Changed how cached shadow maps are placed inside the atlas to minimize re-rendering of them.
 
 ## [6.7.0-preview] - 2019-05-16
 
@@ -186,12 +194,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to render specific settings during a frame
 - Added stadia to the supported platforms (2019.3)
 - Enabled cascade blends settings in the HD Shadow component
-- Added Hardware Dynamic Resolution support. 
-- Added MatCap debug view to replace the no scene lighting debug view. 
+- Added Hardware Dynamic Resolution support.
+- Added MatCap debug view to replace the no scene lighting debug view.
 - Added clear GBuffer option in FrameSettings (default to false)
 - Added preview for decal shader graph (Only albedo, normal and emission)
 - Added exposure weight control for decal
-- Screen Space Directional Shadow under a define option. Activated for ray tracing 
+- Screen Space Directional Shadow under a define option. Activated for ray tracing
 - Added a new abstraction for RendererList that will help transition to Render Graph and future RendererList API
 - Added multipass support for VR
 - Added XR SDK integration (multipass only)
@@ -219,7 +227,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed motion blur and SMAA with VR single-pass instancing
 - Fixed NaNs generated by phase functionsin volumetric lighting
 - Fixed NaN issue with refraction effect and IOR of 1 at extreme grazing angle
-- Fixed nan tracker not using the exposure 
+- Fixed nan tracker not using the exposure
 - Fixed sorting priority on lit and unlit materials
 - Fixed null pointer exception when there are no AOVRequests defined on a camera
 - Fixed dirty state of prefab using disabled ReflectionProbes
@@ -251,7 +259,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update Pyramid Spot Light to better match emitted light volume.
 - Moved _XRViewConstants out of UnityPerPassStereo constant buffer to fix issues with PSSL
 - Removed GetPositionInput_Stereo() and single-pass (double-wide) rendering mode
-- Changed label width of the frame settings to accommodate better existing options. 
+- Changed label width of the frame settings to accommodate better existing options.
 - SSR's Default FrameSettings for camera is now enable.
 - Re-enabled the sharpening filter on Temporal Anti-aliasing
 - Exposed HDEditorUtils.LightLayerMaskDrawer for integration in other packages and user scripting.
@@ -281,7 +289,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an exposure node to retrieve the current, inverse and previous frame exposure value.
 - Added an HD scene color node which allow to sample the scene color with mips and a toggle to remove the exposure.
 - Added safeguard on HD scene creation if default scene not set in the wizard
-- Added Low res transparency rendering pass. 
+- Added Low res transparency rendering pass.
 
 ### Fixed
 - Fixed HDRI sky intensity lux mode
@@ -340,7 +348,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable SceneSelectionPass in shader graph preview
 - Control punctual light and area light shadow atlas separately
 - Move SMAA anti-aliasing option to after Temporal Anti Aliasing one, to avoid problem with previously serialized project settings
-- Optimize rendering with static only lighting and when no cullable lights/decals/density volumes are present. 
+- Optimize rendering with static only lighting and when no cullable lights/decals/density volumes are present.
 - Updated handles for DecalProjectorComponent for enhanced spacial position readability and have edition mode for better SceneView management
 - DecalProjectorComponent are now scale independent in order to have reliable metric unit (see new Size field for changing the size of the volume)
 - Restructure code from HDCamera.Update() by adding UpdateAntialiasing() and UpdateViewConstants()
@@ -597,7 +605,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Temporal Antialiasing optimization for Xbox One X
 - Parameter depthSlice on SetRenderTarget functions now defaults to -1 to bind the entire resource
 - Rename SampleCameraDepth() functions to LoadCameraDepth() and SampleCameraDepth(), same for SampleCameraColor() functions
-- Improved Motion Blur quality. 
+- Improved Motion Blur quality.
 - Update stereo frame settings values for single-pass instancing and double-wide
 - Rearrange FetchDepth functions to prepare for stereo-instancing
 - Remove unused _ComputeEyeIndex

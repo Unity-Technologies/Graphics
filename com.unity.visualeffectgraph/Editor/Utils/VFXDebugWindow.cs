@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    public class VFXDebugWindow : EditorWindow
+    class VFXDebugWindow : EditorWindow
     {
         [MenuItem("Window/Visual Effects/VFXEditor Debug Window", false, 3011, true)]
         public static void OpenWindow()

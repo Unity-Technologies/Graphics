@@ -8,19 +8,19 @@ namespace UnityEditor.VFX
 {
     // Attribute used to normalize a Vector or float
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public sealed class NormalizeAttribute : PropertyAttribute
+    sealed class NormalizeAttribute : PropertyAttribute
     {
     }
 
     // Attribute used to display a float in degrees in the UI
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public sealed class AngleAttribute : PropertyAttribute
+    sealed class AngleAttribute : PropertyAttribute
     {
     }
 
     // Attribute used to constrain a property to a Regex query
     [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public sealed class RegexAttribute : PropertyAttribute
+    sealed class RegexAttribute : PropertyAttribute
     {
         public RegexAttribute(string _pattern, int _maxLength = int.MaxValue) { pattern = _pattern; maxLength = _maxLength; }
 

@@ -310,8 +310,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114564273787506364}
   - {fileID: 114036203393255116}
+  - {fileID: 114564273787506364}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 114155199260393842}
@@ -337,6 +337,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114125608592678332

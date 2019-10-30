@@ -49,14 +49,14 @@ uint GetLDSequenceSampleUInt(uint sampleIndex, uint sampleDimension)
     return clamp((uint)(_OwenScrambledTexture[uint2(sampleDimension, sampleIndex)] * 256.0f), 0, 255);
 }
 
-// This is an implementation of the method from the paper 
+// This is an implementation of the method from the paper
 // "A Low-Discrepancy Sampler that Distributes Monte Carlo Errors as a Blue Noise in Screen Space" by Heitz et al.
-float GetBNDSequenceSample(uint2 pixelCoord, int sampleIndex, int sampleDimension)
+float GetBNDSequenceSample(uint2 pixelCoord, uint sampleIndex, uint sampleDimension)
 {
     // wrap arguments
     pixelCoord = pixelCoord & 127;
     sampleIndex = sampleIndex & 255;
-    // sampleDimension = sampleDimension & 255;
+    sampleDimension = sampleDimension & 255;
 
     // xor index based on optimized ranking
     uint rankingIndex = (pixelCoord.x + pixelCoord.y * 128) * 8 + (sampleDimension & 7);

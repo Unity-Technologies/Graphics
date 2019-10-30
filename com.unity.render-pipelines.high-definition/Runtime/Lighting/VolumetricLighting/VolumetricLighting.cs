@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         List<OrientedBBox>            m_VisibleVolumeBounds       = null;
         List<DensityVolumeEngineData> m_VisibleVolumeData         = null;
-        const int              k_MaxVisibleVolumeCount     = 512;
+        const int                     k_MaxVisibleVolumeCount     = 512;
 
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         ComputeBuffer                 m_VisibleVolumeBoundsBuffer = null;
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector3Int viewportResolution = ComputeVBufferResolution(volumetricLightingPreset, hdCamera.actualWidth, hdCamera.actualHeight);
 
-            var controller = VolumeManager.instance.stack.GetComponent<VolumetricLightingController>();
+            var controller = VolumeManager.instance.stack.GetComponent<Fog>();
 
             return new VBufferParameters(viewportResolution, controller.depthExtent.value,
                                          hdCamera.camera.nearClipPlane,
@@ -459,18 +459,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-
-            // VisualEnvironment sets global fog parameters
-
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics) || visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
             {
                 cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
                 return;
             }
 
             // Get the interpolated anisotropy value.
-            var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
+            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
 
             SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer.value, fog.anisotropy.value);
 
@@ -504,11 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DensityVolumeList densityVolumes = new DensityVolumeList();
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return densityVolumes;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return densityVolumes;
 
             using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
@@ -657,11 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return;
 
             using (new ProfilingSample(cmd, "Volume Voxelization"))
@@ -730,7 +718,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new VolumetricLightingParameters();
 
             // Get the interpolated anisotropy value.
-            var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
+            var fog = VolumeManager.instance.stack.GetComponent<Fog>();
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
@@ -808,11 +796,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
-                return;
-
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType.value != FogType.Volumetric)
+            if (!Fog.IsVolumetricLightingEnabled(hdCamera))
                 return;
 
             using (new ProfilingSample(cmd, "Volumetric Lighting"))

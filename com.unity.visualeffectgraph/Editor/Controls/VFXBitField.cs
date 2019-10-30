@@ -6,8 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 namespace UnityEditor.VFX
 { 
-
-    public class BitFieldAttribute : System.Attribute
+    class BitFieldAttribute : System.Attribute
     {
 
     }
