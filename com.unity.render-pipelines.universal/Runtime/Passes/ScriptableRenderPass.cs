@@ -107,6 +107,11 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
             overrideCameraTarget = true;
+
+            uint nonNullColorBuffers = ScriptableRenderer.NonNullColorBuffersCount(colorAttachments);
+            if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+                Debug.LogError("Trying to set " + nonNullColorBuffers + "renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
+
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
         }
@@ -135,6 +140,11 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
             overrideCameraTarget = true;
+
+            uint nonNullColorBuffers = ScriptableRenderer.NonNullColorBuffersCount(colorAttachments);
+            if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+                Debug.LogError("Trying to set " + nonNullColorBuffers + "renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
+
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         }

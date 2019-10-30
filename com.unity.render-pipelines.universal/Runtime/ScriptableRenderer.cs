@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.Universal
                 context.Submit();
         }
 
-        static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        public static uint NonNullColorBuffersCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
             foreach(var identifier in colorBuffers)
@@ -377,7 +377,12 @@ namespace UnityEngine.Rendering.Universal
                 if (identifier != 0)
                     ++nonNullColorBuffers;
             }
-            return nonNullColorBuffers > 1;
+            return nonNullColorBuffers;
+        }
+
+        static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            return NonNullColorBuffersCount(colorBuffers) > 1;
         }
 
         static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
