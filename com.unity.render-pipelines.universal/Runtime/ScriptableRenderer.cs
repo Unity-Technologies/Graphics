@@ -421,6 +421,15 @@ namespace UnityEngine.Rendering.Universal
                     //SetRenderTarget(cmd, renderPass.colorAttachment, m_CameraDepthTarget, clearFlag,
                     SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, clearFlag,
                         CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    if (cameraData.isStereoEnabled)
+                    {
+                        context.StartMultiEye(cameraData.camera);
+                        XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
+                    }
                 }
 
                 // Only setup render target if current render pass attachments are different from the active ones
