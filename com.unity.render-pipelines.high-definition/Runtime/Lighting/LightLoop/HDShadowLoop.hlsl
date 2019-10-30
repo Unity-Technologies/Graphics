@@ -7,12 +7,13 @@
 void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, float3 normalWS, uint featureFlags, uint renderLayer,
                         out float3 shadow)
 {
-    float weight = 0.0f;
+    float weight      = 0.0f;
     float shadowCount = 0.0f;
+
 #ifdef SHADOW_LOOP_MULTIPLY
     shadow = float3(1, 1, 1);
 #elif defined(SHADOW_LOOP_AVERAGE)
-    shadow = 0;
+    shadow = float3(0, 0, 0);
 #else
     shadow = float3(1, 1, 1);
 #endif
@@ -48,7 +49,7 @@ void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, floa
                 shadow = min(shadow, shadowD.xxx);
 #endif
                 shadowCount += 1.0f;
-                weight += 1.0f - shadowD;
+                weight      += 1.0f - shadowD;
             }
         }
     }
@@ -113,7 +114,7 @@ void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, floa
                     shadow = min(shadow, shadowP.xxx);
 #endif
                     shadowCount += 1.0f;
-                    weight += 1.0f - shadowP;
+                    weight      += 1.0f - shadowP;
                 }
             }
         }
@@ -164,7 +165,7 @@ void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, floa
                     shadow = min(shadow, shadowA.xxx);
 #endif
                     shadowCount += 1.0f;
-                    weight += 1.0f - shadowA;
+                    weight      += 1.0f - shadowA;
                 }
 
                 lightData = FetchLight(lightStart, min(++i, last));
@@ -186,7 +187,7 @@ void ShadowLoopMin( HDShadowContext shadowContext, PositionInputs posInput, floa
         shadow = float3(1, 1, 1);
     }
 #else
-    //  shadow = (1.0f - saturate(shadowCount)).xxx;
+    //shadow = (1.0f - saturate(shadowCount)).xxx;
     //shadow = (1.0f - saturate(weight)).xxx;
 #endif
 }
