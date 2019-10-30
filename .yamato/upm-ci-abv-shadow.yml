@@ -21,7 +21,7 @@ projects:
 ---
 {% for editor in editors %}
 all_project_ci_{{ editor.version }}:
-  name: ABV for SRP repository - {{ editor.version }}
+  name: Shadow ABV for SRP repository - {{ editor.version }}
   agent:
     type: Unity::VM
     image: cds-ops/ubuntu-18.04-agent:latest
