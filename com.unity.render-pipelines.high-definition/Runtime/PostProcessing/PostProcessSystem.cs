@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         const GraphicsFormat k_ColorFormat         = GraphicsFormat.B10G11R11_UFloatPack32;
         const GraphicsFormat k_CoCFormat           = GraphicsFormat.R16_SFloat;
         const GraphicsFormat k_ExposureFormat      = GraphicsFormat.R32G32_SFloat;
+        const GraphicsFormat k_AccumulationFormat  = GraphicsFormat.R32G32B32A32_SFloat;
 
         readonly RenderPipelineResources m_Resources;
         bool m_ResetHistory;
@@ -1418,6 +1419,40 @@ namespace UnityEngine.Rendering.HighDefinition
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC)
                 ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC, Allocator, 2);
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
+        }
+
+        #endregion
+
+        #region Motion Blur (Accumulation)
+
+        void DoAccumulationMotionBlur(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer)
+        {
+            GrabAccumulationMotionBlurHistoryTextures(camera, out var prevHistory, out var nextHistory);
+
+            if (m_ResetHistory)
+            {
+                //TODO
+            }
+
+            //TODO: Property Block?
+
+            //TODO: Draw
+        }
+
+        static void GrabAccumulationMotionBlurHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
+        {
+            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rTHandleSystem)
+            {
+                return rTHandleSystem.Alloc(
+                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    filterMode: FilterMode.Bilinear, colorFormat: k_AccumulationFormat,
+                    enableRandomWrite: true, useDynamicScale: true, name: "Accumulation History"
+                );
+            }
+
+            next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Accumulation)
+                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Accumulation, Allocator, 2);
+            previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.Accumulation);
         }
 
         #endregion

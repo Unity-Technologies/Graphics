@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedIndirectDiffuseHF,
         RaytracedIndirectDiffuseLF,
         PathTracing,
+        Accumulation,
         Count
     }
 }
