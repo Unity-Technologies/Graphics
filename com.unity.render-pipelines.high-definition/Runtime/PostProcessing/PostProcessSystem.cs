@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         MaterialPropertyBlock m_TAAHistoryBlitPropertyBlock = new MaterialPropertyBlock();
         MaterialPropertyBlock m_TAAPropertyBlock = new MaterialPropertyBlock();
+        MaterialPropertyBlock m_AccumulationMotionBlurPropertyBlock = new MaterialPropertyBlock();
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -1447,10 +1448,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             //TODO: Property Block?
+            m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
 
             //TODO: Draw
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
-            cmd.DrawProcedural(Matrix4x4.identity, m_AccumulationMotionBlurMaterial, 0, MeshTopology.Triangles, 3, 1);
+            cmd.DrawProcedural(Matrix4x4.identity, m_AccumulationMotionBlurMaterial, 0, MeshTopology.Triangles, 3, 1, m_AccumulationMotionBlurPropertyBlock);
         }
 
         static void GrabAccumulationMotionBlurHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)

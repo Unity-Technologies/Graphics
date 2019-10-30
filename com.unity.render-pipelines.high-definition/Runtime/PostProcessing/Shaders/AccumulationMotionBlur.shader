@@ -9,6 +9,9 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+        
+        TEXTURE2D_X(_InputTexture);
 
         struct Attributes
         {
@@ -36,9 +39,12 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
         void FragAccumulation(Varyings input, out float3 outColor : SV_Target0)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            
+            float2 uv = input.texcoord;
+            float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
 
             //Debug green to test pass-thru.
-            outColor = float3(0, 1, 0);
+            outColor = color;
         }
     ENDHLSL
 
