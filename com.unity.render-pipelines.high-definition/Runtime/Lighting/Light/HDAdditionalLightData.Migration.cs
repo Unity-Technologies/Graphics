@@ -109,12 +109,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.shadowResolution.useOverride = !data.m_ObsoleteUseShadowQualitySettings;
                     data.useContactShadow.@override = data.m_ObsoleteContactShadows;
                 }),
-                //MigrationStep.New(Version.RemoveAdditionalShadowData, (HDAdditionalLightData data) =>
-                //{
-                //    var shadow = data.GetComponent<AdditionalShadowData>();
-                //    if (shadow != null)
-                //        CoreUtils.Destroy(shadow);
-                //}),
+                MigrationStep.New(Version.RemoveAdditionalShadowData, (HDAdditionalLightData data) =>
+                {
+                    var shadow = data.GetComponent<AdditionalShadowData>();
+                    if (shadow != null)
+                        CoreUtils.Destroy(shadow);
+                }),
                 MigrationStep.New(Version.AreaLightShapeTypeLogicIsolation, (HDAdditionalLightData data) =>
                 {
                     // It is now mixed in an other Enum: PointLightHDType
@@ -153,12 +153,12 @@ namespace UnityEngine.Rendering.HighDefinition
             SetEmissiveMeshRendererEnabled(true);
         }
 
-        //Migration function called in:
-        // - OnValidate()
-        // - Awake()
-        // both function are called at instance
         void Migrate()
-            => k_HDLightMigrationSteps.Migrate(this);
+        {
+            k_HDLightMigrationSteps.Migrate(this);
+            // OnValidate might be called before migration but migration is needed to call UpdateBounds() properly so we call it again here to make sure that they are updated properly.
+            OnValidate();
+        }
 
         void Awake() => Migrate();
 
