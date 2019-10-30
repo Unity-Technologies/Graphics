@@ -1,6 +1,7 @@
 editors:
   - version: trunk
   - version: fast-trunk
+  - version: graphics/bugfix/fix-shadow-culling
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
