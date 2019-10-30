@@ -542,7 +542,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                             float3 probeVolumeUVW = clamp(samplePositionBNDC.xyz, 0.5 * s_probeVolumeData.resolutionInverse, 1.0 - s_probeVolumeData.resolutionInverse * 0.5);
                             float3 probeVolumeTexel3D = probeVolumeUVW * s_probeVolumeData.resolution;
 
-                            if (_ProbeVolumeLeakMitigationMode != LEAKMITIGATIONMODE_NORMALBIAS)
+                            if (_ProbeVolumeLeakMitigationMode != LEAKMITIGATIONMODE_NORMAL_BIAS)
                             {
                                 float3 probeVolumeTexel3DMin = floor(probeVolumeTexel3D - 0.5) + 0.5;
 
@@ -554,7 +554,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                 float probeWeightTSE = 1.0;
                                 float probeWeightTNW = 1.0;
                                 float probeWeightTNE = 1.0;
-                                if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_GEOMETRICFILTER)
+                                if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_GEOMETRIC_FILTER)
                                 {
                                     // Compute Geometric Weights based on surface position + normal, and direction to probe (similar to projected area calculation for point lights).
                                     // source: https://advances.realtimerendering.com/s2015/SIGGRAPH_2015_Remedy_Notes.pdf
@@ -568,7 +568,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                     probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 0.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
                                     probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, saturate(dot(bsdfData.normalWS, normalize(float3(probeVolumeTexel3DMin.x + 1.0, probeVolumeTexel3DMin.y + 1.0, probeVolumeTexel3DMin.z + 1.0) - probeVolumeTexel3D))));
                                 }
-                                else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_VALIDITYFILTER)
+                                else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_PROBE_VALIDITY_FILTER)
                                 {
                                     float2 probeVolumeTexel2DBackSW = float2(
                                         max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + floor(probeVolumeTexel3D.x - 0.5) + 0.5,
@@ -656,22 +656,41 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                             float2 probeVolumeAtlasUV2DBack = probeVolumeTexel2DBack * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
                             float2 probeVolumeAtlasUV2DFront = probeVolumeTexel2DFront * _ProbeVolumeAtlasResolutionAndInverse.zw + s_probeVolumeData.scaleBias.zw;
+
                             float lerpZ = frac(probeVolumeTexel3D.z - 0.5);
-                            sampleShAr = lerp(
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  0, 0),
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0, 0),
-                                lerpZ
-                            );
-                            sampleShAg = lerp(
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  1, 0),
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 1, 0),
-                                lerpZ
-                            );
-                            sampleShAb = lerp(
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  2, 0),
-                                SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 2, 0),
-                                lerpZ
-                            );
+
+#if DEBUG_DISPLAY
+                            if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
+                            {
+                                float validity = lerp(
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  3, 0),
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 3, 0),
+                                    lerpZ
+                                );
+
+                                sampleShAr = float4(validity, 0, 0, 0);
+                                sampleShAg = float4(0, 0, 0, 0);
+                                sampleShAb = float4(0, 0, 0, 0);
+                            }
+                            else
+#endif
+                            {
+                                sampleShAr = lerp(
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  0, 0),
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 0, 0),
+                                    lerpZ
+                                );
+                                sampleShAg = lerp(
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  1, 0),
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 1, 0),
+                                    lerpZ
+                                );
+                                sampleShAb = lerp(
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  2, 0),
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 2, 0),
+                                    lerpZ
+                                );
+                            }
                         }
                     }
 
@@ -681,6 +700,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
                     {
                         probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weight;
+                    }
+                    else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
+                    {
+                        if (sampleShAr.x > 0.75)
+                            probeVolumeDiffuseLighting += float3(0, 0, 0);
+                        else
+                            probeVolumeDiffuseLighting += float3(1, 0, 1);
                     }
                     else
 #endif
@@ -696,7 +722,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
 
 #ifdef DEBUG_DISPLAY
-        if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME || _DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
         {
             builtinData.bakeDiffuseLighting = 0.0;
             builtinData.backBakeDiffuseLighting = 0.0;

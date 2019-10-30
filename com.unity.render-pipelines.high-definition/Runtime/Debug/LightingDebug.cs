@@ -95,6 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         VisualizeAtlas,
         VisualizeDebugColors,
+        VisualizeValidity,
     }
 
     [Serializable]

@@ -4,6 +4,13 @@
 
 #ifndef PROBEVOLUMESYSTEM_CS_HLSL
 #define PROBEVOLUMESYSTEM_CS_HLSL
+//
+// UnityEngine.Rendering.HighDefinition.LeakMitigationMode:  static fields
+//
+#define LEAKMITIGATIONMODE_NORMAL_BIAS (0)
+#define LEAKMITIGATIONMODE_GEOMETRIC_FILTER (1)
+#define LEAKMITIGATIONMODE_PROBE_VALIDITY_FILTER (2)
+
 // Generated from UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
 // PackingRules = Exact
 struct ProbeVolumeEngineData
@@ -27,13 +34,6 @@ struct SphericalHarmonicsL1
     float4 shAg;
     float4 shAb;
 };
-
-//
-// UnityEngine.Rendering.HighDefinition.LeakMitigationMode:  static fields
-//
-#define LEAKMITIGATIONMODE_NORMALBIAS (0)
-#define LEAKMITIGATIONMODE_GEOMETRICFILTER (1)
-#define LEAKMITIGATIONMODE_VALIDITYFILTER (2)
 
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.ProbeVolumeEngineData
