@@ -248,7 +248,6 @@ namespace UnityEngine.Rendering.Universal
                 lightData.InitNoBake(light.GetInstanceID());
                 lightsOutput[i] = lightData;
             }
-            Debug.LogWarning("Realtime GI is not supported in Universal Pipeline.");
 #endif
         };
     }
