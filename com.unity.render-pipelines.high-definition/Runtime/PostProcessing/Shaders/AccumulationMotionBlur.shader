@@ -43,7 +43,7 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
             float2 uv = input.texcoord;
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
 
-            //Debug green to test pass-thru.
+            //Pass-thru for now.
             outColor = color;
         }
     ENDHLSL

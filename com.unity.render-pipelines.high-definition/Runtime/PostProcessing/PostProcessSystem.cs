@@ -474,7 +474,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // TEMP: Place accumulation here for now.
-                    if (m_AccumulationMotionBlurFS)
+                    if (!isSceneView && m_AccumulationMotionBlurFS)
                     {
                         var destination = m_Pool.Get(Vector2.one, k_AccumulationFormat);
                         DoAccumulationMotionBlur(cmd, camera, source, destination, depthBuffer);
