@@ -439,31 +439,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Dispatch(CommandBuffer cmd, HDCamera camera, int frameCount)
         {
-            using (new ProfilingSample(cmd, "GTAO", CustomSamplerId.RenderSSAO.GetSampler()))
+            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
+            if (IsActive(camera, settings))
             {
-                var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-                EnsureRTSize(settings, camera);
-
-                var currentHistory = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
-                var historyOutput = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
-
-                var aoParameters = PrepareRenderAOParameters(camera, RTHandles.rtHandleProperties, frameCount);
-                using (new ProfilingSample(cmd, "GTAO Horizon search and integration", CustomSamplerId.RenderSSAO.GetSampler()))
+                using (new ProfilingSample(cmd, "GTAO", CustomSamplerId.RenderSSAO.GetSampler()))
                 {
-                    RenderAO(aoParameters, m_PackedDataTex, m_Resources, cmd);
-                }
+                    EnsureRTSize(settings, camera);
 
-                using (new ProfilingSample(cmd, "Denoise GTAO"))
-                {
-                    var output = m_RunningFullRes ? m_AmbientOcclusionTex : m_FinalHalfRes;
-                    DenoiseAO(aoParameters, m_PackedDataTex, m_PackedDataBlurred, currentHistory, historyOutput, output, cmd);
-                }
+                    var currentHistory = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+                    var historyOutput = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                if (!m_RunningFullRes)
-                {
-                    using (new ProfilingSample(cmd, "Upsample GTAO", CustomSamplerId.ResolveSSAO.GetSampler()))
+                    var aoParameters = PrepareRenderAOParameters(camera, RTHandles.rtHandleProperties, frameCount);
+                    using (new ProfilingSample(cmd, "GTAO Horizon search and integration", CustomSamplerId.RenderSSAO.GetSampler()))
                     {
-                        UpsampleAO(aoParameters, settings.temporalAccumulation.value ? m_FinalHalfRes : m_PackedDataTex, m_AmbientOcclusionTex, cmd);
+                        RenderAO(aoParameters, m_PackedDataTex, m_Resources, cmd);
+                    }
+
+                    using (new ProfilingSample(cmd, "Denoise GTAO"))
+                    {
+                        var output = m_RunningFullRes ? m_AmbientOcclusionTex : m_FinalHalfRes;
+                        DenoiseAO(aoParameters, m_PackedDataTex, m_PackedDataBlurred, currentHistory, historyOutput, output, cmd);
+                    }
+
+                    if (!m_RunningFullRes)
+                    {
+                        using (new ProfilingSample(cmd, "Upsample GTAO", CustomSamplerId.ResolveSSAO.GetSampler()))
+                        {
+                            UpsampleAO(aoParameters, settings.temporalAccumulation.value ? m_FinalHalfRes : m_PackedDataTex, m_AmbientOcclusionTex, cmd);
+                        }
                     }
                 }
             }
