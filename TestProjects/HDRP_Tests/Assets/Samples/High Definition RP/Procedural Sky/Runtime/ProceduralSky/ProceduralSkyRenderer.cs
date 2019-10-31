@@ -32,9 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.Destroy(m_ProceduralSkyMaterial);
         }
-        public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
-        {
-        }
 
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {

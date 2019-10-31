@@ -150,7 +150,7 @@ $include("SharedCode.template.hlsl")
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
-        // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
+        // TODO: split graph evaluation to grab just alpha dependencies first? tricky.
         $AlphaTest: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
@@ -164,7 +164,6 @@ $include("SharedCode.template.hlsl")
             uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
             ShadowLoopMin(shadowContext, posInput, normalWS, asuint(_ShadowMatteFilter), renderingLayers, shadow3);
             shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
-            //surfaceData.color.rgb = lerp(surfaceDescription.ShadowTint.rgb, surfaceData.color.rgb, shadow);
 
             float4 shadowColor = (1 - shadow)*surfaceDescription.ShadowTint.rgba;
             float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);
@@ -172,13 +171,15 @@ $include("SharedCode.template.hlsl")
             // Keep the nested lerp
             // With no Color (bsdfData.color.rgb, bsdfData.color.a == 0.0f), just use ShadowColor*Color to avoid a ring of "white" around the shadow
             // And mix color to consider the Color & ShadowColor alpha (from texture or/and color picker)
-        #ifdef _SURFACE_TYPE_TRANSPARENT
-            surfaceData.color.rgb = lerp(shadowColor.rgb*surfaceData.color.rgb, lerp(lerp(shadowColor.rgb, surfaceData.color.rgb, 1 - surfaceDescription.ShadowTint.a), surfaceData.color.rgb, shadow), localAlpha);
-        #else
-            surfaceData.color.rgb = lerp(lerp(shadowColor.rgb, surfaceData.color.rgb, 1 - surfaceDescription.ShadowTint.a), surfaceData.color.rgb, shadow);
-        #endif
-        #endif
+            #ifdef _SURFACE_TYPE_TRANSPARENT
+                surfaceData.color = lerp(shadowColor.rgb*surfaceData.color, lerp(lerp(shadowColor.rgb, surfaceData.color, 1 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow), surfaceDescription.Alpha);
+            #else
+                surfaceData.color = lerp(lerp(shadowColor.rgb, surfaceData.color, 1 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow);
+            #endif
+            localAlpha = ApplyBlendMode(surfaceData.color, localAlpha).a;
 
+            surfaceDescription.Alpha = localAlpha;
+        #endif
 
         // Builtin Data
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting

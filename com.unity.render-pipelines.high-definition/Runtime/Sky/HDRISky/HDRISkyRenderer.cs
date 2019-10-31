@@ -5,12 +5,12 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
-        private static int m_RenderCubemapID                                = 0;
-        private static int m_RenderFullscreenSkyID                          = 1;
-        private static int m_RenderCubemapWithBackplateID                   = 2;
-        private static int m_RenderFullscreenSkyWithBackplateID             = 3;
-        private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4;
-        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5;
+        private static int m_RenderCubemapID                                = 0; // FragBaking
+        private static int m_RenderFullscreenSkyID                          = 1; // FragRender
+        private static int m_RenderCubemapWithBackplateID                   = 2; // FragBakingBackplate
+        private static int m_RenderFullscreenSkyWithBackplateID             = 3; // FragRenderBackplate
+        private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
+        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
         public HDRISkyRenderer()
         {

@@ -203,9 +203,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float3 offset = RotationUp(float3(_OffsetTexX, 0, _OffsetTexY), _CosSinPhiPlate);
         float3 dir    = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0) + offset; // No need for normalization
 
-        //return float4((1.0f/(GetTileSize()*GetTileSize()))*(uint2(input.positionCS.xy)/GetTileSize()), 0, 1);
-
-        //PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy)/GetTileSize());
         PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
         HDShadowContext shadowContext = InitShadowContext();
@@ -367,7 +364,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         Pass
         {
             ZWrite On
-            ZTest Always
+            ZTest LEqual
             Blend Off
             Cull Off
 
@@ -380,7 +377,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         Pass
         {
             ZWrite On
-            ZTest Always
+            ZTest LEqual
             Blend Off
             Cull Off
 
