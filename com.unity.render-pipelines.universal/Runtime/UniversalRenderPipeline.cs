@@ -150,8 +150,9 @@ namespace UnityEngine.Rendering.Universal
         {
             base.Dispose(disposing);
 
-            foreach (var renderer in asset.m_Renderers)
-                renderer.Cleanup();
+            if (asset != null)
+                foreach (var renderer in asset.m_Renderers)
+                    renderer?.Cleanup();
 
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
