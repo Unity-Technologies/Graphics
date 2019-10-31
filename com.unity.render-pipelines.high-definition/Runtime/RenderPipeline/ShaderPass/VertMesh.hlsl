@@ -107,9 +107,6 @@ VaryingsMeshType TransformBlit(AttributesMesh input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 #if defined(ATTRIBUTES_NEED_VERTEX_ID)
     output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-    #if defined(VARYINGS_NEED_TEXCOORD0)
-    output.texCoord0.xy = GetFullScreenTriangleTexCoord(input.vertexID);
-    #endif
 #endif
     return output;
 }

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_PostProcessInput(
-            [Slot(0, Binding.MeshUV0)] Vector2 UV,
+            [Slot(0, Binding.ScreenPosition)] Vector4 UV,
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector4 Out)
         {
             Out = Vector4.one;

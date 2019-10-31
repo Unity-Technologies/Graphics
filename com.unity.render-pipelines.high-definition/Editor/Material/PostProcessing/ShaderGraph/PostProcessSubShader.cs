@@ -36,9 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             RequiredFields = new List<string>()
             {
-                "AttributesMesh.uv0",
                 "AttributesMesh.vertexID",
-                "FragInputs.texCoord0"
             },
 
             PixelShaderSlots = new List<int>()
@@ -81,9 +79,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             RequiredFields = new List<string>()
             {
-                "AttributesMesh.uv0",
                 "AttributesMesh.vertexID",
-                "FragInputs.texCoord0"
             },
 
             PixelShaderSlots = new List<int>()
