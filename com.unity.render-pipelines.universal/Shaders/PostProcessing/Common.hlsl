@@ -91,8 +91,10 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         if (userLutContrib > 0.0)
         {
             input = saturate(input);
+            input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
             half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
+            input.rgb = SRGBToLinear(input.rgb);
         }
     }
 
@@ -107,8 +109,10 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         UNITY_BRANCH
         if (userLutContrib > 0.0)
         {
+            input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
             half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
+            input.rgb = SRGBToLinear(input.rgb);
         }
 
         input = ApplyLut2D(TEXTURE2D_ARGS(lutTex, lutSampler), input, lutParams);
