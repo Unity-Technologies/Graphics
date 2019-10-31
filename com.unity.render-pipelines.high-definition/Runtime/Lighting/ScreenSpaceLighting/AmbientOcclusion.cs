@@ -115,8 +115,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!IsActive(camera, settings))
             {
-                // No AO applied - neutral is black, see the comment in the shaders
-                cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, TextureXR.GetBlackTexture());
                 PostDispatchWork(cmd, camera);
                 return;
             }
@@ -485,9 +483,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
         {
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
-            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
+            var aoTexture = IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture();
+            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, aoTexture);
             // TODO: All the push debug stuff should be centralized somewhere
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture(), FullScreenDebugMode.SSAO);
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, aoTexture, FullScreenDebugMode.SSAO);
         }
     }
 }
