@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = new PropertyNode();
                 node.owner = m_Graph;
-                node.propertyGuid = property.guid;
+                node.property = property;
                 node.owner = null;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = new KeywordNode();
                 node.owner = m_Graph;
-                node.keywordGuid = keyword.guid;
+                node.keyword = keyword;
                 node.owner = null;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }

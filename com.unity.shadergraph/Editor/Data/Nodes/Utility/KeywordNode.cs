@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEngine.Serialization;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 
@@ -18,20 +16,18 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        // TODO: Get rid of this
-        [JsonProperty]
-        [JsonUpgrade("m_KeywordGuidSerialized")]
-        Guid m_KeywordGuid;
+        [SerializeField]
+        JsonRef<ShaderKeyword> m_Keyword;
 
-        public Guid keywordGuid
+        public ShaderKeyword keyword
         {
-            get { return m_KeywordGuid; }
+            get { return m_Keyword; }
             set
             {
-                if (m_KeywordGuid == value)
+                if (m_Keyword == value)
                     return;
 
-                m_KeywordGuid = value;
+                m_Keyword = value;
                 UpdateNode();
                 Dirty(ModificationScope.Topological);
             }
@@ -48,10 +44,6 @@ namespace UnityEditor.ShaderGraph
 
         public void UpdateNode()
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
-            if (keyword == null)
-                return;
-
             name = keyword.displayName;
             UpdatePorts(keyword);
         }
@@ -127,10 +119,6 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext context, GenerationMode generationMode)
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
-            if (keyword == null)
-                return;
-
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
             switch(keyword.keywordType)
             {
@@ -198,10 +186,12 @@ namespace UnityEditor.ShaderGraph
 
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
-            if (!keywordGuid.Equals(Guid.Empty) && !owner.keywords.Any(x => x.guid == keywordGuid))
-                return true;
+            return keyword == null || !owner.keywords.Contains(keyword);
+        }
 
-            return false;
+        internal void InternalSetKeyword(ShaderKeyword keyword)
+        {
+            m_Keyword = keyword;
         }
     }
 }

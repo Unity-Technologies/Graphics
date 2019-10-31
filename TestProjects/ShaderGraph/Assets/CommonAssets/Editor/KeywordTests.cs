@@ -221,7 +221,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             foreach(KeywordNode keywordNode in keywordNodes)
             {
-                ShaderKeyword keyword = m_Graph.keywords.Where(x => x.guid == keywordNode.keywordGuid).FirstOrDefault();
+                ShaderKeyword keyword = m_Graph.keywords.FirstOrDefault(x => x == keywordNode.keyword);
                 if(keyword == null)
                 {
                     Assert.Fail("No matching Keyword found in graph.");
@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 keywordNode.GetInputSlots(inputSlots);
                 inputSlots.OrderBy(x => x.id);
                 Assert.IsNotEmpty(keywordNodes, "No input Ports on Node.");
-                
+
                 switch(keyword.keywordType)
                 {
                     case KeywordType.Boolean:
@@ -271,7 +271,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 var localNodes = ListPool<AbstractMaterialNode>.Get();
                 NodeUtils.DepthFirstCollectNodesFromNode(localNodes, previewNode, NodeUtils.IncludeSelf.Include, keywordPermutation: m_Collector.permutations[i]);
-                
+
                 foreach(AbstractMaterialNode node in localNodes)
                 {
                     int nodeIndex = descendentNodes.IndexOf(node);
@@ -292,10 +292,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             var keywordNodes = m_Graph.GetNodes<KeywordNode>().ToList();
-            KeywordNode booleanANode = keywordNodes.Where(x => x.keywordGuid == booleanAKeyword.guid).FirstOrDefault();
-            KeywordNode booleanBNode = keywordNodes.Where(x => x.keywordGuid == booleanBKeyword.guid).FirstOrDefault();
-            KeywordNode enumANode = keywordNodes.Where(x => x.keywordGuid == enumAKeyword.guid).FirstOrDefault();
-            KeywordNode enumBNode = keywordNodes.Where(x => x.keywordGuid == enumBKeyword.guid).FirstOrDefault();
+            KeywordNode booleanANode = keywordNodes.FirstOrDefault(x => x.keyword == booleanAKeyword);
+            KeywordNode booleanBNode = keywordNodes.FirstOrDefault(x => x.keyword == booleanBKeyword);
+            KeywordNode enumANode = keywordNodes.FirstOrDefault(x => x.keyword == enumAKeyword);
+            KeywordNode enumBNode = keywordNodes.FirstOrDefault(x => x.keyword == enumBKeyword);
             if(booleanANode == null || booleanBNode == null || enumANode == null || enumBNode == null)
             {
                 Assert.Fail("One or more Keywords Nodes not in graph.");

@@ -97,7 +97,7 @@ namespace UnityEditor.Graphing
             // The only valid port id is the port that corresponds to that keywords value in the active permutation
             if(node is KeywordNode keywordNode && keywordPermutation != null)
             {
-                var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
+                var valueInPermutation = keywordPermutation.FirstOrDefault(x => x.Key == keywordNode.keyword);
                 ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
             }
             else if (slotIds == null)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -33,6 +34,20 @@ namespace UnityEditor.Graphing
             get
             {
                 return new JSONSerializedElement();
+            }
+        }
+
+
+        public static void Upgrade<T>(List<SerializationHelper.JSONSerializedElement> elements, JsonList<T> output, List<string> jsonList = null)
+            where T : JsonObject
+        {
+            foreach (var element in elements)
+            {
+                var type = JsonStore.typeMap[element.typeInfo.fullName];
+                var instance = (T)Activator.CreateInstance(type);
+                DeserializationContext.Enqueue(instance, element.JSONnodeData);
+                output.Add(instance);
+                jsonList?.Add(element.JSONnodeData);
             }
         }
 

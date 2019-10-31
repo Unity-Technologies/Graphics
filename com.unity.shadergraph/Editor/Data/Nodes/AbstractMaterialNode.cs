@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
@@ -12,14 +9,20 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : IGroupItem, IJsonObject
+    abstract class AbstractMaterialNode : JsonObject, IGroupItem
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<Edge> s_TempEdges = new List<Edge>();
         protected static List<PreviewProperty> s_TempPreviewProperties = new List<PreviewProperty>();
 
-        [JsonProperty]
-        public GroupData group { get; set; }
+        [SerializeField]
+        JsonRef<GroupData> m_Group;
+
+        public GroupData group
+        {
+            get => m_Group;
+            set => m_Group = value;
+        }
 
         [SerializeField]
         private string m_Name;
@@ -33,9 +36,10 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         bool m_HasError;
 
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        [JsonUpgrade("m_SerializableSlots", typeof(SerializedElementsConverter))]
-        public List<MaterialSlot> slots { get; private set; } = new List<MaterialSlot>();
+        [SerializeField]
+        JsonList<MaterialSlot> m_Slots = new JsonList<MaterialSlot>();
+
+        public IEnumerable<MaterialSlot> slots => m_Slots;
 
         public GraphData owner { get; set; }
 
@@ -157,7 +161,7 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                var id = owner.owner.jsonStore.GetId(this);
+                var id = this.jsonId;
                 if (m_NameForDefaultVariableName != name || m_IdForDefaultVariableName != id)
                 {
                     m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), NodeUtils.GetHLSLSafeName(id));
@@ -551,7 +555,7 @@ namespace UnityEditor.ShaderGraph
             if (foundSlot == null)
             {
                 slot.owner = this;
-                slots.Add(slot);
+                m_Slots.Add(slot);
             }
             else
             {
@@ -564,6 +568,8 @@ namespace UnityEditor.ShaderGraph
 
 //            addingSlot.CopyValuesFrom(foundSlot);
         }
+
+        internal JsonList<MaterialSlot> InternalGetSlots() => m_Slots;
 
         public void RemoveSlot(int slotId)
         {
@@ -579,7 +585,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             //remove slots
-            slots.RemoveAll(x => x.id == slotId);
+            m_Slots.RemoveAll(x => x.id == slotId);
 
             OnSlotsChanged();
         }
@@ -642,12 +648,6 @@ namespace UnityEditor.ShaderGraph
             return this.GetInputSlots<MaterialSlot>().Where(x => !owner.GetEdges(x).Any());
         }
 
-        [OnDeserializing]
-        void OnDeserializing(StreamingContext ctx)
-        {
-            slots.Clear();
-        }
-
         public virtual void OnAfterDeserialize()
         {
             if (m_NodeVersion != GetCompiledNodeVersion())
@@ -656,8 +656,6 @@ namespace UnityEditor.ShaderGraph
                 m_NodeVersion = GetCompiledNodeVersion();
             }
 
-//            m_Slots = SerializationHelper.Deserialize<MaterialSlot>(m_SerializableSlots, GraphUtil.GetLegacyTypeRemapping());
-//            m_SerializableSlots = null;
             foreach (var s in slots)
                 s.owner = this;
 

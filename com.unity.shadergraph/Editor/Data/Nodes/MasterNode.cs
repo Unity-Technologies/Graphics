@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -13,11 +13,13 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     abstract class MasterNode<T> : AbstractMaterialNode, IMasterNode, IHasSettings
-        where T : class, ISubShader
+        where T : JsonObject, ISubShader
     {
-        [JsonProperty]
-        [JsonUpgrade("m_SerializableSubShaders", typeof(SerializedElementsConverter))]
-        List<T> m_SubShaders = new List<T>();
+        [SerializeField]
+        JsonList<T> m_SubShaders = new JsonList<T>();
+
+        [SerializeField]
+        int m_MasterNodeVersion;
 
         public override bool hasPreview
         {
@@ -39,14 +41,11 @@ namespace UnityEditor.ShaderGraph
             get { return typeof(T); }
         }
 
-        public IEnumerable<T> subShaders
-        {
-            get { return m_SubShaders; }
-        }
+        public IEnumerable<T> subShaders => m_SubShaders;
 
         public void AddSubShader(T subshader)
         {
-            if (m_SubShaders.Contains(subshader))
+            if (m_SubShaders.Any(x => ReferenceEquals(x, subshader)))
                 return;
 
             m_SubShaders.Add(subshader);
@@ -61,7 +60,7 @@ namespace UnityEditor.ShaderGraph
 
         public ISubShader GetActiveSubShader()
         {
-            foreach (var subShader in m_SubShaders)
+            foreach (var subShader in subShaders)
             {
                 if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                     return subShader;
@@ -99,7 +98,7 @@ namespace UnityEditor.ShaderGraph
             {
                 SubShaderGenerator.GeneratePropertiesBlock(finalShader, shaderProperties, shaderKeywords, mode);
 
-                foreach (var subShader in m_SubShaders)
+                foreach (var subShader in subShaders)
                 {
                     if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                         finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
@@ -113,7 +112,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
-            foreach (var subShader in m_SubShaders)
+            foreach (var subShader in subShaders)
             {
                 if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                     return true;
@@ -160,6 +159,16 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        public virtual void ProcessPreviewMaterial(Material Material) {}
+        public virtual void ProcessPreviewMaterial(Material material) {}
+
+        internal override void OnDeserialized(string json)
+        {
+            if (m_MasterNodeVersion == 0)
+            {
+                m_MasterNodeVersion = 1;
+                var masterNodeV0 = JsonUtility.FromJson<MasterNodeV0>(json);
+                SerializationHelper.Upgrade(masterNodeV0.subShaders, m_SubShaders);
+            }
+        }
     }
 }

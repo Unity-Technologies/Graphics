@@ -191,18 +191,15 @@ namespace UnityEditor.ShaderGraph
             if (s_LegacyTypeRemapping == null)
             {
                 s_LegacyTypeRemapping = new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                foreach (var type in TypeCache.GetTypesWithAttribute<FormerNameAttribute>())
                 {
-                    foreach (var type in assembly.GetTypesOrNothing())
+                    if (type.IsAbstract)
+                        continue;
+                    foreach (var attribute in type.GetCustomAttributes(typeof(FormerNameAttribute), false))
                     {
-                        if (type.IsAbstract)
-                            continue;
-                        foreach (var attribute in type.GetCustomAttributes(typeof(FormerNameAttribute), false))
-                        {
-                            var legacyAttribute = (FormerNameAttribute)attribute;
-                            var serializationInfo = new SerializationHelper.TypeSerializationInfo { fullName = legacyAttribute.fullName };
-                            s_LegacyTypeRemapping[serializationInfo] = SerializationHelper.GetTypeSerializableAsString(type);
-                        }
+                        var legacyAttribute = (FormerNameAttribute)attribute;
+                        var serializationInfo = new SerializationHelper.TypeSerializationInfo { fullName = legacyAttribute.fullName };
+                        s_LegacyTypeRemapping[serializationInfo] = SerializationHelper.GetTypeSerializableAsString(type);
                     }
                 }
             }

@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Gradient", "Gradient")]
-    class GradientNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    class GradientNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode, ISerializationCallbackReceiver
     {
         [SerializeField]
         private float m_Value;
@@ -31,14 +27,33 @@ namespace UnityEditor.ShaderGraph
             return string.Format("Unity_{0}", GetVariableNameForNode());
         }
 
-        [JsonProperty]
         Gradient m_Gradient = new Gradient();
+
+        [SerializeField]
+        Vector4[] m_SerializableColorKeys = { new Vector4(1f, 1f, 1f, 0f), new Vector4(0f, 0f, 0f, 1f), };
+
+        [SerializeField]
+        Vector2[] m_SerializableAlphaKeys = { new Vector2(1f, 0f), new Vector2(1f, 1f) };
+
+        [SerializeField]
+        int m_SerializableMode = 0;
 
         [GradientControl("")]
         public Gradient gradient
         {
             get
             {
+                if (m_SerializableAlphaKeys != null && m_SerializableColorKeys != null)
+                {
+                    m_Gradient = new Gradient();
+                    var colorKeys = m_SerializableColorKeys.Select(k => new GradientColorKey(new Color(k.x, k.y, k.z, 1f), k.w)).ToArray();
+                    var alphaKeys = m_SerializableAlphaKeys.Select(k => new GradientAlphaKey(k.x, k.y)).ToArray();
+                    m_SerializableAlphaKeys = null;
+                    m_SerializableColorKeys = null;
+                    m_Gradient.SetKeys(colorKeys, alphaKeys);
+                    m_Gradient.mode = (GradientMode)m_SerializableMode;
+                }
+
                 return m_Gradient;
             }
             set
@@ -60,28 +75,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        [JsonExtensionData]
-        Dictionary<string, JToken> m_ExtensionData = default;
-
-        [OnDeserialized]
-        void OnDeserialized(StreamingContext _)
+        public void OnBeforeSerialize()
         {
-            if (m_ExtensionData.ContainsKey("m_SerializableColorKeys"))
+            if (m_Gradient != null)
             {
-                m_Gradient = new Gradient();
-                m_Gradient.mode = (GradientMode)m_ExtensionData["m_SerializableMode"].Value<int>();
-                var serializer = JsonSerializer.Create(new JsonSerializerSettings
-                {
-                    Converters = new List<JsonConverter> { new Vector4Converter(), new Vector2Converter() }
-                });
-                var serializableColorKeys = serializer.Deserialize<Vector4[]>(m_ExtensionData["m_SerializableColorKeys"].CreateReader());
-                var serializableAlphaKeys = serializer.Deserialize<Vector2[]>(m_ExtensionData["m_SerializableAlphaKeys"].CreateReader());
-                var colorKeys = serializableColorKeys.Select(k => new GradientColorKey(new Color(k.x, k.y, k.z, 1f), k.w)).ToArray();
-                var alphaKeys = serializableAlphaKeys.Select(k => new GradientAlphaKey(k.x, k.y)).ToArray();
-                m_Gradient.SetKeys(colorKeys, alphaKeys);
+                m_SerializableColorKeys = m_Gradient.colorKeys.Select(k => new Vector4(k.color.r, k.color.g, k.color.b, k.time)).ToArray();
+                m_SerializableAlphaKeys = m_Gradient.alphaKeys.Select(k => new Vector2(k.alpha, k.time)).ToArray();
+                m_SerializableMode = (int)m_Gradient.mode;
             }
-
-            m_ExtensionData.Clear();
         }
 
         public override bool hasPreview { get { return false; } }

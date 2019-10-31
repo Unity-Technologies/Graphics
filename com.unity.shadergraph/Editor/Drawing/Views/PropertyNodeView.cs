@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,12 +17,12 @@ namespace UnityEditor.ShaderGraph
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNodeView"));
             this.node = node;
-            viewDataKey = node.owner.owner.jsonStore.GetId(node);
+            viewDataKey = node.jsonId;
             userData = node;
 
             // Getting the generatePropertyBlock property to see if it is exposed or not
             var graph = node.owner as GraphData;
-            var property = graph.properties.FirstOrDefault(x => x.guid == node.propertyGuid);
+            var property = node.property;
             var icon = (graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
             this.icon = icon;
 
@@ -34,7 +35,16 @@ namespace UnityEditor.ShaderGraph
             // Registering the hovering callbacks for highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            ChangeDispatcher.Connect(this, node, OnChange);
         }
+
+        void OnChange()
+        {
+            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+            OnModified(ModificationScope.Graph);
+            OnModified(ModificationScope.Topological);
+        }
+
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         public Node gvNode => this;
         public AbstractMaterialNode node { get; }
@@ -62,7 +72,7 @@ namespace UnityEditor.ShaderGraph
                 // changing the icon to be exposed or not
                 var propNode = (PropertyNode)node;
                 var graph = node.owner as GraphData;
-                var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
+                var property = propNode.property;
 
                 var icon = property.generatePropertyBlock ? exposedIcon : null;
                 this.icon = icon;
@@ -88,7 +98,7 @@ namespace UnityEditor.ShaderGraph
 
             var propNode = (PropertyNode)node;
 
-            var propRow = blackboardProvider.GetBlackboardRow(propNode.propertyGuid);
+            var propRow = blackboardProvider.GetBlackboardRow(propNode.property);
             if (propRow != null)
             {
                 if (evt.eventTypeId == MouseEnterEvent.TypeId())

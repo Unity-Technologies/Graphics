@@ -6,12 +6,13 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEditor.Rendering.Universal;
 using Data.Util;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [Serializable]
     [FormerName("UnityEditor.Experimental.Rendering.LWRP.LightWeightSpriteLitSubShader")]
-    class UniversalSpriteLitSubShader : ISpriteLitSubShader
+    class UniversalSpriteLitSubShader : SpriteLitSubShader
     {
 #region Passes
         ShaderPass m_LitPass = new ShaderPass
@@ -44,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 "Varyings.texCoord0",
                 "Varyings.screenPosition",
             },
-            
+
             // Pass setup
             includes = new List<string>()
             {
@@ -147,7 +148,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 "Varyings.color",
                 "Varyings.texCoord0",
             },
-            
+
             // Pass setup
             includes = new List<string>()
             {
@@ -216,7 +217,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         };
 #endregion
 
-        public int GetPreviewPassIndex() { return 0; }
+        public override int GetPreviewPassIndex() { return 0; }
 
         private static ActiveFields GetActiveFieldsFromMasterNode(SpriteLitMasterNode masterNode, ShaderPass pass)
         {
@@ -224,8 +225,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             var baseActiveFields = activeFields.baseInstance;
 
             // Graph Vertex
-            if(masterNode.IsSlotConnected(SpriteLitMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(SpriteLitMasterNode.VertNormalSlotId) || 
+            if(masterNode.IsSlotConnected(SpriteLitMasterNode.PositionSlotId) ||
+               masterNode.IsSlotConnected(SpriteLitMasterNode.VertNormalSlotId) ||
                masterNode.IsSlotConnected(SpriteLitMasterNode.VertTangentSlotId))
             {
                 baseActiveFields.Add("features.graphVertex");
@@ -252,7 +253,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
         }
 
-        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public override string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -283,7 +284,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return subShader.GetShaderString(0);
         }
 
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
+        public override bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }

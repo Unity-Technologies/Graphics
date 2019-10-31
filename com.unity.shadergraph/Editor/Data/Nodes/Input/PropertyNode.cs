@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Serialization;
@@ -17,24 +15,18 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        // TODO: Get rid of this
-        [JsonProperty]
-        [JsonUpgrade("m_PropertyGuidSerialized")]
-        Guid m_PropertyGuid;
+        [SerializeField]
+        JsonRef<AbstractShaderProperty> m_Property;
 
-        public Guid propertyGuid
+        public AbstractShaderProperty property
         {
-            get { return m_PropertyGuid; }
+            get { return m_Property; }
             set
             {
-                if (m_PropertyGuid == value)
+                if (m_Property == value)
                     return;
 
-                m_PropertyGuid = value;
-                var property = owner.properties.FirstOrDefault(x => x.guid == value);
-                if (property == null)
-                    return;
-
+                m_Property = value;
                 AddOutputSlot(property);
                 Dirty(ModificationScope.Topological);
             }
@@ -43,10 +35,6 @@ namespace UnityEditor.ShaderGraph
 
         public void OnEnable()
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                return;
-
             AddOutputSlot(property);
         }
 
@@ -119,10 +107,6 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                return;
-
             switch(property.propertyType)
             {
                 case PropertyType.Boolean:
@@ -166,10 +150,6 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                throw new NullReferenceException();
-
             if (!(property is TextureShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
@@ -181,7 +161,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override bool CalculateNodeHasError(ref string errorMessage)
         {
-            if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
+            if (property == null || !owner.properties.Contains(property))
             {
                 errorMessage = "Property Node has no associated Blackboard property.";
                 return true;
@@ -192,11 +172,6 @@ namespace UnityEditor.ShaderGraph
 
         public override bool ValidateConcretePrecision(ref string errorMessage)
         {
-            // Get precision from Property
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                return true;
-
             // If Property has a precision override use that
             precision = property.precision;
             if (precision != Precision.Inherit)
@@ -204,6 +179,11 @@ namespace UnityEditor.ShaderGraph
             else
                 concretePrecision = owner.concretePrecision;
             return false;
+        }
+
+        internal void InternalSetProperty(AbstractShaderProperty property)
+        {
+            m_Property = property;
         }
     }
 }

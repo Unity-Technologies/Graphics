@@ -5,6 +5,7 @@ using Data.Util;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -15,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
     [FormerName("UnityEditor.Rendering.LWRP.LightWeightUnlitSubShader")]
     [FormerName("UnityEngine.Rendering.LWRP.LightWeightUnlitSubShader")]
-    class UniversalUnlitSubShader : IUnlitSubShader
+    class UniversalUnlitSubShader : UnlitSubShader
     {
 #region Passes
         ShaderPass m_UnlitPass = new ShaderPass
@@ -117,7 +118,7 @@ namespace UnityEditor.Rendering.Universal
             lightMode = "ShadowCaster",
             passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            
+
             // Port mask
             vertexPorts = new List<int>()
             {
@@ -134,7 +135,7 @@ namespace UnityEditor.Rendering.Universal
             // Required fields
             requiredAttributes = new List<string>()
             {
-                "Attributes.normalOS", 
+                "Attributes.normalOS",
             },
 
             // Render State Overrides
@@ -164,7 +165,7 @@ namespace UnityEditor.Rendering.Universal
             },
         };
 #endregion
-        
+
 #region Keywords
         static KeywordDescriptor s_LightmapKeyword = new KeywordDescriptor()
         {
@@ -203,7 +204,7 @@ namespace UnityEditor.Rendering.Universal
         };
 #endregion
 
-        public int GetPreviewPassIndex() { return 0; }
+        public override int GetPreviewPassIndex() { return 0; }
 
         private static ActiveFields GetActiveFieldsFromMasterNode(UnlitMasterNode masterNode, ShaderPass pass)
         {
@@ -211,8 +212,8 @@ namespace UnityEditor.Rendering.Universal
             var baseActiveFields = activeFields.baseInstance;
 
             // Graph Vertex
-            if(masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(UnlitMasterNode.VertNormalSlotId) || 
+            if(masterNode.IsSlotConnected(UnlitMasterNode.PositionSlotId) ||
+               masterNode.IsSlotConnected(UnlitMasterNode.VertNormalSlotId) ||
                masterNode.IsSlotConnected(UnlitMasterNode.VertTangentSlotId))
             {
                 baseActiveFields.Add("features.graphVertex");
@@ -264,7 +265,7 @@ namespace UnityEditor.Rendering.Universal
                 UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
         }
 
-        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public override string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -284,10 +285,10 @@ namespace UnityEditor.Rendering.Universal
                 var tagsBuilder = new ShaderStringBuilder(0);
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
-                
+
                 GenerateShaderPass(unlitMasterNode, m_UnlitPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(unlitMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(unlitMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);   
+                GenerateShaderPass(unlitMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", true);
@@ -295,7 +296,7 @@ namespace UnityEditor.Rendering.Universal
             return subShader.GetShaderString(0);
         }
 
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
+        public override bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }

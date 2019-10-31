@@ -22,4 +22,12 @@ namespace UnityEditor.Graphing
             s_ListPool.Release(toRelease);
         }
     }
+
+    static class ListPoolExtensions
+    {
+        public static void Release<T>(this List<T> list)
+        {
+            ListPool<T>.Release(list);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -9,8 +10,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class TextureShaderProperty : AbstractShaderProperty<Texture>
     {
-        [JsonUpgrade("m_Value", typeof(SerializableTextureUpgrader))]
-        public override Texture value { get; set; }
+        [SerializeField]
+        int m_Version;
 
         public enum DefaultType { White, Black, Grey, Bump }
 
@@ -82,6 +83,16 @@ namespace UnityEditor.ShaderGraph
                 hidden = hidden,
                 value = value
             };
+        }
+
+        internal override void OnDeserialized(string json)
+        {
+            if (m_Version == 0)
+            {
+                m_Version = 1;
+                var v0 = JsonUtility.FromJson<TextureShaderPropertyV0>(json);
+                value = v0.value.texture;
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class ShaderInput : IJsonObject
+    abstract class ShaderInput : JsonObject
     {
         // TODO: Get rid of this
         [SerializeField]

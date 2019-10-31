@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using Data.Util;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -14,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
     [FormerName("UnityEditor.Experimental.Rendering.LightweightPipeline.LightWeightPBRSubShader")]
     [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
     [FormerName("UnityEditor.Rendering.LWRP.LightWeightPBRSubShader")]
-    class UniversalPBRSubShader : IPBRSubShader
+    class UniversalPBRSubShader : PBRSubShader
     {
 #region Passes
         ShaderPass m_ForwardPass = new ShaderPass
@@ -146,7 +147,7 @@ namespace UnityEditor.Rendering.Universal
             lightMode = "ShadowCaster",
             passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl",
             varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
-            
+
             // Port mask
             vertexPorts = new List<int>()
             {
@@ -382,7 +383,7 @@ namespace UnityEditor.Rendering.Universal
         };
 #endregion
 
-        public int GetPreviewPassIndex() { return 0; }
+        public override int GetPreviewPassIndex() { return 0; }
 
         ActiveFields GetActiveFieldsFromMasterNode(PBRMasterNode masterNode, ShaderPass pass)
         {
@@ -390,8 +391,8 @@ namespace UnityEditor.Rendering.Universal
             var baseActiveFields = activeFields.baseInstance;
 
             // Graph Vertex
-            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+            if(masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId) ||
+               masterNode.IsSlotConnected(PBRMasterNode.VertNormalSlotId) ||
                masterNode.IsSlotConnected(PBRMasterNode.VertTangentSlotId))
             {
                 baseActiveFields.Add("features.graphVertex");
@@ -405,7 +406,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 baseActiveFields.Add("AlphaClip");
             }
-            
+
             if (masterNode.model == PBRMasterNode.Model.Specular)
                 baseActiveFields.Add("SpecularSetup");
 
@@ -445,7 +446,7 @@ namespace UnityEditor.Rendering.Universal
                 UniversalShaderGraphResources.s_Dependencies, UniversalShaderGraphResources.s_ResourceClassName, UniversalShaderGraphResources.s_AssemblyName);
         }
 
-        public string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
+        public override string GetSubshader(IMasterNode masterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
             if (sourceAssetDependencyPaths != null)
             {
@@ -465,7 +466,7 @@ namespace UnityEditor.Rendering.Universal
                 var tagsBuilder = new ShaderStringBuilder(0);
                 surfaceTags.GetTags(tagsBuilder, "UniversalPipeline");
                 subShader.AddShaderChunk(tagsBuilder.ToString());
-                
+
                 GenerateShaderPass(pbrMasterNode, m_ForwardPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);
@@ -478,7 +479,7 @@ namespace UnityEditor.Rendering.Universal
             return subShader.GetShaderString(0);
         }
 
-        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
+        public override bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
             return renderPipelineAsset is UniversalRenderPipelineAsset;
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Drawing.Views;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -10,13 +11,14 @@ using UnityEngine.Rendering;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialNodeView : Node, IShaderNodeView
+    sealed class MaterialNodeView : Node, IShaderNodeView, IContainerElement
     {
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
@@ -38,10 +40,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         GraphView m_GraphView;
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
-            styleSheets.Add(Resources.Load<StyleSheet>($"Styles/ColorMode"));
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ColorMode"));
             AddToClassList("MaterialNode");
 
             if (inNode == null)
@@ -49,12 +51,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var contents = this.Q("contents");
 
-            m_GraphView = graphView;
+            m_GraphView = GetFirstAncestorOfType<GraphView>();
 
             m_ConnectorListener = connectorListener;
             node = inNode;
             // TODO: this nasty
-            viewDataKey = node.owner.owner.jsonStore.GetId(node);
+            viewDataKey = node.jsonId;
             UpdateTitle();
 
             // Add controls container
@@ -202,6 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            ChangeDispatcher.Connect(this, node, OnChange);
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -237,6 +240,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         static readonly StyleColor noColor = new StyleColor(StyleKeyword.Null);
+
         public void SetColor(Color color)
         {
             m_TitleContainer.style.borderBottomColor = color;
@@ -350,7 +354,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var mode = (GenerationMode)action.userData;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.owner.owner.jsonStore.GetId(node), mode == GenerationMode.Preview ? "-Preview" : "");
+                SanitizeName(node.name), node.jsonId, mode == GenerationMode.Preview ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }
@@ -513,6 +517,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 title = subGraphNode.asset.name;
             else
                 title = node.name;
+        }
+
+        public void OnChange()
+        {
+            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+            OnModified(ModificationScope.Topological);
         }
 
         public void OnModified(ModificationScope scope)
@@ -706,6 +716,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseHover(EventBase evt)
         {
+            GetFirstAncestorOfType<GraphView>();
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
             if (graphView == null)
                 return;
@@ -718,7 +729,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: Move to new NodeView type when keyword node has unique style
             if(node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())

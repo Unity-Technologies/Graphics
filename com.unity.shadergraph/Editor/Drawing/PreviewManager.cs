@@ -6,6 +6,7 @@ using System.Text;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
@@ -17,11 +18,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     class PreviewManager : IDisposable
     {
+        JsonStore m_JsonStore;
+        int m_Version;
         GraphData m_Graph;
         MessageManager m_Messenger;
         Dictionary<AbstractMaterialNode, PreviewRenderData> m_RenderDatas = new Dictionary<AbstractMaterialNode, PreviewRenderData>();
         PreviewRenderData m_MasterRenderData;
-        List<Identifier> m_Identifiers = new List<Identifier>();
         HashSet<AbstractMaterialNode> m_NodesToUpdate = new HashSet<AbstractMaterialNode>();
         HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();
@@ -36,9 +38,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MasterRenderData; }
         }
 
-        public PreviewManager(GraphData graph, MessageManager messenger)
+        public PreviewManager(JsonStore jsonStore, MessageManager messenger)
         {
-            m_Graph = graph;
+            m_JsonStore = jsonStore;
+            m_Graph = jsonStore.First<GraphData>();
+            m_Version = jsonStore.GetVersion(m_Graph);
             m_Messenger = messenger;
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_SceneResources = new PreviewSceneResources();
@@ -71,13 +75,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             return m_RenderDatas[node];
         }
 
+        int ComputeEdgesHashCode(AbstractMaterialNode node)
+        {
+            var result = 19;
+            var slots = ListPool<MaterialSlot>.Get();
+            node.GetInputSlots(slots);
+            foreach (var slot in slots)
+            {
+                var edges = ListPool<Edge>.Get();
+                m_Graph.GetEdges(slot, edges);
+                foreach (var edge in edges)
+                {
+                    result = result * 31 + edge.GetHashCode();
+                }
+                ListPool<Edge>.Release(edges);
+            }
+
+            ListPool<MaterialSlot>.Release(slots);
+            return result;
+        }
+
         void AddPreview(AbstractMaterialNode node)
         {
             if (node == null)
             {
                 throw new NullReferenceException();
             }
-
 
             var isMaster = false;
 
@@ -97,7 +120,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                     {
                         hideFlags = HideFlags.HideAndDontSave
-                    }
+                    },
+                edgesHashCode = ComputeEdgesHashCode(node)
             };
 
             if (isMaster)
@@ -150,11 +174,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        Stack<AbstractMaterialNode> m_NodeWave = new Stack<AbstractMaterialNode>();
-        List<Edge> m_Edges = new List<Edge>();
-        List<MaterialSlot> m_Slots = new List<MaterialSlot>();
-        List<AbstractMaterialNode> m_NextLevelNodes = new List<AbstractMaterialNode>();
-
         enum PropagationDirection
         {
             Upstream,
@@ -163,39 +182,41 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void PropagateNodeList<T>(T nodes, PropagationDirection dir) where T : ICollection<AbstractMaterialNode>
         {
-            m_NodeWave.Clear();
+            var nodeWave = StackPool<AbstractMaterialNode>.Get();
             foreach (var node in nodes)
-                m_NodeWave.Push(node);
+                nodeWave.Push(node);
 
-            while (m_NodeWave.Count > 0)
+            while (nodeWave.Count > 0)
             {
-                var node = m_NodeWave.Pop();
+                var node = nodeWave.Pop();
                 if (node == null)
                     continue;
 
-                m_NextLevelNodes.Clear();
-                GetConnectedNodes(node, dir, m_NextLevelNodes);
-                foreach (var nextNode in m_NextLevelNodes)
+                var nextLevelNodes = ListPool<AbstractMaterialNode>.Get();
+                GetConnectedNodes(node, dir, nextLevelNodes);
+                foreach (var nextNode in nextLevelNodes)
                 {
                     nodes.Add(nextNode);
-                    m_NodeWave.Push(nextNode);
+                    nodeWave.Push(nextNode);
                 }
+                ListPool<AbstractMaterialNode>.Release(nextLevelNodes);
             }
+            StackPool<AbstractMaterialNode>.Release(nodeWave);
         }
 
         void GetConnectedNodes<T>(AbstractMaterialNode node, PropagationDirection dir, T connections) where T : ICollection<AbstractMaterialNode>
         {
             // Loop through all nodes that the node feeds into.
-            m_Slots.Clear();
+            var slots = ListPool<MaterialSlot>.Get();
             if (dir == PropagationDirection.Downstream)
-                node.GetOutputSlots(m_Slots);
+                node.GetOutputSlots(slots);
             else
-                node.GetInputSlots(m_Slots);
-            foreach (var slot in m_Slots)
+                node.GetInputSlots(slots);
+            foreach (var slot in slots)
             {
-                m_Edges.Clear();
-                m_Graph.GetEdges(slot, m_Edges);
-                foreach (var e in m_Edges)
+                var edges = ListPool<Edge>.Get();
+                m_Graph.GetEdges(slot, edges);
+                foreach (var e in edges)
                 {
                     var edge = (Edge)e;
                     // We look at each node we feed into.
@@ -209,49 +230,62 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Add the node to the set, and to the wavefront such that we can process the nodes that it feeds into.
                     connections.Add(connectedNode);
                 }
+                ListPool<Edge>.Release(edges);
             }
+
+            ListPool<MaterialSlot>.Release(slots);
         }
 
         public bool HandleGraphChanges()
         {
-            if (m_Graph.didActiveOutputNodeChange)
+            if (m_Version != m_JsonStore.GetVersion(m_Graph))
             {
-                DestroyPreview(masterRenderData.shaderData.node);
-            }
-
-            foreach (var node in m_Graph.removedNodes)
-            {
-                DestroyPreview(node);
-                m_NodesToUpdate.Remove(node);
-                m_NodesToDraw.Remove(node);
-                m_RefreshTimedNodes = true;
-            }
-
-            m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
-
-            foreach (var node in m_Graph.addedNodes)
-            {
-                AddPreview(node);
-                m_RefreshTimedNodes = true;
-            }
-
-            foreach (var edge in m_Graph.removedEdges)
-            {
-                var node = edge.inputSlot.owner;
-                if (node != null)
+                if (m_Graph.outputNode != masterRenderData.shaderData.node)
                 {
-                    m_NodesToUpdate.Add(node);
+                    DestroyPreview(masterRenderData.shaderData.node);
+                }
+
+                // TODO: Pool these or get around it somehow
+                var nodes = new HashSet<AbstractMaterialNode>(m_Graph.GetNodes<AbstractMaterialNode>());
+                var removedNodes = new List<AbstractMaterialNode>();
+                foreach (var renderData in m_RenderDatas)
+                {
+                    if (!removedNodes.Contains(renderData.Key))
+                    {
+                        removedNodes.Add(renderData.Key);
+                    }
+                    else
+                    {
+                        var edgesHashCode = ComputeEdgesHashCode(renderData.Key);
+                        if (edgesHashCode != renderData.Value.edgesHashCode)
+                        {
+                            renderData.Value.edgesHashCode = edgesHashCode;
+                            m_NodesToUpdate.Add(renderData.Key);
+                            m_RefreshTimedNodes = true;
+                        }
+                    }
+                }
+
+                foreach (var node in removedNodes)
+                {
+                    DestroyPreview(node);
+                    m_NodesToUpdate.Remove(node);
+                    m_NodesToDraw.Remove(node);
                     m_RefreshTimedNodes = true;
                 }
-            }
-            foreach (var edge in m_Graph.addedEdges)
-            {
-                var node = edge.inputSlot.owner;
-                if(node != null)
+
+                m_Messenger.ClearNodesFromProvider(this, removedNodes);
+
+                foreach (var node in nodes)
                 {
-                    m_NodesToUpdate.Add(node);
-                    m_RefreshTimedNodes = true;
+                    if (!m_RenderDatas.ContainsKey(node))
+                    {
+                        AddPreview(node);
+                        m_RefreshTimedNodes = true;
+                    }
                 }
+
+                m_Version = m_JsonStore.GetVersion(m_Graph);
             }
 
             return m_NodesToUpdate.Count > 0;
@@ -270,6 +304,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var propNode in m_PropertyNodes)
             {
+                if (propNode.owner == null)
+                {
+                    // TODO: wat
+                    continue;
+                }
                 propNode.CollectPreviewMaterialProperties(m_PreviewProperties);
             }
 
@@ -293,10 +332,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToDraw)
             {
-                if(node == null || !node.hasPreview || !node.previewExpanded)
+                if(node == null || !node.hasPreview || !node.previewExpanded || !m_RenderDatas.TryGetValue(node, out var renderData))
                     continue;
-
-                var renderData = m_RenderDatas[node];
 
                 CollectShaderProperties(node, renderData);
 
@@ -434,16 +471,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToUpdate)
             {
-                if (masterRenderData != null && node is IMasterNode && node == masterRenderData.shaderData.node)
+                GenerationResults results;
+                try
                 {
-                    UpdateMasterNodeShader();
+                    if (masterRenderData != null && node is IMasterNode && node == masterRenderData.shaderData.node)
+                    {
+                        UpdateMasterNodeShader();
+                        continue;
+                    }
+
+                    if (!node.hasPreview && !(node is SubGraphOutputNode))
+                        continue;
+
+                    results = m_Graph.GetPreviewShader(node);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Error while generating shader for node {node.name}:\n{e}");
                     continue;
                 }
-
-                if (!node.hasPreview && !(node is SubGraphOutputNode))
-                    continue;
-
-                var results = m_Graph.GetPreviewShader(node);
 
                 if (!m_RenderDatas.TryGetValue(node, out var renderData))
                 {
@@ -697,6 +743,7 @@ Shader ""hidden/preview""
         public Texture texture { get; set; }
         public PreviewMode previewMode { get; set; }
         public OnPreviewChanged onPreviewChanged;
+        public int edgesHashCode { get; set; }
 
         public void NotifyPreviewChanged()
         {

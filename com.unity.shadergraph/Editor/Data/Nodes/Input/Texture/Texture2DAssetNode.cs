@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -13,6 +12,9 @@ namespace UnityEditor.ShaderGraph
         public const int OutputSlotId = 0;
 
         const string kOutputSlotName = "Out";
+
+        [SerializeField]
+        int m_Version;
 
         public Texture2DAssetNode()
         {
@@ -27,11 +29,10 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
+        [SerializeField]
         Texture m_Texture;
 
         [TextureControl("")]
-        [JsonProperty]
-        [JsonUpgrade("m_Texture", typeof(SerializableTextureUpgrader))]
         public Texture texture
         {
             get => m_Texture;
@@ -73,5 +74,15 @@ namespace UnityEditor.ShaderGraph
         }
 
         public int outputSlotId { get { return OutputSlotId; } }
+
+        internal override void OnDeserialized(string json)
+        {
+            base.OnDeserialized(json);
+            if (m_Version == 0)
+            {
+                m_Version = 1;
+                m_Texture = JsonUtility.FromJson<LegacyTexture>(json).texture;
+            }
+        }
     }
 }

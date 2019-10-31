@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -24,9 +23,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         [SerializeField]
         string m_Selected;
-
-        [SerializeField]
-        GraphObject m_GraphObject;
 
         [NonSerialized]
         bool m_HasError;
@@ -74,14 +70,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        GraphObject graphObject
+        [NonSerialized]
+        GraphData m_GraphData;
+
+        GraphData graphData => m_GraphData;
+
+        [SerializeField]
+        JsonStore m_JsonStore;
+
+        JsonStore jsonStore
         {
-            get { return m_GraphObject; }
+            get { return m_JsonStore; }
             set
             {
-                if (m_GraphObject != null)
-                    DestroyImmediate(m_GraphObject);
-                m_GraphObject = value;
+                if (m_JsonStore != null)
+                    DestroyImmediate(m_JsonStore);
+                m_JsonStore = value;
+                if (m_JsonStore == null)
+                {
+                    m_GraphData = null;
+                }
+                else
+                {
+                    m_GraphData = m_JsonStore.First<GraphData>();
+                    Debug.Log($"m_GraphData == null: {m_GraphData == null}");
+                    m_GraphData.owner = m_JsonStore;
+                    m_JsonStore.root = m_GraphData;
+                    Debug.Log($"m_JsonStore == null: {m_GraphData == null}");
+                }
             }
         }
 
@@ -120,9 +136,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (EditorGUIUtility.isProSkin != m_ProTheme)
             {
-                if (graphObject != null && graphObject.graph != null)
+                if (jsonStore != null)
                 {
-                    Texture2D icon = GetThemeIcon(graphObject.graph);
+                    Texture2D icon = GetThemeIcon(graphData);
 
                     // This is adding the icon at the front of the tab
                     titleContent = EditorGUIUtility.TrTextContentWithIcon(assetName, icon);
@@ -132,53 +148,53 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             try
             {
-                if (graphObject == null && selectedGuid != null)
+                if (jsonStore == null && selectedGuid != null)
                 {
                     var guid = selectedGuid;
                     selectedGuid = null;
                     Initialize(guid);
                 }
 
-                if (graphObject == null)
+                if (jsonStore == null)
                 {
                     Close();
                     return;
                 }
 
-                var materialGraph = graphObject.graph as GraphData;
-                if (materialGraph == null)
-                    return;
+                jsonStore.CheckForChanges();
+                graphData.owner = jsonStore;
 
                 if (graphEditorView == null)
                 {
                     messageManager.ClearAll();
-                    materialGraph.messageManager = messageManager;
+                    graphData.messageManager = messageManager;
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
+                    graphEditorView = new GraphEditorView(this, jsonStore, messageManager)
                     {
                         viewDataKey = selectedGuid,
                         assetName = asset.name.Split('/').Last()
                     };
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-                    graphObject.Validate();
+                    graphData.OnEnable();
+                    graphData.ValidateGraph();
                 }
 
-                if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
+                if (m_ChangedFileDependencies.Count > 0 && jsonStore != null && graphData != null)
                 {
-                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+                    var subGraphNodes = graphData.GetNodes<SubGraphNode>();
                     foreach (var subGraphNode in subGraphNodes)
                     {
                         subGraphNode.Reload(m_ChangedFileDependencies);
                     }
-                    if(subGraphNodes.Count() > 0)
+                    if (subGraphNodes.Any())
                     {
                         // Keywords always need to be updated to test against variant limit
                         // No Keywords may indicate removal and this may have now made the Graph valid again
                         // Need to validate Graph to clear errors in this case
-                        materialGraph.OnKeywordChanged();
+                        graphData.OnKeywordChanged();
                     }
-                    foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
+                    foreach (var customFunctionNode in graphData.GetNodes<CustomFunctionNode>())
                     {
                         customFunctionNode.Reload(m_ChangedFileDependencies);
                     }
@@ -186,23 +202,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ChangedFileDependencies.Clear();
                 }
 
-                if (graphObject.wasUndoRedoPerformed)
-                {
-                    graphEditorView.HandleGraphChanges();
-                    graphObject.graph.ClearChanges();
-                    graphObject.HandleUndoRedo();
-                }
-
                 graphEditorView.HandleGraphChanges();
-                graphObject.graph.ClearChanges();
+                graphEditorView.changeDispatcher.Dispatch();
+                graphData.ClearChanges();
             }
             catch (Exception e)
             {
+                jsonStore = null;
                 m_HasError = true;
                 m_GraphEditorView = null;
-                graphObject = null;
                 Debug.LogException(e);
-                throw;
             }
         }
 
@@ -217,6 +226,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnEnable()
         {
             this.SetAntiAliasing(4);
+            if (jsonStore != null)
+            {
+                jsonStore.Reheat();
+                m_GraphData = jsonStore.First<GraphData>();
+                m_GraphData.owner = jsonStore;
+            }
         }
 
         void OnDisable()
@@ -227,13 +242,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            if (graphObject != null)
+            if (jsonStore != null)
             {
                 string nameOfFile = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (graphObject.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
-                    UpdateAsset();
-                Undo.ClearUndo(graphObject);
-                DestroyImmediate(graphObject);
+//                if (jsonStore.isDirty && EditorUtility.DisplayDialog("Shader Graph Has Been Modified", "Do you want to save the changes you made in the Shader Graph?\n" + nameOfFile + "\n\nYour changes will be lost if you don't save them.", "Save", "Don't Save"))
+//                    UpdateAsset();
+                Undo.ClearUndo(jsonStore);
+                DestroyImmediate(jsonStore);
             }
 
             graphEditorView = null;
@@ -277,10 +292,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdateAsset()
         {
-            if (selectedGuid != null && graphObject != null)
+            if (selectedGuid != null && jsonStore != null)
             {
                 var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (string.IsNullOrEmpty(path) || graphObject == null)
+                if (string.IsNullOrEmpty(path) || jsonStore == null)
                     return;
 
                 UpdateShaderGraphOnDisk(path);
@@ -290,8 +305,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                     GraphData.onSaveGraph(shader);
                 }
-
-                graphObject.isDirty = false;
             }
         }
 
@@ -617,7 +630,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateShaderGraphOnDisk(string path)
         {
-            if(FileUtilities.WriteShaderGraphToDisk(path, graphObject.graph))
+            if(FileUtilities.WriteShaderGraphToDisk(path, graphData))
                 AssetDatabase.ImportAsset(path);
         }
 
@@ -661,26 +674,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                 selectedGuid = assetGuid;
 
                 var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                var set = JsonStore.Deserialize(textGraph);
-                var graphData = set.First<GraphData>();
-                graphObject = CreateInstance<GraphObject>();
-                graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.jsonStore = set;
+                jsonStore = JsonStore.Deserialize(textGraph);
+                jsonStore.Freeze();
+                jsonStore.CollectObjects();
+                graphData.assetGuid = assetGuid;
+                graphData.isSubGraph = isSubGraph;
+                graphData.messageManager = messageManager;
+                graphData.owner = jsonStore;
+                graphData.OnEnable();
+                graphData.ValidateGraph();
 
-                graphObject.graph = graphData;
-                graphObject.graph.assetGuid = assetGuid;
-                graphObject.graph.isSubGraph = isSubGraph;
-                graphObject.graph.messageManager = messageManager;
-                graphObject.graph.OnEnable();
-                graphObject.graph.ValidateGraph();
-
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                graphEditorView = new GraphEditorView(this, jsonStore, messageManager)
                 {
                     viewDataKey = selectedGuid,
                     assetName = asset.name.Split('/').Last()
                 };
 
-                Texture2D icon = GetThemeIcon(graphObject.graph);
+                Texture2D icon = GetThemeIcon(graphData);
 
                 // This is adding the icon at the front of the tab
                 titleContent = EditorGUIUtility.TrTextContentWithIcon(asset.name.Split('/').Last(), icon);
@@ -691,7 +701,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_HasError = true;
                 m_GraphEditorView = null;
-                graphObject = null;
+                jsonStore = null;
                 throw;
             }
         }
@@ -714,7 +724,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_FrameAllAfterLayout)
                 graphEditorView.graphView.FrameAll();
             m_FrameAllAfterLayout = false;
-            foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
+            foreach (var node in graphData.GetNodes<AbstractMaterialNode>())
                 node.Dirty(ModificationScope.Node);
         }
     }

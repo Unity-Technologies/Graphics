@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
-using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Legacy;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -13,11 +12,19 @@ namespace UnityEditor.ShaderGraph
     class Texture2DInputMaterialSlot : Texture2DMaterialSlot
     {
         [SerializeField]
+        int m_Version;
+
+        [SerializeField]
         private TextureShaderProperty.DefaultType m_DefaultType = TextureShaderProperty.DefaultType.White;
 
-        [JsonProperty]
-        [JsonUpgrade("m_Texture", typeof(SerializableTextureUpgrader))]
-        public Texture texture { get; set; }
+        [SerializeField]
+        Texture m_Texture;
+
+        public Texture texture
+        {
+            get => m_Texture;
+            set => m_Texture = value;
+        }
 
         public TextureShaderProperty.DefaultType defaultType
         {
@@ -81,6 +88,16 @@ namespace UnityEditor.ShaderGraph
             var slot = foundSlot as Texture2DInputMaterialSlot;
             if (slot != null)
                 texture = slot.texture;
+        }
+
+        internal override void OnDeserialized(string json)
+        {
+            base.OnDeserialized(json);
+            if (m_Version == 0)
+            {
+                m_Version = 1;
+                m_Texture = JsonUtility.FromJson<LegacyTexture>(json).texture;
+            }
         }
     }
 }

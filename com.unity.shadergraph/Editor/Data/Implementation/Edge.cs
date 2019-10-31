@@ -1,21 +1,19 @@
 using System;
-using Newtonsoft.Json;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [FormerName("UnityEditor.Graphing.Edge")]
     [Serializable]
     class Edge
     {
-        [JsonProperty]
-        MaterialSlot m_OutputSlot;
+        [SerializeField]
+        JsonRef<MaterialSlot> m_OutputSlot;
 
-        [JsonProperty]
-        MaterialSlot m_InputSlot;
+        [SerializeField]
+        JsonRef<MaterialSlot> m_InputSlot;
 
-        public Edge()
-        {}
+        public Edge() { }
 
         public Edge(MaterialSlot outputSlot, MaterialSlot inputSlot)
         {
@@ -46,12 +44,19 @@ namespace UnityEditor.ShaderGraph
             return Equals((Edge)obj);
         }
 
+//        public override int GetHashCode()
+//        {
+//            unchecked
+//            {
+//                // Can't make fields readonly due to Unity serialization
+//                return (m_OutputSlot.GetHashCode() * 397) ^ m_InputSlot.GetHashCode();
+//            }
+//        }
         public override int GetHashCode()
         {
             unchecked
             {
-                // Can't make fields readonly due to Unity serialization
-                return (m_OutputSlot.GetHashCode() * 397) ^ m_InputSlot.GetHashCode();
+                return ((m_OutputSlot != null ? m_OutputSlot.GetHashCode() : 0) * 397) ^ (m_InputSlot != null ? m_InputSlot.GetHashCode() : 0);
             }
         }
     }

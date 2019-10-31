@@ -5,6 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -375,7 +376,7 @@ namespace UnityEditor.ShaderGraph
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            var id = owner.owner.jsonStore.GetId(this);
+            var id = this.jsonId;
             return function.Name + (function.IsStatic ? string.Empty : "_" + NodeUtils.GetHLSLSafeName(id)) + "_" + concretePrecision.ToShaderString()
                 + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
                 + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");

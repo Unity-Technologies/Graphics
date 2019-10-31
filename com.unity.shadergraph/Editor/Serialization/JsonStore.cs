@@ -2,25 +2,60 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using UnityEditor.ShaderGraph.SerializationDemo;
+using System.Threading;
+using UnityEditor.Graphing;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
-    class JsonStore : ICollection<IJsonObject>
+    [Serializable]
+    struct SerializedJsonObject
     {
-        public Dictionary<IJsonObject, string> objectMap = new Dictionary<IJsonObject, string>();
-        public Dictionary<string, IJsonObject> referenceMap = new Dictionary<string, IJsonObject>();
+        public string type;
+        public string id;
+        public int version;
+        public string json;
+    }
 
-        public T First<T>() where T : IJsonObject
+    class JsonObjectMetadata
+    {
+        public string id;
+        public int version;
+    }
+
+    class JsonStore : ScriptableObject, ISerializationCallbackReceiver
+    {
+        [SerializeField]
+        List<SerializedJsonObject> m_SerializedObjects = new List<SerializedJsonObject>();
+
+        [SerializeField]
+        int m_SerializedVersion = 0;
+
+        bool m_MightHaveChanges;
+        bool m_ShouldReheat;
+
+        [SerializeField]
+        string m_RootId;
+
+        [field: NonSerialized]
+        public int version { get; private set; }
+
+        public Dictionary<string, JsonObject> objectMap { get; } = new Dictionary<string, JsonObject>();
+
+        public JsonObject root
         {
-            foreach (var obj in objectMap.Keys)
+            get => Get(m_RootId);
+            set => m_RootId = value.jsonId;
+        }
+
+        public T First<T>() where T : JsonObject
+        {
+            foreach (var reference in objectMap.Values)
             {
-                if (obj is T value)
+                if (reference is T value)
                 {
                     return value;
                 }
@@ -29,247 +64,339 @@ namespace UnityEditor.ShaderGraph.Serialization
             throw new InvalidOperationException($"Collection does not contain an object of type {typeof(T)}.");
         }
 
-        public IJsonObject Get(string reference)
+        public JsonObject Get(string id)
         {
-            return referenceMap[reference];
-        }
-
-        public string GetId(IJsonObject jsonObject)
-        {
-            return objectMap[jsonObject];
-        }
-
-        public string GetOrAddId(IJsonObject jsonObject)
-        {
-            if (!objectMap.ContainsKey(jsonObject))
+            if (objectMap.TryGetValue(id, out var reference))
             {
-                Add(jsonObject);
-            }
-
-            return objectMap[jsonObject];
-        }
-
-        static List<JsonConverter> s_Converters => new List<JsonConverter>
-        {
-            new Vector2Converter(),
-            new Vector3Converter(),
-            new Vector4Converter(),
-            new ColorConverter(),
-            new RectConverter(),
-            new Matrix4x4Converter(),
-            new UnityObjectConverter()
-        };
-
-        public string Serialize(IJsonObject root, Formatting formatting = Formatting.Indented)
-        {
-            var queue = new Queue<IJsonObject>();
-            queue.Enqueue(root);
-            var referenceResolver = new ReferenceResolver { jsonStore = this, queue = queue, visited = new HashSet<IJsonObject>()};
-            referenceResolver.visited.Add(root);
-            var settings = new JsonSerializerSettings
-            {
-                Formatting = formatting,
-                Converters = s_Converters,
-                ReferenceResolverProvider = () => referenceResolver,
-                ContractResolver = new ContractResolver(),
-                TypeNameHandling = TypeNameHandling.Auto
-            };
-            var properties = new List<(string, string)>();
-            var serializer = JsonSerializer.Create(settings);
-            var sb = new StringBuilder();
-            var stringWriter = new StringWriter(sb);
-            while (queue.Count > 0)
-            {
-                sb.Clear();
-                var jsonWriter = new JsonTextWriter(stringWriter);
-                jsonWriter.Formatting = formatting;
-                jsonWriter.WriteStartObject();
-                jsonWriter.WritePropertyName("");
-                var startIndex = sb.Length;
-                var item = queue.Dequeue();
-                referenceResolver.nextIsSource = true;
-                serializer.Serialize(jsonWriter, item, typeof(IJsonObject));
-                var json = sb.ToString(startIndex, sb.Length - startIndex);
-                properties.Add((GetId(item), json.TrimStart()));
-            }
-
-            properties.Sort((x1, x2) => x1.Item1.CompareTo(x2.Item2));
-            sb.Clear();
-            var writer = new JsonTextWriter(stringWriter);
-            writer.Formatting = formatting;
-            writer.WriteStartArray();
-            foreach (var (_, json) in properties)
-            {
-                writer.WriteRawValue(json);
-            }
-
-            writer.WriteEndArray();
-            return sb.ToString();
-        }
-
-        public static JsonStore Deserialize(string json)
-        {
-            JArray root;
-
-            // Handle legacy graphs
-            if (json.StartsWith("{"))
-            {
-                var graphDataJson = JObject.Parse(json);
-                graphDataJson["$id"] = Guid.NewGuid().ToString();
-                graphDataJson["$type"] = typeof(GraphData).AssemblyQualifiedName;
-                root = new JArray
-                {
-                    graphDataJson
-                };
-            }
-            else
-            {
-                root = JArray.Parse(json);
-            }
-
-            var persistentSet = new JsonStore();
-            var jObjects = new List<DeserializationPair>();
-            var resolver = new ReferenceResolver
-            {
-                jsonStore = persistentSet,
-                jObjects = jObjects
-            };
-            var serializer = JsonSerializer.Create(new JsonSerializerSettings
-            {
-                ContractResolver = new ContractResolver(),
-                Converters = s_Converters,
-                ReferenceResolverProvider = () => resolver
-            });
-
-            foreach (var jToken in root)
-            {
-                if (!(jToken is JObject jObject) || !jObject.ContainsKey("$type"))
-                {
-                    continue;
-                }
-
-                var (assemblyName, typeName) = SplitFullyQualifiedTypeName(jObject["$type"].Value<string>());
-                var type = serializer.SerializationBinder.BindToType(assemblyName, typeName);
-                var id = jObject.Value<string>("$id");
-                if (typeof(IJsonObject).IsAssignableFrom(type))
-                {
-                    var obj = (IJsonObject)Activator.CreateInstance(type);
-                    persistentSet.Add(id, obj);
-                    jObjects.Add(new DeserializationPair(obj, jObject));
-                }
-            }
-
-            for (var i = 0; i < jObjects.Count; i++)
-            {
-                var (instance, jObject) = jObjects[i];
-                resolver.nextIsSource = true;
-                serializer.Populate(jObject.CreateReader(), instance);
-            }
-
-            foreach (var (instance, jObject) in jObjects)
-            {
-                if (instance is IOnDeserialized callback)
-                {
-                    callback.OnDeserialized(jObject, jObjects);
-                }
-            }
-
-            //            foreach (var kvp in objectMap)
-            //            {
-            //                persistentSet.Add(kvp.Key, kvp.Value);
-            //            }
-
-            return persistentSet;
-        }
-
-        static (string, string) SplitFullyQualifiedTypeName(string fullyQualifiedTypeName)
-        {
-            int? assemblyDelimiterIndex = GetAssemblyDelimiterIndex(fullyQualifiedTypeName);
-
-            string typeName;
-            string assemblyName;
-
-            if (assemblyDelimiterIndex != null)
-            {
-                typeName = fullyQualifiedTypeName.Substring(0, assemblyDelimiterIndex.GetValueOrDefault()).Trim();
-                assemblyName = fullyQualifiedTypeName.Substring(assemblyDelimiterIndex.GetValueOrDefault() + 1, fullyQualifiedTypeName.Length - assemblyDelimiterIndex.GetValueOrDefault() - 1).Trim();
-            }
-            else
-            {
-                typeName = fullyQualifiedTypeName;
-                assemblyName = null;
-            }
-
-            return (assemblyName, typeName);
-        }
-
-        static int? GetAssemblyDelimiterIndex(string fullyQualifiedTypeName)
-        {
-            // we need to get the first comma following all surrounded in brackets because of generic types
-            // e.g. System.Collections.Generic.Dictionary`2[[System.String, mscorlib,Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.String, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
-            int scope = 0;
-            for (int i = 0; i < fullyQualifiedTypeName.Length; i++)
-            {
-                char current = fullyQualifiedTypeName[i];
-                switch (current)
-                {
-                    case '[':
-                        scope++;
-                        break;
-                    case ']':
-                        scope--;
-                        break;
-                    case ',':
-                        if (scope == 0)
-                        {
-                            return i;
-                        }
-
-                        break;
-                }
+                return reference;
             }
 
             return null;
         }
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public Dictionary<IJsonObject, string>.KeyCollection.Enumerator GetEnumerator() => objectMap.Keys.GetEnumerator();
-
-        IEnumerator<IJsonObject> IEnumerable<IJsonObject>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public void Add(IJsonObject item)
+        public int GetVersion(JsonObject jsonObject)
         {
-            var reference = Guid.NewGuid().ToString();
-            objectMap.Add(item, reference);
-            referenceMap.Add(reference, item);
+            return jsonObject.changeVersion;
         }
 
-        public void Add(string reference, IJsonObject item)
+        List<(SerializedJsonObject, JsonObject)> SerializeObjects(JsonObject root, bool prettyPrint)
         {
-            objectMap.Add(item, reference);
-            referenceMap.Add(reference, item);
-        }
-
-        public void AddRange<T>(T items) where T : IEnumerable<IJsonObject>
-        {
-            foreach (var item in items)
+            if (root == null)
             {
-                Add(item);
+                throw new InvalidOperationException("Cannot serialize a null root JsonObject.");
+            }
+
+            var serializeObjects = new List<(SerializedJsonObject, JsonObject)>();
+
+            using (var context = SerializationContext.Begin(this))
+            {
+                var queue = context.queue;
+                queue.Enqueue(root);
+                context.visited.Add(root);
+                while (queue.Count > 0)
+                {
+                    var item = queue.Dequeue();
+                    if (item == null)
+                    {
+                        continue;
+                    }
+                    serializeObjects.Add((new SerializedJsonObject
+                    {
+                        type = item.GetType().FullName,
+                        id = item.jsonId,
+                        json = EditorJsonUtility.ToJson(item, prettyPrint),
+                    }, item));
+                }
+            }
+
+            serializeObjects.Sort((x1, x2) => x1.Item1.id.CompareTo(x2.Item1.id));
+            return serializeObjects;
+        }
+
+        public string Serialize(bool prettyPrint)
+        {
+            var serializedObjects = SerializeObjects(root, prettyPrint);
+            var sb = new StringBuilder();
+            foreach (var (serializedObject, _) in serializedObjects)
+            {
+                sb.AppendLine($"--- {serializedObject.type} {serializedObject.id}");
+                sb.AppendLine(serializedObject.id);
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
+
+        public void CollectObjects()
+        {
+            SerializeObjects(root, false);
+        }
+
+        internal static Dictionary<string, Type> typeMap = CreateTypeMap();
+
+        static Dictionary<string, Type> CreateTypeMap()
+        {
+            var map = new Dictionary<string, Type>();
+            foreach (var type in TypeCache.GetTypesDerivedFrom<JsonObject>())
+            {
+                if (type.FullName != null)
+                {
+                    map[type.FullName] = type;
+                }
+            }
+
+            var remap = GraphUtil.GetLegacyTypeRemapping();
+            foreach (var pair in remap)
+            {
+                if (map.TryGetValue(pair.Value.fullName, out var type))
+                {
+                    map[pair.Key.fullName] = type;
+                }
+            }
+
+            return map;
+        }
+
+        public static JsonStore Deserialize(string str)
+        {
+            var rawItems = new List<RawJsonStoreItem>();
+
+            // Handle legacy graphs
+            if (str.StartsWith("{"))
+            {
+                rawItems.Add(new RawJsonStoreItem
+                {
+                    typeFullName = typeof(GraphData).FullName,
+                    id = Guid.NewGuid().ToString(),
+                    json = str
+                });
+            }
+            else
+            {
+                rawItems = JsonStoreFormat.Parse(str);
+            }
+
+            var jsonStore = CreateInstance<JsonStore>();
+            jsonStore.hideFlags = HideFlags.HideAndDontSave;
+
+            using (var context = DeserializationContext.Begin(jsonStore))
+            {
+                var items = context.queue;
+                foreach (var rawItem in rawItems)
+                {
+                    if (!typeMap.TryGetValue(rawItem.typeFullName, out var type))
+                    {
+                        // TODO: Handle fallback
+                        continue;
+                    }
+
+                    var obj = (JsonObject)Activator.CreateInstance(type);
+                    obj.jsonId = rawItem.id;
+                    Assert.AreEqual(rawItem.id, obj.jsonId);
+                    items.Add((obj, rawItem.json));
+                }
+
+                for (var i = 0; i < items.Count; i++)
+                {
+                    var (instance, json) = items[i];
+                    EditorJsonUtility.FromJsonOverwrite(json, instance);
+                    jsonStore.objectMap.Add(instance.jsonId, instance);
+                    instance.OnDeserialized(json);
+                }
+
+                foreach (var (instance, json) in items)
+                {
+                    instance.OnStoreDeserialized(json);
+                }
+            }
+
+            jsonStore.m_MightHaveChanges = true;
+            return jsonStore;
+        }
+
+        public void OnBeforeSerialize() { }
+
+        public void Freeze()
+        {
+            if (!m_MightHaveChanges)
+            {
+                return;
+            }
+
+            var currentVersion = version;
+
+            var objects = SerializeObjects(root, true);
+            var serializedObjects = new List<SerializedJsonObject>();
+            serializedObjects.Capacity = objects.Count;
+
+            var serializedIndex = 0;
+            var serializedCount = m_SerializedObjects.Count;
+            foreach (var (serializedObject, jsonObject) in objects)
+            {
+                // Try to match up the object with an already serialized object, so that we can check if the JSON
+                // changed, and version appropriately. This assumes that `objects` and `m_SerializedObjects` are
+                // sorted by `id`.
+                var index = -1;
+                while (serializedIndex < serializedCount)
+                {
+                    var comparison = m_SerializedObjects[serializedIndex].id.CompareTo(serializedObject.id);
+                    if (comparison >= 0)
+                    {
+                        // We only consume the current item if the id matches our id from `objects`.
+                        if (comparison == 0)
+                        {
+                            index = serializedIndex++;
+                        }
+
+                        break;
+                    }
+
+                    serializedIndex++;
+                }
+
+                SerializedJsonObject serializedJsonObject;
+                if (index != -1)
+                {
+                    serializedJsonObject = m_SerializedObjects[index];
+                    if (!serializedJsonObject.json.Equals(serializedObject.json))
+                    {
+                        version = currentVersion + 1;
+                        serializedJsonObject.json = serializedObject.json;
+                        serializedJsonObject.version = version;
+                    }
+                }
+                else
+                {
+                    version = currentVersion + 1;
+                    serializedJsonObject = new SerializedJsonObject();
+                    serializedJsonObject.id = serializedObject.id;
+                    serializedJsonObject.json = serializedObject.json;
+                    serializedJsonObject.version = version;
+                    serializedJsonObject.type = jsonObject.GetType().FullName;
+                }
+
+                var instance = jsonObject;
+                if (serializedJsonObject.version == version)
+                {
+                    instance.changeVersion = version;
+                }
+
+                serializedObjects.Add(serializedJsonObject);
+            }
+
+            m_SerializedObjects = serializedObjects;
+            m_SerializedVersion = version;
+            m_MightHaveChanges = false;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Can't do deserialization here, as we're not allowed to use EditorJsonUtility, and we need that for
+            // handling Unity Object references.
+            if (m_SerializedVersion != version)
+            {
+                m_ShouldReheat = true;
             }
         }
 
-        public void Clear() => objectMap.Clear();
+        void OnEnable()
+        {
+//            Rehydrate();
+//            Undo.undoRedoPerformed += Rehydrate;
+        }
 
-        public bool Contains(IJsonObject item) => objectMap.ContainsKey(item);
+        private void OnDisable()
+        {
+//            Undo.undoRedoPerformed -= Rehydrate;
+        }
 
-        public void CopyTo(IJsonObject[] array, int arrayIndex) => objectMap.Keys.CopyTo(array, arrayIndex);
+        public void Reheat()
+        {
+            if (m_SerializedVersion != version)
+            {
+                using (var context = DeserializationContext.Begin(this))
+                {
+                    var items = context.queue;
+                    var currentVersion = version;
 
-        public bool Remove(IJsonObject item) => objectMap.Remove(item);
+                    for (var index = 0; index < m_SerializedObjects.Count; index++)
+                    {
+                        var serializedObject = m_SerializedObjects[index];
+                        var obj = Get(serializedObject.id);
+                        if (obj != null)
+                        {
+                            if (obj.changeVersion != serializedObject.version)
+                            {
+                                version = currentVersion + 1;
+                                serializedObject.version = version;
+                                m_SerializedObjects[index] = serializedObject;
+                                items.Add((obj, serializedObject.json));
+                            }
+                        }
+                        else
+                        {
+                            version = currentVersion + 1;
+                            serializedObject.version = version;
+                            m_SerializedObjects[index] = serializedObject;
+                            if (!typeMap.ContainsKey(serializedObject.type))
+                            {
+                                throw new InvalidOperationException($"Invalid type {serializedObject.type}");
 
-        public int Count => objectMap.Count;
+                            }
+                            var type = typeMap[serializedObject.type];
+                            var instance = (JsonObject)Activator.CreateInstance(type);
+                            instance.jsonId = serializedObject.id;
+                            objectMap.Add(serializedObject.id, instance);
+                            items.Add((instance, serializedObject.json));
+                        }
+                    }
 
-        public bool IsReadOnly => false;
+                    // Must be a for-loop because the list might be modified during traversal.
+                    for (var i = 0; i < items.Count; i++)
+                    {
+                        var (instance, json) = items[i];
+                        if (!string.IsNullOrEmpty(json))
+                        {
+                            EditorJsonUtility.FromJsonOverwrite(json, instance);
+                        }
+                        instance.OnDeserialized(json);
+                        instance.changeVersion = version;
+                    }
+
+                    foreach (var (instance, json) in items)
+                    {
+                        instance.OnStoreDeserialized(json);
+                    }
+                }
+
+//                metadataList.RemoveAll(m => !objectMap.ContainsKey(m.id));
+                m_SerializedVersion = version;
+                m_MightHaveChanges = false;
+                m_ShouldReheat = false;
+            }
+        }
+
+        public void RegisterCompleteObjectUndo(string actionName)
+        {
+            Freeze();
+            Undo.RegisterCompleteObjectUndo(this, actionName);
+            m_MightHaveChanges = true;
+
+//            m_SerializedVersion++;
+//            version++;
+//            m_IsDirty = true;
+        }
+
+        public void CheckForChanges()
+        {
+            if (m_ShouldReheat)
+            {
+                Reheat();
+            }
+            else if (m_MightHaveChanges)
+            {
+                Freeze();
+            }
+        }
     }
 }

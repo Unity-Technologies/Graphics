@@ -1,20 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class GroupData : IJsonObject
+    class GroupData : JsonObject
     {
-        // TODO: Get rid of this
-        [JsonProperty]
-        [JsonUpgrade("m_GuidSerialized")]
-        public Guid legacyGuid { get; private set; }
-
         [SerializeField]
         string m_Title;
 
