@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {        
             public IncludeDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
-            public string value => $"#include \"{value}\"";
+            public string value => $"#include \"{descriptor.value}\"";
 
             public Item(IncludeDescriptor descriptor, FieldCondition[] fieldConditions)
             {
