@@ -477,7 +477,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     hidden = true,
                     value = HDShadowUtils.Asfloat((exponent << 23) | mantissa),
                     overrideReferenceName = HDMaterialProperties.kShadowMatteFilter
-                });            }
+                });
+            }
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddStencilShaderProperties(collector, false, false);
