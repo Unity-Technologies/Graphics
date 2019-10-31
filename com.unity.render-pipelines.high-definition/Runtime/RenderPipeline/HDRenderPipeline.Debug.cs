@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderRayCountOverlay(debugParams, ctx.cmd, ref x, ref y, overlaySize);
                     RenderLightLoopDebugOverlay(debugParams, ctx.cmd, ref x, ref y, overlaySize, ctx.resources.GetTexture(data.depthPyramidTexture));
                     RenderShadowsDebugOverlay(debugParams, shadowAtlases, ctx.cmd, ref x, ref y, overlaySize, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
-                    //RenderProbeVolumeDebugOverlay(debugParams, ctx.cmd, ref x, ref y, overlaySize, m_DebugDisplayProbeVolumeMaterial); // TODO(Nicholas): not sure when is this code path used, please see the other usage of RenderProbeVolumeDebugOverlay.
+                    // RenderProbeVolumeDebugOverlay(debugParams, ctx.cmd, ref x, ref y, overlaySize, m_DebugDisplayProbeVolumeMaterial); // TODO(Nicholas): not sure when is this code path used, please see the other usage of RenderProbeVolumeDebugOverlay.
                     DecalSystem.instance.RenderDebugOverlay(debugParams.hdCamera, ctx.cmd, debugParams.debugDisplaySettings, ref x, ref y, overlaySize, debugParams.hdCamera.actualWidth);
                 });
             }

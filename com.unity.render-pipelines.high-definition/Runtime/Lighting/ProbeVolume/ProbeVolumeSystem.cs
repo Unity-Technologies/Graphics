@@ -244,13 +244,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 : settings.leakMitigationMode.value;
             float normalBiasWS = (settings == null) ? 0.0f : settings.normalBiasWS.value;
             float bilateralFilterWeight = (settings == null) ? 0.0f : settings.bilateralFilterWeight.value;
-            if (leakMitigationMode != LeakMitigationMode.NormalBias && bilateralFilterWeight < 1e-5f)
+            if (leakMitigationMode != LeakMitigationMode.NormalBias)
             {
-                // If bilateralFilterWeight is effectively zero, then we are simply doing trilinear filtering.
-                // In this case we can avoid the performance cost of computing our bilateral filter entirely.
-                leakMitigationMode = LeakMitigationMode.NormalBias;
                 normalBiasWS = 0.0f;
+
+                if (bilateralFilterWeight < 1e-5f)
+                {
+                    // If bilateralFilterWeight is effectively zero, then we are simply doing trilinear filtering.
+                    // In this case we can avoid the performance cost of computing our bilateral filter entirely.
+                    leakMitigationMode = LeakMitigationMode.NormalBias;
+                }
             }
+
             cmd.SetGlobalInt("_ProbeVolumeLeakMitigationMode", (int)leakMitigationMode);
             cmd.SetGlobalFloat("_ProbeVolumeNormalBiasWS", normalBiasWS);
             cmd.SetGlobalFloat("_ProbeVolumeBilateralFilterWeightMin", 1e-5f);
@@ -290,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If resolution has changed since upload, need to free previous allocation from atlas,
             // and attempt to allocate a new chunk from the atlas for the new resolution settings.
             // Currently atlas allocator only handles splitting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
-            bool isSlotAllocated = probeVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, ref volume.parameters.scaleBias, key, width, height);
+            bool isSlotAllocated = probeVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, out volume.parameters.scaleBias, key, width, height);
 
             if (isSlotAllocated)
             {
@@ -491,18 +496,39 @@ namespace UnityEngine.Rendering.HighDefinition
             return (uint)logVolume << 12 | ((uint)probeVolumeIndex & PROBE_VOLUME_MASK);
         }
 
-        public void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue)
+        public void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, int sliceIndex)
         {
             if (!m_SupportProbeVolume) { return; }
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
+
             float rWidth = 1.0f / m_ProbeVolumeAtlasSHRTHandle.rt.width;
             float rHeight = 1.0f / m_ProbeVolumeAtlasSHRTHandle.rt.height;
             Vector4 scaleBias = Vector4.Scale(new Vector4(rWidth, rHeight, rWidth, rHeight), new Vector4(m_ProbeVolumeAtlasSHRTHandle.rt.width, m_ProbeVolumeAtlasSHRTHandle.rt.height, 0, 0));
+
+            scaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+
+        #if UNITY_EDITOR
+            if (UnityEditor.Selection.activeGameObject != null)
+            {
+                var selectedProbeVolume = UnityEditor.Selection.activeGameObject.GetComponent<ProbeVolume>();
+                if (selectedProbeVolume != null)
+                {
+                    // User currently has a probe volume selected.
+                    // Compute a scaleBias term so that atlas view automatically zooms into selected probe volume.
+                    int selectedProbeVolumeKey = selectedProbeVolume.GetID();
+                    if (probeVolumeAtlas.TryGetScaleBias(out Vector4 selectedProbeVolumeScaleBias, selectedProbeVolumeKey))
+                    {
+                        scaleBias = selectedProbeVolumeScaleBias;
+                    }
+                }
+            }
+        #endif
 
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             propertyBlock.SetTexture("_AtlasTextureSH", m_ProbeVolumeAtlasSHRTHandle.rt);
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetVector("_ValidRange", validRange);
+            propertyBlock.SetInt("_AtlasTextureSliceIndex", sliceIndex);
             cmd.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             cmd.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }

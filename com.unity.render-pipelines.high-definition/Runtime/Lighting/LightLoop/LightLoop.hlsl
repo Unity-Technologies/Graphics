@@ -570,25 +570,25 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                 }
                                 else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_PROBE_VALIDITY_FILTER)
                                 {
-                                    float2 probeVolumeTexel2DBackSW = float2(
-                                        max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + floor(probeVolumeTexel3D.x - 0.5) + 0.5,
-                                        floor(probeVolumeTexel3D.y - 0.5) + 0.5
+                                    int2 probeVolumeTexel2DBackSW = int2(
+                                        (int)(max(0.0, floor(probeVolumeTexel3D.z - 0.5)) * s_probeVolumeData.resolution.x + floor(probeVolumeTexel3D.x - 0.5) + 0.5),
+                                        (int)(floor(probeVolumeTexel3D.y - 0.5) + 0.5)
                                     );
-                                    float2 probeVolumeTexel2DFrontSW = float2(probeVolumeTexel2DBackSW.x + s_probeVolumeData.resolution.x, probeVolumeTexel2DBackSW.y);
+                                    int2 probeVolumeTexel2DFrontSW = int2(probeVolumeTexel2DBackSW.x + (int)s_probeVolumeData.resolution.x, probeVolumeTexel2DBackSW.y);
 
                                     // TODO: Rather than sampling validity data from a slice in our texture array, we could place it in a different texture resource entirely.
                                     // This would allow us to use a single channel format, rather than wasting memory with float4(validity, unused, unused, unused).
                                     // It would also allow us to use a different texture format (i.e: 1x8bpp rather than 4x16bpp).
                                     // Currently just using a texture slice for convenience, and with the idea that MAYBE we will end up using the remaining 3 channels.
-                                    probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 0.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
-                                    probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 1.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
-                                    probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 0.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
-                                    probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 1.0, probeVolumeTexel2DBackSW.y + 0.0),  3, 0).x);
+                                    probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 0, probeVolumeTexel2DBackSW.y + 0),  3, 0).x);
+                                    probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 1, probeVolumeTexel2DBackSW.y + 0),  3, 0).x);
+                                    probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 0, probeVolumeTexel2DFrontSW.y + 0),  3, 0).x);
+                                    probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 1, probeVolumeTexel2DFrontSW.y + 0),  3, 0).x);
 
-                                    probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 0.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
-                                    probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DBackSW.x + 1.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
-                                    probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 0.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
-                                    probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float2(probeVolumeTexel2DFrontSW.x + 1.0, probeVolumeTexel2DBackSW.y + 1.0),  3, 0).x);
+                                    probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 0, probeVolumeTexel2DBackSW.y + 1),  3, 0).x);
+                                    probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DBackSW.x + 1, probeVolumeTexel2DBackSW.y + 1),  3, 0).x);
+                                    probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 0, probeVolumeTexel2DFrontSW.y + 1),  3, 0).x);
+                                    probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, int2(probeVolumeTexel2DFrontSW.x + 1, probeVolumeTexel2DFrontSW.y + 1),  3, 0).x);
                                 }
 
                                 // Blend between Geometric Weights and simple trilinear filter weights based on user defined _ProbeVolumeBilateralFilterWeight.
@@ -596,15 +596,24 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                     float3 probeWeightTrilinearMax = frac(probeVolumeTexel3D - 0.5);
                                     float3 probeWeightTrilinearMin = 1.0 - probeWeightTrilinearMax;
 
-                                    probeWeightBSW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMin.y * probeWeightTrilinearMin.z, probeWeightBSW, _ProbeVolumeBilateralFilterWeight);
-                                    probeWeightBSE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMin.y * probeWeightTrilinearMin.z, probeWeightBSE, _ProbeVolumeBilateralFilterWeight);
-                                    probeWeightBNW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMin.y * probeWeightTrilinearMax.z, probeWeightBNW, _ProbeVolumeBilateralFilterWeight);
-                                    probeWeightBNE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMin.y * probeWeightTrilinearMax.z, probeWeightBNE, _ProbeVolumeBilateralFilterWeight);
+                                    float probeWeightTrilinearBSW = probeWeightTrilinearMin.x * probeWeightTrilinearMin.y * probeWeightTrilinearMin.z;
+                                    float probeWeightTrilinearBSE = probeWeightTrilinearMax.x * probeWeightTrilinearMin.y * probeWeightTrilinearMin.z;
+                                    float probeWeightTrilinearBNW = probeWeightTrilinearMin.x * probeWeightTrilinearMin.y * probeWeightTrilinearMax.z;
+                                    float probeWeightTrilinearBNE = probeWeightTrilinearMax.x * probeWeightTrilinearMin.y * probeWeightTrilinearMax.z;
+                                    float probeWeightTrilinearTSW = probeWeightTrilinearMin.x * probeWeightTrilinearMax.y * probeWeightTrilinearMin.z;
+                                    float probeWeightTrilinearTSE = probeWeightTrilinearMax.x * probeWeightTrilinearMax.y * probeWeightTrilinearMin.z;
+                                    float probeWeightTrilinearTNW = probeWeightTrilinearMin.x * probeWeightTrilinearMax.y * probeWeightTrilinearMax.z;
+                                    float probeWeightTrilinearTNE = probeWeightTrilinearMax.x * probeWeightTrilinearMax.y * probeWeightTrilinearMax.z;
 
-                                    probeWeightTSW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMax.y * probeWeightTrilinearMin.z, probeWeightTSW, _ProbeVolumeBilateralFilterWeight);
-                                    probeWeightTSE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMax.y * probeWeightTrilinearMin.z, probeWeightTSE, _ProbeVolumeBilateralFilterWeight);
-                                    probeWeightTNW = lerp(probeWeightTrilinearMin.x * probeWeightTrilinearMax.y * probeWeightTrilinearMax.z, probeWeightTNW, _ProbeVolumeBilateralFilterWeight);
-                                    probeWeightTNE = lerp(probeWeightTrilinearMax.x * probeWeightTrilinearMax.y * probeWeightTrilinearMax.z, probeWeightTNE, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightBSW = lerp(probeWeightTrilinearBSW, probeWeightTrilinearBSW * probeWeightBSW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightBSE = lerp(probeWeightTrilinearBSE, probeWeightTrilinearBSE * probeWeightBSE, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightBNW = lerp(probeWeightTrilinearBNW, probeWeightTrilinearBNW * probeWeightBNW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightBNE = lerp(probeWeightTrilinearBNE, probeWeightTrilinearBNE * probeWeightBNE, _ProbeVolumeBilateralFilterWeight);
+
+                                    probeWeightTSW = lerp(probeWeightTrilinearTSW, probeWeightTrilinearTSW * probeWeightTSW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightTSE = lerp(probeWeightTrilinearTSE, probeWeightTrilinearTSE * probeWeightTSE, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightTNW = lerp(probeWeightTrilinearTNW, probeWeightTrilinearTNW * probeWeightTNW, _ProbeVolumeBilateralFilterWeight);
+                                    probeWeightTNE = lerp(probeWeightTrilinearTNE, probeWeightTrilinearTNE * probeWeightTNE, _ProbeVolumeBilateralFilterWeight);
                                 }
 
                                 float probeWeightTotal =

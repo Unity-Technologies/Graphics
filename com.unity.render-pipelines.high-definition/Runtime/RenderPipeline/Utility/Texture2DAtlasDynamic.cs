@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Debug.Log("Allocating atlas = " + debug);
         }
 
-        public bool Allocate(ref Vector4 result, int key, int width, int height)
+        public bool Allocate(out Vector4 result, int key, int width, int height)
         {
             Int16 node = m_Pool.m_Nodes[m_Root].Allocate(m_Pool, width, height);
             if (node >= 0)
@@ -402,14 +402,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AllocationCache.Clear();
         }
 
-        public bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
+        public bool AddTexture(CommandBuffer cmd, out Vector4 scaleBias, Texture texture)
         {
             int key = texture.GetInstanceID();
             if (!m_AllocationCache.TryGetValue(key, out scaleBias))
             {
                 int width = texture.width;
                 int height = texture.height;
-                if (m_AtlasAllocator.Allocate(ref scaleBias, key, width, height))
+                if (m_AtlasAllocator.Allocate(out scaleBias, key, width, height))
                 {
                     scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
                     for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
@@ -428,13 +428,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        public bool EnsureTextureSlot(out bool isUploadNeeded, ref Vector4 scaleBias, int key, int width, int height)
+        public bool TryGetScaleBias(out Vector4 scaleBias, int key)
+        {
+            return m_AllocationCache.TryGetValue(key, out scaleBias);
+        }
+
+        public bool EnsureTextureSlot(out bool isUploadNeeded, out Vector4 scaleBias, int key, int width, int height)
         {
             isUploadNeeded = false;
             if (m_AllocationCache.TryGetValue(key, out scaleBias)) { return true; }
 
             // Debug.Log("EnsureTextureSlot Before = " + m_AtlasAllocator.DebugStringFromRoot());
-            if (!m_AtlasAllocator.Allocate(ref scaleBias, key, width, height)) { return false; }
+            if (!m_AtlasAllocator.Allocate(out scaleBias, key, width, height)) { return false; }
             // Debug.Log("EnsureTextureSlot After = " + m_AtlasAllocator.DebugStringFromRoot());
 
             isUploadNeeded = true;

@@ -3624,7 +3624,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                         ProbeVolumeSystem pvs = hdrp.m_ProbeVolumeSystem;
                         HDCamera hdCamera = debugParameters.hdCamera;
-                        pvs.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue);
+                        pvs.DisplayProbeVolumeAtlas(cmd, debugDisplayProbeVolumeMaterial, x, y, overlaySize, overlaySize, lightingDebug.probeVolumeMinValue, lightingDebug.probeVolumeMaxValue, lightingDebug.probeVolumeAtlasSliceIndex);
                         HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                     }
 

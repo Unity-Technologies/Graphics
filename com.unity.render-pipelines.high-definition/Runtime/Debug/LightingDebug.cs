@@ -126,6 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
         public float                probeVolumeMinValue = 0.0f;
         public float                probeVolumeMaxValue = 1.0f;
+        public int                  probeVolumeAtlasSliceIndex = 0;
         public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
         public uint                 shadowAtlasIndex = 0;

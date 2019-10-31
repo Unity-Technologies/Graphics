@@ -484,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.EnumField { displayName = "Probe Volume Debug Mode", getter = () => (int)data.lightingDebugSettings.probeVolumeDebugMode, setter = value => SetProbeVolumeDebugMode((ProbeVolumeDebugMode)value), autoEnum = typeof(ProbeVolumeDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.probeVolumeDebugModeEnumIndex, setIndex = value => data.probeVolumeDebugModeEnumIndex = value });
             list.Add(new DebugUI.FloatField { displayName = "Probe Volume Range Min Value", getter = () => data.lightingDebugSettings.probeVolumeMinValue, setter = value => data.lightingDebugSettings.probeVolumeMinValue = value });
             list.Add(new DebugUI.FloatField { displayName = "Probe Volume Range Max Value", getter = () => data.lightingDebugSettings.probeVolumeMaxValue, setter = value => data.lightingDebugSettings.probeVolumeMaxValue = value });
-
+            list.Add(new DebugUI.IntField { displayName = "Probe Volume Atlas Slice Index", getter = () => data.lightingDebugSettings.probeVolumeAtlasSliceIndex, setter = value => data.lightingDebugSettings.probeVolumeAtlasSliceIndex = value });
             if (data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.VisualizeShadowMap || data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
             {
                 var container = new DebugUI.Container();
