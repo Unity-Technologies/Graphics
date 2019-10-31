@@ -123,6 +123,9 @@ namespace UnityEditor.ShaderGraph
 
         void GenerateSubShader(int targetIndex, SubShaderDescriptor descriptor)
         {
+            if(descriptor.passes == null)
+                return;
+
             m_Builder.AppendLine("SubShader");
             using(m_Builder.BlockScope())
             {
