@@ -34,28 +34,6 @@ all_project_ci_{{ editor.version }}:
       rerun: always
   {% endfor %}
 
-  artifacts:
-    logs:
-      paths:
-        - "**/test-results/**"
-{% endfor %}
-
-
-# a separate job so that only trunk is run nightly, not fast-trunk
-all_project_ci_nightly:
-  name: Nightly ABV against trunk
-  agent:
-    type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
-    flavor: b1.small
-  commands:
-  - dir
-  dependencies:
-  {% for project in projects %}
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_trunk
-      rerun: always
-  {% endfor %}
-
   triggers:
     recurring:
       - branch: master
@@ -64,3 +42,4 @@ all_project_ci_nightly:
     logs:
       paths:
         - "**/test-results/**"
+{% endfor %}

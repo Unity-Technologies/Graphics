@@ -29,8 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string header = "Exposed Properties";
         }
 
-        Expandable m_ExpandableBit;
-        Features m_Features;
+        Expandable  m_ExpandableBit;
+        Features    m_Features;
 
         public ShaderGraphUIBlock(Expandable expandableBit = Expandable.ShaderGraph, Features features = Features.All)
         {
@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Features = features;
         }
 
-        public override void LoadMaterialProperties() { }
+        public override void LoadMaterialProperties() {}
 
         public override void OnGUI()
         {
@@ -51,42 +51,42 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty[] oldProperties;
 
-        bool CheckPropertyChanged(MaterialProperty[] properties)
-        {
-            bool propertyChanged = false;
+		bool CheckPropertyChanged(MaterialProperty[] properties)
+		{
+			bool propertyChanged = false;
 
-            if (oldProperties != null)
-            {
-                // Check if shader was changed (new/deleted properties)
-                if (properties.Length != oldProperties.Length)
-                {
-                    propertyChanged = true;
-                }
-                else
-                {
-                    for (int i = 0; i < properties.Length; i++)
-                    {
-                        if (properties[i].type != oldProperties[i].type)
-                            propertyChanged = true;
-                        if (properties[i].displayName != oldProperties[i].displayName)
-                            propertyChanged = true;
-                        if (properties[i].flags != oldProperties[i].flags)
-                            propertyChanged = true;
-                        if (properties[i].name != oldProperties[i].name)
-                            propertyChanged = true;
-                        if (properties[i].floatValue != oldProperties[i].floatValue)
-                            propertyChanged = true;
-                        if (properties[i].vectorValue != oldProperties[i].vectorValue)
-                            propertyChanged = true;
-                        if (properties[i].colorValue != oldProperties[i].colorValue)
-                            propertyChanged = true;
-                        if (properties[i].textureValue != oldProperties[i].textureValue)
-                            propertyChanged = true;
-                    }
-                }
-            }
+			if (oldProperties != null)
+			{
+				// Check if shader was changed (new/deleted properties)
+				if (properties.Length != oldProperties.Length)
+				{
+					propertyChanged = true;
+				}
+				else
+				{
+					for (int i = 0; i < properties.Length; i++)
+					{
+						if (properties[i].type != oldProperties[i].type)
+							propertyChanged = true;
+						if (properties[i].displayName != oldProperties[i].displayName)
+							propertyChanged = true;
+						if (properties[i].flags != oldProperties[i].flags)
+							propertyChanged = true;
+						if (properties[i].name != oldProperties[i].name)
+							propertyChanged = true;
+						if (properties[i].floatValue != oldProperties[i].floatValue)
+							propertyChanged = true;
+						if (properties[i].vectorValue != oldProperties[i].vectorValue)
+							propertyChanged = true;
+						if (properties[i].colorValue != oldProperties[i].colorValue)
+							propertyChanged = true;
+						if (properties[i].textureValue != oldProperties[i].textureValue)
+							propertyChanged = true;
+					}
+				}
+			}
 
-            oldProperties = properties;
+			oldProperties = properties;
 
             return propertyChanged;
         }
