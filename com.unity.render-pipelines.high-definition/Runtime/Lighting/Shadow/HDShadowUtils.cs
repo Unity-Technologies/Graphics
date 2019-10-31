@@ -202,7 +202,32 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             float fov = spotAngle + guardAngle;
             float nearZ = Mathf.Max(nearPlane, k_MinShadowNearPlane);
-            return Matrix4x4.Perspective(fov, aspectRatio, nearZ, range);
+
+            float e = 1.0f / Mathf.Tan(fov / 180.0f * Mathf.PI / 2.0f);
+            float a = aspectRatio;
+            float n = nearZ;
+            float f = n + range;
+
+            // Unity does something messed up if the aspect ratio is less than 1. I assume it happens on the C++ side.
+            // A workaround is to avoid using Matrix4x4.Perspective and build the matrix manually...
+            Matrix4x4 mat = new Matrix4x4();
+
+            if (a < 1)
+            {
+                mat.m00 = e;
+                mat.m11 = e * a;
+            }
+            else
+            {
+                mat.m00 = e / a;
+                mat.m11 = e;
+            }
+
+            mat.m22 = -(f + n)/(f - n);
+            mat.m23 = -2 * f * n / (f - n);
+            mat.m32 = -1;
+
+            return mat;
         }
 
         public static Matrix4x4 ExtractBoxLightProjectionMatrix(float range, float width, float height, float nearPlane)

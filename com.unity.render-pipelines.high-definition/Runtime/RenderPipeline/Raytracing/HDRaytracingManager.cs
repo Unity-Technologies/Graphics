@@ -412,6 +412,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_ValidRayTracingCluster;
         }
+        static internal float GetPixelSpreadTangent(float fov, int width, int height)
+        {
+            return Mathf.Tan(fov * Mathf.Deg2Rad * 0.5f) * 2.0f / Mathf.Min(width, height);
+        }
+
+        static internal float GetPixelSpreadAngle(float fov, int width, int height)
+        {
+            return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
+        }
     }
 #endif
 }

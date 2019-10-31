@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_xySeq = new Vector2[7];
 
-            m_PixelCoordToViewDirWS = new Matrix4x4[TextureXR.slices];
+            m_PixelCoordToViewDirWS = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
             CreateVolumetricLightingBuffers();
         }
