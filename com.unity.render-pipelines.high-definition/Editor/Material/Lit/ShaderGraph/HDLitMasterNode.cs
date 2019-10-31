@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string AlphaClipThresholdDepthPrepassSlotName = "AlphaClipThresholdDepthPrepass";
         public const string AlphaClipThresholdDepthPostpassSlotName = "AlphaClipThresholdDepthPostpass";
         public const string AnisotropySlotName = "Anisotropy";
-        public const string PositionSlotName = "Vertex Position";        
+        public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
         public const string VertexNormalSlotName = "Vertex Normal";
         public const string VertexTangentSlotName = "Vertex Tangent";
@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int LightingSlotId = 30;
         public const int BackLightingSlotId = 31;
         public const int DepthOffsetSlotId = 32;
-        public const int VertexNormalSlotID = 33; 
+        public const int VertexNormalSlotID = 33;
         public const int VertexTangentSlotID = 34;
 
         public enum MaterialType
@@ -1192,6 +1192,26 @@ namespace UnityEditor.Rendering.HighDefinition
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
 
             base.CollectShaderProperties(collector, generationMode);
+        }
+
+        public override void ValidateNode()
+        {
+            var hdPipelineAsset = HDRenderPipeline.currentAsset;
+
+            if (hdPipelineAsset == null)
+                return;
+
+            var diffusionProfileSlot = FindSlot<DiffusionProfileInputMaterialSlot>(DiffusionProfileHashSlotId);
+
+            if (diffusionProfileSlot == null)
+                return;
+
+            if ((diffusionProfileSlot.diffusionProfile) != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfileSlot.diffusionProfile))
+            {
+                // Debug.LogWarning($"Diffusion profile '{diffusionProfileSlot.diffusionProfile.name}' is not referenced in the current HDRP asset");
+            }
+
+            base.ValidateNode();
         }
     }
 }

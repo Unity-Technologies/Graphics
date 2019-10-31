@@ -64,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedProfile.diffusionProfileAsset = value;
                 m_SerializedDiffusionProfile = EditorJsonUtility.ToJson(serializedProfile, true);
                 m_DiffusionProfileAsset = value;
+                owner.ValidateNode();
             }
         }
 

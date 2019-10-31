@@ -8,10 +8,16 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [Reload("Editor/DefaultScene/DefaultSceneRoot.prefab")]
         public GameObject defaultScene;
+        [Reload("Editor/DefaultDXRScene/DefaultSceneRoot.prefab")]
+        public GameObject defaultDXRScene;
         [Reload("Editor/DefaultScene/Sky and Fog Settings Profile.asset")]
         public VolumeProfile defaultSkyAndFogProfile;
+        [Reload("Editor/DefaultDXRScene/Sky and Fog Settings Profile.asset")]
+        public VolumeProfile defaultDXRSkyAndFogProfile;
         [Reload("Editor/DefaultScene/Scene PostProcess Profile.asset")]
         public VolumeProfile defaultPostProcessingProfile;
+        [Reload("Editor/DefaultDXRScene/Scene PostProcess Profile.asset")]
+        public VolumeProfile defaultDXRPostProcessingProfile;
         [Reload(new[]
         {
             "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",

@@ -49,7 +49,7 @@ The HDRP Shaders allow you to use the following features:
 
   - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
   - Iridescence, for surfaces that appear to change color as you view them from different angles, like soap bubbles or insect wings.
-  - Metallic, for surfaces that appear smooth, reflective, and have specular highlights.
+  - Metallic, for surfaces only lit by specular lighting and take the base color input for specular color. For example, aluminum, copper, and steel.
   - Specular Color, for surfaces that you want to have a colored specular highlight.
   - Subsurface Scattering, for translucent surfaces that simulate light interaction and scattering, like skin or plant leaves.
   - Translucent, for surfaces that simulate light interaction, but do not blur light that transmits through the Material.
@@ -129,27 +129,27 @@ The HDRP light types use [physical light units](#PLU) to help you light your Sce
 - **Directional**
   - Color temperature
   - Colored cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 - **Spot**
   - Color temperature
   - Colored cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
   - Cone, pyramid and box shapes
 
 - **Point**
   - Color temperature
   - Colored cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 - **Rectangle**
   - Color temperature
   - Colored Cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 - **Tube**
   - Color temperature
-  - No shadow masks
+  - No [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 For more information, including the full list of light properties, see the [Light component documentation](Light-Component.html).
 
@@ -239,12 +239,12 @@ HDRP includes its own purpose-built implementation for post-processing to produc
 
 ![](Images/HDRPFeatures-AntiAliasing.png) 
 
-HDRP includes the following anti-aliasing  methods to help you remove aliasing effects with performance and quality in mind:
+HDRP includes the following [anti-aliasing](Anti-Aliasing.html) methods to help you remove aliasing effects with performance and quality in mind:
 
-- Multisample anti-aliasing: Samples multiple locations within every pixel and combines these samples to produce the final pixel. This is the most resource intensive anti-aliasing technique in HDRP.
-- Temporal anti-aliasing: Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
-- Subpixel morphological anti-aliasing: Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
-- Fast approximate anti-aliasing: Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
+- [Multisample anti-aliasing](Anti-Aliasing.html#MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. This is the most resource intensive anti-aliasing technique in HDRP.
+- [Temporal anti-aliasing](Anti-Aliasing.html#TAA): Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
+- [Subpixel morphological anti-aliasing](Anti-Aliasing.html#SMAA): Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
+- [Fast approximate anti-aliasing](Anti-Aliasing.html#FXAA): Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
 
 ### Physical Camera
 

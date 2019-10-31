@@ -104,6 +104,10 @@ namespace UnityEditor.ShaderGraph
             var subGraphNodes = graph.GetNodes<SubGraphNode>();
             foreach(SubGraphNode subGraphNode in subGraphNodes)
             {
+                if (subGraphNode.asset == null)
+                {
+                    continue;
+                }
                 allKeywords = allKeywords.Union(subGraphNode.asset.keywords);
             }
             allKeywords = allKeywords.Distinct();

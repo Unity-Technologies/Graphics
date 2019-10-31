@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The axis of rotation.")]
+            [Tooltip("Sets the axis from which the velocity is calculated. Particles move away from this axis.")]
             public Line axis = Line.defaultValue;
         }
 

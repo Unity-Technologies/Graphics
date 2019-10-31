@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -791,6 +791,12 @@ namespace UnityEditor.ShaderGraph
             if (activeNode is SubGraphNode subGraphNode)
             {
                 subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
+            }
+
+            if (requirements.requiresVertexSkinning)
+            {
+                activeFields.Add($"{structName}.BoneWeights");
+                activeFields.Add($"{structName}.BoneIndices");
             }
         }
 

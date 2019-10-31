@@ -14,7 +14,8 @@ namespace UnityEditor.VFX
 
         [VFXSetting,SerializeField]
         protected VisualEffectAsset m_Subgraph;
-        
+
+        [NonSerialized]
         VFXModel[] m_SubChildren;
 
         public VisualEffectAsset subgraph
@@ -308,6 +309,8 @@ namespace UnityEditor.VFX
                 }
                 m_OriginalToCopy.Clear();
             }
+
+            m_SubChildren = null;
         }
 
         public void OnOriginalSlotModified(VFXModel original,InvalidationCause cause)
@@ -329,9 +332,8 @@ namespace UnityEditor.VFX
 
             var inputExpressions = new List<VFXExpression>();
 
-            foreach (var slot in inputSlots)
-                foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
-                    inputExpressions.Add(subSlot.GetExpression());
+            foreach (var subSlot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
+                inputExpressions.Add(subSlot.GetExpression());
 
             VFXSubgraphUtility.TransferExpressionToParameters(inputExpressions, GetSortedInputParameters());
             foreach (var slot in toInvalidate)

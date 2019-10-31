@@ -44,7 +44,9 @@ Shader "FullScreen/#SCRIPTNAME#"
 
         // Add your custom pass code here
 
-        return color;
+        // Fade value allow you to increase the strength of the effect while the camera gets closer to the custom pass volume
+        float f = 1 - abs(_FadeValue * 2 - 1);
+        return float4(color.rgb + f, color.a);
     }
 
     ENDHLSL
