@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter directionCount = new ClampedIntParameter(2, 1, 6);
         public ClampedFloatParameter blurSharpness = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
-        // Ray tracing parameters    
+        // Ray tracing parameters
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
         public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
@@ -117,6 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // No AO applied - neutral is black, see the comment in the shaders
                 cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, TextureXR.GetBlackTexture());
+                PostDispatchWork(cmd, camera);
                 return;
             }
             else
@@ -283,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.denoiseAOCS = m_Resources.shaders.GTAODenoiseCS;
             parameters.denoiseKernelSpatial = parameters.denoiseAOCS.FindKernel(parameters.temporalAccumulation ? "GTAODenoise_Spatial_To_Temporal" : "GTAODenoise_Spatial");
-            
+
             parameters.denoiseKernelTemporal = parameters.denoiseAOCS.FindKernel(parameters.fullResolution ? "GTAODenoise_Temporal_FullRes" : "GTAODenoise_Temporal");
             parameters.denoiseKernelCopyHistory = parameters.denoiseAOCS.FindKernel("GTAODenoise_CopyHistory");
 
@@ -470,6 +471,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PushGlobalParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
+
             var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             if (IsActive(hdCamera, settings))
                 cmd.SetGlobalVector(HDShaderIDs._AmbientOcclusionParam, new Vector4(0f, 0f, 0f, settings.directLightingStrength.value));
@@ -479,9 +481,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void PostDispatchWork(CommandBuffer cmd, HDCamera camera)
         {
+            var settings = VolumeManager.instance.stack.GetComponent<AmbientOcclusion>();
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, m_AmbientOcclusionTex);
             // TODO: All the push debug stuff should be centralized somewhere
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, m_AmbientOcclusionTex, FullScreenDebugMode.SSAO);
+            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(camera, cmd, IsActive(camera, settings) ? m_AmbientOcclusionTex : TextureXR.GetBlackTexture(), FullScreenDebugMode.SSAO);
         }
     }
 }
