@@ -116,6 +116,12 @@ The Decal Shader allows you to place decals on surfaces in your Scene. To apply 
 
 The Terrain Lit Shader is compatible with the built-in terrain system and supports up to eight layers in a single draw call. This Shader uses the same lighting model as the Lit Shader.
 
+### Shadow Matte Shader
+
+![](Images/HDRPFeatures-ShadowMatte.png)
+
+The Shadow Matte Shader, receives only shadow without lighting (can be transparent or opaque).
+
 <a name="Lighting"></a>
 
 ## Lighting

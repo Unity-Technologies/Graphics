@@ -378,8 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing
 #if UNITY_EDITOR
-                && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
-                    || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+                && UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
 #endif
             ;
         }

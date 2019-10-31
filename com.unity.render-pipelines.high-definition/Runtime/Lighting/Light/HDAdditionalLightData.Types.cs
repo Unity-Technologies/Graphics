@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         OnEnable,
         OnDemand
     }
-
+    
     // Light layering
     public enum LightLayerEnum
     {
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             => type != HDLightTypeAndShape.TubeArea
             && type != HDLightTypeAndShape.DiscArea;
     }
-
+    
     public partial class HDAdditionalLightData
     {
         //Private enum to differentiate built-in LightType.Point that can be Area or Point in HDRP
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [System.NonSerialized]
         static Dictionary<int, LightUnit[]> supportedLightTypeCache = new Dictionary<int, LightUnit[]>();
-
+        
         [SerializeField, FormerlySerializedAs("lightTypeExtent"), FormerlySerializedAs("m_LightTypeExtent")]
         PointLightHDType m_PointlightHDType = PointLightHDType.Punctual;
 
@@ -353,7 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new Exception($"Unknown {typeof(HDLightType)}: {type}");
             }
         }
-
+        
         string GetLightTypeName()
         {
             if (type == HDLightType.Area)
@@ -427,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case PointLightHDType.Punctual: return HDLightType.Point;
                         case PointLightHDType.Area: return HDLightType.Area;
                         default:
-                            //Debug.Assert(false, $"Unknown {typeof(PointLightHDType).Name} {m_PointlightHDType}. Fallback on Punctual");
+                            Debug.Assert(false, $"Unknown {typeof(PointLightHDType).Name} {m_PointlightHDType}. Fallback on Punctual");
                             return HDLightType.Point;
                     }
                 case LightType.Disc:

@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 legacyLight.lightShadowCasterMode = value ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
             }
         }
-
+        
         // Only for Rectangle/Line/box projector lights.
         [SerializeField, FormerlySerializedAs("shapeWidth")]
         float m_ShapeWidth = 0.5f;
@@ -1122,20 +1122,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        float m_SlopeBias = 0.5f;
+        float m_ConstantBias = 0.15f;
         /// <summary>
-        /// Get/Set the slope bias of the shadow maps.
+        /// Get/Set the constant bias of the shadow maps.
         /// </summary>
         /// <value></value>
-        public float slopeBias
+        public float constantBias
         {
-            get => m_SlopeBias;
+            get => m_ConstantBias;
             set
             {
-                if (m_SlopeBias == value)
+                if (m_ConstantBias == value)
                     return;
 
-                m_SlopeBias = value;
+                m_ConstantBias = value;
             }
         }
 
@@ -1318,7 +1318,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int GetShadowRequestCount()
         {
-            HDLightType lightType = type;
+            HDLightType lightType = type; 
             return lightType == HDLightType.Point
                 ? 6
                 : lightType == HDLightType.Directional
@@ -1506,6 +1506,31 @@ namespace UnityEngine.Rendering.HighDefinition
             return -offset;
         }
 
+        private float GetDirectionalConstantBias(int index, float sphereRadius, float resolution)
+        {
+            // TODO: Heuristics here can possibly be improved with more data points.
+
+            const float baseBias = 2.0f;
+            float range = 0.0f;
+            if (index == 0)
+            {
+                range = m_ShadowSettings.cascadeShadowSplits[0];
+            }
+            else if (index == 3)
+            {
+                range = 1 - m_ShadowSettings.cascadeShadowSplits[2];
+            }
+            else
+            {
+                range = m_ShadowSettings.cascadeShadowSplits[index] - m_ShadowSettings.cascadeShadowSplits[index - 1];
+            }
+
+            range *= m_ShadowSettings.maxShadowDistance.value;
+            float texelScale = (sphereRadius * sphereRadius) / resolution;
+
+            return Math.Min(0.02f, constantBias * texelScale * baseBias / range);
+        }
+
         private void UpdateDirectionalShadowRequest(HDShadowManager manager, VisibleLight visibleLight, CullingResults cullResults, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
         {
             Vector4 cullingSphere;
@@ -1528,6 +1553,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingSphere.z -= cameraPos.z;
             }
 
+			shadowRequest.constantBias = GetDirectionalConstantBias(requestIndex, cullingSphere.w, viewportSize.x);
             manager.UpdateCascade(requestIndex, cullingSphere, m_ShadowSettings.cascadeShadowBorders[requestIndex]);
         }
 
@@ -1593,6 +1619,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                                 out shadowRequest.deviceProjection, out shadowRequest.splitData
                             );
+                            shadowRequest.constantBias = Math.Max(0.0003f, 10.0f * constantBias / (legacyLight.range * viewportSize.x));
                             break;
                         case HDLightType.Spot:
                             float spotAngleForShadows = useCustomSpotLightShadowCone ? Math.Min(customSpotLightShadowCone, visibleLight.light.spotAngle)  : visibleLight.light.spotAngle;
@@ -1602,6 +1629,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
                                 out shadowRequest.deviceProjection, out shadowRequest.splitData
                             );
+                            shadowRequest.constantBias = Math.Max(0.0003f, 20.0f * constantBias / (legacyLight.range * viewportSize.x));
                             break;
                         case HDLightType.Directional:
                             UpdateDirectionalShadowRequest(manager, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
@@ -1622,9 +1650,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                             break;
                     }
-
-					shadowRequest.slopeBias = HDShadowUtils.GetSlopeBias(slopeBias);
-
+                    
                     // Assign all setting common to every lights
                     SetCommonShadowRequestSettings(shadowRequest, cameraPos, invViewProjection, shadowRequest.deviceProjectionYFlip * shadowRequest.view, viewportSize, lightIndex);
                 }
@@ -1877,7 +1903,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.volumetricShadowDimmer = volumetricShadowDimmer;
             data.shadowFadeDistance = shadowFadeDistance;
             useContactShadow.CopyTo(data.useContactShadow);
-            data.slopeBias = slopeBias;
+            data.constantBias = constantBias;
             data.normalBias = normalBias;
             data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
             shadowCascadeRatios.CopyTo(data.shadowCascadeRatios, 0);
@@ -1937,12 +1963,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // We don't use the global settings of shadow mask by default
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
 
+            lightData.constantBias         = 0.15f;
             lightData.normalBias           = 0.75f;
-            lightData.slopeBias            = 0.5f;
         }
 
         void OnValidate()
         {
+            //can be called before Awake() at script loading time in Editor
+            Migrate();
+
             UpdateBounds();
             DisableCachedShadowSlot();
             m_ShadowMapRenderedSinceLastRequest = false;
@@ -2286,7 +2315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             luxAtDistance = distance;
             intensity = luxIntensity;
         }
-
+        
         /// <summary>
         /// Set light cookie.
         /// </summary>
@@ -2535,7 +2564,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
             => (byte)renderingLayerMask;
-
+        
         ShadowMapType shadowMapType
             => (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle)
             ? ShadowMapType.AreaLightAtlas

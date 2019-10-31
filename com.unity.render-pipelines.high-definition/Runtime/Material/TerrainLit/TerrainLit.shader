@@ -274,6 +274,8 @@ Shader "HDRP/TerrainLit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitTemplate.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap.hlsl"
 
+            #pragma editor_sync_compilation
+
             ENDHLSL
         }
 

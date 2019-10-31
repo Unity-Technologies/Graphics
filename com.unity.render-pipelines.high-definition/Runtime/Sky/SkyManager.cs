@@ -207,18 +207,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateCurrentSkySettings(HDCamera hdCamera)
         {
             hdCamera.UpdateCurrentSky(this);
-            }
+        }
 
         public void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
-            {
+        {
             if (IsCachedContextValid(hdCamera.lightingSky))
-                {
+            {
                 var renderer = m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId].renderer;
                 if (renderer != null)
-            {
+                {
                     renderer.SetGlobalSkyData(cmd, hdCamera.lightingSky.skySettings);
+                }
             }
-        }
         }
 
 #if UNITY_EDITOR
@@ -758,6 +758,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        {
+            var skyContext = hdCamera.visualSky;
+            if (skyContext.IsValid())
+            {
+                int skyHash = ComputeSkyHash(skyContext, sunLight, SkyAmbientMode.Static);
+                AcquireSkyRenderingContext(skyContext, skyHash);
+                var cachedContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                cachedContext.renderer.DoUpdate(m_BuiltinParameters);
+                cachedContext.renderer.PreRenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
+            }
+        }
+
         public void RenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
@@ -795,7 +808,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // If the luxmeter is enabled, we don't render the sky
                     if (debugSettings.data.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
-        {
+                    {
                         // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
                         cachedContext.renderer.RenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
                     }

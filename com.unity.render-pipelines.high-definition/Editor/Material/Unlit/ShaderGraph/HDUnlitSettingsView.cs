@@ -217,6 +217,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            ps.Add(new PropertyRow(CreateLabel("Enable Shadow Matte", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.enableShadowMatte.isOn;
+                    toggle.OnToggleChanged(ChangeEnableShadowMatte);
+                });
+            });
+
             Add(ps);
         }
 
@@ -356,6 +365,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.addPrecomputedVelocity = td;
         }
 
+        void ChangeEnableShadowMatte(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Enable Shadow Matte");
+            ToggleData td = m_Node.enableShadowMatte;
+            td.isOn = evt.newValue;
+            m_Node.enableShadowMatte = td;
+        }
+
         void ChangeZWrite(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZWrite Change");
@@ -397,7 +414,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                         Debug.LogWarning("Not supported: " + alphaModeLit);
                         return AlphaMode.Alpha;
                     }
-
             }
         }
 
