@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/TemporalAntialiasing"
+Shader "Hidden/HDRP/AccumulationMotionBlur"
 {
     HLSLINCLUDE
 
