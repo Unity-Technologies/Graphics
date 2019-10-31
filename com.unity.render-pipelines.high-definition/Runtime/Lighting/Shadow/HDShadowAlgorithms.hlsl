@@ -182,6 +182,7 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
         float lightLeakBias = sd.shadowFilterParams0.y; 
         float varianceBias = sd.shadowFilterParams0.z;
         return SampleShadow_EVSM_1tap(posTC, lightLeakBias, varianceBias, exponents, false, tex, s_linear_clamp_sampler);
+
     }
 }
 
@@ -277,12 +278,12 @@ float EvalShadow_CascadedDepth_Blend(HDShadowContext shadowContext, Texture2D te
                     shadow1 = DIRECTIONAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS);
             }
         }
-
         shadow = lerp(shadow, shadow1, alpha);
     }
 
     return shadow;
 }
+
 
 float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L)
 {

@@ -470,12 +470,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (enableShadowMatte.isOn)
             {
-                //collector.AddShaderProperty(new Vector1ShaderProperty
-                //{
-                //    hidden = true,
-                //    value = enableShadowMatte.isOn ? 1.0f : 0.0f,
-                //    overrideReferenceName = HDMaterialProperties.kEnableShadowMatte
-                //});
                 uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
                 uint exponent = 0b10000000u; // 0 as exponent
                 collector.AddShaderProperty(new Vector1ShaderProperty

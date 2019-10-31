@@ -8,19 +8,10 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-    ////#define HAS_LIGHTLOOP
-    //#define USE_FPTL_LIGHTLIST
-    ////#define SHADOWS_SHADOWMASK
-    ////#define SHADERPASS SHADERPASS_SHADOWS
-    //#define SHADERPASS SHADERPASS_FORWARD_UNLIT
-
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    ////#define PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    //#define _SURFACE_TYPE_TRANSPARENT
-    ////#define SCALARIZE_LIGHT_LOOP 0
 
     #pragma multi_compile _ DEBUG_DISPLAY
-    //#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+    #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
     //#pragma multi_compile _ SHADOWS_SHADOWMASK
     //#pragma multi_compile _ _SURFACE_TYPE_TRANSPARENT
 
