@@ -166,6 +166,17 @@ Shader "Universal Render Pipeline/Lit"
             ZTest LEqual
             Cull[_Cull]
 
+            // Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
+            // We must clear it for Lit materials.
+            Stencil {
+                Ref 0
+                WriteMask 32
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default

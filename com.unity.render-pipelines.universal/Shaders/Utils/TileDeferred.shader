@@ -22,6 +22,17 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
+            // Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            Stencil {
+                Ref 0
+                WriteMask 0
+                ReadMask 32
+                Comp Equal
+                Pass Zero
+                Fail Zero
+                ZFail Zero
+            }
+
             HLSLPROGRAM
 
             #pragma vertex Vertex

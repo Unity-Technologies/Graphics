@@ -169,10 +169,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Cull Off
             ColorMask 0
 
+            // Bit 4 is used for the stencil volume.
             Stencil {
-                Ref 0
                 WriteMask 16
-                ReadMask 255
                 CompFront always
                 PassFront keep
                 ZFailFront invert
@@ -206,18 +205,16 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
+            // Bit 4 is used for the stencil volume.
+            // Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
             Stencil {
                 Ref 16
                 WriteMask 16
-                ReadMask 16
-                CompFront Equal
-                PassFront zero
-                FailFront zero
-                ZFailFront zero
+                ReadMask 48
                 CompBack Equal
-                PassBack zero
-                FailBack zero
-                ZFailBack zero
+                PassBack Zero
+                FailBack Zero
+                ZFailBack Zero
             }
 
             HLSLPROGRAM
@@ -245,6 +242,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Cull Off
             Blend One One, Zero One
             BlendOp Add, Add
+
+            // Bit 4 is used for the stencil volume.
+            // Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            Stencil {
+                Ref 16
+                WriteMask 16
+                ReadMask 48
+                CompBack Equal
+                PassBack Zero
+                FailBack Zero
+                ZFailBack Zero
+            }
 
             HLSLPROGRAM
 
