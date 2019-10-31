@@ -67,15 +67,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Configure the attachments
             m_ColorOutputAttachment.format = renderingData.cameraData.cameraTargetDescriptor.colorFormat;
-            m_ColorOutputAttachment.ConfigureTarget(colorAttachment, false, true);
+            m_ColorOutputAttachment.ConfigureTarget(colorAttachment, true, true);
+            m_ColorOutputAttachment.storeAction = RenderBufferStoreAction.Store;
             m_LightAttachment0.format = RendererLighting.s_RenderTextureFormatToUse;
-            m_LightAttachment0.loadAction = RenderBufferLoadAction.DontCare;
             m_LightAttachment1.format = RendererLighting.s_RenderTextureFormatToUse;
-            m_LightAttachment1.loadAction = RenderBufferLoadAction.DontCare;
             m_LightAttachment2.format = RendererLighting.s_RenderTextureFormatToUse;
-            m_LightAttachment2.loadAction = RenderBufferLoadAction.DontCare;
             m_LightAttachment3.format = RendererLighting.s_RenderTextureFormatToUse;
-            m_LightAttachment3.loadAction = RenderBufferLoadAction.DontCare;
 
             var attachments = new NativeArray<AttachmentDescriptor>(5, Allocator.Temp);
             attachments[0] = m_ColorOutputAttachment;
@@ -83,11 +80,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
             attachments[2] = m_LightAttachment1;
             attachments[3] = m_LightAttachment2;
             attachments[4] = m_LightAttachment3;
-            context.BeginRenderPass(targetDescriptor.width, targetDescriptor.height, 1, attachments);
-            attachments.Dispose();
 
             for (int i = 0; i < s_SortingLayers.Length; i++)
             {
+                int layerToRender = s_SortingLayers[i].id;
+
+                for (int j = 0; j < m_RendererData.lightBlendStyles.Length; ++j)
+                {
+                    if (!m_RendererData.lightBlendStyles[j].enabled)
+                        continue;
+
+                    Color globalColor;
+                    if (!Light2DManager.GetGlobalColor(layerToRender, j, out globalColor))
+                        globalColor = Color.black;
+
+                    var attachment = attachments[j + 1];
+                    attachment.ConfigureClear(globalColor);
+                    attachments[j + 1] = attachment;
+                }
+
+                context.BeginRenderPass(targetDescriptor.width, targetDescriptor.height, 1, attachments);
+
                 // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
                 // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
                 // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
@@ -96,7 +109,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var upperBound = (i == s_SortingLayers.Length - 1) ? short.MaxValue : layerValue;
                 filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
-                int layerToRender = s_SortingLayers[i].id;
+                
 
                 Light2D.LightStats lightStats;
                 lightStats = Light2D.GetLightStatsByLayer(layerToRender);
@@ -109,10 +122,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     RendererLighting.RenderLights(camera, cmd, layerToRender, context);
                 }
-                else
-                {
-                    RendererLighting.ClearDirtyLighting(cmd, context);
-                }
+                //else
+                //{
+                //    RendererLighting.ClearDirtyLighting(cmd);
+                //}
 
                 //CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.white);
                 //context.ExecuteCommandBuffer(cmd);
@@ -142,9 +155,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 context.EndSubPass();
+                context.EndRenderPass();
             }
 
-            context.EndRenderPass();
+            attachments.Dispose();
 
             cmd.Clear();
             Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");

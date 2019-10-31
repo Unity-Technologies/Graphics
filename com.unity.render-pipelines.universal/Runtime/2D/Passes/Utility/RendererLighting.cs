@@ -91,10 +91,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+                //if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
+                //    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
+                //else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
+                //    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
 
                 s_HasSetupRenderTextureFormatToUse = true;
             }
@@ -444,24 +444,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetGlobalTexture("_PointLightCookieTex", light.lightCookieSprite.texture);
         }
 
-        static public void ClearDirtyLighting(CommandBuffer cmdBuffer, ScriptableRenderContext context)
+        static public void ClearDirtyLighting(CommandBuffer cmdBuffer)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
                 if (s_LightRenderTargetsDirty[i])
                 {
-                    var lightAttachment = new NativeArray<int>(1, Allocator.Temp);
-                    lightAttachment[0] = i + 1;
-                    context.BeginSubPass(lightAttachment);
-                    lightAttachment.Dispose();
-
-                    //cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
+                    cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
                     cmdBuffer.ClearRenderTarget(false, true, Color.black);
                     s_LightRenderTargetsDirty[i] = false;
-
-                    context.ExecuteCommandBuffer(cmdBuffer);
-                    cmdBuffer.Clear();
-                    context.EndSubPass();
                 }
             }
         }
@@ -497,14 +488,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 //cmdBuffer.SetRenderTarget(s_LightRenderTargets[i].Identifier());
 
                 bool rtDirty = false;
-                Color clearColor;
-                if (!Light2DManager.GetGlobalColor(layerToRender, i, out clearColor))
-                    clearColor = Color.black;
-                else
-                    rtDirty = true;
+                //Color clearColor;
+                //if (!Light2DManager.GetGlobalColor(layerToRender, i, out clearColor))
+                //    clearColor = Color.black;
+                //else
+                //    rtDirty = true;
 
-                if (s_LightRenderTargetsDirty[i] || rtDirty)
-                    cmdBuffer.ClearRenderTarget(false, true, clearColor);
+                //if (s_LightRenderTargetsDirty[i] || rtDirty)
+                //    cmdBuffer.ClearRenderTarget(false, true, clearColor);
 
                 rtDirty |= RenderLightSet(
                     camera,
