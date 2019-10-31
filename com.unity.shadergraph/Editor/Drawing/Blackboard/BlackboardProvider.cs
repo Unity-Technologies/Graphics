@@ -312,9 +312,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
                     row = new BlackboardRow(field, propertyView) { userData = input };
+
                     if (index < 0)
                         index = m_InputRows.Count;
-                    if (index == m_InputRows.Count)
+
+                    if (index >= m_InputRows.Count)
                         m_PropertySection.Add(row);
                     else
                         m_PropertySection.Insert(index, row);
@@ -327,9 +329,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
+
                     if (index < 0)
                         index = m_InputRows.Count;
-                    if (index == m_InputRows.Count)
+
+                    if (index >= m_InputRows.Count)
                         m_KeywordSection.Add(row);
                     else
                         m_KeywordSection.Insert(index, row);
