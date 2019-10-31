@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
-TEXTURE2D(_NoiseTex); SAMPLER(sampler_NoiseTex);
+#define SAMPLE_DEPTH_AO(uv) LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv).r, _ZBufferParams);
 
 float4 _NoiseTex_TexelSize;
 
@@ -15,18 +15,26 @@ half _AO_Radius;
 int _SSAO_Samples;
 float _SSAO_Area;
 
-float3 normal_from_depth(float depth, float2 texcoords)
+float3 reconstructPosition(in float2 uv, in float z, in float4x4 InvVP)
 {
-  const float2 offset1 = float2(0.0,_ScreenParams.w - 1);
-  const float2 offset2 = float2(_ScreenParams.z - 1,0.0);
+  float x = uv.x * 2.0f - 1.0f;
+  float y = (1.0 - uv.y) * 2.0f - 1.0f;
+  float4 position_s = float4(x, y, z, 1.0f);
+  float4 position_v = mul(InvVP, position_s);
+  return position_v.xyz / position_v.w;
+}
 
-  float depth1 = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, texcoords + offset1).r, _ZBufferParams);
-  float depth2 = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, texcoords + offset2).r, _ZBufferParams);
+float3 NormalFromDepth(float depth, float2 texcoords)
+{
+  const float2 offset = float2(0.001,0.0);
 
-  float3 p1 = float3(offset1, depth1 - depth);
-  float3 p2 = float3(offset2, depth2 - depth);
+  float depthX = SAMPLE_DEPTH_AO(texcoords + offset.xy);
+  float depthY = SAMPLE_DEPTH_AO(texcoords + offset.yx);
 
-  float3 normal = cross(p1, p2);
+  float3 pX = float3(offset.xy, depthX - depth);
+  float3 pY = float3(offset.yx, depthY - depth);
+
+  float3 normal = cross(pY, pX);
   normal.z = -normal.z;
 
   return normalize(normal);
@@ -50,12 +58,14 @@ float SSAO(float2 coords)
         float3( 0.0352,-0.0631, 0.5460), float3(-0.4776, 0.2847,-0.0271)
     };
 
+    //Random Noise vector
     float3 random = normalize(SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, coords * ( _ScreenParams.xy / _NoiseTex_TexelSize.zw)).rgb);
-
-    float depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, coords).r, _ZBufferParams);
+    //Depth texture
+    float depth = SAMPLE_DEPTH_AO(coords);
 
     float3 position = float3(coords, depth);
-    float3 normal = normal_from_depth(depth, coords);
+    // Reconstruct normals
+    float3 normal = NormalFromDepth(depth, coords);
 
     float radius_depth = radius;///depth;
     float occlusion = 0.0;
@@ -65,7 +75,7 @@ float SSAO(float2 coords)
       float3 ray = radius_depth * reflect(sample_sphere[i], random);
       float3 hemi_ray = position + sign(dot(ray,normal)) * ray;
 
-      float occ_depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, saturate(hemi_ray.xy)).r, _ZBufferParams);
+      float occ_depth = SAMPLE_DEPTH_AO(saturate(hemi_ray.xy));
       float difference = depth - occ_depth;
 
       occlusion += step(falloff, difference) * (1.0-smoothstep(falloff, area, difference));

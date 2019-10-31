@@ -25,6 +25,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         TEXTURE2D_FLOAT(_CameraDepthTexture);
 #endif
         SAMPLER(sampler_CameraDepthTexture);
+        TEXTURE2D(_NoiseTex); SAMPLER(sampler_NoiseTex);
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/AO.hlsl"
 
         struct Attributes
