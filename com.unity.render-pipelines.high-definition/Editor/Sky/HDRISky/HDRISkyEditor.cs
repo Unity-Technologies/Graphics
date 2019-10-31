@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (max == 0.0f)
                 max = 1.0f;
             m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
-            m_UpperHemisphereLuxColor.value.vector3Value *= 0.25f; // Arbitrary 25% to not have too dark or too bright shadow
+            m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
         public override void OnInspectorGUI()

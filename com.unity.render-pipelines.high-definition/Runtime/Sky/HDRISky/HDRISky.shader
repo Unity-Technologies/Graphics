@@ -51,7 +51,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float4  _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
     float4  _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
     float4  _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
-    float3  _BackplateShadowTint; // xyz: ShadowTint
+    float3  _BackplateShadowTint;  // xyz: ShadowTint
     uint    _BackplateShadowFilter;
 
     #define _Exposure           _SkyParam.x
