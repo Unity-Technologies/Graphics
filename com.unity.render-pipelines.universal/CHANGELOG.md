@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
 - Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
 
+### Changed
+- Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
+- Eliminated some GC allocations from the 2D Renderer.
+- Added SceneSelection pass for TerrainLit shader.
+
 ### Fixed
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
 - Fixed an issue where Unity rendered fullscreen quads with the pink error shader when you enabled the Stop NaN post-processing pass.
@@ -22,10 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Freeform 2D Lights were not culled correctly when there was a Falloff Offset.
 - Fixed an issue where Tilemap palettes were invisible in the Tile Palette window when the 2D Renderer was in use. [case 1162550](https://issuetracker.unity3d.com/issues/adding-tiles-in-the-tile-palette-makes-the-tiles-invisible)
 - Fixed issue where black emission would cause unneccesary inspector UI repaints [case 1105661](https://issuetracker.unity3d.com/issues/lwrp-inspector-window-is-being-repainted-when-using-the-material-with-emission-enabled-and-set-to-black-00-0)
-### Changed
-- Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
-- Eliminated some GC allocations from the 2D Renderer.
-- Added SceneSelection pass for TerrainLit shader.
+- Fixed an issue when trying to get the Renderer via API on the first frame [case 1189196](https://issuetracker.unity3d.com/product/unity/issues/guid/1189196/)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
