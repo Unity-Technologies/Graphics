@@ -35,21 +35,18 @@ FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, Inpu
     half metallic = surfaceData.metallic;
     half packedSmoothness = surfaceData.smoothness;
     if (lightingMode == kLightingLitMetallic)
-        metallic *= 14.0 / 16.0;
+        metallic *= 253.0 / 255.0;
     if (lightingMode == kLightingLitSpecular)
-        metallic = 15.0 / 16.0;
+        metallic = 254.0 / 255.0;
     else if (lightingMode == kLightingSimpleLit)
     {
-        metallic = 16.0 / 16.0;
+        metallic = 255.0 / 255.0;
         packedSmoothness = (0.1 * log2(packedSmoothness) - 1); // See SimpleLitInput.hlsl, SampleSpecularSmoothness(): TODO pass in the original smoothness value
     }
 
-    half2 metallicAlpha = half2(metallic, surfaceData.alpha);
-    half packedMetallicAlpha = PackFloat2To8(metallicAlpha);
-
     FragmentOutput output;
     output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo          albedo          albedo          occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(surfaceData.specular.rgb, packedMetallicAlpha);     // specular        specular        specular        encoded-metallic+alpha (sRGB rendertarget)
+    output.GBuffer1 = half4(surfaceData.specular.rgb, metallic);                // specular        specular        specular        metallic     (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                  // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(surfaceData.emission.rgb + globalIllumination, 0);  // emission+GI     emission+GI     emission+GI     [unused]     (lighting buffer)
 
@@ -66,28 +63,28 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 
     surfaceData.specular = gbuffer1.rgb;
 
-    half2 metallicAlpha = Unpack8ToFloat2(gbuffer1.a);
+    half metallic = gbuffer1.a;
     half smoothness = gbuffer2.a;
 
-    if (metallicAlpha.x == 16.0 / 16.0)
+    if (metallic == 255.0 / 255.0)
     {
         lightingMode = kLightingSimpleLit;
-        metallicAlpha.x = 0.0; // unused
+        metallic = 0.0; // unused
         smoothness = exp2(10.0 * smoothness + 1);
     }
-    else if (metallicAlpha.x == 15.0 / 16.0)
+    else if (metallic == 254.0 / 255.0)
     {
         lightingMode = kLightingLitSpecular;
-        metallicAlpha.x = 0.0; // unused
+        metallic = 0.0; // unused
     }
     else
     {
         lightingMode = kLightingLitMetallic;
-        metallicAlpha.x *= 16.0 / 14.0;
+        metallic = 255.0 / 253.0;
     }
 
-    surfaceData.metallic = metallicAlpha.x;
-    surfaceData.alpha = metallicAlpha.y;
+    surfaceData.metallic = metallic;
+    surfaceData.alpha = 1.0; // gbuffer only contains opaque materials
     surfaceData.smoothness = smoothness;
 
     surfaceData.emission = (half3)0; // Note: this is not made available at lighting pass in this renderer - emission contribution is included (with GI) in the value GBuffer3.rgb, that is used as a renderTarget during lighting
