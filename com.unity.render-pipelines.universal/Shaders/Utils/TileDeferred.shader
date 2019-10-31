@@ -216,28 +216,55 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
                 posWS.xyz *= 1.0 / posWS.w;
 
-                SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+                int lightingMode;
+                SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, lightingMode);
                 InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
                 BRDFData brdfData;
                 InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
                 half3 color = 0.0.xxx;
 
-                //[loop] for (int li = input.relLightOffsets.x; li < input.relLightOffsets.y; ++li)
-                int li = input.relLightOffsets.x;
-                [loop] do
+                [branch] if (lightingMode == kLightingSimpleLit) // TODO use stencil to remove this branch
                 {
-                    uint relLightIndex = LoadRelLightIndex(li);
-                    PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
-
-                    float3 L = light.posWS - posWS.xyz;
-                    [branch] if (dot(L, L) < light.radius2)
+                    //[loop] for (int li = input.relLightOffsets.x; li < input.relLightOffsets.y; ++li)
+                    int li = input.relLightOffsets.x;
+                    [loop] do
                     {
-                        Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
-                        color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+                        uint relLightIndex = LoadRelLightIndex(li);
+                        PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
+
+                        float3 L = light.posWS - posWS.xyz;
+                        [branch] if (dot(L, L) < light.radius2)
+                        {
+                            Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
+
+                            half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
+                            half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
+                            half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness);
+                            // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
+                            color += diffuseColor * surfaceData.albedo + specularColor;
+                        }
                     }
+                    while(++li < input.relLightOffsets.y);
                 }
-                while(++li < input.relLightOffsets.y);
+                else
+                {
+                    //[loop] for (int li = input.relLightOffsets.x; li < input.relLightOffsets.y; ++li)
+                    int li = input.relLightOffsets.x;
+                    [loop] do
+                    {
+                        uint relLightIndex = LoadRelLightIndex(li);
+                        PunctualLightData light = LoadPunctualLightData(relLightIndex & 0xFFFF);
+
+                        float3 L = light.posWS - posWS.xyz;
+                        [branch] if (dot(L, L) < light.radius2)
+                        {
+                            Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
+                            color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+                        }
+                    }
+                    while(++li < input.relLightOffsets.y);
+                }
 
                 return half4(color, 0.0);
             }

@@ -3,6 +3,10 @@ using Unity.Collections;
 using Unity.Jobs;
 using static Unity.Mathematics.math;
 
+// TODO SimpleLit material, when smoothness is encoded into gbuffer it goes through exp2() -> log2() operations, fix that.
+// TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
+// TODO Debug PACK_NORMALS_OCT
+// TODO use InitializeSimpleLitSurfaceData() in all shader code
 // TODO remove g_deferredLights: it is currently a workaround for IJob not allowed to contains reference types (we need a reference/pointer to a DeferredTiler).
 // TODO use subpass API to hide extra TileDepthPass
 // TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)

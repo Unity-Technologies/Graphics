@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
-#define UNIVERSAL_FORWARD_LIT_PASS_INCLUDED
+#ifndef UNIVERSAL_LIT_GBUFFER_PASS_INCLUDED
+#define UNIVERSAL_LIT_GBUFFER_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
@@ -33,7 +33,7 @@ struct Varyings
     float3 viewDirWS                : TEXCOORD4;
 #endif
 
-    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
+    half3 vertexLighting            : TEXCOORD6;    // xyz: vertex lighting
 
 #ifdef _MAIN_LIGHT_SHADOWS
     float4 shadowCoord              : TEXCOORD7;
@@ -70,8 +70,8 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
-    inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
+    inputData.fogCoord = 0.0; // we don't apply fog in the guffer pass
+    inputData.vertexLighting = input.vertexLighting.xyz;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
 }
 
@@ -92,7 +92,6 @@ Varyings LitGBufferPassVertex(Attributes input)
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
@@ -108,7 +107,7 @@ Varyings LitGBufferPassVertex(Attributes input)
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
-    output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+    output.vertexLighting = vertexLight;
 
 //#ifdef _ADDITIONAL_LIGHTS
 //    output.positionWS = vertexInput.positionWS;
@@ -151,7 +150,13 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color);
+    #ifdef _SPECULAR_SETUP
+    int lightingMode = kLightingLitSpecular;
+    #else
+    int lightingMode = kLightingLitMetallic;
+    #endif
+
+    return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color, lightingMode);
 }
 
 #endif

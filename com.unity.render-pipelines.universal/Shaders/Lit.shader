@@ -177,7 +177,7 @@ Shader "Universal Render Pipeline/Lit"
             // Material Keywords
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            //#pragma shader_feature _ALPHAPREMULTIPLY_ON
             #pragma shader_feature _EMISSION
             #pragma shader_feature _METALLICSPECGLOSSMAP
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -209,8 +209,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma fragment LitGBufferPassFragment
             //#pragma enable_d3d11_debug_symbols
 
-            #include "LitInput.hlsl"
-            #include "LitGBufferPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"
             ENDHLSL
         }
         

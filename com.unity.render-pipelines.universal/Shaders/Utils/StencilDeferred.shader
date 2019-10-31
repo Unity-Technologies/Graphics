@@ -83,8 +83,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        half3 color = 0.0.xxx;
-
         float d = _DepthTex.Load(int3(input.positionCS.xy, 0)).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = _GBuffer0.Load(int3(input.positionCS.xy, 0));
         half4 gbuffer1 = _GBuffer1.Load(int3(input.positionCS.xy, 0));
@@ -93,7 +91,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
         posWS.xyz *= 1.0 / posWS.w;
 
-        SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+        int lightingMode;
+        SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, lightingMode);
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         BRDFData brdfData;
         InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
@@ -116,7 +115,17 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
         #endif
 
-        color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+        half3 color;
+        [branch] if (lightingMode == kLightingSimpleLit)
+        {
+            half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
+            half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
+            half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness);
+            // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
+            color = diffuseColor * surfaceData.albedo + specularColor;
+        }
+        else
+            color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
 
     #if 0 // Temporary debug output
         // TO CHECK (does Forward support works??):
