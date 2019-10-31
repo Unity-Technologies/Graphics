@@ -1,4 +1,6 @@
 editors:
+  - version: lighting/lighting-settings-asset-take2
+    cmd: -u lighting/lighting-settings-asset-take2
   - version: trunk
     cmd: -u trunk
   - version: fast-trunk
