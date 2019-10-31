@@ -38,8 +38,13 @@ Shadow maps are essentially textures projected from the point of view of the Lig
 In HDRP, each individual Light component controls its own shadow biasing using the following parameters:
 
 - **Near Plane**
-- **Slope-Scale Depth Bias**
+- **ShadowMask Mode**
+- **View Bias Scale**
+- **View Bias**
 - **Normal Bias**
+- **Edge Leak Fixup**
+- **Edge Tolerance Normal**
+- **Edge Tolerance**
 
 Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.html) cog to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.html).
 

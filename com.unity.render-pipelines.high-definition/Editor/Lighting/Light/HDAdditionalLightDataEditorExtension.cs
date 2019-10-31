@@ -50,22 +50,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // We only load the mesh and it's material here, because we can't do that inside HDAdditionalLightData (Editor assembly)
             // Every other properties of the mesh is updated in HDAdditionalLightData to support timeline and editor records
-            if (hdLight.type == HDLightType.Area)
+            switch (hdLight.lightTypeExtent)
             {
-                switch (hdLight.areaLightShape)
-                {
-                    case AreaLightShape.Tube:
-                        hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
-                        break;
-                    case AreaLightShape.Rectangle:
-                    default:
-                        hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
-                        break;
-                }
-            }
-            else // [TODO: check if we need this for non area lights as it was done]
-            {
-                hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
+                case LightTypeExtent.Tube:
+                    hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
+                    break;
+                case LightTypeExtent.Rectangle:
+                default:
+                    hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
+                    break;
             }
             if (hdLight.emissiveMeshRenderer.sharedMaterial == null)
             {

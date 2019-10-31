@@ -98,28 +98,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupStencil(Material material, bool receivesSSR, bool useSplitLighting)
         {
-            ComputeStencilProperties(receivesSSR, useSplitLighting, out int stencilRef, out int stencilWriteMask,
-                out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
-                out int stencilRefMV, out int stencilWriteMaskMV
-            );
-
-            // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
-            material.SetInt(kStencilRef, stencilRef);
-            material.SetInt(kStencilWriteMask, stencilWriteMask);
-            material.SetInt(kStencilRefDepth, stencilRefDepth);
-            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
-            material.SetInt(kStencilRefGBuffer, stencilRefGBuffer);
-            material.SetInt(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
-            material.SetInt(kStencilRefMV, stencilRefMV);
-            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
-            material.SetInt(kStencilRefDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
-            material.SetInt(kStencilWriteMaskDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
-        }
-
-        static public void ComputeStencilProperties(bool receivesSSR, bool useSplitLighting, out int stencilRef, out int stencilWriteMask,
-            out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
-            out int stencilRefMV, out int stencilWriteMaskMV)
-        {
             // Stencil usage rules:
             // DoesntReceiveSSR and DecalsForwardOutputNormalBuffer need to be tagged during depth prepass
             // LightingMask need to be tagged during either GBuffer or Forward pass
@@ -134,14 +112,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // GBuffer: LightingMask, DecalsForwardOutputNormalBuffer, ObjectVelocity
             // Forward: LightingMask
 
-            stencilRef = (int)StencilLightingUsage.RegularLighting; // Forward case
-            stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            stencilRefDepth = 0;
-            stencilWriteMaskDepth = 0;
-            stencilRefGBuffer = (int)StencilLightingUsage.RegularLighting;
-            stencilWriteMaskGBuffer = (int)HDRenderPipeline.StencilBitMask.LightingMask;
-            stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors;
-            stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors;
+            int stencilRef = (int)StencilLightingUsage.RegularLighting; // Forward case
+            int stencilWriteMask = (int)HDRenderPipeline.StencilBitMask.LightingMask;
+            int stencilRefDepth = 0;
+            int stencilWriteMaskDepth = 0;
+            int stencilRefGBuffer = (int)StencilLightingUsage.RegularLighting;
+            int stencilWriteMaskGBuffer = (int)HDRenderPipeline.StencilBitMask.LightingMask;
+            int stencilRefMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors;
+            int stencilWriteMaskMV = (int)HDRenderPipeline.StencilBitMask.ObjectMotionVectors;
 
             if (useSplitLighting)
             {
@@ -158,6 +136,18 @@ namespace UnityEditor.Rendering.HighDefinition
             stencilWriteMaskDepth |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
             stencilWriteMaskGBuffer |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
             stencilWriteMaskMV |= (int)HDRenderPipeline.StencilBitMask.DoesntReceiveSSR | (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer;
+
+            // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
+            material.SetInt(kStencilRef, stencilRef);
+            material.SetInt(kStencilWriteMask, stencilWriteMask);
+            material.SetInt(kStencilRefDepth, stencilRefDepth);
+            material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
+            material.SetInt(kStencilRefGBuffer, stencilRefGBuffer);
+            material.SetInt(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
+            material.SetInt(kStencilRefMV, stencilRefMV);
+            material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
+            material.SetInt(kStencilRefDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
+            material.SetInt(kStencilWriteMaskDistortionVec, (int)HDRenderPipeline.StencilBitMask.DistortionVectors);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.proxyVolume.objectReferenceValue != null)
                 {
                     var proxy = (ReflectionProxyVolumeComponent)serialized.proxyVolume.objectReferenceValue;
-                    if (proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
+                    if ((int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
                         && proxy.proxyVolume.shape != ProxyShape.Infinite)
                         EditorGUILayout.HelpBox(
                             k_ProxyInfluenceShapeMismatchHelpBoxText,
@@ -427,7 +427,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var proxy = serialized.proxyVolume.objectReferenceValue as ReflectionProxyVolumeComponent;
             if (proxy != null
-                && proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
+                && (int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
                 && proxy.proxyVolume.shape != ProxyShape.Infinite)
             {
                 EditorGUILayout.HelpBox(

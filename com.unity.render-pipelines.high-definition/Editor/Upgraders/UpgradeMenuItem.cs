@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             kZWrite, "_CullMode", "_CullModeForward", kTransparentCullMode,
             kZTestDepthEqualForOpaque,
             kAlphaCutoffEnabled,
-            kTransparentSortPriority, "_UseShadowThreshold",
+            "_TransparentSortPriority", "_UseShadowThreshold",
             kDoubleSidedEnable, kDoubleSidedNormalMode,
             kTransparentBackfaceEnable, kReceivesSSR, kUseSplitLighting
         };

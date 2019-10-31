@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 #if !ENABLE_BAKED_PLANAR
             // Switch to realtime mode as other modes are not supported.
-            probeSettings.mode.SetEnumValue(ProbeSettings.Mode.Realtime);
+            probeSettings.mode.enumValueIndex = (int)ProbeSettings.Mode.Realtime;
 #endif
 
             serializedObject.ApplyModifiedProperties();

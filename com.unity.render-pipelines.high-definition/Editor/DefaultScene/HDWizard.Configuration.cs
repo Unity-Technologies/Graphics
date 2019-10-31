@@ -263,9 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            hdAsset.enableSRPBatcher = true;
-            EditorUtility.SetDirty(hdAsset);
+            HDRenderPipeline.currentAsset.enableSRPBatcher = true;
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
@@ -273,6 +271,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var profileList = HDRenderPipeline.defaultAsset?.diffusionProfileSettingsList;
             return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
+
         void FixHdrpAssetDiffusionProfile()
         {
             if (!IsHdrpAssetUsedCorrect())
@@ -280,7 +279,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var hdAsset = HDRenderPipeline.currentAsset;
             hdAsset.diffusionProfileSettingsList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
-            EditorUtility.SetDirty(hdAsset);
         }
 
         bool IsDefaultSceneCorrect()
@@ -308,7 +306,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var hdAsset = HDRenderPipeline.currentAsset;
             EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdAsset);
-            EditorUtility.SetDirty(hdAsset);
         }
 
         #endregion
