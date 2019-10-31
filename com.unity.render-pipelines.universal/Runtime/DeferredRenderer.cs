@@ -232,7 +232,10 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
             }
 
+            // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
+            m_RenderTransparentForwardPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
             EnqueuePass(m_RenderTransparentForwardPass);
+
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
             bool afterRenderExists = renderingData.cameraData.captureActions != null ||
