@@ -94,6 +94,8 @@ TEXTURE2D(BUILDIN_unity_Lightmap);
 SAMPLER(BUILDIN_samplerunity_Lightmap);
 TEXTURECUBE(BUILDIN_unity_SpecCube0);
 SAMPLER(BUILDIN_samplerunity_SpecCube0);
+// Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
+TEXTURE2D(unity_LightmapInd);
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesURPBuildinVarsImpl.hlsl"
 

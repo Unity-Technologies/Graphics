@@ -95,8 +95,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                     viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
 
-                    // XRTODO: remove cmd.SetViewProjectionMatrices
-                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                    if (renderingData.cameraData.isPureURPCamera)
+                    {
+                        Matrix4x4 projMatrix;
+                        projMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, true);
+                        Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                        Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+                    }
+                    else
+                    {
+                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                    }
                     context.ExecuteCommandBuffer(cmd);
                 }
 
@@ -109,8 +125,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         camera.nearClipPlane, camera.farClipPlane);
 
                     cmd.Clear();
-                    // XRTODO: remove cmd.SetViewProjectionMatrices
-                    cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
+                    if (renderingData.cameraData.isPureURPCamera)
+                    {
+                       // Pure Mode Does not require reset
+                    }
+                    else
+                    {
+                        cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
+                    }
                 }
             }
             context.ExecuteCommandBuffer(cmd);
