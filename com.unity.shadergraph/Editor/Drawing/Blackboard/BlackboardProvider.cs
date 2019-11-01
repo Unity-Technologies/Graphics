@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_JsonStore = jsonStore;
             m_Graph = jsonStore.First<GraphData>();
-            m_Version = m_JsonStore.GetVersion(m_Graph);
+            m_Version = m_Graph.changeVersion;
             m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
             blackboard = new Blackboard()
@@ -263,7 +263,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-            if (m_Version != m_JsonStore.GetVersion(m_Graph))
+            if (m_Version != m_Graph.changeVersion)
             {
                 var removedInputRows = ListPool<KeyValuePair<ShaderInput, BlackboardRow>>.Get();
                 foreach (var kvp in m_InputRows)
@@ -307,7 +307,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var keyword in m_Graph.keywords)
                     m_KeywordSection.Add(m_InputRows[keyword]);
 
-                m_Version = m_JsonStore.GetVersion(m_Graph);
+                m_Version = m_Graph.changeVersion;
             }
 
             foreach (var expandedInput in expandedInputs)

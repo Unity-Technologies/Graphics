@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.jsonStore = jsonStore;
 
             m_Graph = jsonStore.First<GraphData>();
-            m_Version = jsonStore.GetVersion(m_Graph);
+            m_Version = m_Graph.changeVersion;
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(jsonStore, messageManager);
@@ -542,7 +542,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 
-            if (m_Version != jsonStore.GetVersion(m_Graph))
+            if (m_Version != m_Graph.changeVersion)
             {
                 {
                     var graphElements = ListPool<GraphElement>.Get();
@@ -604,7 +604,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (!graphElements.Any(graphElement => graphElement is IShaderNodeView nodeView && nodeView.node == node))
                         {
-                            Debug.Log($"Adding node {node.name}");
                             AddNode(node);
                         }
                     }
@@ -617,6 +616,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 {
                     var graphElements = ListPool<GraphElement>.Get();
+                    m_GraphView.graphElements.ToList(graphElements);
 
                     foreach (var graphElement in graphElements)
                     {
@@ -731,7 +731,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                m_Version = jsonStore.GetVersion(m_Graph);
+                m_Version = m_Graph.changeVersion;
             }
 
             UpdateBadges();

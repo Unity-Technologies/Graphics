@@ -33,6 +33,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 throw new InvalidOperationException("JsonRef can only be deserialized in the context of a JsonStore.");
             }
+
             return context.m_JsonStore.Get(reference);
         }
 

@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.Serialization
     [Serializable]
     class ClassA
     {
-        public JsonTestRef<ClassB> classB;
+        public Texture texture;
     }
 
     abstract class BaseClass
@@ -32,8 +32,6 @@ namespace UnityEditor.ShaderGraph.Serialization
         [MenuItem("JSON/Test")]
         static void Run()
         {
-            Debug.Log(EditorJsonUtility.ToJson(new List<JsonTestRef<ClassB>>{new JsonTestRef<ClassB> { value = "hello" }}));
-
 //            var json = EditorJsonUtility.ToJson(new ClassA { classB = new JsonRef<ClassB>("123") });
 //            Debug.Log(json);
 //            var obj = new ClassA();

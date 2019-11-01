@@ -93,10 +93,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     m_GraphData = m_JsonStore.First<GraphData>();
-                    Debug.Log($"m_GraphData == null: {m_GraphData == null}");
                     m_GraphData.owner = m_JsonStore;
                     m_JsonStore.root = m_GraphData;
-                    Debug.Log($"m_JsonStore == null: {m_GraphData == null}");
                 }
             }
         }

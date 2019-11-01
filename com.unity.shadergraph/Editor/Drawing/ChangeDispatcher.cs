@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            var currentObjectVersion = m_JsonStore.GetVersion(callback.jsonObject);
+            var currentObjectVersion = callback.jsonObject.changeVersion;
             if (currentObjectVersion == callback.version)
             {
                 return;

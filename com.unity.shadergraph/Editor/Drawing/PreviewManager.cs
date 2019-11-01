@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -42,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_JsonStore = jsonStore;
             m_Graph = jsonStore.First<GraphData>();
-            m_Version = jsonStore.GetVersion(m_Graph);
+            m_Version = m_Graph.changeVersion;
             m_Messenger = messenger;
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_SceneResources = new PreviewSceneResources();
@@ -238,19 +239,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool HandleGraphChanges()
         {
-            if (m_Version != m_JsonStore.GetVersion(m_Graph))
+            if (m_Version != m_Graph.changeVersion)
             {
                 if (m_Graph.outputNode != masterRenderData.shaderData.node)
                 {
                     DestroyPreview(masterRenderData.shaderData.node);
                 }
 
-                // TODO: Pool these or get around it somehow
                 var nodes = new HashSet<AbstractMaterialNode>(m_Graph.GetNodes<AbstractMaterialNode>());
                 var removedNodes = new List<AbstractMaterialNode>();
                 foreach (var renderData in m_RenderDatas)
                 {
-                    if (!removedNodes.Contains(renderData.Key))
+                    if (!nodes.Contains(renderData.Key))
                     {
                         removedNodes.Add(renderData.Key);
                     }
@@ -285,7 +285,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                m_Version = m_JsonStore.GetVersion(m_Graph);
+                m_Version = m_Graph.changeVersion;
             }
 
             return m_NodesToUpdate.Count > 0;
@@ -304,11 +304,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var propNode in m_PropertyNodes)
             {
-                if (propNode.owner == null)
-                {
-                    // TODO: wat
-                    continue;
-                }
                 propNode.CollectPreviewMaterialProperties(m_PreviewProperties);
             }
 
@@ -437,7 +432,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (renderData != null && renderData.shaderData.isCompiling)
                 {
                     var isCompiled = true;
-                    for (var i = 0; i < renderData.shaderData.mat.passCount; i++)
+                    for (var i = 0; i < renderData.shaderData.passCount; i++)
                     {
                         if (!ShaderUtil.IsPassCompiled(renderData.shaderData.mat, i))
                         {
@@ -466,8 +461,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             PropagateNodeList(m_NodesToUpdate, PropagationDirection.Downstream);
             // Reset error states for the UI, the shader, and all render data for nodes we're updating
             m_Messenger.ClearNodesFromProvider(this, m_NodesToUpdate);
-            var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = true;
 
             foreach (var node in m_NodesToUpdate)
             {
@@ -502,21 +495,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.previewMode = results.previewMode;
             }
 
-            ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
             m_NodesToUpdate.Clear();
         }
 
         void BeginCompile(PreviewRenderData renderData, string shaderStr)
         {
+            var previousAsync = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = true;
             var shaderData = renderData.shaderData;
             ShaderUtil.ClearCachedData(shaderData.shader);
             ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
-            for (var i = 0; i < shaderData.mat.passCount; i++)
+            shaderData.passCount = shaderData.mat.passCount;
+            for (var i = 0; i < shaderData.passCount; i++)
             {
                 ShaderUtil.CompilePass(shaderData.mat, i);
             }
             shaderData.isCompiling = true;
             renderData.NotifyPreviewChanged();
+            ShaderUtil.allowAsyncCompilation = previousAsync;
         }
 
         void UpdateTimedNodeList()
@@ -556,10 +552,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SceneResources.camera.targetTexture = temp;
             Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, null, ShadowCastingMode.Off, false, null, false);
 
+            var previousAsync = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = true;
             var previousUseSRP = Unsupported.useScriptableRenderPipeline;
             Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
             m_SceneResources.camera.Render();
             Unsupported.useScriptableRenderPipeline = previousUseSRP;
+            ShaderUtil.allowAsyncCompilation = previousAsync;
 
             Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
             RenderTexture.ReleaseTemporary(temp);
@@ -733,6 +732,7 @@ Shader ""hidden/preview""
         public Material mat { get; set; }
         public string shaderString { get; set; }
         public bool isCompiling { get; set; }
+        public int passCount { get; set; }
         public bool hasError { get; set; }
     }
 

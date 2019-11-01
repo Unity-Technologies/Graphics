@@ -527,6 +527,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OnModified(ModificationScope scope)
         {
+            MarkDirtyRepaint();
             UpdateTitle();
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);

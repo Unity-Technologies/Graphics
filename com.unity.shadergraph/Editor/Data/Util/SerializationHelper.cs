@@ -43,7 +43,10 @@ namespace UnityEditor.Graphing
         {
             foreach (var element in elements)
             {
-                var type = JsonStore.typeMap[element.typeInfo.fullName];
+                if (!JsonStore.typeMap.TryGetValue(element.typeInfo.fullName, out var type))
+                {
+                    throw new InvalidOperationException($"Cannot find type {element.typeInfo.fullName}");
+                }
                 var instance = (T)Activator.CreateInstance(type);
                 DeserializationContext.Enqueue(instance, element.JSONnodeData);
                 output.Add(instance);

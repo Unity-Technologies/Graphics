@@ -38,7 +38,12 @@ namespace UnityEditor.ShaderGraph.Serialization
                 Capacity = m_Refs.Count;
                 foreach (var id in m_Refs)
                 {
-                    Add((T)DeserializationContext.ResolveReference(id));
+                    var jsonObject = (T)DeserializationContext.ResolveReference(id);
+                    if (jsonObject == null)
+                    {
+                        throw new NullReferenceException($"Could not find {typeof(T).FullName} with id {id}.");
+                    }
+                    Add(jsonObject);
                 }
 
                 m_Refs = null;

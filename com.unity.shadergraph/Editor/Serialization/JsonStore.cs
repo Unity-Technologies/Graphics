@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -74,11 +75,6 @@ namespace UnityEditor.ShaderGraph.Serialization
             return null;
         }
 
-        public int GetVersion(JsonObject jsonObject)
-        {
-            return jsonObject.changeVersion;
-        }
-
         List<(SerializedJsonObject, JsonObject)> SerializeObjects(JsonObject root, bool prettyPrint)
         {
             if (root == null)
@@ -90,6 +86,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             using (var context = SerializationContext.Begin(this))
             {
+                objectMap.Clear();
                 var queue = context.queue;
                 queue.Enqueue(root);
                 context.visited.Add(root);
@@ -100,6 +97,8 @@ namespace UnityEditor.ShaderGraph.Serialization
                     {
                         continue;
                     }
+
+                    objectMap.Add(item.jsonId, item);
                     serializeObjects.Add((new SerializedJsonObject
                     {
                         type = item.GetType().FullName,
@@ -214,7 +213,10 @@ namespace UnityEditor.ShaderGraph.Serialization
             return jsonStore;
         }
 
-        public void OnBeforeSerialize() { }
+        public void OnBeforeSerialize()
+        {
+//            Freeze();
+        }
 
         public void Freeze()
         {
@@ -319,12 +321,15 @@ namespace UnityEditor.ShaderGraph.Serialization
                     var items = context.queue;
                     var currentVersion = version;
 
+                    var activeObjects = new List<JsonObject>();
+
                     for (var index = 0; index < m_SerializedObjects.Count; index++)
                     {
                         var serializedObject = m_SerializedObjects[index];
                         var obj = Get(serializedObject.id);
                         if (obj != null)
                         {
+                            activeObjects.Add(obj);
                             if (obj.changeVersion != serializedObject.version)
                             {
                                 version = currentVersion + 1;
@@ -341,14 +346,19 @@ namespace UnityEditor.ShaderGraph.Serialization
                             if (!typeMap.ContainsKey(serializedObject.type))
                             {
                                 throw new InvalidOperationException($"Invalid type {serializedObject.type}");
-
                             }
                             var type = typeMap[serializedObject.type];
                             var instance = (JsonObject)Activator.CreateInstance(type);
                             instance.jsonId = serializedObject.id;
-                            objectMap.Add(serializedObject.id, instance);
                             items.Add((instance, serializedObject.json));
+                            activeObjects.Add(instance);
                         }
+                    }
+
+                    objectMap.Clear();
+                    foreach (var activeObject in activeObjects)
+                    {
+                        objectMap[activeObject.jsonId] = activeObject;
                     }
 
                     // Must be a for-loop because the list might be modified during traversal.
@@ -361,6 +371,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                         }
                         instance.OnDeserialized(json);
                         instance.changeVersion = version;
+                        objectMap[instance.jsonId] = instance;
                     }
 
                     foreach (var (instance, json) in items)
@@ -369,7 +380,6 @@ namespace UnityEditor.ShaderGraph.Serialization
                     }
                 }
 
-//                metadataList.RemoveAll(m => !objectMap.ContainsKey(m.id));
                 m_SerializedVersion = version;
                 m_MightHaveChanges = false;
                 m_ShouldReheat = false;
@@ -381,10 +391,6 @@ namespace UnityEditor.ShaderGraph.Serialization
             Freeze();
             Undo.RegisterCompleteObjectUndo(this, actionName);
             m_MightHaveChanges = true;
-
-//            m_SerializedVersion++;
-//            version++;
-//            m_IsDirty = true;
         }
 
         public void CheckForChanges()

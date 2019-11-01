@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed class GraphData : JsonObject
+    sealed class GraphData : JsonObject, ISerializationCallbackReceiver
     {
         JsonStore m_Owner;
 
@@ -701,6 +701,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public void OnKeywordChanged()
+        
         {
             OnKeywordChangedNoValidate();
             ValidateGraph();
@@ -1067,7 +1068,6 @@ namespace UnityEditor.ShaderGraph
             foreach (var node in nodes)
             {
                 node.owner = this;
-                node.UpdateNodeAfterDeserialization();
                 m_NodeEdges[node] = new List<Edge>();
                 m_GroupItems[node.group ?? m_NullGroup].Add(node);
                 foreach (var slot in node.InternalGetSlots())
@@ -1088,19 +1088,12 @@ namespace UnityEditor.ShaderGraph
                     ?? GetNodes<SubGraphOutputNode>().FirstOrDefault();
             }
 
-//            List<Edge> removedEdges = null;
-            ValidateGraph();
             foreach (var edge in m_Edges)
             {
-//                if (edge.inputSlot.owner == null || edge.outputSlot.owner == null)
-//                {
-//                    if (removedEdges == null)
-//                    {
-//                        removedEdges = new List<Edge>();
-//                    }
-//                }
                 AddEdgeToNodeEdges(edge);
             }
+
+            ValidateGraph();
         }
 
         public void OnEnable()
@@ -1116,6 +1109,14 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
         }
     }
 

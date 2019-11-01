@@ -42,6 +42,10 @@ namespace UnityEditor.ShaderGraph.Serialization
             if (!string.IsNullOrEmpty(m_Ref) && target == null)
             {
                 m_Target = (T)DeserializationContext.ResolveReference(m_Ref);
+                if (m_Target == null)
+                {
+                    throw new NullReferenceException($"Could not find {typeof(T).FullName} with id {m_Ref}.");
+                }
                 m_Ref = null;
             }
         }
