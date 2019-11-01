@@ -650,7 +650,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                     float3(0.5, 1.5, 1.5) * probeWeightTNW +
                                     float3(1.5, 1.5, 1.5) * probeWeightTNE;
 
-                                probeVolumeTexel3D = floor(probeVolumeTexel3D - 0.5) + probeVolumeTexel3DFrac;
+#if DEBUG_DISPLAY
+                                // If we are visualizing validity data, we do not want to apply our bilateral filter texture coordinate modification
+                                // because ideally, our filter will avoid sampling from invalid data - making this debug mode useless.
+                                if (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
+#endif
+                                {
+                                    probeVolumeTexel3D = floor(probeVolumeTexel3D - 0.5) + probeVolumeTexel3DFrac;
+                                }
                             }
 
                             float2 probeVolumeTexel2DBack = float2(
@@ -672,14 +679,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                             if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
                             {
                                 float validity = lerp(
-                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  3, 0),
-                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 3, 0),
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DBack,  3, 0).x,
+                                    SAMPLE_TEXTURE2D_ARRAY_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, probeVolumeAtlasUV2DFront, 3, 0).x,
                                     lerpZ
                                 );
 
-                                sampleShAr = float4(validity, 0, 0, 0);
-                                sampleShAg = float4(0, 0, 0, 0);
-                                sampleShAb = float4(0, 0, 0, 0);
+                                // Pack validity into SH data so that we can access it later for our debug mode.
+                                sampleShAr = float4(validity, 0.0, 0.0, 0.0);
+                                sampleShAg = 0.0;
+                                sampleShAb = 0.0;
                             }
                             else
 #endif
@@ -712,10 +720,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     }
                     else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
                     {
-                        if (sampleShAr.x > 0.75)
-                            probeVolumeDiffuseLighting += float3(0, 0, 0);
-                        else
-                            probeVolumeDiffuseLighting += float3(1, 0, 1);
+                        float validity = sampleShAr.x;
+                        probeVolumeDiffuseLighting += lerp(float3(1, 0, 0), float3(0, 1, 0), validity) * weight;
                     }
                     else
 #endif

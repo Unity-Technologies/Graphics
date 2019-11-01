@@ -10,7 +10,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
         float4  _TextureScaleBias;
         float2  _ValidRange;
-        int _AtlasTextureSliceIndex;
+        int _ProbeVolumeAtlasSliceMode;
         // float   _RcpGlobalScaleFactor;
         SamplerState ltc_linear_clamp_sampler;
         TEXTURE2D_ARRAY(_AtlasTextureSH);
@@ -53,11 +53,43 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float4 valueShAr = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, _AtlasTextureSliceIndex, 0) - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAg = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, _AtlasTextureSliceIndex, 0) - _ValidRange.x) * _ValidRange.y);
-                float4 valueShAb = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, _AtlasTextureSliceIndex, 0) - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAr = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 0, 0) - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAg = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 1, 0) - _ValidRange.x) * _ValidRange.y);
+                float4 valueShAb = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 2, 0) - _ValidRange.x) * _ValidRange.y);
+                float valueValidity = saturate((SAMPLE_TEXTURE2D_ARRAY_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, input.texcoord, 3, 0).x - _ValidRange.x) * _ValidRange.y);
 
-                return float4(valueShAr.x, valueShAg.x, valueShAb.x, 1);
+
+                switch (_ProbeVolumeAtlasSliceMode)
+                {
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH00:
+                    {
+
+                        return float4(valueShAr.x, valueShAg.x, valueShAb.x, 1);
+                    }
+
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH1_1:
+                    {
+                        return float4(valueShAr.y, valueShAg.y, valueShAb.y, 1);
+                    }
+
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH10:
+                    {
+                        return float4(valueShAr.z, valueShAg.z, valueShAb.z, 1);
+                    }
+
+                    case PROBEVOLUMEATLASSLICEMODE_IRRADIANCESH11:
+                    {
+                        return float4(valueShAr.w, valueShAg.w, valueShAb.w, 1);
+                    }
+
+                    case PROBEVOLUMEATLASSLICEMODE_VALIDITY:
+                    {
+                        return float4(valueValidity, valueValidity, valueValidity, 1);
+                    }
+
+                    default: return float4(0.0, 0.0, 0.0, 1.0);
+                }
+
             }
 
             ENDHLSL

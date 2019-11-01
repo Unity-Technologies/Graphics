@@ -98,6 +98,16 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeValidity,
     }
 
+    [GenerateHLSL]
+    public enum ProbeVolumeAtlasSliceMode
+    {
+        IrradianceSH00,
+        IrradianceSH1_1,
+        IrradianceSH10,
+        IrradianceSH11,
+        Validity
+    }
+
     [Serializable]
     public class LightingDebugSettings
     {
@@ -124,9 +134,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public DebugLightingMode    debugLightingMode = DebugLightingMode.None;
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         public ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
+        public ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
         public float                probeVolumeMinValue = 0.0f;
         public float                probeVolumeMaxValue = 1.0f;
-        public int                  probeVolumeAtlasSliceIndex = 0;
         public bool                 shadowDebugUseSelection = false;
         public uint                 shadowMapIndex = 0;
         public uint                 shadowAtlasIndex = 0;

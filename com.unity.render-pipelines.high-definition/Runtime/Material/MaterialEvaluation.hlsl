@@ -82,7 +82,7 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
     aoFactor.indirectSpecularOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, indirectSpecularOcclusion));
     aoFactor.indirectAmbientOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(ambientOcclusionFromData, indirectAmbientOcclusion));
     aoFactor.directSpecularOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directSpecularOcclusion);
-    aoFactor.directAmbientOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);    
+    aoFactor.directAmbientOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 }
 
 // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
@@ -185,6 +185,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         switch (_DebugProbeVolumeMode)
         {
         case PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS:
+        case PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY:
             diffuseLighting = builtinData.bakeDiffuseLighting;
             specularLighting = float3(0.0, 0.0, 0.0);
             break;

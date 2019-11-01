@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (uint)logVolume << 12 | ((uint)probeVolumeIndex & PROBE_VOLUME_MASK);
         }
 
-        public void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, int sliceIndex)
+        public void DisplayProbeVolumeAtlas(CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, int sliceMode)
         {
             if (!m_SupportProbeVolume) { return; }
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
@@ -528,7 +528,7 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyBlock.SetTexture("_AtlasTextureSH", m_ProbeVolumeAtlasSHRTHandle.rt);
             propertyBlock.SetVector("_TextureScaleBias", scaleBias);
             propertyBlock.SetVector("_ValidRange", validRange);
-            propertyBlock.SetInt("_AtlasTextureSliceIndex", sliceIndex);
+            propertyBlock.SetInt("_ProbeVolumeAtlasSliceMode", sliceMode);
             cmd.SetViewport(new Rect(screenX, screenY, screenSizeX, screenSizeY));
             cmd.DrawProcedural(Matrix4x4.identity, debugMaterial, debugMaterial.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
         }
