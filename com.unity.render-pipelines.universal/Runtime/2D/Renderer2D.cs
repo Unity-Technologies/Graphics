@@ -70,8 +70,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cameraTargetDescriptor.height = ppcOffscreenRTSize.y;
             }
 
-            //cameraTargetDescriptor.width *= 2;
-            //cameraTargetDescriptor.height *= 2;
 
             if (useOffscreenColorTexture)
             {

@@ -109,13 +109,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var upperBound = (i == s_SortingLayers.Length - 1) ? short.MaxValue : layerValue;
                 filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
 
-                
-
                 Light2D.LightStats lightStats;
                 lightStats = Light2D.GetLightStatsByLayer(layerToRender);
 
-                //if (lightStats.totalNormalMapUsage > 0)
-                //    RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings);
+                if (lightStats.totalNormalMapUsage > 0)
+                    RendererLighting.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings);
 
                 cmd.Clear();
                 if (lightStats.totalLights > 0)
