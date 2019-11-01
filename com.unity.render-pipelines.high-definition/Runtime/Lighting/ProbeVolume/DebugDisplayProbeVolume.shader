@@ -84,7 +84,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
                     case PROBEVOLUMEATLASSLICEMODE_VALIDITY:
                     {
-                        return float4(valueValidity, valueValidity, valueValidity, 1);
+                        return float4(lerp(float3(1, 0, 0), float3(0, 1, 0), valueValidity), 1);
                     }
 
                     default: return float4(0.0, 0.0, 0.0, 1.0);
