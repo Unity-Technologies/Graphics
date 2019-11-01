@@ -168,6 +168,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2008_Light_Volumetrics.unity
     guid: 292a7700209ba7c49ab0bcef8b7c8940
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2009_MultipleSkies.unity
+    guid: bdc9e712cf2e77a49a64859ccb7ba8d7
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2101_GI_Metapass.unity
     guid: 8747b43f8bcf2b44cbc3ece373da65a9
   - enabled: 1
@@ -491,7 +494,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9604_MeshRendererBatching-On.unity
     guid: 0dcef9d74b6e30247bf7390c1da4abe5
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
   m_configObjects: {}

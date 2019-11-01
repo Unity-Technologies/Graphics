@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The sphere used for positioning particles.")]
+            [Tooltip("Sets the sphere used for positioning the particles.")]
             public ArcSphere ArcSphere = ArcSphere.defaultValue;
         }
 

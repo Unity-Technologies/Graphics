@@ -201,6 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 boxSideFadeNegative;
         public float weight;
         public float multiplier;
+        public float rangeCompressionFactorCompensation;
 
         // Sampling properties
         public int envIndex;

@@ -76,15 +76,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             unchecked
             {
+                // UpdateMode and period should not be part of the hash as they do not influence rendering itself.
                 int hash = 13;
                 hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
                 hash = hash * 23 + desiredLuxValue.GetHashCode();
-                hash = hash * 23 + updateMode.value.GetHashCode();
                 hash = hash * 23 + skyIntensityMode.value.GetHashCode();
-                hash = hash * 23 + updatePeriod.GetHashCode();
                 hash = hash * 23 + includeSunInBaking.GetHashCode();
+
                 return hash;
             }
         }
@@ -104,10 +104,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 uniqueID = (uniqueIDs.Length == 0) ? -1 : ((SkyUniqueID)uniqueIDs[0]).uniqueID;
                 skyUniqueIDs[type] = uniqueID;
             }
-            
+
             return uniqueID;
         }
 
-        public abstract SkyRenderer CreateRenderer();
+        public abstract Type GetSkyRendererType();
     }
 }
