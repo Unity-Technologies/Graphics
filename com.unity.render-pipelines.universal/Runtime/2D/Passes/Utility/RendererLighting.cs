@@ -90,10 +90,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+                //if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
+                //    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
+                //else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
+                //    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
 
                 s_HasSetupRenderTextureFormatToUse = true;
             }
