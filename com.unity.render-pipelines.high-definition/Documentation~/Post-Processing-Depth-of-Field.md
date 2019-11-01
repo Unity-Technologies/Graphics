@@ -9,7 +9,7 @@ The Depth Of Field component applies a depth of field effect, which simulates th
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Depth Of Field**. HDRP now applies **Depth Of Field** to any Camera this Volume affects.
 
-Depth Of Field includes some [advanced properties](Advanced-Properties.html) that you must manually expose.
+Depth Of Field includes [more options](More-Options.html) that you must manually expose.
 
 
 ## Properties
@@ -43,8 +43,8 @@ Depth Of Field includes some [advanced properties](Advanced-Properties.html) tha
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
-| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the depth of field effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br />This property only appears when you enable the [advanced properties](Advanced-Properties.html). |
-| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Depth Of Field effect, but results in smoother visuals.<br />This property only appears when you enable the [advanced properties](Advanced-Properties.html). |
+| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the depth of field effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br />This property only appears when you enable [more options](More-Options.html). |
+| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Depth Of Field effect, but results in smoother visuals.<br />This property only appears when you enable [more options](More-Options.html). |
 
 <a name="PhysicalCameraSettings"></a>
 

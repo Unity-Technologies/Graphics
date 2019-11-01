@@ -2,10 +2,11 @@
   "dependencies": {
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
+	"com.unity.render-pipelines.high-definition-config": "file:../LocalPackages/com.unity.render-pipelines.high-definition-config",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
-    "com.unity.test-framework": "1.0.13",
+    "com.unity.test-framework": "1.1.1",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
+    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",

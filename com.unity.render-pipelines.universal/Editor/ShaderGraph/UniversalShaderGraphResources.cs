@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +16,10 @@ namespace UnityEditor.Rendering.Universal
         public static string s_ResourceClassName => typeof(UniversalShaderGraphResources).FullName;
 
         public static string s_AssemblyName => typeof(UniversalShaderGraphResources).Assembly.FullName.ToString();
-        
+
+        struct UInt32_4
+        { }
+
         internal struct Attributes
         {
             [Semantic("POSITION")]
@@ -35,6 +38,10 @@ namespace UnityEditor.Rendering.Universal
             Vector4 uv3;
             [Semantic("COLOR")][Optional]
             Vector4 color;
+            [Semantic("BLENDWEIGHTS")][Optional]
+            Vector4 weights;
+            [Semantic("BLENDINDICES")][Optional]
+            UInt32_4 indices;
             [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")]
             uint instanceID;
         };
@@ -115,6 +122,8 @@ namespace UnityEditor.Rendering.Universal
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
             [Optional] Vector3 TimeParameters;
+            [Optional] Vector4 BoneWeights;
+            [Optional] UInt32_4 BoneIndices;
         };
         
         internal struct SurfaceDescriptionInputs
@@ -207,6 +216,8 @@ namespace UnityEditor.Rendering.Universal
                 new Dependency("VertexDescriptionInputs.uv2",                       "Attributes.uv2"),
                 new Dependency("VertexDescriptionInputs.uv3",                       "Attributes.uv3"),
                 new Dependency("VertexDescriptionInputs.VertexColor",               "Attributes.color"),
+                new Dependency("VertexDescriptionInputs.BoneWeights",               "Attributes.weights"),
+                new Dependency("VertexDescriptionInputs.BoneIndices",               "Attributes.indices")
             },
             // SurfaceDescriptionInputs
             new Dependency[]

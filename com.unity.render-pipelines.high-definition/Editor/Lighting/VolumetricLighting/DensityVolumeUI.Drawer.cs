@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static partial class DensityVolumeUI
     {
+        // also used for AdvancedModes
         [System.Flags]
         enum Expandable
         {
@@ -17,16 +18,44 @@ namespace UnityEditor.Rendering.HighDefinition
 
         readonly static ExpandedState<Expandable, DensityVolume> k_ExpandedState = new ExpandedState<Expandable, DensityVolume>(Expandable.Volume | Expandable.DensityMaskTexture, "HDRP");
 
+        static bool GetAdvanced(Expandable mask, SerializedDensityVolume serialized, Editor owner)
+        {
+            //only one possibility for now, change to bit mask if several later (see HDLightUI)
+            if (mask == Expandable.Volume)
+                return serialized.editorAdvancedFade.boolValue;
+            return false;
+        }
+
+        static void SetAdvanced(Expandable mask, bool value, SerializedDensityVolume serialized, Editor owner)
+        {
+            //only one possibility for now, change to bit mask if several later (see HDLightUI)
+            if (mask != Expandable.Volume)
+                return;
+            DensityVolumeEditor.s_BlendBox.monoHandle = !value;
+            serialized.editorAdvancedFade.boolValue = value;
+        }
+
+        static void SwitchAdvanced(Expandable mask, SerializedDensityVolume serialized, Editor owner)
+        {
+            //only one possibility for now, change to bit mask if several later (see HDLightUI)
+            if (mask != Expandable.Volume)
+                return;
+            bool advancedSwitched = !serialized.editorAdvancedFade.boolValue;
+            DensityVolumeEditor.s_BlendBox.monoHandle = advancedSwitched;
+            serialized.editorAdvancedFade.boolValue = advancedSwitched;
+        }
+
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
                 Drawer_ToolBar,
                 Drawer_PrimarySettings
                 ),
             CED.space,
-            CED.FoldoutGroup(
-                Styles.k_VolumeHeader, Expandable.Volume, k_ExpandedState,
-                Drawer_AdvancedSwitch,
-                Drawer_VolumeContent
+            CED.AdvancedFoldoutGroup(Styles.k_VolumeHeader, Expandable.Volume, k_ExpandedState,
+                (serialized, owner) => GetAdvanced(Expandable.Volume, serialized, owner),
+                (serialized, owner) => SwitchAdvanced(Expandable.Volume, serialized, owner),
+                Drawer_VolumeContent, //handle both advanced control and normal control
+                CED.noop
                 ),
             CED.FoldoutGroup(
                 Styles.k_DensityMaskTextureHeader, Expandable.DensityMaskTexture, k_ExpandedState,
@@ -57,23 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
             EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
         }
-
-        static void Drawer_AdvancedSwitch(SerializedDensityVolume serialized, Editor owner)
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-
-                bool advanced = serialized.editorAdvancedFade.boolValue;
-                advanced = GUILayout.Toggle(advanced, Styles.s_AdvancedModeContent, EditorStyles.miniButton, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
-                DensityVolumeEditor.s_BlendBox.monoHandle = !advanced;
-                if (serialized.editorAdvancedFade.boolValue ^ advanced)
-                {
-                    serialized.editorAdvancedFade.boolValue = advanced;
-                }
-            }
-        }
-
+        
         static void Drawer_VolumeContent(SerializedDensityVolume serialized, Editor owner)
         {
             //keep previous data as value are stored in percent

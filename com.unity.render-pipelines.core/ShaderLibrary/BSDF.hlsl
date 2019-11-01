@@ -509,7 +509,7 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
         real phi = phi21 + phi23;
 
         // Compound terms
-        real3 R123 = R12 * R23;
+        real3 R123 = clamp(R12 * R23, 1e-5, 0.9999);
         real3 r123 = sqrt(R123);
         real3 Rs = Sq(T121) * R23 / (real3(1.0, 1.0, 1.0) - R123);
 

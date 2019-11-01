@@ -64,25 +64,25 @@ namespace UnityEditor.VFX.Block
             ColorAndAlpha = Color | Alpha,
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider))]
         public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the chosen attribute. The value derived from this block can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the alpha value. The value derived from this block can overwrite, add to, multiply with, or blend with the existing alpha value.")]
         public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting, Tooltip("How to sample the curve")]
+        [VFXSetting, Tooltip("Specifies the method by which to sample the curve. This can be over the particle’s lifetime, its speed, randomly, or through a user-specified value.")]
         public CurveSampleMode SampleMode = CurveSampleMode.OverLife;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies whether the block operates per component or uniformly across all components of the chosen attribute.")]
         public ComputeMode Mode = ComputeMode.PerComponent;
 
-        [VFXSetting, Tooltip("Select whether the color is applied to RGB, alpha, or both")]
+        [VFXSetting, Tooltip("Specifies whether the color is applied to RGB, alpha, or both.")]
         public ColorApplicationMode ColorMode = ColorApplicationMode.ColorAndAlpha;
 
-        [VFXSetting]
+        [VFXSetting, Tooltip("Specifies which channels to use in this block. This is useful for only affecting the relevant data if not all channels are used.")]
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
