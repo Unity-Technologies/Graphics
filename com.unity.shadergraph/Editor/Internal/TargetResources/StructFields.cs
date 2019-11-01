@@ -18,9 +18,13 @@
                 "TEXCOORD2", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor uv3 = new FieldDescriptor(Attributes.name, "uv3", "ATTRIBUTES_NEED_TEXCOORD3", ShaderValueType.Float4,
                 "TEXCOORD3", subscriptOptions : StructFieldOptions.Optional);
+            public static FieldDescriptor weights = new FieldDescriptor(Attributes.name, "weights", "ATTRIBUTES_NEED_BLENDWEIGHTS", ShaderValueType.Float4,
+                "BLENDWEIGHTS", subscriptOptions : StructFieldOptions.Optional);
+            public static FieldDescriptor indicies = new FieldDescriptor(Attributes.name, "indicies", "ATTRIBUTES_NEED_BLENDINDICES", ShaderValueType.Uint4,
+                "BLENDINDICES", subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(Attributes.name, "color", "ATTRIBUTES_NEED_COLOR", ShaderValueType.Float4,
                 "COLOR", subscriptOptions : StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+            public static FieldDescriptor instanceID = new FieldDescriptor(Attributes.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
         }
 
@@ -50,7 +54,7 @@
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor screenPosition = new FieldDescriptor(Varyings.name, "screenPosition", "VARYINGS_NEED_SCREENPOSITION", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.UnsignedInteger,
+            public static FieldDescriptor instanceID = new FieldDescriptor(Varyings.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor cullFace = new FieldDescriptor(Varyings.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
                 "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
@@ -119,6 +123,12 @@
             public static FieldDescriptor VertexColor = new FieldDescriptor(VertexDescriptionInputs.name, "VertexColor", "", ShaderValueType.Float4,
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor TimeParameters = new FieldDescriptor(VertexDescriptionInputs.name, "TimeParameters", "", ShaderValueType.Float3,
+                subscriptOptions : StructFieldOptions.Optional);
+
+            public static FieldDescriptor BoneWeights = new FieldDescriptor(VertexDescriptionInputs.name, "BoneWeights", "", ShaderValueType.Float4,
+                subscriptOptions : StructFieldOptions.Optional);
+
+            public static FieldDescriptor BoneIndicies = new FieldDescriptor(VertexDescriptionInputs.name, "BoneIndicies", "", ShaderValueType.Uint4,
                 subscriptOptions : StructFieldOptions.Optional);
         }
 

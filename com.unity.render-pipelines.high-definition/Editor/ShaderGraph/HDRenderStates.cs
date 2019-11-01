@@ -175,6 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection HairDepthOnly = new RenderStateCollection
         {
+            { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.Stencil(new StencilDescriptor()
             {
@@ -206,6 +207,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection PBRMotionVectors = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.ColorMask("ColorMask 0") },
@@ -292,6 +294,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection PBRForward = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(Fields.SurfaceOpaque, true) },
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition[] { 
                 new FieldCondition(Fields.SurfaceTransparent, true), 
@@ -391,6 +394,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static RenderStateCollection PBRGBuffer = new RenderStateCollection
         {
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.ZTest(ZTest.Equal), new FieldCondition[] { 
                 new FieldCondition(Fields.SurfaceOpaque, true), 
                 new FieldCondition(Fields.AlphaTest, true) } },

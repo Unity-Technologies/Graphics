@@ -432,6 +432,9 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TimeParameters,          requirements.requiresTime),
                 new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,           requirements.requiresTime &&
                                                                                                                 activeFields.Contains(Fields.GraphVertex)),
+
+                new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndicies,             requirements.requiresVertexSkinning),
             };
         }
 
@@ -791,12 +794,6 @@ namespace UnityEditor.ShaderGraph
             if (activeNode is SubGraphNode subGraphNode)
             {
                 subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
-            }
-
-            if (requirements.requiresVertexSkinning)
-            {
-                activeFields.Add($"{structName}.BoneWeights");
-                activeFields.Add($"{structName}.BoneIndices");
             }
         }
 

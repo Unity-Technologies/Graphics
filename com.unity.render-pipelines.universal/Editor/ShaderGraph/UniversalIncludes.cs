@@ -6,12 +6,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         // Pre-graph
         const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
-        const string kInstancing = "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl";
         const string kCore = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl";
         const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
         const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
         const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
-        const string kInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl";
         const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
         const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
         const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
@@ -34,12 +32,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             // Pre-graph
             { kColor, IncludeLocation.Pregraph },
-            { kInstancing, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kShadows, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
-            { kInput, IncludeLocation.Pregraph },
 
             // Post-graph
             { kShaderPass, IncludeLocation.Postgraph },
@@ -51,7 +47,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             // Pre-graph
             { kColor, IncludeLocation.Pregraph },
-            { kInstancing, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
@@ -66,7 +61,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             // Pre-graph
             { kColor, IncludeLocation.Pregraph },
-            { kInstancing, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },
@@ -96,7 +90,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             // Pre-graph
             { kColor, IncludeLocation.Pregraph },
-            { kInstancing, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kGraphFunctions, IncludeLocation.Pregraph },

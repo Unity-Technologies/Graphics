@@ -11,6 +11,7 @@
         Matrix3,
         Matrix4,
         Integer,
-        UnsignedInteger
+        Uint,
+        Uint4,
     }
 }

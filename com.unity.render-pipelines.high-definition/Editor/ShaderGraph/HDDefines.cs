@@ -52,7 +52,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection HDLitRaytracingForwardIndirect = new DefineCollection
         {
             { HDKeywords.Descriptors.Shadow, 0 },
-            { HDKeywords.Descriptors.SkipRasterizedShadows, 1 },
             { RayTracingNode.GetRayTracingKeyword(), 1 },
             { HDKeywords.Descriptors.HasLightloop, 1 },
         };

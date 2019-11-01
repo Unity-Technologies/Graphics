@@ -27,8 +27,10 @@ namespace UnityEditor.ShaderGraph
                     return $"{precisionToken}4x4";
                 case ShaderValueType.Integer:
                     return "int";
-                case ShaderValueType.UnsignedInteger:
+                case ShaderValueType.Uint:
                     return "uint";
+                case ShaderValueType.Uint4:
+                    return "uint4";
                 default:
                     return "Error";
             }
@@ -38,20 +40,12 @@ namespace UnityEditor.ShaderGraph
         {
             switch (type)
             {
-                case ShaderValueType.Boolean:
-                    return 0;
-                case ShaderValueType.Float:
-                    return 0;
                 case ShaderValueType.Float2:
                     return 2;
                 case ShaderValueType.Float3:
                     return 3;        
                 case ShaderValueType.Float4:
                     return 4;
-                case ShaderValueType.Integer:
-                    return 0;
-                case ShaderValueType.UnsignedInteger:
-                    return 0;
                 default:
                     return 0;
             }
