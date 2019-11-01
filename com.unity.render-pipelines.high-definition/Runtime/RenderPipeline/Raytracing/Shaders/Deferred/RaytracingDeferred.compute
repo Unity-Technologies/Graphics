@@ -4,9 +4,6 @@
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 
-// Given that the algorithm requires BSDF evaluation, we need to define this macro
-#define SKIP_RASTERIZED_SHADOWS
-
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
 
@@ -37,11 +34,12 @@ TEXTURE2D_X(_RaytracingDistanceBuffer);
 RW_TEXTURE2D_X(float4, _RaytracingLitBufferRW);
 
 [numthreads(RAYTRACING_DEFERRED_TILE_SIZE, RAYTRACING_DEFERRED_TILE_SIZE, 1)]
-void RAYTRACING_DEFERRED(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Compute the pixel position to process
     uint2 currentCoord = groupId * RAYTRACING_DEFERRED_TILE_SIZE + groupThreadId;
-    currentCoord.x = currentCoord.x + (unity_StereoEyeIndex * _ScreenSize.x);
 
     #ifdef HALF_RESOLUTION
     currentCoord *=2;
@@ -64,7 +62,7 @@ void RAYTRACING_DEFERRED(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId :
     }
 
     // First let's compute the position of the pixel from which the ray has been shot
-    PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, _InvViewProjMatrix, GetWorldToViewMatrix(), 0);
+    PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
     float3 positionWS = GetAbsolutePositionWS(sourcePosInput.positionWS);
 
     // Then compute the pos input of the intersection vertice

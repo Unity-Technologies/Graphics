@@ -1,5 +1,7 @@
 using System;
+using UnityEditor.Rendering.HighDefinition;
 using UnityEditor.VFX;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.VFX.HDRP
@@ -11,5 +13,15 @@ namespace UnityEditor.VFX.HDRP
 
         public override string SRPAssetTypeStr  { get { return typeof(HDRenderPipelineAsset).Name; } }
         public override Type SRPOutputDataType  { get { return typeof(VFXHDRPSubOutput); } }
+
+        public override void SetupMaterial(Material mat)
+        {
+            try
+            {
+                HDShaderUtils.ResetMaterialKeywords(mat);
+            }
+            catch(ArgumentException) // Silently catch the 'Unknown shader' in case of non HDRP shaders
+            {}
+        }
     }
 }

@@ -1,8 +1,8 @@
 # Feature comparison table
 
-This table provides an overview of the current features supported in the Universal Render Pipeline (Universal RP), compared to the Unity Built-in render pipeline. 
+This table provides an overview of the current features supported in the Universal Render Pipeline (URP), compared to the Unity Built-in render pipeline. 
 
-**Note:** If a feature is marked __In research__, the Universal RP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
+**Note:** If a feature is marked __In research__, the URP team is still researching how and when to implement the feature. If a feature is marked as __Not supported__, it's because Unity is not planning to support it in any release. 
 
 
 | Feature                                                      | Unity Built-in render pipeline                               | Universal Render Pipeline                                    |
@@ -21,15 +21,15 @@ This table provides an overview of the current features supported in the Univers
 | Motion vectors                                               | Yes                                                          | In research                                                  |
 | ***Realtime Lights***                                        |                                                              |                                                              |
 | *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   |
-| Inner Spot Angle                                             | Not supported                                                | In research                                                  |
+| Inner Spot Angle                                             | Not supported                                                | Yes                                                          |
 | Shading                                                      | Multiple Passes                                              | Single Pass                                                  |
 | *Culling*<br/>Per-Object<br/>Per-Layer                       | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |
-| *Light Limits*<br/>Directional Lights<br/>Per Object<br/>Per Camera | <br/>Unlimited<br/>Unlimited<br/>Unlimited                   | <br/>1<br/>8 (4 for GLES2)<br/>256 (32 on mobile platforms)  |
+| *Light Limits*<br/>Main Directional Light<br/>Per Object<br/>Per Camera | <br/>1<br/>Unlimited<br/>Unlimited                           | <br/>1 <br/>8 (4 for GLES2).  Can be point, spot, and directional Lights.<br/>256 (32 on mobile platforms) |
 | Attenuation                                                  | Legacy                                                       | InverseSquared                                               |
 | Vertex LIghts                                                | Yes                                                          | Yes                                                          |
 | SH Lights                                                    | Yes                                                          | In research                                                  |
 | ***Realtime Shadows***                                       |                                                              |                                                              |
-| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes<br/>Yes<br/>In research<br/>Not supported           |
+| *Light Types*<br/>Directional<br/>Spot<br/>Point<br/>Area    | <br/>Yes<br/>Yes<br/>Yes<br/>Not supported                   | <br/>Yes (for Main Directional Light. Additional Directional Lights don't cast shadows.)<br/>Yes<br/>In research<br/>Not supported |
 | *Shadow Projection*<br/>Stable Fit<br/>Close Fit             | <br/>Yes<br/>Yes                                             | <br/>Yes<br>In research                                      |
 | *Shadow Cascades*<br/>Number of Cascades<br/>Control by Percentage<br/>Control by Distance | <br/>1, 2 or 4<br/>Yes<br/>Not supported                     | <br/>1, 2 or 4<br/>Yes<br/>In research                       |
 | *Shadow Resolve Type*<br/>Lighting Pass<br/>Screen Space Pass | <br/>Yes<br/>Yes                                             | <br/>Yes<br/>Yes                                             |

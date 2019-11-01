@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -555,7 +556,7 @@ namespace UnityEditor.ShaderGraph
             if (foundSlot == null)
             {
                 slot.owner = this;
-                m_Slots.Add(slot);
+            m_Slots.Add(slot);
             }
             else
             {

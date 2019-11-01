@@ -4,9 +4,15 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
+    struct FunctionSource
+    {
+        public string code;
+        public HashSet<AbstractMaterialNode> nodes;
+    }
+
     class FunctionRegistry
     {
-        Dictionary<string, string> m_Sources = new Dictionary<string, string>();
+        Dictionary<string, FunctionSource> m_Sources = new Dictionary<string, FunctionSource>();
         bool m_Validate = false;
         ShaderStringBuilder m_Builder;
 
@@ -18,24 +24,25 @@ namespace UnityEditor.ShaderGraph
 
         internal ShaderStringBuilder builder => m_Builder;
 
-        public Dictionary<string, string> sources => m_Sources;
-        
+        public Dictionary<string, FunctionSource> sources => m_Sources;
+
         public List<string> names { get; } = new List<string>();
 
         public void ProvideFunction(string name, Action<ShaderStringBuilder> generator)
         {
-            string existingSource;
+            FunctionSource existingSource;
             if (m_Sources.TryGetValue(name, out existingSource))
             {
+                existingSource.nodes.Add(builder.currentNode);
                 if (m_Validate)
                 {
                     var startIndex = builder.length;
                     generator(builder);
                     var length = builder.length - startIndex;
-                    var source = builder.ToString(startIndex, length);
+                    var code = builder.ToString(startIndex, length);
                     builder.length -= length;
-                    if (source != existingSource)
-                        Debug.LogErrorFormat(@"Function `{0}` has varying implementations:{1}{1}{2}{1}{1}{3}", name, Environment.NewLine, source, existingSource);
+                    if (code != existingSource.code)
+                        Debug.LogErrorFormat(@"Function `{0}` has varying implementations:{1}{1}{2}{1}{1}{3}", name, Environment.NewLine, code, existingSource);
                 }
             }
             else
@@ -44,11 +51,10 @@ namespace UnityEditor.ShaderGraph
                 var startIndex = builder.length;
                 generator(builder);
                 var length = builder.length - startIndex;
-                var source = m_Validate ? builder.ToString(startIndex, length) : string.Empty;
-                m_Sources.Add(name, source);
+                var code = m_Validate ? builder.ToString(startIndex, length) : string.Empty;
+                m_Sources.Add(name, new FunctionSource { code = code, nodes = new HashSet<AbstractMaterialNode> {builder.currentNode} });
+                names.Add(name);
             }
-
-            names.Add(name);
         }
     }
 }

@@ -1,22 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.VFX.Block;
+using System.Reflection;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
-using UnityEngine.VFX;
+
 
 namespace UnityEditor.VFX
 {
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
-    class VFXPlanarPrimitiveOutput : VFXAbstractParticleOutput
+    class VFXPlanarPrimitiveOutput : VFXShaderGraphParticleOutput
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what primitive type to use for this output. Triangle outputs have fewer vertices, octagons can be used to conform the geometry closer to the texture to avoid overdraw, and quads are a good middle ground.")]
         protected VFXPrimitiveType primitiveType = VFXPrimitiveType.Quad;
 
         //[VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool useGeometryShader = false;
 
-        public override string name { get { return primitiveType.ToString() + " Output"; } }
+        public override string name { get { return "Output Particle " + primitiveType.ToString(); } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType
         {
@@ -28,7 +30,7 @@ namespace UnityEditor.VFX
                 return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType);
             }
         }
-        public override bool supportsUV { get { return true; } }
+        public override bool supportsUV { get { return shaderGraph == null; } }
         public override bool implementsMotionVector { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
@@ -72,12 +74,20 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
+        public class OptionalInputProperties
+        {
+            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
+            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+        }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                var properties = base.inputProperties;
+                IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
+                if(shaderGraph == null)
+                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+
                 if (primitiveType == VFXPrimitiveType.Octagon)
                     properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
                 return properties;
@@ -88,15 +98,13 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-
-            yield return slotExpressions.First(o => o.name == "mainTexture");
+            if (shaderGraph == null)
+            {
+                yield return slotExpressions.First(o => o.name == "mainTexture");
+            }
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
         }
 
-        public class InputProperties
-        {
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
-        }
     }
 }

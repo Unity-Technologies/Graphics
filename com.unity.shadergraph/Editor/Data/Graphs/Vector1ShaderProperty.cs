@@ -5,28 +5,25 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
-    enum FloatType { Default, Slider, Integer, Enum }
-
-    public enum EnumType { Enum, CSharpEnum, KeywordEnum, }
-
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
-    class Vector1ShaderProperty : AbstractShaderProperty<float>
+    [FormerName("UnityEditor.ShaderGraph.Vector1ShaderProperty")]
+    public sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
-        public Vector1ShaderProperty()
+        internal Vector1ShaderProperty()
         {
             displayName = "Vector1";
         }
         
         public override PropertyType propertyType => PropertyType.Vector1;
         
-        public override bool isBatchable => true;
-        public override bool isExposable => true;
-        public override bool isRenamable => true;
-        public override bool isGpuInstanceable => true;
-
+        internal override bool isBatchable => true;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+        internal override bool isGpuInstanceable => true;
+        
         string enumTagString
         {
             get
@@ -49,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override string GetPropertyBlockString()
+        internal override string GetPropertyBlockString()
         {
             switch(floatType)
             {
@@ -114,7 +111,7 @@ namespace UnityEditor.ShaderGraph
             set => m_EnumValues = value;
         }
         
-        public override AbstractMaterialNode ToConcreteNode()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
             {
@@ -129,7 +126,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -138,7 +135,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new Vector1ShaderProperty()
             {
@@ -153,4 +150,8 @@ namespace UnityEditor.ShaderGraph
             };
         }
     }
+
+    public enum FloatType { Default, Slider, Integer, Enum }
+
+    public enum EnumType { Enum, CSharpEnum, KeywordEnum, }
 }

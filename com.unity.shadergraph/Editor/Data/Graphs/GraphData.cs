@@ -9,6 +9,7 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -174,7 +175,7 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_OutputNode;
             set => m_OutputNode = value;
-        }
+                }
 
         internal delegate void SaveGraphDelegate(Shader shader);
         internal static SaveGraphDelegate onSaveGraph;
@@ -295,6 +296,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public void RemoveStickyNote(StickyNoteData stickyNote)
+        {
+            RemoveNoteNoValidate(stickyNote);
+            ValidateGraph();
+        }
+
         public void SetGroup(IGroupItem node, GroupData group)
         {
             var groupChange = new ParentGroupChange()
@@ -320,7 +327,7 @@ namespace UnityEditor.ShaderGraph
                 throw new InvalidOperationException("Cannot add a node whose group doesn't exist.");
             }
             node.owner = this;
-            m_Nodes.Add(node);
+                m_Nodes.Add(node);
             m_GroupItems[node.group ?? m_NullGroup].Add(node);
         }
 
@@ -455,7 +462,7 @@ namespace UnityEditor.ShaderGraph
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
-            m_Edges.Remove(e);
+            m_Edges.Remove(e as Edge);
 
             List<Edge> inputNodeEdges;
             if (e.inputSlot.owner != null && m_NodeEdges.TryGetValue(e.inputSlot.owner, out inputNodeEdges))
@@ -469,9 +476,9 @@ namespace UnityEditor.ShaderGraph
         public bool ContainsNode(AbstractMaterialNode node)
         {
             if (node == null)
-            {
+        {
                 return false;
-            }
+        }
             return m_Nodes.Contains(node);
         }
 
@@ -492,8 +499,8 @@ namespace UnityEditor.ShaderGraph
                 if ((slot.isInputSlot ? edge.inputSlot : edge.outputSlot) == slot)
                 {
                     foundEdges.Add(edge);
-                }
             }
+        }
         }
 
         public IEnumerable<Edge> GetEdges(MaterialSlot s)
@@ -658,7 +665,7 @@ namespace UnityEditor.ShaderGraph
         void RemoveGraphInputNoValidate(ShaderInput shaderInput)
         {
             if (shaderInput is AbstractShaderProperty property)
-            {
+        {
                 m_Properties.Remove(property.ToJsonRef());
             }
             else if (shaderInput is ShaderKeyword keyword)
@@ -799,7 +806,7 @@ namespace UnityEditor.ShaderGraph
 
             StackPool<AbstractMaterialNode>.Release(stack);
             ListPool<MaterialSlot>.Release(slots);
-        }
+            }
 
         public void AddValidationError(AbstractMaterialNode node, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
@@ -814,7 +821,7 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: FIX COPY PASTE
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes, List<Edge> remappedEdges)
-        {
+            {
 //            var groupGuidMap = new Dictionary<Guid, Guid>();
 //            foreach (var group in graphToPaste.groups)
 //            {
@@ -934,20 +941,20 @@ namespace UnityEditor.ShaderGraph
 //            }
 //
 //            ValidateGraph();
-        }
+            }
 
 
         internal override void OnDeserialized(string json)
-        {
-            if (m_Version == 0)
             {
+            if (m_Version == 0)
+                {
                 m_Version = 1;
                 UpgradeV0ToV1(json);
+                }
             }
-        }
 
         void UpgradeV0ToV1(string json)
-        {
+                {
             var graphDataV0 = JsonUtility.FromJson<GraphDataV0>(json);
 
             var propertyJsonList = new List<string>();
@@ -983,18 +990,18 @@ namespace UnityEditor.ShaderGraph
             var legacySlotMap = new Dictionary<(string, int), MaterialSlot>();
             SerializationHelper.Upgrade(graphDataV0.nodes, m_Nodes, nodeJsonList);
             for (var i = 0; i < m_Nodes.Count; i++)
-            {
+        {
                 // TODO: Property guid etc.
                 var nodeV0 = JsonUtility.FromJson<LegacyNode>(nodeJsonList[i]);
                 var node = m_Nodes[i];
                 if (!string.IsNullOrEmpty(nodeV0.groupGuid) && legacyGroupMap.TryGetValue(nodeV0.groupGuid, out var groupData))
-                {
+            {
                     node.group = groupData;
-                }
+            }
 
                 if (!string.IsNullOrEmpty(graphDataV0.activeOutputNodeGuid) &&
                     nodeV0.guid == graphDataV0.activeOutputNodeGuid)
-                {
+            {
                     outputNode = node;
                 }
 
@@ -1014,7 +1021,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (node is PropertyNode propertyNode && !string.IsNullOrEmpty(nodeV0.propertyGuid) &&
                     legacyPropertyMap.TryGetValue(nodeV0.propertyGuid, out var property))
-                {
+            {
                     propertyNode.InternalSetProperty(property);
                 }
 
@@ -1022,18 +1029,18 @@ namespace UnityEditor.ShaderGraph
                     legacyKeywordMap.TryGetValue(nodeV0.keywordGuid, out var keyword))
                 {
                     keywordNode.InternalSetKeyword(keyword);
-                }
-            }
+                        }
+                    }
 
             if (graphDataV0.edges != null)
-            {
-                foreach (var serializableEdge in graphDataV0.edges)
                 {
+                foreach (var serializableEdge in graphDataV0.edges)
+                    {
                     var legacyEdge = JsonUtility.FromJson<LegacyEdge>(serializableEdge.JSONnodeData);
                     var outputSlot = legacySlotMap[(legacyEdge.outputSlot.nodeGUID, legacyEdge.outputSlot.slotId)];
                     var inputSlot = legacySlotMap[(legacyEdge.inputSlot.nodeGUID, legacyEdge.inputSlot.slotId)];
                     if (inputSlot != null && outputSlot != null)
-                    {
+                        {
                         m_Edges.Add(new Edge(outputSlot, inputSlot));
                     }
                 }
@@ -1043,7 +1050,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var dataV0 = graphDataV0.stickyNotes[i];
                 var data = new StickyNoteData(dataV0.title, dataV0.content, dataV0.position)
-                {
+            {
                     theme = dataV0.theme,
                     textSize = dataV0.textSize
                 };
@@ -1051,11 +1058,19 @@ namespace UnityEditor.ShaderGraph
                 if (!string.IsNullOrEmpty(dataV0.groupGuidSerialized) && legacyGroupMap.TryGetValue(dataV0.groupGuidSerialized, out var groupData))
                 {
                     data.group = groupData;
-                }
+            }
 
                 m_StickyNotes.Add(data);
                 DeserializationContext.Enqueue(data, null);
-            }
+        }
+
+        public void OnBeforeSerialize()
+        {
+            m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
+            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
+            m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
 
         internal override void OnStoreDeserialized(string json)
@@ -1088,6 +1103,8 @@ namespace UnityEditor.ShaderGraph
                     ?? GetNodes<SubGraphOutputNode>().FirstOrDefault();
             }
 
+            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+            m_SerializableEdges = null;
             foreach (var edge in m_Edges)
             {
                 AddEdgeToNodeEdges(edge);

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Serialization;
+using System.Globalization;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -103,10 +105,10 @@ namespace UnityEditor.Graphing
             info.fullName = info.fullName.Replace("UnityEngine.Graphing", "UnityEditor.Graphing");
 
             if (remapper != null)
-            {
-                TypeSerializationInfo foundInfo;
-                if (remapper.TryGetValue(info, out foundInfo))
-                    return foundInfo;
+        {
+            TypeSerializationInfo foundInfo;
+            if (remapper.TryGetValue(info, out foundInfo))
+                return foundInfo;
             }
 
             return info;
@@ -118,7 +120,7 @@ namespace UnityEditor.Graphing
                 throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
             TypeSerializationInfo info = item.typeInfo;
-            info = DoTypeRemap(info, remapper);
+                info = DoTypeRemap(info, remapper);
 
             var type = GetTypeFromSerializedString(info);
             if (type == null)
@@ -127,7 +129,9 @@ namespace UnityEditor.Graphing
             T instance;
             try
             {
-                instance = Activator.CreateInstance(type, constructorArgs) as T;
+                var culture = CultureInfo.CurrentCulture;
+                var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                instance = Activator.CreateInstance(type, flags, null, constructorArgs, culture) as T;
             }
             catch (Exception e)
             {

@@ -1,31 +1,32 @@
-* [About Universal RP](index.md)
+* [Universal Render Pipeline](index.md)
 
-* [Getting started](getting-started-with-universalrp.md)
-  * [Creating a new Project](creating-a-new-project-with-universalrp.md)
-  * [Upgrading your existing Project](installing-universalrp-into-an-existing-project.md)
-  * [Configuring Universal RP for use](configuring-universalrp-for-use.md)
+* [Install and configure](InstallingAndConfiguringURP.md)
+  * [Create a Project from a Template](CreateNewProjectFromTemplate.md)
+  * [Install into a Project](InstallURPIntoAProject.md)
   
-* [Inside Universal RP](inside-universalrp.md)
-  * [The Universal RP Asset](universalrp-asset.md)
-  * [Shader stripping](shader-stripping.md)
-  * [Built-in/Universal RP comparison](universalrp-builtin-feature-comparison.md)
-  * [Shading Models in Universal RP](shading-model.md)
-  * [Rendering in Universal RP](rendering-in-universalrp.md)
+  * [The Universal Render Pipeline Asset](universalrp-asset.md)
   
-* [Post-processing in Universal RP](integration-with-post-processing.md)
-  * Effect List
+* [Rendering](rendering-in-universalrp.md)
+  
+* [Post-processing](integration-with-post-processing.md)
+  * [Volumes](Volumes.md)
+    * [Volume Profile](VolumeProfile.md)
+    * [Volume Overrides](VolumeOverrides.md)
+  * [Effect List](EffectList.md)
     * [Channel Mixer](Post-Processing-Channel-Mixer.md)
     * [Color Adjustments](Post-Processing-Color-Adjustments.md)
     * [Color Curves](Post-Processing-Color-Curves.md)
     * [Film Grain](Post-Processing-Film-Grain.md)
     * [Lens Distortion](Post-Processing-Lens-Distortion.md)
     * [Lift, Gamma, and Gain](Post-Processing-Lift-Gamma-Gain.md)
+    * [Motion Blur](Post-Processing-Motion-Blur.md)
     * [Panini Projection](Post-Processing-Panini-Projection.md)
     * [Shadows Midtones Highlights](Post-Processing-Shadows-Midtones-Hightlights.md)
     * [Split Toning](Post-Processing-Split-Toning.md)
     * [White Balance](Post-Processing-White-Balance.md)
   
-* [Shaders in Universal RP](shaders-in-universalrp.md)
+* [Shaders and Materials](shaders-in-universalrp.md)
+  * [Shading Models](shading-model.md)
   * [Lit](lit-shader.md)
   * [Simple Lit](simple-lit-shader.md)
   * [Baked Lit](baked-lit-shader.md)
@@ -33,7 +34,8 @@
   * [Particles Lit](particles-lit-shader.md)
   * [Particles Simple Lit](particles-simple-lit-shader.md)
   * [Particles Unlit](particles-unlit-shader.md)
-  * [Upgrading shaders](upgrading-your-shaders.md)
+  * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
+  * [Shader stripping](shader-stripping.md)
   
 * [2D in Universal RP](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
@@ -54,3 +56,5 @@
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)
   
 * [Frequently asked questions (FAQ)](faq.md)
+
+* [Feature Comparison with Built-in](universalrp-builtin-feature-comparison.md)

@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
             base.OnEnable();
 
             // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
-            // We need to call the OnEnable for data migration when updating from old versions of LWRP that
+            // We need to call the OnEnable for data migration when updating from old versions of UniversalRP that
             // serialized resources in a different format. Early returning here when OnEnable is called
             // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
             if (shaders == null)

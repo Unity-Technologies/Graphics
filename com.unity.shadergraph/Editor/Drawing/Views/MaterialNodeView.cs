@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Drawing.Views;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -11,6 +10,8 @@ using UnityEngine.Rendering;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
@@ -18,7 +19,7 @@ using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialNodeView : Node, IShaderNodeView, IContainerElement
+    sealed class MaterialNodeView : Node, IShaderNodeView
     {
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
@@ -40,10 +41,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         GraphView m_GraphView;
 
-        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
+        public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/ColorMode"));
+            styleSheets.Add(Resources.Load<StyleSheet>($"Styles/ColorMode"));
             AddToClassList("MaterialNode");
 
             if (inNode == null)
@@ -51,12 +52,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var contents = this.Q("contents");
 
-            m_GraphView = GetFirstAncestorOfType<GraphView>();
+            m_GraphView = graphView;
 
             m_ConnectorListener = connectorListener;
             node = inNode;
-            // TODO: this nasty
-            viewDataKey = node.jsonId;
+            viewDataKey = node.guid.ToString();
             UpdateTitle();
 
             // Add controls container
@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeTypeSettings = node as IHasSettings;
             if (nodeTypeSettings != null)
                 m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-
+            
             // Add manipulators
             m_SettingsButton.AddManipulator(new Clickable(() =>
                 {
@@ -204,7 +204,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
-            ChangeDispatcher.Connect(this, node, OnChange);
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -240,12 +239,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         static readonly StyleColor noColor = new StyleColor(StyleKeyword.Null);
-
         public void SetColor(Color color)
         {
             m_TitleContainer.style.borderBottomColor = color;
         }
-
+        
         public void ResetColor()
         {
             m_TitleContainer.style.borderBottomColor = noColor;
@@ -307,7 +305,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is Node)
             {
                 var isMaster = node is IMasterNode;
-                var isActive = node == node.owner.outputNode;
+                var isActive = node.guid == node.owner.activeOutputNodeGuid;
                 if (isMaster)
                 {
                     evt.menu.AppendAction("Set Active", SetMasterAsActive,
@@ -335,7 +333,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SetMasterAsActive(DropdownMenuAction action)
         {
-            node.owner.outputNode = node;
+            node.owner.activeOutputNodeGuid = node.guid;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -354,7 +352,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var mode = (GenerationMode)action.userData;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.jsonId, mode == GenerationMode.Preview ? "-Preview" : "");
+                SanitizeName(node.name), node.guid, mode == GenerationMode.Preview ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }
@@ -384,7 +382,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             if (evt.newValue.Equals(node.precision))
                                 return;
-
+                            
                             var editorView = GetFirstAncestorOfType<GraphEditorView>();
                             var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
 
@@ -519,15 +517,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 title = node.name;
         }
 
-        public void OnChange()
-        {
-            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
-            OnModified(ModificationScope.Topological);
-        }
-
         public void OnModified(ModificationScope scope)
         {
-            MarkDirtyRepaint();
             UpdateTitle();
             if (node.hasPreview)
                 UpdatePreviewExpandedState(node.previewExpanded);
@@ -643,7 +634,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PortInputContainer.Add(portInputView);
                     SetPortInputPosition(port, portInputView);
                 }
-
+                
                 port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
             }
         }
@@ -652,7 +643,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = (ShaderPort)evt.target;
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-
+            
             // Ensure PortInputViews are initialized correctly
             // Dynamic port lists require one update to validate before init
             if(inputViews.Count() != 0)
@@ -660,7 +651,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
-
+            
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 
@@ -717,7 +708,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseHover(EventBase evt)
         {
-            GetFirstAncestorOfType<GraphView>();
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
             if (graphView == null)
                 return;
@@ -730,7 +720,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: Move to new NodeView type when keyword node has unique style
             if(node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())

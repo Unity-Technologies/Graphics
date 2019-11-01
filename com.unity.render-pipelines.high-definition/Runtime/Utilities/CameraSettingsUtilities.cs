@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Culling
             cam.useOcclusionCulling = settings.culling.useOcclusionCulling;
             cam.cullingMask = settings.culling.cullingMask;
+            cam.overrideSceneCullingMask = settings.culling.sceneCullingMaskOverride;
             // Buffer clearing
             add.clearColorMode = settings.bufferClearing.clearColorMode;
             add.backgroundColorHDR = settings.bufferClearing.backgroundColorHDR;
@@ -37,6 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             add.customRenderingSettings = settings.customRenderingSettings;
             add.flipYMode = settings.flipYMode;
             add.invertFaceCulling = settings.invertFaceCulling;
+            add.probeCustomFixedExposure = settings.probeRangeCompressionFactor;
         }
 
         /// <summary>Applies <paramref name="settings"/> to <paramref name="cam"/>.</summary>

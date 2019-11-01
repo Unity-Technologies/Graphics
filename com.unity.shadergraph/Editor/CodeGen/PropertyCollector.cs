@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -42,7 +43,13 @@ namespace UnityEditor.ShaderGraph
 
             if (instancedCount > 0)
             {
-                builder.AppendLine("#ifndef UNITY_DOTS_INSTANCING_ENABLED");
+                builder.AppendLine("#ifdef UNITY_DOTS_INSTANCING_ENABLED");
+                foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
+                {
+                    if (prop.gpuInstanced)
+                        builder.AppendLine(prop.GetPropertyDeclarationString("_dummy;"));
+                }
+                builder.AppendLine("#else");
                 foreach (var prop in properties.Where(n => batchAll || (n.generatePropertyBlock && n.isBatchable)))
                 {
                     if (prop.gpuInstanced)
@@ -111,7 +118,7 @@ namespace UnityEditor.ShaderGraph
         {
             var result = new List<TextureInfo>();
 
-            foreach (var prop in properties.OfType<TextureShaderProperty>())
+            foreach (var prop in properties.OfType<Texture2DShaderProperty>())
             {
                 if (prop.referenceName != null)
                 {

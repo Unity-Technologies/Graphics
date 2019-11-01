@@ -26,6 +26,7 @@ MonoBehaviour:
     type: 3}
   raytracingFlagMask: {fileID: 4800000, guid: 7822c8a69a1f21144a20cf6d84e5e706, type: 3}
   lightClusterBuildCS: {fileID: 7200000, guid: c0625ea908b52854bbf1d456e34026e4, type: 3}
+  lightClusterDebugS: {fileID: 4800000, guid: c4d81c6e573560444bb1ea11ae4acfcb, type: 3}
   lightClusterDebugCS: {fileID: 7200000, guid: d48a3a5496d98a44c89f335934805d10, type: 3}
   indirectDiffuseRaytracingRT: {fileID: 4807578003741378534, guid: f9b74dc8a89fc7c489e244f0be35baa8,
     type: 3}

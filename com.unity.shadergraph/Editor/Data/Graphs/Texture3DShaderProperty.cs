@@ -5,38 +5,39 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class Texture3DShaderProperty : AbstractShaderProperty<Texture3D>
+    [FormerName("UnityEditor.ShaderGraph.Texture3DShaderProperty")]
+    public sealed class Texture3DShaderProperty : AbstractShaderProperty<Texture3D>
     {
         [SerializeField]
         int m_Version;
 
-        public Texture3DShaderProperty()
+        internal Texture3DShaderProperty()
         {
             displayName = "Texture3D";
         }
 
         public override PropertyType propertyType => PropertyType.Texture3D;
 
-        public override bool isBatchable => false;
-        public override bool isExposable => true;
-        public override bool isRenamable => true;
+        internal override bool isBatchable => false;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
 
-        public string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
+        internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
 
-        public override string GetPropertyBlockString()
+        internal override string GetPropertyBlockString()
         {
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 3D) = \"white\" {{}}";
         }
 
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return $"TEXTURE3D({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
         }
 
-        public override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString()
         {
             return $"TEXTURE3D_PARAM({referenceName}, sampler{referenceName})";
         }
@@ -50,12 +51,12 @@ namespace UnityEditor.ShaderGraph
             set => m_Modifiable = value;
         }
 
-        public override AbstractMaterialNode ToConcreteNode()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new Texture3DAssetNode { texture = value };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -64,7 +65,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new Texture3DShaderProperty()
             {

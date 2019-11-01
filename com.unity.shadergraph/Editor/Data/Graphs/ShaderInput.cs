@@ -2,17 +2,17 @@ using System;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    abstract class ShaderInput : JsonObject
+    public abstract class ShaderInput : JsonObject
     {
         // TODO: Get rid of this
         [SerializeField]
         SerializableGuid m_Guid = new SerializableGuid();
 
-        public Guid guid => m_Guid.guid;
-
+        internal Guid guid => m_Guid.guid;
+        
         [SerializeField]
         string m_Name;
 
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         string m_OverrideReferenceName;
 
-        public string overrideReferenceName
+        internal string overrideReferenceName
         {
             get => m_OverrideReferenceName;
             set => m_OverrideReferenceName = value;
@@ -64,16 +64,16 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         bool m_GeneratePropertyBlock = true;
 
-        public bool generatePropertyBlock
+        internal bool generatePropertyBlock
         {
             get => m_GeneratePropertyBlock;
             set => m_GeneratePropertyBlock = value;
         }
 
-        public abstract ConcreteSlotValueType concreteShaderValueType { get; }
-        public abstract bool isExposable { get; }
-        public abstract bool isRenamable { get; }
+        internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
+        internal abstract bool isExposable { get; }
+        internal abstract bool isRenamable { get; }
 
-        public abstract ShaderInput Copy();
+        internal abstract ShaderInput Copy();
     }
 }

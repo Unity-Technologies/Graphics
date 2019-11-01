@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using EdgeView = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
@@ -61,6 +62,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
         public Action saveRequested { get; set; }
+
+        public Action saveAsRequested { get; set; }
 
         public Func<bool> isCheckedOut { get; set; }
 
@@ -153,6 +156,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (saveRequested != null)
                             saveRequested();
+                    }
+                    GUILayout.Space(6);
+                    if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
+                    {
+                        saveAsRequested();
                     }
                     GUILayout.Space(6);
                     if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
@@ -550,23 +558,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (var graphElement in graphElements)
                     {
                         if (graphElement is IShaderNodeView nodeView)
-                        {
+            {
                             var node = nodeView.node;
                             if (m_Graph.ContainsNode(node))
                             {
                                 continue;
                             }
 
-                            node.UnregisterCallback(OnNodeChanged);
-                            nodeView.Dispose();
-                            m_GraphView.RemoveElement((Node)nodeView);
+                node.UnregisterCallback(OnNodeChanged);
+                    nodeView.Dispose();
+                    m_GraphView.RemoveElement((Node)nodeView);
 
                             if (node.group != null)
-                            {
+                    {
                                 var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
-                                m_GroupHashSet.Add(shaderGroup);
-                            }
-                        }
+                        m_GroupHashSet.Add(shaderGroup);
+                    }
+                }
                         else if (graphElement is StickyNote stickyNote && !m_Graph.stickyNotes.Contains(stickyNote.userData))
                         {
                             m_GraphView.RemoveElement(stickyNote);
@@ -575,37 +583,37 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             m_GraphView.RemoveElement(group);
                         }
-                    }
+            }
 
                     graphElements.Release();
-                }
+            }
 
-                {
+            {
                     var graphElements = ListPool<GraphElement>.Get();
                     m_GraphView.graphElements.ToList(graphElements);
 
                     foreach (var groupData in m_Graph.groups)
                     {
                         if (!graphElements.Any(graphElement => graphElement is ShaderGroup group && group.userData == groupData))
-                        {
-                            AddGroup(groupData);
-                        }
+            {
+                AddGroup(groupData);
+            }
                     }
 
                     foreach (var stickyNoteData in m_Graph.stickyNotes)
                     {
                         if (!graphElements.Any(graphElement => graphElement is StickyNote stickyNote && stickyNote.userData == stickyNoteData))
-                        {
+            {
                             AddStickyNote(stickyNoteData);
                         }
-                    }
+            }
 
                     foreach (var node in m_Graph.nodes)
                     {
                         if (!graphElements.Any(graphElement => graphElement is IShaderNodeView nodeView && nodeView.node == node))
-                        {
-                            AddNode(node);
-                        }
+            {
+                AddNode(node);
+            }
                     }
 
                     graphElements.Release();
@@ -619,34 +627,34 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphView.graphElements.ToList(graphElements);
 
                     foreach (var graphElement in graphElements)
-                    {
+            {
                         GroupData newGroup;
                         if (graphElement is IShaderNodeView nodeView)
-                        {
+                {
                             newGroup = nodeView.node.group;
-                        }
+                }
                         else if (graphElement is StickyNote stickyNote)
-                        {
+                {
                             newGroup = stickyNote.userData.group;
-                        }
-                        else
-                        {
+                }
+                else
+                {
                             continue;
-                        }
+                }
 
-                        var groupView = graphElement.GetContainingScope() as ShaderGroup;
+                    var groupView = graphElement.GetContainingScope() as ShaderGroup;
                         if (groupView?.userData != newGroup)
-                        {
-                            groupView?.RemoveElement(graphElement);
+                    {
+                        groupView?.RemoveElement(graphElement);
                             if (newGroup != null)
-                            {
-                                var newGroupView = m_GraphView.graphElements.ToList()
-                                    .OfType<ShaderGroup>()
+                        {
+                            var newGroupView = m_GraphView.graphElements.ToList()
+                                .OfType<ShaderGroup>()
                                     .First(x => x.userData == newGroup);
-                                newGroupView.AddElement(graphElement);
-                            }
+                            newGroupView.AddElement(graphElement);
                         }
                     }
+                }
 
                     // Handle removed edges
                     foreach (var graphElement in graphElements)
@@ -681,55 +689,55 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
 
                     graphElements.Release();
-                }
+            }
 
-                foreach (var groupData in m_Graph.pastedGroups)
-                {
-                    var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().ToList().First(g => g.userData == groupData);
-                    m_GraphView.AddToSelection(group);
-                }
+            foreach (var groupData in m_Graph.pastedGroups)
+            {
+                var group = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().ToList().First(g => g.userData == groupData);
+                m_GraphView.AddToSelection(group);
+            }
 
-                foreach (var stickyNoteData in m_Graph.pastedStickyNotes)
-                {
-                    var stickyNote = m_GraphView.graphElements.ToList().OfType<StickyNote>().First(s => s.userData == stickyNoteData);
-                    m_GraphView.AddToSelection(stickyNote);
-                }
+            foreach (var stickyNoteData in m_Graph.pastedStickyNotes)
+            {
+                var stickyNote = m_GraphView.graphElements.ToList().OfType<StickyNote>().First(s => s.userData == stickyNoteData);
+                m_GraphView.AddToSelection(stickyNote);
+            }
 
-                foreach (var node in m_Graph.pastedNodes)
-                {
-                    var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
+            foreach (var node in m_Graph.pastedNodes)
+            {
+                var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
                         .FirstOrDefault(p => p.node != null && p.node == node);
-                    m_GraphView.AddToSelection((Node)nodeView);
-                }
+                m_GraphView.AddToSelection((Node)nodeView);
+            }
 
-                foreach (var shaderGroup in m_GroupHashSet)
-                {
-                    SetGroupPosition(shaderGroup);
-                }
+            foreach (var shaderGroup in m_GroupHashSet)
+            {
+                SetGroupPosition(shaderGroup);
+            }
 
-                foreach (var node in nodesToUpdate)
+            foreach (var node in nodesToUpdate)
+            {
+                if (node is MaterialNodeView materialNodeView)
                 {
-                    if (node is MaterialNodeView materialNodeView)
+                    materialNodeView.OnModified(ModificationScope.Topological);
+                }
+            }
+
+            UpdateEdgeColors(nodesToUpdate);
+
+            // Checking if any new Group Nodes just got added
+            if (m_Graph.mostRecentlyCreatedGroup != null)
+            {
+                var groups = m_GraphView.graphElements.ToList().OfType<ShaderGroup>();
+                foreach (ShaderGroup shaderGroup in groups)
+                {
+                    if (shaderGroup.userData == m_Graph.mostRecentlyCreatedGroup)
                     {
-                        materialNodeView.OnModified(ModificationScope.Topological);
+                        shaderGroup.FocusTitleTextField();
+                        break;
                     }
                 }
-
-                UpdateEdgeColors(nodesToUpdate);
-
-                // Checking if any new Group Nodes just got added
-                if (m_Graph.mostRecentlyCreatedGroup != null)
-                {
-                    var groups = m_GraphView.graphElements.ToList().OfType<ShaderGroup>();
-                    foreach (ShaderGroup shaderGroup in groups)
-                    {
-                        if (shaderGroup.userData == m_Graph.mostRecentlyCreatedGroup)
-                        {
-                            shaderGroup.FocusTitleTextField();
-                            break;
-                        }
-                    }
-                }
+            }
 
                 m_Version = m_Graph.changeVersion;
             }
@@ -1051,6 +1059,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphView != null)
             {
                 saveRequested = null;
+                saveAsRequested = null;
                 convertToSubgraphRequested = null;
                 showInProjectRequested = null;
                 foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())

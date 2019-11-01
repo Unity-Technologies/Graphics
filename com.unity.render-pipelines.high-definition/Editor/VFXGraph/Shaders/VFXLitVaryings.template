@@ -54,6 +54,7 @@ VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
 ${VFXEnd}
 
 ${VFXBegin:VFXHDRPLitFillVaryings}
+#ifndef VFX_SHADERGRAPH
 #ifdef VFX_VARYING_SMOOTHNESS
 ${VFXLoadParameter:{smoothness}}
 o.VFX_VARYING_SMOOTHNESS = smoothness;
@@ -88,7 +89,7 @@ o.VFX_VARYING_EMISSIVESCALE = emissiveScale;
 #endif
 #ifdef VFX_VARYING_EMISSIVE
 #if HDRP_USE_EMISSIVE_COLOR
-o.VFX_VARYING_EMISSIVE = color;
+o.VFX_VARYING_EMISSIVE = attributes.color;
 #elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
 ${VFXLoadParameter:{emissiveColor}}
 o.VFX_VARYING_EMISSIVE = emissiveColor;
@@ -98,6 +99,7 @@ o.VFX_VARYING_EMISSIVE = emissiveColor;
 #ifdef VFX_VARYING_COLOR
 ${VFXLoadParameter:{baseColor}}
 o.VFX_VARYING_COLOR = baseColor;
+#endif
 #endif
 #endif
 ${VFXEnd}

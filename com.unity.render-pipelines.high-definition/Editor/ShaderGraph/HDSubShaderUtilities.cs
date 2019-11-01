@@ -5,6 +5,7 @@ using Data.Util;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
@@ -26,6 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static string s_AssemblyName => typeof(HDRPShaderStructs).Assembly.FullName.ToString();
 
+        struct UInt32_4
+        {}
+
         internal struct AttributesMesh
         {
             [Semantic("POSITION")]                  Vector3 positionOS;
@@ -35,6 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
             [Semantic("TEXCOORD1")][Optional]       Vector4 uv1;
             [Semantic("TEXCOORD2")][Optional]       Vector4 uv2;
             [Semantic("TEXCOORD3")][Optional]       Vector4 uv3;
+            [Semantic("BLENDWEIGHTS")][Optional]    Vector4 weights;
+            [Semantic("BLENDINDICES")][Optional]    UInt32_4 indices;
             [Semantic("COLOR")][Optional]           Vector4 color;
             [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
         };
@@ -235,6 +241,8 @@ namespace UnityEditor.Rendering.HighDefinition
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
             [Optional] Vector3 TimeParameters;
+            [Optional] Vector4 BoneWeights;
+            [Optional] UInt32_4 BoneIndices;
 
             public static Dependency[] dependencies = new Dependency[]
             {                                                                       // TODO: NOCHECKIN: these dependencies are not correct for vertex pass
@@ -270,6 +278,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Dependency("VertexDescriptionInputs.uv2",                       "AttributesMesh.uv2"),
                 new Dependency("VertexDescriptionInputs.uv3",                       "AttributesMesh.uv3"),
                 new Dependency("VertexDescriptionInputs.VertexColor",               "AttributesMesh.color"),
+
+                new Dependency("VertexDescriptionInputs.BoneWeights",               "AttributesMesh.weights"),
+                new Dependency("VertexDescriptionInputs.BoneIndices",               "AttributesMesh.indices")
             };
         };
 
@@ -362,6 +373,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
                     activeFields.AddAll("VertexDescriptionInputs.AbsoluteWorldSpacePosition");
+            }
+
+            if (requirements.requiresVertexSkinning)
+            {
+                activeFields.AddAll("VertexDescriptionInputs.BoneWeights");
+                activeFields.AddAll("VertexDescriptionInputs.BoneIndices");
             }
 
             foreach (var channel in requirements.requiresMeshUVs.Distinct())
@@ -1235,14 +1252,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);
-            collector.AddShaderProperty(new Vector1ShaderProperty{
-                overrideReferenceName = "_AlphaCutoff",
-                displayName = "Alpha Cutoff",
-                floatType = FloatType.Slider,
-                rangeValues = new Vector2(0, 1),
-                hidden = true,
-                value = 0.5f
-            });
             collector.AddFloatProperty("_TransparentSortPriority", "_TransparentSortPriority", 0);
             collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold);
         }
