@@ -395,6 +395,22 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            for(int i = 0; i<source.Length; ++i)
+            {
+                if (source[i] == value)
+                    return i;
+            }
+            return -1;
+        }
+
+        // returns true if a contains b
+        static bool Contains(ClearFlag a, ClearFlag b)
+        {
+            return (a & b) == b;
+        }
+
         // return true if "left" and "right" are the same
         static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
         {
@@ -418,7 +434,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
 
-                if( Contains(renderPass.colorAttachments, m_CameraColorTarget) && !m_FirstCameraRenderPassExecuted)
+                int cameraTargetColorIndex = IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
+
+                if( cameraTargetColorIndex != -1 && !m_FirstCameraRenderPassExecuted)
                 {
                     m_FirstCameraRenderPassExecuted = true;
 
@@ -430,8 +448,13 @@ namespace UnityEngine.Rendering.Universal
 //                    if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
 //                        clearFlag = ClearFlag.None;
 
+                    // apply "clearFlag" to m_CameraColorTarget (if it is not included by renderPass.clearFlag)
+                    if(!Contains(renderPass.clearFlag, clearFlag))
+                        SetRenderTarget(cmd, renderPass.colorAttachments[cameraTargetColorIndex], renderPass.depthAttachment, clearFlag,
+                            CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
                     //SetRenderTarget(cmd, renderPass.colorAttachment, m_CameraDepthTarget, clearFlag,
-                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, clearFlag,
+                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, renderPass.clearFlag,
                         CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
                     context.ExecuteCommandBuffer(cmd);
