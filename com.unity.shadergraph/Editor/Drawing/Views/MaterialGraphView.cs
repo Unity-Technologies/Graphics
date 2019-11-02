@@ -536,7 +536,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             CopyPasteGraph copiedProperties = new CopyPasteGraph("", null, null, null, selectedProperties,
-                null, null, null);
+                null, null, null, graph);
 
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
         }
@@ -568,8 +568,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var keywordNodeGuids = nodes.OfType<KeywordNode>().Select(x => x.keywordGuid);
             var metaKeywords = this.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
-            return JsonUtility.ToJson(graph, true);
+            var copyPasteGraph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes, graph);
+            return JsonUtility.ToJson(copyPasteGraph, true);
         }
 
         bool CanPasteSerializedDataImplementation(string serializedData)
@@ -896,8 +896,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal static void InsertCopyPasteGraph(this MaterialGraphView graphView, CopyPasteGraph copyGraph)
         {
-            Debug.Log("InsertCopyPasteGraph");
-
             if (copyGraph == null)
                 return;
 
@@ -907,14 +905,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
-                // Don't duplicate keywords
+                // Don't duplicate built-in keywords
                 ShaderKeyword sKeyword = input as ShaderKeyword;
                 if (sKeyword != null && KeywordUtil.IsBuiltinKeyword(sKeyword) && graphView.graph.keywords.Contains(sKeyword))
                 {
                     continue;
                 }
 
-                // TODO: exist?
                 ShaderInput copiedInput = DuplicateShaderInputs(input, graphView.graph);
 
                 switch(input)

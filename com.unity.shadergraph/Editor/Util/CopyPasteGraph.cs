@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Graphing.Util
 {
@@ -23,7 +24,7 @@ namespace UnityEditor.Graphing.Util
         List<StickyNoteData> m_StickyNotes = new List<StickyNoteData>();
 
         [NonSerialized]
-        HashSet<ShaderInput> m_Inputs = new HashSet<ShaderInput>();
+        List<ShaderInput> m_Inputs = new List<ShaderInput>();
 
         // The meta properties are properties that are not copied into the target graph
         // but sent along to allow property nodes to still hvae the data from the original
@@ -56,7 +57,8 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes)
+        public CopyPasteGraph(string sourceGraphGuid, IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<IEdge> edges, IEnumerable<ShaderInput> inputs,
+            IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes, GraphData graphData)
         {
             m_SourceGraphGuid = sourceGraphGuid;
 
@@ -97,6 +99,12 @@ namespace UnityEditor.Graphing.Util
             {
                 foreach (var input in inputs)
                     AddInput(input);
+
+                // Sort based on input graph data's order
+                if (graphData != null)
+                {
+                    m_Inputs.Sort((x, y) => graphData.GetGraphInputIndex(x) > graphData.GetGraphInputIndex(y) ? 1 : -1);
+                }
             }
 
             if (metaProperties != null)
