@@ -360,7 +360,7 @@ namespace UnityEditor.ShaderGraph
                 // If adding a Sub Graph node whose asset contains Keywords
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode &&
-                    subGraphNode.asset != null && 
+                    subGraphNode.asset != null &&
                     subGraphNode.asset.keywords.Count > 0)
                 {
                     OnKeywordChangedNoValidate();
@@ -1270,9 +1270,7 @@ namespace UnityEditor.ShaderGraph
             m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
             m_Edges.Sort();
             m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
-            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }

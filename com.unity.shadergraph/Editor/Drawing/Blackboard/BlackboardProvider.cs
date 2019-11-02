@@ -269,7 +269,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             foreach (var input in m_Graph.addedInputs)
+            {
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
+            }
 
             foreach (var expandedInput in expandedInputs)
             {
