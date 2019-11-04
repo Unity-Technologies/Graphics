@@ -263,7 +263,7 @@ Shader "HDRP/TerrainLit"
 
         Pass
         {
-            Name "Selection"
+            Name "SceneSelectionPass"
             Tags { "LightMode" = "SceneSelectionPass" }
 
             HLSLPROGRAM

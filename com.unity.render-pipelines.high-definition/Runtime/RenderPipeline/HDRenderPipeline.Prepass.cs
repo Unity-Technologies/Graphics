@@ -165,10 +165,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderGraphResource rendererListMRT;
             public RenderGraphResource rendererListDepthOnly;
 
-#if ENABLE_RAYTRACING
             public RenderGraphResource renderListRayTracingOpaque;
             public RenderGraphResource renderListRayTracingTransparent;
-#endif
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -205,10 +203,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.rendererListMRT = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.mrtRendererListDesc));
 
-#if ENABLE_RAYTRACING
-                passData.renderListRayTracingOpaque = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingOpaqueRLDesc));
-                passData.renderListRayTracingTransparent = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingTransparentRLDesc));
-#endif
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                {
+                    passData.renderListRayTracingOpaque = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingOpaqueRLDesc));
+                    passData.renderListRayTracingTransparent = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingTransparentRLDesc));
+                }
 
                 output.depthBuffer = passData.depthBuffer;
                 output.depthAsColor = passData.depthAsColorBuffer;
@@ -228,10 +227,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     , data.hasDepthOnlyPrepass ? context.resources.GetRendererList(data.rendererListDepthOnly) : RendererList.nullRendererList
                                     , context.resources.GetRendererList(data.rendererListMRT)
                                     , data.hasDepthOnlyPrepass
-#if ENABLE_RAYTRACING
                                     , context.resources.GetRendererList(data.renderListRayTracingOpaque)
                                     , context.resources.GetRendererList(data.renderListRayTracingTransparent)
-#endif
                                     );
                 });
             }
