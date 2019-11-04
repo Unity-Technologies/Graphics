@@ -80,7 +80,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
     else
     {
         lightingMode = kLightingLitMetallic;
-        metallic = 255.0 / 253.0;
+        metallic *= 255.0 / 253.0;
     }
 
     surfaceData.metallic = metallic;
