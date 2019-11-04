@@ -41,7 +41,7 @@ Clear flags | When the render targets above are bound for rendering, how do you 
 
 > **Note:** by default the target buffers are set to the camera buffers but you can also select the custom buffer. It is another buffer allocated by HDRP where you can put everything you want, you can then sample it in custom pass shaders. You can choose the format of the custom buffer in the HDRP asset settings under the **Rendering** section.
 
-![](Images/CustomPass_BufferFormat_Asset.png)
+![CustomPass_BufferFormat_Asset](Images/CustomPass_BufferFormat_Asset.png)
 
 > In the HDRP asset you can also disable the the custom passes, that will disable the custom buffer allocation as well. Additionally, in the frame settings you can choose whether or not to render custom passes, note that it will not affect the custom buffer allocation.
 
@@ -79,6 +79,8 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 | **You can't read and write to the same render target**. i.e you can't sample the camera color, modify it and then write the result back to the camera color buffer, you have to do it in two passes with a secondary buffer. |
 | **The Depth buffer is not available everywhere and might not contains what you expect**. There is not depth buffer in before rendering, the depth buffer never contains transparent that writes depth and finally the depth buffer is always jittered when TAA is enabled (meaning that rendering after post process objects that needs depth will cause wobbling) |
 | **Sampling the camera color with lods is only available in after and before post process passes**. Calling `CustomPassSampleCameraColor` at before rendering will only return black. |
+| **DrawRenderers Pass chained with FullScreen Pass**: In multi-pass setups where you draw objects in the camera color buffer and then read it from a fullscreen custom pass, you'll not see the objects you've drawn in the passes before your fullscreen pass (unless you are in Before Transparent). |
+| **MSAA**: When dealing with MSAA, you must check that the `Fetch color buffer` boolean is correctly setup because it will determine whether or not you'll be able to fetch the color buffer in this pass or not. |
 
 ### DrawRenderers Custom Pass
 
@@ -198,13 +200,14 @@ To code your custom pass, you have three entry point:
 In the `Setup` and `Execute` functions, we gives you access to the [ScriptableRenderContext](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.html) and a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html), these two classes contains everything you need to render pretty much everything but here we will focus on these two functions [ScriptableRenderContext.DrawRenderers](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.DrawRenderers.html) and [CommandBuffer.DrawProcedural](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.DrawProcedural.html).
 
 > **Pro Tips:**  
-> To allocate a render target buffer that works in every situation (VR, camera resize, ...), use the RTHandles system like so:
+> - To allocate a render target buffer that works in every situation (VR, camera resize, ...), use the RTHandles system like so:
 > ```CSharp
 > RTHandle myBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_SRGB, useDynamicScale: true, name: "My Buffer");
 > ```
-> Don't forget release the buffer afterwards using `myBuffer.Release();`  
-> To create materials, you can use the `CoreUtils.CreateEngineMaterial` function and destroy it with `CoreUtils.Destroy`.  
-> When scripting your pass, the destination render target will be set to what is defined in the UI. It means that you don't need to set the render target if you only use one.
+> - Don't forget release the buffer afterwards using `myBuffer.Release();`  
+> - To create materials, you can use the `CoreUtils.CreateEngineMaterial` function and destroy it with `CoreUtils.Destroy`.  
+> - When scripting your pass, the destination render target will be set to what is defined in the UI. It means that you don't need to set the render target if you only use one.
+> - **MSAA**: when you enable MSAA and you want to render objects to the main camera color buffer and then in a second pass, sample this buffer, you'll need to resolve it first. To do so you have this function `CustomPass.ResolveMSAAColorBuffer` that will resolve the MSAA camera color buffer into the standard camera color buffer.
 
 Now that you have allocated your resources you're ready to start doing stuff in the `Execute` function.
 

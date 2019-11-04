@@ -74,6 +74,7 @@ struct DirectionalLightData
     float specularDimmer;
     float angularDiameter;
     float distanceFromCamera;
+    float isRayTracedContactShadow;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightData
@@ -108,6 +109,7 @@ struct LightData
     real2 size;
     float diffuseDimmer;
     float specularDimmer;
+    float isRayTracedContactShadow;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData

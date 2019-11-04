@@ -147,7 +147,6 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
             },
             pragmas = new List<string>()
             {

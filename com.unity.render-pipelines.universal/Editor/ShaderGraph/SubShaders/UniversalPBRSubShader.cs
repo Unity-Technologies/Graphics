@@ -75,7 +75,6 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl",
             },
             pragmas = new List<string>()
             {
@@ -181,7 +180,6 @@ namespace UnityEditor.Rendering.Universal
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
             },
             pragmas = new List<string>()
             {

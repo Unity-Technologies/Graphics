@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Culling
             cam.useOcclusionCulling = settings.culling.useOcclusionCulling;
             cam.cullingMask = settings.culling.cullingMask;
+            cam.overrideSceneCullingMask = settings.culling.sceneCullingMaskOverride;
             // Buffer clearing
             add.clearColorMode = settings.bufferClearing.clearColorMode;
             add.backgroundColorHDR = settings.bufferClearing.backgroundColorHDR;
