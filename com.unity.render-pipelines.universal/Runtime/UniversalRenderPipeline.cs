@@ -149,6 +149,11 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            if (asset != null)
+                foreach (var renderer in asset.m_Renderers)
+                    renderer?.Cleanup();
+
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();

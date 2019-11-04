@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Material ID
             public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
             public static GUIContent transmissionEnableText = new GUIContent("Transmission", "When enabled HDRP processes the transmission effect for subsurface scattering. Simulates the translucency of the object.");
+            public static string transparentSSSErrorMessage = "Transparent Materials With SubSurface Scattering is not supported.";
 
             // Per pixel displacement
             public static GUIContent ppdMinSamplesText = new GUIContent("Minimum Steps", "Controls the minimum number of steps HDRP uses for per pixel displacement mapping.");
@@ -121,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty transparentBackfaceEnable = null;
         const string kTransparentBackfaceEnable = "_TransparentBackfaceEnable";
         MaterialProperty transparentSortPriority = null;
-        const string kTransparentSortPriority = "_TransparentSortPriority";
+        const string kTransparentSortPriority = HDMaterialProperties.kTransparentSortPriority;
         MaterialProperty transparentWritingMotionVec = null;
         const string kTransparentWritingMotionVec = "_TransparentWritingMotionVec";
         MaterialProperty doubleSidedEnable = null;
@@ -204,6 +205,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kRefractionModel = "_RefractionModel";
 
         MaterialProperty zWrite = null;
+        MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
         MaterialProperty transparentCullMode = null;
 
@@ -337,6 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 receivesSSR = FindProperty(kReceivesSSR);
 
             zWrite = FindProperty(kZWrite);
+            stencilRef = FindProperty(kStencilRef);
             zTest = FindProperty(kZTestTransparent);
             transparentCullMode = FindProperty(kTransparentCullMode);
 
@@ -564,6 +567,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.showMixedValue = isMixedRenderQueue;
             ++EditorGUI.indentLevel;
+
+            if (newMode == SurfaceType.Transparent)
+            {
+                if (stencilRef != null && ((int)stencilRef.floatValue & (int)StencilLightingUsage.SplitLighting) != 0)
+                    EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
+            }
+
             switch (mode)
             {
                 case SurfaceType.Opaque:
@@ -629,10 +639,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.AfterPostProcessing);
             }
 
-#if ENABLE_RAYTRACING
-            m_RenderingPassNames.Add("Raytracing");
-            m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
-#endif
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            {
+                m_RenderingPassNames.Add("Raytracing");
+                m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
+            }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
@@ -664,10 +675,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
             }
 
-#if ENABLE_RAYTRACING
-            m_RenderingPassNames.Add("Raytracing");
-            m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
-#endif
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            {
+                m_RenderingPassNames.Add("Raytracing");
+                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
+            }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }

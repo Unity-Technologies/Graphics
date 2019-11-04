@@ -13,6 +13,7 @@ using Is = UnityEngine.TestTools.Constraints.Is;
 using UnityEngine.Networking.PlayerConnection;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.TestTools.Graphics
 {
@@ -61,8 +62,13 @@ namespace UnityEngine.TestTools.Graphics
             // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
             int dummyRenderedFrameCount = 1;
 
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, settings.UseHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default, 24);
-            desc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
+            bool linearColorSpace = QualitySettings.activeColorSpace == ColorSpace.Linear;
+
+            // TODO: Expose API to get URP Default HDR Format
+            // TODO: URP uses GraphicsFormat.B10G11R11_UFloatPack32 but for some reason if we use it here Test 079_TonemappingNeutralLDR fails.
+            GraphicsFormat defaultHDRFormat = GraphicsFormat.R16G16B16A16_SFloat;
+            GraphicsFormat defaultLDRFormat = (linearColorSpace) ? GraphicsFormat.B8G8R8A8_SRGB : GraphicsFormat.B8G8R8A8_UNorm;
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, settings.UseHDR ? defaultHDRFormat : defaultLDRFormat, 24);
 
             var rt = RenderTexture.GetTemporary(desc);
             Texture2D actual = null;
@@ -80,12 +86,12 @@ namespace UnityEngine.TestTools.Graphics
 					// only proceed the test on the last rendered frame
 					if (dummyRenderedFrameCount == i)
 					{
-						actual = new Texture2D(width, height, format, false);
+                        actual = new Texture2D(width, height, format, false);
                         RenderTexture dummy = null;
 
                         if (settings.UseHDR)
                         {
-                            desc.colorFormat = RenderTextureFormat.Default;
+                            desc.graphicsFormat = defaultLDRFormat;
                             dummy = RenderTexture.GetTemporary(desc);
                             UnityEngine.Graphics.Blit(rt, dummy);
                         }

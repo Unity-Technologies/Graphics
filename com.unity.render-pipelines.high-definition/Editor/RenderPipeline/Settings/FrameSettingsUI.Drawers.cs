@@ -195,40 +195,40 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(
                 FrameSettingsField.LODBiasMode,
                 overridedDefaultValue: LODBiasMode.FromQualitySettings,
-                customGetter: () => (LODBiasMode)serialized.lodBiasMode.enumValueIndex,
-                customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
+                customGetter: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>(),
+                customSetter: v => serialized.lodBiasMode.SetEnumValue((LODBiasMode)v)
             );
             area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
                 customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
-                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.OverrideQualitySettings);
+                customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.LODBias,
                 overridedDefaultValue: QualitySettings.lodBias,
                 customGetter: () => serialized.lodBias.floatValue,
                 customSetter: v => serialized.lodBias.floatValue = (float)v,
-                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings,
-                labelOverride: serialized.lodBiasMode.enumValueIndex == (int)LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias");
+                customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
+                labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias");
 
             area.AmmendInfo(
                 FrameSettingsField.MaximumLODLevelMode,
                 overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
-                customGetter: () => (MaximumLODLevelMode)serialized.maximumLODLevelMode.enumValueIndex,
-                customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
+                customGetter: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>(),
+                customSetter: v => serialized.maximumLODLevelMode.SetEnumValue((MaximumLODLevelMode)v)
             );
             area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
                 customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.OverrideQualitySettings);
+                customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
                 overridedDefaultValue: QualitySettings.maximumLODLevel,
                 customGetter: () => serialized.maximumLODLevel.intValue,
                 customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings,
-                labelOverride: serialized.maximumLODLevelMode.enumValueIndex == (int)MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level");
+                customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
+                labelOverride: serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() == MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level");
 
             area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
                 overridedDefaultValue: defaultFrameSettings.materialQuality.Into(),
