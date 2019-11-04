@@ -5,12 +5,12 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
-        private static int m_RenderCubemapID                                = 0;
-        private static int m_RenderFullscreenSkyID                          = 1;
-        private static int m_RenderCubemapWithBackplateID                   = 2;
-        private static int m_RenderFullscreenSkyWithBackplateID             = 3;
-        private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4;
-        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5;
+        private static int m_RenderCubemapID                                = 0; // FragBaking
+        private static int m_RenderFullscreenSkyID                          = 1; // FragRender
+        private static int m_RenderCubemapWithBackplateID                   = 2; // FragBakingBackplate
+        private static int m_RenderFullscreenSkyWithBackplateID             = 3; // FragRenderBackplate
+        private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
+        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
         public HDRISkyRenderer()
         {
@@ -38,13 +38,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private Vector4 GetBackplateParameters0(HDRISky hdriSky)
         {
-            // _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionRadius
+            // xy: scale, z: groundLevel, w: projectionDistance
             return new Vector4(hdriSky.scale.value.x, hdriSky.scale.value.y, hdriSky.groundLevel.value, hdriSky.projectionDistance.value);
         }
 
         private Vector4 GetBackplateParameters1(float backplatePhi, HDRISky hdriSky)
         {
-            // _BackplateParameters1; // x: BackplateType, y: BlendAmount
+            // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
             float type = 3.0f;
             float blendAmount = hdriSky.blendAmount.value/100.0f;
             switch (hdriSky.backplateType.value)
@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private Vector4 GetBackplateParameters2(HDRISky hdriSky)
         {
+            // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
             float localPhi = -Mathf.Deg2Rad*hdriSky.plateTexRotation.value;
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }

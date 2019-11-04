@@ -8,17 +8,32 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
+    #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+
+    #pragma multi_compile _ DEBUG_DISPLAY
+    #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+
+    #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+    #define ATTRIBUTES_NEED_NORMAL
+    #define ATTRIBUTES_NEED_TANGENT
+    #define VARYINGS_NEED_POSITION_WS
+    #define VARYINGS_NEED_TANGENT_TO_WORLD
+
+    #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+
+    #define HAS_LIGHTLOOP
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
-        
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-
-    #define HAS_LIGHTLOOP
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
@@ -32,7 +47,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float4  _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
     float4  _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
     float4  _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
-    float3  _BackplateShadowTint; // xyz: ShadowTint
+    float3  _BackplateShadowTint;  // xyz: ShadowTint
     uint    _BackplateShadowFilter;
 
     #define _Exposure           _SkyParam.x
@@ -96,27 +111,20 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return _WorldSpaceCameraPos + alpha*dir;
     }
 
-    float3 GetPositionOnInfinitePlaneGroundLevel(float3 dir, float groundLevel)
-    {
-        const float alpha = (groundLevel - _WorldSpaceCameraPos.y)/dir.y;
-
-        return _WorldSpaceCameraPos + alpha*dir;
-    }
-
     float GetSDF(out float scale, float2 position)
     {
         position = RotationUp(float3(position.x, 0.0f, position.y), _CosSinPhiPlate).xz;
-        if (_BackplateType == 0)
+        if (_BackplateType == 0) // Circle
         {
             scale = _ScaleX;
             return CircleSDF(position, _ScaleX);
         }
-        else if (_BackplateType == 1)
+        else if (_BackplateType == 1) // Rectangle
         {
             scale = min(_ScaleX, _ScaleY);
             return RectangleSDF(position, _Scales);
         }
-        else if (_BackplateType == 2)
+        else if (_BackplateType == 2) // Ellipse
         {
             scale = min(_ScaleX, _ScaleY);
             return EllipseSDF(position, _Scales);
@@ -137,7 +145,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     bool IsHit(float sdf, float dirY)
     {
-        return sdf < 0.0f && dirY < 0.0f && GetPrimaryCameraPosition().y > _GroundLevel;
+        return sdf < 0.0f && dirY < 0.0f && _WorldSpaceCameraPos.y > _GroundLevel;
     }
 
     bool IsBackplateHit(out float3 positionOnBackplatePlane, float3 dir)
@@ -189,9 +197,10 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     {
         // Reverse it to point into the scene
         float3 offset = RotationUp(float3(_OffsetTexX, 0, _OffsetTexY), _CosSinPhiPlate);
-        float3 dir = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0) + offset; // No need for normalization
+        float3 dir    = positionOnBackplate - float3(0, _ProjectionDistance + _GroundLevel, 0) + offset; // No need for normalization
 
-        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
+        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
         // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
@@ -201,7 +210,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
 
         float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint);
-        //float3 shadowColor = shadow3; // TODO: future use the ShadowTint from Light cf. HDShadowLoop.hlsl defines
 
         float3 output = lerp(            GetColorWithRotation(originalDir,                          exposure, _CosSinPhi).rgb,
                              shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex),  exposure, _CosSinPhi).rgb, blend);
@@ -303,9 +311,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
-                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-                #pragma multi_compile _ SHADOWS_SHADOWMASK
-
                 #pragma fragment FragBaking
             ENDHLSL
         }
@@ -319,9 +324,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
-                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-                #pragma multi_compile _ SHADOWS_SHADOWMASK
-
                 #pragma fragment FragRender
             ENDHLSL
         }
@@ -336,9 +338,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
-                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-                #pragma multi_compile _ SHADOWS_SHADOWMASK
-
                 #pragma fragment FragBakingBackplate
             ENDHLSL
         }
@@ -352,9 +351,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
-                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-                #pragma multi_compile _ SHADOWS_SHADOWMASK
-
                 #pragma fragment FragRenderBackplate
             ENDHLSL
         }
@@ -364,14 +360,11 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         Pass
         {
             ZWrite On
-            ZTest Always
+            ZTest LEqual
             Blend Off
             Cull Off
 
             HLSLPROGRAM
-                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-                #pragma multi_compile _ SHADOWS_SHADOWMASK
-
                 #pragma fragment FragBakingBackplateDepth
             ENDHLSL
         }
@@ -380,14 +373,11 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         Pass
         {
             ZWrite On
-            ZTest Always
+            ZTest LEqual
             Blend Off
             Cull Off
 
             HLSLPROGRAM
-                #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-                #pragma multi_compile _ SHADOWS_SHADOWMASK
-
                 #pragma fragment FragRenderBackplateDepth
             ENDHLSL
         }
