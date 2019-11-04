@@ -5,7 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class HDDiffuseDenoiser
     {
-#if ENABLE_RAYTRACING
         // Resources used for the denoiser
         ComputeShader m_SimpleDenoiserCS;
         Texture m_OwenScrambleRGBA;
@@ -21,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
         }
 
         public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager)
-        {   
+        {
             // Keep track of the resources
             m_SimpleDenoiserCS = rpRTResources.diffuseDenoiserCS;
             m_OwenScrambleRGBA = rpResources.textures.owenScrambledRGBATex;
@@ -73,6 +72,5 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
                 cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
             }
         }
-#endif
     }
 }
