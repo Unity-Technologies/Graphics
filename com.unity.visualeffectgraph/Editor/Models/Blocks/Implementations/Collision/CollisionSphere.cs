@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The collision sphere.")]
+            [Tooltip("Sets the sphere with which particles can collide.")]
             public Sphere Sphere = new Sphere() { radius = 1.0f };
         }
 

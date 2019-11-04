@@ -50,6 +50,14 @@ Pass
 		float4 cPosPrevious : TEXCOORD5;
 		float4 cPosNonJiterred : TEXCOORD6;
 		#endif
+		
+		#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+		float3 normal : TEXCOORD7;
+		#endif
+		#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+		float4 tangent : TEXCOORD8;
+		#endif
+		
         ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
@@ -82,6 +90,13 @@ Pass
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
+
+#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
+#define VFX_VARYING_NORMAL normal
+#endif
+#if SHADERGRAPH_NEEDS_TANGENT_FORWARD
+#define VFX_VARYING_TANGENT tangent
+#endif
 		
 	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
 	
@@ -93,6 +108,8 @@ Pass
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		ps_output o = (ps_output)0;
 		VFXTransformPSInputs(i);
+		${VFXComputeNormalWS}
+		
         #if VFX_SHADERGRAPH        
             ${VFXAdditionalInterpolantsPreparation}
             ${SHADERGRAPH_PIXEL_CALL_FORWARD}

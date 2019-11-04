@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     {
         protected VFXLitQuadStripOutput() : base(true) { } // strips
 
-        public override string name { get { return "Lit Quad Strip Output"; } }
+        public override string name { get { return "Output ParticleStrip Lit Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }
@@ -20,6 +20,9 @@ namespace UnityEditor.VFX
 
         [VFXSetting, SerializeField]
         private StripTilingMode tilingMode = StripTilingMode.Stretch;
+
+        [VFXSetting, SerializeField]
+        private bool UseCustomZAxis = false;
 
         public class NormalBendingProperties
         {
@@ -83,6 +86,9 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+
+                if (UseCustomZAxis)
+                    yield return "VFX_STRIPS_ORIENT_CUSTOM";
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
             }
