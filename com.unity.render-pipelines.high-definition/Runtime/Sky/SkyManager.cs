@@ -386,7 +386,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool useRealtimeGI = true;
 #if UNITY_EDITOR
+#pragma warning disable 618
             useRealtimeGI = UnityEditor.Lightmapping.realtimeGI;
+#pragma warning restore 618
 #endif
             // Working around GI current system
             // When using baked lighting, setting up the ambient probe should be sufficient => We only need to update RenderSettings.ambientProbe with either the static or visual sky ambient probe (computed from GPU)
