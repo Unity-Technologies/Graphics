@@ -250,6 +250,12 @@ HDRP includes the following [anti-aliasing](Anti-Aliasing.html) methods to help 
 
 HDRP uses a physically-based Camera system that works seamlessly with the other physical features of HDRP, such as [physical light units](#PLU), to produce physically-accurate, unified results. A physically-based camera works like a real-world camera, and therefore uses the same properties. This allows you to configure an HDRP Camera to mimic the behavior of a real-world camera, with expected results for effects such as exposure and depth of field. For more information on HDRP's physically-based camera, includings a description of how to use it, see the [Camera component documentation](HDRP-Camera.html).
 
+### Custom Passes
+
+![HDRPFeatures-CustomPass](Images/HDRPFeatures-CustomPass.gif)
+
+Custom Passes allow you to inject shader and C# at certain points inside the render loop, giving you the ability to draw objects, do fullscreen passes and read some camera buffers like depth, color or normal, see the [Custom Pass documentation](Custom-Pass.md).
+
 <a name="Tools"></a>
 
 ## Tools

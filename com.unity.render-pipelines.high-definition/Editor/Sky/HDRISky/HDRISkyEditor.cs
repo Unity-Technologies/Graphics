@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetUpperHemisphereLuxValue();
             }
 
-            if (m_IntensityMode.value.enumValueIndex == (int)SkyIntensityMode.Lux)
+            if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
             {
                 EditorGUI.indentLevel++;
                 PropertyField(m_DesiredLuxValue);

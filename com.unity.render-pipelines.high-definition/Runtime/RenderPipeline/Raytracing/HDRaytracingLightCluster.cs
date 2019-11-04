@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint lightIndex;
     }
 
-#if ENABLE_RAYTRACING
     class HDRaytracingLightCluster
     {
         // External data
@@ -253,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
                     m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
 
-                    if (currentLight.lightTypeExtent == LightTypeExtent.Punctual)
+                    if (currentLight.type != HDLightType.Area)
                     {
                         m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
@@ -450,7 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 LightCategory lightCategory = LightCategory.Count;
                 GPULightType gpuLightType = GPULightType.Point;
                 LightVolumeType lightVolumeType = LightVolumeType.Count;
-                HDRenderPipeline.EvaluateGPULightType(light.type, additionalLightData.lightTypeExtent, additionalLightData.spotLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
+                HDLightType lightType = additionalLightData.type;
+                HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                 lightData.lightType = gpuLightType;
 
@@ -574,20 +574,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.shadowIndex = -1;
                 lightData.screenSpaceShadowIndex = -1;
 
-                if (light != null && light.cookie != null)
+                if (light.cookie != null)
                 {
                     // TODO: add texture atlas support for cookie textures.
-                    switch (light.type)
+                    // TODO: why not using GPULightData here too?
+                    switch (lightType)
                     {
-                        case LightType.Spot:
+                        case HDLightType.Spot:
                             lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
-                        case LightType.Point:
+                        case HDLightType.Point:
+                        case HDLightType.Area:
                             lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, light.cookie);
                             break;
                     }
                 }
-                else if (light.type == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
+                // TODO: why not using GPULightData here too?
+                else if (lightType == HDLightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
                 {
                     // Projectors lights must always have a cookie texture.
                     // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
@@ -828,5 +831,4 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalInt(HDShaderIDs._EnvLightCountRT, GetEnvLightCount());
         }
     }
-#endif
 }
