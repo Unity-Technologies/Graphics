@@ -21,6 +21,10 @@ The last step is important because, if you haven't installed the sample and load
 
 HDRP has deprecated the Linear Fog, Exponential Fog, Volumetric Fog, and Volumetric Fog Quality overrides in 2019.3 and replaced them with a single [Fog](Override-Fog.html) override. This override acts as an exponential fog with a height component by default and allows you to add additional volumetric fog. To automatically update old fog overrides to the new system, select **Edit > Render Pipeline > Upgrade Fog Volume Components**. Note that it can not safely convert all cases so you may need to upgrade some manually.
 
+## Shadow Maps
+
+Before Unity 2019.3, each Light in HDRP exposed several options for the shadow map bias. From 2019.3, HDRP has replaced every option, except for **Normal Bias**, with **Slope-Scale Depth Bias**. Introducing this property makes the shadow map bias setup fairly different to what it was. This means that, if the default values lead to unexpected results, you may need a new setup for the bias on each Light. 
+
 ## Area Lights
 
 Before Unity 2019.3, HDRP synchronized the width and height of an area [Light](Light-Component.html)'s **Emissive Mesh** with the [localScale](https://docs.unity3d.com/ScriptReference/Transform-localScale.html) of its Transform. From Unity 2019.3, HDRP uses the [lossyScale](https://docs.unity3d.com/ScriptReference/Transform-lossyScale.html) to make the **Emissive Mesh** account for the scale of the parent Transforms. This means that you must resize every area Light in your Unity Project according to the scale of its parent.
@@ -33,12 +37,12 @@ To do this, Unity opens a prompt when you begin the upgrade, asking if you want 
 
 ## Max Smoothness, Emission Radius, Bake Shadows Radius and Bake Shadows Angle 
 
-Max Smoothness, Emission Radius, Bake Shadows Radius was separate control for Point and Spot Light. The UI have been updated to only display a single parameter: "Radius" that drive all the mentionned parameters.
-Max Smoothness, Angular Diameter, Bake Shadows Angle was separate control for Directional Light. The UI have been updated to only display a single parameter: "Angular Diameter" that drive all the mentionned parameters.
+Before Unity 2019.3, Max Smoothness, Emission Radius, and Bake Shadows Radius were separate controls for Point and Spot Lights. From Unity 2019.3, the UI displays a single property, called **Radius** that controls all of the properties mentioned above.
+Also, Max Smoothness, Angular Diameter, and Bake Shadows Angle were separate controls for Directional Lights. The UI now displays a single property, called **Angular Diameter**, that controls all the mentioned above.
 
-When upgrading, it mean slight shift of highlight shape or shadow penumbra size can happens if the drived parameters was different from what our automatic conversion from "Radius" or "Angular Diameter" is doing.
+When upgrading, a slight shift of highlight shape or shadow penumbra size can occur. This happens if you set the original properties to values that do not match what the automatic conversion from "Radius" or "Angular Diameter" results in.
 
 ## Custom Shaders
 
-In 2019.3, a change has been made to reflection probes, allowing you to compress the range used when rendering the probes content. This however comes with a small change to the Shader framework, the function  `SampleEnv()` will now require an additional parameters, the factor we need to apply to the probe data to compensate the range compression done at probe rendering time. This value is found in the data structure `EnvLightData` under the name of `rangeCompressionFactorCompensation`. 
+2019.3 introduces a change to Reflection Probes which allows you to compress the range that Unity uses when rendering the probe's content. This comes with a small change to the Shader framework, the function `SampleEnv()` now requires an additional parameter, being the factor to apply to the probe data to compensate the range compression done at probe rendering time. This value is in the data structure `EnvLightData` under the name of `rangeCompressionFactorCompensation`. 
 
