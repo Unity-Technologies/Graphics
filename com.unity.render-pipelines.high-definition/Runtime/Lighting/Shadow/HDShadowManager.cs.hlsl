@@ -15,16 +15,12 @@ struct HDShadowData
     float4 proj;
     float2 atlasOffset;
     float worldTexelSize;
-    int _pad0;
+    float normalBias;
     real4 zBufferParam;
     float4 shadowMapSize;
-    float normalBias;
-    float constantBias;
-    float _pad1;
-    float _pad2;
     real4 shadowFilterParams0;
     float3 cacheTranslationDelta;
-    float _padding1;
+    float _pad0;
     float4x4 shadowToWorld;
 };
 

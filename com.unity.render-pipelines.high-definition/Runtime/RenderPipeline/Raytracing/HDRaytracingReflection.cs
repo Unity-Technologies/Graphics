@@ -2,7 +2,6 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // Intermediate buffer for computing the effect
@@ -348,5 +347,4 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
-#endif
 }
