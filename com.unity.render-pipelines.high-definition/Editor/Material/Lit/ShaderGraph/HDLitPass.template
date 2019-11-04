@@ -26,7 +26,7 @@ Pass
 
     $splice(InstancingOptions)
 
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
+    $LodCrossFade: #pragma multi_compile _ LOD_FADE_CROSSFADE
 
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _DOUBLESIDED_ON

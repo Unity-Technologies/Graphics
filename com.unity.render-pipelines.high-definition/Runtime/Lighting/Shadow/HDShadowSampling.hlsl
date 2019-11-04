@@ -1,7 +1,6 @@
 // Various shadow sampling logic.
 // Again two versions, one for dynamic resource indexing, one for static resource access.
 
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -15,7 +14,6 @@ real SampleShadow_PCF_Tent_3x3(float4 shadowAtlasSize, float3 coord, Texture2D t
     // add the depth bias
     coord.z += depthBias;
 #endif
-
     real shadow = 0.0;
     real fetchesWeights[4];
     real2 fetchesUV[4];
@@ -39,7 +37,6 @@ real SampleShadow_PCF_Tent_5x5(float4 shadowAtlasSize, float3 coord, Texture2D t
     // add the depth bias
     coord.z += depthBias;
 #endif
-
     real shadow = 0.0;
     real fetchesWeights[9];
     real2 fetchesUV[9];
@@ -87,7 +84,6 @@ real SampleShadow_PCF_Tent_7x7(float4 shadowAtlasSize, float3 coord, Texture2D t
     // add the depth bias
     coord.z += depthBias;
 #endif
-
     real shadow = 0.0;
     real fetchesWeights[16];
     real2 fetchesUV[16];
@@ -144,12 +140,12 @@ real SampleShadow_PCF_Tent_7x7(float4 shadowAtlasSize, float3 coord, Texture2D t
 //
 float SampleShadow_PCF_9tap_Adaptive(float4 texelSizeRcp, float3 tcs, float filterSize, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
 {
-    texelSizeRcp *= filterSize;
-
 #if SHADOW_USE_DEPTH_BIAS == 1
     // add the depth bias
     tcs.z += depthBias;
 #endif
+
+    texelSizeRcp *= filterSize;
 
     // Terms0 are weights for the individual samples, the other terms are offsets in texel space
     float4 vShadow3x3PCFTerms0 = float4(20.0 / 267.0, 33.0 / 267.0, 55.0 / 267.0, 0.0);
@@ -270,9 +266,8 @@ float SampleShadow_MSM_1tap(float3 tcs, float lightLeakBias, float momentBias, f
 //
 //                  PCSS sampling
 //
-float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, float depthBias, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp)
+float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, float shadowSoftness, float minFilterRadius, int blockerSampleCount, int filterSampleCount, Texture2D tex, SamplerComparisonState compSamp, SamplerState samp, float depthBias)
 {
-
 #if SHADOW_USE_DEPTH_BIAS == 1
     // add the depth bias
     tcs.z += depthBias;
