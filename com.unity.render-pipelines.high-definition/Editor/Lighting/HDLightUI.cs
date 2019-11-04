@@ -819,7 +819,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
-                    EditorGUILayout.Slider(serialized.constantBias, 0.0f, 1.0f, s_Styles.constantScale);
+                    EditorGUILayout.Slider(serialized.slopeBias, 0.0f, 1.0f, s_Styles.slopeBias);
                     EditorGUILayout.Slider(serialized.normalBias, 0.0f, 5.0f, s_Styles.normalBias);
 
                     if (lightType == HDLightType.Spot
