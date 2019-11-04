@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXDistortionMeshOutput : VFXAbstractDistortionOutput
     {
-        public override string name { get { return "Distortion Mesh Output"; } }
+        public override string name { get { return "Output Particle Distortion Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return true; } }
@@ -43,9 +43,9 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            [Tooltip("Mesh to be used for particle rendering.")]
+            [Tooltip("Specifies the mesh used to render the particle.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
-            [Tooltip("Define a bitmask to control which submeshes are rendered."), BitField]
+            [Tooltip("Defines a bitmask to control which submeshes are rendered."), BitField]
             public uint subMeshMask = 0xffffffff;
         }
 

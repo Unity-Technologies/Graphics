@@ -6,21 +6,36 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(experimental = true)]
-    class VFXQuadStripOutput : VFXAbstractParticleOutput
+    class VFXQuadStripOutput : VFXShaderGraphParticleOutput
     {
         [VFXSetting, SerializeField]
-        protected StripTilingMode tilingMode = StripTilingMode.Stretch; 
+        protected StripTilingMode tilingMode = StripTilingMode.Stretch;
+
+        [VFXSetting, SerializeField]
+        private bool UseCustomZAxis = false;
 
         protected VFXQuadStripOutput() : base(true) { }
-        public override string name { get { return "Quad Strip Output"; } }
+        public override string name { get { return "Output ParticleStrip Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
 
         public override bool supportsUV { get { return true; } }
 
-        public class InputProperties
+        public class OptionalInputProperties
         {
+            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
+                if (shaderGraph == null)
+                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                return properties;
+            }
         }
 
         protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
@@ -28,7 +43,8 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            yield return slotExpressions.First(o => o.name == "mainTexture");
+            if (shaderGraph == null)
+                yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -51,6 +67,8 @@ namespace UnityEditor.VFX
             }
         }
 
+
+
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -60,6 +78,9 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+
+                if (UseCustomZAxis)
+                    yield return "VFX_STRIPS_ORIENT_CUSTOM";
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
             }
