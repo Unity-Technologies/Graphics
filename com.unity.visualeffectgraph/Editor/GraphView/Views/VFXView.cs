@@ -1,4 +1,3 @@
-//#define OLD_COPY_PASTE
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -47,6 +46,7 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_NoAssetLabel;
+        VisualElement m_LockedElement;
 
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -284,20 +284,28 @@ namespace UnityEditor.VFX.UI
             return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
+        SelectionDragger m_SelectionDragger;
+        RectangleSelector m_RectangleSelector;
+
         public VFXView()
         {
             SetupZoom(0.125f, 8);
 
-            //this.AddManipulator(new SelectionSetter(this));
             this.AddManipulator(new ContentDragger());
-            this.AddManipulator(new SelectionDragger());
-            this.AddManipulator(new RectangleSelector());
+            m_SelectionDragger = new SelectionDragger();
+            m_RectangleSelector = new RectangleSelector();
+            this.AddManipulator(m_SelectionDragger);
+            this.AddManipulator(m_RectangleSelector);
             this.AddManipulator(new FreehandSelector());
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
             if( ! EditorGUIUtility.isProSkin)
             {
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
+            }
+            else
+            {
+                styleSheets.Add(LoadStyleSheet("VFXView-dark"));
             }
 
             AddLayer(-1);
@@ -362,7 +370,7 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("Please Select An Asset");
+            m_NoAssetLabel = new Label("Please Open An Asset");
             m_NoAssetLabel.style.position = PositionType.Absolute;
             m_NoAssetLabel.style.left = 0f;
             m_NoAssetLabel.style.right = new StyleLength(0f);
@@ -373,6 +381,21 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.color = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
+
+            m_LockedElement = new Label("Asset is Locked");
+            m_LockedElement.style.position = PositionType.Absolute;
+            m_LockedElement.style.left = 0f;
+            m_LockedElement.style.right = new StyleLength(0f);
+            m_LockedElement.style.top = new StyleLength(0f);
+            m_LockedElement.style.bottom = new StyleLength(0f);
+            m_LockedElement.style.unityTextAlign = TextAnchor.MiddleCenter;
+            m_LockedElement.style.fontSize = new StyleLength(72f);
+            m_LockedElement.style.color = Color.white * 0.75f;
+            m_LockedElement.style.display = DisplayStyle.None;
+            m_LockedElement.focusable = true;
+            //m_LockedElement.RegisterCallback<MouseDownEvent>(e => e.StopPropagation());
+            m_LockedElement.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
+
 
             m_Blackboard = new VFXBlackboard(this);
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
@@ -386,7 +409,9 @@ namespace UnityEditor.VFX.UI
                 ShowComponentBoard();
             toggleComponentBoard.value = componentBoardVisible;*/
 
+            Add(m_LockedElement);
             Add(m_Toolbar);
+            m_Toolbar.SetEnabled(false);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
@@ -650,16 +675,43 @@ namespace UnityEditor.VFX.UI
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
+                m_Toolbar.SetEnabled(true);
 
-                pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
+                m_LockedElement.style.display = AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible) ? DisplayStyle.None: DisplayStyle.Flex;
             }
             else
             {
                 if (m_NoAssetLabel.parent == null)
                 {
                     Add(m_NoAssetLabel);
+                    m_Toolbar.SetEnabled(false);
                 }
             }
+        }
+
+        public void OnFocus()
+        {
+            if (controller != null && controller.model.asset != null && !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
+            {
+                if (m_LockedElement.style.display != DisplayStyle.Flex)
+                {
+                m_LockedElement.style.display = DisplayStyle.Flex;
+                    this.RemoveManipulator(m_SelectionDragger);
+                    this.RemoveManipulator(m_RectangleSelector);
+                    m_LockedElement.Focus();
+                }
+
+            }
+            else
+            {
+                if (m_LockedElement.style.display != DisplayStyle.None)
+                {
+                m_LockedElement.style.display = DisplayStyle.None;
+                    this.AddManipulator(m_SelectionDragger);
+                    this.AddManipulator(m_RectangleSelector);
+                }
+            }
+
         }
 
         public void FrameNewController()
@@ -1390,6 +1442,7 @@ namespace UnityEditor.VFX.UI
         {
             Task task = Provider.Checkout(controller.model.visualEffectObject, CheckoutMode.Both);
             task.Wait();
+            OnFocus();
         }
 
         void ElementAddedToGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
@@ -1431,9 +1484,6 @@ namespace UnityEditor.VFX.UI
 
 
         VFXComponentBoard m_ComponentBoard;
-
-        public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
-        public Vector2 pasteOffset = Vector2.zero;
 
         public VFXBlackboard blackboard
         {
@@ -1516,7 +1566,6 @@ namespace UnityEditor.VFX.UI
 
         public string SerializeElements(IEnumerable<GraphElement> elements)
         {
-            pasteOffset = defaultPasteOffset;
 
             Profiler.BeginSample("VFXCopy.SerializeElements");
             string result = VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
@@ -1541,8 +1590,6 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXPaste.VFXPaste.UnserializeAndPasteElements");
             VFXPaste.UnserializeAndPasteElements(controller, pasteCenter, data, this);
             Profiler.EndSample();
-
-            pasteOffset += defaultPasteOffset;
         }
 
         const float k_MarginBetweenContexts = 30;
@@ -1737,6 +1784,8 @@ namespace UnityEditor.VFX.UI
 
             foreach( var context in GetAllContexts())
             {
+                if (context.controller.model is VFXBlockSubgraphContext)
+                    return false;
                 if (usedDatas.Contains(context.controller.model.GetData()) && !selectedContexts.Contains(context))
                     return false;
             }

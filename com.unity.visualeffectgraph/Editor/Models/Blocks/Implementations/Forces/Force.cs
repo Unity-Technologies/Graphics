@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Force")]
     class Force : VFXBlock
     {
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies whether the added force is relative to the current particle velocity or is an absolute value.")]
         ForceMode Mode = ForceMode.Absolute;
 
         public override string name { get { return "Force"; } }
@@ -17,13 +17,13 @@ namespace UnityEditor.VFX.Block
 
         public class AbsoluteProperties
         {
-            [Tooltip("Force vector applied to particles (in units per squared second)")]
+            [Tooltip("Sets the force vector applied to particles (in units per squared second).")]
             public Vector Force = new Vector3(1.0f, 0.0f, 0.0f);
         }
 
         public class RelativeProperties
         {
-            [Tooltip("Velocity vector of the medium (eg: wind)")]
+            [Tooltip("Sets the relative velocity affecting the particles.")]
             public Vector Velocity = new Vector3(1.0f, 0.0f, 0.0f);
         }
 

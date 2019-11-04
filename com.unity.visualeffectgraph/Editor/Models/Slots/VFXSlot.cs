@@ -803,9 +803,9 @@ namespace UnityEditor.VFX
                 return false;
 
             if (direction == Direction.kOutput)
-                InnerLink(this, other);
+                InnerLink(this, other, notify);
             else
-                InnerLink(other, this);
+                InnerLink(other, this, notify);
 
             if (notify)
             {
@@ -1113,10 +1113,10 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        private static void InnerLink(VFXSlot output, VFXSlot input)
+        private static void InnerLink(VFXSlot output, VFXSlot input, bool notify)
         {
-            input.UnlinkAll(); // First disconnect any other linked slot
-            input.PropagateToTree(s => s.UnlinkAll()); // Unlink other links in tree
+            input.UnlinkAll(false, notify); // First disconnect any other linked slot
+            input.PropagateToTree(s => s.UnlinkAll(false, notify)); // Unlink other links in tree
 
             input.m_LinkedSlots.Add(output);
             output.m_LinkedSlots.Add(input);

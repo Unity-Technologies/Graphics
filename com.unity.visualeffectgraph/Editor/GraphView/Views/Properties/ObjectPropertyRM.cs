@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.UI
                 Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " + typeof(UnityObject).Name);
             }
 
-            UpdateGUI(false);
+            UpdateGUI(!object.ReferenceEquals(m_Value, obj));
         }
 
         public override bool showsEverything { get { return true; } }

@@ -146,6 +146,11 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty,bool overrideMixed,bool valueMixed, out bool overriddenChanged)
         {
+            if (parameter.realType == typeof(Matrix4x4).Name)
+            {
+                overriddenChanged = false;
+                return false;
+            }
             EditorGUILayout.BeginHorizontal();
 
             var height = 16f;
@@ -433,7 +438,7 @@ namespace UnityEditor.VFX
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
 
-            var buttonWidth = GUILayout.Width(50);
+            var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), buttonWidth))
             {
@@ -468,12 +473,12 @@ namespace UnityEditor.VFX
             float playRate = effect.playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Contents.playRate, GUILayout.Width(44));
+            GUILayout.Label(Contents.playRate, GUILayout.Width(46));
             playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
             effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
 
             var eventType = Event.current.type;
-            if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(36)))
+            if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
             {
                 GenericMenu menu = new GenericMenu();
                 foreach (var value in VisualEffectControl.setPlaybackValues)
@@ -722,6 +727,14 @@ namespace UnityEditor.VFX
             {
                 EditorPrefs.SetBool(kGeneralFoldoutStatePreferenceName, newShowGeneralCategory);
                 showGeneralCategory = newShowGeneralCategory;
+            }
+            m_SingleSerializedObject.Update();
+            if (m_OtherSerializedObjects != null) // copy the set value to all multi selection by hand, because it might not be at the same array index or already present in the property sheet
+            {
+                foreach (var serobj in m_OtherSerializedObjects)
+                {
+                    serobj.Update();
+                }
             }
 
             if(showGeneralCategory)
@@ -1175,11 +1188,11 @@ namespace UnityEditor.VFX
             public static readonly GUIContent headerProperties =    EditorGUIUtility.TrTextContent("Properties");
             public static readonly GUIContent headerRenderer =      EditorGUIUtility.TrTextContent("Renderer");
 
-            public static readonly GUIContent assetPath =           EditorGUIUtility.TrTextContent("Asset Template");
-            public static readonly GUIContent randomSeed =          EditorGUIUtility.TrTextContent("Random Seed");
-            public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play");
-            public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit");
-            public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed");
+            public static readonly GUIContent assetPath =           EditorGUIUtility.TrTextContent("Asset Template", "Sets the Visual Effect Graph asset to be used in this component.");
+            public static readonly GUIContent randomSeed =          EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
+            public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.");
+            public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.");
+            public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.");
             public static readonly GUIContent resetInitialEvent =   EditorGUIUtility.TrTextContent("Default");
             public static readonly GUIContent setPlayRate =         EditorGUIUtility.TrTextContent("Set");
             public static readonly GUIContent playRate =            EditorGUIUtility.TrTextContent("Rate");
