@@ -8,12 +8,13 @@ namespace UnityEditor.VFX.Block
     class KillSphere : VFXBlock
     {
         [VFXSetting]
+        [Tooltip("Specifies the mode by which particles are killed off. ‘Solid’ affects only particles within the specified volume, while ‘Inverted’ affects only particles outside of the volume.")]
         public CollisionBase.Mode mode = CollisionBase.Mode.Solid;
 
         public override string name { get { return "Kill (Sphere)"; } }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -40,7 +41,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The killing sphere.")]
+            [Tooltip("Sets the center and radius of the sphere used to determine the kill volume.")]
             public Sphere Sphere = new Sphere() { radius = 1.0f };
         }
 

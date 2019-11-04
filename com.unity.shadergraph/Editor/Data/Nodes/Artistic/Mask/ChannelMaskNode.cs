@@ -22,11 +22,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Channel-Mask-Node"; }
-        }
-
         const int InputSlotId = 0;
         const int OutputSlotId = 1;
         const string kInputSlotName = "In";
@@ -48,7 +43,7 @@ namespace UnityEditor.ShaderGraph
                 bool alpha = (channelMask & 8) != 0;
                 channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
             }
-            return string.Format("Unity_ChannelMask_{0}_{1}", channelSum, precision);
+            return $"Unity_ChannelMask_{channelSum}_{FindSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -86,16 +81,21 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionPrototype(string argIn, string argOut)
         {
-            return string.Format("void {0} ({1} {2}, out {3} {4})", GetFunctionName(), NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType), argIn, NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<DynamicVectorMaterialSlot>(OutputSlotId).concreteValueType), argOut);
+            return string.Format("void {0} ({1} {2}, out {3} {4})"
+                , GetFunctionName()
+                , FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType.ToShaderString()
+                , argIn
+                , FindOutputSlot<DynamicVectorMaterialSlot>(OutputSlotId).concreteValueType.ToShaderString()
+                , argOut);
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             ValidateChannelCount();
             string inputValue = GetSlotValue(InputSlotId, generationMode);
             string outputValue = GetSlotValue(OutputSlotId, generationMode);
-            visitor.AddShaderChunk(string.Format("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType), GetVariableNameForSlot(OutputSlotId)), true);
-            visitor.AddShaderChunk(GetFunctionCallBody(inputValue, outputValue), true);
+            sb.AppendLine(string.Format("{0} {1};", FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId)));
+            sb.AppendLine(GetFunctionCallBody(inputValue, outputValue));
         }
 
         string GetFunctionCallBody(string inputValue, string outputValue)
@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph
             return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>
@@ -129,15 +129,15 @@ namespace UnityEditor.ShaderGraph
                                     s.AppendLine("Out = In.r;");
                                     break;
                                 case 2:
-                                    s.AppendLine(string.Format("Out = {0}2({1}, {2});", precision,
+                                    s.AppendLine(string.Format("Out = $precision2({0}, {1});",
                                         red ? "In.r" : "0", green ? "In.g" : "0"));
                                     break;
                                 case 3:
-                                    s.AppendLine(string.Format("Out = {0}3({1}, {2}, {3});", precision,
+                                    s.AppendLine(string.Format("Out = $precision3({0}, {1}, {2});",
                                         red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
                                     break;
                                 case 4:
-                                    s.AppendLine(string.Format("Out = {0}4({1}, {2}, {3}, {4});", precision,
+                                    s.AppendLine(string.Format("Out = $precision4({0}, {1}, {2}, {3});",
                                         red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
                                     break;
                                 default:

@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.Profiling;
 
@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.UI
             UpdateInfos();
             Profiler.EndSample();
 
-            sourceNode.DataEdgesMightHaveChanged();
+            sourceNode.DataEdgesMightHaveChanged();            
 
             Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
             NotifyChange(AnyThing);
@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.UI
         static private HashSet<IVFXSlotContainer> CollectAnscestorOfSpawner(IEnumerable<VFXNodeController> allSlotContainerControllers)
         {
             var operatorDependOnSpawner = new HashSet<IVFXSlotContainer>();
-            foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.kSpawner))
+            foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.Spawner))
             {
                 VFXViewController.CollectAncestorOperator(block.model as IVFXSlotContainer, operatorDependOnSpawner);
             }
@@ -211,7 +211,7 @@ namespace UnityEditor.VFX.UI
 #if _RESTRICT_ATTRIBUTE_ACCESS
 
                 var contextTypeInChildren = cache.localChildrenOperator.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
-                if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner))
+                if (contextTypeInChildren.Any(o => o == VFXContextType.Spawner))
                 {
                     if (cache.descendantOfAttribute == null)
                         cache.descendantOfAttribute = CollectDescendantOfAttribute(viewController.AllSlotContainerControllers);
@@ -406,6 +406,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return VFXContextController.IsTypeExpandable(portType); }
         }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return true; } }
 
         public virtual string iconName
         {
@@ -470,13 +471,13 @@ namespace UnityEditor.VFX.UI
 
         public void SetPropertyValue(object value)
         {
-            Undo.RecordObject(model.GetMasterSlot(), "VFXSlotValue"); // The slot value is stored on the master slot, not necessarly my own slot
+            Undo.RecordObject(model.GetMasterSlot(), "VFXSlotValue"); // The slot value is stored on the master slot, not necessarily my own slot
             model.value = value;
         }
 
         public static bool SlotShouldSkipFirstLevel(VFXSlot slot)
         {
-            return slot.spaceable && slot.children.Count() == 1;
+            return slot is VFXSlotEncapsulated;
         }
 
         public virtual void ExpandPath()
@@ -679,7 +680,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class VFXDataAnchorGizmoContext : VFXGizmoUtility.Context
+    class VFXDataAnchorGizmoContext : VFXGizmoUtility.Context
     {
         // Provider
         internal VFXDataAnchorGizmoContext(VFXDataAnchorController controller)
@@ -754,7 +755,8 @@ namespace UnityEditor.VFX.UI
 
                 if (subSlot != null)
                 {
-                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
+                    object result = null ;
+                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot) && ( result = m_Controller.viewController.GetEvaluatedContent(subSlot)) != null)
                     {
                         m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }

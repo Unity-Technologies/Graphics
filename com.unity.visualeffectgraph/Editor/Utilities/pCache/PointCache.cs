@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.VFX.Utils
+namespace UnityEditor.Experimental.VFX.Utility
 {
-    public class PointCache : ScriptableObject
+    class PointCache : ScriptableObject
     {
         public int PointCount;
         public Texture[] surfaces;

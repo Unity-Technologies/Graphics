@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Distance";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Distance-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

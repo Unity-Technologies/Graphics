@@ -2,13 +2,13 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class CustomSpawnerVariant : IVariantProvider
+    class CustomSpawnerVariant : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {

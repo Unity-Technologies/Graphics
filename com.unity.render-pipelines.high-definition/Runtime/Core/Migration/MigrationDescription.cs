@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Helpers to manipulate <see cref="MigrationDescription{TVersion, TTarget}"/></summary>
     public static class MigrationDescription
@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public MigrationDescription(params MigrationStep<TVersion, TTarget>[] steps)
         {
             // Sort by version
-            Array.Sort(steps, (l, r) => (int)(object)l.Version - (int)(object)r.Version);
+            Array.Sort(steps, (l, r) => Compare(l.Version, r.Version));
             Steps = steps;
         }
 
@@ -81,19 +81,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// It will execute steps 3 then 5 then 6.
         /// </summary>
         /// <param name="target">The instance to migrate.</param>
-        public void Migrate(TTarget target)
+        /// <returns>True if it has executed migration steps, false otherwise.</returns>
+        public bool Migrate(TTarget target)
         {
-            if ((int)(object)target.version == (int)(object)Steps[Steps.Length - 1].Version)
-                return;
+            if (Equals(target.version, Steps[Steps.Length - 1].Version))
+                return false;
 
             for (int i = 0; i < Steps.Length; ++i)
             {
-                if ((int)(object)target.version < (int)(object)Steps[i].Version)
+                if (Compare(target.version, Steps[i].Version) < 0)
                 {
                     Steps[i].Migrate(target);
                     target.version = Steps[i].Version;
                 }
             }
+
+#if UNITY_EDITOR
+            // Special in prefab case
+            if (target is UnityEngine.Object && UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(target as UnityEngine.Object))
+            {
+                UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(target as UnityEngine.Object);
+            }
+#endif
+            return true;
         }
+
+        public void ExecuteStep(TTarget target, TVersion stepVersion)
+        {
+            for (int i = 0; i < Steps.Length; ++i)
+            {
+                if (Equals(Steps[i].Version, stepVersion))
+                {
+                    Steps[i].Migrate(target);
+                    return;
+                }
+            }
+        }
+
+        static bool Equals(TVersion l, TVersion r) => Compare(l, r) == 0;
+        static int Compare(TVersion l, TVersion r) => (int)(object)l - (int)(object)r;
     }
 }

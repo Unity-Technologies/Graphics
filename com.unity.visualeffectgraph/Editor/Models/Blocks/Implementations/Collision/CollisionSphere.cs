@@ -5,11 +5,11 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionSphere : CollisionBase
     {
-        public override string name { get { return "Collider (Sphere)"; } }
+        public override string name { get { return "Collide with Sphere"; } }
 
         public class InputProperties
         {
-            [Tooltip("The collision sphere.")]
+            [Tooltip("Sets the sphere with which particles can collide.")]
             public Sphere Sphere = new Sphere() { radius = 1.0f };
         }
 

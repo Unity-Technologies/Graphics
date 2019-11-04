@@ -58,7 +58,8 @@ CBUFFER_START(UnityPerMaterial)
                                             // Bit 1 = HasClearcoat. If true, the clearcoat must be applied. The _ClearcoatNormalMap must be valid and contain clearcoat normal data.
                                             // Bit 2 = ClearcoatUseRefraction. If true, then _ClearcoatIORMap must be valid and contain clearcoat IOR data. If false then rays are not refracted by the clearcoat layer.
                                             // Bit 3 = useHeightMap. If true then displacement mapping is used and _HeightMap must contain valid data.
-                                            //
+                                            // Bit 4 = BRDFColorUseDiagonalClamp. If true, the BRDFColor table is populated presumably with a "phiD=0" slice and has half (or more of it) black.
+                                            //         In that case, _CarPaint2_BRDFColorMapUVScale.xy should be used to renormalize the UV coordinates after diagonal clamping of thetaD <= PI/2 - thetaH
 
     //////////////////////////////////////////////////////////////////////////////
     // SVBRDF
@@ -83,7 +84,8 @@ CBUFFER_START(UnityPerMaterial)
 
         // BRDF
     float   _CarPaint2_BRDFColorMapScale;   // Optional scale factor to the BRDFColor map
-    float   _CarPaint2_BTFFlakeMapScale;   // Optional scale factor to the BTFFlakes map
+    float   _CarPaint2_BTFFlakeMapScale;    // Optional scale factor to the BTFFlakes map
+    float4  _CarPaint2_BRDFColorMapUVScale;
 
         // Cook-Torrance Lobes Descriptors
     uint    _CarPaint2_LobeCount;           // Amount of valid components in the vectors below

@@ -13,7 +13,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool dockingLeft
         {
-            get { return m_DockingLeft; }
+            get => m_DockingLeft;
+            set => m_DockingLeft = value;
         }
 
         [SerializeField]
@@ -21,7 +22,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool dockingTop
         {
-            get { return m_DockingTop; }
+            get => m_DockingTop;
+            set => m_DockingTop = value;
         }
 
         [SerializeField]
@@ -29,7 +31,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public float verticalOffset
         {
-            get { return m_VerticalOffset; }
+            get => m_VerticalOffset;
+            set => m_VerticalOffset = value;
         }
 
         [SerializeField]
@@ -37,7 +40,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public float horizontalOffset
         {
-            get { return m_HorizontalOffset; }
+            get => m_HorizontalOffset;
+            set => m_HorizontalOffset = value;
         }
 
         [SerializeField]
@@ -45,7 +49,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Vector2 size
         {
-            get { return m_Size; }
+            get => m_Size;
+            set => m_Size = value;
         }
 
         public void CalculateDockingCornerAndOffset(Rect layout, Rect parentLayout)

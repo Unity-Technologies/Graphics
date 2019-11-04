@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Collision")]
     class CollisionPlane : CollisionBase
     {
-        public override string name { get { return "Collider (Plane)"; } }
+        public override string name { get { return "Collide with Plane"; } }
 
         public class InputProperties
         {
-            [Tooltip("The collision plane.")]
+            [Tooltip("Sets the plane with which particles can collide.")]
             public Plane Plane = new Plane() { normal = Vector3.up };
         }
 

@@ -2,7 +2,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in Fabric.cs which generates Fabric.cs.hlsl
-#include "Fabric.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
@@ -23,9 +23,19 @@
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    return float4(bsdfData.diffuseColor, 0.0);
+}
+
 float3 GetNormalForShadowBias(BSDFData bsdfData)
 {
     return bsdfData.geomNormalWS;
+}
+
+float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
+{
+    return bsdfData.ambientOcclusion;
 }
 
 // Assume bsdfData.normalWS is init
@@ -36,26 +46,10 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    bsdfData.roughnessT = max(minRoughness, bsdfData.roughnessT);
-    bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
-}
-
-float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
-{
-    return 1; // TODO
-}
-
-bool MaterialSupportsTransmission(BSDFData bsdfData)
-{
-    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION);
-}
-
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
-void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     // NOTE: THe _Debug* uniforms come from /HDRP/Debug/DebugDisplay.hlsl
@@ -65,6 +59,7 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -80,7 +75,22 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
     if (overrideNormal)
     {
-        surfaceData.normalWS = worldToTangent[2];
+        surfaceData.normalWS = tangentToWorld[2];
+    }
+
+    if (overrideAO)
+    {
+        float overrideAOValue = _DebugLightingAmbientOcclusion.y;
+        surfaceData.ambientOcclusion = overrideAOValue;
+    }
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
+    {
+        surfaceData.baseColor = pbrDiffuseColorValidate(surfaceData.baseColor, surfaceData.specularColor, false, false).xyz;
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        surfaceData.baseColor = pbrSpecularColorValidate(surfaceData.baseColor, surfaceData.specularColor, false, false).xyz;
     }
 #endif
 }
@@ -119,7 +129,7 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 
     sssData.diffuseColor = surfaceData.baseColor;
     sssData.subsurfaceMask = surfaceData.subsurfaceMask;
-    sssData.diffusionProfile = surfaceData.diffusionProfile;
+    sssData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     return sssData;
 }
@@ -133,7 +143,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
+    // IMPORTANT: All enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
 
     bsdfData.diffuseColor = surfaceData.baseColor;
@@ -150,17 +160,19 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
     // However in practice we keep parity between deferred and forward, so we should constrain the various features.
     // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
+    
+    bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+        FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
     }
 
     if (!HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
@@ -189,12 +201,41 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedSurfaceDataDebug(paramId, surfaceData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+    case DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL_VIEW_SPACE:
+        // Convert to view space
+        result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+        break;
+    case DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+        break;
+    }
 }
 
 // This function call the generated debug function and allow to override the debug output if needed
 void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBSDFDataDebug(paramId, bsdfData, result, needLinearToSRGB);
+
+    // Overide debug value output to be more readable
+    switch (paramId)
+    {
+    case DEBUGVIEW_FABRIC_BSDFDATA_NORMAL_VIEW_SPACE:
+        // Convert to view space
+        result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+        break;
+    case DEBUGVIEW_FABRIC_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+        result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
+        break;
+    }
+}
+
+void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
+{
+    result = surfaceData.baseColor;
 }
 
 //-----------------------------------------------------------------------------
@@ -218,6 +259,15 @@ struct PreLightData
     float3 specularFGD;              // Store preintegrated BSDF for both specular and diffuse
     float  diffuseFGD;
 };
+
+//
+// ClampRoughness helper specific to this material
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+    bsdfData.roughnessT = max(minRoughness, bsdfData.roughnessT);
+    bsdfData.roughnessB = max(minRoughness, bsdfData.roughnessB);
+}
 
 // This function is call to precompute heavy calculation before lightloop
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
@@ -315,6 +365,13 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
+bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+{
+    float NdotL = dot(bsdfData.normalWS, L);
+
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION) || (NdotL > 0.0);
+}
+
 // Ref: https://www.slideshare.net/jalnaga/custom-fabric-shader-for-unreal-engine-4
 // For Fabric we have two type of BRDF
 // Non-Metal: Cotton, deim, flax and common fabrics
@@ -323,27 +380,39 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // Silk: Roughness 0.3 - 0.7 - anisotropic - varying specular color
 
 // This function apply BSDF. Assumes that NdotL is positive.
-void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-            out float3 diffuseLighting,
-            out float3 specularLighting)
+CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
-    float LdotV, NdotH, LdotH, NdotV, invLenLV;
-    GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+    CBSDF cbsdf;
+    ZERO_INITIALIZE(CBSDF, cbsdf);
 
-    // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
-	float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    float3 N = bsdfData.normalWS;
+
+    float NdotV = preLightData.NdotV;
+    float NdotL = dot(N, L);
+    float clampedNdotV = ClampNdotV(NdotV);
+    float clampedNdotL = saturate(NdotL);
+    float flippedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
+
+    float LdotV, NdotH, LdotH, invLenLV;
+    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+
+    float  diffTerm;
+    float3 specTerm;
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
         float D = D_Charlie(NdotH, bsdfData.roughnessT);
         // V_Charlie is expensive, use approx with V_Ashikhmin instead
-        // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
-        float Vis = V_Ashikhmin(NdotL, NdotV);
+        // float Vis = V_Charlie(NdotL, clampedNdotV, bsdfData.roughness);
+        float Vis = V_Ashikhmin(NdotL, clampedNdotV);
 
-        specularLighting = F * Vis * D;
+        // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
+        // We don't use Fresnel term for CharlieD
+        float3 F = bsdfData.fresnel0;
 
-        // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
-        diffuseLighting = FabricLambert(bsdfData.roughnessT);
+        specTerm = F * Vis * D;
+
+        diffTerm = FabricLambert(bsdfData.roughnessT);
     }
     else // MATERIALFEATUREFLAGS_FABRIC_SILK
     {
@@ -357,26 +426,44 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         float BdotL = dot(bsdfData.bitangentWS, L);
 
         // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
-        float DV = DV_SmithJointGGXAniso(   TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
+        // We use abs(NdotL) to handle the none case of double sided
+        float DV = DV_SmithJointGGXAniso(   TdotH, BdotH, NdotH, clampedNdotV, TdotL, BdotL, abs(NdotL),
                                             bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
 
-        specularLighting = F * DV;
+        // Fabric are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
+        float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
-        // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
-        diffuseLighting = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
+        specTerm = F * DV;
+
+        // Use abs NdotL to evaluate diffuse term also for transmission
+        // TODO: See with Evgenii about the clampedNdotV here. This is what we use before the refactor
+        // but now maybe we want to revisit it for transmission
+        diffTerm = DisneyDiffuse(clampedNdotV, abs(NdotL), LdotV, bsdfData.perceptualRoughness);
     }
+
+    // The compiler should optimize these. Can revisit later if necessary.
+    cbsdf.diffR = diffTerm * clampedNdotL;
+    cbsdf.diffT = diffTerm * flippedNdotL;
+
+    // Probably worth branching here for perf reasons.
+    // This branch will be optimized away if there's no transmission (as NdotL > 0 is tested in IsNonZeroBSDF())
+    // And we hope the compile will move specTerm in the branch in case of transmission (TODO: verify as we fabric this may not be true as we already have branch above...)
+    if (NdotL > 0)
+    {
+        cbsdf.specR = specTerm * clampedNdotL;
+    }
+
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    return cbsdf;
 }
 
 //-----------------------------------------------------------------------------
 // Surface shading (all light types) below
 //-----------------------------------------------------------------------------
 
-// Here we need to make sure
-#define USE_DIFFUSE_LAMBERT_BRDF
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
-#undef USE_DIFFUSE_LAMBERT_BRDF
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
@@ -387,21 +474,22 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         DirectionalLightData lightData, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                    bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData,
+                                    preLightData, lightData, bsdfData, V);
 }
 
-#include "FabricReference.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricReference.hlsl"
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual (supports spot, point and projector lights)
 //-----------------------------------------------------------------------------
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData lightData,
+                                     BSDFData bsdfData, BuiltinData builtinData)
 {
-    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, lightData,
-                                 bsdfData, bsdfData.normalWS, V);
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
+                                 preLightData, lightData, bsdfData, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -463,7 +551,13 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-    // TODO
+    // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
+    float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
+
+    // Note: RGB is already premultiplied by A.
+    // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
+    lighting.specularReflected = ssrLighting.rgb /* * ssrLighting.a */ * preLightData.specularFGD;
+    reflectionHierarchyWeight = ssrLighting.a;
 
     return lighting;
 }
@@ -521,14 +615,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float iblMipLevel;
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-#if !defined(SHADER_API_METAL)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
     }
     else
-#endif
     {
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
@@ -537,10 +629,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     int sliceIndex = 0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL))
     {
-        sliceIndex = 1;
+        sliceIndex = _EnvSliceSize - 1;
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, sliceIndex);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, lightData.rangeCompressionFactorCompensation, sliceIndex);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     envLighting = preLightData.specularFGD * preLD.rgb;

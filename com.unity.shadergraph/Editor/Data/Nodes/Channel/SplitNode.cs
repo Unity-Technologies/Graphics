@@ -26,10 +26,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Split-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -43,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 
         static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 
@@ -54,16 +50,13 @@ namespace UnityEditor.ShaderGraph
                 numInputChannels = SlotValueHelper.GetChannelCount(inputSlot.concreteValueType);
                 if (numInputChannels > 4)
                     numInputChannels = 0;
-
-                if (!owner.GetEdges(inputSlot.slotReference).Any())
-                    numInputChannels = 0;
             }
 
             for (var i = 0; i < 4; i++)
             {
                 var outputFormat = numInputChannels == 1 ? inputValue : string.Format("{0}[{1}]", inputValue, i);
                 var outputValue = i >= numInputChannels ? "0" : outputFormat;
-                visitor.AddShaderChunk(string.Format("{0} {1} = {2};", precision, GetVariableNameForSlot(s_OutputSlots[i]), outputValue), true);
+                sb.AppendLine(string.Format("$precision {0} = {1};", GetVariableNameForSlot(s_OutputSlots[i]), outputValue));
             }
         }
     }

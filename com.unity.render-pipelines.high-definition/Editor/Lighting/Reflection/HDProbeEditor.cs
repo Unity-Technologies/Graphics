@@ -1,75 +1,147 @@
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using System.Linq.Expressions;
+using UnityEngine;
+using System.Reflection;
+using UnityEngine.Rendering.HighDefinition;
 using Object = UnityEngine.Object;
+using System;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    abstract class HDProbeEditor : Editor
+    interface IHDProbeEditor
     {
-        static Dictionary<HDProbe, HDProbeUI> s_StateMap = new Dictionary<HDProbe, HDProbeUI>();
+        Object target { get; }
+        HDProbe GetTarget(Object editorTarget);
+    }
 
-        internal static bool TryGetUIStateFor(HDProbe p, out HDProbeUI r)
-        {
-            return s_StateMap.TryGetValue(p, out r);
-        }
+    abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor
+        where TProvider : struct, HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
+        where TSerialized : SerializedHDProbe
+    {
+        static Dictionary<Component, Editor> s_Editors = new Dictionary<Component, Editor>();
+        internal static Editor GetEditorFor(Component p) => s_Editors.TryGetValue(p, out Editor e) ? e : null;
 
+
+        protected abstract TSerialized NewSerializedObject(SerializedObject so);
         internal abstract HDProbe GetTarget(Object editorTarget);
+        HDProbe IHDProbeEditor.GetTarget(Object editorTarget) => GetTarget(editorTarget);
 
-        protected SerializedHDProbe m_SerializedHDProbe;
-        internal HDProbeUI m_UIState;
-        HDProbeUI[] m_UIHandleState;
+        TSerialized m_SerializedHDProbe;
+        Dictionary<Object, TSerialized> m_SerializedHDProbePerTarget;
         protected HDProbe[] m_TypedTargets;
+
+        protected bool showChromeGizmo { get; private set; }
+
+        public override void OnInspectorGUI()
+        {
+            m_SerializedHDProbe.Update();
+            EditorGUI.BeginChangeCheck();
+            Draw(m_SerializedHDProbe, this);
+            if (EditorGUI.EndChangeCheck())
+                m_SerializedHDProbe.Apply();
+        }
 
         protected virtual void OnEnable()
         {
-            if(m_UIState == null)
-            {
-                m_UIState = HDProbeUI.CreateFor(this);
-            }
-            m_UIState.Reset(m_SerializedHDProbe, Repaint);
+            m_SerializedHDProbe = NewSerializedObject(serializedObject);
+            showChromeGizmo = true;
 
+            m_SerializedHDProbePerTarget = new Dictionary<Object, TSerialized>(targets.Length);
             m_TypedTargets = new HDProbe[targets.Length];
-            m_UIHandleState = new HDProbeUI[m_TypedTargets.Length];
             for (var i = 0; i < m_TypedTargets.Length; i++)
             {
                 m_TypedTargets[i] = GetTarget(targets[i]);
-                m_UIHandleState[i] = HDProbeUI.CreateFor(m_TypedTargets[i]);
-                m_UIHandleState[i].Reset(m_SerializedHDProbe, null);
-
-                s_StateMap[m_TypedTargets[i]] = m_UIHandleState[i];
+                var so = new SerializedObject(targets[i]);
+                m_SerializedHDProbePerTarget[targets[i]] = NewSerializedObject(so);
             }
+
+            foreach (var target in serializedObject.targetObjects)
+                s_Editors[(Component)target] = this;
         }
 
         protected virtual void OnDisable()
         {
-            for (var i = 0; i < m_TypedTargets.Length; i++)
-                s_StateMap.Remove(m_TypedTargets[i]);
+            foreach (var target in serializedObject.targetObjects)
+            {
+                if (target != null && !target.Equals(null))
+                    s_Editors.Remove((Component)target);
+            }
         }
 
-        protected abstract void Draw(HDProbeUI s, SerializedHDProbe serialized, Editor owner);
-
-        public override void OnInspectorGUI()
+        protected virtual void Draw(TSerialized serialized, Editor owner)
         {
-            var s = m_UIState;
-            var d = m_SerializedHDProbe;
-            var o = this;
+            HDProbeUI.Drawer<TProvider>.DrawToolbars(serialized, owner);
+            EditorGUI.BeginChangeCheck();
+            showChromeGizmo = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Show Chrome Gizmo"), showChromeGizmo);
+            if (EditorGUI.EndChangeCheck())
+                SceneView.RepaintAll();
+            HDProbeUI.Drawer<TProvider>.DrawPrimarySettings(serialized, owner);
 
-            s.Update();
-            d.Update();
-
-            Draw(s, d, o);
-
-            d.Apply();
+            //note: cannot use 'using CED = something' due to templated type passed.
+            CoreEditorDrawer<TSerialized>.Group(
+                CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_ProxySettingsHeader, HDProbeUI.Expandable.Projection, HDProbeUI.k_ExpandedState,
+                    HDProbeUI.Drawer<TProvider>.DrawProjectionSettings),
+                CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_InfluenceVolumeHeader, HDProbeUI.Expandable.Influence, HDProbeUI.k_ExpandedState,
+                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.InfluenceVolumeIsAdvanced),
+                    (s, o) =>
+                    {
+                        InfluenceVolumeUI.SetInfluenceAdvancedControlSwitch(s.probeSettings.influence, o, advancedControl: !s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.InfluenceVolumeIsAdvanced));
+                        s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.InfluenceVolumeIsAdvanced);
+                    },
+                    CoreEditorDrawer<TSerialized>.Group(
+                        HDProbeUI.Drawer<TProvider>.DrawInfluenceSettings, //handle both advanced control and normal control
+                        HDProbeUI.Drawer_DifferentShapeError
+                    ),
+                    CoreEditorDrawer<TSerialized>.noop
+                ),
+                CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
+                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
+                    (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
+                    CoreEditorDrawer<TSerialized>.Group(
+                        DrawAdditionalCaptureSettings,
+                        HDProbeUI.Drawer<TProvider>.DrawCaptureSettings
+                    ),
+                    HDProbeUI.Drawer<TProvider>.DrawAdvancedCaptureSettings
+                ),
+                CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
+                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CustomSettingsIsAdvanced),
+                    (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CustomSettingsIsAdvanced),
+                    HDProbeUI.Drawer<TProvider>.DrawCustomSettings,
+                    HDProbeUI.Drawer<TProvider>.DrawAdvancedCustomSettings),
+                CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton)
+            ).Draw(serialized, owner);
         }
 
-        protected virtual void OnSceneGUI()
+        protected virtual void DrawHandles(TSerialized serialized, Editor owner) { }
+        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) { }
+
+        protected void OnSceneGUI()
         {
-            //mandatory update as for strange reason the serialized rollback one update here
-            m_UIState.Update();
-            m_SerializedHDProbe.Update();
+            EditorGUI.BeginChangeCheck();
+            var soo = m_SerializedHDProbePerTarget[target];
+            soo.Update();
+            HDProbeUI.DrawHandles(soo, this);
 
-            HDProbeUI.DrawHandles(m_UIState, m_SerializedHDProbe, this);
-            m_UIState.DoShortcutKey(this);
+            HDProbeUI.Drawer<TProvider>.DoToolbarShortcutKey(this);
+            DrawHandles(soo, this);
+            if (EditorGUI.EndChangeCheck())
+                soo.Apply();
         }
+
+        static Func<float> s_CapturePointPreviewSizeGetter = ComputeCapturePointPreviewSizeGetter();
+        static Func<float> ComputeCapturePointPreviewSizeGetter()
+        {
+            var type = Type.GetType("UnityEditor.AnnotationUtility,UnityEditor");
+            var property = type.GetProperty("iconSize", BindingFlags.Static | BindingFlags.NonPublic);
+            var lambda = Expression.Lambda<Func<float>>(
+                Expression.Multiply(
+                    Expression.Property(null, property),
+                    Expression.Constant(30.0f)
+                )
+            );
+            return lambda.Compile();
+        }
+        internal static float capturePointPreviewSize
+        { get { return s_CapturePointPreviewSizeGetter(); } }
     }
 }

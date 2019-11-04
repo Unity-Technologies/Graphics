@@ -1,6 +1,7 @@
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -35,10 +36,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/UV-Node"; }
-        }
 
         public override void UpdateNodeAfterDeserialization()
         {
@@ -46,9 +43,9 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(string.Format("{0}4 {1} = IN.{2};", precision, GetVariableNameForSlot(OutputSlotId), m_OutputChannel.GetUVName()), true);
+            sb.AppendLine(string.Format("$precision4 {0} = IN.{1};", GetVariableNameForSlot(OutputSlotId), m_OutputChannel.GetUVName()));
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

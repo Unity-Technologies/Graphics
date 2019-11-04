@@ -1,9 +1,12 @@
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering;
+
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
+    class Builtin // Note: This particular class doesn't derive from RenderPipelineMaterial
     {
         //-----------------------------------------------------------------------------
         // BuiltinData
@@ -11,43 +14,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // and are independent from the BSDF parametrization.
         // Note: These parameters can be store in GBuffer or not depends on storage available
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, false, true, 100)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 100)]
         public struct BuiltinData
         {
-            [SurfaceDataAttributes("Opacity")]
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Alpha)]
+            [SurfaceDataAttributes("Opacity", precision = FieldPrecision.Real)]
             public float opacity;
 
             // These are lighting data.
             // We would prefer to split lighting and material information but for performance reasons,
             // those lighting information are fill
             // at the same time than material information.
-            [SurfaceDataAttributes("Bake Diffuse Lighting", false, true)]
+            [SurfaceDataAttributes("Bake Diffuse Lighting", false, true, FieldPrecision.Real)]
             public Vector3 bakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume
-            [SurfaceDataAttributes("Back Bake Diffuse Lighting", false, true)]
+            [SurfaceDataAttributes("Back Bake Diffuse Lighting", false, true, FieldPrecision.Real)]
             public Vector3 backBakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume from the back for transmission
 
             // Use for float instead of vector4 to ease the debug (no performance impact)
             // Note: We have no way to remove these value automatically based on either SHADEROPTIONS_BAKED_SHADOW_MASK_ENABLE or s_BakedShadowMaskEnable here. Unless we make two structure... For now always keep this value
-            [SurfaceDataAttributes("Shadow Mask 0")]
+            [SurfaceDataAttributes("Shadowmask 0", precision = FieldPrecision.Real)]
             public float shadowMask0;
-            [SurfaceDataAttributes("Shadow Mask 1")]
+            [SurfaceDataAttributes("Shadowmask 1", precision = FieldPrecision.Real)]
             public float shadowMask1;
-            [SurfaceDataAttributes("Shadow Mask 2")]
+            [SurfaceDataAttributes("Shadowmask 2", precision = FieldPrecision.Real)]
             public float shadowMask2;
-            [SurfaceDataAttributes("Shadow Mask 3")]
+            [SurfaceDataAttributes("Shadowmask 3", precision = FieldPrecision.Real)]
             public float shadowMask3;
 
-            [SurfaceDataAttributes("Emissive Color", false, false)]
+            [SurfaceDataAttributes("Emissive Color", false, false, FieldPrecision.Real)]
             public Vector3 emissiveColor;
 
             // These is required for motion blur and temporalAA
-            [SurfaceDataAttributes("Velocity")]
-            public Vector2 velocity;
+            [SurfaceDataAttributes("MotionVector", precision = FieldPrecision.Real)]
+            public Vector2 motionVector;
 
             // Distortion
-            [SurfaceDataAttributes("Distortion")]
+            [SurfaceDataAttributes("Distortion", precision = FieldPrecision.Real)]
             public Vector2 distortion;
-            [SurfaceDataAttributes("Distortion Blur")]
+            [SurfaceDataAttributes("Distortion Blur", precision = FieldPrecision.Real)]
             public float distortionBlur;           // Define the color buffer mipmap level to use
 
             // Misc
@@ -65,50 +69,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact, false)]
         public struct LightTransportData
         {
-            [SurfaceDataAttributes("", false, true)]
+            [SurfaceDataAttributes("", false, true, FieldPrecision.Real)]
             public Vector3 diffuseColor;
+            [SurfaceDataAttributes(precision = FieldPrecision.Real)]
             public Vector3 emissiveColor; // HDR value
         };
 
-        public static RenderTextureFormat GetLightingBufferFormat()
+        public static GraphicsFormat GetLightingBufferFormat()
         {
-            return RenderTextureFormat.RGB111110Float;
+            return GraphicsFormat.B10G11R11_UFloatPack32;
         }
 
-        public static bool GetLightingBufferSRGBFlag()
+        public static GraphicsFormat GetShadowMaskBufferFormat()
         {
-            return false;
+            return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public static RenderTextureFormat GetShadowMaskBufferFormat()
+        public static GraphicsFormat GetMotionVectorFormat()
         {
-            return RenderTextureFormat.ARGB32;
+            return GraphicsFormat.R16G16_SFloat; // TODO: We should use 16bit normalized instead, better precision // RGInt
         }
 
-        public static bool GetShadowMaskBufferSRGBFlag()
-        {
-            return false;
-        }
-
-        public static RenderTextureFormat GetVelocityBufferFormat()
-        {
-            return RenderTextureFormat.RGHalf; // TODO: We should use 16bit normalized instead, better precision // RGInt
-        }
-
-        public static bool GetVelocityBufferSRGBFlag()
-        {
-            return false;
-        }
-
-        public static RenderTextureFormat GetDistortionBufferFormat()
+        public static GraphicsFormat GetDistortionBufferFormat()
         {
             // TODO: // This format need to be additive blendable and include distortionBlur, blend mode different for alpha value
-            return RenderTextureFormat.ARGBHalf;
-        }
-
-        public static bool GetDistortionBufferSRGBFlag()
-        {
-            return false;
+            return GraphicsFormat.R16G16B16A16_SFloat;
         }
     }
 }

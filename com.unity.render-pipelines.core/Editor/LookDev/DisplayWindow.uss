@@ -1,0 +1,406 @@
+.container
+{
+    margin: 0px;
+    flex: 1;
+    flex-direction: row;
+}
+
+/* ///// */
+/* VIEWS */
+/* ///// */
+
+/* override as later in document */
+.verticalSplit
+{
+    flex-direction: column;
+}
+
+#viewContainer
+{
+    flex-shrink: 0;
+}
+
+#firstView,
+#secondView
+{
+    flex: 0;
+}
+
+/* override as later in document */
+.firstView > #firstView,
+.secondView > #secondView
+{
+    flex: 1;
+}
+
+
+/* /////////// */
+/* ENVIRONMENT */
+/* /////////// */
+
+#environmentContainer
+{
+	width: 0px;
+    visibility: hidden;
+    flex-direction: column-reverse;
+    border-color: #232323;
+    border-left-width: 1px;
+}
+
+#debugContainer
+{
+	width: 0px;
+    visibility: hidden;
+    border-color: #232323;
+    border-left-width: 1px;
+}
+
+#environmentContainer > EnvironmentElement
+{
+    border-color: #232323;
+    flex-shrink: 0;
+}
+
+.showEnvironmentPanel > #environmentContainer
+{
+	width: 249px;
+    visibility: visible;
+}
+
+.showDebugPanel > #debugContainer
+{
+	width: 250px; /*219px;*/
+    visibility: visible;
+}
+
+.unity-label
+{
+    min-width: 100px;
+}
+
+.unity-composite-field__field > .unity-base-field__label
+{
+    min-width: 10px;
+}
+
+#unity-text-input
+{
+    min-width: 40px;
+}
+
+.list-environment
+{
+    flex: 1;
+}
+
+.list-environment-overlay
+{
+    position: absolute;
+    bottom: 0px;
+    padding-left: 1px;
+    border-bottom-width: 0px;
+    background-color: rgba(0,0,0,0);
+}
+
+#environmentListCreationToolbar
+{
+    padding-left: 1px;
+}
+
+#environmentListCreationToolbar > *
+{
+    flex: 1;
+    -unity-text-align: middle-center;
+}
+
+#environmentListCreationToolbar > ObjectField > Label
+{
+    min-width: 60px;
+    width: 60px;
+}
+
+#environmentListCreationToolbar > ToolbarButton
+{
+    min-width: 40px;
+    width: 40px;
+    flex: 0;
+    border-left-width: 1px;
+    border-right-width: 0px;
+    margin-right: -1px;
+}
+
+ObjectFieldDisplay > Label
+{
+    -unity-text-align: middle-left;
+}
+
+ObjectFieldDisplay > Image
+{
+    min-width: 12px;
+}
+
+ToolbarButton
+{
+    border-left-width: 0px;
+}
+
+.list-environment-overlay > ToolbarButton
+{
+    border-width: 0px;
+    border-right-width: 1px;
+    width: 20px;
+    min-width: 20px;
+    -unity-text-align: middle-center;
+    background-color: #3c3c3c;
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+.list-environment-overlay > ToolbarButton:hover
+{
+    background-color: #585858;
+}
+
+.list-environment-overlay > #duplicate
+{
+    border-right-width: 0px;
+}
+
+Image.unity-list-view__item
+{
+    width: 210px;
+    margin: 15px;
+    padding: 5px;
+}
+
+Image.unity-list-view__item:selected
+{
+    border-width: 2px;
+    padding: 3px;
+    border-color: #3d6091;
+    background-color: rgba(0,0,0,0);
+}
+
+.sun-to-brightest-button
+{
+    padding-left: 4px;
+}
+
+#inspector-header
+{
+    flex-direction: row;
+    border-bottom-width: 1px;
+    border-color: #232323;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 3px;
+    background-color: #3C3C3C;
+}
+
+#inspector-header > Image
+{
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#inspector-header > TextField
+{
+    flex: 1;
+}
+
+#inspector
+{
+    padding-bottom: 5px;
+}
+
+#separator-line
+{
+    background-color: #3C3C3C;
+}
+
+#separator
+{
+    flex: 1;
+    width: 188px;
+    border-bottom-width: 1px;
+    border-color: #232323;
+    height: 0;
+    align-self: flex-end;
+}
+
+#sunToBrightestButton
+{
+    background-color: rgba(0,0,0,0);
+    border-radius: 0px;
+    border-width: 0px;
+    padding: 0px;
+    margin-right: 1px;
+}
+
+#sunToBrightestButton:hover
+{
+    background-color: #585858;
+}
+
+/* /////// */
+/* /DEBUG/ */
+/* /////// */
+
+MultipleDifferentValue
+{
+    -unity-font-style: bold;
+    font-size: 15px;
+    -unity-text-align: middle-center;
+    margin-bottom: 2px;
+    height: 15px;
+}
+
+MultipleSourcePopupField > MultipleDifferentValue
+{
+    -unity-text-align: middle-left;
+    width: 120px;
+    background-color: #515151;
+    position: absolute;
+    left: 103px;
+    bottom: 1px;
+}
+
+MultipleSourcePopupField > MultipleDifferentValue:hover
+{
+    background-color: #585858;
+}
+
+#debugToolbar
+{
+    margin-top: 16px;
+    margin-bottom: 16px;
+    flex-direction: row;
+    align-self: center;
+    border-bottom-width: 1px;
+    border-top-width: 1px;
+    border-color: #232323;
+}
+
+#debugToolbar > ToolbarToggle
+{
+    width: 40px;
+    left: 0px;
+}
+
+#debugToolbar > ToolbarToggle > *
+{
+    justify-content: center;
+}
+
+/* /////// */
+/* TOOLBAR */
+/* /////// */
+
+#toolbar
+{
+    flex-direction: row;
+}
+
+#toolbarRadio
+{
+    flex-direction: row;
+}
+
+.unity-toggle__input > .unity-image
+{
+    padding: 2px;
+}
+
+#tabsRadio 
+{
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+    flex: 1;
+    flex-direction: row;
+    -unity-text-align: middle-center;
+}
+
+#tabsRadio > ToolbarToggle
+{
+    flex: 1;
+    left: 0px;
+}
+
+#tabsRadio > ToolbarToggle > * > Label
+{
+    flex: 1;
+}
+
+.unity-toolbar-toggle
+{
+    padding-top: 0px;
+    padding-right: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    border-left-width: 0px;
+}
+
+#renderdoc-content
+{
+    flex: 1;
+    flex-direction: row;
+    max-width: 80px;
+    flex-shrink: 0;
+    min-width: 24px;
+    border-left-width: 1px;
+}
+
+#renderdoc-content > Label
+{
+    -unity-text-align: middle-left;
+    min-width: 0px;
+    padding-top: 0px;
+}
+
+#renderdoc-content > Image
+{
+    flex-shrink: 0;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+#cameraMenu
+{
+    flex-direction: row;
+    padding: 0px;
+    padding-right: 16px;
+}
+
+#cameraButton
+{
+    border-radius: 0px;
+    border-width: 0px;
+    border-left-width: 1px;
+    padding: 0px;
+    padding-right: 4px;
+    margin: 0px;
+}
+
+#cameraSeparator
+{
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border-right-width: 1px;
+}
+
+#cameraButton > *
+{
+    margin: 2px;
+}
+
+/* /////////// */
+/* DRAG'N'DROP */
+/* /////////// */
+
+#cursorFollower
+{
+    position: absolute;
+}

@@ -10,10 +10,9 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireTimeExtensions
     {
-        public static bool RequiresTime(this INode node)
+        public static bool RequiresTime(this AbstractMaterialNode node)
         {
-            var mayRequireTime = node as IMayRequireTime;
-            return mayRequireTime != null && mayRequireTime.RequiresTime();
+            return node is IMayRequireTime mayRequireTime && mayRequireTime.RequiresTime();
         }
     }
 }

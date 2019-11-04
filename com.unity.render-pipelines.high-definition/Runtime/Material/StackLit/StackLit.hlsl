@@ -3,7 +3,7 @@
 //-----------------------------------------------------------------------------
 
 // SurfaceData is defined in StackLit.cs which generates StackLit.cs.hlsl
-#include "StackLit.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
@@ -14,6 +14,8 @@
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
+#define _VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP // Artistic choice, but this first is better as it tries to keep Fresnel influence
+//#define _VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM
 
 // Choose between Lambert diffuse and Disney diffuse (enable only one of them)
 // TODO Disney Diffuse
@@ -40,7 +42,7 @@
 // Also add options at the top of this file, see Lit.hlsl.
 
 // Required for SSS, GBuffer texture declaration
-TEXTURE2D(_GBufferTexture0);
+TEXTURE2D_X(_GBufferTexture0);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
@@ -67,6 +69,7 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
     aoFactor.indirectAmbientOcclusion = indirectAmbientOcclusion;
     aoFactor.indirectSpecularOcclusion = indirectSpecularOcclusion;
     aoFactor.directAmbientOcclusion = directAmbientOcclusion;
+    aoFactor.directSpecularOcclusion = float3(1.0, 1.0, 1.0);
 }
 
 //...MaterialEvaluation is needed earlier in StackLit for occlusion handling (see PreLightData_SetupOcclusion)
@@ -78,6 +81,13 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
 // Needed for MATERIAL_FEATURE_MASK_FLAGS.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
+#if defined(_MATERIAL_FEATURE_COAT) && defined(_MATERIAL_FEATURE_COAT_NORMALMAP)
+#   if defined(_VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP) // calculate as if normal was flip, up to the geometric normal
+#   define VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP
+#   elif defined(_VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM) // use geom normal directly
+#   define VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM
+#   endif
+#endif
 
 // Anisotropic Hack for Area Lights
 #ifdef _ANISOTROPY_FOR_AREA_LIGHTS // shader_feature
@@ -142,7 +152,7 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
     // When vlayered and iridescence is on, iridescence is also automatically recomputed per light too,
     // so the following gives the recompute option for iridescence when NOT vlayered:
 #ifdef VLAYERED_RECOMPUTE_PERLIGHT
-#    if _MATERIAL_FEATURE_IRIDESCENCE
+#    ifdef _MATERIAL_FEATURE_IRIDESCENCE
 #    define IRIDESCENCE_RECOMPUTE_PERLIGHT
 #    endif
 #endif
@@ -206,6 +216,17 @@ void GetAmbientOcclusionFactor(float3 indirectAmbientOcclusion, float3 indirectS
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
+
+float3 GetNormalForShadowBias(BSDFData bsdfData)
+{
+    return bsdfData.geomNormalWS;
+}
+
+float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
+{
+    return bsdfData.ambientOcclusion;
+}
+
 // SSReflection
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
@@ -223,6 +244,204 @@ bool IsCoatNormalMapEnabled(BSDFData bsdfData)
     return (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP));
 }
 
+// When no preprocessor exclusions are required, can use these:
+
+// When computing the stack equivalent lobe characteristics when having dual normal
+// maps, we have to make a contradictory assumption on the presence of parallel surfaces
+// at some level. We then calculate some energy reaching the bottom layer of the stack
+// based on Fresnel terms (hack to reduce pre-integrated FGD fetches TODOENERGY).
+//
+// Normally when shading with normal maps, we clamp / saturate diverse values
+// (eg see here BSDF_SetupNormalsAndAngles or CommonLighting's GetBSDFAngle) to avoid 
+// special casing the BSDF evaluation but still shade according to the normal maps.
+// Fresnel is normally evaluated with the LdotH angle, but this normally never "clips" 
+// to the hemisphere (oriented on the normal) the complete BSDF evaluation as LdotH is
+// never negative (H is at most 90 degrees away from L and V).
+//
+// If the surface is away from us, it makes no sense to have reflections from it but then
+// again it should not obstruct other visible surfaces as a complete black point, but
+// this is an understood problem with normal maps (cf displacement maps).
+//
+// For computing the stack, it would be nice to cheat a little if the bottom surface is
+// to be visible, and that's what we already intrinsically do when the "recompute per light"
+// option is used for dirac (directional|puntual) lights: we use LdotH systematically,
+// regardless of the orientation of the normal, and since it is never negative, it won't
+// force regions where the energy stats of the stack are zero for the bottom layer when
+// the top normals are facing away. We let shading computations take care of darkening.
+// Obviously this is still a hack as stated but is more pleasing and is roughly akin to
+// having the top layer "folds" as dual-faced.
+//
+// When no recompute per light is done or we are doing ComputeAdding in the first call in 
+// GetPreLightData for split-sum type of lights (non dirac), we don't have a particular L
+// to use and use clamped NdotV. In that case, the normal is taken as the H vector, and 
+// there will be regions where NdotV can be negative so is clamped near zero. In that case,
+// being in the "grazing angle region", integrated FGD or Fresnel would yeld reflectance
+// operators that yield zero energy transmitted to the bottom layer, and everything reflected
+// by the top - which will eventually shade to nothing since the top normal is facing away.
+//
+// To reproduce the effect cheaply without using the "recompute per light" option,
+// but also for all split sum lights, we add options to "fixup" the top reflectance to never
+// be clamped but act as if it is dual faced. There are two options available: simply use
+// the geometric normal on the top since it should not be back facing to begin the
+// computations - in that case, we lose the Fresnel variations induced by the top normal map
+// and it only affects other parts of BSDF evaluations later for all types of lights.
+// 
+// This is VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL.
+//
+// Otherwise, we also provide a behavior similar to flipping of the normal, and we even
+// saturate a bit less close to zero (than ClampNdotV) to remove the effect of the grazing
+// angle. 
+//
+// This is VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL
+// 
+#define VLAYERED_DUAL_NORMALS_TOP_FIX_DEFAULT 0  // do nothing
+#define VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL 1
+#define VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL 2
+
+int ComputeAdding_GetDualNormalsTopHandlingMethod()
+{
+    int method = VLAYERED_DUAL_NORMALS_TOP_FIX_DEFAULT;
+
+#if defined(VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP) // this is done up to the geometric normal
+    method = VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL;
+#elif defined(VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM)
+    method = VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL;
+#endif
+
+    return method;
+}
+
+bool GetRecomputeStackPerLightOption()
+{
+    bool perLightOption = false;
+
+#ifdef VLAYERED_RECOMPUTE_PERLIGHT
+#ifndef _MATERIAL_FEATURE_COAT
+#error "Recompute stack per light option but without coat feature enabled?"
+#endif
+    perLightOption = true;
+#endif
+    return perLightOption;
+}
+
+// Handling of ShaderGraph configured specular occlusion options:
+//
+// _SCREENSPACE_SPECULAROCCLUSION_METHOD, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR
+// _DATABASED_SPECULAROCCLUSION_METHOD, _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT
+
+int GetScreenSpaceSpecularOcclusionMethod()
+{
+    int method = SPECULAR_OCCLUSION_DISABLED;
+#ifdef _SCREENSPACE_SPECULAROCCLUSION_METHOD
+    method = _SCREENSPACE_SPECULAROCCLUSION_METHOD;
+#endif
+    return method;
+}
+
+int GetScreenSpaceSpecularOcclusionVisibilityFromAoWeight()
+{
+    int method = BENT_VISIBILITY_FROM_AO_COS;
+#ifdef _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT
+    method = _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT;
+#endif
+    return method;
+}
+
+// For screenspace SO, if a bent algorithm is used, the SS algorithm should also give the direction.
+// It is not the case now, so we have an option to use either the more neutral geometric normal vs
+// the baked bent normal (which is more appropriate for the data-based SO).
+float3 GetScreenSpaceSpecularOcclusionVisibilityDir(BSDFData bsdfData, float3 interfaceShadingNormal)
+{
+    int source = BENT_VISIBILITY_DIR_BENT_NORMAL;
+    float3 dir = bsdfData.bentNormalWS;
+
+#ifdef _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR
+    source = _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR;
+#endif
+
+    switch (source)
+    {
+        case BENT_VISIBILITY_DIR_GEOM_NORMAL:
+            dir = bsdfData.geomNormalWS;
+            break;
+        case BENT_VISIBILITY_DIR_BENT_NORMAL:
+            dir = bsdfData.bentNormalWS;
+            break;
+        case BENT_VISIBILITY_DIR_SHADING_NORMAL:
+            dir = interfaceShadingNormal;
+            break;
+    }
+
+    return dir;
+}
+
+int GetDataBasedSpecularOcclusionMethod()
+{
+    int method = SPECULAR_OCCLUSION_DISABLED;
+    //int method = SPECULAR_OCCLUSION_SPTD;
+#ifdef _DATABASED_SPECULAROCCLUSION_METHOD
+    method = _DATABASED_SPECULAROCCLUSION_METHOD;
+#endif
+    return method;
+}
+
+int GetDataBasedSpecularOcclusionVisibilityFromAoWeight()
+{
+    int method = BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION;
+#ifdef _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT
+    method = _DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT;
+#endif
+    return method;
+}
+
+uint GetSpecularOcclusionBentVisibilityFixupFlags()
+{
+    uint method = BENT_VISIBILITY_FIXUP_FLAGS_NONE;
+#ifdef _BENT_VISIBILITY_FIXUP_FLAGS
+    method = _BENT_VISIBILITY_FIXUP_FLAGS;
+#endif
+    return method;
+}
+
+bool GetHonorPerLightMinRoughness()
+{
+#ifdef _STACK_LIT_HONORS_LIGHT_MIN_ROUGHNESS
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool GetPerLightMinRoughnessAffectsOnlyCoat()
+{
+    return false;
+}
+
+//
+// This is used to have a default clamping behavior of roughness with ClampRoughnessForAnalyticalLights
+// if we don't enable the clamping control coming from the light data (GetHonorPerLightMinRoughness == FALSE).
+//
+// If the option is ON though, this does nothing.
+//
+// (Note that ClampRoughnessForAnalyticalLights() is still always used in HazeMapping for numerical stability)
+float ClampRoughnessForDiracLightsByDefault(float roughness)
+{
+    if (GetHonorPerLightMinRoughness() == false)
+    {
+        roughness = ClampRoughnessForAnalyticalLights(roughness);
+    }
+    return roughness;
+}
+
+float ClampRoughnessIfHonorLightMinRoughness(float roughness, float minRoughness = 0.0)
+{
+    if (GetHonorPerLightMinRoughness())
+    {
+        roughness = max(roughness, minRoughness);
+    }
+    return roughness;
+}
+
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
@@ -232,18 +451,25 @@ void FillMaterialAnisotropy(float anisotropyA, float anisotropyB, float3 tangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialIridescence(float mask, float thickness, float ior, inout BSDFData bsdfData)
+void FillMaterialIridescence(float mask, float thickness, float ior, float iridescenceCoatFixupTIR, float iridescenceCoatFixupTIRClamp, inout BSDFData bsdfData)
 {
     bsdfData.iridescenceMask = mask;
     bsdfData.iridescenceThickness = thickness;
     bsdfData.iridescenceIor = ior;
+    bsdfData.iridescenceCoatFixupTIR = iridescenceCoatFixupTIR;
+    bsdfData.iridescenceCoatFixupTIRClamp = iridescenceCoatFixupTIRClamp;
 }
 
-void FillMaterialCoatData(float coatPerceptualRoughness, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
+void FillMaterialCoatData(float coatPerceptualRoughness, float coatMask, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
 {
     bsdfData.coatPerceptualRoughness = coatPerceptualRoughness;
-    bsdfData.coatIor        = coatIor;
-    bsdfData.coatThickness  = coatThickness;
+    // Hack: A true coatMask would lead to complications like additionnal base lobes unmodified by the coat,
+    // in proportion to 1-coatMask. We lerp the ior with 1 here along with thickness to 0 so that Beer-Lambert attenuation
+    // is removed as coatMask -> 0. Some series term in ComputeStatistics are also lerped with their proper neutral values, along
+    // with pre-integrated FGD terms (to lerp them to 0).
+    bsdfData.coatMask       = coatMask;
+    bsdfData.coatIor        = lerp(1.0, coatIor, bsdfData.coatMask);
+    bsdfData.coatThickness  = coatThickness * bsdfData.coatMask;
     bsdfData.coatExtinction = coatExtinction;
 }
 
@@ -252,21 +478,6 @@ float GetCoatEta(in BSDFData bsdfData)
     float eta = bsdfData.coatIor / 1.0;
     //ieta = 1.0 / eta;
     return eta;
-}
-
-float3 GetNormalForShadowBias(BSDFData bsdfData)
-{
-    return bsdfData.geomNormalWS;
-}
-
-void ClampRoughness(inout BSDFData bsdfData, float minRoughness)
-{
-    // TODO
-}
-
-float ComputeMicroShadowing(BSDFData bsdfData, float NdotL)
-{
-    return 1; // TODO
 }
 
 bool MaterialSupportsTransmission(BSDFData bsdfData)
@@ -317,7 +528,7 @@ float3 GetEnergyCompensationFactor(float specularReflectivity, float3 fresnel0)
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
-void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
+void ApplyDebugToSurfaceData(float3x3 tangentToWorld, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
@@ -325,6 +536,7 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
     bool overrideSmoothness = _DebugLightingSmoothness.x != 0.0;
     bool overrideNormal = _DebugLightingNormal.x != 0.0;
+    bool overrideAO = _DebugLightingAmbientOcclusion.x != 0.0;
 
     if (overrideAlbedo)
     {
@@ -342,7 +554,29 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
     if (overrideNormal)
     {
-        surfaceData.normalWS = worldToTangent[2];
+        surfaceData.normalWS = tangentToWorld[2];
+    }
+
+    if (overrideAO)
+    {
+        float overrideAOValue = _DebugLightingAmbientOcclusion.y;
+        surfaceData.ambientOcclusion = overrideAOValue;
+    }
+
+    // There is no metallic with SSS and specular color mode
+    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+   
+    float3 diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    bool specularWorkflow = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR);
+    float3 specularColor = specularWorkflow ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, IorToFresnel0(surfaceData.dielectricIor));
+
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR)
+    {
+        surfaceData.baseColor = pbrDiffuseColorValidate(diffuseColor, specularColor, surfaceData.metallic > 0.0, !specularWorkflow).xyz;
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        surfaceData.baseColor = pbrSpecularColorValidate(diffuseColor, specularColor, surfaceData.metallic > 0.0, !specularWorkflow).xyz;
     }
 #endif
 }
@@ -377,7 +611,7 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
 
     sssData.diffuseColor = surfaceData.baseColor;
     sssData.subsurfaceMask = surfaceData.subsurfaceMask;
-    sssData.diffusionProfile = surfaceData.diffusionProfile;
+    sssData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
 
     return sssData;
 }
@@ -402,7 +636,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
         // In HazyGloss mode. ConvertSurfaceDataToNormalData() would need positionSS and to call
         // ConvertSurfaceDataToBSDFData, might be too heavy for a prepass, maybe find a lightweight approximation
         // of HazeMapping. 
-        // This is a moot point though: mixing though roughnesses directly in one is already a hack, the
+        // This is a moot point though: mixing two roughnesses directly in one is already a hack, the
         // resulting lobe isn't representative of this. But for what ConvertSurfaceDataToNormalData() influences
         // (like SSR and shadows), it might be sufficient.
         // Ignoring the case of hazy gloss doesn't seem a bad solution either: lobeMix will be 0 and we will use
@@ -427,8 +661,9 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 //    bsdfData.fresnel0
 //    bsdfData.lobeMix
 //
-//    (and these that only depend on hazeExtent and bsdfData.anisotropyB:)
+//    (and these that only depend on roughnessA/B, hazeExtent and bsdfData.anisotropyB:)
 //
+//    bsdfData.anisotropyB
 //    bsdfData.perceptualRoughnessB
 //    bsdfData.roughnessBT
 //    bsdfData.roughnessBB
@@ -457,6 +692,7 @@ void HazeMapping(float3 fresnel0, float roughnessAT, float roughnessAB, float ha
 
     //float2 alpha_n = float2(roughnessAT, roughnessAB);
     float2 alpha_n = float2(ClampRoughnessForAnalyticalLights(roughnessAT), ClampRoughnessForAnalyticalLights(roughnessAB));
+    // ...see above, we always use that clamp for numerical stability
     float alpha_n_xy = alpha_n.x * alpha_n.y;
     float beta_h = haziness;
     float2 lambda_h;
@@ -521,7 +757,8 @@ void HazeMapping(float3 fresnel0, float roughnessAT, float roughnessAB, float ha
         float roughnessB;
         ConvertRoughnessToAnisotropy(alpha_w.x, alpha_w.y, anisotropyB);
         ConvertRoughnessTAndAnisotropyToRoughness(alpha_w.x, anisotropyB, roughnessB);
-  
+
+        bsdfData.anisotropyB = anisotropyB;
         bsdfData.perceptualRoughnessB = RoughnessToPerceptualRoughness(roughnessB);
         bsdfData.roughnessBT = alpha_w.x;
         bsdfData.roughnessBB = alpha_w.y;
@@ -541,6 +778,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
 
+    // Blindly copy: will never be used if custom (ext) input is not used and selected as the SO method for baked/data-based specular occlusion.
+    bsdfData.specularOcclusionCustomInput = surfaceData.specularOcclusionCustomInput;
+
     bsdfData.geomNormalWS = surfaceData.geomNormalWS; // We should always have this whether we enable coat normals or not.
 
     // Two lobe base material
@@ -555,16 +795,18 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     bsdfData.fresnel0 = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, IorToFresnel0(surfaceData.dielectricIor));
 
+    bsdfData.diffusionProfileIndex = FindDiffusionProfileIndex(surfaceData.diffusionProfileHash);
+
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+        FillMaterialSSS(bsdfData.diffusionProfileIndex, surfaceData.subsurfaceMask, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
     {
         // Assign profile id and overwrite fresnel0
-        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+        FillMaterialTransmission(bsdfData.diffusionProfileIndex, surfaceData.thickness, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
@@ -597,13 +839,14 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
     {
-        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, surfaceData.iridescenceIor, bsdfData);
+        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, surfaceData.iridescenceIor,
+                                surfaceData.iridescenceCoatFixupTIR, surfaceData.iridescenceCoatFixupTIRClamp, bsdfData);
     }
 
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
         FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
-                             surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
+                             surfaceData.coatMask, surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
 
         if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP))
         {
@@ -619,20 +862,24 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.fresnel0 = ConvertF0ForAirInterfaceToF0ForNewTopIor(bsdfData.fresnel0, bsdfData.coatIor);
 
         // We dont clamp the roughnesses for now, ComputeAdding() will use those directly, unclamped.
-        // (don't forget to call ClampRoughnessForAnalyticalLights after though)
+        // (don't forget to call ClampRoughnessForDiracLightsByDefault after though)
         bsdfData.coatRoughness = PerceptualRoughnessToRoughness(bsdfData.coatPerceptualRoughness);
     }
     else
     {
         // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
         // perceptualRoughness is not clamped, and is meant to be used for IBL.
-        bsdfData.roughnessAT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessAT);
-        bsdfData.roughnessAB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessAB);
-        bsdfData.roughnessBT = ClampRoughnessForAnalyticalLights(bsdfData.roughnessBT);
-        bsdfData.roughnessBB = ClampRoughnessForAnalyticalLights(bsdfData.roughnessBB);
+        bsdfData.roughnessAT = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessAT);
+        bsdfData.roughnessAB = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessAB);
+        bsdfData.roughnessBT = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessBT);
+        bsdfData.roughnessBB = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessBB);
     }
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+
+    bsdfData.soFixupVisibilityRatioThreshold = surfaceData.soFixupVisibilityRatioThreshold;
+    bsdfData.soFixupStrengthFactor = surfaceData.soFixupStrengthFactor;
+    bsdfData.soFixupMaxAddedRoughness = surfaceData.soFixupMaxAddedRoughness;
 
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
@@ -653,6 +900,9 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
             // Convert to view space
             result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
             break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+            break;
     }
 }
 
@@ -667,7 +917,15 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
             // Convert to view space
             result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
             break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
+            result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
+            break;
     }
+}
+
+void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
+{
+    result = surfaceData.baseColor;
 }
 
 
@@ -701,6 +959,11 @@ struct PreLightData
     // is split by anisotropy, while IBL anisotropy is delt with a hack on the used iblR
     // vector, with the non-anisotropic roughness).
 
+    float  iblAnisotropy[BASE_NB_LOBES];      // bsdfData original anisotropies can change from stack computations
+                                              // again, no register pressure added, bsdfData originals aren't live (used further)
+                                              // once these are calculated, we just put them here to keep usage context clearer
+                                              // (ie same semantic as the rest of PreLightData fields)
+
     float3 specularFGD[TOTAL_NB_LOBES];       // Store preintegrated BSDF for both specular and diffuse
 
     float  diffuseFGD;
@@ -726,16 +989,22 @@ struct PreLightData
     // We don't reuse the BSDFData roughnessAT/AB/BT/BB because we might need these original
     // values per light (ie not only once at GetPreLightData time) to recompute new roughnesses
     // if we use VLAYERED_RECOMPUTE_PERLIGHT.
+    // This happens in the context of EvaluateBSDF_* calls though, and BSDFData is "input only"
+    // in those, so not really needed, kept just for clarity, though this shouldn't affect compiler
+    // register allocation.
     float  layeredRoughnessT[BASE_NB_LOBES];
     float  layeredRoughnessB[BASE_NB_LOBES];
     float  layeredCoatRoughness;
-    // For consistency with these nonperceptual anisotropic and clamped roughnessAT/AB/BT/BB
+    // For consistency with these nonperceptual anisotropic and clamped roughnessAT/AB/BT/BB,
     // coatRoughness for analytical dirac lights will also be stored here;
     // These should always be:
     // preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = bsdfData.coatPerceptualRoughness;
-    // preLightData.layeredCoatRoughness = ClampRoughnessForAnalyticalLights(bsdfData.coatRoughness);
+    // preLightData.layeredCoatRoughness = ClampRoughnessForDiracLightsByDefault(bsdfData.coatRoughness);
 
-    float  iblAnisotropy[BASE_NB_LOBES];
+    float minRoughness; // hack to pass per-light minRoughness to EvaluateBSDF when needed (GetHonorPerLightMinRoughness)
+                        // (either that or TODO, modify EvaluateBSDF() callback signature to include lightData but
+                        // the struct type changes depending on the type of light.)
+
 
 
     // GGX
@@ -805,6 +1074,104 @@ struct PreLightData
                                                     // potentially covering the whole hemisphere.
 };
 
+//
+// ClampRoughness helper specific to this material (PreLightData dependent)
+//
+//
+// This is called for each directional and punctual light evaluation,
+// in the context of callbacks from ShadeSurface_* calls.
+//
+// Only clamps if the shader is configured with the option to honor the per-light min roughness.
+// Otherwise, the clamping is done earlier with a default ClampRoughnessForDiracLightsByDefault.
+//
+// Also, this is called before EvaluateBSDF, so if the option to recompute the stack per light is set,
+// the ComputeAdding will be done at EvaluateBSDF time (once LdotH is known) and the modified values here would
+// be overwritten, so we escape the clamps in that case too.
+//
+// -> There are additional options possible we could provide to control the interpretation of the per light
+// minRoughness, in the case we recompute the stack per light:
+//
+// 1a) To clamp final roughnesses of the computed (top-of-stack equivalent) lobes, post computation (ie exactly as if
+// we didn't recompute the stack per light wrt to the per light minRoughness setting).
+// 1b) Clamp input roughnesses before the stack computations, so that the new top roughness also impacts the bottom.
+//
+// 2) For 1b), we also could interpret the minRoughness as clamping the coat only: since the bottom will get the
+// impact of the clamp indirectly, this could suffice. 
+//
+// As the light.minRoughness is a hack that can be used to simulate a sphere light from a point light, all options
+// can be valid, it depends on what appearance the user wants.
+//
+// For 1), if the symmetric parameterization of the stack is desired and was the reason to have the recompute per
+// light option, we currently don't offer to escape the influence of per light roughness applied to the coat in the
+// stack recomputation.
+//
+// For 1b) and 2), in theory as soon as we touch base roughnesses interpreted as pre-stack computation clamps, this also
+// means (if we want to respect the semantics of that clamp) the HazeMapping of lobe B (in the dual specular lobe case)
+// should be redone, affecting bsdfData.fresnel0, .lobeMix, and all properties of lobe B. In that case, the HazeMapping
+// dependencies should still stay the same (as computed from ConvertSurfaceDataToBSDFData) for non-dirac lights
+// (IBL, LTC). In practice, the final fields used for those lights are preLightData.ibl*, the FGD terms and
+// associated energyCompensationFactor, some of those are not touched in ComputeAdding. In any case, the per light stack
+// recomputation happens in the context of EvaluateBSDF_* calls where preLightData and bsdfData are restored per light
+// anyway.
+//
+// -> For now we ignore redoing HazeMapping and tie the "recompute stack option" to also mean to clamp with per light
+// minRoughness pre-stack computation. We also clamp both the coat and the base inputs (see ComputeAdding) instead of
+// just the coat.
+//
+void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, float minRoughness)
+{
+    if (GetHonorPerLightMinRoughness())
+    {
+        preLightData.minRoughness = minRoughness;
+    }
+
+    // See option for 2) above: in that case, ComputeAdding() should just be called with a minRoughness == 0.
+    if (GetPerLightMinRoughnessAffectsOnlyCoat())
+    {
+        if (GetHonorPerLightMinRoughness())
+        {
+            if (IsVLayeredEnabled(bsdfData))
+            {
+                if (!GetRecomputeStackPerLightOption())
+                {
+                    // If we don't recompute the stack per light, we clamp the final roughness used by
+                    // dirac lights (preLightData.layered*: for the coat this is the same as bsdfData.coatRoughness)
+                    preLightData.layeredCoatRoughness = max(minRoughness, preLightData.layeredCoatRoughness);
+                }
+                else
+                {
+                    // Otherwise, since the base roughness is amplified by the coat roughness, we clamp
+                    // the roughness of the coat only, the base should get an effect too.
+                    bsdfData.coatRoughness = max(minRoughness, bsdfData.coatRoughness);
+                    // we don't update this, no need to: bsdfData.coatPerceptualRoughness = RoughnessToPerceptualRoughness(bsdfData.coatRoughness);
+                }
+            }
+  
+            if (!GetRecomputeStackPerLightOption())
+            {
+                preLightData.layeredRoughnessT[0] = max(minRoughness, preLightData.layeredRoughnessT[0]);
+                preLightData.layeredRoughnessT[1] = max(minRoughness, preLightData.layeredRoughnessT[1]);
+                preLightData.layeredRoughnessB[0] = max(minRoughness, preLightData.layeredRoughnessB[0]);
+                preLightData.layeredRoughnessB[1] = max(minRoughness, preLightData.layeredRoughnessB[1]);
+            }
+        }
+    }
+    else
+    {
+        if (GetHonorPerLightMinRoughness() && !GetRecomputeStackPerLightOption())
+        {
+            if (IsVLayeredEnabled(bsdfData))
+            {
+                preLightData.layeredCoatRoughness = max(minRoughness, preLightData.layeredCoatRoughness);
+            }
+ 
+            preLightData.layeredRoughnessT[0] = max(minRoughness, preLightData.layeredRoughnessT[0]);
+            preLightData.layeredRoughnessT[1] = max(minRoughness, preLightData.layeredRoughnessT[1]);
+            preLightData.layeredRoughnessB[0] = max(minRoughness, preLightData.layeredRoughnessB[0]);
+            preLightData.layeredRoughnessB[1] = max(minRoughness, preLightData.layeredRoughnessB[1]);
+        }
+    }
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -877,8 +1244,10 @@ float GetModifiedAnisotropy(float anisotropy, float perceptualRoughness, float r
 #ifdef STACKLIT_DEBUG
     factor = _DebugAniso.w;
 #endif
-    float newAniso = anisotropy * (r  + (1-r) * clamp(factor*roughness*roughness,0,1));
-
+    //float newAniso = anisotropy * (r  + (1-r) * (1-newPerceptualRoughness)*(1-newPerceptualRoughness)
+    //                                          * clamp(factor*roughness*roughness,0,1));
+    //float newAniso = anisotropy * (r  + (1-r) * clamp(factor*roughness*roughness,0,1));
+    float newAniso = anisotropy * r;
     return newAniso;
 }
 
@@ -983,7 +1352,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 //
 // If you recompute everything per light, FGD fetches per light might be expensive,
 // so could use the FGD used for IBLs, angle used will be more or less incorrect
-// depending on light directions, but probably better than using F0 terms everywhere).
+// depending on light directions, but probably better than using fresnel terms everywhere).
 //
 // -Right now the method uses Fresnel terms for everything.
 //
@@ -1003,7 +1372,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // More details:
 // -----------------------------
 //
-// There’s a couple of choices for formulating the adding equations in ComputeAdding( ).
+// There's a couple of choices for formulating the adding equations in ComputeAdding( ).
 // I discuss that here along with some information on the whole method.
 //
 // If the energy coefficients are intended to be used solely in a split sum IBL context,
@@ -1029,7 +1398,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // light evaluations instead of the full BSDF. However, test empirically, might still be
 // better to use the full BSDF even then.
 // (Using FGD means accounting an average omnidirectional-outgoing / unidirectional-incoming
-// energy transfer, “directional albedo” form. But in analytical lights, dirac vanishes
+// energy transfer, "directional albedo" form. But in analytical lights, dirac vanishes
 // the first FGD integral, and the "LD" part will be very sparse and punctual, hence this
 // might justify using more than D_GGX() ?)
 //
@@ -1052,12 +1421,12 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // propagation operators work: eg see p9 the Symmetric Model: it is as if roughness is not
 // "injected" in the direction of the macrosurface but in the H direction. Although
 // different, empirical results show that it is as valid. Note however that again, this
-// doesn’t change the lobe directions.
+// doesn't change the lobe directions.
 //
 // Offspecular effects:
 //
-// Since the ComputeAdding() method doesn’t really track mean directions but assume symmetry in
-// the incidence plane (perpendicular to the “up” vector of the parametrization - either N or H
+// Since the ComputeAdding() method doesn't really track mean directions but assume symmetry in
+// the incidence plane (perpendicular to the "up" vector of the parametrization - either N or H
 // depending on the given cti param - cos theta incident), only elevation angles are used, but
 // output lobe directions (by symmetry of reflection and symmetry of transmission top-to-bottom
 // + bottom-to-top), since only reflection lobes are outputted, are all in the same direction
@@ -1073,7 +1442,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 // tilt still happens but after and based on the whole layered stack stats that have been
 // computed).
 //
-// Again, since we don’t change w_i when instantiating an analytic BSDF, the change in roughness
+// Again, since we don't change w_i when instantiating an analytic BSDF, the change in roughness
 // will incur that additional offspecular deviation naturally.
 // For IBLs however, we take the resulting output (vlayer) roughness and calculate a correction
 // to fetch through the dominant (central direction of the lobe) through GetSpecularDominantDir( )
@@ -1096,17 +1465,16 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 
 // TODO:
 // This creates another performance option: when in VLAYERED_RECOMPUTE_PERLIGHT mode, we
-// don’t recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
+// don't recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
 // and will require FGD fetches for each analytical light. (ie ComputeAdding( ) ideally should
 // always do calculations with FGD and do the fetches, so that even in GetPreLightData, nothing
-// would be done there). For now, and for performance reasons, we don’t provide the option.
+// would be done there). For now, and for performance reasons, we don't provide the option.
 //
 // However, when VLAYERED_RECOMPUTE_PERLIGHT is not used, we actually get usable terms that we
 // will apply to the specular lighting, but these are different, we have one per real interface
-// (so 2 vs the 3 “virtual” layer structure here).
+// (so 2 vs the 3 "virtual" layer structure here).
 // (FGDinf can be obtained from our FGD)
 //
-
 
 
 ///Helper function that parses the BSDFData object to generate the current layer's
@@ -1117,7 +1485,7 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 //       (more like p8, T21 <- T21*TIR, R21 <- R21 + (1-TIR)*T21 )
 //
 //ComputeStatistics(cti, V, vOrthoGeomN, useGeomN, i, bsdfData, preLightData, ctt, R12, T12, R21, T21, s_r12, s_t12, j12, s_r21, s_t21, j21);
-void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bool useGeomN, in int i, in BSDFData bsdfData,
+void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bool useGeomN, in int i, in BSDFData bsdfData, in float minRoughness,
                        inout PreLightData preLightData,
                        out float  ctt,
                        out float3 R12,   out float3 T12,   out float3 R21,   out float3 T21,
@@ -1161,7 +1529,8 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
             // Moreover, we don't consider offspecular effect as well as never outputting final downward lobes anyway, so we
             // never output the means but just track them as cosines of angles (cti) for energy transfer calculations
             // (should do with FGD but depends, see comments above).
-            const float alpha = bsdfData.coatRoughness;
+
+            const float alpha = ClampRoughnessIfHonorLightMinRoughness(bsdfData.coatRoughness, minRoughness);
             const float scale = clamp((1.0-alpha)*(sqrt(1.0-alpha) + alpha), 0.0, 1.0);
             //http://www.wolframalpha.com/input/?i=f(alpha)+%3D+(1.0-alpha)*(sqrt(1.0-alpha)+%2B+alpha)+alpha+%3D+0+to+1
             stt = scale*stt + (1.0-scale)*sti;
@@ -1176,12 +1545,15 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
         }
 
         // Update variance
-        s_r12 = RoughnessToLinearVariance(bsdfData.coatRoughness);
-        s_t12 = RoughnessToLinearVariance(bsdfData.coatRoughness * 0.5 * abs((ctt*n12 - cti)/(ctt*n12)));
+        // coatMask hack: See FillMaterialCoatData.
+        // Here we just lerp linearized variance to 0 here.
+        // Note that ctt -> cti when coatMask -> 0, so s_t12 is left as is. Same for jacobian terms
+        s_r12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(bsdfData.coatRoughness, minRoughness)) * bsdfData.coatMask;
+        s_t12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(bsdfData.coatRoughness, minRoughness) * 0.5 * abs((ctt*n12 - cti)/(ctt*n12)));
         j12   = (ctt/cti)*n12;
 
         s_r21 = s_r12;
-        s_t21 = RoughnessToLinearVariance(bsdfData.coatRoughness * 0.5 * abs((cti/n12 - ctt)/(cti/n12)));
+        s_t21 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(bsdfData.coatRoughness, minRoughness) * 0.5 * abs((cti/n12 - ctt)/(cti/n12)));
         j21   = 1.0/j12;
 
     // Case of the media layer
@@ -1191,7 +1563,11 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
         // TODO: if TIR is permitted by UI, do this, or early out
         //float stopFactor = float(cti > 0.0);
         //T12 = stopFactor * exp(- bsdfData.coatThickness * bsdfData.coatExtinction / cti);
-        // Update energy
+
+        // coatMask hack: See FillMaterialCoatData. We already have modified coatThickness
+        // and this will reduce Beer-Lambert attenuation here when the mask goes to 0
+
+        // Update energy:
         R12 = float3(0.0, 0.0, 0.0);
         T12 = exp(- bsdfData.coatThickness * bsdfData.coatExtinction / cti);
         R21 = R12;
@@ -1235,14 +1611,52 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
         {
             if (bsdfData.iridescenceMask > 0.0)
             {
-                //float topIor = bsdfData.coatIor;
-                // TODO:
-                // We will avoid using coatIor directly as with the fake refraction, it can cause TIR
+                // float topIor = bsdfData.coatIor;
+                //
+                // Hack: (see also the last parameter of EvalIridescence() that we don't set)
+                //
+                // We will avoid using coatIor directly as with the refraction, it can cause TIR
                 // which even when handled in EvalIridescence (tested), doesn't look pleasing and
                 // creates a discontinuity.
-                float scale = clamp((1.0-bsdfData.coatPerceptualRoughness), 0.0, 1.0);
-                float topIor = lerp(1.0001, bsdfData.coatIor, scale);
-                R12 = lerp(R12, EvalIridescence(topIor, ctiForFGD, bsdfData.iridescenceThickness, bsdfData.fresnel0), bsdfData.iridescenceMask);
+                //
+                // This fixup is configurable and applied via two terms:
+                //
+                // k1:
+                //
+                // First, note our average refracted lobe direction stat is modulated by the roughness:
+                // The more roughness the coat has, the less we make our average lobe direction stat be
+                // affected by refraction. Since this will make the incoming directions less compressed
+                // wrt to the normal, TIR in iridescence due to the coatIor is more likely to happen.
+                //
+                // We noted the lerpfactor curve to make the iridescence effect cover the whole 0-90 degrees
+                // angular range with 90-eps degrees just short of causing TIR vs the input coatPerceptualRoughness.
+                // We fitted this curve with a cubic polynomial.
+                // This gives us our lerpfactor to lerp down the coatIor closer to air.
+                //
+                // The first fixup is configured to keep TIR just out of the whole possible NdotV range,
+                // but this is also dependent on iridescenceThickness. The first factor works for
+                // iridescenceThickness = 1, but lowering iridescenceThickness will push the TIR border further
+                // out toward the grazing angle.
+                // A second fixup can be used to clamp the TIR border fixed by the first fixup factor,
+                // regardless of iridescenceThickness.
+                // Both are handy artistic options when wanting to animate or map (or anything else in a
+                // shadergraph) coatIor, coatPerceptualSmoothness and iridescenceThickness.
+                float k1 = 1.0;
+                float k2 = 1.0;
+                float scale = bsdfData.coatPerceptualRoughness;
+                scale = RoughnessToPerceptualRoughness(ClampRoughnessIfHonorLightMinRoughness(bsdfData.coatRoughness, minRoughness));
+                k1 = bsdfData.iridescenceCoatFixupTIR * saturate(0.003333915 - 0.1675957*scale + 2.571426*scale*scale - 1.406338*scale*scale*scale);
+                k2 = lerp(1.0, (2.0 - bsdfData.iridescenceThickness), bsdfData.iridescenceCoatFixupTIRClamp); // See EvalIridescence in BSDF.hlsl for why "2-iridescenceThickness"
+                float topIor = k2 * lerp(bsdfData.coatIor, 1.0001, k1);
+                // Because of the coatMask, we also store independently the iridescence evaluation in preLightData for lights to be evaluated
+                // with BSDF(), as normally without coat we do not use the NdotV-based terms (see R12 F_Schlick evaluation with ctiForFGD just
+                // above) calculated in ComputeAdding for fresnel but the true LdotH. So for the coatMask hack, we need a separate iridescence
+                // fresnel (stored here), combined with an F_Schlick(bsdfData.fresnel0, LdotH) term, the later evaluated in BSDF().
+                //
+                // We also need to store the iridescent fresnel term for the split-sum lights for the coatMask = 0 endpoint, since in
+                // GetPreLightData, we assume that when we have the coat feature enabled, EvalIridescence is done here (avoid double computation).
+                preLightData.fresnelIridforCalculatingFGD = EvalIridescence(topIor, ctiForFGD, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+                R12 = lerp(R12, preLightData.fresnelIridforCalculatingFGD, bsdfData.iridescenceMask);
             }
         }
 
@@ -1283,8 +1697,28 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
 } //...ComputeStatistics()
 
 
-void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightData preLightData, bool calledPerLight = false, bool testSingularity = false)
+void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightData preLightData,
+                   bool calledPerLight = false, bool testSingularity = false, float minRoughness = 0.0)
 {
+    if (calledPerLight == false)
+    {
+        // Just a precaution
+        minRoughness = 0.0;
+        // ie We will only take it into account if called per light. 
+        // If GetHonorPerLightMinRoughness(), we will still escape the default clamp of ClampRoughnessForDiracLightsByDefault() though.
+        // The net result if we're never recomputing the stack per light but signal we honor the per-light minRoughness is that we 
+        // won't clamp anything in ComputeAdding and just late clamp the resulting roughnesses at each light evaluation via ClampRoughness().
+        // The change in coat roughness will obviously not affect the bottom roughness in that case and the results will be wrong, but
+        // depending on the scene setup, could be acceptable.
+    }
+    // Like stated above, minRoughness is only useful if calledPerLight == true and GetHonorPerLightMinRoughness() == true:
+    //
+    // In that case, ClampRoughnessForDiracLightsByDefault() will not clamp anything but ClampRoughnessIfHonorLightMinRoughness()
+    // used here and in ComputeStatistics will (provided calledPerLight == true and thus minRoughness is not 0) and we're passing
+    // bsdfData's roughnesses through that function before using them in light evaluation (via ClampRoughness()),
+    // so the net result will be a per light (ie light specific - see the call to ComputeAdding() in BSDF_SetupNormalsAndAngles)
+    // minimum roughness value enforced on the input roughness values used before computing the stack statistics.
+
     // _cti should be LdotH or VdotH if calledPerLight == true (symmetric parametrization), V is unused in this case.
     // _cti should be NdotV if calledPerLight == false and no independent coat normal map is used (ie single normal map), V is unused in this case.
     // _cti should be (coatNormalWS dot V) if calledPerLight == false and we have a coat normal map. V is used in this case
@@ -1294,14 +1728,18 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     {
         preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX] = 0.0 * F_Schlick(IorToFresnel0(bsdfData.coatIor), _cti);
         preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = bsdfData.coatPerceptualRoughness;
-        preLightData.layeredCoatRoughness = ClampRoughnessForAnalyticalLights(bsdfData.coatRoughness);
+
+        // This debug scope is used to bypass stack computing effects, so we use ClampRoughnessForDiracLightsByDefault()
+        // to compute one time the default clamp if we dont honor the per light one, otherwise, ClampRoughness() will finalize the
+        // per-light minRoughness clamping in the per light BSDF evaluations.
+        preLightData.layeredCoatRoughness = ClampRoughnessForDiracLightsByDefault(bsdfData.coatRoughness);
 
         preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX] = 1.0 * F_Schlick(bsdfData.fresnel0, _cti);
 
-        preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(bsdfData.roughnessAT);
-        preLightData.layeredRoughnessB[0] = ClampRoughnessForAnalyticalLights(bsdfData.roughnessAB);
-        preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(bsdfData.roughnessBT);
-        preLightData.layeredRoughnessB[1] = ClampRoughnessForAnalyticalLights(bsdfData.roughnessBB);
+        preLightData.layeredRoughnessT[0] = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessAT);
+        preLightData.layeredRoughnessB[0] = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessAB);
+        preLightData.layeredRoughnessT[1] = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessBT);
+        preLightData.layeredRoughnessB[1] = ClampRoughnessForDiracLightsByDefault(bsdfData.roughnessBB);
         preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = bsdfData.perceptualRoughnessA;
         preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = bsdfData.perceptualRoughnessB;
         return;
@@ -1314,6 +1752,34 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     bool useGeomN;
     float3 vOrthoGeomN; // only valid if useGeomN == true
     ComputeAdding_GetVOrthoGeomN(bsdfData, V, calledPerLight, vOrthoGeomN, useGeomN, testSingularity);
+    if (useGeomN)
+    {
+        // We have dual normal maps and we are not called per light, so we aren't in the
+        // symmetric model parametrization (with _cti = LdotH always positive).
+        // Handle an option to fix the coat layer behavior to avoid regions where the top
+        // normal map could completely block bottom shading.
+        int method = ComputeAdding_GetDualNormalsTopHandlingMethod();
+
+        if (method == VLAYERED_DUAL_NORMALS_TOP_FIX_GEOM_NORMAL)
+        {
+            _cti = ClampNdotV(preLightData.geomNdotV);
+        }
+        else if(method == VLAYERED_DUAL_NORMALS_TOP_FIX_FLIP_NORMAL)
+        {
+            // To still have the top normal influence the Fresnel term,
+            // we could do
+            // _cti = ClampNdotV(abs(dot(bsdfData.coatNormalWS, V)));
+            // or use an even coarser clamp to remove more of the dark regions
+            // around the lines where the normal flip,
+            _cti = max(abs(dot(bsdfData.coatNormalWS, V)), 0.1);
+            // and try not to go beyond the geometric normal:
+            // This is important to avoid outer rim boost (on the base layer energy, and dimming for the coat,
+            // as when cti -> 0 - which we prevent - , coat reflections get more energy but there's also less
+            // transmission) from that large angular range (from the grazing limit of PI/2 up to acos(0.1))
+            // due to use of a clamp with a large value of 0.1
+            _cti = min(_cti, ClampNdotV(preLightData.geomNdotV));
+        }
+    }
 
     float  cti  = _cti;
     float3 R0i = float3(0.0, 0.0, 0.0), Ri0 = float3(0.0, 0.0, 0.0),
@@ -1329,6 +1795,7 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     float3 localvLayerEnergyCoeff[NB_VLAYERS];
 
     // Iterate over the layers
+    UNITY_UNROLL
     for(int i = 0; i < NB_VLAYERS; ++i)
     {
         // Variables for the adding step
@@ -1337,22 +1804,49 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         float s_r21=0.0, s_t12=0.0, s_t21=0.0, j12=1.0, j21=1.0, ctt;
 
         // Layer specific evaluation of the transmittance, reflectance, variance
-        ComputeStatistics(cti, V, vOrthoGeomN, useGeomN, i, bsdfData, preLightData, ctt, R12, T12, R21, T21, s_r12, s_t12, j12, s_r21, s_t21, j21);
+        ComputeStatistics(cti, V, vOrthoGeomN, useGeomN, i, bsdfData, minRoughness, preLightData, ctt, R12, T12, R21, T21, s_r12, s_t12, j12, s_r21, s_t21, j21);
 
         // Multiple scattering forms
-        float3 denom = (float3(1.0, 1.0, 1.0) - Ri0*R12); //i = new layer, 0 = cumulative top (llab3.1 to 3.4)
-        float3 m_R0i = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T0i*R12*Ti0) / denom; //(llab3.1)
-        float3 m_Ri0 = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T21*Ri0*T12) / denom; //(llab3.2)
-        float3 m_Rr  = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (Ri0*R12) / denom;
+        float3 denom = max(0.0, (float3(1.0, 1.0, 1.0) - Ri0*R12)); //i = new layer, 0 = cumulative top (llab3.1 to 3.4)
+
+        // (mean(denom) <= 0.0f)? is not enough to prevent division by 0, see below
+        //
+        // float3 m_R0i = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T0i*R12*Ti0) / denom; //(llab3.1)
+        // float3 m_Ri0 = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T21*Ri0*T12) / denom; //(llab3.2)
+        // float3 m_Rr  = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (Ri0*R12) / denom;
+        float3 m_R0i = float3(0.0, 0.0, 0.0);
+        float3 m_Ri0 = float3(0.0, 0.0, 0.0);
+        float3 m_Rr  = float3(0.0, 0.0, 0.0);
+
+        // Energy for transmission terms:
+        float3 e_T0i = float3(0.0, 0.0, 0.0);
+        float3 e_Ti0 = float3(0.0, 0.0, 0.0);
+
+        // If the denominator of any component of the multiple scattering forms reaches 0, the series becomes meaningless
+        // as bounces between the interfaces become "trapped" there in that limit, so we leave the terms to 0.
+        UNITY_UNROLL
+        for(int j = 0; j < 3; ++j)
+        {
+            if (denom[j] > 0.0)
+            {
+                m_R0i[j] = (T0i[j]*R12[j]*Ti0[j]) / denom[j]; //(llab3.1)
+                m_Ri0[j] = (T21[j]*Ri0[j]*T12[j]) / denom[j]; //(llab3.2)
+                m_Rr[j]  = (Ri0[j]*R12[j]) / denom[j];
+                // Evaluate the adding operator on the energy for transmission terms:
+                e_T0i[j] = (T0i[j]*T12[j]) / denom[j]; //(llab3.3)
+                e_Ti0[j] = (T21[j]*Ti0[j]) / denom[j]; //(llab3.4)
+            }
+        }
         float  m_r0i = mean(m_R0i);
         float  m_ri0 = mean(m_Ri0);
         m_rr  = mean(m_Rr);
 
-        // Evaluate the adding operator on the energy
+        // Evaluate the adding operator on the energy for reflection terms:
         float3 e_R0i = R0i + m_R0i; //(llab3.1)
-        float3 e_T0i = (T0i*T12) / denom; //(llab3.3)
-        float3 e_Ri0 = R21 + (T21*Ri0*T12) / denom; //(llab3.2)
-        float3 e_Ti0 = (T21*Ti0) / denom; //(llab3.4)
+        float3 e_Ri0 = R21 + m_Ri0; //(llab3.2)
+        // Transmission energy is computed above already:
+        // float3 e_T0i = (T0i*T12) / denom; //(llab3.3)
+        // float3 e_Ti0 = (T21*Ti0) / denom; //(llab3.4)
 
         // Scalar forms for the energy
         float r21   = mean(R21);
@@ -1362,10 +1856,10 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
         // Evaluate the adding operator on the normalized variance
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-        float _s_r0i = (r0i*s_r0i + m_r0i*_s_r0m) / e_r0i;
+        float _s_r0i = (r0i*s_r0i + m_r0i*_s_r0m); // e_r0i; -> _s_r0i normalization is done below
         float _s_t0i = j12*s_t0i + s_t12 + j12*(s_r12 + s_ri0)*m_rr;
         float _s_rim = s_t12 + j12*(s_t21 + s_ri0 + m_rr*(s_r12+s_ri0));
-        float _s_ri0 = (r21*s_r21 + m_ri0*_s_rim) / e_ri0;
+        float _s_ri0 = (r21*s_r21 + m_ri0*_s_rim); // e_ri0; -> _s_ri0 normalization is done below
         float _s_ti0 = ji0*s_t21 + s_ti0 + ji0*(s_r12 + s_ri0)*m_rr;
         _s_r0i = (e_r0i > 0.0) ? _s_r0i/e_r0i : 0.0;
         _s_ri0 = (e_ri0 > 0.0) ? _s_ri0/e_ri0 : 0.0;
@@ -1382,7 +1876,9 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
 
         // Update mean
-        cti = ctt;
+        // Avoid grazing angle black artefacts and instead of 
+        // cti = ctt;
+        cti = ClampNdotV(ctt);
 
         // We need to escape this update on the last vlayer iteration,
         // as we will use a hack to compute all needed bottom layer
@@ -1429,12 +1925,20 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     // Obviously coat roughness is given without ComputeAdding calculations (nothing on top)
     // ( preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = preLightData.vLayerPerceptualRoughness[TOP_VLAYER_IDX]; )
 
-#ifdef VLAYERED_RECOMPUTE_PERLIGHT
-    bool perLightOption = true;
-#else
-    bool perLightOption = false;
-#endif
+    bool perLightOption = GetRecomputeStackPerLightOption();
     bool haveAnisotropy = HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY);
+
+    // calledPerLight case:
+    //
+    // preLightData.ibl* fields are updated even if calledPerLight (ie for dirac lights) as they
+    // can also be used to hold intermediate calculations for anisotropy used by dirac lights.
+    // Normally we don't want these field updated per light, but we only call ComputeAdding
+    // per light in the context of EvaluateBSDF_* calls, which passes preLightData not as "inout" but just
+    // as input, so non-dirac lights will not be affected, neither should register pressure: the overwritten
+    // values here shouldn't need to be held long before being restored as the new values are not used
+    // beyond a few lines in this function.
+    //
+    // So to not further clutter the code here, we wont use extra locals copied to preLightData if (!calledPerLight).
 
     if( !calledPerLight )
     {
@@ -1443,7 +1947,11 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         // analytical lights. For these we also don't need to recompute the following, but only the Fresnel
         // or FGD term are necessary in ComputeAdding, see BSDF().
         preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = bsdfData.coatPerceptualRoughness;
-        preLightData.layeredCoatRoughness = ClampRoughnessForAnalyticalLights(bsdfData.coatRoughness);
+        preLightData.layeredCoatRoughness = ClampRoughnessForDiracLightsByDefault(bsdfData.coatRoughness);
+    }
+    else
+    {
+        preLightData.layeredCoatRoughness = ClampRoughnessIfHonorLightMinRoughness(bsdfData.coatRoughness, minRoughness);
     }
 
     // calledPerLight and all of the bools above are static time known.
@@ -1475,10 +1983,10 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     preLightData.iblAnisotropy[1] = bsdfData.anisotropyB;
 
 
-    s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA));
+    s_r12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA), minRoughness));
     _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
     preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = LinearVarianceToPerceptualRoughness(_s_r0m);
-    s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessB));
+    s_r12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessB), minRoughness));
     _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
     preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = LinearVarianceToPerceptualRoughness(_s_r0m);
 
@@ -1487,21 +1995,32 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     // that destretching happens.
     IF_DEBUG( if( _DebugAniso.x == 1) )
     {
-        preLightData.iblAnisotropy[0] = GetModifiedAnisotropy(bsdfData.anisotropyA, bsdfData.perceptualRoughnessA,
-                                                              PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA),
+        // To be consistent with ClampRoughnessIfHonorLightMinRoughness() here, we should do:
+        float originalPerceptualRoughness = RoughnessToPerceptualRoughness(ClampRoughnessIfHonorLightMinRoughness(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA), minRoughness));
+        // compiler should optimize out all of this when not required (eg if GetHonorPerLightMinRoughness() == false) and fold subexpressions.
+
+        preLightData.iblAnisotropy[0] = GetModifiedAnisotropy(bsdfData.anisotropyA, /*bsdfData.perceptualRoughnessA*/originalPerceptualRoughness,
+                                                              PerceptualRoughnessToRoughness(/*bsdfData.perceptualRoughnessA*/originalPerceptualRoughness),
                                                               preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX]);
-        preLightData.iblAnisotropy[1] = GetModifiedAnisotropy(bsdfData.anisotropyB, bsdfData.perceptualRoughnessB,
-                                                              PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessB),
+
+        originalPerceptualRoughness = RoughnessToPerceptualRoughness(ClampRoughnessIfHonorLightMinRoughness(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessB), minRoughness));
+
+        preLightData.iblAnisotropy[1] = GetModifiedAnisotropy(bsdfData.anisotropyB, /*bsdfData.perceptualRoughnessB*/originalPerceptualRoughness,
+                                                              PerceptualRoughnessToRoughness(/*bsdfData.perceptualRoughnessB*/originalPerceptualRoughness),
                                                               preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX]);
     }
 #endif
 
     if( !perLightOption || calledPerLight)
     {
-        ConvertAnisotropyToClampRoughness(preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], preLightData.iblAnisotropy[0],
-                                          preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0]);
-        ConvertAnisotropyToClampRoughness(preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], preLightData.iblAnisotropy[1],
-                                          preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1]);
+        ConvertAnisotropyToRoughness(preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], preLightData.iblAnisotropy[0],
+                                     preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0]);
+        ConvertAnisotropyToRoughness(preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], preLightData.iblAnisotropy[1],
+                                     preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1]);
+        preLightData.layeredRoughnessT[0] = ClampRoughnessForDiracLightsByDefault(preLightData.layeredRoughnessT[0]);
+        preLightData.layeredRoughnessB[0] = ClampRoughnessForDiracLightsByDefault(preLightData.layeredRoughnessB[0]);
+        preLightData.layeredRoughnessT[1] = ClampRoughnessForDiracLightsByDefault(preLightData.layeredRoughnessT[1]);
+        preLightData.layeredRoughnessB[1] = ClampRoughnessForDiracLightsByDefault(preLightData.layeredRoughnessB[1]);
     }
 
 #else
@@ -1510,6 +2029,8 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     // --------------------------------------------------------------------------------
     if( !calledPerLight && !haveAnisotropy)
     {
+        // We're not called per light, so don't do anything with ClampRoughnessIfHonorLightMinRoughness().
+
         // Calculate modified base lobe roughnesses T (no anisotropy)
 
         // There's no anisotropy and we haven't clamped the roughness in the T and B fields, so
@@ -1531,13 +2052,15 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         {
             // We're not going to get called again per analytical light so store the result needed and used by them:
             // LOBEA and LOBEB but only the T part...
-            preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(varianceLobeA));
-            preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(varianceLobeB));
+            preLightData.layeredRoughnessT[0] = ClampRoughnessForDiracLightsByDefault(LinearVarianceToRoughness(varianceLobeA));
+            preLightData.layeredRoughnessT[1] = ClampRoughnessForDiracLightsByDefault(LinearVarianceToRoughness(varianceLobeB));
         }
     }
 
     if( !calledPerLight && haveAnisotropy)
     {
+        // We're not called per light, so don't do anything with ClampRoughnessIfHonorLightMinRoughness().
+
         // We're in GetPreLightData context so we need to deal with IBL precalc, and
         // regardless of if we had the VLAYERED_RECOMPUTE_PERLIGHT option or not, we
         // still need to compute the full anistropic modification of variances.
@@ -1568,8 +2091,8 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         {
             // We're not going to get called again per analytical light so store the result needed and used by them:
             // LOBEA T and B part:
-            preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(roughnessT);
-            preLightData.layeredRoughnessB[0] = ClampRoughnessForAnalyticalLights(roughnessB);
+            preLightData.layeredRoughnessT[0] = ClampRoughnessForDiracLightsByDefault(roughnessT);
+            preLightData.layeredRoughnessB[0] = ClampRoughnessForDiracLightsByDefault(roughnessB);
         }
 
 
@@ -1595,8 +2118,8 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         {
             // We're not going to get called again per analytical light so store the result needed and used by them:
             // LOBEB T and B part:
-            preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(roughnessT);
-            preLightData.layeredRoughnessB[1] = ClampRoughnessForAnalyticalLights(roughnessB);
+            preLightData.layeredRoughnessT[1] = ClampRoughnessForDiracLightsByDefault(roughnessT);
+            preLightData.layeredRoughnessB[1] = ClampRoughnessForDiracLightsByDefault(roughnessB);
         }
 
     } // if( !calledPerLight && haveAnisotropy)
@@ -1611,26 +2134,30 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         // We just need to propagate variance for LOBEA and LOBEB and clamp.
 
         // LOBEA roughness for analytical lights (T part)
-        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAT);
+        //s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAT);
+        s_r12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(bsdfData.roughnessAT, minRoughness));
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-        preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
+        preLightData.layeredRoughnessT[0] = ClampRoughnessForDiracLightsByDefault(LinearVarianceToRoughness(_s_r0m));
 
         // LOBEB roughness for analytical lights (T part)
-        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBT);
+        //s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBT);
+        s_r12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(bsdfData.roughnessBT, minRoughness));
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-        preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
+        preLightData.layeredRoughnessT[1] = ClampRoughnessForDiracLightsByDefault(LinearVarianceToRoughness(_s_r0m));
 
         if ( haveAnisotropy )
         {
             // LOBEA roughness for analytical lights (B part)
-            s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAB);
+            //s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAB);
+            s_r12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(bsdfData.roughnessAB, minRoughness));
             _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-            preLightData.layeredRoughnessB[0] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
+            preLightData.layeredRoughnessB[0] = ClampRoughnessForDiracLightsByDefault(LinearVarianceToRoughness(_s_r0m));
 
             // LOBEB roughness for analytical lights (B part)
-            s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBB);
+            //s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBB);
+            s_r12 = RoughnessToLinearVariance(ClampRoughnessIfHonorLightMinRoughness(bsdfData.roughnessBB, minRoughness));
             _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-            preLightData.layeredRoughnessB[1] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
+            preLightData.layeredRoughnessB[1] = ClampRoughnessForDiracLightsByDefault(LinearVarianceToRoughness(_s_r0m));
         }
     }
     // ...Non scalar treatment of anisotropy to have the option to remove some anisotropy
@@ -1640,7 +2167,8 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     // TODO
-    preLightData.diffuseEnergy = Ti0;
+    // coatMask hack: See FillMaterialCoatData.
+    preLightData.diffuseEnergy = lerp(float3(1.0, 1.0, 1.0), Ti0, bsdfData.coatMask);
     // Not correct since these stats are still directional probably too much
     // removed, but with a non FGD term, could actually balance out (as using
     // FGD would lower this)
@@ -1706,8 +2234,10 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
     theta[COAT_NORMAL_IDX] =  FastACosPos(NdotV[COAT_NORMAL_IDX]);
     theta[BASE_NORMAL_IDX] =  FastACosPos(NdotV[BASE_NORMAL_IDX]);
 
-    // NB_NORMALS is always <= TOTAL_NB_LOBES, so we are safe to always be able to compile this however preLightData.orthoBasisViewNormal[]
-    // is sized and we use _NORMAL_IDX for clarity instead of ORTHOBASIS_VN_*_IDX aliases
+    // NB_NORMALS is always <= TOTAL_NB_LOBES, so we are safe to always be able to compile this even if preLightData.orthoBasisViewNormal[]
+    // is sized with NB_ORTHOBASISVIEWNORMAL, and we use _NORMAL_IDX for clarity instead of ORTHOBASIS_VN_*_IDX aliases
+    // (this function should never be called anyways when NB_ORTHOBASISVIEWNORMAL == TOTAL_NB_LOBES,
+    // as PreLightData_SetupAreaLightsAniso is used in that case, but it must still compile)
     preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[COAT_NORMAL_IDX], preLightData.NdotV[COAT_NORMAL_IDX]);
     preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX] = GetOrthoBasisViewNormal(V, N[BASE_NORMAL_IDX], preLightData.NdotV[BASE_NORMAL_IDX]);
 
@@ -1758,7 +2288,8 @@ void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_
 
     // Now we need 3 matrices + 1 for transmission
     // Note we need to use ORTHOBASIS_VN_*_IDX since we could have no anisotropy and one or two normals but 3 lobes:
-    // in that case, this function has to compile preLightData.orthoBasisViewNormal[] but is never called
+    // in that case, this function has to compile with preLightData.orthoBasisViewNormal[] (which will only have one or 2 slots)
+    // but is never called
     preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_COAT_LOBE_IDX] = GetOrthoBasisViewNormal(V, iblN[COAT_LOBE_IDX], iblNdotV[COAT_LOBE_IDX]);
     preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEA_IDX] = GetOrthoBasisViewNormal(V, iblN[BASE_LOBEA_IDX], iblNdotV[BASE_LOBEA_IDX]);
     preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEB_IDX] = GetOrthoBasisViewNormal(V, iblN[BASE_LOBEB_IDX], iblNdotV[BASE_LOBEB_IDX]);
@@ -1787,51 +2318,126 @@ void PreLightData_SetupAreaLightsAniso(BSDFData bsdfData, float3 V, float3 N[NB_
 #endif
 } // PreLightData_SetupAreaLightsAniso
 
-
-#define SPECULAR_OCCLUSION_FROM_AO 0
-#define SPECULAR_OCCLUSION_CONECONE 1
-#define SPECULAR_OCCLUSION_SPTD 2
-
-float3 PreLightData_GetSpecularOcclusion(BSDFData bsdfData, // PreLightData preLightData,
-                                         int specularOcclusionAlgorithm,
-                                         float screenSpaceSpecularOcclusion,
-                                         float3 V, float3 normalWS, float NdotV /* clamped */,
-                                         float perceptualRoughness, float3x3 orthoBasisViewNormal,
-                                         int bentVisibilityAlgorithm, bool useHemisphereClip, float3 fresnel0)
+// See PreLightData_SetupOcclusion(): when we require something equivalent to a "diffuse color tint" but for the specular BSDF,
+// we will use this:
+float3 GetApproximatedBottomFresnel0ForTint(BSDFData bsdfData, PreLightData preLightData)
 {
-    SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
-    //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
-    float ambientOcclusionFromData = bsdfData.ambientOcclusion;
-    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-
-    float3 debugCoeff = float3(1.0,1.0,1.0);
-    float specularOcclusionFromData;
-    switch(specularOcclusionAlgorithm)
+    float3 bottomF0;
+    if( IsVLayeredEnabled(bsdfData) )
     {
+        bottomF0 = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
+    }
+    else
+    {
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+        {
+            bottomF0 = preLightData.fresnelIridforCalculatingFGD;
+        }
+        else
+        {
+            bottomF0 = bsdfData.fresnel0;
+        }
+    }
+    return bottomF0;
+}
+
+// This function return diffuse color or an equivalent color (in case of metal).
+// This is use for MatCapView and reflection probe pass
+float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
+{
+    // Use frensel0 as mettalic weight. all value below 0.2 (ior of diamond) are dielectric
+    // all value above 0.45 are metal, in between we lerp.
+    float weight = saturate((Max3(bsdfData.fresnel0.r, bsdfData.fresnel0.g, bsdfData.fresnel0.b) - 0.2) / (0.45 - 0.2));
+
+    return float4(lerp(bsdfData.diffuseColor, bsdfData.fresnel0, weight * replace), weight);
+}
+
+// From SPTDistribution.hlsl:
+
+//#define SPECULAR_OCCLUSION_FROM_AO 0
+//#define SPECULAR_OCCLUSION_CONECONE 1
+//#define SPECULAR_OCCLUSION_SPTD 2
+//#define SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT 3
+
+float3 PreLightData_GetCommbinedSpecularOcclusion(float screenSpaceSpecularOcclusion, float specularOcclusionFromData, float3 fresnel0,
+                                                  /* for debug: */
+                                                  int dataBasedSpecularOcclusionAlgorithm)
+{
+    float3 debugCoeff = float3(1.0,1.0,1.0);
+    switch(dataBasedSpecularOcclusionAlgorithm)
+    {
+    case SPECULAR_OCCLUSION_DISABLED:
+        break;
     case SPECULAR_OCCLUSION_FROM_AO:
-        specularOcclusionFromData = GetSpecularOcclusionFromAmbientOcclusion(NdotV, ambientOcclusionFromData, roughness);
+        //debugCoeff = float3(1.0,0.0,0.0);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
         break;
     case SPECULAR_OCCLUSION_CONECONE:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(1.0,0.0,0.0); } )
-        specularOcclusionFromData = GetSpecularOcclusionFromBentAOConeCone(V, bsdfData.bentNormalWS, normalWS, ambientOcclusionFromData, roughness, bentVisibilityAlgorithm);
         break;
     case SPECULAR_OCCLUSION_SPTD:
         IF_DEBUG( if (_DebugSpecularOcclusion.w == -1.0) { debugCoeff = float3(0.0,1.0,0.0); } )
-        specularOcclusionFromData = GetSpecularOcclusionFromBentAOPivot(V, bsdfData.bentNormalWS, normalWS,
-                                                                ambientOcclusionFromData,
-                                                                perceptualRoughness,
-                                                                bentVisibilityAlgorithm,
-                                                                /* useGivenBasis */ true,
-                                                                orthoBasisViewNormal,
-                                                                useHemisphereClip,
-                                                                hemiSphere);
         break;
     }
 
     float3 specularOcclusion = debugCoeff * GTAOMultiBounce(min(specularOcclusionFromData, screenSpaceSpecularOcclusion), fresnel0);
     return specularOcclusion;
-} // PreLightData_GetSpecularOcclusion
+} // PreLightData_GetCommbinedSpecularOcclusion
 
+float PreLightData_GetSpecularOcclusion(int specularOcclusionAlgorithm,
+                                        float ambientOcclusion,
+                                        float3 V, float3 normalWS, float NdotV /* clamped */,
+                                        float perceptualRoughness,
+                                        /* For advanced algorithms: */
+                                        float3 bentNormalWS, int bentVisibilityAlgorithm,
+                                        float3x3 orthoBasisViewNormal, bool useHemisphereClip,
+                                        uint bentFixup = BENT_VISIBILITY_FIXUP_FLAGS_NONE,
+                                        BSDFData bsdfData = (BSDFData)0) /* for reading info for bent cone fixup if needed or direct custom specular occlusion user input*/
+{
+    SphereCap hemiSphere = GetSphereCap(normalWS, 0.0);
+    //test: SphereCap hemiSphere = GetSphereCap(normalWS, cos(HALF_PI*0.4));
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+
+    float specularOcclusion = 1.0;
+    switch(specularOcclusionAlgorithm)
+    {
+    case SPECULAR_OCCLUSION_DISABLED:
+        break;
+    case SPECULAR_OCCLUSION_FROM_AO:
+        specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(NdotV, ambientOcclusion, roughness);
+        break;
+    case SPECULAR_OCCLUSION_CONECONE:
+        specularOcclusion = GetSpecularOcclusionFromBentAOConeCone(V, bentNormalWS, normalWS, ambientOcclusion, roughness, bentVisibilityAlgorithm,
+                                                                   bentFixup,
+                                                                   bsdfData.soFixupVisibilityRatioThreshold,
+                                                                   bsdfData.soFixupStrengthFactor,
+                                                                   bsdfData.soFixupMaxAddedRoughness,
+                                                                   bsdfData.geomNormalWS);
+        break;
+    case SPECULAR_OCCLUSION_SPTD:
+        specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, normalWS,
+                                                                ambientOcclusion,
+                                                                perceptualRoughness,
+                                                                bentVisibilityAlgorithm,
+                                                                /* useGivenBasis */ true,
+                                                                orthoBasisViewNormal,
+                                                                useHemisphereClip,
+                                                                hemiSphere,
+                                                                bentFixup,
+                                                                bsdfData.soFixupVisibilityRatioThreshold,
+                                                                bsdfData.soFixupStrengthFactor,
+                                                                bsdfData.soFixupMaxAddedRoughness,
+                                                                bsdfData.geomNormalWS);
+        break;
+    case SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT:
+        //specularOcclusion = 1.0;
+        specularOcclusion = bsdfData.specularOcclusionCustomInput;
+        break;
+    }
+
+    return specularOcclusion;
+} // PreLightData_GetSpecularOcclusion
 
 // Call after LTC so orthoBasisViewNormal[] are setup along with other preLightData fields:
 //
@@ -1860,6 +2466,7 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
                                  inout PreLightData preLightData)
 {
     float screenSpaceSpecularOcclusion[TOTAL_NB_LOBES];
+    float dataBasedSpecularOcclusion[TOTAL_NB_LOBES];
     float3 bottomF0;
 
     preLightData.screenSpaceAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(posInput.positionSS);
@@ -1880,9 +2487,17 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
     // integration with pivot-transformed spherical cap integration domain, our SPTD GGX proxy for BSDF and LTC GGX proxy
     // analytic sphere irradiance.
 
-    int specularOcclusionAlgorithm = SPECULAR_OCCLUSION_SPTD; // = 2
-    int bentVisibilityAlgorithm = BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION; // = 2
+    // For (baked) data based specular occlusion:
+    int specularOcclusionAlgorithm = GetDataBasedSpecularOcclusionMethod();
+    int bentVisibilityAlgorithm = GetDataBasedSpecularOcclusionVisibilityFromAoWeight();
+    float3 bentVisibilityDir;
+
     bool useHemisphereClip = true;
+    uint bentFixup = GetSpecularOcclusionBentVisibilityFixupFlags();
+
+    // For SSAO based specular occlusion:
+    int screenSpaceSpecularOcclusionAlgorithm = GetScreenSpaceSpecularOcclusionMethod();
+    int screenSpaceBentVisibilityAlgorithm = GetScreenSpaceSpecularOcclusionVisibilityFromAoWeight();
 
     IF_DEBUG(specularOcclusionAlgorithm = clamp((int)(_DebugSpecularOcclusion.x), 0, SPECULAR_OCCLUSION_SPTD));
     IF_DEBUG(bentVisibilityAlgorithm = clamp((int)(_DebugSpecularOcclusion.y), 0, BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION));
@@ -1890,74 +2505,83 @@ void PreLightData_SetupOcclusion(PositionInputs posInput, BSDFData bsdfData, flo
 
     // For fresnel0 to use with GTAOMultiBounce for the bottom interface, since it's already a hack on an empirical fit
     // (empirical fit done for diffuse), we will try to use something we already calculated and should offer a proper tint:
+    bottomF0 = GetApproximatedBottomFresnel0ForTint(bsdfData, preLightData);
+
+    // We calculate the screen space AO-derived SO and then the one based on data (baked) values.
+    // There is one such pair of SO value per lobe. Screen space values will be combined with min( , ) with data-based calculated SO.
+    // Unlike Lit, for screen space AO based SO, we offer the more advanced algorithms too.
+
+    // A caveat for SSAO-based SO methods that would use a bent visibility algorithm is that the SSAO algorithm doesn't calculate the
+    // required direction, so we offer the choice to use a non dynamically calculated one:
+    // (vertex interpolated, baked bent normal map, or shading normal)
+    bentVisibilityDir = GetScreenSpaceSpecularOcclusionVisibilityDir(bsdfData, N[BASE_NORMAL_IDX]);
+    screenSpaceSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(screenSpaceSpecularOcclusionAlgorithm,
+                                                                                     preLightData.screenSpaceAmbientOcclusion,
+                                                                                     V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                     preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
+                                                                                     bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
+                                                                                     orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip);
+
+    screenSpaceSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetSpecularOcclusion(screenSpaceSpecularOcclusionAlgorithm,
+                                                                                     preLightData.screenSpaceAmbientOcclusion,
+                                                                                     V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                     preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
+                                                                                     bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
+                                                                                     orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip);
+
+
+    // Get specular occlusion from data (baked) values temporarily in preLightData.hemiSpecularOcclusion[]
+    // and combine those data-based SO values with the screen-space SO values into one final hemispherical specular occlusion:
+    //
+    // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+    // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
+    dataBasedSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
+                                                                                   bsdfData.ambientOcclusion,
+                                                                                   V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                   preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
+                                                                                   bsdfData.bentNormalWS, bentVisibilityAlgorithm,
+                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip,
+                                                                                   bentFixup, bsdfData);
+
+    dataBasedSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
+                                                                                   bsdfData.ambientOcclusion,
+                                                                                   V, N[BASE_NORMAL_IDX], NdotV[BASE_NORMAL_IDX] /* clamped */,
+                                                                                   preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
+                                                                                   bsdfData.bentNormalWS, bentVisibilityAlgorithm,
+                                                                                   orthoBasisViewNormal[BASE_NORMAL_IDX], useHemisphereClip,
+                                                                                   bentFixup, bsdfData);
+
+    preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[BASE_LOBEA_IDX],
+                                                                                                    dataBasedSpecularOcclusion[BASE_LOBEA_IDX],
+                                                                                                    bottomF0, specularOcclusionAlgorithm);
+
+    preLightData.hemiSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[BASE_LOBEB_IDX],
+                                                                                                    dataBasedSpecularOcclusion[BASE_LOBEB_IDX],
+                                                                                                    bottomF0, specularOcclusionAlgorithm);
+
     if( IsVLayeredEnabled(bsdfData) )
     {
-        bottomF0 = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
-    }
-    else
-    {
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
-        {
-            bottomF0 = preLightData.fresnelIridforCalculatingFGD;
-        }
-        else
-        {
-            bottomF0 = bsdfData.fresnel0;
-        }
-    }
+        bentVisibilityDir = GetScreenSpaceSpecularOcclusionVisibilityDir(bsdfData, N[COAT_NORMAL_IDX]);
+        screenSpaceSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(screenSpaceSpecularOcclusionAlgorithm,
+                                                                                        preLightData.screenSpaceAmbientOcclusion,
+                                                                                        V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,
+                                                                                        preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
+                                                                                        bentVisibilityDir, screenSpaceBentVisibilityAlgorithm,
+                                                                                        orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip);
 
-    // Screen space derived SO: one per lobe. Will be min( , ) with data-based calculated SO.
-    // TODO: Like in Lit, for screen space AO based SO, we don't offer the more advanced algorithms but we could.
+        // (TODO: Note that for now, for specularOcclusionAlgorithm == SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT,
+        // we only have one value that overrides and set each SO value of each lobe to the same unique user supplied value.)
+        dataBasedSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(specularOcclusionAlgorithm,
+                                                                                      bsdfData.ambientOcclusion,
+                                                                                      V, N[COAT_NORMAL_IDX], NdotV[COAT_NORMAL_IDX] /* clamped */,
+                                                                                      preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
+                                                                                      bsdfData.bentNormalWS, bentVisibilityAlgorithm,
+                                                                                      orthoBasisViewNormal[COAT_NORMAL_IDX], useHemisphereClip,
+                                                                                      bentFixup, bsdfData);
 
-    screenSpaceSpecularOcclusion[BASE_LOBEA_IDX] = GetSpecularOcclusionFromAmbientOcclusion(NdotV[BASE_NORMAL_IDX],
-                                                                                            preLightData.screenSpaceAmbientOcclusion,
-                                                                                            preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX]);
-
-    screenSpaceSpecularOcclusion[BASE_LOBEB_IDX] = GetSpecularOcclusionFromAmbientOcclusion(NdotV[BASE_NORMAL_IDX],
-                                                                                            preLightData.screenSpaceAmbientOcclusion,
-                                                                                            preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX]);
-
-    preLightData.hemiSpecularOcclusion[BASE_LOBEA_IDX] = PreLightData_GetSpecularOcclusion(bsdfData,
-                                                                                           specularOcclusionAlgorithm,
-                                                                                           screenSpaceSpecularOcclusion[BASE_LOBEA_IDX],
-                                                                                           V,
-                                                                                           N[BASE_NORMAL_IDX],
-                                                                                           NdotV[BASE_NORMAL_IDX] /* clamped */,
-                                                                                           preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
-                                                                                           preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX],
-                                                                                           bentVisibilityAlgorithm,
-                                                                                           useHemisphereClip,
-                                                                                           bottomF0);
-
-    preLightData.hemiSpecularOcclusion[BASE_LOBEB_IDX] = PreLightData_GetSpecularOcclusion(bsdfData,
-                                                                                           specularOcclusionAlgorithm,
-                                                                                           screenSpaceSpecularOcclusion[BASE_LOBEB_IDX],
-                                                                                           V,
-                                                                                           N[BASE_NORMAL_IDX],
-                                                                                           NdotV[BASE_NORMAL_IDX] /* clamped */,
-                                                                                           preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
-                                                                                           preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX],
-                                                                                           bentVisibilityAlgorithm,
-                                                                                           useHemisphereClip,
-                                                                                           bottomF0);
-
-    if( IsVLayeredEnabled(bsdfData) )
-    {
-        screenSpaceSpecularOcclusion[COAT_LOBE_IDX] = GetSpecularOcclusionFromAmbientOcclusion(NdotV[COAT_NORMAL_IDX],
-                                                                                               preLightData.screenSpaceAmbientOcclusion,
-                                                                                               preLightData.iblPerceptualRoughness[COAT_LOBE_IDX]);
-
-        preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetSpecularOcclusion(bsdfData,
-                                                                                              specularOcclusionAlgorithm,
-                                                                                              screenSpaceSpecularOcclusion[COAT_LOBE_IDX],
-                                                                                              V,
-                                                                                              N[COAT_NORMAL_IDX],
-                                                                                              NdotV[COAT_NORMAL_IDX] /* clamped */,
-                                                                                              preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
-                                                                                              preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX],
-                                                                                              bentVisibilityAlgorithm,
-                                                                                              useHemisphereClip,
-                                                                                              IorToFresnel0(bsdfData.coatIor));
+        preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX] = PreLightData_GetCommbinedSpecularOcclusion(screenSpaceSpecularOcclusion[COAT_LOBE_IDX],
+                                                                                                       dataBasedSpecularOcclusion[COAT_LOBE_IDX],
+                                                                                                       IorToFresnel0(bsdfData.coatIor), specularOcclusionAlgorithm);
     }
 #else
     preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX] =
@@ -2064,8 +2688,19 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             diffuseFGDTmp,
             specularReflectivity[COAT_LOBE_IDX]);
 
-        // This is for the base FGD fetches factored out of "if vlayering or not": 
+        // We apply the coatMask here since even an f0 of 0 in the fetch above will give a 
+        // directional albedo (aka specular reflectivity) that is non zero:
+        preLightData.specularFGD[COAT_LOBE_IDX] *= bsdfData.coatMask;
+        // This is for the base FGD fetches factored out of "if vlayering or not":
         f0forCalculatingFGD = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
+        // We need to lerp with coatMask here too since with "deferred" (out of ComputeAdding)
+        // pre-integrated FGD fetches, we will have a F_Schlick term in the energy coefficient
+        // and not the interface fresnel0 directly. Also, we first lerp the coatMask = 0 endpoint
+        // to include iridescence:
+        f0forCalculatingFGD = lerp(lerp(bsdfData.fresnel0, preLightData.fresnelIridforCalculatingFGD, bsdfData.iridescenceMask),
+                                   f0forCalculatingFGD,
+                                   bsdfData.coatMask);
+
 
     } // ...if( IsVLayeredEnabled(bsdfData) )
     else
@@ -2284,14 +2919,14 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     return preLightData;
 }
 
-
-
 //-----------------------------------------------------------------------------
 // bake lighting function
 //-----------------------------------------------------------------------------
 
+#ifndef DISABLE_MODIFY_BAKED_DIFFUSE_LIGHTING
 // This define allow to say that we implement a ModifyBakedDiffuseLighting function to be called in PostInitBuiltinData
 #define MODIFY_BAKED_DIFFUSE_LIGHTING
+#endif
 
 void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
 {
@@ -2315,7 +2950,8 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
     // Premultiply baked (possibly with back facing added) diffuse lighting information with diffuse
     // pre-integration and energy term.
     // preLightData.diffuseEnergy will be 1,1,1 if no vlayering or no VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
-    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * preLightData.diffuseEnergy * bsdfData.diffuseColor;
+    // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * preLightData.diffuseEnergy * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
 
     // The lobe specific specular occlusion data, along with the result of the screen space occlusion sampling 
     // will be computed in PreLightData.
@@ -2325,30 +2961,79 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 // light transport functions
 //-----------------------------------------------------------------------------
 
+// Try to infer a metallic value from a specularColor parameterization,
+// in the context of adding reflectance from f0 for metals for the meta pass:
+// There's a limit to inferring a valid value. In particular, the diffuseColor
+// close to 0.0 is a hard guess, especially if f0 is close to dielectricF0.
+// The algorithm tries to avoid returning extremes in those cases.
+//
+// Assumes surfaceData.dielectricIor is valid, and not overriden, ie we're not using a diffusionProfile
+// with transmission or SSS which fix metallic to 0 and sets bsdfData.fresnel0 to IorToFresnel0(diffusionProfile.IOR)
+//
 float GetInferredMetallic(float dielectricF0, float3 inDiffuseColor, float3 inFresnel0)
 {
     float fresnel0 = Max3(inFresnel0.r, inFresnel0.g, inFresnel0.b);
     float diffuseColor = Max3(inDiffuseColor.r, inDiffuseColor.g, inDiffuseColor.b);
     float metallic = 0.0;
 
-    if (dielectricF0 <= 0.0)
+    if (dielectricF0 <= 0.0001)
     {
+        // The baseColor + metallic parameterization gives (note that this is used to build
+        // a possible conversion, but the given fresnel0, diffuseColor and dielectricF0 might not 
+        // be possible with a baseColor + metallic parameterization):
+        //
+        //  (A) fresnel0 = metallic * basecolor  +  (1.0 - metallic) * dielectricF0;
+        //  (B) diffuseColor = baseColor * (1.0 - metallic);
+        //
+        // if dielectricF0 = 0, we have:
+        //
+        //  (1) fresnel0 = metallic * basecolor;
+        //  (2) diffuseColor = (1.0 - metallic) * baseColor;
+        //
+        // if metallic == 0, fresnel0 must be == 0 and we can just output it (ie metallic = fresnel0 = 0.0);
+        // else
+        // metallic != 0 and
+        // if baseColor != 0 (otherwise, if either is 0, fresnel0 == 0, and even if metallic was set to anything else than 0,
+        //                   with dielectricF0 == 0, this doesn't make sense as a metal, so we will still infer metallic = 0
+        //                   and again could output directly fresnel0 as our metallic),
+        //
+        // thus fresnel0 != 0 and we substitute safely 1 in 2:
+        //
+        //  fresnel0 / metallic = basecolor;
+        //  diffuseColor = (1.0 - metallic) * fresnel0 / metallic;
+        //
+        //  metallic = 1/(diffuseColor/fresnel0 + 1);
+        //  metallic = fresnel0/(diffuseColor + fresnel0);
+        //
+        // So we will use that formula when dielectricF0 == 0 since it outputs plausible values: 
+        //
+        //   -When fresnel0 is 0, it will always output a desired (for the reasons discussed above) value of metallic = 0.
+        //   -When input values are possible for (A) and (B), the formula is correct (for when dielectricF0 == 0 of course).
+        //   -When input values are not possible with base/metal, it will output a sensible value.
+
         metallic = ((fresnel0 + diffuseColor) > 0.0) ? fresnel0 / (fresnel0 + diffuseColor) : 0.0;
     }
     else
     {
-        float sqrtTerm = sqrt(Sq(fresnel0 + diffuseColor) - 4*diffuseColor*dielectricF0);
-        float rootA = -( sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
-        float rootB = -(-sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
+        float2 roots;
+        // We will try to find positive roots, but again, the input parameters might not be possible
+        // to replicate in a baseColor / metallic parameterization, so we must be careful to precondition
+        // our values. Even when conditioned, the inputs might have no positive solutions.
+        // Also, to mitigate extremes for the diffuseColor close to 0 case, we will average our
+        // positive roots.
+        diffuseColor = max(diffuseColor, 0.0001);
+        dielectricF0 = min(dielectricF0, Sq(fresnel0 + diffuseColor) / 4*diffuseColor);
 
-        // There's some special cases where we could have 2 valid roots, they are ambiguous anyway
-        // (eg fresnel0 == dielectricF0), so we choose arbitrarily.
-        float rootmin = min(rootA, rootB);
-        if (rootmin < 0.0)
-        {
-            //Also we reject invalid roots:
-            metallic = max(rootA, rootB);
-        }
+        float sqrtTerm = sqrt(Sq(fresnel0 + diffuseColor) - 4*diffuseColor*dielectricF0);
+        roots.x = -( sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
+        roots.y = -(-sqrtTerm - 2*dielectricF0 + fresnel0 + diffuseColor) / (2*dielectricF0);
+
+        float2 rootsWeights = float2(roots >= 0);
+        //float rootsTotalWeight = max(1.0, dot(rootsWeights, float2(1.0, 1.0)));
+        float rootsTotalWeight = 1.0 + float(all(roots >= 0));
+        float average = dot(roots, rootsWeights) / rootsTotalWeight;
+
+        metallic = average;
     }
 
     return metallic;
@@ -2396,7 +3081,11 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
     float3 f0forCalculatingFGD;
     float3 diffuseEnergy = float3(1.0, 1.0, 1.0);
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR))
+    if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
+    {
+        metallic = 0.0;
+    }
+    else if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR))
     {
         metallic = GetInferredMetallic(IorToFresnel0(surfaceData.dielectricIor), bsdfData.diffuseColor, bsdfData.fresnel0);
     }
@@ -2541,8 +3230,12 @@ void BSDF_SetupNormalsAndAngles(BSDFData bsdfData, inout PreLightData preLightDa
 #endif
 
 #ifdef VLAYERED_RECOMPUTE_PERLIGHT
+
         // Must call ComputeAdding and update partLambdaV
-        ComputeAdding(savedLdotH, V[TOP_DIR_IDX], bsdfData, preLightData, true);
+        float lightMinRoughness = GetPerLightMinRoughnessAffectsOnlyCoat() ? 0.0 /* see ClampRoughness(): in that case already applied to bsdfData.coatRoughness*/
+                                                                             : preLightData.minRoughness;
+
+        ComputeAdding(savedLdotH, V[TOP_DIR_IDX], bsdfData, preLightData, true, /* testSingularity */ false, lightMinRoughness);
         // Notice the top LdotH as interface angle, symmetric model parametrization (see paper sec. 6 and comments
         // on ComputeAdding)
         // layered*Roughness* and vLayerEnergyCoeff are now updated for the proper light direction.
@@ -2659,18 +3352,117 @@ void CalculateAnisoAngles(BSDFData bsdfData, float3 H, float3 L, float3 V, out f
     BdotL = dot(bsdfData.bitangentWS, L);
 }
 
+void BSDF_ModifyFresnelForIridescence(BSDFData bsdfData, PreLightData preLightData, float LdotH, inout float3 F)
+{
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+        {
+            float3 fresnelIridescent = preLightData.fresnelIridforCalculatingFGD;
+
+#ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
+            float topIor = 1.0; // default air on top.
+            fresnelIridescent = EvalIridescence(topIor, LdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+#endif
+            F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
+        }
+}
+
+void GetNLForDirectionalPunctualLights(BSDFData bsdfData, PreLightData preLightData, float3 L, float3 V,
+                                       out float3 mainN, out float3 mainL, out float mainNdotL,
+                                       out bool lightCanOnlyBeTransmitted)
+{
+    // To avoid loosing the coat specular component due to the bottom normal modulation from the bottom normal map,
+    // all the while keeping the code as much the same as with Lit and compatible with the rest of lightloop and
+    // lightevaluation
+    // (wrt to bias handling, shadow mask, shadow map, using only one light evaluation call and one attenuation,
+    // and hidding the handling of transmission with PreEvaluate*LightTransmission() shadow index/mask / NdotL
+    // overrides and N flipping trick),
+    // we will only allow transmission when both NdotL[] are < 0.
+    // For all other cases, the BSDF is evaluated for each lobe using the proper normal, but it also applies the
+    // NdotL projection factor of the direct lighting integral so as to not have to return each layer lighting
+    // components.
+    //
+
+    // Note: we should not use refracted directions provided by BSDF_SetupNormalsAndAngles as we only consider
+    // incoming light here, not "equivalent-lobe" stack BSDF effects (eg see GetPreLightData)
+
+    // For the N, L and NdotL used for the light evaluation, we will use the set of values for which N is closest
+    // to the original light orientation (ie receives the most projected energy).
+
+    float3 N[NB_NORMALS];
+    N[BASE_NORMAL_IDX] = bsdfData.normalWS;
+    N[COAT_NORMAL_IDX] = bsdfData.normalWS;
+    if ( IsCoatNormalMapEnabled(bsdfData) )
+    {
+        N[COAT_NORMAL_IDX] = bsdfData.coatNormalWS;
+    }
+    float3 skewedL[NB_NORMALS]; // L might change according to the normal due to the sun disk hack
+    float NdotL[NB_NORMALS];
+    // ...cf with BSDF_SetupNormalsAndAngles: we dont use NDOTLV_SIZE and NB_LV_DIR as we don't consider the possibility
+    // of using refracted directions for the bottom layer lobes: we are strictly evaluating incoming L now, see comments
+    // where we use refract elsewhere in this file.
+    skewedL[BASE_NORMAL_IDX] = L;
+    skewedL[COAT_NORMAL_IDX] = L;
+
+    NdotL[BASE_NORMAL_IDX] = dot(N[BASE_NORMAL_IDX], skewedL[BASE_NORMAL_IDX]);
+    NdotL[COAT_NORMAL_IDX] = dot(N[COAT_NORMAL_IDX], skewedL[COAT_NORMAL_IDX]);
+
+    // For transmission, we're going to use the bottom layer N and NdotL always.
+    // For the rest, we will use the N which produces the biggest NdotL, as we don't want
+    // to early out eg from the bottom layer when the top should have a highlight,
+    // while the final BSDF evaluation will take care of applying the proper NdotL in any
+    // case. 
+    // We could increase the cost and complexity of all this and actually
+    // commit fully to making all these diract-light evaluations local to this file and 
+    // pass to BSDF the L[], V[], etc. arrays instead of hacking our way around just here.
+
+    float maxNdotL = max(NdotL[COAT_NORMAL_IDX], NdotL[BASE_NORMAL_IDX]);
+
+    lightCanOnlyBeTransmitted = maxNdotL < 0; // In case we have NdotL[base] < 0, NdotL[top] > 0, we won't have transmission, too bad.
+
+    mainNdotL = maxNdotL;
+    bool baseIsBrighter = NdotL[BASE_NORMAL_IDX] >= NdotL[COAT_NORMAL_IDX];
+    if (lightCanOnlyBeTransmitted)
+    {
+        // In that case, we always use the base normal:
+        baseIsBrighter = true;
+        mainNdotL = NdotL[BASE_NORMAL_IDX];
+    }
+
+    mainL = baseIsBrighter ? skewedL[BASE_NORMAL_IDX] : skewedL[COAT_NORMAL_IDX];
+    mainN = baseIsBrighter ? N[BASE_NORMAL_IDX] : N[COAT_NORMAL_IDX];
+}
+
+bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
+{
+    // Get N, L and NdotL parameters along with if transmission must be evaluated
+    bool unused;
+    float3 mainN, mainL;
+    float mainNdotL;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, L, V, mainN, mainL, mainNdotL, unused);
+
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) || (mainNdotL > 0.0);
+}
+
+
 // This function is the core BSDF evaluation for analytical dirac-rays light (point and directional).
 // (Reminder, lights are:
 //  -point/directional: fully analytical integral[LFGD] which evaluates directly because of the dirac L.
 //  -environments: split-sum, pre-integrated LD split from pre-integrated FGD
 //  -LTC area lights: split-sum, analytical L, pre-integrated FGD, like environment
-//  -SSR TODO for StackLit )
+//  -SSR)
 //
 // Assumes that NdotL is positive.
-void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
-          out float3 diffuseLighting,
-          out float3 specularLighting)
+CBSDF EvaluateBSDF(float3 inV, float3 inL, PreLightData preLightData, BSDFData bsdfData)
 {
+    CBSDF cbsdf;
+    ZERO_INITIALIZE(CBSDF, cbsdf);
+
+    // Get N, L and NdotL parameters along with if transmission must be evaluated
+    bool unused0;
+    float3 unused1, unused2;
+    float inNdotL;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, inL, inV, unused1, unused2, inNdotL, unused0);
+
     float NdotL[NDOTLV_SIZE];
     float NdotV[NDOTLV_SIZE];
     // IMPORTANT: use DNLV_COAT_IDX and DNLV_BASE_IDX to index NdotL and NdotV since they can be sized 2
@@ -2738,14 +3530,36 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
         IF_DEBUG( if(_DebugLobeMask.z == 0.0) DV[BASE_LOBEB_IDX] = (float3)0; )
 
-        specularLighting =  max(0, NdotL[DNLV_BASE_IDX]) * preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX]
-                          * lerp(DV[BASE_LOBEA_IDX] * preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
-                                 DV[BASE_LOBEB_IDX] * preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
-                                 bsdfData.lobeMix);
+#if 1 //coatMask with proper lerped terms
 
-        specularLighting +=  max(0, NdotL[DNLV_COAT_IDX]) * preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX]
-                           * preLightData.energyCompensationFactor[COAT_LOBE_IDX]
-                           * DV[COAT_LOBE_IDX];
+        // Support for the coatMask hack costs us an additional F_Schlick evaluation if we want to lerp
+        // properly to the LdotH fresnel term that we normally get without coat:
+        // This is because in ComputeAdding, the energy coefficients are (either) (FGD based TODOENERGY or)
+        // Schlick but even with Schlick, it is with NdotV, not LdotH like we have here.
+        float3 bottomF;
+
+#ifdef VLAYERED_RECOMPUTE_PERLIGHT // && VLAYERED which we are in this context, also: TODOENERGY: && COMPUTEADDING_DEFERRED_PREINT_FGD_FETCHES
+        // In that case, preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX] will contain an F_Schlick term
+        // anyways (with other factors as usual for the stack) and possibly mixed or replaced by the iridescence term.
+        bottomF = preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX];
+#else
+        // If we don't recompute the stack per dirac lights, we ensure the coatmask make us lerp
+        // to the usual LdotH Schlick term.
+        bottomF = F_Schlick(bsdfData.fresnel0, savedLdotH);
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, bottomF);
+#endif
+
+        bottomF = lerp(bottomF, preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX], bsdfData.coatMask);
+#endif // ...coatMask with proper lerped terms
+
+        cbsdf.specR =  max(0, NdotL[DNLV_BASE_IDX]) * bottomF
+                              * lerp(DV[BASE_LOBEA_IDX] * preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
+                                     DV[BASE_LOBEB_IDX] * preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
+                                     bsdfData.lobeMix);
+
+        cbsdf.specR +=  max(0, NdotL[DNLV_COAT_IDX]) * preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX]
+                               * preLightData.energyCompensationFactor[COAT_LOBE_IDX]
+                               * DV[COAT_LOBE_IDX];
 
 #endif // ..._MATERIAL_FEATURE_COAT
     } // if( IsVLayeredEnabled(bsdfData) )
@@ -2754,62 +3568,64 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
         // --------------------------------------------------------------------
         // NO VLAYERING:
         // --------------------------------------------------------------------
+
+        // Note: See GetPreLightData(), in that case, 
+        // preLightData.layeredRoughnessT[0] = bsdfData.roughnessAT;
+        // preLightData.layeredRoughnessB[0] = bsdfData.roughnessAB;
+        // preLightData.layeredRoughnessT[1] = bsdfData.roughnessBT;
+        // preLightData.layeredRoughnessB[1] = bsdfData.roughnessBB;
+
         // TODO: Proper Fresnel
         float3 F = F_Schlick(bsdfData.fresnel0, savedLdotH);
 
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
-        {
-            float3 fresnelIridescent = preLightData.fresnelIridforCalculatingFGD;
-
-#ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
-            float topIor = 1.0; // default air on top.
-            fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
-#endif
-            F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
-        }
+        BSDF_ModifyFresnelForIridescence(bsdfData, preLightData, savedLdotH, F);
 
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
             float TdotH, TdotL, BdotH, BdotL;
             CalculateAnisoAngles(bsdfData, H, L[0], V[0], TdotH, TdotL, BdotH, BdotL);
             DV[0] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessAT, bsdfData.roughnessAB,
+                                          preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0],
                                           preLightData.partLambdaV[0]);
             DV[1] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH[0], NdotV[0], TdotL, BdotL, NdotL[0],
-                                          bsdfData.roughnessBT, bsdfData.roughnessBB,
+                                          preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1],
                                           preLightData.partLambdaV[1]);
         }
         else
         {
-            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessAT, preLightData.partLambdaV[0]);
-            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+            DV[0] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[0], preLightData.partLambdaV[0]);
+            DV[1] = DV_SmithJointGGX(NdotH[0], NdotL[0], NdotV[0], preLightData.layeredRoughnessT[1], preLightData.partLambdaV[1]);
         }
 
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
         IF_DEBUG( if(_DebugLobeMask.z == 0.0) DV[BASE_LOBEB_IDX] = (float3)0; )
 
-        specularLighting = max(0, NdotL[0]) * F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
-                                                       DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
-                                                       bsdfData.lobeMix);
+        cbsdf.specR = max(0, NdotL[0]) * F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
+                                                  DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
+                                                  bsdfData.lobeMix);
     }
 
 
     // TODO: config option + diffuse GGX
-    float3 diffuseTerm = Lambert() * max(0, NdotL[DNLV_BASE_IDX]);
+    float3 diffTerm = Lambert();
 
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     if( IsVLayeredEnabled(bsdfData) )
     {
         // Controlled by ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
         // since preLightData.diffuseEnergy == float3(1,1,1) when not defined
-        diffuseTerm *= preLightData.diffuseEnergy;
+        diffTerm *= preLightData.diffuseEnergy;
     }
 #endif
 
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    diffuseLighting = diffuseTerm;
+    float diffuseNdotL = saturate(NdotL[DNLV_BASE_IDX]);
+    cbsdf.diffR = diffTerm * diffuseNdotL;
+    // TODO: Note for Stephane: I use -inNdotL here as it match visually what was done before the refactor but I guess it should be -diffuseNdotL
+    cbsdf.diffT = diffTerm * ComputeWrappedDiffuseLighting(-inNdotL, TRANSMISSION_WRAP_LIGHT);
 
-}//...BSDF
+    return cbsdf;
+}
+
 
 void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLightData, float3 V, out float3 N, out float unclampedNdotV)
 {
@@ -2835,31 +3651,33 @@ void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLig
     }
 }
 
+bool ShouldEvaluateThickObjectTransmission(float3 V, float3 L, PreLightData preLightData,
+                                           BSDFData bsdfData, int shadowIndex)
+{
+#ifdef MATERIAL_INCLUDE_TRANSMISSION
+
+    bool lightCanOnlyBeTransmitted;
+    float3 mainN, mainL;
+    float mainNdotL;
+    GetNLForDirectionalPunctualLights(bsdfData, preLightData, L, V, mainN, mainL, mainNdotL, lightCanOnlyBeTransmitted);
+
+    return HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THICK_OBJECT) &&
+            (shadowIndex >= 0.0) && lightCanOnlyBeTransmitted;
+#else
+    return false;
+#endif
+}
+
 //-----------------------------------------------------------------------------
 // Surface shading (all light types) below
 //-----------------------------------------------------------------------------
 
+#define OVERRIDE_SHOULD_EVALUATE_THICK_OBJECT_TRANSMISSION
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 //...already included earlier.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
 
-float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
-{
-    // Apply wrapped lighting to better handle thin objects at grazing angles.
-    float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
-
-    // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-#ifdef USE_DIFFUSE_LAMBERT_BRDF
-    attenuation *= Lambert();
-#else
-    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
-#endif
-
-    float intensity = attenuation * wrappedNdotL;
-    return intensity * transmittance;
-}
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
@@ -2867,82 +3685,10 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
 
 DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
                                         float3 V, PositionInputs posInput, PreLightData preLightData,
-                                        DirectionalLightData lightData, BSDFData bsdfData,
+                                        DirectionalLightData light, BSDFData bsdfData,
                                         BuiltinData builtinData)
 {
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 L = -lightData.forward;
-    float3 N;
-    float unclampedNdotV;
-    EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
-    float NdotL = dot(N, L);
-
-    float3 transmittance = float3(0.0, 0.0, 0.0);
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-    {
-        float3 a = 0; float b = 0;
-        // Caution: This function modify N and contactShadowIndex
-        transmittance = PreEvaluateDirectionalLightTransmission(bsdfData, lightData, a, b); // contactShadowIndex is only modify for the code of this function
-    }
-
-    // color and attenuation are outputted  by EvaluateLight:
-    float3 color;
-    float attenuation;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, builtinData, N, L, 1,
-                              color, attenuation);
-
-    float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
-
-    // Note: the NdotL term is now applied in the BSDF() eval itself to account for different normals.
-    UNITY_BRANCH if (intensity > 0.0)
-    {
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
-
-        lighting.diffuse  *= intensity * lightData.diffuseDimmer;
-        lighting.specular *= intensity * lightData.specularDimmer;
-    }
-
-    // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
-    {
-        float  NdotV = ClampNdotV(unclampedNdotV);
-        float  LdotV = dot(L, V);
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-
-        // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
-        // With coat, will need a diffuse energy term here. eg preLightData.diffuseEnergyTransmitted.
-        // Since the light in the transmission calculations is coming through the base from the back of
-        // the face, this is precisely the case we have computed with VLAYERED_DIFFUSE_ENERGY_HACKED_TERM,
-        // to approximate the diffuse light coming through, calculating an upward transmittance e_Ti0 assuming
-        // the last interface of the stack allows some propagation past it for everything not reflected,
-        // (ie T12 = 1.0 - R12 for the base layer interface between base and coat).
-        // As with Lit right now, there's no attempt at diffuse energy conservation vs transmission
-        // (idem with diffuse vs specular BSDF).
-        //
-        // Since we use the same term, we could just apply it in the end to diffuse light since coat
-        // can't produce diffuse lighting, so diffuse lighting from the base interface should all have
-        // the term applied. (Still need to leave the energy term separate from diffuseFGD because of
-        // point/directional lights, see BSDF() )
-        //
-        lighting.diffuse += preLightData.diffuseEnergy * EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseDimmer);
-    }
-
-    // Save ALU by applying light and cookie colors only once.
-    lighting.diffuse  *= color;
-    lighting.specular *= color;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        intensity = max(0, attenuation * NdotL);
-        lighting.diffuse = color * intensity * lightData.diffuseDimmer;
-    }
-#endif
-
-    return lighting;
+    return ShadeSurface_Directional(lightLoopContext, posInput, builtinData, preLightData, light, bsdfData, V);
 }
 
 //-----------------------------------------------------------------------------
@@ -2951,82 +3697,9 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
 DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
-                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+                                     PreLightData preLightData, LightData light, BSDFData bsdfData, BuiltinData builtinData)
 {
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 L;
-    float3 lightToSample;
-    float4 distances; // {d, d^2, 1/d, d_proj}
-    GetPunctualLightVectors(posInput.positionWS, lightData, L, lightToSample, distances);
-
-    float3 N; float unclampedNdotV;
-    EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
-    float  NdotL = dot(N, L);
-
-    float3 transmittance = float3(0.0, 0.0, 0.0);
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
-    {
-        float3 a = 0; float b = 0;
-        // Caution: This function modify N and lightData.contactShadowIndex
-        transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, bsdfData,
-                                                             lightData, distances.x, a, L, b);
-    }
-
-    float3 color;
-    float attenuation;
-
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, builtinData, N, L, 1, lightToSample, distances,
-                           color, attenuation);
-
-
-    float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
-
-    // Note: the NdotL term is now applied in the BSDF() eval itself to account for different normals.
-    UNITY_BRANCH if (intensity > 0.0)
-    {
-        // In Lit, we simulate a sphere light with this hack:
-        // Note that it is not correct with our pre-computation of PartLambdaV (mean if we disable the optimization we will not have the
-        // same result) but we don't care as it is a hack anyway
-        //TODO:
-        // Since BSDF GGX functions now support a roughness of zero, this hack is now mandatory in Lit so that bsdfData has unclamped roughness:
-        // To provide a specular highlight in that case (since a mirror would require the exact H=N), it is the responsibility of this
-        // function to use the lightData provided minRoughness to clamp roughness so that we relax/mollify the singularity effectively
-        // hacking in a cheap sphere light.
-        //bsdfData.coatRoughness = max(bsdfData.coatRoughness, lightData.minRoughness);
-        //bsdfData.roughnessT = max(bsdfData.roughnessT, lightData.minRoughness);
-        //bsdfData.roughnessB = max(bsdfData.roughnessB, lightData.minRoughness);
-
-        BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
-
-        lighting.diffuse  *= intensity * lightData.diffuseDimmer;
-        lighting.specular *= intensity * lightData.specularDimmer;
-    }
-
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
-    {
-        float  NdotV = ClampNdotV(unclampedNdotV);
-        float  LdotV = dot(L, V);
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
-        lighting.diffuse += preLightData.diffuseEnergy * EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseDimmer);
-    }
-
-    // Save ALU by applying light and cookie colors only once.
-    lighting.diffuse  *= color;
-    lighting.specular *= color;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        intensity = max(0, attenuation * NdotL);
-        lighting.diffuse = color * intensity * lightData.diffuseDimmer;
-    }
-#endif
-
-    return lighting;
+    return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData, preLightData, light, bsdfData, V);
 }
 
 // NEWLITTODO: For a refence rendering option for area light, like STACK_LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> :
@@ -3287,10 +3960,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     float4x3 lightVerts;
 
     // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
+    lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
+    lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
+    lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
 
     // Rotate the endpoints into the local coordinate system.
     float4x3 localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));
@@ -3437,7 +4110,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
-    float4 ssrLighting = LOAD_TEXTURE2D(_SsrLightingTexture, posInput.positionSS);
+    float4 ssrLighting = LOAD_TEXTURE2D_X(_SsrLightingTexture, posInput.positionSS);
 
     // For performance reasons, SSR doesn't allow us to be discriminating per lobe, ie wrt direction, roughness,
     // anisotropy, etc. 
@@ -3605,19 +4278,17 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float iblMipLevel;
         // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
         // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-#if !defined(SHADER_API_METAL)
         if (IsEnvIndexTexture2D(lightData.envIndex))
         {
             // Empirical remapping
             iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i], _ColorPyramidScale.z);
         }
         else
-#endif
         {
             iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]);
         }
 
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel);
+        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel, lightData.rangeCompressionFactorCompensation);
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;
 

@@ -1,9 +1,9 @@
 using UnityEngine;
+using UnityEditor.Rendering;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
@@ -49,17 +49,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         SerializedHDCamera m_SerializedCamera;
-        HDCameraUI m_UIState = new HDCameraUI();
 
         RenderTexture m_PreviewTexture;
         Camera m_PreviewCamera;
         HDAdditionalCameraData m_PreviewAdditionalCameraData;
-        PostProcessLayer m_PreviewPostProcessLayer;
 
         void OnEnable()
         {
             m_SerializedCamera = new SerializedHDCamera(serializedObject);
-            m_UIState.Reset(m_SerializedCamera, Repaint);
 
             m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
             m_PreviewCamera.enabled = false;
@@ -67,7 +64,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
             // Say that we are a camera editor preview and not just a regular preview
             m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
-            m_PreviewPostProcessLayer = m_PreviewCamera.gameObject.AddComponent<PostProcessLayer>();
         }
 
         void OnDisable()
@@ -83,17 +79,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            var s = m_UIState;
-            var d = m_SerializedCamera;
+            m_SerializedCamera.Update();
 
-            d.Update();
-            s.Update();
+            HDCameraUI.Inspector.Draw(m_SerializedCamera, this);
 
-#pragma warning disable 612 //Draw
-            HDCameraUI.Inspector.Draw(s, d, this);
-#pragma warning restore 612
-
-            d.Apply();
+            m_SerializedCamera.Apply();
         }
 
         RenderTexture GetPreviewTextureWithSize(int width, int height)

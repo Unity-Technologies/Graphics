@@ -4,12 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     [Flags]
-    public enum VFXExpressionContextOption
+    enum VFXExpressionContextOption
     {
         None = 0,
         Reduction = 1 << 0,

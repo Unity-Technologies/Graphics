@@ -1,0 +1,179 @@
+#pragma kernel ReflectionIntegrationUpscaleHalfRes REFLECTION_INTEGRATION_UPSCALE=ReflectionIntegrationUpscaleHalfRes HALF_RESOLUTION
+#pragma kernel ReflectionIntegrationUpscaleFullRes REFLECTION_INTEGRATION_UPSCALE=ReflectionIntegrationUpscaleFullRes
+
+#pragma only_renderers d3d11
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
+
+// Raytracing Includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/OnlineVariance.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+
+// Tile size of this compute
+#define RAYTRACING_REFLECTION_TILE_SIZE 8
+
+// Input textures for the spatial filtering
+Texture2DArray<float> _BlueNoiseTexture;
+TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X(_SsrLightingTextureRW);
+TEXTURE2D_X(_SsrHitPointTexture);
+TEXTURE2D_X(_SsrClearCoatMaskTexture);
+
+// Output Textures for the spatial filtering
+RW_TEXTURE2D_X(float4, _RaytracingReflectionTexture);
+int _SpatialFilterRadius;
+int _RaytracingDenoiseRadius;
+
+[numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
+void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    #ifdef HALF_RESOLUTION
+    // Compute the half res coordinate that we shall be using for our effect
+    uint2 targetCoord = dispatchThreadId.xy;
+    uint2 sourceCoord = targetCoord / 2;
+    #else
+    uint2 targetCoord = dispatchThreadId.xy;
+    uint2 sourceCoord = targetCoord;
+    #endif
+
+    // Compute the index of the noise texture to use
+    int noiseIndex = (int)(clamp((int)(_ScramblingTexture[sourceCoord].y * 32.0f), 0, 31));
+
+    // Compute the subpixel index that matches this full screen pixel.
+    int localIndex = (targetCoord.x & 1) + (targetCoord.y & 1) * 2;
+
+    // Fetch the depth
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, targetCoord).x;
+
+    NormalData normalData;
+    DecodeFromNormalBuffer(targetCoord, normalData);
+
+    // We use a texture to identify if we use a clear coat constant for perceptualRoughness for SSR or use value from normal buffer.
+    // When we use a forward material we can output the normal and perceptualRoughness for the coat for SSR, so we simply bind a black 1x1 texture
+    // When we use deferred material we need to bind the gbuffer2 and read the coat mask
+    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, targetCoord);
+    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    // Fetch the roughness
+    float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
+
+    // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
+    // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE || PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) < _RaytracingReflectionMinSmoothness)
+        return;
+
+    // Fetch the normal WS
+    float3 normalWS = normalData.normalWS;
+
+    // Compute the world space position
+    PositionInputs posInput = GetPositionInput(targetCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+    // Compute the view in world space
+    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+
+    // Compute the reflected direction for this view direction
+    float3 reflDir = reflect(-viewWS, normalWS);
+
+    // Initialize the output pixels
+    float4 resultSum = float4(0.0 ,0.0, 0.0, 0.0);
+    uint sampleCount = 0;
+
+    float radiusSq = _SpatialFilterRadius * _SpatialFilterRadius;
+
+    for(int y = -_SpatialFilterRadius; y < _SpatialFilterRadius; ++y)
+    {
+        for(int x = -_SpatialFilterRadius; x < _SpatialFilterRadius; ++x)
+        {
+            float radiusDistanceSq = (y*y + x*x);
+            if(radiusDistanceSq > radiusSq) continue;
+
+            // Compute the noise position that shall be used
+            int2 relativeHRShift = uint2(8 + x, 8 + y);
+
+            // Full res sample position
+            #ifdef HALF_RESOLUTION
+            int2 sampleCoord = (sourceCoord + uint2(x,y)) * 2;
+            #else
+            int2 sampleCoord = (sourceCoord + uint2(x,y));
+            #endif
+
+            // If this pixel is outside of the screen, we cannot use it
+            if(sampleCoord.x < 0 || sampleCoord.x > _ScreenSize.x
+                || sampleCoord.y < 0 || sampleCoord.y > _ScreenSize.y)
+            continue;
+
+            // Fetch the target color
+            float4 sampleColor = _SsrLightingTextureRW[COORD_TEXTURE2D_X(sampleCoord)];
+
+            // Compute the position of the actual source pixel
+            uint subPixel =  clamp(floor(sampleColor.w * 4.0f), 0, 3);
+            uint2 shift = HalfResIndexToCoordinateShift[subPixel];
+            #ifdef HALF_RESOLUTION
+            uint2 actualSourceCoord = sampleCoord + shift;
+            #else
+            uint2 actualSourceCoord = sampleCoord;
+            #endif
+
+            // Fetch the Depth
+            float sampleDepth = LOAD_TEXTURE2D_X(_DepthTexture, actualSourceCoord).x;
+            // If this the background, it should not be used as a valid sample
+            if(sampleDepth == 0.0f) continue;
+
+            // Compute the target pixel that it will impact
+            float sample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            int index = clamp(floor(sample * 4.0f), 0, 3);
+
+            if (index != localIndex) continue;
+
+            // Let's fetch the half res sample's properties
+            // Get the direction and pdf
+            float4 directionPDF = _SsrHitPointTexture[COORD_TEXTURE2D_X(sampleCoord)];
+
+            // If this direction is under the candidate surface, then it is not valid
+            if(dot(directionPDF.xyz, normalWS) <= 0.0f) continue;
+
+            // If this direction is not in the hemisphere of the reflected view direction, then it is not valid
+            if(dot(directionPDF.xyz, reflDir) <= 0.0f) continue;
+
+            // Compute the brdf of this sample
+            float weight = 1.0f;
+            if(roughness > 0.001)
+            {
+                // Compute the brdf of this sample
+                float3 H = normalize(directionPDF.xyz + viewWS);
+                float NdotH = dot(normalWS, H);
+                float NdotL = dot(directionPDF.xyz, normalWS);
+                float NdotV = dot(viewWS, normalWS);
+                float localBRDF = D_GGX(NdotH, roughness) * V_SmithJointGGX(NdotL, NdotV, roughness) * NdotL;
+                weight = localBRDF * directionPDF.w;
+            }
+
+            // Contirbute to all the output values
+            float3 sampleResult = sampleColor.xyz * weight;
+            resultSum += float4(sampleResult, weight);
+            sampleCount += 1;
+        }
+    }
+
+    // Compute the full res coordinate
+    if(depth == 0.0f || sampleCount == 0 || resultSum.w == 0.0)
+    {
+        _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    else
+    {
+        _RaytracingReflectionTexture[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, _RaytracingDenoiseRadius > 0 ? roughness : 1.0);
+    }
+}

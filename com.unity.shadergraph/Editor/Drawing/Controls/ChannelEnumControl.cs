@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         }
     }
 
-    class ChannelEnumControlView : VisualElement, INodeModificationListener
+    class ChannelEnumControlView : VisualElement, AbstractMaterialNodeModificationListener
     {
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;

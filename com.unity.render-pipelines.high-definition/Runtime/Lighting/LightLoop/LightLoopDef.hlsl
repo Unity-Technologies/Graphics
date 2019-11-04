@@ -1,5 +1,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
+// SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
+#if RAYTRACING_ENABLED && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT)
+// TODO: This will need to be a multi_compile when we'll have them on compute shaders.
+#define SCREEN_SPACE_SHADOWS 1
+#endif
+
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
 // LightLoopContext is not visible from Material (user should not use these properties in Material file)
@@ -10,8 +16,9 @@ struct LightLoopContext
 
     HDShadowContext shadowContext;
     
-    float contactShadow; // Currently we support only one contact shadow per view
-    float shadowValue; // Stores the value of the cascade shadow map
+    uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
+    real contactShadowFade;    // combined fade factor of all contact shadows 
+    real shadowValue;          // Stores the value of the cascade shadow map
 };
 
 //-----------------------------------------------------------------------------
@@ -56,7 +63,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.lightLayers = 0xFFFFFFFF; // Enable sky for all layers
     output.influenceShapeType = ENVSHAPETYPE_SKY;
     // 31 bit index, 1 bit cache type
-    output.envIndex = ENVCACHETYPE_CUBEMAP | (envIndex << 1);
+    output.envIndex = envIndex;
 
     output.influenceForward = float3(0.0, 0.0, 1.0);
     output.influenceUp = float3(0.0, 1.0, 0.0);
@@ -64,7 +71,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = 1.0;
+    output.multiplier = _EnableSkyLighting.x != 0 ? 1.0 : 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -75,18 +82,19 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     return output;
 }
 
-bool IsEnvIndexCubemap(int index)   { return (index & 1) == ENVCACHETYPE_CUBEMAP; }
-bool IsEnvIndexTexture2D(int index) { return (index & 1) == ENVCACHETYPE_TEXTURE2D; }
+bool IsEnvIndexCubemap(int index)   { return index >= 0; }
+bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
 // Texture2D    : texCoord = projectedPositionWS - lightData.capturePosition
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, int sliceIdx = 0)
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)
 {
     // 31 bit index, 1 bit cache type
-    uint cacheType = index & 1;
-    index = index >> 1;
+    uint cacheType = IsEnvIndexCubemap(index) ? ENVCACHETYPE_CUBEMAP : ENVCACHETYPE_TEXTURE2D;
+    // Index start at 1, because -0 == 0, so we can't known which cache to sample for that index. Thus it is invalid.
+    index = abs(index) - 1;
 
     float4 color = float4(0.0, 0.0, 0.0, 1.0);
 
@@ -99,12 +107,28 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, lod).rgb;
-            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
+#if UNITY_REVERSED_Z
+            // We check that the sample was capture by the probe according to its frustum planes, except the far plane.
+            //   When using oblique projection, the far plane is so distorded that it is not reliable for this check.
+            //   and most of the time, what we want, is the clipping from the oblique near plane.
+            color.a = any(ndc.xy < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
+#else
+            color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
+#endif
+            float3 capturedForwardWS = float3(
+                _Env2DCaptureForward[index * 3 + 0],
+                _Env2DCaptureForward[index * 3 + 1],
+                _Env2DCaptureForward[index * 3 + 2]
+            );
+            if (dot(capturedForwardWS, texCoord) < 0.0)
+                color.a = 0.0;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
             color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
         }
+
+        color.rgb *= rangeCompressionFactorCompensation;
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
@@ -118,7 +142,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 // Single Pass and Tile Pass
 // ----------------------------------------------------------------------------
 
-#ifdef LIGHTLOOP_TILE_PASS
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(PositionInputs posInput, uint lightCategory)
@@ -129,7 +153,12 @@ int GetTileOffset(PositionInputs posInput, uint lightCategory)
 
 void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
 {
-    const int tileOffset = GetTileOffset(posInput, lightCategory);
+    int tileOffset = GetTileOffset(posInput, lightCategory);
+
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    // Eye base offset must match code in lightlistbuild.compute
+    tileOffset += unity_StereoEyeIndex * _NumTileFtplX * _NumTileFtplY * LIGHTCATEGORY_COUNT;
+#endif
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
     lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
@@ -162,18 +191,6 @@ uint FetchIndex(uint tileOffset, uint lightOffset)
 uint GetTileSize()
 {
     return TILE_SIZE_CLUSTERED;
-}
-
-float GetLightClusterMinLinearDepth(uint2 tileIndex, uint clusterIndex)
-{
-    float logBase = g_fClustBase;
-    if (g_isLogBaseBufferEnabled)
-    {
-        // XRTODO: Stereo-ize access to g_logBaseBuffer
-        logBase = g_logBaseBuffer[tileIndex.y * _NumTileClusteredX + tileIndex.x];
-    }
-
-    return ClusterIdxToZFlex(clusterIndex, logBase, g_isLogBaseBufferEnabled != 0);
 }
 
 uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
@@ -227,6 +244,12 @@ uint FetchIndex(uint lightStart, uint lightOffset)
     return g_vBigTileLightList[lightStart + lightOffset];
 }
 
+#else
+// Fallback case (mainly for raytracing right now)
+uint FetchIndex(uint lightStart, uint lightOffset)
+{
+    return 0;
+}
 #endif // USE_FPTL_LIGHTLIST
 
 #else
@@ -241,7 +264,44 @@ uint FetchIndex(uint lightStart, uint lightOffset)
     return lightStart + lightOffset;
 }
 
-#endif // LIGHTLOOP_TILE_PASS
+#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+
+bool IsFastPath(uint lightStart, out uint lightStartLane0)
+{
+#if SCALARIZE_LIGHT_LOOP
+    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
+    lightStartLane0 = WaveReadLaneFirst(lightStart);
+    return WaveActiveAllTrue(lightStart == lightStartLane0); 
+#else
+    lightStartLane0 = lightStart;
+    return false;
+#endif
+}
+
+// This function scalarize an index accross all lanes. To be effecient it must be used in the context
+// of the scalarization of a loop. It is to use with IsFastPath so it can optimize the number of
+// element to load, which is optimal when all the lanes are contained into a tile.
+uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
+{
+    uint s_elementIdx = v_elementIdx;
+#if SCALARIZE_LIGHT_LOOP
+    if (!fastPath)
+    {
+        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave. 
+        s_elementIdx = WaveActiveMin(v_elementIdx);
+        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
+        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
+        if (s_elementIdx == -1)
+        {
+            return -1;
+        }
+    }
+    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
+    // However, we are certain at this point that the index is scalar.
+    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
+#endif
+    return s_elementIdx;
+}
 
 uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 {
@@ -257,7 +317,7 @@ uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 
 LightData FetchLight(uint start, uint i)
 {
-    int j = FetchIndex(start, i);
+    uint j = FetchIndex(start, i);
 
     return _LightDatas[j];
 }
@@ -266,7 +326,6 @@ LightData FetchLight(uint index)
 {
     return _LightDatas[index];
 }
-
 
 EnvLightData FetchEnvLight(uint start, uint i)
 {
@@ -280,20 +339,39 @@ EnvLightData FetchEnvLight(uint index)
     return _EnvLightDatas[index];
 }
 
+// In the first 8 bits of the target we store the max fade of the contact shadows as a byte
+void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
+{
+    fade = float(contactShadowData >> 24) / 255.0;
+    mask = contactShadowData & 0xFFFFFF; // store only the first 24 bits which represent 
+}
+
+uint PackContactShadowData(float fade, uint mask)
+{
+    uint fadeAsByte = (uint(saturate(fade) * 255) << 24);
+
+    return fadeAsByte | mask;
+}
+
 // We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,
 // it is a 1x1 white texture if deferred directional shadow and/or contact shadow are disabled
 // We perform a single featch a the beginning of the lightloop
-float InitContactShadow(PositionInputs posInput)
+void InitContactShadow(PositionInputs posInput, inout LightLoopContext context)
 {
-    // For now we only support one contact shadow
-    // Contactshadow is store in Red Channel of _DeferredShadowTexture
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
     // We use this property to have a neutral value for contact shadows that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
     // We store inverse contact shadow so neutral is white. So either we sample inside or outside the texture it return 1 in case of neutral
-    return 1.0 - LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
+    uint packedContactShadow = LOAD_TEXTURE2D_X(_ContactShadowTexture, posInput.positionSS).x;
+    UnpackContactShadowData(packedContactShadow, context.contactShadowFade, context.contactShadow);
 }
 
-float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowIndex)
+float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask)
 {
-    return contactShadowIndex >= 0 ? lightLoopContext.contactShadow : 1.0;
+    bool occluded = (lightLoopContext.contactShadow & contactShadowMask) != 0;
+    return 1.0 - (occluded * lightLoopContext.contactShadowFade);
+}
+
+float GetScreenSpaceShadow(PositionInputs posInput, int shadowIndex)
+{
+    return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex)).x;
 }

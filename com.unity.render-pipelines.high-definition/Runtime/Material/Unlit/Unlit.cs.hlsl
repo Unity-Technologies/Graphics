@@ -5,23 +5,23 @@
 #ifndef UNLIT_CS_HLSL
 #define UNLIT_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Unlit+SurfaceData:  static fields
+// UnityEngine.Rendering.HighDefinition.Unlit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (300)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData:  static fields
+// UnityEngine.Rendering.HighDefinition.Unlit+BSDFData:  static fields
 //
 #define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (350)
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+SurfaceData
+// Generated from UnityEngine.Rendering.HighDefinition.Unlit+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
     float3 color;
 };
 
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData
+// Generated from UnityEngine.Rendering.HighDefinition.Unlit+BSDFData
 // PackingRules = Exact
 struct BSDFData
 {

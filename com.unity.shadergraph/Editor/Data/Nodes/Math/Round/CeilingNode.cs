@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Ceiling";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Ceiling-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

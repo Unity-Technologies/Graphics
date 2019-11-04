@@ -173,7 +173,7 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
         ppdParam.uv = layerTexCoord.base.uv; // For planar it is uv too, not uvXZ
 
         // Note: The TBN is not normalize as it is based on mikkt. We should normalize it, but POM is always use on simple enough surfarce that mean it is not required (save 2 normalize). Tag: SURFACE_GRADIENT
-        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.worldToTangent) * GetDisplacementObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
+        float3 viewDirTS = isPlanar ? float3(uvXZ, V.y) : TransformWorldToTangent(V, input.tangentToWorld) * GetDisplacementObjectScale(false).xzy; // Switch from Y-up to Z-up (as we move to tangent space)
         NdotV = viewDirTS.z;
 
         // Transform the view vector into the UV space.
@@ -200,7 +200,11 @@ float ApplyPerPixelDisplacement(FragInputs input, float3 V, inout LayerTexCoord 
 // Calculate displacement for per vertex displacement mapping
 float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexColor, float lod)
 {
+#ifdef _HEIGHTMAP
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
+#else
+    float height = 0.0;
+#endif
 
     // Height is affected by tiling property and by object scale (depends on option).
     // Apply scaling from tiling properties (TexWorldScale and tiling from BaseColor)

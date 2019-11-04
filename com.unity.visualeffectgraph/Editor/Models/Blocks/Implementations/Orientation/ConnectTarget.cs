@@ -15,23 +15,23 @@ namespace UnityEditor.VFX.Block
             LookAtPosition
         }
 
-        [VFXSetting]
+        [VFXSetting, Tooltip("Specifies where the particle should orient itself to. It can face the camera, a particular direction, or a specific position.")]
         public OrientMode Orientation = OrientMode.Camera;
 
         public override string name { get { return "Connect Target"; } }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Output; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public class InputProperties
         {
-            [Tooltip("The position that corresponds to the top end of the particle")]
+            [Tooltip("Sets the position the particle aims to connect to. This corresponds to the top end of the particle.")]
             public Position TargetPosition = Position.defaultValue;
-            [Tooltip("The direction that the particle face towards")]
+            [Tooltip("Sets the direction the particle faces towards.")]
             public DirectionType LookDirection = DirectionType.defaultValue;
-            [Tooltip("The position that the particle look at")]
+            [Tooltip("Sets the position the particle faces towards.")]
             public Position LookAtPosition = Position.defaultValue;
-            [Range(0.0f, 1.0f), Tooltip("The position (relative to the segment) that act as a pivot.")]
+            [Range(0.0f, 1.0f), Tooltip("Sets the position relative to the segment to act as a pivot.")]
             public float PivotShift = 0.5f;
         }
 
@@ -79,8 +79,9 @@ namespace UnityEditor.VFX.Block
 
                 return string.Format(@"
 axisY = TargetPosition-position;
-scaleY = length(axisY) / size;
-axisY /= scaleY;
+float len = length(axisY);
+scaleY = len / size;
+axisY /= len;
 axisZ = {0};
 axisX = normalize(cross(axisY,axisZ));
 axisZ = cross(axisX,axisY);

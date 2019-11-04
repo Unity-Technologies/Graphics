@@ -5,15 +5,15 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class CurlNoiseVariantProvider : IVariantProvider
+    class CurlNoiseVariantProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "type", Enum.GetValues(typeof(NoiseBase.NoiseType)).Cast<object>().ToArray() },
+                    { "type", Enum.GetValues(typeof(NoiseBase.NoiseType)).OfType<NoiseBase.NoiseType>().Where(o => o != NoiseBase.NoiseType.Cellular).Cast<object>().ToArray() },
                     { "dimensions", Enum.GetValues(typeof(CurlNoise.DimensionCount)).Cast<object>().ToArray() }
                 };
             }
@@ -25,19 +25,19 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputPropertiesAmplitude
         {
-            [Tooltip("The magnitude of the noise.")]
+            [Tooltip("Sets the magnitude of the noise. Higher amplitudes result in a greater range of the noise value.")]
             public float amplitude = 1.0f;
         }
 
         public class OutputProperties2D
         {
-            [Tooltip("The calculated noise vector.")]
+            [Tooltip("Outputs the calculated noise vector.")]
             public Vector2 Noise = Vector2.zero;
         }
 
         public class OutputProperties3D
         {
-            [Tooltip("The calculated noise vector.")]
+            [Tooltip("Outputs the calculated noise vector.")]
             public Vector3 Noise = Vector3.zero;
         }
 
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Operator
             Three
         }
 
-        [VFXSetting, Tooltip("Output noise in 2 or 3 dimensions.")]
+        [VFXSetting, Tooltip("Specifies whether the noise is output in one, two, or three dimensions.")]
         public DimensionCount dimensions = DimensionCount.Two;
 
         override public string name

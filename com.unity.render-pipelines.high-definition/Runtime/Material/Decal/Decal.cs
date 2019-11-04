@@ -1,9 +1,9 @@
 using System;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class Decal
+    partial class Decal
     {
         // Main structure that store the user data (i.e user input of master node in material graph)
         [GenerateHLSL(PackingRules.Exact, false)]
@@ -14,16 +14,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Normal", true)]
             public Vector4 normalWS;
             [SurfaceDataAttributes("Mask", true)]
-            public Vector4 mask;
+            public Vector4 mask; // Metal, AmbientOcclusion, Smoothness, smoothness opacity
+            [SurfaceDataAttributes("Emissive")]
+            public Vector3 emissive;
             [SurfaceDataAttributes("AOSBlend", true)]
-            public Vector2 MAOSBlend;
+            public Vector2 MAOSBlend; // Metal opacity and Ambient occlusion opacity
             [SurfaceDataAttributes("HTileMask")]
             public uint HTileMask;
+
         };
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferMaterial
-        {           
+        {
             Count = 4
         };
 
@@ -42,13 +45,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // should this be combined into common class shared with Lit.cs???
         static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
-        static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RG16 };
-        static bool[] m_sRGBFlags = { true, false, false, false };
+        static GraphicsFormat[] m_RTFormat = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm};
 
-        static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlags)
+        static public void GetMaterialDBufferDescription(out GraphicsFormat[] RTFormat)
         {
             RTFormat = m_RTFormat;
-            sRGBFlags = m_sRGBFlags;
         }
 
         // relies on the order shader passes are declared in decal.shader
@@ -71,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
     // float2 uvBias = float2(decalData.normalToWorld[3][2], decalData.normalToWorld[3][3]);
     [GenerateHLSL(PackingRules.Exact, false)]
-    public struct DecalData
+    struct DecalData
     {
         public Matrix4x4 worldToDecal;
         public Matrix4x4 normalToWorld;
@@ -79,6 +80,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 normalScaleBias;
         public Vector4 maskScaleBias;
         public Vector4 baseColor;
+        public Vector4 remappingAOS;
+        public Vector4 scalingMAB; // metalness, alpha basemap, blue mask map
         public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
     };
 }

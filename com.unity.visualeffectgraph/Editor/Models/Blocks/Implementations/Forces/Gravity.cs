@@ -9,8 +9,8 @@ namespace UnityEditor.VFX.Block
     class Gravity : VFXBlock
     {
         public override string name { get { return "Gravity"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         public override IEnumerable<VFXNamedExpression> parameters
         {
@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Gravity Force applied to Particle Velocity")]
+            [Tooltip("Sets the gravity acting upon the particles.")]
             public Vector Force = new Vector3(0.0f, -9.81f, 0.0f);
         }
 

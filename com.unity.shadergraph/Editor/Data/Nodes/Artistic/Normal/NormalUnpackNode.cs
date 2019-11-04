@@ -13,10 +13,6 @@ namespace UnityEditor.ShaderGraph
             name = "Normal Unpack";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-Unpack-Node"; }
-        }
 
         [SerializeField]
         private NormalMapSpace m_NormalMapSpace = NormalMapSpace.Tangent;
@@ -49,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             return
             @"
             {
-                Out = UnpackNormalmapRGorAG(In);
+                Out = UnpackNormal(In);
             }
             ";
         }
@@ -63,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             return
             @"
             {
-                Out = UnpackNormalmapRGB(In);
+                Out = UnpackNormalRGB(In);
             }
             ";
         }

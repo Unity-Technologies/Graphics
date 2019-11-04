@@ -15,9 +15,11 @@ namespace UnityEditor.TestTools.Graphics
                     return RuntimePlatform.Android;
                 case BuildTarget.iOS:
                     return RuntimePlatform.IPhonePlayer;
+#if !UNITY_2019_2_OR_NEWER
                 case BuildTarget.StandaloneLinux:
-                case BuildTarget.StandaloneLinux64:
                 case BuildTarget.StandaloneLinuxUniversal:
+#endif
+                case BuildTarget.StandaloneLinux64:
                     return RuntimePlatform.LinuxPlayer;
                 case BuildTarget.StandaloneOSX:
                     return RuntimePlatform.OSXPlayer;
@@ -40,6 +42,10 @@ namespace UnityEditor.TestTools.Graphics
                     return RuntimePlatform.XboxOne;
                 case BuildTarget.tvOS:
                     return RuntimePlatform.tvOS;
+#if UNITY_2019_3_OR_NEWER
+                case BuildTarget.Stadia:
+                    return RuntimePlatform.Stadia;
+#endif
             }
 
             throw new ArgumentOutOfRangeException("target", target, "Unknown BuildTarget");
@@ -55,7 +61,11 @@ namespace UnityEditor.TestTools.Graphics
                     return BuildTarget.iOS;
                 case RuntimePlatform.LinuxEditor:
                 case RuntimePlatform.LinuxPlayer:
+#if UNITY_2019_2_OR_NEWER
+                    return BuildTarget.StandaloneLinux64;
+#else
                     return BuildTarget.StandaloneLinuxUniversal;
+#endif
                 case RuntimePlatform.OSXEditor:
                 case RuntimePlatform.OSXPlayer:
                     return BuildTarget.StandaloneOSX;
@@ -84,6 +94,10 @@ namespace UnityEditor.TestTools.Graphics
                     return BuildTarget.WSAPlayer;
                 case RuntimePlatform.XboxOne:
                     return BuildTarget.XboxOne;
+#if UNITY_2019_3_OR_NEWER
+                case RuntimePlatform.Stadia:
+                    return BuildTarget.Stadia;
+#endif
             }
 
             throw new ArgumentOutOfRangeException("platform", platform, "Unknown RuntimePlatform");

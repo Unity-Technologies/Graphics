@@ -13,13 +13,30 @@ Note that in most cases this node is unnecessary as the normal map should be sam
 | In      | Input | Vector 4 | None | Input value |
 | Out | Output      |    Vector 3 | None | Output value |
 
+## Controls
+
+| Name        | Type           | Options  | Description |
+|:------------ |:-------------|:-----|:---|
+| Space      | Dropdown | Tangent, Object | Sets the coordinate space of the input normal. |
+
 ## Generated Code Example
 
-The following example code represents one possible outcome of this node.
+The following example code represents one possible outcome of this node per **Space** mode.
+
+**Tangent**
 
 ```
 void Unity_NormalUnpack_float(float4 In, out float3 Out)
 {
     Out = UnpackNormalmapRGorAG(In);
+}
+```
+
+**Object**
+
+```
+void Unity_NormalUnpackRGB_float(float4 In, out float3 Out)
+{
+    Out = UnpackNormalmapRGB(In);
 }
 ```

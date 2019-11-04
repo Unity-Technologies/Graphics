@@ -1,21 +1,21 @@
-using UnityEngine;
-using System;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class Unlit : RenderPipelineMaterial
+    class Unlit : RenderPipelineMaterial
     {
         //-----------------------------------------------------------------------------
         // SurfaceData
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 300)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 300)]
         public struct SurfaceData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Color", false, true)]
             public Vector3 color;
         };
@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 350)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 350)]
         public struct BSDFData
         {
             [SurfaceDataAttributes("", false, true)]

@@ -40,7 +40,7 @@ real3 UnpackNormalOctRectEncode(real2 f)
     // Solve for {x, y, z} given {r, g}.
     real x = 0.5 + 0.5 * g - abs(r);
     real y = g - x;
-    real z = max(1.0 - abs(x) - abs(y), FLT_EPS); // EPS is absolutely crucial for anisotropy
+    real z = max(1.0 - abs(x) - abs(y), REAL_EPS); // EPS is absolutely crucial for anisotropy
 
     real3 p = real3(x, y, CopySign(z, r));
 
@@ -49,30 +49,30 @@ real3 UnpackNormalOctRectEncode(real2 f)
 
 // Ref: http://jcgt.org/published/0003/02/01/paper.pdf
 // Encode with Oct, this function work with any size of output
-// return real between [-1, 1]
-real2 PackNormalOctQuadEncode(real3 n)
+// return float between [-1, 1]
+float2 PackNormalOctQuadEncode(float3 n)
 {
-    //real l1norm    = dot(abs(n), 1.0);
-    //real2 res0     = n.xy * (1.0 / l1norm);
+    //float l1norm    = dot(abs(n), 1.0);
+    //float2 res0     = n.xy * (1.0 / l1norm);
 
-    //real2 val      = 1.0 - abs(res0.yx);
-    //return (n.zz < real2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+    //float2 val      = 1.0 - abs(res0.yx);
+    //return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
 
     // Optimized version of above code:
     n *= rcp(dot(abs(n), 1.0));
-    real t = saturate(-n.z);
+    float t = saturate(-n.z);
     return n.xy + (n.xy >= 0.0 ? t : -t);
 }
 
-real3 UnpackNormalOctQuadEncode(real2 f)
+float3 UnpackNormalOctQuadEncode(float2 f)
 {
-    real3 n = real3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+    float3 n = float3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
 
-    //real2 val = 1.0 - abs(n.yx);
-    //n.xy = (n.zz < real2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
+    //float2 val = 1.0 - abs(n.yx);
+    //n.xy = (n.zz < float2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
 
     // Optimized version of above code:
-    real t = max(-n.z, 0.0);
+    float t = max(-n.z, 0.0);
     n.xy += n.xy >= 0.0 ? -t.xx : t.xx;
 
     return normalize(n);
@@ -96,10 +96,10 @@ real3 UnpackNormalHemiOctEncode(real2 f)
 
 // Tetrahedral encoding - Looks like Tetra encoding 10:10 + 2 is similar to oct 11:11, as oct is cheaper prefer it
 // To generate the basisNormal below we use these 4 vertex of a regular tetrahedron
-// v0 = real3(1.0, 0.0, -1.0 / sqrt(2.0));
-// v1 = real3(-1.0, 0.0, -1.0 / sqrt(2.0));
-// v2 = real3(0.0, 1.0, 1.0 / sqrt(2.0));
-// v3 = real3(0.0, -1.0, 1.0 / sqrt(2.0));
+// v0 = float3(1.0, 0.0, -1.0 / sqrt(2.0));
+// v1 = float3(-1.0, 0.0, -1.0 / sqrt(2.0));
+// v2 = float3(0.0, 1.0, 1.0 / sqrt(2.0));
+// v3 = float3(0.0, -1.0, 1.0 / sqrt(2.0));
 // Then we normalize the average of each face's vertices
 // normalize(v0 + v1 + v2), etc...
 static const real3 tetraBasisNormal[4] =
@@ -120,7 +120,7 @@ static const real3x3 tetraBasisArray[4] =
 };
 
 // Return [-1..1] vector2 oriented in plane of the faceIndex of a regular tetrahedron
-real2 PackNormalTetraEncode(real3 n, out uint faceIndex)
+real2 PackNormalTetraEncode(float3 n, out uint faceIndex)
 {
     // Retrieve the tetrahedra's face for the normal direction
     // It is the one with the greatest dot value with face normal
@@ -165,7 +165,7 @@ real3 UnpackNormalRGB(real4 packedNormal, real scale = 1.0)
     real3 normal;
     normal.xyz = packedNormal.rgb * 2.0 - 1.0;
     normal.xy *= scale;
-    return normalize(normal);
+    return normal;
 }
 
 real3 UnpackNormalRGBNoScale(real4 packedNormal)
@@ -188,6 +188,25 @@ real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
     // Convert to (?, y, 0, x)
     packedNormal.a *= packedNormal.r;
     return UnpackNormalAG(packedNormal, scale);
+}
+
+real3 UnpackNormal(real4 packedNormal)
+{
+#if defined(UNITY_NO_DXT5nm)
+    return UnpackNormalRGBNoScale(packedNormal);
+#else
+    // Compiler will optimize the scale away
+    return UnpackNormalmapRGorAG(packedNormal, 1.0);
+#endif
+}
+
+real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
+{
+#if defined(UNITY_NO_DXT5nm)
+    return UnpackNormalRGB(packedNormal, bumpScale);
+#else
+    return UnpackNormalmapRGorAG(packedNormal, bumpScale);
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -494,7 +513,7 @@ real UnpackFloatFromR8G8(real2 f)
 }
 
 // Pack float2 (each of 12 bit) in 888
-real3 PackFloat2To888(real2 f)
+float3 PackFloat2To888(float2 f)
 {
     uint2 i = (uint2)(f * 4095.5);
     uint2 hi = i >> 8;
@@ -506,7 +525,7 @@ real3 PackFloat2To888(real2 f)
 }
 
 // Unpack 2 float of 12bit packed into a 888
-real2 Unpack888ToFloat2(real3 x)
+float2 Unpack888ToFloat2(float3 x)
 {
     uint3 i = (uint3)(x * 255.0);
     // 8 bit in lo, 4 bit in hi

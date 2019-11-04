@@ -7,6 +7,14 @@
 
 #define DEFAULT_SPECULAR_VALUE 0.04
 
+// Following constant are used when we use clear coat properties that can't be store in the Gbuffer (with the Lit shader)
+#define CLEAR_COAT_IOR 1.5
+#define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
+#define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
+#define CLEAR_COAT_ROUGHNESS 0.01
+#define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
+#define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
+
 //-----------------------------------------------------------------------------
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
@@ -36,6 +44,11 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
     return (1.0 - perceptualSmoothness);
 }
 
+real PerceptualRoughnessToPerceptualSmoothness(real perceptualRoughness)
+{
+    return (1.0 - perceptualRoughness);
+}
+
 // WARNING: this has been deprecated, and should not be used!
 // Using roughness values of 0 leads to INFs and NANs. The only sensible place to use the roughness
 // value of 0 is IBL, so we do not modify the perceptual roughness which is used to select the MIP map level.
@@ -43,6 +56,17 @@ real PerceptualSmoothnessToPerceptualRoughness(real perceptualSmoothness)
 real ClampRoughnessForAnalyticalLights(real roughness)
 {
     return max(roughness, 1.0 / 1024.0);
+}
+
+// Given that the GGX model is invalid for a roughness of 0.0. This values have been experimentally evaluated to be the limit for the roughness
+// for integration.
+real ClampRoughnessForRaytracing(real roughness)
+{
+    return max(roughness, 0.001225);
+}
+real ClampPerceptualRoughnessForRaytracing(real perceptualRoughness)
+{
+    return max(perceptualRoughness, 0.035);
 }
 
 void ConvertValueAnisotropyToValueTB(real value, real anisotropy, out real valueT, out real valueB)

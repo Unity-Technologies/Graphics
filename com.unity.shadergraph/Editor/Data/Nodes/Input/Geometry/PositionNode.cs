@@ -1,5 +1,11 @@
+using System;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -9,18 +15,15 @@ namespace UnityEditor.ShaderGraph
     {
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
-
+        public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld};
 
         public PositionNode()
         {
             name = "Position";
+            precision = Precision.Float;
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Position-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -31,6 +34,17 @@ namespace UnityEditor.ShaderGraph
                     SlotType.Output,
                     Vector3.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
+        }
+
+        public override int GetCompiledNodeVersion() => 1;
+
+        public override void UpgradeNodeWithVersion(int from, int to)
+        {
+            if (from == 0 && to == 1 && space == CoordinateSpace.World)
+            {
+                var names = validSpaces.Select(cs => cs.ToString().PascalToLabel()).ToArray();
+                spacePopup = new PopupList(names, (int)CoordinateSpace.AbsoluteWorld);
+            }
         }
 
         public override string GetVariableNameForSlot(int slotId)

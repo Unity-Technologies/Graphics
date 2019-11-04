@@ -1,236 +1,287 @@
+using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering;
+using Utilities;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    using CED = CoreEditorDrawer<FrameSettingsUI, SerializedFrameSettings>;
+    using CED = CoreEditorDrawer<SerializedFrameSettings>;
+
+    // Mirrors MaterialQuality enum and adds `FromQualitySettings`
+    enum MaterialQualityMode
+    {
+        Low,
+        Medium,
+        High,
+        FromQualitySettings,
+    }
+
+    static class MaterialQualityModeExtensions
+    {
+        public static MaterialQuality Into(this MaterialQualityMode quality)
+        {
+            switch (quality)
+            {
+                case MaterialQualityMode.High: return MaterialQuality.High;
+                case MaterialQualityMode.Medium: return MaterialQuality.Medium;
+                case MaterialQualityMode.Low: return MaterialQuality.Low;
+                case MaterialQualityMode.FromQualitySettings: return (MaterialQuality)0;
+                default: throw new ArgumentOutOfRangeException(nameof(quality));
+            }
+        }
+
+        public static MaterialQualityMode Into(this MaterialQuality quality)
+        {
+            if (quality == (MaterialQuality) 0)
+                return MaterialQualityMode.FromQualitySettings;
+            switch (quality)
+            {
+                case MaterialQuality.High: return MaterialQualityMode.High;
+                case MaterialQuality.Medium: return MaterialQualityMode.Medium;
+                case MaterialQuality.Low: return MaterialQualityMode.Low;
+                default: throw new ArgumentOutOfRangeException(nameof(quality));
+            }
+        }
+    }
 
     partial class FrameSettingsUI
     {
-#pragma warning disable 618 //CED
-        internal static CED.IDrawer Inspector(bool withOverride = true)
-#pragma warning restore 618
+
+
+
+        enum Expandable
         {
-            return CED.Group(
-                CED.Action((s, d, o) =>
+            RenderingPasses = 1 << 0,
+            RenderingSettings = 1 << 1,
+            LightingSettings = 1 << 2,
+            AsynComputeSettings = 1 << 3,
+            LightLoop = 1 << 4,
+        }
+
+        readonly static ExpandedState<Expandable, FrameSettings> k_ExpandedState = new ExpandedState<Expandable, FrameSettings>(~(-1), "HDRP");
+
+        internal static CED.IDrawer Inspector(bool withOverride = true) => CED.Group(
+                CED.Group((serialized, owner) =>
                 {
                     EditorGUILayout.BeginVertical("box");
                     EditorGUILayout.LabelField(FrameSettingsUI.frameSettingsHeaderContent, EditorStyles.boldLabel);
                 }),
                 InspectorInnerbox(withOverride),
-                CED.Action((s, d, o) => EditorGUILayout.EndVertical())
+                CED.Group((serialized, owner) => EditorGUILayout.EndVertical())
                 );
-        }
 
         //separated to add enum popup on default frame settings
-#pragma warning disable 618 //CED
-        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true)
-#pragma warning restore 618
-        {
-            return CED.Group(
-                SectionRenderingPasses(withOverride),
-                SectionRenderingSettings(withOverride),
-                SectionLightingSettings(withOverride),
-                SectionAsyncComputeSettings(withOverride),
-                CED.Select(
-                    (s, d, o) => s.lightLoopSettings,
-                    (s, d, o) => d.lightLoopSettings,
-                    LightLoopSettingsUI.SectionLightLoopSettings(withOverride)
+        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true) => CED.Group(
+                CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                    CED.Group(206, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
+                    ),
+                CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                    CED.Group(206, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
+                    ),
+                CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                    CED.Group(206, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
+                    ),
+                CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                    CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
                     )
                 );
-        }
 
-#pragma warning disable 618 //CED
-        public static CED.IDrawer SectionRenderingPasses(bool withOverride)
-#pragma warning restore 618
-        {
-            return CED.FoldoutGroup(
-                renderingPassesHeaderContent,
-                (s, p, o) => s.isSectionExpandedRenderingPasses,
-                FoldoutOption.Indent | FoldoutOption.Boxed,
-                CED.LabelWidth(200, CED.Action((s, p, o) => Drawer_SectionRenderingPasses(s, p, o, withOverride))),
-                CED.space
-                );
-        }
-
-#pragma warning disable 618 //CED
-        public static CED.IDrawer SectionRenderingSettings(bool withOverride)
-#pragma warning restore 618
-        {
-            return CED.FoldoutGroup(
-                renderingSettingsHeaderContent,
-                (s, p, o) => s.isSectionExpandedRenderingSettings,
-                FoldoutOption.Indent | FoldoutOption.Boxed,
-                CED.LabelWidth(250, CED.Action((s, p, o) => Drawer_SectionRenderingSettings(s, p, o, withOverride))),
-                CED.space
-                );
-        }
-
-#pragma warning disable 618 //CED
-        public static CED.IDrawer SectionAsyncComputeSettings(bool withOverride)
-#pragma warning restore 618
-        {
-            return CED.FoldoutGroup(
-                asyncComputeSettingsHeaderContent,
-                (s, p, o) => s.isSectionExpandedAsyncComputeSettings,
-                FoldoutOption.Indent | FoldoutOption.Boxed,
-                CED.LabelWidth(250, CED.Action((s, p, o) => Drawer_SectionAsyncComputeSettings(s, p, o, withOverride))),
-                CED.space
-                );
-        }
-        
-#pragma warning disable 618 //CED
-        public static CED.IDrawer SectionLightingSettings(bool withOverride)
-#pragma warning restore 618
-        {
-            return CED.FoldoutGroup(
-                lightSettingsHeaderContent,
-                (s, p, o) => s.isSectionExpandedLightingSettings,
-                FoldoutOption.Indent | FoldoutOption.Boxed,
-                CED.LabelWidth(250, CED.Action((s, p, o) => Drawer_SectionLightingSettings(s, p, o, withOverride))),
-                CED.space);
-        }
-
-        internal static HDRenderPipelineAsset GetHDRPAssetFor(Editor owner)
+        static HDRenderPipelineAsset GetHDRPAssetFor(Editor owner)
         {
             HDRenderPipelineAsset hdrpAsset;
             if (owner is HDRenderPipelineEditor)
             {
-                //When drawing the inspector of a selected HDRPAsset in Project windows, access HDRP by owner drawing itself
+                // When drawing the inspector of a selected HDRPAsset in Project windows, access HDRP by owner drawing itself
                 hdrpAsset = (owner as HDRenderPipelineEditor).target as HDRenderPipelineAsset;
             }
             else
             {
-                //Else rely on GraphicsSettings are you should be in hdrp and owner could be probe or camera.
-                hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                // Else rely on GraphicsSettings are you should be in hdrp and owner could be probe or camera.
+                hdrpAsset = HDRenderPipeline.currentAsset;
             }
             return hdrpAsset;
         }
 
-        internal static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
+        static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
         {
             HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
-            if (owner is HDProbeEditor)
+            if (owner is IHDProbeEditor)
             {
-                if ((owner as HDProbeEditor).GetTarget(owner.target).mode == ReflectionProbeMode.Realtime)
-                {
-                    return hdrpAsset.GetRealtimeReflectionFrameSettings();
-                }
+                if ((owner as IHDProbeEditor).GetTarget(owner.target).mode == ProbeSettings.Mode.Realtime)
+                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
                 else
+                    return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+            }
+            return hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+        }
+
+        static void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        {
+            RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
+            FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
+            var area = OverridableFrameSettingsArea.GetGroupContent(0, defaultFrameSettings, serialized);
+
+            LitShaderMode defaultShaderLitMode;
+            switch (hdrpSettings.supportedLitShaderMode)
+            {
+                case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                    defaultShaderLitMode = LitShaderMode.Forward;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                    defaultShaderLitMode = LitShaderMode.Deferred;
+                    break;
+                case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                    defaultShaderLitMode = defaultFrameSettings.litShaderMode;
+                    break;
+                default:
+                    throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+            }
+
+            area.AmmendInfo(FrameSettingsField.LitShaderMode,
+                overrideable: () => hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.Both,
+                overridedDefaultValue: defaultShaderLitMode);
+
+            bool hdrpAssetSupportForward = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
+            bool hdrpAssetSupportDeferred = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly;
+            bool frameSettingsOverrideToForward = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Forward;
+            bool frameSettingsOverrideToDeferred = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Deferred;
+            bool defaultForwardUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Forward;
+            bool defaultDefferedUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
+            bool msaaEnablable = hdrpAssetSupportForward && hdrpSettings.supportMSAA && (frameSettingsOverrideToForward || defaultForwardUsed);
+            bool depthPrepassEnablable = hdrpAssetSupportDeferred && (defaultDefferedUsed || frameSettingsOverrideToDeferred);
+            area.AmmendInfo(FrameSettingsField.MSAA,
+                overrideable: () => msaaEnablable,
+                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA),
+                customOverrideable: () =>
                 {
-                    return hdrpAsset.GetBakedOrCustomReflectionFrameSettings();
-                }
-            }
-            return hdrpAsset.GetFrameSettings();
-        }
-
-        static void Drawer_SectionRenderingPasses(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
-        {
-            //disable temporarily as FrameSettings are not supported for Baked probe at the moment
-            using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
-            {
-                HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
-                RenderPipelineSettings hdrpSettings = hdrpAsset.renderPipelineSettings;
-                FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-                OverridableSettingsArea area = new OverridableSettingsArea(8);
-                area.Add(p.enableTransparentPrepass, transparentPrepassContent, () => p.overridesTransparentPrepass, a => p.overridesTransparentPrepass = a, defaultValue: defaultFrameSettings.enableTransparentPrepass);
-                area.Add(p.enableTransparentPostpass, transparentPostpassContent, () => p.overridesTransparentPostpass, a => p.overridesTransparentPostpass = a, defaultValue: defaultFrameSettings.enableTransparentPostpass);
-                area.Add(p.enableMotionVectors, motionVectorContent, () => p.overridesMotionVectors, a => p.overridesMotionVectors = a, () => hdrpSettings.supportMotionVectors, defaultValue: defaultFrameSettings.enableMotionVectors);
-                area.Add(p.enableObjectMotionVectors, objectMotionVectorsContent, () => p.overridesObjectMotionVectors, a => p.overridesObjectMotionVectors = a, () => hdrpSettings.supportMotionVectors && p.enableMotionVectors.boolValue, defaultValue: defaultFrameSettings.enableObjectMotionVectors, indent: 1);
-                area.Add(p.enableDecals, decalsContent, () => p.overridesDecals, a => p.overridesDecals = a, () => hdrpSettings.supportDecals, defaultValue: defaultFrameSettings.enableDecals);
-                area.Add(p.enableRoughRefraction, roughRefractionContent, () => p.overridesRoughRefraction, a => p.overridesRoughRefraction = a, defaultValue: defaultFrameSettings.enableRoughRefraction);
-                area.Add(p.enableDistortion, distortionContent, () => p.overridesDistortion, a => p.overridesDistortion = a, () => hdrpSettings.supportDistortion, defaultValue: defaultFrameSettings.enableDistortion);
-                area.Add(p.enablePostprocess, postprocessContent, () => p.overridesPostprocess, a => p.overridesPostprocess = a, defaultValue: defaultFrameSettings.enablePostprocess);
-                area.Draw(withOverride);
-            }
-        }
-
-        static void Drawer_SectionRenderingSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
-        {
-            //disable temporarily as FrameSettings are not supported for Baked probe at the moment
-            using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
-            {
-                HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
-                RenderPipelineSettings hdrpSettings = hdrpAsset.renderPipelineSettings;
-                FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-                OverridableSettingsArea area = new OverridableSettingsArea(6);
-                LitShaderMode defaultShaderLitMode;
-                switch(hdrpSettings.supportedLitShaderMode)
+                    switch (hdrpSettings.supportedLitShaderMode)
+                    {
+                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                            return false; //negative dependency
+                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                            return true; //negative dependency
+                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                            return !(frameSettingsOverrideToForward || defaultForwardUsed); //negative dependency
+                        default:
+                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+                    }
+                });
+            area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering,
+                overrideable: () => depthPrepassEnablable,
+                overridedDefaultValue: depthPrepassEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering),
+                customOverrideable: () =>
                 {
-                    case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                        defaultShaderLitMode = LitShaderMode.Forward;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                        defaultShaderLitMode = LitShaderMode.Deferred;
-                        break;
-                    case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                        defaultShaderLitMode = defaultFrameSettings.shaderLitMode;
-                        break;
-                    default:
-                        throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
-                }
-                
-                area.Add(p.litShaderMode, litShaderModeContent, () => p.overridesShaderLitMode, a => p.overridesShaderLitMode = a,
-                    () => !GL.wireframe && hdrpSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.Both,
-                    defaultValue: defaultShaderLitMode);
+                    switch (hdrpSettings.supportedLitShaderMode)
+                    {
+                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
+                            return false;
+                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
+                            return true;
+                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
+                            return frameSettingsOverrideToDeferred || defaultDefferedUsed;
+                        default:
+                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
+                    }
+                });
 
-                bool assetAllowMSAA = hdrpSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly && hdrpSettings.supportMSAA;
-                bool frameSettingsAllowMSAA = p.litShaderMode.enumValueIndex == (int)LitShaderMode.Forward && p.overridesShaderLitMode || !p.overridesShaderLitMode && defaultShaderLitMode == LitShaderMode.Forward;
-                area.Add(p.enableMSAA, msaaContent, () => p.overridesMSAA, a => p.overridesMSAA = a,
-                    () => !GL.wireframe
-                    && assetAllowMSAA && frameSettingsAllowMSAA,
-                    defaultValue: defaultFrameSettings.enableMSAA && hdrpSettings.supportMSAA && !GL.wireframe && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly) != 0 && (p.overridesShaderLitMode && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Forward || !p.overridesShaderLitMode && defaultFrameSettings.shaderLitMode == (int)LitShaderMode.Forward));
-                area.Add(p.enableDepthPrepassWithDeferredRendering, depthPrepassWithDeferredRenderingContent, () => p.overridesDepthPrepassWithDeferredRendering, a => p.overridesDepthPrepassWithDeferredRendering = a,
-                    () => (defaultFrameSettings.shaderLitMode == LitShaderMode.Deferred && !p.overridesShaderLitMode || p.overridesShaderLitMode && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred) && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0,
-                    defaultValue: defaultFrameSettings.enableDepthPrepassWithDeferredRendering && (hdrpSettings.supportedLitShaderMode & RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly) != 0 && p.litShaderMode.enumValueIndex == (int)LitShaderMode.Deferred);
-                area.Add(p.enableOpaqueObjects, opaqueObjectsContent, () => p.overridesOpaqueObjects, a => p.overridesOpaqueObjects = a, defaultValue: defaultFrameSettings.enableOpaqueObjects);
-                area.Add(p.enableTransparentObjects, transparentObjectsContent, () => p.overridesTransparentObjects, a => p.overridesTransparentObjects = a, defaultValue: defaultFrameSettings.enableTransparentObjects);
-                area.Add(p.enableRealtimePlanarReflection, realtimePlanarReflectionContent, () => p.overridesRealtimePlanarReflection, a => p.overridesRealtimePlanarReflection = a, defaultValue: defaultFrameSettings.enableRealtimePlanarReflection);
-                area.Draw(withOverride);
-            }
+            area.AmmendInfo(FrameSettingsField.RayTracing, overrideable: () => hdrpSettings.supportRayTracing);
+            area.AmmendInfo(FrameSettingsField.MotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
+            area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
+            area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
+            area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
+
+            area.AmmendInfo(
+                FrameSettingsField.LODBiasMode,
+                overridedDefaultValue: LODBiasMode.FromQualitySettings,
+                customGetter: () => (LODBiasMode)serialized.lodBiasMode.enumValueIndex,
+                customSetter: v => serialized.lodBiasMode.enumValueIndex = (int)v
+            );
+            area.AmmendInfo(FrameSettingsField.LODBiasQualityLevel,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
+                customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
+                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.OverrideQualitySettings);
+
+            area.AmmendInfo(FrameSettingsField.LODBias,
+                overridedDefaultValue: QualitySettings.lodBias,
+                customGetter: () => serialized.lodBias.floatValue,
+                customSetter: v => serialized.lodBias.floatValue = (float)v,
+                customOverrideable: () => serialized.lodBiasMode.enumValueIndex != (int)LODBiasMode.FromQualitySettings,
+                labelOverride: serialized.lodBiasMode.enumValueIndex == (int)LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias");
+
+            area.AmmendInfo(
+                FrameSettingsField.MaximumLODLevelMode,
+                overridedDefaultValue: MaximumLODLevelMode.FromQualitySettings,
+                customGetter: () => (MaximumLODLevelMode)serialized.maximumLODLevelMode.enumValueIndex,
+                customSetter: v => serialized.maximumLODLevelMode.enumValueIndex = (int)v
+            );
+            area.AmmendInfo(FrameSettingsField.MaximumLODLevelQualityLevel,
+                overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
+                customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
+                customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
+                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.OverrideQualitySettings);
+
+            area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
+                overridedDefaultValue: QualitySettings.maximumLODLevel,
+                customGetter: () => serialized.maximumLODLevel.intValue,
+                customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
+                customOverrideable: () => serialized.maximumLODLevelMode.enumValueIndex != (int)MaximumLODLevelMode.FromQualitySettings,
+                labelOverride: serialized.maximumLODLevelMode.enumValueIndex == (int)MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level");
+
+            area.AmmendInfo(FrameSettingsField.MaterialQualityLevel,
+                overridedDefaultValue: defaultFrameSettings.materialQuality.Into(),
+                customGetter: () => ((MaterialQuality)serialized.materialQuality.intValue).Into(),
+                customSetter: v => serialized.materialQuality.intValue = (int)((MaterialQualityMode)v).Into()
+            );
+
+            area.Draw(withOverride);
         }
 
-        static void Drawer_SectionAsyncComputeSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
+        // Use an enum to have appropriate UI enum field in the frame setting api
+        // Do not use anywhere else
+        enum ScalableLevel3ForFrameSettingsUIOnly
         {
-            //disable temporarily as FrameSettings are not supported for Baked probe at the moment
-            using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
-            {
-                OverridableSettingsArea area = new OverridableSettingsArea(4);
-                FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-
-                area.Add(p.enableAsyncCompute, asyncComputeContent, () => p.overridesAsyncCompute, a => p.overridesAsyncCompute = a, defaultValue: defaultFrameSettings.enableAsyncCompute);
-                area.Add(p.runBuildLightListAsync, lightListAsyncContent, () => p.overrideLightListInAsync, a => p.overrideLightListInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runLightListAsync, indent: 1);
-                area.Add(p.runSSRAsync, SSRAsyncContent, () => p.overrideSSRInAsync, a => p.overrideSSRInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSRAsync, indent: 1);
-                area.Add(p.runSSAOAsync, SSAOAsyncContent, () => p.overrideSSAOInAsync, a => p.overrideSSAOInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runSSAOAsync, indent: 1);
-                area.Add(p.runContactShadowsAsync, contactShadowsAsyncContent, () => p.overrideContactShadowsInAsync, a => p.overrideContactShadowsInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runContactShadowsAsync, indent: 1);
-                area.Add(p.runVolumeVoxelizationAsync, volumeVoxelizationAsyncContent, () => p.overrideVolumeVoxelizationInAsync, a => p.overrideVolumeVoxelizationInAsync = a, () => p.enableAsyncCompute.boolValue, defaultValue: defaultFrameSettings.runVolumeVoxelizationAsync, indent: 1);
-                area.Draw(withOverride);
-            }
+            Low,
+            Medium,
+            High
         }
 
-        static void Drawer_SectionLightingSettings(FrameSettingsUI s, SerializedFrameSettings p, Editor owner, bool withOverride)
+        static void Drawer_SectionLightingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
-            //disable temporarily as FrameSettings are not supported for Baked probe at the moment
-            using (new EditorGUI.DisabledScope((owner is HDProbeEditor) && (owner as HDProbeEditor).GetTarget(owner.target).mode != ReflectionProbeMode.Realtime || (owner is HDRenderPipelineEditor) && HDRenderPipelineUI.selectedFrameSettings == HDRenderPipelineUI.SelectedFrameSettings.BakedOrCustomReflection))
-            {
-                HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
-                RenderPipelineSettings hdrpSettings = hdrpAsset.renderPipelineSettings;
-                FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
-                OverridableSettingsArea area = new OverridableSettingsArea(10);
-                area.Add(p.enableShadow, shadowContent, () => p.overridesShadow, a => p.overridesShadow = a, defaultValue: defaultFrameSettings.enableShadow);
-                area.Add(p.enableContactShadow, contactShadowContent, () => p.overridesContactShadow, a => p.overridesContactShadow = a, defaultValue: defaultFrameSettings.enableContactShadows);
-                area.Add(p.enableShadowMask, shadowMaskContent, () => p.overridesShadowMask, a => p.overridesShadowMask = a, () => hdrpSettings.supportShadowMask, defaultValue: defaultFrameSettings.enableShadowMask);
-                area.Add(p.enableSSR, ssrContent, () => p.overridesSSR, a => p.overridesSSR = a, () => hdrpSettings.supportSSR, defaultValue: defaultFrameSettings.enableSSR);
-                area.Add(p.enableSSAO, ssaoContent, () => p.overridesSSAO, a => p.overridesSSAO = a, () => hdrpSettings.supportSSAO, defaultValue: defaultFrameSettings.enableSSAO);
-                area.Add(p.enableSubsurfaceScattering, subsurfaceScatteringContent, () => p.overridesSubsurfaceScattering, a => p.overridesSubsurfaceScattering = a, () => hdrpSettings.supportSubsurfaceScattering, defaultValue: defaultFrameSettings.enableSubsurfaceScattering);
-                area.Add(p.enableTransmission, transmissionContent, () => p.overridesTransmission, a => p.overridesTransmission = a, defaultValue: defaultFrameSettings.enableTransmission);
-                area.Add(p.enableAtmosphericScattering, atmosphericScatteringContent, () => p.overridesAtmosphericScaterring, a => p.overridesAtmosphericScaterring = a, defaultValue: defaultFrameSettings.enableAtmosphericScattering);
-                area.Add(p.enableVolumetrics, volumetricContent, () => p.overridesVolumetrics, a => p.overridesVolumetrics = a, () => hdrpSettings.supportVolumetrics && p.enableAtmosphericScattering.boolValue, defaultValue: defaultFrameSettings.enableAtmosphericScattering, indent: 1);
-                area.Add(p.enableReprojectionForVolumetrics, reprojectionForVolumetricsContent, () => p.overridesProjectionForVolumetrics, a => p.overridesProjectionForVolumetrics = a, () => hdrpSettings.supportVolumetrics && p.enableAtmosphericScattering.boolValue, defaultValue: defaultFrameSettings.enableVolumetrics, indent: 1);
-                area.Add(p.enableLightLayers, lightLayerContent, () => p.overridesLightLayers, a => p.overridesLightLayers = a, () => hdrpSettings.supportLightLayers, defaultValue: defaultFrameSettings.enableLightLayers);
-                area.Draw(withOverride);
-            }
+            RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
+            FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
+            var area = OverridableFrameSettingsArea.GetGroupContent(1, defaultFrameSettings, serialized);
+            area.AmmendInfo(FrameSettingsField.Shadowmask, overrideable: () => hdrpSettings.supportShadowMask);
+            area.AmmendInfo(FrameSettingsField.SSR, overrideable: () => hdrpSettings.supportSSR);
+            area.AmmendInfo(FrameSettingsField.SSAO, overrideable: () => hdrpSettings.supportSSAO);
+            area.AmmendInfo(FrameSettingsField.SubsurfaceScattering, overrideable: () => hdrpSettings.supportSubsurfaceScattering);
+            area.AmmendInfo(FrameSettingsField.Volumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
+            area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
+            area.AmmendInfo(FrameSettingsField.LightLayers, overrideable: () => hdrpSettings.supportLightLayers);
+            area.AmmendInfo(FrameSettingsField.ScreenSpaceShadows, overrideable: () => hdrpSettings.hdShadowInitParams.supportScreenSpaceShadows);
+            area.Draw(withOverride);
+        }
+
+        static void Drawer_SectionAsyncComputeSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        {
+            var area = GetFrameSettingSectionContent(2, serialized, owner);
+            area.Draw(withOverride);
+        }
+
+        static void Drawer_SectionLightLoopSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        {
+            var area = GetFrameSettingSectionContent(3, serialized, owner);
+            area.Draw(withOverride);
+        }
+
+        static OverridableFrameSettingsArea GetFrameSettingSectionContent(int group, SerializedFrameSettings serialized, Editor owner)
+        {
+            RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
+            FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
+            var area = OverridableFrameSettingsArea.GetGroupContent(group, defaultFrameSettings, serialized);
+            return area;
         }
     }
 }

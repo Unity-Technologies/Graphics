@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using System.Runtime.CompilerServices;
 
 namespace UnityEditor.VFX
@@ -31,7 +31,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("RAND");
+            return string.Format("Rand(attributes.seed)");
         }
 
         public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
@@ -44,8 +44,7 @@ namespace UnityEditor.VFX
     class VFXExpressionFixedRandom : VFXExpression
     {
         public VFXExpressionFixedRandom() : this(VFXValue<uint>.Default) {}
-        public VFXExpressionFixedRandom(VFXExpression hash, bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None, hash)
-        {}
+        public VFXExpressionFixedRandom(VFXExpression hash) : base(VFXExpression.Flags.None, hash) {}
 
         public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GenerateFixedRandom; }}
 
@@ -63,13 +62,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("FixedRand(particleId ^ {0})", parents[0]);
-        }
-
-        public override IEnumerable<VFXAttributeInfo> GetNeededAttributes()
-        {
-            if (Is(Flags.PerElement))
-                yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+            return string.Format("FixedRand({0})", parents[0]);
         }
     }
     #pragma warning restore 0659

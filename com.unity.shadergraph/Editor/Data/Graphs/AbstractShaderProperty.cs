@@ -1,92 +1,86 @@
 using System;
-using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    abstract class AbstractShaderProperty<T> : IShaderProperty
+    public abstract class AbstractShaderProperty : ShaderInput
     {
-        [SerializeField]
-        private T m_Value;
-
-        [SerializeField]
-        private string m_Name;
-
-        [SerializeField]
-        private bool m_GeneratePropertyBlock = true;
-
-        [SerializeField]
-        private SerializableGuid m_Guid = new SerializableGuid();
-
-        public T value
-        {
-            get { return m_Value; }
-            set { m_Value = value; }
-        }
-
-        public string displayName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(m_Name))
-                    return guid.ToString();
-                return m_Name;
-            }
-            set { m_Name = value; }
-        }
-
-        [SerializeField]
-        string m_DefaultReferenceName;
-
-        public string referenceName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(overrideReferenceName))
-                {
-                    if (string.IsNullOrEmpty(m_DefaultReferenceName))
-                        m_DefaultReferenceName = string.Format("{0}_{1}", propertyType, GuidEncoder.Encode(guid));
-                    return m_DefaultReferenceName;
-                }
-                return overrideReferenceName;
-            }
-        }
-
-        [SerializeField]
-        string m_OverrideReferenceName;
-
-        public string overrideReferenceName
-        {
-            get { return m_OverrideReferenceName; }
-            set { m_OverrideReferenceName = value; }
-        }
-
         public abstract PropertyType propertyType { get; }
 
-        public Guid guid
+        internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
+
+        [SerializeField]
+        Precision m_Precision = Precision.Inherit;
+        
+        [SerializeField]
+        private bool m_GPUInstanced = false;
+
+        public bool gpuInstanced
         {
-            get { return m_Guid.guid; }
+            get { return m_GPUInstanced; }
+            set { m_GPUInstanced = value; }
         }
 
-        public bool generatePropertyBlock
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+
+        internal Precision precision
         {
-            get { return m_GeneratePropertyBlock; }
-            set { m_GeneratePropertyBlock = value; }
+            get => m_Precision;
+            set => m_Precision = value;
         }
 
-        public abstract Vector4 defaultValue { get; }
-        public abstract bool isBatchable { get; }
-        public abstract string GetPropertyBlockString();
-        public abstract string GetPropertyDeclarationString(string delimiter = ";");
+        public ConcretePrecision concretePrecision => m_ConcretePrecision;
 
-        public virtual string GetPropertyAsArgumentString()
+        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        {
+            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
+        }
+
+        internal abstract bool isBatchable { get; }
+
+        [SerializeField]
+        bool m_Hidden = false;
+
+        public bool hidden
+        {
+            get => m_Hidden;
+            set => m_Hidden = value;
+        }
+
+        internal string hideTagString => hidden ? "[HideInInspector]" : "";
+
+        internal virtual string GetPropertyBlockString()
+        {
+            return string.Empty;
+        }
+
+        internal virtual string GetPropertyDeclarationString(string delimiter = ";")
+        {
+            SlotValueType type = ConcreteSlotValueType.Vector4.ToSlotValueType();
+            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}{delimiter}";
+        }
+
+        internal virtual string GetPropertyAsArgumentString()
         {
             return GetPropertyDeclarationString(string.Empty);
         }
+        
+        internal abstract AbstractMaterialNode ToConcreteNode();
+        internal abstract PreviewProperty GetPreviewMaterialProperty();
+        internal virtual bool isGpuInstanceable => false;
+    }
+    
+    [Serializable]
+    public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
+    {
+        [SerializeField]
+        T m_Value;
 
-        public abstract PreviewProperty GetPreviewMaterialProperty();
-        public abstract INode ToConcreteNode();
-        public abstract IShaderProperty Copy();
+        public virtual T value
+        {
+            get => m_Value;
+            set => m_Value = value;
+        }
     }
 }

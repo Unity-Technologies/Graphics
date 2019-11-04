@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Fog";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Fog-Node"; }
-        }
 
         public override bool hasPreview { get { return false; } }
 

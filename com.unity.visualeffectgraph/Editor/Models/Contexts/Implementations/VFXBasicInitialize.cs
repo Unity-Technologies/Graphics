@@ -1,72 +1,63 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo]
     class VFXBasicInitialize : VFXContext
     {
-        [VFXSetting, Delayed]
-        private uint capacity = 0; // not serialized here but in VFXDataParticle
-
-        public VFXBasicInitialize() : base(VFXContextType.kInit, VFXDataType.kSpawnEvent, VFXDataType.kParticle) {}
-        public override string name { get { return "Initialize"; } }
+        public VFXBasicInitialize() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.None) {}
+        public override string name { get { return "Initialize " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXInit"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.Initialize; } }
+        public override VFXDataType outputType { get { return GetData() == null ? VFXDataType.Particle : GetData().type; } }
 
-        public override IEnumerable<string> additionalDefines
+
+        private bool hasGPUSpawner => inputContexts.Any(o => o.contextType == VFXContextType.SpawnerGPU);
+
+    public override IEnumerable<string> additionalDefines
         {
             get
             {
-                if (inputContexts.Any(o => o.contextType == VFXContextType.kSpawnerGPU))
-                {
+                if (hasGPUSpawner)
                     yield return "VFX_USE_SPAWNER_FROM_GPU";
-                }
+
+                if (ownedType == VFXDataType.ParticleStrip)
+                    yield return "HAS_STRIPS";
             }
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            capacity = ((VFXDataParticle)GetData()).capacity;
-            GetData().onModified += DataModified;
-        }
-
-        protected void OnDisable()
-        {
-            GetData().onModified -= DataModified;
-        }
-
-        void DataModified(VFXObject o)
-        {
-            capacity = ((VFXDataParticle)o).capacity;
-        }
-
-        public override void OnDataChanges(VFXData oldData, VFXData newData)
-        {
-            if(oldData != null)
-                oldData.onModified -= DataModified;
-            base.OnDataChanges(oldData, newData);
-            if( newData != null)
-                newData.onModified += DataModified;
-            DataModified(newData);
-        }
-
-
-        protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
-        {
-            if (model == this && cause == VFXModel.InvalidationCause.kSettingChanged)
-                ((VFXDataParticle)GetData()).capacity = capacity;
-
-            base.OnInvalidate(model, cause);
         }
 
         public class InputProperties
         {
+            [Tooltip("The culling bounds of this system. The Visual Effect is only visible if the bounding box specified here is visible to the camera.")]
             public AABox bounds = new AABox() { size = Vector3.one };
+        }
+
+        public class StripInputProperties
+        {
+            public uint stripIndex = 0;
+        }
+
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            if (model == this && cause == InvalidationCause.kConnectionChanged)
+                ResyncSlots(false); // To add/remove stripIndex
+
+            base.OnInvalidate(model, cause);
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                var prop = base.inputProperties;
+                if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
+                    prop = prop.Concat(PropertiesFromType("StripInputProperties"));
+                return prop;
+            }
         }
 
         public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
@@ -80,12 +71,28 @@ namespace UnityEditor.VFX
         {
             // GPU
             if (target == VFXDeviceTarget.GPU)
-                return VFXExpressionMapper.FromBlocks(activeChildrenWithImplicit);
+            {
+                var gpuMapper = VFXExpressionMapper.FromBlocks(activeFlattenedChildrenWithImplicit);
+                if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
+                    gpuMapper.AddExpressionsFromSlot(inputSlots[1], -1); // strip index
+                return gpuMapper;
+            }
 
             // CPU
             var cpuMapper = new VFXExpressionMapper();
-            cpuMapper.AddExpressionFromSlotContainer(this, -1);
+            cpuMapper.AddExpressionsFromSlot(inputSlots[0], -1); // bounds   
             return cpuMapper;
         }
+
+        public override VFXSetting GetSetting(string name)
+        {
+            return GetData().GetSetting(name); // Just a bridge on data
+        }
+
+        public override IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags)
+        {
+            return GetData().GetSettings(listHidden, flags); // Just a bridge on data
+        }
+
     }
 }

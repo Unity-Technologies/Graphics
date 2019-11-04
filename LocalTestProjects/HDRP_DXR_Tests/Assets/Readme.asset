@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcf7219bab7fe46a1ad266029b2fee19, type: 3}
+  m_Name: Readme
+  m_EditorClassIdentifier: 
+  icon: {fileID: 2800000, guid: 9b84c330de497af4793fd7b376afed13, type: 3}
+  title: High-Definition RP (Preview)
+  sections:
+  - heading: High-Definition Render Pipeline
+    text: 'The High Definition Scriptable Render Pipeline is currently still in development.
+      At this stage we are seeking feedback on the feature, but it should be considered
+      incomplete and subject to changes (API, UX, scope). As such, it is not covered
+      by regular Unity support. Please direct any questions to the: '
+    linkText: Preview Forum
+    url: https://forum.unity.com/categories/betas-experimental-features.86/
+  - heading: 
+    text: This template is a good starting point for people focused on high-end graphics
+      that want to develop games for platforms that support Shader Model 5.0 (DX11
+      and above). This template utilizes the High Definition Scriptable Render Pipeline,
+      a modern rendering pipeline that includes advanced material types and a configurable
+      hybrid tile/cluster deferred/forward lighting architecture.
+    linkText: 
+    url: 
+  - heading: 
+    text: "HDRP uses its own implementation of post-processing, which is currently
+      still in development. HDRP\u2019s implementation uses the Volume system to allow
+      you to localize post-processing effects to a certain area of your Scene. For
+      information about how to use the Volume system, see the documentation on Volumes:"
+    linkText: Volumes in HDRP
+    url: https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/Volumes
+  - heading: 
+    text: This project uses the new Package Manager to bring you the latest features
+      Unity has to offer. Open the Package Manager from Windows > Package Manager
+      and make sure you're using the most recent version of the High Definition Render
+      Pipeline. To update packages, select your desired package from the list on the
+      left, and click the Update to button in the bottom right corner.
+    linkText: 
+    url: 
+  - heading: 
+    text: 'To read more about the HD Render Pipeline please refer to the Scriptable
+      Render Pipeline wiki: '
+    linkText: Scriptable Render Pipeline
+    url: https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki
+  - heading: 
+    text: 'The Unity HDRI Pack is a great resource when working with the HD Render
+      Pipeline and can be downloaded here:'
+    linkText: HDRI Package
+    url: https://assetstore.unity.com/packages/essentials/beta-projects/unity-hdri-pack-72511
+  loadedLayout: 1

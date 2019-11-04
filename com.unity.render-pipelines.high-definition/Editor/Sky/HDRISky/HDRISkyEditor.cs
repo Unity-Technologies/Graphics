@@ -1,22 +1,21 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(HDRISky))]
-    public class HDRISkyEditor
+    class HDRISkyEditor
         : SkySettingsEditor
     {
         SerializedDataParameter m_hdriSky;
         SerializedDataParameter m_DesiredLuxValue;
         SerializedDataParameter m_IntensityMode;
         SerializedDataParameter m_UpperHemisphereLuxValue;
-        
-        RTHandleSystem.RTHandle m_IntensityTexture;
+
+        RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D readBackTexture;
 
@@ -32,9 +31,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_DesiredLuxValue = Unpack(o.Find(x => x.desiredLuxValue));
             m_IntensityMode = Unpack(o.Find(x => x.skyIntensityMode));
             m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
-            
-            m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: RenderTextureFormat.ARGBFloat, sRGB: false);
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+
+            m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
+            var hdrp = HDRenderPipeline.defaultAsset;
             m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
             readBackTexture = new Texture2D(1, 1, TextureFormat.RGBAFloat, false, false);
         }
@@ -43,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (m_IntensityTexture != null)
                 RTHandles.Release(m_IntensityTexture);
-            
+
             readBackTexture = null;
         }
 
@@ -74,9 +73,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             {
                 PropertyField(m_hdriSky);
-    
+
                 EditorGUILayout.Space();
-                
+
                 PropertyField(m_IntensityMode);
             }
             if (EditorGUI.EndChangeCheck())
@@ -92,10 +91,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_CommonUIElementsMask &= ~(uint)(SkySettingsUIElement.Exposure | SkySettingsUIElement.Multiplier);
                 m_CommonUIElementsMask |= (uint)SkySettingsUIElement.IndentExposureAndMultiplier;
 
-                // Show the multiplier as read-only
-                EditorGUI.BeginDisabledGroup(true);
-                PropertyField(m_UpperHemisphereLuxValue);
-                EditorGUI.EndDisabledGroup();
+                // Show the multiplier
+                EditorGUILayout.HelpBox(System.String.Format("Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
+                    m_UpperHemisphereLuxValue.value.floatValue,
+                    (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
+                ), MessageType.Info);
                 EditorGUI.indentLevel--;
             }
             else

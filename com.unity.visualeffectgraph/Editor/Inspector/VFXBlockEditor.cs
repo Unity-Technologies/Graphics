@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 
@@ -16,7 +16,7 @@ using System.Reflection;
 
 [CustomEditor(typeof(VFXBlock), true)]
 [CanEditMultipleObjects]
-public class VFXBlockEditor : VFXSlotContainerEditor
+class VFXBlockEditor : VFXSlotContainerEditor
 {
     public override void OnInspectorGUI()
     {

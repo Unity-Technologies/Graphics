@@ -1,0 +1,45 @@
+#title
+{
+    flex-direction:row;
+}
+
+#selection-border {
+    border-left-width:0;
+    border-top-width:0;
+    border-right-width:0;
+    border-bottom-width:0;
+    border-radius: 8px;
+    margin-bottom: 1px;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-top: 1px;
+    position: absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+}
+
+:hover > #selection-border {
+    border-color: rgba(68,192,255, 0.5);
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+}
+
+:selected > #selection-border {
+    border-color: #44C0FF;
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+}
+
+:selected:hover > #selection-border {
+    border-color: #44C0FF;
+    border-top-width: 2px;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+}

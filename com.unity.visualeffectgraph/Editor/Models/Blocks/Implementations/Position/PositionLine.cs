@@ -11,13 +11,13 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The line used for positioning particles.")]
+            [Tooltip("Sets the line used for positioning the particles.")]
             public Line line = new Line() { start = Vector3.zero, end = Vector3.right };
         }
 
         public class CustomProperties
         {
-            [Range(0, 1), Tooltip("When using customized emission, control the position along the line to emit particles from.")]
+            [Range(0, 1), Tooltip("Sets the position along the line to emit particles from when ‘Custom Emission’ is used.")]
             public float LineSequencer = 0.0f;
         }
 

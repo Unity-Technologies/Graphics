@@ -3,7 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.Serialization;
 
 using Object = UnityEngine.Object;
@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal void Sanitize(VFXGraph graph)
+        public void Sanitize(VFXGraph graph)
         {
             if (groupInfos != null)
                 foreach (var groupInfo in groupInfos)

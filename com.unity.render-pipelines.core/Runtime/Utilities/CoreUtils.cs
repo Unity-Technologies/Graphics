@@ -30,14 +30,12 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
-        // Note: Color.Black have alpha channel set to 1. Most of the time we want alpha channel set to 0 as we use black to clear render target
-        public static Color clearColorAllBlack { get { return new Color(0f, 0f, 0f, 0f); } }
-
         public const int editMenuPriority1 = 320;
         public const int editMenuPriority2 = 331;
         public const int editMenuPriority3 = 342;
         public const int assetCreateMenuPriority1 = 230;
         public const int assetCreateMenuPriority2 = 241;
+        public const int assetCreateMenuPriority3 = 300;
         public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
@@ -71,6 +69,26 @@ namespace UnityEngine.Rendering
                 }
 
                 return m_MagentaCubeTexture;
+            }
+        }
+
+        static CubemapArray m_MagentaCubeTextureArray;
+        public static CubemapArray magentaCubeTextureArray
+        {
+            get
+            {
+                if (m_MagentaCubeTextureArray == null)
+                {
+                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.RGBAFloat, false);
+                    for (int i = 0; i < 6; ++i)
+                    {
+                        Color[] colors = { Color.magenta };
+                        m_MagentaCubeTextureArray.SetPixels(colors, (CubemapFace)i, 0);
+                    }
+                    m_MagentaCubeTextureArray.Apply();
+                }
+
+                return m_MagentaCubeTextureArray;
             }
         }
 
@@ -139,17 +157,17 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, buffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
         {
-            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, clearColorAllBlack, miplevel, cubemapFace, depthSlice);
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = 0)
@@ -160,17 +178,17 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, ClearFlag.None, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.None)
         {
-            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
-            cmd.SetRenderTarget(colorBuffers, depthBuffer);
+            cmd.SetRenderTarget(colorBuffers, depthBuffer, 0, CubemapFace.Unknown, -1);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
@@ -183,7 +201,7 @@ namespace UnityEngine.Rendering
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag)
         {
-            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, Color.clear);
         }
 
         public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
@@ -198,7 +216,108 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
             ClearFlag clearFlag)
         {
-            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, clearColorAllBlack);
+            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, Color.clear);
+        }
+
+        private static void SetViewportAndClear(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor)
+        {
+            // Clearing a partial viewport currently does not go through the hardware clear.
+            // Instead it goes through a quad rendered with a specific shader.
+            // When enabling wireframe mode in the scene view, unfortunately it overrides this shader thus breaking every clears.
+            // That's why in the editor we don't set the viewport before clearing (it's set to full screen by the previous SetRenderTarget) but AFTER so that we benefit from un-bugged hardware clear.
+            // We consider that the small loss in performance is acceptable in the editor.
+            // A refactor of wireframe is needed before we can fix this properly (with not doing anything!)
+#if !UNITY_EDITOR
+            SetViewport(cmd, buffer);
+#endif
+            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+#if UNITY_EDITOR
+            SetViewport(cmd, buffer);
+#endif
+        }
+
+        // This set of RenderTarget management methods is supposed to be used when rendering into a camera dependent render texture.
+        // This will automatically set the viewport based on the camera size and the RTHandle scaling info.
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            // We use -1 as a default value because when doing SPI for XR, it will bind the full texture array by default (and has no effect on 2D textures)
+            // Unfortunately, for cubemaps, passing -1 does not work for faces other than the first one, so we fall back to 0 in this case.
+            if (depthSlice == -1 && buffer.rt.dimension == TextureDimension.Cube)
+                depthSlice = 0;
+            cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
+            SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag = ClearFlag.None, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+            => SetRenderTarget(cmd, buffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
+
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            int cw = colorBuffer.rt.width;
+            int ch = colorBuffer.rt.height;
+            int dw = depthBuffer.rt.width;
+            int dh = depthBuffer.rt.height;
+
+            Debug.Assert(cw == dw && ch == dh);
+
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, Color.clear, miplevel, cubemapFace, depthSlice);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            int cw = colorBuffer.rt.width;
+            int ch = colorBuffer.rt.height;
+            int dw = depthBuffer.rt.width;
+            int dh = depthBuffer.rt.height;
+
+            Debug.Assert(cw == dw && ch == dh);
+
+            SetRenderTarget(cmd, colorBuffer, depthBuffer, clearFlag, Color.clear, miplevel, cubemapFace, depthSlice);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            int cw = colorBuffer.rt.width;
+            int ch = colorBuffer.rt.height;
+            int dw = depthBuffer.rt.width;
+            int dh = depthBuffer.rt.height;
+
+            Debug.Assert(cw == dw && ch == dh);
+
+            CoreUtils.SetRenderTarget(cmd, colorBuffer.rt, depthBuffer.rt, miplevel, cubemapFace, depthSlice);
+            SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer)
+        {
+            CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer.rt, ClearFlag.None, Color.clear);
+            SetViewport(cmd, depthBuffer);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag = ClearFlag.None)
+        {
+            CoreUtils.SetRenderTarget(cmd, colorBuffers, depthBuffer.rt); // Don't clear here, viewport needs to be set before we do.
+            SetViewportAndClear(cmd, depthBuffer, clearFlag, Color.clear);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorBuffers, RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(colorBuffers, depthBuffer);
+            SetViewportAndClear(cmd, depthBuffer, clearFlag, clearColor);
+        }
+
+        // Scaling viewport is done for auto-scaling render targets.
+        // In the context of HDRP, every auto-scaled RT is scaled against the maximum RTHandles reference size (that can only grow).
+        // When we render using a camera whose viewport is smaller than the RTHandles reference size (and thus smaller than the RT actual size), we need to set it explicitly (otherwise, native code will set the viewport at the size of the RT)
+        // For auto-scaled RTs (like for example a half-resolution RT), we need to scale this viewport accordingly.
+        // For non scaled RTs we just do nothing, the native code will set the viewport at the size of the RT anyway.
+        public static void SetViewport(CommandBuffer cmd, RTHandle target)
+        {
+            if (target.useScaling)
+            {
+                Vector2Int scaledViewportSize = target.GetScaledSize(target.rtHandleProperties.currentViewportSize);
+                cmd.SetViewport(new Rect(0.0f, 0.0f, scaledViewportSize.x, scaledViewportSize.y));
+            }
         }
 
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
@@ -267,7 +386,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffer, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -275,7 +394,7 @@ namespace UnityEngine.Rendering
             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
-            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer);
+            commandBuffer.SetRenderTarget(colorBuffers, depthStencilBuffer, 0, CubemapFace.Unknown, -1);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -337,6 +456,13 @@ namespace UnityEngine.Rendering
         public static bool HasFlag<T>(T mask, T flag) where T : IConvertible
         {
             return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
+        }
+
+        public static void Swap<T>(ref T a, ref T b)
+        {
+            var tmp = a;
+            a = b;
+            b = tmp;
         }
 
         public static void SetKeyword(CommandBuffer cmd, string keyword, bool state)
@@ -411,6 +537,15 @@ namespace UnityEngine.Rendering
             return m_AssemblyTypes;
         }
 
+        public static IEnumerable<Type> GetAllTypesDerivedFrom<T>()
+        {
+#if UNITY_EDITOR && UNITY_2019_2_OR_NEWER
+            return UnityEditor.TypeCache.GetTypesDerivedFrom<T>();
+#else
+            return GetAllAssemblyTypes().Where(t => t.IsSubclassOf(typeof(T)));
+#endif
+        }
+
         public static void Destroy(params UnityObject[] objs)
         {
             if (objs == null)
@@ -472,16 +607,16 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        public static void DisplayUnsupportedAPIMessage()
+        public static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
         {
             // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
 #if UNITY_EDITOR
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
-            string graphicAPI = UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
 #else
             string currentPlatform = SystemInfo.operatingSystem;
-            string graphicAPI = SystemInfo.graphicsDeviceType.ToString();
+            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
 #endif
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported, no rendering will occur";
@@ -492,6 +627,32 @@ namespace UnityEngine.Rendering
         {
             string msg = "AR/VR devices are not supported, no rendering will occur";
             DisplayUnsupportedMessage(msg);
+        }
+
+        // Returns 'true' if "Post Processes" are enabled for the view associated with the given camera.
+        public static bool ArePostProcessesEnabled(Camera camera)
+        {
+            bool enabled = true;
+
+        #if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                enabled = false;
+
+                // Determine whether the "Post Processes" checkbox is checked for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == camera && sv.sceneViewState.showImageEffects)
+                    {
+                        enabled = true;
+                        break;
+                    }
+                }
+            }
+        #endif
+
+            return enabled;
         }
 
         // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
@@ -507,8 +668,9 @@ namespace UnityEngine.Rendering
                 animateMaterials = false;
 
                 // Determine whether the "Animated Materials" checkbox is checked for the current view.
-                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
                     if (sv.camera == camera && sv.sceneViewState.showMaterialUpdate)
                     {
                         animateMaterials = true;
@@ -553,6 +715,27 @@ namespace UnityEngine.Rendering
             return animateMaterials;
         }
 
+        public static bool IsSceneLightingDisabled(Camera camera)
+        {
+            bool disabled = false;
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "No Scene Lighting" checkbox is checked for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == camera && !sv.sceneLighting)
+                    {
+                        disabled = true;
+                        break;
+                    }
+                }
+            }
+#endif
+            return disabled;
+        }
+
 #if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 
@@ -576,8 +759,9 @@ namespace UnityEngine.Rendering
                 fogEnable = false;
 
                 // Determine whether the "Animated Materials" checkbox is checked for the current view.
-                foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
                     if (sv.camera == camera && sv.sceneViewState.showFog)
                     {
                         fogEnable = true;

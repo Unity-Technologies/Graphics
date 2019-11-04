@@ -1,12 +1,11 @@
 using System;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     // RenderPipelineSettings define settings that can't be change during runtime. It is equivalent to the GraphicsSettings of Unity (Tiers + shader variant removal).
     // This allow to allocate resource or not for a given feature.
-    // FrameSettings control within a frame what is enable or not(enableShadow, enableStereo, enableDistortion...).
+    // FrameSettings control within a frame what is enable or not(enableShadow, enableDistortion...).
     // HDRenderPipelineAsset reference the current RenderPipelineSettings used, there is one per supported platform(Currently this feature is not implemented and only one GlobalFrameSettings is available).
     // A Camera with HDAdditionalData has one FrameSettings that configures how it will render. For example a camera used for reflection will disable distortion and post-process.
     // Additionally, on a Camera there is another FrameSettings called ActiveFrameSettings that is created on the fly based on FrameSettings and allows modifications for debugging purpose at runtime without being serialized on disk.
@@ -18,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // RenderPipelineSettings represents settings that are immutable at runtime.
     // There is a dedicated RenderPipelineSettings for each platform
     [Serializable]
-    public class RenderPipelineSettings
+    public struct RenderPipelineSettings
     {
         public enum SupportedLitShaderMode
         {
@@ -27,35 +26,126 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Both = ForwardOnly | DeferredOnly
         }
 
+        public enum RaytracingTier
+        {
+            Tier1 = 1 << 0,
+            Tier2 = 1 << 1
+        }
+
+        public enum ColorBufferFormat
+        {
+            R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+            R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat
+        }
+
+        public enum CustomBufferFormat
+        {
+            R8G8B8A8 = GraphicsFormat.R8G8B8A8_SNorm,
+            R16G16B16A16 = GraphicsFormat.R16G16B16A16_SFloat,
+            R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
+        }
+
+        /// <summary>Default RenderPipelineSettings</summary>
+        public static readonly RenderPipelineSettings @default = new RenderPipelineSettings()
+        {
+            supportShadowMask = true,
+            supportSSAO = true,
+            supportSubsurfaceScattering = true,
+            supportVolumetrics = true,
+            supportDistortion = true,
+            supportTransparentBackface = true,
+            supportTransparentDepthPrepass = true,
+            supportTransparentDepthPostpass = true,
+            colorBufferFormat = ColorBufferFormat.R11G11B10,
+            supportCustomPass = true,
+            customBufferFormat = CustomBufferFormat.R8G8B8A8,
+            supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
+            supportDecals = true,
+            msaaSampleCount = MSAASamples.None,
+            supportMotionVectors = true,
+            supportRuntimeDebugDisplay = true,
+            supportDitheringCrossFade = true,
+            supportTerrainHole = false,
+            lightLoopSettings = GlobalLightLoopSettings.@default,
+            hdShadowInitParams = HDShadowInitParameters.@default,
+            decalSettings = GlobalDecalSettings.@default,
+            postProcessSettings = GlobalPostProcessSettings.@default,
+            dynamicResolutionSettings = GlobalDynamicResolutionSettings.@default,
+            lowresTransparentSettings = GlobalLowResolutionTransparencySettings.@default,
+            xrSettings = GlobalXRSettings.@default,
+            postProcessQualitySettings = GlobalPostProcessingQualitySettings.@default,
+            supportRayTracing = false,
+            supportedRaytracingTier = RaytracingTier.Tier2,
+            lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
+            maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
+            lightLayerName0 = "Light Layer default",
+            lightLayerName1 = "Light Layer 1",
+            lightLayerName2 = "Light Layer 2",
+            lightLayerName3 = "Light Layer 3",
+            lightLayerName4 = "Light Layer 4",
+            lightLayerName5 = "Light Layer 5",
+            lightLayerName6 = "Light Layer 6",
+            lightLayerName7 = "Light Layer 7",
+        };
+
+        [Serializable]
+        public struct LightSettings
+        {
+            public BoolScalableSetting useContactShadow;
+        }
+
         // Lighting
-        public bool supportShadowMask = true;
-        public bool supportSSR = false;
-        public bool supportSSAO = true;
-        public bool supportSubsurfaceScattering = true;
-        public bool increaseSssSampleCount = false;
-        [FormerlySerializedAs("supportForwardOnly")]
-        public bool supportVolumetrics = true;
-        public bool increaseResolutionOfVolumetrics = false;
-        public bool supportLightLayers = false;
-        public bool supportDistortion = true;
-        public bool supportTransparentBackface = true;
-        public bool supportTransparentDepthPrepass = true;
-        public bool supportTransparentDepthPostpass = true;
-        public SupportedLitShaderMode supportedLitShaderMode = SupportedLitShaderMode.Both;
+        public bool supportShadowMask;
+        public bool supportSSR;
+        public bool supportSSAO;
+        public bool supportSubsurfaceScattering;
+        public bool increaseSssSampleCount;
+        public bool supportVolumetrics;
+        public bool increaseResolutionOfVolumetrics;
+        public bool supportLightLayers;
+        public string lightLayerName0;
+        public string lightLayerName1;
+        public string lightLayerName2;
+        public string lightLayerName3;
+        public string lightLayerName4;
+        public string lightLayerName5;
+        public string lightLayerName6;
+        public string lightLayerName7;
+        public bool supportDistortion;
+        public bool supportTransparentBackface;
+        public bool supportTransparentDepthPrepass;
+        public bool supportTransparentDepthPostpass;
+        public ColorBufferFormat colorBufferFormat;
+        public bool supportCustomPass;
+        public CustomBufferFormat customBufferFormat;
+        public SupportedLitShaderMode supportedLitShaderMode;
 
         // Engine
-        [FormerlySerializedAs("supportDBuffer")]
-        public bool supportDecals = true;
-        [SerializeField, FormerlySerializedAs("m_SupportMSAA")]
-        public bool supportMSAA = false;
-        public MSAASamples msaaSampleCount = MSAASamples.None;
-        public bool supportMotionVectors = true;
-        public bool supportRuntimeDebugDisplay = true;
-        public bool supportDitheringCrossFade = true;
-        public bool supportRayTracing =  false;
+        public bool supportDecals;
 
-        public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
-        public HDShadowInitParameters   hdShadowInitParams = new HDShadowInitParameters();
-        public GlobalDecalSettings      decalSettings = new GlobalDecalSettings();
+        public MSAASamples msaaSampleCount;
+        public bool supportMSAA => msaaSampleCount != MSAASamples.None;
+
+        public bool keepAlpha => colorBufferFormat == ColorBufferFormat.R16G16B16A16;
+
+        public bool supportMotionVectors;
+        public bool supportRuntimeDebugDisplay;
+        public bool supportDitheringCrossFade;
+        public bool supportTerrainHole;
+        public bool supportRayTracing;
+        public RaytracingTier supportedRaytracingTier;
+
+        public GlobalLightLoopSettings lightLoopSettings;
+        public HDShadowInitParameters hdShadowInitParams;
+        public GlobalDecalSettings decalSettings;
+        public GlobalPostProcessSettings postProcessSettings;
+        public GlobalDynamicResolutionSettings dynamicResolutionSettings;
+        public GlobalLowResolutionTransparencySettings lowresTransparentSettings;
+        public GlobalXRSettings xrSettings;
+        public GlobalPostProcessingQualitySettings postProcessQualitySettings;
+
+        public LightSettings lightSettings;
+        public IntScalableSetting maximumLODLevel;
+        public FloatScalableSetting lodBias;
     }
 }

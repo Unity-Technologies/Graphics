@@ -1,0 +1,31 @@
+#pragma kernel UpdateParticleStrip
+
+#include "HLSLSupport.cginc"
+
+#define NB_THREADS_PER_GROUP 64
+
+CBUFFER_START(params)
+	uint dispatchWidth;
+	uint stripCount;
+	uint particlePerStripCount;
+CBUFFER_END
+
+RWBuffer<uint> stripDataBuffer;
+
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXParticleStripCommon.hlsl"
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void UpdateParticleStrip(uint3 groupId          : SV_GroupID,
+						 uint3 groupThreadId    : SV_GroupThreadID)
+{
+	uint stripIndex = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+
+	if (stripIndex < stripCount)
+	{
+		bool isEmpty = (STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) & ~1) == ~1;
+		STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) = isEmpty ? 0 : (STRIP_DATA(STRIP_FIRST_INDEX, stripIndex) + STRIP_DATA(STRIP_MIN_ALIVE, stripIndex)) % particlePerStripCount;
+		STRIP_DATA(STRIP_NEXT_INDEX, stripIndex) = isEmpty ? 0 : STRIP_DATA(STRIP_MAX_ALIVE, stripIndex) - STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) + 1;
+		STRIP_DATA(STRIP_MIN_ALIVE, stripIndex) = isEmpty ? ~1 : ~0;
+		STRIP_DATA(STRIP_MAX_ALIVE, stripIndex) = 0;
+	}
+}

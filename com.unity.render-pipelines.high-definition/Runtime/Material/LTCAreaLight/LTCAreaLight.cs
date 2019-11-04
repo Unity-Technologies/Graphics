@@ -1,9 +1,6 @@
-using System;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class LTCAreaLight
+    partial class LTCAreaLight
     {
         static LTCAreaLight s_Instance;
 
@@ -99,9 +96,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_refCounting >= 0);
         }
 
-        public void Bind()
+        public void Bind(CommandBuffer cmd)
         {
-            Shader.SetGlobalTexture("_LtcData", m_LtcData);
+            cmd.SetGlobalTexture("_LtcData", m_LtcData);
         }
     }
 }

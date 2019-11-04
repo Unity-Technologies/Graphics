@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    public class VFXDebugWindow : EditorWindow
+    class VFXDebugWindow : EditorWindow
     {
         [MenuItem("Window/Visual Effects/VFXEditor Debug Window", false, 3011, true)]
         public static void OpenWindow()
@@ -26,24 +26,14 @@ namespace UnityEditor.VFX
                     VFXCacheManager.Build();
             }
             EditorGUILayout.Space();
-
+            /*
             EditorGUILayout.LabelField("Run VFX Tests", EditorStyles.boldLabel);
             using (new GUILayout.HorizontalScope())
             {
-                /*if (GUILayout.Button("GUI Tests"))
-                    Test.VFXGUITests.RunGUITests();*/
+                if (GUILayout.Button("GUI Tests"))
+                    Test.VFXGUITests.RunGUITests();
             }
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Migration", EditorStyles.boldLabel);
-            using (new GUILayout.HorizontalScope())
-            {
-                /*if (GUILayout.Button("Migrate to .vfx"))
-                    VFXMigration.Migrate();*/
-                if (GUILayout.Button("Resave all .vfx"))
-                    VFXMigration.Resave();
-            }
-            EditorGUILayout.Space();
+            EditorGUILayout.Space();*/
         }
 
         static class Contents

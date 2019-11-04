@@ -1,0 +1,50 @@
+#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))
+#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.
+#endif
+
+${VFXPerPassInclude}
+${VFXGeneratedBlockFunction}
+
+${VFXInclude("Shaders/ParticlePlanarPrimitives/PassVS.template"),!USE_GEOMETRY_SHADER}
+${VFXInclude("Shaders/ParticlePlanarPrimitives/PassGS.template"),USE_GEOMETRY_SHADER}
+
+${VFXBegin:VFXComputeNormalWS}
+#ifdef VFX_VARYING_NORMAL
+#if USE_DOUBLE_SIDED
+const float faceMul = frontFace ? 1.0f : -1.0f;
+#else
+const float faceMul = 1.0f;
+#endif
+	
+float3 normalWS = i.VFX_VARYING_NORMAL * faceMul;
+const VFXUVData uvData = GetUVData(i);
+
+#ifdef VFX_VARYING_TANGENT
+float3 tangentWS = i.VFX_VARYING_TANGENT;
+float3 bitangentWS = cross(i.VFX_VARYING_TANGENT,i.VFX_VARYING_NORMAL);
+
+#if defined(VFX_VARYING_BENTFACTORS) && USE_NORMAL_BENDING	
+float3 bentFactors = float3(i.VFX_VARYING_BENTFACTORS.xy,sqrt(1.0f - dot(i.VFX_VARYING_BENTFACTORS,i.VFX_VARYING_BENTFACTORS)));
+normalWS = tangentWS * bentFactors.x + bitangentWS * bentFactors.y + normalWS * bentFactors.z;
+tangentWS = normalize(cross(normalWS,bitangentWS));
+bitangentWS = cross(tangentWS,normalWS);
+tangentWS *= faceMul;
+#endif
+
+float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+
+#if USE_NORMAL_MAP
+float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+float normalScale = 1.0f;
+#ifdef VFX_VARYING_NORMALSCALE
+normalScale = i.VFX_VARYING_NORMALSCALE;
+#endif
+normalWS = normalize(lerp(normalWS,mul(n,tbn),normalScale));
+#endif
+#endif
+#endif
+${VFXEnd}
+
+${VFXFragmentCommonFunctions}
+
+${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}

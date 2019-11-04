@@ -9,8 +9,8 @@ using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-using VFXVector2Field = UnityEditor.VFX.UIElements.VFXVector2Field;
-using VFXVector4Field = UnityEditor.VFX.UIElements.VFXVector4Field;
+using VFXVector2Field = UnityEditor.VFX.UI.VFXVector2Field;
+using VFXVector4Field = UnityEditor.VFX.UI.VFXVector4Field;
 
 namespace UnityEditor.VFX.UI
 {
@@ -22,7 +22,20 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            return 120;
+            int min = 120;
+            foreach(var str in Enum.GetNames(provider.portType))
+            {
+                Vector2 size = m_Field.Q<TextElement>().MeasureTextSize(str,0, VisualElement.MeasureMode.Undefined,0, VisualElement.MeasureMode.Undefined);
+
+                size.x += 60;
+                if (min < size.x)
+                    min = (int)size.x;
+            }
+            if (min > 200)
+                min = 200;
+
+            
+            return min;
         }
 
         public override ValueControl<int> CreateField()

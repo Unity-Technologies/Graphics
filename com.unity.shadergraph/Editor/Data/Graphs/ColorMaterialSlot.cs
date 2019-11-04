@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 using UnityEngine.UIElements;
@@ -29,10 +30,9 @@ namespace UnityEditor.ShaderGraph
             return new ColorRGBASlotControlView(this);
         }
 
-        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        protected override string ConcreteSlotValueAsVariable()
         {
-            return string.Format("IsGammaSpace() ? {0}4({1}, {2}, {3}, {4}) : {0}4 (SRGBToLinear({0}3({1}, {2}, {3})), {4})"
-                , precision
+            return string.Format("IsGammaSpace() ? $precision4({0}, {1}, {2}, {3}) : $precision4 (SRGBToLinear($precision3({0}, {1}, {2})), {3})"
                 , NodeUtils.FloatToShaderValue(value.x)
                 , NodeUtils.FloatToShaderValue(value.y)
                 , NodeUtils.FloatToShaderValue(value.z)
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             var pp = new PreviewProperty(PropertyType.Color)
             {
                 name = name,
-                colorValue = new Color(value.x, value.x, value.z, value.w),
+                colorValue = new Color(value.x, value.y, value.z, value.w),
             };
             properties.Add(pp);
         }

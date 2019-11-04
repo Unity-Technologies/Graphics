@@ -1,0 +1,20 @@
+VFXView
+{
+    background-color:#1b1b1b;
+}
+
+.dragdisplay
+{
+    position:absolute;
+    left:0;
+    right: 0;
+    height: 4px;
+    margin-top: -2px;
+    background-color: rgb(210, 152, 0);
+}
+
+VFXView .unity-toolbar
+{
+    flex-wrap:wrap;
+    height:auto;
+}

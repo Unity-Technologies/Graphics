@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.VFX.Utils;
+using UnityEditor.Experimental.VFX.Utility;
 
 namespace UnityEditor.VFX
 {

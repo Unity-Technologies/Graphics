@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
+Shader "Hidden/HDRP/CopyDepthBuffer"
 {
 
     Properties{
@@ -29,21 +29,24 @@ Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
             #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             #pragma fragment Frag
             #pragma vertex Vert
-            // #pragma enable_d3d11_debug_symbols
+            //#pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-            TEXTURE2D_FLOAT(_InputDepthTexture);
+            TEXTURE2D_X_FLOAT(_InputDepthTexture);
 
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_Position;
+                float2 texcoord   : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             int _FlipY;
@@ -51,14 +54,22 @@ Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                if (_FlipY)
+                {
+                    output.texcoord.y = 1.0 - output.texcoord.y;
+                }
                 return output;
             }
 
             float Frag(Varyings input) : SV_Depth
             {
-                PositionInputs posInputs = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-                return LOAD_TEXTURE2D(_InputDepthTexture, (_FlipY == 0) ? posInputs.positionSS : float2(posInputs.positionNDC.x, 1.0 - posInputs.positionNDC.y) * _ScreenSize.xy).x;
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                uint2 coord = uint2(input.texcoord.xy * _ScreenSize.xy);
+                return LOAD_TEXTURE2D_X(_InputDepthTexture, coord).x;
             }
 
             ENDHLSL

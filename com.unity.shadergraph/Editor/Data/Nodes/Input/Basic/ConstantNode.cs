@@ -53,20 +53,17 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Constant-Node"; }
-        }
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector1MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_constantList[constant].ToString(CultureInfo.InvariantCulture) + ";", true);
+            sb.AppendLine(string.Format("$precision {0} = {1};"
+                , GetVariableNameForNode()
+                , m_constantList[constant].ToString(CultureInfo.InvariantCulture)));
         }
 
         public override string GetVariableNameForSlot(int slotId)

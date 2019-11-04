@@ -8,26 +8,123 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// This attributes tells a <see cref="VolumeComponentEditor"/> class which type of
+    /// <see cref="VolumeComponent"/> it's an editor for.
+    /// When you make a custom editor for a component, you need put this attribute on the editor
+    /// class.
+    /// </summary>
+    /// <seealso cref="VolumeComponentEditor"/>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public sealed class VolumeComponentEditorAttribute : Attribute
     {
+        /// <summary>
+        /// A type derived from <see cref="VolumeComponent"/>.
+        /// </summary>
         public readonly Type componentType;
 
+        /// <summary>
+        /// Creates a new <see cref="VolumeComponentEditorAttribute"/> instance.
+        /// </summary>
+        /// <param name="componentType">A type derived from <see cref="VolumeComponent"/></param>
         public VolumeComponentEditorAttribute(Type componentType)
         {
             this.componentType = componentType;
         }
     }
 
+    /// <summary>
+    /// A custom editor class that draws a <see cref="VolumeComponent"/> in the Inspector. If you do not 
+    /// provide a custom editor for a <see cref="VolumeComponent"/>, Unity uses the default one.
+    /// You must use a <see cref="VolumeComponentEditorAttribute"/> to let the editor know which
+    /// component this drawer is for.
+    /// </summary>
+    /// <example>
+    /// Below is an example of a custom <see cref="VolumeComponent"/>:
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// 
+    /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
+    /// public class ExampleComponent : VolumeComponent
+    /// {
+    ///     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
+    /// }
+    /// </code>
+    /// And its associated editor:
+    /// <code>
+    /// using UnityEditor.Rendering;
+    /// 
+    /// [VolumeComponentEditor(typeof(ExampleComponent))]
+    /// class ExampleComponentEditor : VolumeComponentEditor
+    /// {
+    ///     SerializedDataParameter m_Intensity;
+    /// 
+    ///     public override void OnEnable()
+    ///     {
+    ///         var o = new PropertyFetcher&lt;ExampleComponent&gt;(serializedObject);
+    ///         m_Intensity = Unpack(o.Find(x => x.intensity));
+    ///     }
+    /// 
+    ///     public override void OnInspectorGUI()
+    ///     {
+    ///         PropertyField(m_Intensity);
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
+    /// <seealso cref="VolumeComponentEditorAttribute"/>
     public class VolumeComponentEditor
     {
+        /// <summary>
+        /// Specifies the <see cref="VolumeComponent"/> this editor is drawing.
+        /// </summary>
         public VolumeComponent target { get; private set; }
+
+        /// <summary>
+        /// A <c>SerializedObject</c> representing the object being inspected.
+        /// </summary>
         public SerializedObject serializedObject { get; private set; }
 
+        /// <summary>
+        /// The copy of the serialized property of the <see cref="VolumeComponent"/> being
+        /// inspected. Unity uses this to track whether the editor is collapsed in the Inspector or not.
+        /// </summary>
         public SerializedProperty baseProperty { get; internal set; }
+
+        /// <summary>
+        /// The serialized property of <see cref="VolumeComponent.active"/> for the component being
+        /// inspected.
+        /// </summary>
         public SerializedProperty activeProperty { get; internal set; }
 
-        Editor m_Inspector;
+        SerializedProperty m_AdvancedMode;
+
+        /// <summary>
+        /// Override this property if your editor makes use of the "More Options" feature.
+        /// </summary>
+        public virtual bool hasAdvancedMode => false;
+
+        /// <summary>
+        /// Checks if the editor currently has the "More Options" feature toggled on.
+        /// </summary>
+        public bool isInAdvancedMode
+        {
+            get => m_AdvancedMode != null && m_AdvancedMode.boolValue;
+            internal set
+            {
+                if (m_AdvancedMode != null)
+                {
+                    m_AdvancedMode.boolValue = value;
+                    serializedObject.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        /// <summary>
+        /// A reference to the parent editor in the Inspector.
+        /// </summary>
+        protected Editor m_Inspector;
+
         List<SerializedDataParameter> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
@@ -49,10 +146,9 @@ namespace UnityEditor.Rendering
             s_ParameterDrawers.Clear();
 
             // Look for all the valid parameter drawers
-            var types = CoreUtils.GetAllAssemblyTypes()
+            var types = CoreUtils.GetAllTypesDerivedFrom<VolumeParameterDrawer>()
                 .Where(
-                    t => t.IsSubclassOf(typeof(VolumeParameterDrawer))
-                    && t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
+                    t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
                     && !t.IsAbstract
                     );
 
@@ -65,6 +161,9 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Triggers an Inspector repaint event.
+        /// </summary>
         public void Repaint()
         {
             m_Inspector.Repaint();
@@ -76,14 +175,23 @@ namespace UnityEditor.Rendering
             m_Inspector = inspector;
             serializedObject = new SerializedObject(target);
             activeProperty = serializedObject.FindProperty("active");
+            m_AdvancedMode = serializedObject.FindProperty("m_AdvancedMode");
             OnEnable();
         }
 
+        /// <summary>
+        /// Unity calls this method when the object loads.
+        /// </summary>
+        /// <remarks>
+        /// You can safely override this method and not call <c>base.OnEnable()</c> unless you want
+        /// Unity to display all the properties from the <see cref="VolumeComponent"/> automatically.
+        /// </remarks>
         public virtual void OnEnable()
         {
             m_Parameters = new List<SerializedDataParameter>();
 
             // Grab all valid serializable field on the VolumeComponent
+            // TODO: Should only be done when needed / on demand as this can potentially be wasted CPU when a custom editor is in use
             var fields = target.GetType()
                 .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
@@ -103,6 +211,9 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Unity calls this method when the object goes out of scope.
+        /// </summary>
         public virtual void OnDisable()
         {
         }
@@ -116,6 +227,14 @@ namespace UnityEditor.Rendering
             serializedObject.ApplyModifiedProperties();
         }
 
+        /// <summary>
+        /// Unity calls this method everytime it re-draws the Inspector.
+        /// </summary>
+        /// <remarks>
+        /// You can safely override this method and not call <c>base.OnInspectorGUI()</c> unless you
+        /// want Unity to display all the properties from the <see cref="VolumeComponent"/>
+        /// automatically.
+        /// </remarks>
         public virtual void OnInspectorGUI()
         {
             // Display every field as-is
@@ -123,22 +242,25 @@ namespace UnityEditor.Rendering
                 PropertyField(parameter);
         }
 
+        /// <summary>
+        /// Sets the label for the component header. Override this method to provide
+        /// a custom label. If you don't, Unity automatically inferres one from the class name.
+        /// </summary>
+        /// <returns>A label to display in the component header.</returns>
         public virtual string GetDisplayTitle()
         {
-            return ObjectNames.NicifyVariableName(target.GetType().Name);
+            return target.displayName == "" ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
         }
 
         void TopRowFields()
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(CoreEditorUtils.GetContent("All|Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need."), CoreEditorStyles.miniLabelButton, GUILayout.Width(17f), GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("All", "Toggle all overrides on. To maximize performances you should only toggle overrides that you actually need."), CoreEditorStyles.miniLabelButton, GUILayout.Width(17f), GUILayout.ExpandWidth(false)))
                     SetAllOverridesTo(true);
 
-                if (GUILayout.Button(CoreEditorUtils.GetContent("None|Toggle all overrides off."), CoreEditorStyles.miniLabelButton, GUILayout.Width(32f), GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("None", "Toggle all overrides off."), CoreEditorStyles.miniLabelButton, GUILayout.Width(32f), GUILayout.ExpandWidth(false)))
                     SetAllOverridesTo(false);
-
-                GUILayout.FlexibleSpace();
             }
         }
 
@@ -149,19 +271,35 @@ namespace UnityEditor.Rendering
             serializedObject.Update();
         }
 
-        // Takes a serialized VolumeParameter<T> as input
+        /// <summary>
+        /// Generates and auto-populates a <see cref="SerializedDataParameter"/> from a serialized
+        /// <see cref="VolumeParameter{T}"/>.
+        /// </summary>
+        /// <param name="property">A serialized property holding a <see cref="VolumeParameter{T}"/>
+        /// </param>
+        /// <returns></returns>
         protected SerializedDataParameter Unpack(SerializedProperty property)
         {
             Assert.IsNotNull(property);
             return new SerializedDataParameter(property);
         }
 
+        /// <summary>
+        /// Draws a given <see cref="SerializedDataParameter"/> in the editor.
+        /// </summary>
+        /// <param name="property">The property to draw in the editor</param>
         protected void PropertyField(SerializedDataParameter property)
         {
-            var title = CoreEditorUtils.GetContent(property.displayName);
+            var title = EditorGUIUtility.TrTextContent(property.displayName);
             PropertyField(property, title);
         }
 
+        /// <summary>
+        /// Draws a given <see cref="SerializedDataParameter"/> in the editor using a custom label
+        /// and tooltip.
+        /// </summary>
+        /// <param name="property">The property to draw in the editor.</param>
+        /// <param name="title">A custom label and/or tooltip.</param>
         protected void PropertyField(SerializedDataParameter property, GUIContent title)
         {
             // Handle unity built-in decorators (Space, Header, Tooltip etc)
@@ -250,11 +388,15 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Draws the override checkbox used by a property in the editor.
+        /// </summary>
+        /// <param name="property">The property to draw the override checkbox for</param>
         protected void DrawOverrideCheckbox(SerializedDataParameter property)
         {
             var overrideRect = GUILayoutUtility.GetRect(17f, 17f, GUILayout.ExpandWidth(false));
             overrideRect.yMin += 4f;
-            property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, CoreEditorUtils.GetContent("|Override this setting for this volume."), CoreEditorStyles.smallTickbox);
+            property.overrideState.boolValue = GUI.Toggle(overrideRect, property.overrideState.boolValue, EditorGUIUtility.TrTextContent("", "Override this setting for this volume."), CoreEditorStyles.smallTickbox);
         }
     }
 }

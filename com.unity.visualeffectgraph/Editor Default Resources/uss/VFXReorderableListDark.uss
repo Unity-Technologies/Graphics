@@ -1,0 +1,13 @@
+.ReorderableList > #Toolbar > #Add > #icon
+{
+    background-image: resource("Icons/d_Toolbar Plus.png");
+}
+.ReorderableList > #Toolbar > #Remove > #icon
+{
+    background-image: resource("Icons/d_Toolbar Minus.png");
+}
+
+#DraggingHandle #icon
+{
+    background-image: resource("Builtin Skins/DarkSkin/Images/WindowBottomResize.png");
+}

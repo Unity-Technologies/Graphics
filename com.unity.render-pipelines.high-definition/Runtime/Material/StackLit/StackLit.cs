@@ -1,10 +1,8 @@
-using System;
-using UnityEngine.Rendering;
-//using System.Runtime.InteropServices;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class StackLit : RenderPipelineMaterial
+    class StackLit : RenderPipelineMaterial
     {
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
@@ -44,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 1100)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1100)]
         public struct SurfaceData
         {
             [SurfaceDataAttributes("Material Features")]
@@ -52,21 +50,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Bottom interface (2 lobes BSDF)
             // Standard parametrization
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Metal)]
             [SurfaceDataAttributes("Metallic")]
             public float metallic;
 
             [SurfaceDataAttributes("Dielectric IOR")]
             public float dielectricIor;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Specular)]
             [SurfaceDataAttributes("Specular Color", false, true)]
             public Vector3 specularColor;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
 
@@ -79,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes(new string[] {"Bent Normal", "Bent Normal View Space"}, true)]
             public Vector3 bentNormalWS;
 
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
             [SurfaceDataAttributes("Smoothness A")]
             public float perceptualSmoothnessA;
 
@@ -97,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The base layer f0 parameter when the DualSpecularLobeParametrization was == "Direct"
             // is now also a perceptual parameter corresponding to a pseudo-f0 term, Fc(0) or
             // "coreFresnel0" (r_c in the paper). Although an intermediate value, this original
-            // fresnel0 never reach the engine side (BSDFData). 
+            // fresnel0 never reach the engine side (BSDFData).
             //
             // [ Without the HazyGloss parametrization, the original base layer f0 is directly inferred
             // as f0 = f(baseColor, metallic) when the BaseParametrization is BaseMetallic
@@ -112,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //
             // [ TODO: We could actually scrap metallic and dielectricIor here and update specularColor
             // to always hold the f0 intermediate value (r_c), although you could then go further and
-            // put the final "engine input" f0 in there, and other perceptuals like haziness and 
+            // put the final "engine input" f0 in there, and other perceptuals like haziness and
             // hazeExtent and update directly lobeMix here. For now we keep the shader mostly organized
             // like Lit ]
             [SurfaceDataAttributes("Haziness")]
@@ -136,16 +140,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float anisotropyB; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
 
             // Iridescence
-            [SurfaceDataAttributes("IridescenceIor")]
+            [SurfaceDataAttributes("Iridescence Ior")]
             public float iridescenceIor;
-            [SurfaceDataAttributes("IridescenceThickness")]
+            [SurfaceDataAttributes("Iridescence Layer Thickness")]
             public float iridescenceThickness;
             [SurfaceDataAttributes("Iridescence Mask")]
             public float iridescenceMask;
+            [SurfaceDataAttributes("Iridescence Coat Fixup TIR")]
+            public float iridescenceCoatFixupTIR;
+            [SurfaceDataAttributes("Iridescence Coat Fixup TIR Clamp")]
+            public float iridescenceCoatFixupTIRClamp;
 
             // Top interface and media (clearcoat)
             [SurfaceDataAttributes("Coat Smoothness")]
             public float coatPerceptualSmoothness;
+            [SurfaceDataAttributes("Coat mask")]
+            public float coatMask;
             [SurfaceDataAttributes("Coat IOR")]
             public float coatIor;
             [SurfaceDataAttributes("Coat Thickness")]
@@ -154,8 +164,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 coatExtinction;
 
             // SSS
-            [SurfaceDataAttributes("Diffusion Profile")]
-            public uint diffusionProfile;
+            [SurfaceDataAttributes("Diffusion Profile Hash")]
+            public uint diffusionProfileHash;
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
 
@@ -163,12 +173,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // + Diffusion Profile
             [SurfaceDataAttributes("Thickness")]
             public float thickness;
+
+            // Specular Occlusion custom input value propagated from master node surfaceDescription to surfaceData to bsdfData:
+            // Only used and valid when using a custom input.
+            // TODO: would ideally need per lobe / interface values.
+            [SurfaceDataAttributes("Specular Occlusion From Custom Input")]
+            public float specularOcclusionCustomInput;
+            // Specular occlusion config: bent occlusion fixup
+            [SurfaceDataAttributes("Specular Occlusion Fixup Visibility Ratio Threshold")]
+            public float soFixupVisibilityRatioThreshold;
+            [SurfaceDataAttributes("Specular Occlusion Fixup Strength")]
+            public float soFixupStrengthFactor;
+            [SurfaceDataAttributes("Specular Occlusion Fixup Max Added Roughness")]
+            public float soFixupMaxAddedRoughness;
         };
 
         //-----------------------------------------------------------------------------
         // BSDFData
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, false, true, 1150)]
+        [GenerateHLSL(PackingRules.Exact, false, false, true, 1150)]
         public struct BSDFData
         {
             public uint materialFeatures;
@@ -214,6 +237,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Top interface and media (clearcoat)
             public float coatRoughness;
             public float coatPerceptualRoughness;
+            public float coatMask;
             public float coatIor;
             public float coatThickness;
             public Vector3 coatExtinction;
@@ -222,9 +246,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float iridescenceIor;
             public float iridescenceThickness;
             public float iridescenceMask;
+            public float iridescenceCoatFixupTIR;
+            public float iridescenceCoatFixupTIRClamp;
 
             // SSS
-            public uint diffusionProfile;
+            public uint diffusionProfileIndex;
             public float subsurfaceMask;
 
             // Transmission
@@ -232,6 +258,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float thickness;
             public bool useThickObjectMode; // Read from the diffusion profile
             public Vector3 transmittance;   // Precomputation of transmittance
+
+            // Specular Occlusion custom input value propagated from master node surfaceDescription to surfaceData to bsdfData:
+            // Only used and valid when using a custom input.
+            // TODO: would ideally need per lobe / interface values.
+            public float specularOcclusionCustomInput;
+            // Specular occlusion config: bent occlusion fixup
+            public float soFixupVisibilityRatioThreshold;
+            public float soFixupStrengthFactor;
+            public float soFixupMaxAddedRoughness;
         };
 
         //-----------------------------------------------------------------------------
@@ -240,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public StackLit() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset)
+        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
@@ -259,11 +294,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
         }
 
-        public override void Bind()
+        public override void Bind(CommandBuffer cmd)
         {
-            PreIntegratedFGD.instance.Bind(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
-            LTCAreaLight.instance.Bind();
-            SPTDistribution.instance.Bind();
+            PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
+            LTCAreaLight.instance.Bind(cmd);
+            SPTDistribution.instance.Bind(cmd);
         }
     }
 }

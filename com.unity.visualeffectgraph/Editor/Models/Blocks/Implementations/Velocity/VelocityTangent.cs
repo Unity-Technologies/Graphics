@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Velocity")]
+    [VFXInfo(category = "Velocity", experimental = true)]
     class VelocityTangent : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Tangent"); } }
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The axis of rotation.")]
+            [Tooltip("Sets the axis from which the velocity is calculated. Particles move away from this axis.")]
             public Line axis = Line.defaultValue;
         }
 

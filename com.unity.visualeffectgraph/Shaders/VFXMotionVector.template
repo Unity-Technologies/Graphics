@@ -1,0 +1,67 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+${VFXPerPassInclude}
+${VFXInclude("Shaders/VFXParticleCommon.template")}
+
+ByteAddressBuffer attributeBuffer;
+RWByteAddressBuffer elementToVFXBuffer;
+#if VFX_USE_ALIVE_CURRENT
+StructuredBuffer<uint> deadListOut;
+#endif
+
+#if VFX_HAS_INDIRECT_DRAW
+StructuredBuffer<uint> indirectBuffer;
+#endif
+
+CBUFFER_START(updateParams)
+	uint nbMax;
+	uint dispatchWidth;
+	uint systemSeed;
+CBUFFER_END
+
+${VFXGeneratedBlockFunction}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 groupId		: SV_GroupID,
+			uint3 groupThreadId	: SV_GroupThreadID)
+{
+	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+	uint index = id;
+	if (id < nbMax)
+	{
+		Attributes attributes = (Attributes)0;
+		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		
+		${VFXLoadAttributes:{alive}}
+		if (attributes.alive)
+		{
+			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			${VFXProcessBlocks}
+			
+			${VFXLoadSize}
+			float4x4 elementToVFX = GetElementToVFXMatrix(
+				attributes.axisX,
+				attributes.axisY,
+				attributes.axisZ,
+				float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+				float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+				size3,
+				attributes.position);
+		
+			UNITY_UNROLL
+			for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+			{
+				UNITY_UNROLL
+				for (int itIndexMatrixCol = 0; itIndexMatrixCol < 4; ++itIndexMatrixCol)
+				{
+					uint itIndexMatrix = itIndexMatrixCol * 4 + itIndexMatrixRow;
+					float value = elementToVFX[itIndexMatrixRow][itIndexMatrixCol];
+					elementToVFXBuffer.Store((index * 16 + itIndexMatrix) << 2, asuint(value));
+				}
+			}
+
+            elementToVFXBuffer.Store((index*16 + 15) << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
+		}		
+	}
+}

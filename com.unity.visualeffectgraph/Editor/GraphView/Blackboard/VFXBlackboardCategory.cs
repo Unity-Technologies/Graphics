@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlackboardCategory()
         {
-            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXBlackboardSection");
+            var tpl = VFXView.LoadUXML("VFXBlackboardSection");
 
             m_MainContainer = tpl.CloneTree();
             m_MainContainer.AddToClassList("mainContainer");
@@ -77,8 +77,8 @@ namespace UnityEditor.VFX.UI
             m_DragIndicator = new VisualElement();
 
             m_DragIndicator.name = "dragIndicator";
-            m_DragIndicator.style.position = PositionType.Absolute;
             hierarchy.Add(m_DragIndicator);
+            m_DragIndicator.style.display = DisplayStyle.None;
 
             ClearClassList();
             AddToClassList("blackboardSection");
@@ -115,19 +115,19 @@ namespace UnityEditor.VFX.UI
             var blackboard = GetFirstAncestorOfType<VFXBlackboard>();
             if (blackboard != null)
             {
-                blackboard.SetCategoryName(this, m_NameField.value);
+                blackboard.SetCategoryName(this, string.IsNullOrEmpty(m_NameField.value)?"Untitled": m_NameField.value);
             }
         }
 
         void CleanupNameField()
         {
-            m_NameField.visible = false;
+            m_NameField.style.display = DisplayStyle.None;
         }
 
         public void SetSelectable()
         {
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable;
-            styleSheets.Add(Resources.Load<StyleSheet>("Selectable"));
+            styleSheets.Add(VFXView.LoadStyleSheet("Selectable"));
             AddToClassList("selectable");
             hierarchy.Add(new VisualElement() {name = "selection-border", pickingMode = PickingMode.Ignore});
 
@@ -142,8 +142,7 @@ namespace UnityEditor.VFX.UI
             m_NameField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditTextSucceded(); });
             m_NameField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnTextFieldKeyPressed);
             m_Header.pickingMode = PickingMode.Position;
-
-            m_NameField.visible = false;
+            m_NameField.style.display = DisplayStyle.None;
         }
 
         void ToggleExpand()
@@ -191,7 +190,7 @@ namespace UnityEditor.VFX.UI
 
                 if (value)
                 {
-                    m_MainContainer.Add(m_Header);
+                    m_MainContainer.Insert(1,m_Header);
                 }
                 else
                 {
@@ -203,14 +202,13 @@ namespace UnityEditor.VFX.UI
 
         private void SetDragIndicatorVisible(bool visible)
         {
-            if (visible && (m_DragIndicator.parent == null))
+            if (visible)
             {
-                hierarchy.Add(m_DragIndicator);
-                m_DragIndicator.visible = true;
+                m_DragIndicator.style.display = DisplayStyle.Flex;
             }
-            else if ((visible == false) && (m_DragIndicator.parent != null))
+            else
             {
-                hierarchy.Remove(m_DragIndicator);
+                m_DragIndicator.style.display = DisplayStyle.None;
             }
         }
 
@@ -261,7 +259,7 @@ namespace UnityEditor.VFX.UI
                 SetDragIndicatorVisible(true);
 
                 Rect dragLayout = m_DragIndicator.layout;
-                m_DragIndicator.style.left = 0f;
+
                 m_DragIndicator.style.top = indicatorY - dragLayout.height / 2;
 
             }
@@ -331,14 +329,14 @@ namespace UnityEditor.VFX.UI
         public void OpenTextEditor()
         {
             m_NameField.value = title;
-            m_NameField.visible = true;
-            m_NameField.Q("unity-text-input").Focus();
+            m_NameField.style.display = DisplayStyle.Flex;
+            m_NameField.Q(TextField.textInputUssName).Focus();
             m_NameField.SelectAll();
         }
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            if (evt.target == this)
+            if (evt.target == this && (capabilities & Capabilities.Selectable)!= 0)
             {
                 evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
 

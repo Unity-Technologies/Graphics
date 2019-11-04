@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class DensityVolumeManager
+    class DensityVolumeManager
     {
         static private DensityVolumeManager _instance = null;
 
@@ -66,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TriggerVolumeAtlasRefresh();
         }
 
-        public DensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd, Camera currentCam, float time)
+        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, Camera currentCam, float time)
         {
             //Update volumes
             bool animate = CoreUtils.AreAnimatedMaterialsEnabled(currentCam);
@@ -83,9 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             volumeAtlas.GenerateAtlas(cmd);
 
-            // GC.Alloc
-            // List`1.ToArray()
-            return volumes.ToArray();
+            return volumes;
         }
 
         private void VolumeAtlasRefresh()

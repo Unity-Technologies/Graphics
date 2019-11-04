@@ -1,9 +1,11 @@
+using System;
 using UnityEditor.AnimatedValues;
 using UnityEngine.Events;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class BaseUI<TType>
+    [Obsolete("Use IUpdateable<TType> and EditorPrefsBoolFlags")]
+    class BaseUI<TType>
     {
         protected AnimBool[] m_AnimBools = null;
         protected TType data { get; private set; }

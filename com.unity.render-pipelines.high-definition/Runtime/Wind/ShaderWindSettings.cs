@@ -1,6 +1,4 @@
-using UnityEngine;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [ExecuteAlways]
     public class ShaderWindSettings : MonoBehaviour

@@ -16,6 +16,7 @@ float4 _UnlitColorMap_MipInfo;
 
 float3 _EmissiveColor;
 float4 _EmissiveColorMap_ST;
+float _EmissiveExposureWeight;
 
 float _AlphaCutoff;
 float _DistortionScale;
@@ -30,6 +31,10 @@ float _DistortionBlurRemapMax;
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
+
+// For raytracing indirect illumination effects, we need to be able to define if the emissive part of the material should contribute or not (mainly for area light sources in order to avoid double contribution)
+// By default, the emissive is contributing
+float _IncludeIndirectLighting;
 
 // Following two variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;

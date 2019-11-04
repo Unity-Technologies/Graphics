@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_Ward"
+Shader "Hidden/HDRP/PreIntegratedFGD_Ward"
 {
     SubShader
     {
@@ -8,11 +8,14 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_Ward"
             ZTest Always Cull Off ZWrite Off
 
             HLSLPROGRAM
+
+            #pragma editor_sync_compilation
+
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-
+            #define PREFER_HALF 0
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -65,8 +68,8 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD_Ward"
                 SampleWardDir( u, V, localToWorld, roughness, L, NdotL, NdotH, VdotH );
 
                 // Importance sampling weight for each sample (eq. 9 from Walter, 2005)
-                // pdf = 1 / (4PI * a² * (L.H) * (H.N)^3) * exp( ((N.H)² - 1) / (a² * (N.H)²) )                 <= From Walter, eq. 24 pdf(H) = D(H) . (N.H)
-                // fr = (F(N.H) * s) / (4PI * a² * (L.H)² * (H.N)^4) * exp( ((N.H)² - 1) / (a² * (N.H)²) )      <= Moroder-Geisler version
+                // pdf = 1 / (4PI * a^2 * (L.H) * (H.N)^3) * exp( ((N.H)^2 - 1) / (a^2 * (N.H)^2) )                 <= From Walter, eq. 24 pdf(H) = D(H) . (N.H)
+                // fr = (F(N.H) * s) / (4PI * a^2 * (L.H)^2 * (H.N)^4) * exp( ((N.H)^2 - 1) / (a^2 * (N.H)^2) )      <= Moroder-Geisler version
                 // weight over pdf is:
                 // weightOverPdf = fr * (N.V) / pdf = s * F(N.H) * (N.V) / ((L.H) * (N.H))
                 // s * F(N.H) is applied outside the function

@@ -6,15 +6,15 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
+using UnityObject = UnityEngine.Object;
 using Type = System.Type;
 
 #if true
-using ObjectField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.UIElements.ObjectField, UnityEngine.Object>;
+using ObjectField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.ObjectField, UnityEngine.Object>;
 
 namespace UnityEditor.VFX.UI
 {
-    class ObjectPropertyRM : PropertyRM<Object>
+    class ObjectPropertyRM : PropertyRM<UnityObject>
     {
         public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -24,11 +24,11 @@ namespace UnityEditor.VFX.UI
             else
                 m_ObjectField.control.objectType = controller.portType;
 
-            m_ObjectField.RegisterCallback<ChangeEvent<Object>>(OnValueChanged);
+            m_ObjectField.RegisterCallback<ChangeEvent<UnityObject>>(OnValueChanged);
             m_ObjectField.control.allowSceneObjects = false;
             m_ObjectField.style.flexGrow = 1f;
-            m_ObjectField.style.flexShrink = 0f;
-
+            m_ObjectField.style.flexShrink = 1f;
+            RegisterCallback<KeyDownEvent>(StopKeyPropagation);
             Add(m_ObjectField);
         }
 
@@ -37,9 +37,14 @@ namespace UnityEditor.VFX.UI
             return 120;
         }
 
-        public void OnValueChanged(ChangeEvent<Object> onObjectChanged)
+        void StopKeyPropagation(KeyDownEvent e)
         {
-            Object newValue = m_ObjectField.value;
+            e.StopPropagation();
+        }
+
+        public void OnValueChanged(ChangeEvent<UnityObject> onObjectChanged)
+        {
+            UnityObject newValue = m_ObjectField.value;
             if (typeof(Texture).IsAssignableFrom(m_Provider.portType))
             {
                 Texture tex = newValue as Texture;
@@ -93,7 +98,23 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
+            if( force )
+                m_ObjectField.SetValueWithoutNotify(null);
             m_ObjectField.SetValueWithoutNotify(m_Value);
+        }
+
+        public override void SetValue(object obj) // object setvalue should accept null
+        {
+            try
+            {
+                m_Value = (UnityObject)obj;
+            }
+            catch (System.Exception)
+            {
+                Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " + typeof(UnityObject).Name);
+            }
+
+            UpdateGUI(!object.ReferenceEquals(m_Value, obj));
         }
 
         public override bool showsEverything { get { return true; } }

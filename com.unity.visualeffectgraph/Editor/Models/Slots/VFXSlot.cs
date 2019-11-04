@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using System.Reflection;
 
 namespace UnityEditor.VFX
@@ -113,11 +113,7 @@ namespace UnityEditor.VFX
             get
             {
                 var masterSlot = GetMasterSlot();
-                if (masterSlot.m_SlotsSpaceable == null)
-                {
-                    InitSpaceable(masterSlot);
-                }
-                return masterSlot.m_SlotsSpaceable.Any();
+                return VFXLibrary.IsSpaceableSlotType(masterSlot.property.type);
             }
         }
 
@@ -161,7 +157,8 @@ namespace UnityEditor.VFX
             if (!HasLink() || direction == Direction.kOutput)
                 return false;
 
-            return m_LinkedSlots.First().spaceable;
+            var linkedSlot = m_LinkedSlots.First();
+            return linkedSlot.spaceable && linkedSlot.space != (VFXCoordinateSpace)int.MaxValue;
         }
 
         public SpaceableType GetSpaceTransformationType()
@@ -170,6 +167,12 @@ namespace UnityEditor.VFX
                 Debug.LogError("Unexpected call of GetSpaceTransformationType : " + ToString());
 
             var masterSlot = GetMasterSlot();
+            if (masterSlot.m_SlotsSpaceable == null)
+            {
+                //Should only happened after a domain reload : OnEnable is called but not Sanitize (only if VFXType doesn't change)
+                masterSlot.InitializeSpaceableCachedSlot();
+            }
+
             var findSlot = masterSlot.m_SlotsSpaceable.Where(o => o.slot == this).FirstOrDefault();
             return findSlot.slot == null ? SpaceableType.None : findSlot.type; //Explicitly return none (not really needed because is default of spaceableType)
         }
@@ -343,6 +346,30 @@ namespace UnityEditor.VFX
             return Create(property.property, direction, property.value);
         }
 
+        private void InitializeSpaceableCachedSlot()
+        {
+            if (!IsMasterSlot())
+                throw new InvalidOperationException();
+
+            m_SlotsSpaceable = ComputeCacheSpaceable(this);
+            if (m_SlotsSpaceable.Any())
+            {
+                if (!spaceable)
+                    Debug.LogError("Unexpected slot spaceable while slot isn't mark as spaceable : " + property.type);
+
+                if (m_MasterData.m_Space == (VFXCoordinateSpace)int.MaxValue)
+                {
+                    m_MasterData.m_Space = VFXCoordinateSpace.Local;
+                }
+            }
+            else
+            {
+                if (spaceable)
+                    Debug.LogError("Expected slot spaceable while slot is  mark as spaceable : " + property.type);
+                m_MasterData.m_Space = (VFXCoordinateSpace)int.MaxValue;
+            }
+        }
+
         // Create and return a slot hierarchy from a property info
         public static VFXSlot Create(VFXProperty property, Direction direction, object value = null)
         {
@@ -361,7 +388,7 @@ namespace UnityEditor.VFX
 
             slot.m_MasterData = masterData;
             slot.UpdateDefaultExpressionValue();
-            InitSpaceable(slot);
+            slot.InitializeSpaceableCachedSlot();
             return slot;
         }
 
@@ -457,8 +484,19 @@ namespace UnityEditor.VFX
                 ++index;
             }
 
-            var copySubLinks = (src.property.type == dst.property.type) ||
-                (src.property.type == typeof(Transform) && dst.property.type == typeof(OrientedBox)); // This is bad but needed to keep sublinks when changing transform to orientedbox
+            var copySubLinks = dst.CanConvertFrom(src.property.type);
+
+            //Automatically skip encapsulation
+            //TODO : Should rework this to avoid these several "is VFXSlotEncapsulated" special cases (see also "SlotShouldSkipFirstLevel" at controller level)
+            if (src is VFXSlotEncapsulated)
+            {
+                src = src.children.First();
+            }
+
+            if (dst is VFXSlotEncapsulated)
+            {
+                dst = dst.children.First();
+            }
 
             if (copySubLinks && src.GetNbChildren() == dst.GetNbChildren())
             {
@@ -475,6 +513,9 @@ namespace UnityEditor.VFX
             m_ExpressionTreeUpToDate = false;
             m_DefaultExpressionInitialized = false;
             m_SlotsSpaceable = null;
+
+            if (IsMasterSlot())
+                InitializeSpaceableCachedSlot();
         }
 
         public override void OnEnable()
@@ -486,7 +527,7 @@ namespace UnityEditor.VFX
 
             int nbRemoved = m_LinkedSlots.RemoveAll(c => c == null);// Remove bad references if any
             if (nbRemoved > 0)
-                Debug.LogFormat("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType());
+                Debug.LogWarningFormat("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType());
 
             m_ExpressionTreeUpToDate = false;
             m_DefaultExpressionInitialized = false;
@@ -497,6 +538,22 @@ namespace UnityEditor.VFX
         }
 
         public override void Sanitize(int version)
+        {
+            if (!IsMasterSlot())
+                return; //Give only the responsibility to the master slot to sanitize children (sanitizing deeper children first)
+
+            //PropagateToChildrenReverse(c => c.InternalSanitize(version), false); //Not possible because collection could be modified while sanitizing
+            var slotToSanitize = new List<VFXSlot>();
+            PropagateToChildrenReverse(c => slotToSanitize.Add(c), false);
+            foreach (var slot in slotToSanitize)
+                slot.InternalSanitize(version);
+
+            var masterSlot = this;
+            masterSlot = masterSlot.InternalSanitize(version);
+            masterSlot.InitializeSpaceableCachedSlot();
+        }
+
+        private VFXSlot InternalSanitize(int version)
         {
             // Remove invalid links (without owners)
             if (owner == null)
@@ -558,8 +615,11 @@ namespace UnityEditor.VFX
                 }
 
                 CopyLinks(newSlot, this, true);
+                CopySpace(newSlot, this, true);
                 UnlinkAll(true);
+                return newSlot;
             }
+            return this;
         }
 
         private void SetDefaultExpressionValue()
@@ -587,12 +647,12 @@ namespace UnityEditor.VFX
             m_DefaultExpressionInitialized = true;
         }
 
-        private static void InitSpaceable(VFXSlot masterSlot)
+        private static SlotWithSpaceTransformation[] ComputeCacheSpaceable(VFXSlot masterSlot)
         {
             if (!masterSlot.IsMasterSlot())
                 throw new InvalidOperationException("Trying to call init spaceable on a child slot");
 
-            var spaceableCollection = new List<SpaceSlotConcerned>();
+            var spaceableCollection = new List<SlotWithSpaceTransformation>();
             masterSlot.PropagateToChildren(s =>
             {
                 if (!s.property.IsExpandable())
@@ -601,7 +661,7 @@ namespace UnityEditor.VFX
                 var spaceAttributeOnType = s.property.type.GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
                 if (spaceAttributeOnType != null)
                 {
-                    spaceableCollection.Add(new SpaceSlotConcerned
+                    spaceableCollection.Add(new SlotWithSpaceTransformation
                     {
                         slot = s,
                         type = (spaceAttributeOnType as VFXSpaceAttribute).type
@@ -610,7 +670,9 @@ namespace UnityEditor.VFX
 
                 var fields = s.property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
                 if (fields.Length != s.children.Count())
-                    throw new InvalidOperationException("Unexpected slot count for : " + s.property.type.ToString());
+                    throw new InvalidOperationException(string.Format("Unexpected slot count for : " + s.property.type + " ({0} vs. {1})",
+                                                                       fields.Length == 0 ? "(empty)" : fields.Select(o => o.Name).Aggregate((a, b) => a + ", " + b),
+                                                                       s.children.Count() == 0 ? "(empty)" : s.children.Select(o => o.name).Aggregate((a, b) => a + ", " + b)));
 
                 for (int fieldIndex = 0; fieldIndex < fields.Length; ++fieldIndex)
                 {
@@ -623,7 +685,7 @@ namespace UnityEditor.VFX
                             slot = slot.GetParent();
                         }
 
-                        spaceableCollection.Add(new SpaceSlotConcerned
+                        spaceableCollection.Add(new SlotWithSpaceTransformation
                         {
                             slot = slot,
                             type = (spaceAttribute as VFXSpaceAttribute).type
@@ -636,30 +698,7 @@ namespace UnityEditor.VFX
             {
                 Debug.LogErrorFormat("Unexpected space collection computed for {0}", masterSlot.property.type);
             }
-
-            masterSlot.m_SlotsSpaceable = spaceableCollection.ToArray();
-            if (masterSlot.m_SlotsSpaceable.Any())
-            {
-                if (masterSlot.m_MasterData.m_Space == (VFXCoordinateSpace)int.MaxValue)
-                {
-                    // By default set the same space as the data
-                    // TODO This is useless at the moment because the InitSpaceable is called fat too soon before the slot is even attached to a container...
-                    VFXData data = null;
-                    if (masterSlot.owner is VFXBlock)
-                        data = ((VFXBlock)(masterSlot.owner)).GetData();
-                    else if (masterSlot.owner is VFXContext)
-                        data = ((VFXContext)(masterSlot.owner)).GetData();
-
-                    if (data is ISpaceable)
-                        masterSlot.m_MasterData.m_Space = ((ISpaceable)data).space;
-                    else
-                        masterSlot.m_MasterData.m_Space = VFXCoordinateSpace.Local;
-                }
-            }
-            else
-            {
-                masterSlot.m_MasterData.m_Space = (VFXCoordinateSpace)int.MaxValue;
-            }
+            return spaceableCollection.ToArray();
         }
 
         public void UpdateDefaultExpressionValue()
@@ -678,7 +717,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void Invalidate(VFXModel model, InvalidationCause cause)
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
 
@@ -764,9 +803,9 @@ namespace UnityEditor.VFX
                 return false;
 
             if (direction == Direction.kOutput)
-                InnerLink(this, other);
+                InnerLink(this, other, notify);
             else
-                InnerLink(other, this);
+                InnerLink(other, this, notify);
 
             if (notify)
             {
@@ -804,11 +843,22 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected void PropagateToChildren(Action<VFXSlot> func)
+        protected void PropagateToChildren(Action<VFXSlot> func, bool includeThis = true)
         {
-            func(this);
+            if (includeThis)
+                func(this);
+
             foreach (var child in children)
-                child.PropagateToChildren(func);
+                child.PropagateToChildren(func, true);
+        }
+
+        protected void PropagateToChildrenReverse(Action<VFXSlot> func, bool includeThis = true)
+        {
+            foreach (var child in children)
+                child.PropagateToChildrenReverse(func, true);
+
+            if (includeThis)
+                func(this);
         }
 
         protected void PropagateToTree(Action<VFXSlot> func)
@@ -958,7 +1008,7 @@ namespace UnityEditor.VFX
             return exp;
         }
 
-        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
+        public void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
         {
             exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
             if (convertToSpace != (VFXCoordinateSpace)int.MaxValue)
@@ -1037,7 +1087,7 @@ namespace UnityEditor.VFX
                 if (IsMasterSlot() && direction == Direction.kInput && spaceable && HasLink())
                 {
                     var linkedSlot = m_LinkedSlots.First();
-                    if (linkedSlot.spaceable)
+                    if (linkedSlot.spaceable && linkedSlot.space != (VFXCoordinateSpace)int.MaxValue)
                     {
                         space = linkedSlot.space;
                     }
@@ -1063,10 +1113,10 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        private static void InnerLink(VFXSlot output, VFXSlot input)
+        private static void InnerLink(VFXSlot output, VFXSlot input, bool notify)
         {
-            input.UnlinkAll(); // First disconnect any other linked slot
-            input.PropagateToTree(s => s.UnlinkAll()); // Unlink other links in tree
+            input.UnlinkAll(false, notify); // First disconnect any other linked slot
+            input.PropagateToTree(s => s.UnlinkAll(false, notify)); // Unlink other links in tree
 
             input.m_LinkedSlots.Add(output);
             output.m_LinkedSlots.Add(input);
@@ -1111,9 +1161,9 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private bool m_DefaultExpressionInitialized = false;
         [NonSerialized]
-        private SpaceSlotConcerned[] m_SlotsSpaceable;
+        private SlotWithSpaceTransformation[] m_SlotsSpaceable;
 
-        private struct SpaceSlotConcerned
+        private struct SlotWithSpaceTransformation
         {
             public VFXSlot slot;
             public SpaceableType type;

@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Define helpers to manipulate <see cref="MigrationStep{TVersion, TTarget}"/>.</summary>
     public static class MigrationStep
@@ -14,9 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static MigrationStep<TVersion, TTarget> New<TVersion, TTarget>(TVersion version, Action<TTarget> action)
             where TVersion : struct, IConvertible
             where TTarget : class, IVersionable<TVersion>
-        {
-            return new MigrationStep<TVersion, TTarget>(version, action);
-        }
+        { return new MigrationStep<TVersion, TTarget>(version, action); }
     }
 
     /// <summary>Define a migration step.</summary>

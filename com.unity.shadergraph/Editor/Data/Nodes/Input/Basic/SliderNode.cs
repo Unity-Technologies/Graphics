@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using System.Globalization;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -20,10 +22,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Slider-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -61,12 +59,12 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             if (generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + m_Value.x + ";", true);
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture,"$precision {0} = {1};", GetVariableNameForNode(), m_Value.x));
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -83,7 +81,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             return new Vector1ShaderProperty
             {

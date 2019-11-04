@@ -1,11 +1,10 @@
-using UnityEditor;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(IndirectLightingController))]
-    public class IndirectLightingControllerEditor : VolumeComponentEditor
+    class IndirectLightingControllerEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_IndirectDiffuseIntensity;
         SerializedDataParameter m_IndirectSpecularIntensity;
@@ -20,8 +19,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_IndirectDiffuseIntensity, CoreEditorUtils.GetContent("Indirect Diffuse Intensity|Multiplier for the baked diffuse lighting."));
-            PropertyField(m_IndirectSpecularIntensity, CoreEditorUtils.GetContent("Indirect Specular Intensity|Multiplier for the reflected specular light."));
+            PropertyField(m_IndirectDiffuseIntensity, EditorGUIUtility.TrTextContent("Indirect Diffuse Intensity", "Sets the multiplier for baked diffuse lighting."));
+            PropertyField(m_IndirectSpecularIntensity, EditorGUIUtility.TrTextContent("Indirect Specular Intensity", "Sets the multiplier for reflected specular lighting."));
         }
     }
 }

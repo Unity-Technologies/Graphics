@@ -1,36 +1,68 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
+
     class SerializedHDRenderPipelineAsset
     {
         public SerializedObject serializedObject;
 
         public SerializedProperty renderPipelineResources;
-        public SerializedProperty diffusionProfileSettings;
+        public SerializedProperty currentMaterialQualityLevel;
+        public SerializedProperty materialQualityLevels;
+        public SerializedProperty renderPipelineRayTracingResources;
+        public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
-        public SerializedProperty enableVariantStrippingLog; 
+        public SerializedProperty shaderVariantLogLevel;
         public SerializedRenderPipelineSettings renderPipelineSettings;
         public SerializedFrameSettings defaultFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
         public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
 
+        //RenderPipelineResources not always exist and thus cannot be serialized normally.
+        public bool editorResourceHasMultipleDifferentValues
+        {
+            get
+            {
+                var initialValue = firstEditorResources;
+                for (int index = 1; index < serializedObject.targetObjects.Length; ++index)
+                {
+                    if (initialValue != (serializedObject.targetObjects[index] as HDRenderPipelineAsset)?.renderPipelineEditorResources)
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        public HDRenderPipelineEditorResources firstEditorResources
+            => (serializedObject.targetObjects[0] as HDRenderPipelineAsset)?.renderPipelineEditorResources;
+
+        public void SetEditorResource(HDRenderPipelineEditorResources value)
+        {
+            for (int index = 0; index < serializedObject.targetObjects.Length; ++index)
+                (serializedObject.targetObjects[index] as HDRenderPipelineAsset).renderPipelineEditorResources = value;
+        }
+
         public SerializedHDRenderPipelineAsset(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
 
+            currentMaterialQualityLevel = serializedObject.FindProperty("m_CurrentMaterialQualityLevel");
+            materialQualityLevels = serializedObject.Find((HDRenderPipelineAsset s) => s.materialQualityLevels);
+
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
-            diffusionProfileSettings = serializedObject.Find((HDRenderPipelineAsset s) => s.diffusionProfileSettings);
+            renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
+            diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineAsset s) => s.diffusionProfileSettingsList);
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);
             enableSRPBatcher = serializedObject.Find((HDRenderPipelineAsset s) => s.enableSRPBatcher);
-            enableVariantStrippingLog = serializedObject.Find((HDRenderPipelineAsset s) => s.enableVariantStrippingLog);
+            shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineAsset s) => s.shaderVariantLogLevel);
 
-            renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.Find((HDRenderPipelineAsset a) => a.renderPipelineSettings));
-            defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_FrameSettings"));
-            defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_BakedOrCustomReflectionFrameSettings"));
-            defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RealtimeReflectionFrameSettings"));
+            renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.FindProperty("m_RenderPipelineSettings"));
+            defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
+            defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
+            defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset
         }
 
         public void Update()

@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Subtract";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Subtract-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

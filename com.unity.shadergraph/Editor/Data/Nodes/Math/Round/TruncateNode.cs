@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Truncate";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Truncate-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

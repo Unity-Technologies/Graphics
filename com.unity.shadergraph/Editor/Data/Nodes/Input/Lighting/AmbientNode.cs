@@ -1,4 +1,5 @@
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -20,10 +21,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Ambient-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

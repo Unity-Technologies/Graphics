@@ -1,8 +1,6 @@
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
- 	public class TextureCache2D : TextureCache
+ 	class TextureCache2D : TextureCache
     {
         private Texture2DArray m_Cache;
 
@@ -13,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering
 
         bool TextureHasMipmaps(Texture texture)
         {
-            // Either the texture 
+            // Either the texture
             if (texture is Texture2D)
                 return ((Texture2D)texture).mipmapCount > 1;
             else

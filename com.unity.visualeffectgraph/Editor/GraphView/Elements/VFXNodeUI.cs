@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
         static string UXMLResourceToPackage(string resourcePath)
         {
-            return VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Resources/" + resourcePath + ".uxml";
+            return VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/" + resourcePath + ".uxml";
         }
 
         public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))
@@ -142,14 +142,16 @@ namespace UnityEditor.VFX.UI
                         m_SelectionBorder.style.borderRight = (m_Selected ? 1 : (m_Hovered ? 1 : 0));*/
 
 
-            m_SelectionBorder.style.borderColor = m_Selected ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 1.0f) : (m_Hovered ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 0.5f) : Color.clear);
+            m_SelectionBorder.style.borderBottomColor =
+                m_SelectionBorder.style.borderTopColor =
+                    m_SelectionBorder.style.borderLeftColor =
+                        m_SelectionBorder.style.borderRightColor = m_Selected ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 1.0f) : (m_Hovered ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 0.5f) : Color.clear);
         }
 
         void Initialize()
         {
             this.AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
-            cacheAsBitmap = true;
 
             RegisterCallback<MouseEnterEvent>(OnMouseEnter);
             RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
@@ -211,7 +213,7 @@ namespace UnityEditor.VFX.UI
                 for (int i = 0; i < m_Settings.Count; ++i)
                 {
                     PropertyRM prop = m_Settings[i];
-                    if (prop != null && activeSettings.Any(s => s.Name == controller.settings[i].name))
+                    if (prop != null && activeSettings.Any(s => s.field.Name == controller.settings[i].name))
                     {
                         hasSettings = true;
                         settingsContainer.Add(prop);
@@ -228,6 +230,9 @@ namespace UnityEditor.VFX.UI
                     settingsContainer.AddToClassList("nosettings");
                 }
             }
+
+            if(m_SettingsDivider != null)
+                m_SettingsDivider.visible = hasSettingDivider && hasSettings;
             Profiler.EndSample();
         }
 
@@ -237,16 +242,11 @@ namespace UnityEditor.VFX.UI
             private set;
         }
 
-        protected virtual bool syncInput
-        {
-            get { return true; }
-        }
-
         void SyncAnchors()
         {
             Profiler.BeginSample("VFXNodeUI.SyncAnchors");
-            if (syncInput)
-                SyncAnchors(controller.inputPorts, inputContainer);
+
+            SyncAnchors(controller.inputPorts, inputContainer);
             SyncAnchors(controller.outputPorts, outputContainer);
             Profiler.EndSample();
         }
@@ -261,6 +261,8 @@ namespace UnityEditor.VFX.UI
 
             foreach (var deletedController in deletedControllers)
             {
+                //Explicitely remove edges before removing anchor.
+                GetFirstAncestorOfType<VFXView>().RemoveAnchorEdges(existingAnchors[deletedController]);
                 container.Remove(existingAnchors[deletedController]);
                 existingAnchors.Remove(deletedController);
             }
@@ -320,6 +322,20 @@ namespace UnityEditor.VFX.UI
             else
             {
                 RemoveFromClassList("superCollapsed");
+            }
+        }
+
+        public void AssetMoved()
+        {
+            title = controller.title;
+
+            foreach( var setting in m_Settings)
+            {
+                setting.UpdateGUI(true);
+            }
+            foreach( VFXEditableDataAnchor input in GetPorts(true,false).OfType<VFXEditableDataAnchor>())
+            {
+                input.AssetMoved();
             }
         }
 
@@ -442,9 +458,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public const int DefaultLabelWidth = 116;
+
         protected void AddSetting(VFXSettingController setting)
         {
-            var rm = PropertyRM.Create(setting, 100);
+            var rm = PropertyRM.Create(setting, DefaultLabelWidth);
             if (rm != null)
             {
                 m_Settings.Add(rm);

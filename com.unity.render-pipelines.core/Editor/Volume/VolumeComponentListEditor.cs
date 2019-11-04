@@ -7,8 +7,47 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Unity uses this class to draw the user interface for all the settings
+    /// contained in a <see cref="VolumeProfile"/> in the Inspector.
+    /// </summary>
+    /// <example>
+    /// A minimal example of how to write a custom editor that displays the content of a profile
+    /// in the inspector:
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// 
+    /// [CustomEditor(typeof(VolumeProfile))]
+    /// public class CustomVolumeProfileEditor : Editor
+    /// {
+    ///     VolumeComponentListEditor m_ComponentList;
+    /// 
+    ///     void OnEnable()
+    ///     {
+    ///         m_ComponentList = new VolumeComponentListEditor(this);
+    ///         m_ComponentList.Init(target as VolumeProfile, serializedObject);
+    ///     }
+    /// 
+    ///     void OnDisable()
+    ///     {
+    ///         if (m_ComponentList != null)
+    ///             m_ComponentList.Clear();
+    ///     }
+    /// 
+    ///     public override void OnInspectorGUI()
+    ///     {
+    ///         serializedObject.Update();
+    ///         m_ComponentList.OnGUI();
+    ///         serializedObject.ApplyModifiedProperties();
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     public sealed class VolumeComponentListEditor
     {
+        /// <summary>
+        /// A direct reference to the <see cref="VolumeProfile"/> this editor displays.
+        /// </summary>
         public VolumeProfile asset { get; private set; }
 
         Editor m_BaseEditor;
@@ -21,12 +60,23 @@ namespace UnityEditor.Rendering
 
         static VolumeComponent s_ClipboardContent;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="VolumeComponentListEditor"/> to use in an
+        /// existing editor.
+        /// </summary>
+        /// <param name="editor">A reference to the parent editor instance</param>
         public VolumeComponentListEditor(Editor editor)
         {
             Assert.IsNotNull(editor);
             m_BaseEditor = editor;
         }
 
+        /// <summary>
+        /// Initializes the editor.
+        /// </summary>
+        /// <param name="asset">A direct reference to the profile Asset.</param>
+        /// <param name="serializedObject">An instance of the <see cref="SerializedObject"/>
+        /// provided by the parent editor.</param>
         public void Init(VolumeProfile asset, SerializedObject serializedObject)
         {
             Assert.IsNotNull(asset);
@@ -41,10 +91,9 @@ namespace UnityEditor.Rendering
             m_Editors = new List<VolumeComponentEditor>();
 
             // Gets the list of all available component editors
-            var editorTypes = CoreUtils.GetAllAssemblyTypes()
+            var editorTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponentEditor>()
                 .Where(
-                    t => t.IsSubclassOf(typeof(VolumeComponentEditor))
-                    && t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
+                    t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
                     && !t.IsAbstract
                     );
 
@@ -115,10 +164,14 @@ namespace UnityEditor.Rendering
                 CreateEditor(components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
         }
 
+        /// <summary>
+        /// Cleans up the editor and individual <see cref="VolumeComponentEditor"/> instances. You
+        /// must call this when the parent editor is disabled or destroyed.
+        /// </summary>
         public void Clear()
         {
             if (m_Editors == null)
-                return; // Hasn't been inited yet
+                return; // Hasn't been initialized yet
 
             foreach (var editor in m_Editors)
                 editor.OnDisable();
@@ -130,6 +183,9 @@ namespace UnityEditor.Rendering
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
+        /// <summary>
+        /// Draws the editor.
+        /// </summary>
         public void OnGUI()
         {
             if (asset == null)
@@ -158,7 +214,9 @@ namespace UnityEditor.Rendering
                             title,
                             editor.baseProperty,
                             editor.activeProperty,
-                            pos => OnContextClick(pos, editor.target, id)
+                            pos => OnContextClick(pos, editor.target, id),
+                            editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
+                            () => editor.isInAdvancedMode ^= true
                             );
 
                     if (displayContent)
@@ -171,13 +229,13 @@ namespace UnityEditor.Rendering
                 if (m_Editors.Count > 0)
                     CoreEditorUtils.DrawSplitter();
                 else
-                    EditorGUILayout.HelpBox("No override set on this volume. Drop a component here or use the Add button.", MessageType.Info);
+                    EditorGUILayout.HelpBox("This Volume Profile contains no overrides.", MessageType.Info);
 
                 EditorGUILayout.Space();
 
                 using (var hscope = new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button(CoreEditorUtils.GetContent("Add component overrides..."), EditorStyles.miniButton))
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Override"), EditorStyles.miniButton))
                     {
                         var r = hscope.rect;
                         var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
@@ -192,29 +250,29 @@ namespace UnityEditor.Rendering
             var menu = new GenericMenu();
 
             if (id == 0)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Up"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Up"));
             else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Up"), false, () => MoveComponent(id, -1));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move Up"), false, () => MoveComponent(id, -1));
 
             if (id == m_Editors.Count - 1)
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Move Down"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Move Down"));
             else
-                menu.AddItem(CoreEditorUtils.GetContent("Move Down"), false, () => MoveComponent(id, 1));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
-            menu.AddItem(CoreEditorUtils.GetContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Copy Settings"), false, () => CopySettings(targetComponent));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
 
             if (CanPaste(targetComponent))
-                menu.AddItem(CoreEditorUtils.GetContent("Paste Settings"), false, () => PasteSettings(targetComponent));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Paste Settings"), false, () => PasteSettings(targetComponent));
             else
-                menu.AddDisabledItem(CoreEditorUtils.GetContent("Paste Settings"));
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Paste Settings"));
 
             menu.AddSeparator(string.Empty);
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle All"), false, () => m_Editors[id].SetAllOverridesTo(true));
-            menu.AddItem(CoreEditorUtils.GetContent("Toggle None"), false, () => m_Editors[id].SetAllOverridesTo(false));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Toggle All"), false, () => m_Editors[id].SetAllOverridesTo(true));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Toggle None"), false, () => m_Editors[id].SetAllOverridesTo(false));
 
             menu.DropDown(new Rect(position, Vector2.zero));
         }
@@ -232,7 +290,7 @@ namespace UnityEditor.Rendering
             m_SerializedObject.Update();
 
             var component = CreateNewComponent(type);
-            Undo.RegisterCreatedObjectUndo(component, "Add Volume Component");
+            Undo.RegisterCreatedObjectUndo(component, "Add Volume Override");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
             // Only when we're not dealing with an instantiated asset
@@ -317,7 +375,7 @@ namespace UnityEditor.Rendering
 
             // Create a new object
             var newComponent = CreateNewComponent(type);
-            Undo.RegisterCreatedObjectUndo(newComponent, "Reset Volume Component");
+            Undo.RegisterCreatedObjectUndo(newComponent, "Reset Volume Overrides");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
             AssetDatabase.AddObjectToAsset(newComponent, asset);

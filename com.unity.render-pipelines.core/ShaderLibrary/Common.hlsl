@@ -59,12 +59,31 @@
 // uniform float4 packedArray[3];
 // static float unpackedArray[12] = (float[12])packedArray;
 
-// The function of the shader library are stateless, no uniform decalare in it.
+// The function of the shader library are stateless, no uniform declare in it.
 // Any function that require an explicit precision, use float or half qualifier, when the function can support both, it use real (see below)
 // If a function require to have both a half and a float version, then both need to be explicitly define
 #ifndef real
 
-#ifdef SHADER_API_MOBILE
+// The including shader should define whether half
+// precision is suitable for its needs.  The shader
+// API (for now) can indicate whether half is possible.
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#define HAS_HALF 1
+#else
+#define HAS_HALF 0
+#endif
+
+#ifndef PREFER_HALF
+#define PREFER_HALF 1
+#endif
+
+#if HAS_HALF && PREFER_HALF
+#define REAL_IS_HALF 1
+#else
+#define REAL_IS_HALF 0
+#endif // Do we have half?
+
+#if REAL_IS_HALF
 #define real half
 #define real2 half2
 #define real3 half3
@@ -93,11 +112,10 @@
 
 #define REAL_MIN HALF_MIN
 #define REAL_MAX HALF_MAX
+#define REAL_EPS HALF_EPS
 #define TEMPLATE_1_REAL TEMPLATE_1_HALF
 #define TEMPLATE_2_REAL TEMPLATE_2_HALF
 #define TEMPLATE_3_REAL TEMPLATE_3_HALF
-
-#define HAS_HALF 1
 
 #else
 
@@ -116,13 +134,12 @@
 
 #define REAL_MIN FLT_MIN
 #define REAL_MAX FLT_MAX
+#define REAL_EPS FLT_EPS
 #define TEMPLATE_1_REAL TEMPLATE_1_FLT
 #define TEMPLATE_2_REAL TEMPLATE_2_FLT
 #define TEMPLATE_3_REAL TEMPLATE_3_FLT
 
-#define HAS_HALF 0
-
-#endif // SHADER_API_MOBILE
+#endif // REAL_IS_HALF
 
 #endif // #ifndef real
 
@@ -140,30 +157,30 @@
 
 // Include language header
 #if defined(SHADER_API_XBOXONE)
-#include "API/XBoxOne.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/XBoxOne.hlsl"
 #elif defined(SHADER_API_PSSL)
-#include "API/PSSL.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/PSSL.hlsl"
 #elif defined(SHADER_API_D3D11)
-#include "API/D3D11.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/D3D11.hlsl"
 #elif defined(SHADER_API_METAL)
-#include "API/Metal.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Metal.hlsl"
 #elif defined(SHADER_API_VULKAN)
-#include "API/Vulkan.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Vulkan.hlsl"
 #elif defined(SHADER_API_SWITCH)
-#include "API/Switch.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Switch.hlsl"
 #elif defined(SHADER_API_GLCORE)
-#include "API/GLCore.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLCore.hlsl"
 #elif defined(SHADER_API_GLES3)
-#include "API/GLES3.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES3.hlsl"
 #elif defined(SHADER_API_GLES)
-#include "API/GLES2.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/GLES2.hlsl"
 #else
 #error unsupported shader api
 #endif
-#include "API/Validate.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/Validate.hlsl"
 
-#include "Macros.hlsl"
-#include "Random.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
@@ -171,25 +188,29 @@
 
 // Error on GLES2 undefined functions
 #ifdef SHADER_API_GLES
-#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNC(BitFieldExtract)
-#define IsBitSet ERROR_ON_UNSUPPORTED_FUNC(IsBitSet)
-#define SetBit ERROR_ON_UNSUPPORTED_FUNC(SetBit)
-#define ClearBit ERROR_ON_UNSUPPORTED_FUNC(ClearBit)
-#define ToggleBit ERROR_ON_UNSUPPORTED_FUNC(ToggleBit)
-#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNC(FastMulBySignOfNegZero)
-#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNC(LODDitheringTransition)
+#define BitFieldExtract ERROR_ON_UNSUPPORTED_FUNCTION(BitFieldExtract)
+#define IsBitSet ERROR_ON_UNSUPPORTED_FUNCTION(IsBitSet)
+#define SetBit ERROR_ON_UNSUPPORTED_FUNCTION(SetBit)
+#define ClearBit ERROR_ON_UNSUPPORTED_FUNCTION(ClearBit)
+#define ToggleBit ERROR_ON_UNSUPPORTED_FUNCTION(ToggleBit)
+#define FastMulBySignOfNegZero ERROR_ON_UNSUPPORTED_FUNCTION(FastMulBySignOfNegZero)
+#define LODDitheringTransition ERROR_ON_UNSUPPORTED_FUNCTION(LODDitheringTransition)
 #endif
 
 // On everything but GCN consoles we error on cross-lane operations
-#ifndef SUPPORTS_WAVE_INTRINSICS
-#define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAllTrue)
-#define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNC(WaveActiveAnyTrue)
-#define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMin)
-#define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNC(WaveActiveMax)
-#define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBallot)
-#define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNC(WaveActiveSum)
-#define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBitAnd)
-#define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNC(WaveActiveBitOr)
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+#define WaveActiveAllTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAllTrue)
+#define WaveActiveAnyTrue ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveAnyTrue)
+#define WaveGetLaneIndex ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneIndex)
+#define WaveIsFirstLane ERROR_ON_UNSUPPORTED_FUNCTION(WaveIsFirstLane)
+#define GetWaveID ERROR_ON_UNSUPPORTED_FUNCTION(GetWaveID)
+#define WaveActiveMin ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMin)
+#define WaveActiveMax ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveMax)
+#define WaveActiveBallot ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBallot)
+#define WaveActiveSum ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveSum)
+#define WaveActiveBitAnd ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitAnd)
+#define WaveActiveBitOr ERROR_ON_UNSUPPORTED_FUNCTION(WaveActiveBitOr)
+#define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
 #if !defined(SHADER_API_GLES)
@@ -269,6 +290,29 @@ void ToggleBit(inout uint data, uint offset)
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
+
+#ifndef INTRINSIC_QUAD_SHUFFLE
+    // Important! Only valid in pixel shaders!
+    float QuadReadAcrossX(float value, int2 screenPos)
+    {
+        return value - (ddx_fine(value) * (float(screenPos.x & 1) * 2.0 - 1.0));
+    }
+
+    float QuadReadAcrossY(float value, int2 screenPos)
+    {
+        return value - (ddy_fine(value) * (float(screenPos.y & 1) * 2.0 - 1.0));
+    }
+
+    float QuadReadAcrossDiagonal(float value, int2 screenPos)
+    {
+        float dX = ddx_fine(value);
+        float dY = ddy_fine(value);
+        float2 quadDir = float2(float(screenPos.x & 1) * 2.0 - 1.0, float(screenPos.y & 1) * 2.0 - 1.0);
+        float X = value - (dX * quadDir.x);
+        return X - (ddy_fine(value) * quadDir.y);
+    }
+#endif
+
 TEMPLATE_SWAP(Swap) // Define a Swap(a, b) function for all types
 
 #define CUBEMAPFACE_POSITIVE_X 0
@@ -300,26 +344,69 @@ float CubeMapFaceID(float3 dir)
 }
 #endif // INTRINSIC_CUBEMAP_FACE_ID
 
+#if !defined(SHADER_API_GLES)
 // Intrinsic isnan can't be used because it require /Gic to be enabled on fxc that we can't do. So use AnyIsNan instead
-bool IsNan(float n)
+bool IsNaN(float x)
 {
-    return (n < 0.0 || n > 0.0 || n == 0.0) ? false : true;
+    return (asuint(x) & 0x7FFFFFFF) > 0x7F800000;
 }
 
-bool AnyIsNan(float2 v)
+bool AnyIsNaN(float2 v)
 {
-    return (IsNan(v.x) || IsNan(v.y));
+    return (IsNaN(v.x) || IsNaN(v.y));
 }
 
-bool AnyIsNan(float3 v)
+bool AnyIsNaN(float3 v)
 {
-    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z));
+    return (IsNaN(v.x) || IsNaN(v.y) || IsNaN(v.z));
 }
 
-bool AnyIsNan(float4 v)
+bool AnyIsNaN(float4 v)
 {
-    return (IsNan(v.x) || IsNan(v.y) || IsNan(v.z) || IsNan(v.w));
+    return (IsNaN(v.x) || IsNaN(v.y) || IsNaN(v.z) || IsNaN(v.w));
 }
+
+bool IsInf(float x)
+{
+    return (asuint(x) & 0x7FFFFFFF) == 0x7F800000;
+}
+
+bool AnyIsInf(float2 v)
+{
+    return (IsInf(v.x) || IsInf(v.y));
+}
+
+bool AnyIsInf(float3 v)
+{
+    return (IsInf(v.x) || IsInf(v.y) || IsInf(v.z));
+}
+
+bool AnyIsInf(float4 v)
+{
+    return (IsInf(v.x) || IsInf(v.y) || IsInf(v.z) || IsInf(v.w));
+}
+
+bool IsFinite(float x)
+{
+    return (asuint(x) & 0x7F800000) != 0x7F800000;
+}
+
+float SanitizeFinite(float x)
+{
+    return IsFinite(x) ? x : 0;
+}
+
+bool IsPositiveFinite(float x)
+{
+    return asuint(x) < 0x7F800000;
+}
+
+float SanitizePositiveFinite(float x)
+{
+    return IsPositiveFinite(x) ? x : 0;
+}
+
+#endif
 
 // ----------------------------------------------------------------------------
 // Common math functions
@@ -336,8 +423,8 @@ real RadToDeg(real rad)
 }
 
 // Square functions for cleaner code
-TEMPLATE_1_REAL(Sq, x, return x * x)
-TEMPLATE_1_INT(Sq, x, return x * x)
+TEMPLATE_1_REAL(Sq, x, return (x) * (x))
+TEMPLATE_1_INT(Sq, x, return (x) * (x))
 
 bool IsPower2(uint x)
 {
@@ -443,10 +530,11 @@ float FastSign(float s, bool ignoreNegZero = true)
 
 // Orthonormalizes the tangent frame using the Gram-Schmidt process.
 // We assume that the normal is normalized and that the two vectors
-// aren't colinear.
+// aren't collinear.
 // Returns the new tangent (the normal is unaffected).
 real3 Orthonormalize(real3 tangent, real3 normal)
 {
+    // TODO: use SafeNormalize()?
     return normalize(tangent - dot(tangent, normal) * normal);
 }
 
@@ -495,6 +583,11 @@ real Smootherstep(real a, real b, real t)
 float3 NLerp(float3 A, float3 B, float t)
 {
     return normalize(lerp(A, B, t));
+}
+
+float Length2(float3 v)
+{
+    return dot(v, v);
 }
 
 real Pow4(real x)
@@ -694,6 +787,19 @@ float DecodeLogarithmicDepth(float d, float4 encodingParams)
     return encodingParams.x * exp2(d * encodingParams.y);
 }
 
+real4 CompositeOver(real4 front, real4 back)
+{
+    return front + (1 - front.a) * back;
+}
+
+void CompositeOver(real3 colorFront, real3 alphaFront,
+                   real3 colorBack,  real3 alphaBack,
+                   out real3 color,  out real3 alpha)
+{
+    color = colorFront + (1 - alphaFront) * colorBack;
+    alpha = alphaFront + (1 - alphaFront) * alphaBack;
+}
+
 // ----------------------------------------------------------------------------
 // Space transformations
 // ----------------------------------------------------------------------------
@@ -783,6 +889,7 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
 // PositionInputs
 // ----------------------------------------------------------------------------
 
+// Note: if you modify this struct, be sure to update the CustomPassFullscreenShader.template
 struct PositionInputs
 {
     float3 positionWS;  // World space position (could be camera-relative)
@@ -797,31 +904,20 @@ struct PositionInputs
 // This allow to easily share code.
 // If a compute shader call this function positionSS is an integer usually calculate like: uint2 positionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, uint2 tileCoord, uint eye)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 tileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
 {
     PositionInputs posInput;
     ZERO_INITIALIZE(PositionInputs, posInput);
 
     posInput.positionNDC = positionSS;
-#if SHADER_STAGE_COMPUTE
+#if SHADER_STAGE_COMPUTE || SHADER_STAGE_RAYTRACING
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     posInput.positionNDC.xy += float2(0.5, 0.5);
 #endif
     posInput.positionNDC *= invScreenSize;
-
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    posInput.positionNDC.x = posInput.positionNDC.x - eye;
-#endif
-
     posInput.positionSS = uint2(positionSS);
     posInput.tileCoord = tileCoord;
 
-    return posInput;
-}
-
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 tileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
-{
-    PositionInputs posInput = GetPositionInput_Stereo(positionSS, invScreenSize, tileCoord, 0);
     return posInput;
 }
 
@@ -832,19 +928,14 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
-PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord, uint eye)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
 {
-    PositionInputs posInput = GetPositionInput_Stereo(positionSS, invScreenSize, tileCoord, eye);
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.positionWS = positionWS;
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = linearDepth;
 
     return posInput;
-}
-
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
-{
-    return GetPositionInput_Stereo(positionSS, invScreenSize, deviceDepth, linearDepth, positionWS, tileCoord, 0);
 }
 
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS)
@@ -855,11 +946,11 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float d
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, float deviceDepth,
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth,
     float4x4 invViewProjMatrix, float4x4 viewMatrix,
-    uint2 tileCoord, uint eye)
+    uint2 tileCoord)
 {
-    PositionInputs posInput = GetPositionInput_Stereo(positionSS, invScreenSize, tileCoord, eye);
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
     posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = LinearEyeDepth(posInput.positionWS, viewMatrix);
@@ -868,22 +959,9 @@ PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, 
 }
 
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth,
-                                float4x4 invViewProjMatrix, float4x4 viewMatrix,
-                                uint2 tileCoord)
-{
-    return GetPositionInput_Stereo(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewMatrix, tileCoord, 0);
-}
-
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth,
                                 float4x4 invViewProjMatrix, float4x4 viewMatrix)
 {
-    return GetPositionInput_Stereo(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewMatrix, uint2(0, 0), 0);
-}
-
-PositionInputs GetPositionInput_Stereo(float2 positionSS, float2 invScreenSize, float deviceDepth,
-    float4x4 invViewProjMatrix, float4x4 viewMatrix, uint eye)
-{
-    return GetPositionInput_Stereo(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewMatrix, uint2(0, 0), eye);
+    return GetPositionInput(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewMatrix, uint2(0, 0));
 }
 
 // The view direction 'V' points towards the camera.
@@ -941,9 +1019,9 @@ bool HasFlag(uint bitfield, uint flag)
 }
 
 // Normalize that account for vectors with zero length
-real3 SafeNormalize(real3 inVec)
+real3 SafeNormalize(float3 inVec)
 {
-    real dp3 = max(REAL_MIN, dot(inVec, inVec));
+    float dp3 = max(FLT_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
@@ -952,6 +1030,18 @@ real3 SafeNormalize(real3 inVec)
 real SafeDiv(real numer, real denom)
 {
     return (numer != denom) ? numer / denom : 1;
+}
+
+// Assumes that (0 <= x <= Pi).
+real SinFromCos(real cosX)
+{
+    return sqrt(saturate(1 - cosX * cosX));
+}
+
+// Dot product in spherical coordinates.
+real SphericalDot(real cosTheta1, real phi1, real cosTheta2, real phi2)
+{
+    return SinFromCos(cosTheta1) * SinFromCos(cosTheta2) * cos(phi1 - phi2) + cosTheta1 * cosTheta2;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.
@@ -1008,9 +1098,12 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 
 // LOD dithering transition helper
 // LOD0 must use this function with ditherFactor 1..0
-// LOD1 must use this function with ditherFactor 0..1
+// LOD1 must use this function with ditherFactor -1..0
+// This is what is provided by unity_LODFade
 void LODDitheringTransition(uint3 fadeMaskSeed, float ditherFactor)
 {
+    ditherFactor = ditherFactor < 0.0 ? 1 + ditherFactor : ditherFactor;
+
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
     float p = GenerateHashedRandomFloat(fadeMaskSeed);

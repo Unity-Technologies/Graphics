@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -53,18 +53,12 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             //Detect spaceable input slot & set output slot as a result (if one output slot is spaceable)
-            var inputSlotWithExpression = new List<VFXSlot>();
-            GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.IsMasterSlot());
-
             var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
             if (inputSlotSpaceable.Any() || inputSlots.Count == 0)
             {
-                var outputSlotWithExpression = new List<VFXSlot>();
-                GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.IsMasterSlot());
-
                 var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
                 bool needUpdateInputSpaceable = false;
                 foreach (var output in outputSlotSpaceable)

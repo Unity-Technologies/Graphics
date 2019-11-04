@@ -3,10 +3,10 @@ using System;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 [Serializable]
-public class VisualEffectActivationClip : PlayableAsset, ITimelineClipAsset
+class VisualEffectActivationClip : PlayableAsset, ITimelineClipAsset
 {
     public VisualEffectActivationBehaviour activationBehavior = new VisualEffectActivationBehaviour();
 

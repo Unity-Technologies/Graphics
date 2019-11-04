@@ -1,11 +1,11 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable]
     public class DecalsDebugSettings
     {
-        public bool m_DisplayAtlas = false;
-        public UInt32 m_MipLevel = 0;
+        public bool displayAtlas = false;
+        public UInt32 mipLevel = 0;
     }
 }

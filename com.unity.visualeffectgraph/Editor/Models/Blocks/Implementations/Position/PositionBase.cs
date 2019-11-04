@@ -16,23 +16,23 @@ namespace UnityEditor.VFX.Block
 
         public enum SpawnMode
         {
-            Randomized,
+            Random,
             Custom
         }
 
         public class ThicknessProperties
         {
-            [Min(0), Tooltip("Controls whether particles are spawned on the surface of the shape, or inside the volume.")]
+            [Min(0), Tooltip("Sets the thickness of the spawning volume.")]
             public float Thickness = 0.1f;
         }
 
-        [VFXSetting, Tooltip("Controls whether particles are spawned on the surface of the shape, or inside the volume.")]
+        [VFXSetting, Tooltip("Specifies whether particles are spawned on the surface of the shape, inside the volume, or within a defined thickness.")]
         public PositionMode positionMode;
         [VFXSetting, Tooltip("Controls whether particles are spawned randomly, or can be controlled by a deterministic input.")]
         public SpawnMode spawnMode;
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         protected virtual bool needDirectionWrite { get { return false; } }
         protected virtual bool supportsVolumeSpawning { get { return true; } }
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 if (needDirectionWrite)
-                    yield return new VFXAttributeInfo(new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f))), VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.Direction, VFXAttributeMode.Write);
             }
         }
 

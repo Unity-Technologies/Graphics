@@ -4,7 +4,7 @@
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
 #define VOLUMETRICLIGHTING_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DensityVolumeEngineData
+// Generated from UnityEngine.Rendering.HighDefinition.DensityVolumeEngineData
 // PackingRules = Exact
 struct DensityVolumeEngineData
 {
@@ -14,14 +14,14 @@ struct DensityVolumeEngineData
     int textureIndex;
     float3 textureScroll;
     int invertFade;
-    float3 rcpPosFade;
-    float pad1;
-    float3 rcpNegFade;
-    float pad2;
+    float3 rcpPosFaceFade;
+    float rcpDistFadeLen;
+    float3 rcpNegFaceFade;
+    float endTimesRcpDistFadeLen;
 };
 
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DensityVolumeEngineData
+// Accessors for UnityEngine.Rendering.HighDefinition.DensityVolumeEngineData
 //
 float3 GetScattering(DensityVolumeEngineData value)
 {
@@ -47,22 +47,21 @@ int GetInvertFade(DensityVolumeEngineData value)
 {
     return value.invertFade;
 }
-float3 GetRcpPosFade(DensityVolumeEngineData value)
+float3 GetRcpPosFaceFade(DensityVolumeEngineData value)
 {
-    return value.rcpPosFade;
+    return value.rcpPosFaceFade;
 }
-float GetPad1(DensityVolumeEngineData value)
+float GetRcpDistFadeLen(DensityVolumeEngineData value)
 {
-    return value.pad1;
+    return value.rcpDistFadeLen;
 }
-float3 GetRcpNegFade(DensityVolumeEngineData value)
+float3 GetRcpNegFaceFade(DensityVolumeEngineData value)
 {
-    return value.rcpNegFade;
+    return value.rcpNegFaceFade;
 }
-float GetPad2(DensityVolumeEngineData value)
+float GetEndTimesRcpDistFadeLen(DensityVolumeEngineData value)
 {
-    return value.pad2;
+    return value.endTimesRcpDistFadeLen;
 }
-
 
 #endif

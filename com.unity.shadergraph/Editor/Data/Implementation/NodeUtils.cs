@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -16,7 +18,9 @@ namespace UnityEditor.Graphing
 
     static class NodeUtils
     {
-        public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
+        public static string docURL = "https://github.com/Unity-Technologies/ScriptableRenderPipeline/tree/master/com.unity.shadergraph/Documentation%7E/";
+
+        public static void SlotConfigurationExceptionIfBadConfiguration(AbstractMaterialNode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {
             var missingSlots = new List<int>();
 
@@ -34,7 +38,7 @@ namespace UnityEditor.Graphing
             throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
         }
 
-        public static IEnumerable<IEdge> GetAllEdges(INode node)
+        public static IEnumerable<IEdge> GetAllEdges(AbstractMaterialNode node)
         {
             var result = new List<IEdge>();
             var validSlots = ListPool<ISlot>.Get();
@@ -58,6 +62,15 @@ namespace UnityEditor.Graphing
             return result;
         }
 
+        public static string GetDuplicateSafeNameForSlot(AbstractMaterialNode node, int slotId, string name)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            node.GetSlots(slots);
+
+            name = name.Trim();
+            return GraphUtil.SanitizeName(slots.Where(p => p.id != slotId).Select(p => p.RawDisplayName()), "{0} ({1})", name);
+        }
+
         // CollectNodesNodeFeedsInto looks at the current node and calculates
         // which child nodes it depends on for it's calculation.
         // Results are returned depth first so by processing each node in
@@ -68,8 +81,8 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
-            where T : class, INode
+        public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, 
+            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -80,18 +93,30 @@ namespace UnityEditor.Graphing
                 return;
 
             IEnumerable<int> ids;
-            if (slotIds == null)
+
+            // If this node is a keyword node and we have an active keyword permutation
+            // The only valid port id is the port that corresponds to that keywords value in the active permutation
+            if(node is KeywordNode keywordNode && keywordPermutation != null)
+            {
+                var valueInPermutation = keywordPermutation.Where(x => x.Key.guid == keywordNode.keywordGuid).FirstOrDefault();
+                ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
+            }
+            else if (slotIds == null)
+            {
                 ids = node.GetInputSlots<ISlot>().Select(x => x.id);
+            }
             else
+            {
                 ids = node.GetInputSlots<ISlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+            }
 
             foreach (var slot in ids)
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
             }
 
@@ -99,7 +124,39 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        public static void CollectNodesNodeFeedsInto(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include)
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, MaterialSlot slot)
+        {
+            var node = slot.owner;
+            var graph = node.owner;
+            foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
+            {
+                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                if (outputNode != null)
+                {
+                    CollectNodeSet(nodeSet, outputNode);
+                }
+            }
+        }
+
+        public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, AbstractMaterialNode node)
+        {
+            if (!nodeSet.Add(node))
+            {
+                return;
+            }
+
+            using (var slotsHandle = ListPool<MaterialSlot>.GetDisposable())
+            {
+                var slots = slotsHandle.value;
+                node.GetInputSlots(slots);
+                foreach (var slot in slots)
+                {
+                    CollectNodeSet(nodeSet, slot);
+                }
+            }
+        }
+
+        public static void CollectNodesNodeFeedsInto(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node, IncludeSelf includeSelf = IncludeSelf.Include)
         {
             if (node == null)
                 return;
@@ -117,6 +174,11 @@ namespace UnityEditor.Graphing
             }
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
+        }
+
+        public static string GetDocumentationString(AbstractMaterialNode node)
+        {
+            return $"{docURL}{node.name.Replace(" ", "-")}"+"-Node.md";
         }
 
         static Stack<MaterialSlot> s_SlotStack = new Stack<MaterialSlot>();
@@ -230,48 +292,44 @@ namespace UnityEditor.Graphing
             }
         }
 
-        public static string ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision p, ConcreteSlotValueType slotValue)
-        {
-            switch (slotValue)
-            {
-                case ConcreteSlotValueType.Boolean:
-                    return p.ToString();
-                case ConcreteSlotValueType.Vector1:
-                    return p.ToString();
-                case ConcreteSlotValueType.Vector2:
-                    return p + "2";
-                case ConcreteSlotValueType.Vector3:
-                    return p + "3";
-                case ConcreteSlotValueType.Vector4:
-                    return p + "4";
-                case ConcreteSlotValueType.Texture2D:
-                    return "Texture2D";
-                case ConcreteSlotValueType.Texture2DArray:
-                    return "Texture2DArray";
-                case ConcreteSlotValueType.Texture3D:
-                    return "Texture3D";
-                case ConcreteSlotValueType.Cubemap:
-                    return "Cubemap";
-                case ConcreteSlotValueType.Gradient:
-                    return "Gradient";
-                case ConcreteSlotValueType.Matrix2:
-                    return p + "2x2";
-                case ConcreteSlotValueType.Matrix3:
-                    return p + "3x3";
-                case ConcreteSlotValueType.Matrix4:
-                    return p + "4x4";
-                case ConcreteSlotValueType.SamplerState:
-                    return "SamplerState";
-                default:
-                    return "Error";
-            }
-        }
-
         public static string GetHLSLSafeName(string input)
         {
             char[] arr = input.ToCharArray();
             arr = Array.FindAll<char>(arr, (c => (Char.IsLetterOrDigit(c))));
-            return new string(arr);
+            var safeName = new string(arr);
+            if (safeName.Length > 1 && char.IsDigit(safeName[0]))
+            {
+                safeName = $"var{safeName}";
+            }
+            return safeName;
+        }
+
+        private static string GetDisplaySafeName(string input)
+        {
+            //strip valid display characters from slot name
+            //current valid characters are whitespace and ( ) _ separators
+            StringBuilder cleanName = new StringBuilder();
+            foreach (var c in input)
+            {
+                if (c != ' ' && c != '(' && c != ')' && c != '_')
+                    cleanName.Append(c);
+            }
+
+            return cleanName.ToString();
+        }
+
+        public static bool ValidateSlotName(string inName, out string errorMessage)
+        {
+            //check for invalid characters between display safe and hlsl safe name
+            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName))
+            {
+                errorMessage = "Slot name(s) found invalid character(s). Valid characters: A-Z, a-z, 0-9, _ ( ) ";
+                return true;
+            }
+
+            //if clean, return null and false
+            errorMessage = null;
+            return false;
         }
 
         public static string FloatToShaderValue(float value)

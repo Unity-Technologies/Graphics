@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Operator
             if (!s_ExpressionCountPerType.TryGetValue(type, out count))
             {
                 var tempInstance = VFXSlot.Create(new VFXPropertyWithValue(new VFXProperty(type, "temp")), VFXSlot.Direction.kInput);
-                count = tempInstance.GetVFXValueTypeSlots().Count();
+                count = tempInstance.GetExpressionSlots().Count();
                 s_ExpressionCountPerType.Add(type, count);
             }
             return count;
@@ -100,11 +100,11 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The predicate")]
+            [Tooltip("Sets the boolean whose state determines the branch output.")]
             public bool predicate = true;
-            [Tooltip("The true branch")]
+            [Tooltip("Sets the value which will be returned if the predicate is true.")]
             public float True = 0.0f;
-            [Tooltip("The false branch")]
+            [Tooltip("Sets the value which will be returned if the predicate is false.")]
             public float False = 1.0f;
         }
 

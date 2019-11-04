@@ -3,9 +3,9 @@ using System.Linq;
 using System.Collections;
 using System.Collections.ObjectModel;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
-public interface IGizmoable
+interface IGizmoable
 {
     string name { get; }
 }

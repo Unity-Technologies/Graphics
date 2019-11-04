@@ -1,9 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    partial class HDReflectionProbeEditor
+    sealed partial class HDReflectionProbeEditor
     {
         HDCubemapInspector m_CubemapEditor;
 
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUILayout.EndHorizontal();
                 return;
             }
-            
+
             Texture tex = GetTexture(this, target);
             if (tex != null && targets.Length == 1)
                 m_CubemapEditor.DrawPreview(position);
@@ -67,18 +67,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static Texture GetTexture(HDReflectionProbeEditor e, Object target)
         {
-            HDProbe additional = e.GetTarget(target);
-            if (additional != null && additional.mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
-            {
-                return additional.realtimeTexture;
-            }
-            else
-            {
-                var p = target as ReflectionProbe;
-                if (p != null)
-                    return p.texture;
-            }
-            return null;
+            HDProbe probe = e.GetTarget(target);
+            return probe.texture;
         }
 
         private void OnDestroy()

@@ -1,15 +1,16 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.VFX.Block.Test;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 
 
 using Object = UnityEngine.Object;
+using System.IO;
 
 namespace UnityEditor.VFX.Test
 {
@@ -22,7 +23,7 @@ namespace UnityEditor.VFX.Test
 
         private VisualEffectAsset CreateAssetAtPath(string path)
         {
-            return VisualEffectResource.CreateNewAsset(path);
+            return VisualEffectAssetEditorUtility.CreateNewAsset(path);
         }
 
         [OneTimeSetUpAttribute]
@@ -118,11 +119,11 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull((graph[1])[0]);
             Assert.IsNotNull((graph[2])[0]);
 
-            Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[0])).contextType);
-            Assert.AreEqual(VFXContextType.kUpdate, ((VFXContext)(graph[1])).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXContext)(graph[2])).contextType);
-            Assert.AreEqual(VFXContextType.kInit,   ((VFXContext)(graph[3])).contextType);
-            Assert.AreEqual(VFXContextType.kOutput, ((VFXContext)(graph[4])).contextType);
+            Assert.AreEqual(VFXContextType.Init,   ((VFXContext)(graph[0])).contextType);
+            Assert.AreEqual(VFXContextType.Update, ((VFXContext)(graph[1])).contextType);
+            Assert.AreEqual(VFXContextType.Output, ((VFXContext)(graph[2])).contextType);
+            Assert.AreEqual(VFXContextType.Init,   ((VFXContext)(graph[3])).contextType);
+            Assert.AreEqual(VFXContextType.Output, ((VFXContext)(graph[4])).contextType);
 
             Assert.IsNotNull(graph[5] as Operator.Add);
         }
@@ -175,7 +176,9 @@ namespace UnityEditor.VFX.Test
 
                 asset = null;
                 EditorUtility.UnloadUnusedAssetsImmediate();
-                AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB);
+                //AssetDatabase.CopyAsset(kTempAssetPathA, kTempAssetPathB); // TODO Deactivated because a regression makes it fail when load the copy
+                File.Copy(kTempAssetPathA, kTempAssetPathB);
+
                 if (asset != null)
                     AssetDatabase.RemoveObjectFromAsset(asset);
             }
@@ -294,8 +297,8 @@ namespace UnityEditor.VFX.Test
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
-                parameter.SetSettingValue("m_exposed", true);
-                parameter.SetSettingValue("m_exposedName", name);
+                parameter.SetSettingValue("m_Exposed", true);
+                parameter.SetSettingValue("m_ExposedName", name);
                 asset.GetResource().GetOrCreateGraph().AddChild(parameter);
                 Assert.AreEqual(VFXValueType.Float2, parameter.outputSlots[0].GetExpression().valueType);
             };
@@ -345,7 +348,7 @@ namespace UnityEditor.VFX.Test
         {
             Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.name == ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString())).CreateInstance();
                 asset.GetResource().GetOrCreateGraph().AddChild(builtIn);
                 Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
             };
@@ -366,7 +369,7 @@ namespace UnityEditor.VFX.Test
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
-                var builtIn = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
+                var builtIn = VFXLibrary.GetOperators().First(o => o.name == ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString())).CreateInstance();
                 graph.AddChild(builtIn);
                 graph.AddChild(add);
                 add.inputSlots[0].Link(builtIn.outputSlots[0]);

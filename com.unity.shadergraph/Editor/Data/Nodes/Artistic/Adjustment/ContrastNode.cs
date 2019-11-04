@@ -11,11 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Contrast";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Contrast-Node"; }
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Contrast", BindingFlags.Static | BindingFlags.NonPublic);
@@ -30,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision} midpoint = pow(0.5, 2.2);
+    $precision midpoint = pow(0.5, 2.2);
     Out =  (In - midpoint) * Contrast + midpoint;
 }";
         }

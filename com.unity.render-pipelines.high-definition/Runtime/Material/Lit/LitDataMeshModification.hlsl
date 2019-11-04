@@ -13,7 +13,7 @@ float3 GetVertexDisplacement(float3 positionRWS, float3 normalWS, float2 texCoor
 }
 
 // Note: positionWS can be either in camera relative space or not
-void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionRWS, float4 time)
+void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionRWS, float3 timeParameters)
 {
 #if defined(_VERTEX_DISPLACEMENT)
 
@@ -45,14 +45,6 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
     #endif
         );
 #endif
-
-#ifdef _VERTEX_WIND
-    // current wind implementation is in absolute world space
-    float3 rootWP = GetObjectAbsolutePositionWS();
-    float3 absolutePositionWS = GetAbsolutePositionWS(positionRWS);
-    ApplyWindDisplacement(absolutePositionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
-    positionRWS = GetCameraRelativePositionWS(absolutePositionWS);
-#endif
 }
 
 #ifdef TESSELLATION_ON
@@ -74,8 +66,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
     bool frustumCullCurrView = all(frustumCullEdgesMainView);
 #else
-    // 'unity_CameraWorldClipPlanes' are camera-relative rendering aware.
-    bool frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, unity_CameraWorldClipPlanes, 4); // Do not test near/far planes
+    bool frustumCullCurrView = CullTriangleFrustum(p0, p1, p2, frustumEps, _ShadowFrustumPlanes, 4); // Do not test near/far planes
 #endif
 
     bool faceCull = false;
@@ -111,8 +102,8 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
     if (_TessellationFactorTriangleSize > 0.0)
     {
         // return a value between 0 and 1
-        // Warning: '_ViewProjMatrix' is not the same as UNITY_MATRIX_VP for shadow views!
-        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, _ViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
+        // Warning: '_ViewProjMatrix' can be the viewproj matrix of the light when we render shadows, that's why we use _CameraViewProjMatrix instead
+        edgeTessFactors *= GetScreenSpaceTessFactor( p0, p1, p2, _CameraViewProjMatrix, _ScreenSize, _TessellationFactorTriangleSize); // Use primary camera view
     }
 
     // Distance based tessellation

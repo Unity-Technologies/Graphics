@@ -1,7 +1,7 @@
 PortInputView {
-    width: 232;
-    height: 22;
-    padding-top: 1;
+    width: 232px;
+    height: 22px;
+    padding-top: 1px;
     flex-direction: row;
     justify-content: flex-end;
 }
@@ -10,46 +10,46 @@ PortInputView > #container {
     background-color: rgba(63, 63, 63, 0.8);
     flex-direction: row;
     align-items: center;
-    padding-left: 8;
-    margin-right: 12;
-    border-left-width: 1;
-    border-top-width: 1;
-    border-right-width: 1;
-    border-bottom-width: 1;
+    padding-left: 8px;
+    margin-right: 12px;
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
     border-color: rgba(25, 25, 25, 0.8);
-    border-radius: 2;
+    border-radius: 2px;
 }
 
 PortInputView > #container > #slot {
-    width: 8;
-    height: 8;
+    width: 8px;
+    height: 8px;
     background-color: #2B2B2B;
     border-color: #232323;
-    border-top-width: 1;
-    border-bottom-width: 1;
-    border-left-width: 1;
-    border-right-width: 1;
-    border-radius: 4;
-    margin-left: 6;
-    margin-right: 6;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-radius: 4px;
+    margin-left: 6px;
+    margin-right: 6px;
     align-items: center;
     justify-content: center;
 }
 
 PortInputView > #edge {
     position: absolute;
-    right: 0;
-    top: 10.5;
-    height: 2;
-    width: 20;
+    right: 0px;
+    top: 10.5px;
+    height: 2px;
+    width: 20px;
     background-color: #ff0000;
 }
 
 PortInputView > #container > #slot > #dot {
-    width: 4;
-    height: 4;
+    width: 4px;
+    height: 4px;
     background-color: #ff0000;
-    border-radius: 4;
+    border-radius: 4px;
 }
 
 PortInputView.typeMatrix4 > #container > #slot > #dot,

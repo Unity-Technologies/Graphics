@@ -30,10 +30,6 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayHDShadowMap"
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
-            if (ShouldFlipDebugTexture())
-            {
-                output.texcoord.y = 1.0f - output.texcoord.y;
-            }
             output.texcoord = output.texcoord * _TextureScaleBias.xy + _TextureScaleBias.zw;
             return output;
         }
@@ -58,12 +54,12 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayHDShadowMap"
             {
                 float shadowValue = saturate((SAMPLE_TEXTURE2D(_AtlasTexture, ltc_linear_clamp_sampler, input.texcoord).x - _ValidRange.x) * _ValidRange.y);
                 float3 color = shadowValue.xxx;
-                
+
                 // If the shadow atlas is rescaled, display it with gradiant
                 // (1x scale -> blue, 2x -> yellowish, 4x scale -> red)
                 if (_RcpGlobalScaleFactor < 1)
                     color *= saturate(1 - abs(3 * (_RcpGlobalScaleFactor - 0.3) - float4(0, 1, 2, 3))).rgb;
-                
+
                 return float4(color, 1);
             }
 

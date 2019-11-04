@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Post Processing Profile
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: 5664278892504887475}
+--- !u!114 &5664278892504887475
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f086a068d4c5889438831b3ae9afc11c, type: 3}
+  m_Name: Tonemapping
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 3
+  toeStrength:
+    m_OverrideState: 1
+    m_Value: 0.161
+    min: 0
+    max: 1
+  toeLength:
+    m_OverrideState: 1
+    m_Value: 0.513
+    min: 0
+    max: 1
+  shoulderStrength:
+    m_OverrideState: 1
+    m_Value: 0.778
+    min: 0
+    max: 1
+  shoulderLength:
+    m_OverrideState: 1
+    m_Value: 1.8
+    min: 0
+  shoulderAngle:
+    m_OverrideState: 1
+    m_Value: 0.187
+    min: 0
+    max: 1
+  gamma:
+    m_OverrideState: 1
+    m_Value: 1.22
+    min: 0.001

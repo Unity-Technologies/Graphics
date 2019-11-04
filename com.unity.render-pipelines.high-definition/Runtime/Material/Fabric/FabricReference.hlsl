@@ -25,11 +25,11 @@ float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
 
         if (NdotL > 0.0)
         {
-            float LdotV, NdotH, LdotH, NdotV, invLenLV;
-            GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
+            float LdotV, NdotH, LdotH, invLenLV;
+            GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
             // Incident Light intensity
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
 
             // BRDF Data
             float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
@@ -71,7 +71,7 @@ float3 IntegrateSpecularSilkIBLRef(LightLoopContext lightLoopContext,
             // Fresnel component is apply here as describe in ImportanceSampleGGX function
             float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
 
-            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0, lightData.rangeCompressionFactorCompensation);
 
             acc += FweightOverPdf * val.rgb;
         }

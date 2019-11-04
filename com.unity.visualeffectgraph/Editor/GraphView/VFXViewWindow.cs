@@ -4,14 +4,14 @@ using System.Linq;
 using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
-using UnityEngine.UIElements;
+using UnityEngine.VFX;
 using UnityEditor.VFX;
+using UnityEngine.UIElements;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityObject = UnityEngine.Object;
 using System.IO;
+using UnityEditor.VersionControl;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -19,7 +19,6 @@ namespace  UnityEditor.VFX.UI
     class VFXViewWindow : EditorWindow
     {
         ShortcutHandler m_ShortcutHandler;
-
         protected void SetupFramingShortcutHandler(VFXView view)
         {
             m_ShortcutHandler = new ShortcutHandler(
@@ -30,19 +29,20 @@ namespace  UnityEditor.VFX.UI
                     {Event.KeyboardEvent("o"), view.FrameOrigin },
                     {Event.KeyboardEvent("^#>"), view.FramePrev },
                     {Event.KeyboardEvent("^>"), view.FrameNext },
-                    {Event.KeyboardEvent("#^r"), view.Resync},
                     {Event.KeyboardEvent("F7"), view.Compile},
                     {Event.KeyboardEvent("#d"), view.OutputToDot},
                     {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                     {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
                     {Event.KeyboardEvent("^r"), view.ReinitComponents},
                     {Event.KeyboardEvent("F5"), view.ReinitComponents},
+                    {Event.KeyboardEvent("#^r"), view.ReinitAndPlayComponents},
+                    {Event.KeyboardEvent("#F5"), view.ReinitAndPlayComponents},
                 });
         }
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3010)]
+        [MenuItem("Window/Visual Effects/Visual Effect Graph",false,3011)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -70,20 +70,44 @@ namespace  UnityEditor.VFX.UI
 
         public void LoadResource(VisualEffectResource resource, VisualEffect effectToAttach = null)
         {
+            m_ResourceHistory.Clear();
             if (graphView.controller == null || graphView.controller.model != resource)
             {
-                bool differentAsset = resource != m_DisplayedResource;
-
-                m_DisplayedResource = resource;
-                graphView.controller = VFXViewController.GetController(resource, true);
-                graphView.UpdateGlobalSelection();
-                if (differentAsset)
-                {
-                    graphView.FrameNewController();
-                }
+                InternalLoadResource(resource);
             }
             if (effectToAttach != null && graphView.controller != null && graphView.controller.model != null && effectToAttach.visualEffectAsset == graphView.controller.model.asset)
                 graphView.attachedComponent = effectToAttach;
+        }
+
+        List<VisualEffectResource> m_ResourceHistory = new List<VisualEffectResource>();
+
+        public IEnumerable<VisualEffectResource> resourceHistory
+        {
+            get { return m_ResourceHistory; }
+        }
+
+        public void PushResource(VisualEffectResource resource)
+        {
+            if (graphView.controller == null || graphView.controller.model != resource)
+            {
+                m_ResourceHistory.Add(m_DisplayedResource);
+                InternalLoadResource(resource);
+            }
+        }
+
+        void InternalLoadResource(VisualEffectResource resource)
+        {
+            m_DisplayedResource = resource;
+            graphView.controller = VFXViewController.GetController(resource, true);
+            graphView.UpdateGlobalSelection();
+            graphView.FrameNewController();
+        }
+
+        public void PopResource()
+        {
+            InternalLoadResource(m_ResourceHistory.Last());
+
+            m_ResourceHistory.RemoveAt(m_ResourceHistory.Count-1);
         }
 
         protected VisualEffectResource GetCurrentResource()
@@ -110,7 +134,7 @@ namespace  UnityEditor.VFX.UI
                 if (instanceID != 0)
                 {
                     string path = AssetDatabase.GetAssetPath(instanceID);
-                    if (path.EndsWith(".vfx"))
+                    if (path.EndsWith(VisualEffectResource.Extension))
                     {
                         selectedResource = VisualEffectResource.GetResourceAtPath(path);
                     }
@@ -123,6 +147,8 @@ namespace  UnityEditor.VFX.UI
             return selectedResource;
         }
 
+        Action m_OnUpdateAction;
+
         protected void OnEnable()
         {
             VFXManagerEditor.CheckVFXManager();
@@ -133,15 +159,18 @@ namespace  UnityEditor.VFX.UI
 
             rootVisualElement.Add(graphView);
 
-
-            var currentAsset = GetCurrentResource();
-            if (currentAsset != null)
+            // make sure we don't do something that might touch the model on the view OnEnable because
+            // the models OnEnable might be called after in the case of a domain reload.
+            m_OnUpdateAction = () =>
             {
-                LoadResource(currentAsset);
-            }
+                var currentAsset = GetCurrentResource();
+                if (currentAsset != null)
+                {
+                    LoadResource(currentAsset);
+                }
+            };
 
             autoCompile = true;
-
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
@@ -153,10 +182,6 @@ namespace  UnityEditor.VFX.UI
 
             currentWindow = this;
 
-            /*if (m_ViewScale != Vector3.zero)
-            {
-                graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
-            }*/
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
@@ -172,7 +197,7 @@ namespace  UnityEditor.VFX.UI
 
 #endif
 
-        protected void OnDisable()
+        protected void OnDestroy()
         {
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit -= Quitting_Workaround;
@@ -187,12 +212,6 @@ namespace  UnityEditor.VFX.UI
             currentWindow = null;
         }
 
-        void OnFocus()
-        {
-            if (graphView != null)
-                graphView.UpdateGlobalSelection();
-        }
-
         void OnEnterPanel(AttachToPanelEvent e)
         {
             rootVisualElement.AddManipulator(m_ShortcutHandler);
@@ -203,12 +222,25 @@ namespace  UnityEditor.VFX.UI
             rootVisualElement.RemoveManipulator(m_ShortcutHandler);
         }
 
+        void OnFocus()
+        {
+            graphView.OnFocus();
+        }
+
         public bool autoCompile {get; set; }
+
+        public bool autoCompileDependent { get; set; }
 
         void Update()
         {
             if (graphView == null)
                 return;
+
+            if(m_OnUpdateAction != null)
+            {
+                m_OnUpdateAction();
+                m_OnUpdateAction = null;
+            }
             VFXViewController controller = graphView.controller;
             var filename = "No Asset";
             if (controller != null)
@@ -227,12 +259,32 @@ namespace  UnityEditor.VFX.UI
                         }
 
 
-                        graph.RecompileIfNeeded(!autoCompile);
+                        graph.RecompileIfNeeded(!autoCompile,!autoCompileDependent);
                         controller.RecompileExpressionGraphIfNeeded();
                     }
                 }
             }
+
+            if( VFXViewModicationProcessor.assetMoved)
+            {
+                graphView.AssetMoved();
+                VFXViewModicationProcessor.assetMoved = false;
+            }
             titleContent.text = filename;
+
+            if (graphView?.controller?.model?.visualEffectObject != null)
+            {
+                graphView.checkoutButton.visible = true;
+                if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
+                    StatusQueryOptions.UseCachedIfPossible) && Provider.isActive && Provider.enabled)
+                {
+                    graphView.checkoutButton.SetEnabled(true);
+                }
+                else
+                {
+                    graphView.checkoutButton.SetEnabled(false);
+                }
+            }
         }
 
         [SerializeField]

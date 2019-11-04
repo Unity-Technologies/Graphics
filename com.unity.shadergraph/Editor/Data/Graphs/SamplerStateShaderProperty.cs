@@ -1,52 +1,67 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     class SamplerStateShaderProperty : AbstractShaderProperty<TextureSamplerState>
     {
-        public override PropertyType propertyType
+        public SamplerStateShaderProperty()
         {
-            get { return PropertyType.SamplerState; }
+            displayName = "SamplerState";
+            value = new TextureSamplerState();
         }
 
-        public override Vector4 defaultValue
+        public override PropertyType propertyType => PropertyType.SamplerState;
+
+        internal override bool isBatchable => false;
+        internal override bool isExposable => false;
+        internal override bool isRenamable => false;
+
+        public override TextureSamplerState value
         {
-            get { return new Vector4(); }
+            get => base.value;
+            set
+            {
+                overrideReferenceName = $"{concreteShaderValueType.ToShaderString()}_{value.filter}_{value.wrap}";
+                base.value = value;
+            }
         }
 
-        public override bool isBatchable
+        internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            get { return false; }
+            return $"SAMPLER({referenceName}){delimiter}";
         }
 
-        public override string GetPropertyBlockString()
+        internal override string GetPropertyAsArgumentString()
         {
-            return string.Empty;
+            return $"SamplerState {referenceName}";
         }
 
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override AbstractMaterialNode ToConcreteNode()
         {
-            return string.Format(@"SAMPLER({0}){1}", referenceName, delimiter);
+            return new SamplerStateNode()
+            {
+                filter = value.filter,
+                wrap = value.wrap
+            };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return default(PreviewProperty);
         }
 
-        public override INode ToConcreteNode()
+        internal override ShaderInput Copy()
         {
-            return new SamplerStateNode();
-        }
-
-        public override IShaderProperty Copy()
-        {
-            var copied = new SamplerStateShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new SamplerStateShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                overrideReferenceName = overrideReferenceName,
+                value = value
+            };
         }
     }
 }

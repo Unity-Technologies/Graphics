@@ -6,7 +6,7 @@ Returns the logarithm of input **In**. **Log** is the inverse operation to the [
 
 For example, the result of a base-2 **Exponential** using an input value of 3 is 8.
 
-![](Images\LogNodePage02.png)
+![](images/LogNodePage02.png)
 
 Therefore the result of a base-2 **Log** using an input value of 8 is 3.
 

@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
     class MasterPreviewView : VisualElement
     {
         PreviewManager m_PreviewManager;
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
 
         PreviewRenderData m_PreviewRenderHandle;
         Image m_PreviewTextureView;
@@ -70,9 +70,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             set { m_Title.text = value; }
         }
 
-        public MasterPreviewView(PreviewManager previewManager, AbstractMaterialGraph graph)
+        public MasterPreviewView(PreviewManager previewManager, GraphData graph)
         {
-            cacheAsBitmap = true;
             style.overflow = Overflow.Hidden;
             m_PreviewManager = previewManager;
             m_Graph = graph;
@@ -80,6 +79,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MasterPreviewView"));
 
             m_PreviewRenderHandle = previewManager.masterRenderData;
+            if (m_PreviewRenderHandle != null)
+            {
+                m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
+            }
 
             var topContainer = new VisualElement() { name = "top" };
             {
@@ -101,7 +104,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 preview.Add(m_PreviewTextureView);
                 preview.AddManipulator(new Scrollable(OnScroll));
             }
-            m_PreviewRenderHandle.onPreviewChanged += OnPreviewChanged;
             Add(preview);
 
             m_PreviewResizeBorderFrame = new ResizeBorderFrame(previewTextureView, this) { name = "resizeBorderFrame" };
@@ -115,7 +117,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         Image CreatePreview(Texture texture)
         {
-            var image = new Image { name = "preview", image = m_PreviewRenderHandle.texture ?? texture };
+            if (m_PreviewRenderHandle?.texture != null)
+            {
+                texture = m_PreviewRenderHandle.texture;
+            }
+
+            var image = new Image { name = "preview", image = texture };
             image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
             image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
             return image;
@@ -133,29 +140,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenuAction.AlwaysEnabled);
         }
 
-        IMasterNode masterNode
-        {
-            get { return m_PreviewRenderHandle.shaderData != null ? m_PreviewRenderHandle.shaderData.node as IMasterNode : null; }
-        }
-
         void DirtyMasterNode(ModificationScope scope)
         {
-            var amn = masterNode as AbstractMaterialNode;
-            if (amn != null)
-                amn.Dirty(scope);
-
-            // If currently editing a subgraph, dirty the output node rather than master node.
-            if (m_Graph is SubGraph)
-            {
-                var subgraph = m_Graph as SubGraph;
-                if (subgraph != null && subgraph.outputNode != null)
-                    subgraph.outputNode.Dirty(scope);
-            }
+            m_Graph?.outputNode?.Dirty(scope);
         }
 
         void OnPreviewChanged()
         {
-            m_PreviewTextureView.image = m_PreviewRenderHandle.texture ?? Texture2D.blackTexture;
+            m_PreviewTextureView.image = m_PreviewRenderHandle?.texture ?? Texture2D.blackTexture;
+            if (m_PreviewRenderHandle != null && m_PreviewRenderHandle.shaderData.isCompiling)
+                m_PreviewTextureView.tintColor = new Color(1.0f, 1.0f, 1.0f, 0.3f);
+            else
+                m_PreviewTextureView.tintColor = Color.white;
             m_PreviewTextureView.MarkDirtyRepaint();
         }
 
@@ -175,6 +171,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {
                 m_Graph.previewData.rotation = Quaternion.identity;
+                m_PreviewScrollPosition = Vector2.zero;
             }
 
             m_Graph.previewData.serializedMesh.mesh = changedMesh;
@@ -215,8 +212,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (!expanded)
                 return;
 
-            var currentWidth = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.width : -1;
-            var currentHeight = m_PreviewRenderHandle.texture != null ? m_PreviewRenderHandle.texture.height : -1;
+            var currentWidth = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.width : -1;
+            var currentHeight = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.height : -1;
 
             var targetWidth = Mathf.Max(1f, m_PreviewTextureView.contentRect.width);
             var targetHeight = Mathf.Max(1f, m_PreviewTextureView.contentRect.height);

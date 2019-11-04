@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -54,9 +55,13 @@ namespace UnityEditor.ShaderGraph
             return new MultiFloatSlotControlView(owner, m_Labels, () => value, (newValue) => value = newValue);
         }
 
-        protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
+        protected override string ConcreteSlotValueAsVariable()
         {
-            return precision + "4 (" + NodeUtils.FloatToShaderValue(value.x) + "," + NodeUtils.FloatToShaderValue(value.y) + "," + NodeUtils.FloatToShaderValue(value.z) + "," + NodeUtils.FloatToShaderValue(value.w) + ")";
+            return string.Format("$precision4 ({0}, {1}, {2}, {3})"
+                , NodeUtils.FloatToShaderValue(value.x)
+                , NodeUtils.FloatToShaderValue(value.y)
+                , NodeUtils.FloatToShaderValue(value.z)
+                , NodeUtils.FloatToShaderValue(value.w));
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

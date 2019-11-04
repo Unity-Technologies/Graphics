@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using PositionType = UnityEngine.UIElements.Position;
 
-namespace UnityEditor.VFX.UIElements
+namespace UnityEditor.VFX.UI
 {
     class VFXColorField : ValueControl<Color>
     {
@@ -26,6 +26,7 @@ namespace UnityEditor.VFX.UIElements
             m_Container.style.flexDirection = FlexDirection.Column;
             m_Container.style.alignItems = Align.Stretch;
             m_Container.style.flexGrow = 1f;
+            m_Container.style.flexShrink = 1f;
             m_Container.AddToClassList("colorcontainer");
 
             m_ColorDisplay = new VisualElement();
@@ -122,11 +123,11 @@ namespace UnityEditor.VFX.UIElements
         VisualElement CreateEyeDropper()
         {
             Texture2D eyeDropperIcon = EditorGUIUtility.IconContent("EyeDropper.Large").image as Texture2D;
-            VisualElement eyeDropper = new VisualElement();
+            var eyeDropper = new VisualElement();
 
             eyeDropper.style.backgroundImage = eyeDropperIcon;
-            eyeDropper.style.width = eyeDropperIcon.width;
-            eyeDropper.style.height = eyeDropperIcon.height;
+            eyeDropper.style.width = 20;
+            eyeDropper.style.height = 20;
 
             eyeDropper.RegisterCallback<MouseDownEvent>(OnEyeDropperStart);
 

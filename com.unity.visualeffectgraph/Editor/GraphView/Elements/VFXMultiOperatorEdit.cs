@@ -5,7 +5,7 @@ using System.Text;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEditor.VFX.UIElements;
 
 namespace UnityEditor.VFX.UI

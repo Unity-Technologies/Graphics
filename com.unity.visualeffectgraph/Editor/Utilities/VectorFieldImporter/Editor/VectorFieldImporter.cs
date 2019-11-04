@@ -10,7 +10,7 @@ using UnityEditor.Experimental.AssetImporters;
 namespace UnityEditor.VFXToolbox
 {
     [ScriptedImporter(1, "vf")]
-    public class VectorFieldImporter : ScriptedImporter
+    class VectorFieldImporter : ScriptedImporter
     {
         public enum VectorFieldOutputFormat
         {

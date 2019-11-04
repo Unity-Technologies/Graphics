@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ReflectionProbeCache
+    class ReflectionProbeCache
     {
         internal static readonly int s_InputTexID = Shader.PropertyToID("_InputTex");
         internal static readonly int s_LoDID = Shader.PropertyToID("_LoD");
@@ -27,11 +26,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         MaterialPropertyBlock   m_ConvertTextureMPB;
         bool                    m_PerformBC6HCompression;
 
-        public ReflectionProbeCache(HDRenderPipelineAsset hdAsset, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
+        public ReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, TextureFormat probeFormat, bool isMipmaped)
         {
-            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.blitCubeTextureFacePS);
+            m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
-            m_CubeToPano = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.shaders.cubeToPanoPS);
+            m_CubeToPano = CoreUtils.CreateEngineMaterial(defaultResources.shaders.cubeToPanoPS);
 
             // BC6H requires CPP feature not yet available
             probeFormat = TextureFormat.RGBAHalf;
@@ -73,26 +72,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ConvolutionTargetTextureArray[bsdfIdx].name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution_" + bsdfIdx.ToString(), mips: true);
                     m_ConvolutionTargetTextureArray[bsdfIdx].Create();
                 }
-
-                InitializeProbeBakingStates();
             }
+
+            InitializeProbeBakingStates();
         }
 
         void InitializeProbeBakingStates()
         {
-            m_ProbeBakingState = new ProbeFilteringState[m_CacheSize];
-            for (int i = 0; i < m_CacheSize; ++i)
-                m_ProbeBakingState[i] = ProbeFilteringState.Convolving;
+            if (m_ProbeBakingState == null || m_ProbeBakingState.Length != m_CacheSize)
+            {
+                Array.Resize(ref m_ProbeBakingState, m_CacheSize);
+                for (var i = 0; i < m_CacheSize; ++i)
+                    m_ProbeBakingState[i] = ProbeFilteringState.Convolving;
+            }
         }
 
         public void Release()
         {
             m_TextureCache.Release();
             CoreUtils.Destroy(m_TempRenderTexture);
-            for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+
+            if(m_ConvolutionTargetTextureArray != null)
             {
-                CoreUtils.Destroy(m_ConvolutionTargetTextureArray[bsdfIdx]);
+                for (int bsdfIdx = 0; bsdfIdx < m_IBLFilterBSDF.Length; ++bsdfIdx)
+                {
+                    if (m_ConvolutionTargetTextureArray[bsdfIdx] != null)
+                    {
+                        CoreUtils.Destroy(m_ConvolutionTargetTextureArray[bsdfIdx]);
+                        m_ConvolutionTargetTextureArray[bsdfIdx] = null;
+                    }
+                }
             }
+
             m_ProbeBakingState = null;
 
             CoreUtils.Destroy(m_ConvertTextureMaterial);
@@ -242,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(weight, resolution, sliceSize);
         }
-        
+
         public int GetEnvSliceSize()
         {
             return m_IBLFilterBSDF.Length;

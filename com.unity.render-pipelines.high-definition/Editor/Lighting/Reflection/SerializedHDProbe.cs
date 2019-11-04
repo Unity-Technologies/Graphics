@@ -1,60 +1,40 @@
-using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using System;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     internal abstract class SerializedHDProbe
     {
+        [Flags]
+        internal enum EditorOnlyData
+        {
+            None = 0,
+            CaptureSettingsIsAdvanced = 1 << 0,
+            InfluenceVolumeIsAdvanced = 1 << 1,
+            CustomSettingsIsAdvanced = 1 << 2
+        }
+
         internal SerializedObject serializedObject;
-        
-        internal SerializedProperty renderDynamicObjects;
-        internal SerializedProperty customBakedTexture;
 
-        internal SerializedProperty proxyVolumeReference;
-        internal SerializedProperty infiniteProjection;
-
-        internal SerializedInfluenceVolume influenceVolume;
-        internal SerializedCaptureSettings captureSettings;
-        internal SerializedFrameSettings frameSettings;
-
-        internal SerializedProperty lightLayers;
-        internal SerializedProperty weight;
-        internal SerializedProperty multiplier;
-
-        internal SerializedProperty mode;
-        internal SerializedProperty refreshMode;
-
-        internal SerializedProperty resolution;
-        internal SerializedProperty shadowDistance;
-        internal SerializedProperty cullingMask;
-        internal SerializedProperty useOcclusionCulling;
-        internal SerializedProperty nearClip;
-        internal SerializedProperty farClip;
+        internal SerializedProperty bakedTexture;
+        internal SerializedProperty customTexture;
+        internal SerializedProbeSettings probeSettings;
+        internal SerializedProbeSettingsOverride probeSettingsOverride;
+        internal SerializedProperty proxyVolume;
+        internal SerializedProperty editorOnlyData;
 
         internal HDProbe target { get { return serializedObject.targetObject as HDProbe; } }
 
         internal SerializedHDProbe(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
-            
-            //Find do not support inheritance override:
-            //customBakedTexture will be assigned again in SerializedHDReflectionProbe
-            customBakedTexture = serializedObject.Find((HDProbe p) => p.customTexture);
-            renderDynamicObjects = serializedObject.Find((HDProbe p) => p.renderDynamicObjects);
 
-            proxyVolumeReference = serializedObject.Find((HDProbe p) => p.proxyVolume);
-            influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((HDProbe p) => p.influenceVolume));
-            captureSettings = new SerializedCaptureSettings(serializedObject.Find((HDProbe p) => p.captureSettings));
-            infiniteProjection = serializedObject.Find((HDProbe p) => p.infiniteProjection);
-
-            frameSettings = new SerializedFrameSettings(serializedObject.Find((HDProbe p) => p.frameSettings));
-
-            lightLayers = serializedObject.Find((HDProbe p) => p.lightLayers);
-            weight = serializedObject.Find((HDProbe p) => p.weight);
-            multiplier = serializedObject.Find((HDProbe p) => p.multiplier);
-
-            mode = serializedObject.Find((HDProbe p) => p.mode);
-            refreshMode = serializedObject.Find((HDProbe p) => p.refreshMode);
+            bakedTexture = serializedObject.Find((HDProbe p) => p.bakedTexture);
+            customTexture = serializedObject.Find((HDProbe p) => p.customTexture);
+            proxyVolume = serializedObject.Find((HDProbe p) => p.proxyVolume);
+            probeSettings = new SerializedProbeSettings(serializedObject.FindProperty("m_ProbeSettings"));
+            probeSettingsOverride = new SerializedProbeSettingsOverride(serializedObject.FindProperty("m_ProbeSettingsOverride"));
+            editorOnlyData = serializedObject.FindProperty("m_EditorOnlyData");
         }
 
         internal virtual void Update()
@@ -69,5 +49,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             serializedObject.ApplyModifiedProperties();
         }
+
+        internal bool GetEditorOnlyData(EditorOnlyData mask) => (editorOnlyData.intValue & (int) mask) == (int) mask;
+
+        internal void SetEditorOnlyData(EditorOnlyData mask, bool value)
+        {
+            if (value)
+                editorOnlyData.intValue |= (int) mask;
+            else
+                editorOnlyData.intValue &= ~(int)mask;
+        }
+
+        internal void ToggleEditorOnlyData(EditorOnlyData mask) => SetEditorOnlyData(mask, !GetEditorOnlyData(mask));
     }
 }

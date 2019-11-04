@@ -1,33 +1,43 @@
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(HDRenderPipelineAsset))]
-    public sealed class HDRenderPipelineEditor : Editor
+    [CanEditMultipleObjects]
+    sealed class HDRenderPipelineEditor : Editor
     {
         SerializedHDRenderPipelineAsset m_SerializedHDRenderPipeline;
-        HDRenderPipelineUI m_HDRenderPipelineUI = new HDRenderPipelineUI();
+
+        internal bool largeLabelWidth = true;
 
         void OnEnable()
         {
             m_SerializedHDRenderPipeline = new SerializedHDRenderPipelineAsset(serializedObject);
-            m_HDRenderPipelineUI.Reset(m_SerializedHDRenderPipeline, Repaint);
-
-            HDRenderPipelineUI.Init(m_HDRenderPipelineUI, m_SerializedHDRenderPipeline, this);
         }
 
         public override void OnInspectorGUI()
         {
-            var s = m_HDRenderPipelineUI;
-            var d = m_SerializedHDRenderPipeline;
-            var o = this;
+            var serialized = m_SerializedHDRenderPipeline;
 
-            s.Update();
-            d.Update();
+            serialized.Update();
 
-            HDRenderPipelineUI.Inspector.Draw(s, d, o);
+            // In the quality window use more space for the labels
+            if (!largeLabelWidth)
+                EditorGUIUtility.labelWidth *= 2;
+            HDRenderPipelineUI.Inspector.Draw(serialized, this);
+            if (!largeLabelWidth)
+                EditorGUIUtility.labelWidth *= 0.5f;
 
-            d.Apply();
+            serialized.Apply();
         }
+    }
+
+    // Moving lookdev menu to package implementing them.
+    // It must be done in editor scripts.
+    // Remaining of LookDev integration is done in HDRenderPipeline.LookDev
+    static class LookDevMenu
+    {
+        [MenuItem("Window/Render Pipeline/Look Dev", false, 10200)]
+        static void OpenLookDev() => LookDev.LookDev.Open();
     }
 }

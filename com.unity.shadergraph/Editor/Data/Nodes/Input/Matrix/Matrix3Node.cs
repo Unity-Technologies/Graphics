@@ -2,11 +2,12 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Matrix", "Matrix 3x3")]
-    class Matrix3Node : AbstractMaterialNode, IGeneratesBodyCode
+    class Matrix3Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
         const string kOutputSlotName = "Out";
@@ -55,10 +56,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-3x3-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -93,27 +90,24 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("{0}3 _{1}_m0 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision3 _{0}_m0 = $precision3 ({1}, {2}, {3});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row0.x),
                     NodeUtils.FloatToShaderValue(m_Row0.y),
                     NodeUtils.FloatToShaderValue(m_Row0.z));
-                sb.AppendLine("{0}3 _{1}_m1 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision3 _{0}_m1 = $precision3 ({1}, {2}, {3});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row1.x),
                     NodeUtils.FloatToShaderValue(m_Row1.y),
                     NodeUtils.FloatToShaderValue(m_Row1.z));
-                sb.AppendLine("{0}3 _{1}_m2 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision3 _{0}_m2 = $precision3 ({1}, {2}, {3});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row2.x),
                     NodeUtils.FloatToShaderValue(m_Row2.y),
                     NodeUtils.FloatToShaderValue(m_Row2.z));
             }
-            sb.AppendLine("{0}3x3 {1} = {0}3x3 (_{1}_m0.x, _{1}_m0.y, _{1}_m0.z, _{1}_m1.x, _{1}_m1.y, _{1}_m1.z, _{1}_m2.x, _{1}_m2.y, _{1}_m2.z);",
-                precision, GetVariableNameForNode());
-            visitor.AddShaderChunk(sb.ToString(), false);
+            sb.AppendLine("$precision3x3 {0} = $precision3x3 (_{0}_m0.x, _{0}_m0.y, _{0}_m0.z, _{0}_m1.x, _{0}_m1.y, _{0}_m1.z, _{0}_m2.x, _{0}_m2.y, _{0}_m2.z);", GetVariableNameForNode());
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -141,5 +135,33 @@ namespace UnityEditor.ShaderGraph
         {
             return GetVariableNameForNode();
         }
+
+        public AbstractShaderProperty AsShaderProperty()
+        {
+            return new Matrix3ShaderProperty
+            {
+                value = new Matrix4x4()
+                {
+                    m00 = row0.x,
+                    m01 = row0.y,
+                    m02 = row0.z,
+                    m03 = 0,
+                    m10 = row1.x,
+                    m11 = row1.y,
+                    m12 = row1.z,
+                    m13 = 0,
+                    m20 = row2.x,
+                    m21 = row2.y,
+                    m22 = row2.z,
+                    m23 = 0,
+                    m30 = 0,
+                    m31 = 0,
+                    m32 = 0,
+                    m33 = 0,
+                }
+            };
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

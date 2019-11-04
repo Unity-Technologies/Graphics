@@ -5,11 +5,11 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionCylinder : CollisionBase
     {
-        public override string name { get { return "Collider (Cylinder)"; } }
+        public override string name { get { return "Collide with Cylinder"; } }
 
         public class InputProperties
         {
-            [Tooltip("The collision cylinder.")]
+            [Tooltip("Sets the cylinder with which particles can collide.")]
             public Cylinder Cylinder = new Cylinder() { height = 1.0f, radius = 0.5f };
         }
 

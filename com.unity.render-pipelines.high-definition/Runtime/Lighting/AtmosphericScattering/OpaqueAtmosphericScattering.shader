@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
+Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
 {
     HLSLINCLUDE
         #pragma target 4.5
@@ -8,40 +8,40 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
         // #pragma enable_d3d11_debug_symbols
 
-        float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
-
-        Texture2DMS<float> _DepthTextureMS;
-        
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+
+        TEXTURE2D_X_MSAA(float4, _ColorTextureMS);
+        TEXTURE2D_X_MSAA(float,  _DepthTextureMS);
+        TEXTURE2D_X(_ColorTexture);
 
         struct Attributes
         {
             uint vertexID : SV_VertexID;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
             float4 positionCS : SV_POSITION;
+            UNITY_VERTEX_OUTPUT_STEREO
         };
 
         Varyings Vert(Attributes input)
         {
             Varyings output;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
             return output;
         }
 
-        inline float4 AtmosphericScatteringCompute(Varyings input, float3 V, float depth)
+        void AtmosphericScatteringCompute(Varyings input, float3 V, float depth, out float3 color, out float3 opacity)
         {
-            PositionInputs posInput = GetPositionInput_Stereo(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, unity_StereoEyeIndex);
-
-#if defined(UNITY_SINGLE_PASS_STEREO)
-            // XRTODO: fixup and consolidate stereo code relying on _PixelCoordToViewDirWS
-            V = -normalize(posInput.positionWS);
-#endif
+            PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
             {
@@ -50,28 +50,66 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
                 // And recompute the position on the sphere with the current camera direction.
                 posInput.positionWS = GetCurrentViewPosition() - V * _MaxFogDistance;
 
-                // Warning: we do not modify depth values. Do not use them!
+                // Warning: we do not modify depth values. Use them with care!
             }
 
-            return EvaluateAtmosphericScattering(posInput, V); // Premultiplied alpha
+            EvaluateAtmosphericScattering(posInput, V, color, opacity); // Premultiplied alpha
         }
 
         float4 Frag(Varyings input) : SV_Target
         {
-            float2 positionSS = input.positionCS.xy;
-            float3 V          = normalize(mul(float3(positionSS, 1.0), (float3x3)_PixelCoordToViewDirWS));
-            float  depth      = LOAD_TEXTURE2D(_CameraDepthTexture, (int2)positionSS).x;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 positionSS  = input.positionCS.xy;
+            float3 V           = GetSkyViewDirWS(positionSS);
+            float  depth       = LoadCameraDepth(positionSS);
+            float3 surfColor   = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS).rgb;
 
-            return AtmosphericScatteringCompute(input, V, depth);
+            float3 volColor, volOpacity;
+            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+
+            return float4(volColor, volOpacity.x);
         }
 
         float4 FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
         {
-            float2 positionSS = input.positionCS.xy;
-            float3 V          = normalize(mul(float3(positionSS, 1.0), (float3x3)_PixelCoordToViewDirWS));
-            float  depth      = _DepthTextureMS.Load((int2)positionSS, sampleIndex).x;
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 positionSS  = input.positionCS.xy;
+            float3 V           = GetSkyViewDirWS(positionSS);
+            float  depth       = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
+            float3 surfColor   = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex).rgb;
 
-            return AtmosphericScatteringCompute(input, V, depth);
+            float3 volColor, volOpacity;
+            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+
+            return float4(volColor, volOpacity.x);
+        }
+
+        float4 FragPBRFog(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 positionSS = input.positionCS.xy;
+            float3 V = GetSkyViewDirWS(positionSS);
+            float  depth = LoadCameraDepth(positionSS);
+            float3 surfColor = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS).rgb;
+
+            float3 volColor, volOpacity;
+            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+
+            return float4(volColor + (1 - volOpacity) * surfColor, 1); // Premultiplied alpha (over operator)
+        }
+
+            float4 FragMSAAPBRFog(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 positionSS = input.positionCS.xy;
+            float3 V = GetSkyViewDirWS(positionSS);
+            float  depth = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
+            float3 surfColor = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex).rgb;
+
+            float3 volColor, volOpacity;
+            AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
+
+            return float4(volColor + (1 - volOpacity) * surfColor, 1); // Premultiplied alpha (over operator)
         }
     ENDHLSL
 
@@ -80,7 +118,9 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
         // 0: NOMSAA
         Pass
         {
-            Cull Off ZTest  Always ZWrite Off Blend One OneMinusSrcAlpha // Premultiplied alpha
+            Cull Off    ZWrite Off
+            Blend One OneMinusSrcAlpha // Premultiplied alpha
+            ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -91,11 +131,39 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
         // 1: MSAA
         Pass
         {
-            Cull Off ZTest  Always ZWrite Off Blend One OneMinusSrcAlpha // Premultiplied alpha
+            Cull Off    ZWrite Off
+            Blend One OneMinusSrcAlpha // Premultiplied alpha
+            ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragMSAA
+            ENDHLSL
+        }
+
+            // 2: NOMSAA PBR FOG
+            Pass
+        {
+            Cull Off    ZWrite Off
+            Blend Off   // Manual blending
+            ZTest Less  // Required for XR occlusion mesh optimization
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragPBRFog
+            ENDHLSL
+        }
+
+            // 3: MSAA PBR FOG
+            Pass
+        {
+            Cull Off    ZWrite Off
+            Blend Off   // Manual blending
+            ZTest Less  // Required for XR occlusion mesh optimization
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragMSAAPBRFog
             ENDHLSL
         }
     }

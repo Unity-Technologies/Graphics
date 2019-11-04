@@ -1,9 +1,9 @@
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
     /// Holds settings for the reflection system.
     /// </summary>
-    public struct ReflectionSystemParameters
+    struct ReflectionSystemParameters
     {
         public static ReflectionSystemParameters Default = new ReflectionSystemParameters
         {

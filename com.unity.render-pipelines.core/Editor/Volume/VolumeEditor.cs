@@ -14,15 +14,11 @@ namespace UnityEditor.Rendering
 
         VolumeComponentListEditor m_ComponentList;
 
-        Volume actualTarget
-        {
-            get { return target as Volume; }
-        }
+        Volume actualTarget => target as Volume;
 
-        VolumeProfile profileRef
-        {
-            get { return actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile; }
-        }
+        VolumeProfile profileRef => actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile;
+
+        readonly GUIContent[] m_Modes = { new GUIContent("Global"), new GUIContent("Local") };
 
         void OnEnable()
         {
@@ -39,8 +35,7 @@ namespace UnityEditor.Rendering
 
         void OnDisable()
         {
-            if (m_ComponentList != null)
-                m_ComponentList.Clear();
+            m_ComponentList?.Clear();
         }
 
         void RefreshEffectListEditor(VolumeProfile asset)
@@ -55,10 +50,27 @@ namespace UnityEditor.Rendering
         {
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(m_IsGlobal);
+            int isGlobal = m_IsGlobal.boolValue ? 0 : 1;
+            isGlobal = EditorGUILayout.Popup(EditorGUIUtility.TrTextContent("Mode", "A global volume is applied to the whole scene."), isGlobal, m_Modes);
+            m_IsGlobal.boolValue = isGlobal == 0;
 
-            if (!m_IsGlobal.boolValue) // Blend radius is not needed for global volumes
+            if (isGlobal != 0) // Blend radius is not needed for global volumes
             {
+                if (!actualTarget.TryGetComponent<Collider>(out _))
+                {
+                    EditorGUILayout.HelpBox("Add a Collider to this GameObject to set boundaries for the local Volume.", MessageType.Info);
+
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Collider"), EditorStyles.miniButton))
+                    {
+                        var menu = new GenericMenu();
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Box"), false, () => Undo.AddComponent<BoxCollider>(actualTarget.gameObject));
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Sphere"), false, () => Undo.AddComponent<SphereCollider>(actualTarget.gameObject));
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Capsule"), false, () => Undo.AddComponent<CapsuleCollider>(actualTarget.gameObject));
+                        menu.AddItem(EditorGUIUtility.TrTextContent("Mesh"), false, () => Undo.AddComponent<MeshCollider>(actualTarget.gameObject));
+                        menu.ShowAsContext();
+                    }
+                }
+
                 EditorGUILayout.PropertyField(m_BlendRadius);
                 m_BlendRadius.floatValue = Mathf.Max(m_BlendRadius.floatValue, 0f);
             }
@@ -70,7 +82,7 @@ namespace UnityEditor.Rendering
             bool showCopy = m_Profile.objectReferenceValue != null;
             bool multiEdit = m_Profile.hasMultipleDifferentValues;
 
-            // The layout system breaks alignement when mixing inspector fields with custom layouted
+            // The layout system breaks alignment when mixing inspector fields with custom layout'd
             // fields, do the layout manually instead
             int buttonWidth = showCopy ? 45 : 60;
             float indentOffset = EditorGUI.indentLevel * 15f;
@@ -80,13 +92,18 @@ namespace UnityEditor.Rendering
             var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
             var buttonCopyRect = new Rect(buttonNewRect.xMax, lineRect.y, buttonWidth, lineRect.height);
 
-            EditorGUI.PrefixLabel(labelRect, CoreEditorUtils.GetContent(actualTarget.HasInstantiatedProfile() ? "Profile (Instance)|A copy of a profile asset." : "Profile|A reference to a profile asset."));
+            GUIContent guiContent;
+            if (actualTarget.HasInstantiatedProfile())
+                guiContent = EditorGUIUtility.TrTextContent("Profile (Instance)", "A copy of a profile asset.");
+            else
+                guiContent = EditorGUIUtility.TrTextContent("Profile", "A reference to a profile asset.");
+            EditorGUI.PrefixLabel(labelRect, guiContent);
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
                 EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
 
-                VolumeProfile profile = null;
+                VolumeProfile profile;
 
                 if (actualTarget.HasInstantiatedProfile())
                     profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, actualTarget.profile, typeof(VolumeProfile), false);
@@ -107,7 +124,7 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.DisabledScope(multiEdit))
             {
-                if (GUI.Button(buttonNewRect, CoreEditorUtils.GetContent("New|Create a new profile."), showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton))
+                if (GUI.Button(buttonNewRect, EditorGUIUtility.TrTextContent("New", "Create a new profile."), showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton))
                 {
                     // By default, try to put assets in a folder next to the currently active
                     // scene file. If the user isn't a scene, put them in root instead.
@@ -119,7 +136,11 @@ namespace UnityEditor.Rendering
                     assetHasChanged = true;
                 }
 
-                if (showCopy && GUI.Button(buttonCopyRect, CoreEditorUtils.GetContent(actualTarget.HasInstantiatedProfile() ? "Save|Save the instantiated profile" : "Clone|Create a new profile and copy the content of the currently assigned profile."), EditorStyles.miniButtonRight))
+                if (actualTarget.HasInstantiatedProfile())
+                    guiContent = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
+                else
+                    guiContent = EditorGUIUtility.TrTextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.");
+                if (showCopy && GUI.Button(buttonCopyRect, guiContent, EditorStyles.miniButtonRight))
                 {
                     // Duplicate the currently assigned profile and save it as a new profile
                     var origin = profileRef;

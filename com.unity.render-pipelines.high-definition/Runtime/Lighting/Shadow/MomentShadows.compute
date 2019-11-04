@@ -1,0 +1,265 @@
+#pragma kernel ComputeMomentShadows
+#pragma kernel MomentSummedAreaTableHorizontal
+#pragma kernel MomentSummedAreaTableVertical
+
+/*
+#pragma kernel FilterHorizontalMomentShadows5    HORIZONTAL_FILTER_PASS=FilterHorizontalMomentShadows5  KERNEL_SIZE_FIVE
+#pragma kernel FilterVerticalMomentShadows5      VERTICAL_FILTER_PASS=FilterVerticalMomentShadows5      KERNEL_SIZE_FIVE
+#pragma kernel FilterHorizontalMomentShadows7    HORIZONTAL_FILTER_PASS=FilterHorizontalMomentShadows7  KERNEL_SIZE_SEVEN
+#pragma kernel FilterVerticalMomentShadows7      VERTICAL_FILTER_PASS=FilterVerticalMomentShadows7      KERNEL_SIZE_SEVEN
+*/
+
+//#pragma enable_d3d11_debug_symbols
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
+
+#define MOMENT_SHADOW_TILE_SIZE 8
+
+// The input shadow atlas
+Texture2D _ShadowmapAtlas;
+float4 _MomentShadowmapSlotST;
+
+// The output multichannel moment shadow atlas
+RWTexture2D<float4> _MomentShadowAtlas;
+
+// Data for the filtering
+Texture2D<float4> _FilterInputTexture;
+RWTexture2D<float4> _FilterOutputTexture;
+
+[numthreads(MOMENT_SHADOW_TILE_SIZE, MOMENT_SHADOW_TILE_SIZE, 1)]
+void ComputeMomentShadows(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	// Fetch the current pixel coordinate
+	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
+	// Displace by the offset in the atlas
+    currentPixelCoordinate += _MomentShadowmapSlotST.zw;
+
+    // If this pixel is outside of the range of the current kernel, skip it
+    if(float(currentPixelCoordinate.x) >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || float(currentPixelCoordinate.y) >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
+     	return;
+
+    // Compute the different moments
+    float z = 1.0 - _ShadowmapAtlas[currentPixelCoordinate].x;
+
+    // Convert the depth to the linear interval [-1, 1]
+    z = z * 2.0f - 1.0f;
+
+    // Compute the non-optimized moments
+    float z2 = z * z;
+    float z3 = z2 * z;
+    float4 moments =  float4(z, z2, z3, z3 * z);
+
+    // Optimize the moments
+	moments.xz = mul(moments.xz, float2x2(1.5f, sqrt(3.0f) * 0.5f, -2.0f, -sqrt(3.0f) * 2.0f / 9.0f)) + 0.5f;
+	moments.yw = mul(moments.yw, float2x2(4.0f, 0.5f, -4.0f, 0.5f));
+
+	// Output the moments to the atlas
+    _MomentShadowAtlas[currentPixelCoordinate] = moments;
+}
+
+// Summed Area table calculation
+Texture2D<uint4> _SummedAreaTableInputInt;
+RWTexture2D<uint4> _SummedAreaTableOutputInt;
+Texture2D<float4> _SummedAreaTableInputFloat;
+RWTexture2D<float4> _SummedAreaTableOutputFloat;
+
+float _IMSKernelSize;
+float2 _MomentShadowmapSize;
+
+// Minimal kernel size for our system
+#define MIN_KERNEL_SIZE 1.0
+
+float3x2 ComputeKernelSizePameter(float kernelSize, float2 texResolution, float maxShadowBias)
+{
+    float3x2 result;
+    result._11 = MIN_KERNEL_SIZE * 0.5f / texResolution.x;
+    result._12 = result._11;
+    result._21 = kernelSize * 0.5f / texResolution.x;
+    result._22 = result._21;
+    result._31 = 2.0f * texResolution.x / max(kernelSize - 1.0f, 1.0f);
+    result._32 = maxShadowBias * 5.0f;
+    return result;
+}
+
+float2 ComputeFixedPrecision(float3x2 kernelSizeParameter, float2 shadowmapSize)
+{
+    float2 maxKernelSize = ceil(1.0f+2.0f * kernelSizeParameter._21_22 * shadowmapSize);
+    float fixedPres = 4294967295.0f/(maxKernelSize.x*maxKernelSize.y);
+    return float2(fixedPres, 1.0 / fixedPres);
+}
+
+[numthreads(64, 1, 1)]
+void MomentSummedAreaTableHorizontal(uint groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint currentLineIndex = groupId * 64 + groupThreadId;
+
+    // Compute the kernel size parameters (this should be done on the scripting side and injected, but for the moment we do not have
+    // enough constant buffer params). The code for this was retro-engineered from the demo that the paper gives.
+    float3x2 kernelSizeParameter = ComputeKernelSizePameter(_IMSKernelSize, _MomentShadowmapSize.xy, 0.02);
+
+    // Compute the fixed precision converted
+    float2 fixedPrecision = ComputeFixedPrecision(kernelSizeParameter, _MomentShadowmapSize.xy);
+
+    // Evalaute the sum for this line
+    uint4 cumulativeSum = uint4(0, 0, 0, 0);
+    for(uint i = 0; i < uint(_MomentShadowmapSlotST.x); ++i)
+    {
+        // Pixel coordinates of the current point to include
+        uint2 currentPixel = uint2(_MomentShadowmapSlotST.z + i, _MomentShadowmapSlotST.w + currentLineIndex);
+
+        // Accumulate the current pixel
+        cumulativeSum += uint4(_SummedAreaTableInputFloat[currentPixel] * fixedPrecision.x);
+
+        // Store the current accumulation
+        _SummedAreaTableOutputInt[currentPixel] = cumulativeSum;
+    }
+}
+
+[numthreads(64, 1, 1)]
+void MomentSummedAreaTableVertical(uint groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
+{
+    // Fetch the current pixel coordinate
+    uint currentColumnIndex = groupId * 64 + groupThreadId;
+
+    // Compute the kernel size parameters (this should be done on the scripting side and injected, but for the moment we do not have
+    // enough constant buffer params). The code for this was retro-engineered from the demo that the paper gives.
+    float3x2 kernelSizeParameter = ComputeKernelSizePameter(_IMSKernelSize, _MomentShadowmapSize.xy, 0.02);
+
+    // Compute the fixed precision converted
+    float2 fixedPrecision = ComputeFixedPrecision(kernelSizeParameter, _MomentShadowmapSize.xy);
+
+    uint4 cumulativeSum = uint4(0, 0, 0, 0);
+    for(uint i = 0; i < uint(_MomentShadowmapSlotST.y); ++i)
+    {
+        // Pixel coordinates of the current point to include
+        uint2 currentPixel = uint2(_MomentShadowmapSlotST.z + currentColumnIndex, _MomentShadowmapSlotST.w + i);
+
+        // Accumulate the current pixel
+        cumulativeSum += _SummedAreaTableInputInt[currentPixel];
+
+        // Store the current accumulation
+        _SummedAreaTableOutputInt[currentPixel] = cumulativeSum;
+    }
+}
+
+/*
+[numthreads(MOMENT_SHADOW_TILE_SIZE, MOMENT_SHADOW_TILE_SIZE, 1)]
+void HORIZONTAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	// Fetch the current pixel coordinate
+	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
+	// Displace by the offset in the atlas
+    currentPixelCoordinate += _MomentShadowmapSlotST.zw;
+
+    // If this pixel is outside of the range of the current kernel, skip it
+    if(currentPixelCoordinate.x >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || currentPixelCoordinate.y >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
+     	return;
+
+    // Inverse dimension of the atlas
+    float2 invAtlasSize = 1.0f / _MomentShadowmapSize;
+
+    // Value that will hold the result of this first pass of the filtering
+    float4 horizontalFiltered =  float4(0.0, 0.0, 0.0, 0.0);
+
+    // Texcoord of the central pixel
+    float2 tcCentral = currentPixelCoordinate  * invAtlasSize;
+
+    #ifdef KERNEL_SIZE_FIVE
+    float2 tc1 = tcCentral + float2(-1.2608285375f * invAtlasSize.x, 0);
+    tc1.x = clamp(tc1.x, _MomentShadowmapSlotST.z, tcCentral.x);
+
+    // Compute the right pixel's position (clamp to the max of the atlas)
+    float2 tc2 = tcCentral + float2(1.2608285375f * invAtlasSize.x, 0);
+    tc2.x = clamp(tc2.x, tcCentral.x, _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x);
+
+    // Combine the 3 pixels
+    horizontalFiltered = 0.343406478631f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tcCentral, 0)
+        + 0.328296760685f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc1, 0)
+        + 0.328296760685f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc2, 0);
+    #endif
+
+    #ifdef KERNEL_SIZE_SEVEN
+    float2 tc0 = tcCentral + float2(-2.31613202819f * invAtlasSize.x, 0);
+    tc0.x = clamp(tc0.x, _MomentShadowmapSlotST.z, tcCentral.x);
+
+    float2 tc1 = tcCentral + float2(-0.461496136794f * invAtlasSize.x, 0);
+    tc1.x = clamp(tc1.x, _MomentShadowmapSlotST.z, tcCentral.x);
+
+    float2 tc2 = tcCentral + float2(1.38628316249f * invAtlasSize.x, 0);
+    tc2.x = clamp(tc2.x, tcCentral.x, _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x);
+
+    float2 tc3 = tcCentral + float2(3.0f * invAtlasSize.x, 0);
+    tc3.x = clamp(tc3.x, tcCentral.x, _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x);
+
+    // Combine the 3 pixels
+    horizontalFiltered = 0.18379524343f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc0, 0)
+        + 0.432713776807f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc1, 0)
+        + 0.325387416687f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc2, 0)
+        + 0.0581035630769f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc3, 0);
+    #endif
+
+	// Output the moments to the atlas
+    _FilterOutputTexture[currentPixelCoordinate] = horizontalFiltered;
+}
+
+[numthreads(MOMENT_SHADOW_TILE_SIZE, MOMENT_SHADOW_TILE_SIZE, 1)]
+void VERTICAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+	// Fetch the current pixel coordinate
+	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
+	// Displace by the offset in the atlas
+    currentPixelCoordinate += _MomentShadowmapSlotST.zw;
+
+    // If this pixel is outside of the range of the current kernel, skip it
+    if(currentPixelCoordinate.x >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || currentPixelCoordinate.y >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
+     	return;
+
+    // Inverse dimension of the atlas
+    float2 invAtlasSize = 1.0f / _MomentShadowmapSize;
+
+    // Value that will hold the result of this first pass of the filtering
+    float4 filtered =  float4(0.0, 0.0, 0.0, 0.0);
+
+    // Texcoord of the central pixel
+    float2 tcCentral = currentPixelCoordinate  * invAtlasSize;
+
+    #ifdef KERNEL_SIZE_FIVE
+    float2 tc1 = tcCentral + float2(0, -1.2608285375f * invAtlasSize.y);
+    tc1.y = clamp(tc1.y, _MomentShadowmapSlotST.w, tcCentral.y);
+
+    // Compute the right pixel's position (clamp to the max of the atlas)
+    float2 tc2 = tcCentral + float2(0, 1.2608285375f * invAtlasSize.y);
+    tc2.y = clamp(tc2.y, tcCentral.y, _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y);
+
+    // Combine the 3 pixels
+    filtered = 0.343406478631f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tcCentral, 0)
+        + 0.328296760685f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc1, 0)
+        + 0.328296760685f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc2, 0);
+    #endif
+
+    #ifdef KERNEL_SIZE_SEVEN
+    float2 tc0 = tcCentral + float2(0, -2.31613202819f * invAtlasSize.y);
+    tc0.y = clamp(tc0.y, _MomentShadowmapSlotST.w, tcCentral.y);
+
+    float2 tc1 = tcCentral + float2(0, -0.461496136794f * invAtlasSize.y);
+    tc1.y = clamp(tc1.y, _MomentShadowmapSlotST.w, tcCentral.y);
+
+    float2 tc2 = tcCentral + float2(0, 1.38628316249f * invAtlasSize.y);
+    tc2.y = clamp(tc2.y, tcCentral.y, _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y);
+
+    float2 tc3 = tcCentral + float2(0, 3.0f * invAtlasSize.y);
+    tc3.y = clamp(tc3.y, tcCentral.y, _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y);
+
+    // Combine the 3 pixels
+    filtered = 0.18379524343f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc0, 0)
+        + 0.432713776807f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc1, 0)
+        + 0.325387416687f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc2, 0)
+        + 0.0581035630769f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc3, 0);
+    #endif
+
+	// Output the moments to the atlas
+    _FilterOutputTexture[currentPixelCoordinate] = filtered;
+}
+*/

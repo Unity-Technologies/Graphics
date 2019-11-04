@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -33,10 +34,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-Split-Node"; }
-        }
 
         [SerializeField]
         MatrixAxis m_Axis;
@@ -68,7 +65,7 @@ namespace UnityEditor.ShaderGraph
 
         static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var inputValue = GetSlotValue(InputSlotId, generationMode);
 
@@ -96,7 +93,7 @@ namespace UnityEditor.ShaderGraph
                 string outputValue;
                 if (r >= numInputRows)
                 {
-                    outputValue = string.Format("{0}{1}(", precision, concreteRowCount);
+                    outputValue = string.Format("$precision{0}(", concreteRowCount);
                     for (int c = 0; c < concreteRowCount; c++)
                     {
                         if (c != 0)
@@ -110,7 +107,7 @@ namespace UnityEditor.ShaderGraph
                     switch (m_Axis)
                     {
                         case MatrixAxis.Column:
-                            outputValue = string.Format("{0}{1}(", precision, numInputRows);
+                            outputValue = string.Format("$precision{0}(", numInputRows);
                             for (int c = 0; c < numInputRows; c++)
                             {
                                 if (c != 0)
@@ -124,36 +121,14 @@ namespace UnityEditor.ShaderGraph
                             break;
                     }
                 }
-                visitor.AddShaderChunk(string.Format("{0}{1} {2} = {3};", precision, concreteRowCount, GetVariableNameForSlot(s_OutputSlots[r]), outputValue), true);
+                sb.AppendLine(string.Format("$precision{0} {1} = {2};", concreteRowCount, GetVariableNameForSlot(s_OutputSlots[r]), outputValue));
             }
         }
 
         public override void ValidateNode()
         {
             var isInError = false;
-
-            // all children nodes needs to be updated first
-            // so do that here
-            var slots = ListPool<MaterialSlot>.Get();
-            GetInputSlots(slots);
-            foreach (var inputSlot in slots)
-            {
-                inputSlot.hasError = false;
-
-                var edges = owner.GetEdges(inputSlot.slotReference);
-                foreach (var edge in edges)
-                {
-                    var fromSocketRef = edge.outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
-                    if (outputNode == null)
-                        continue;
-
-                    outputNode.ValidateNode();
-                    if (outputNode.hasError)
-                        isInError = true;
-                }
-            }
-            ListPool<MaterialSlot>.Release(slots);
+            var errorMessage = k_validationErrorMessage;
 
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
@@ -166,6 +141,8 @@ namespace UnityEditor.ShaderGraph
             GetInputSlots(s_TempSlots);
             foreach (var inputSlot in s_TempSlots)
             {
+                inputSlot.hasError = false;
+                
                 // if there is a connection
                 var edges = owner.GetEdges(inputSlot.slotReference).ToList();
                 if (!edges.Any())
@@ -207,10 +184,6 @@ namespace UnityEditor.ShaderGraph
                     dynamicMatrixInputSlotsToCompare.Add((DynamicMatrixMaterialSlot)inputSlot, outputConcreteType);
                     continue;
                 }
-
-                // if we have a standard connection... just check the types work!
-                if (!AbstractMaterialNode.ImplicitConversionExists(outputConcreteType, inputSlot.concreteValueType))
-                    inputSlot.hasError = true;
             }
 
             // and now dynamic matrices
@@ -264,10 +237,15 @@ namespace UnityEditor.ShaderGraph
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
             isInError |= s_TempSlots.Any(x => x.hasError);
-            isInError |= CalculateNodeHasError();
+            isInError |= CalculateNodeHasError(ref errorMessage);
+            isInError |= ValidateConcretePrecision(ref errorMessage);
             hasError = isInError;
 
-            if (!hasError)
+            if (isInError)
+            {
+                ((GraphData) owner).AddValidationError(tempId, errorMessage);
+            }
+            else
             {
                 ++version;
             }

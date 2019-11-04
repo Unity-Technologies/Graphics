@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Hyperbolic Tangent";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Hyperbolic-Tangent-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

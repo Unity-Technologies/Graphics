@@ -36,10 +36,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rotate";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Rotate-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -63,11 +59,11 @@ namespace UnityEditor.ShaderGraph
 {
     //rotation matrix
     UV -= Center;
-    {precision} s = sin(Rotation);
-    {precision} c = cos(Rotation);
+    $precision s = sin(Rotation);
+    $precision c = cos(Rotation);
 
     //center rotation matrix
-    {precision}2x2 rMatrix = float2x2(c, -s, s, c);
+    $precision2x2 rMatrix = $precision2x2(c, -s, s, c);
     rMatrix *= 0.5;
     rMatrix += 0.5;
     rMatrix = rMatrix*2 - 1;
@@ -93,11 +89,11 @@ namespace UnityEditor.ShaderGraph
     //rotation matrix
     Rotation = Rotation * (3.1415926f/180.0f);
     UV -= Center;
-    {precision} s = sin(Rotation);
-    {precision} c = cos(Rotation);
+    $precision s = sin(Rotation);
+    $precision c = cos(Rotation);
 
     //center rotation matrix
-    {precision}2x2 rMatrix = float2x2(c, -s, s, c);
+    $precision2x2 rMatrix = $precision2x2(c, -s, s, c);
     rMatrix *= 0.5;
     rMatrix += 0.5;
     rMatrix = rMatrix*2 - 1;

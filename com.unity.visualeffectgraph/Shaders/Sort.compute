@@ -30,7 +30,12 @@
 // 1 to use the alternative representation of the bitonic network:
 // No comparison flipping but dedicated first sub pass.
 // see https://en.wikipedia.org/wiki/Bitonic_sorter
+#if defined(SHADER_API_METAL)
+//Workaround BitonicSort128 doesn't behave as expected, actual cause isn't identified yet.
+#define USE_ALTERNATE_BITONIC_NETWORK 1
+#else
 #define USE_ALTERNATE_BITONIC_NETWORK 0
+#endif
 
 #define BITONIC_THREADS_COUNT ELEMENTS_COUNT / (2 * ITERATIONS_COUNT)
 #define MERGE_THREADS_COUNT ELEMENTS_COUNT
@@ -53,6 +58,8 @@
 #else
 #define REJECTED_VALUE asfloat(0x7f7fffff) // MAX_FLOAT
 #endif
+
+#pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 
 struct KVP
 {
@@ -212,10 +219,12 @@ CBUFFER_END
 
 float GetKeyWithCheck(uint index)
 {
-    if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
-        return REJECTED_VALUE;
+    float result = inputSequence[index].key;
 
-    return inputSequence[index].key;
+    if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
+        result = REJECTED_VALUE;
+
+    return result;
 }
 
 // Merge pass: take N sorted sub arrays as input and output N/2 sorted arrays twice bigger - execute in O(log(subArraySize))

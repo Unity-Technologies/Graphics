@@ -5,3 +5,9 @@ build/**
 /.gitignore
 /.gitmodules
 .npmignore
+upm-ci~/**
+.Editor/**
+.yamato/**
+*.zip*
+TestRunnerOptions.json
+.idea/**

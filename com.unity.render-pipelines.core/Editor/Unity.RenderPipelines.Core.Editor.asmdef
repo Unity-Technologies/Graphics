@@ -1,9 +1,8 @@
 {
     "name": "Unity.RenderPipelines.Core.Editor",
     "references": [
-        "Unity.RenderPipelines.Core.Runtime"
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
@@ -12,5 +11,6 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": []
 }

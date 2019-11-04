@@ -3,9 +3,9 @@
 ## Adjustment
 
 
-|[Channel Mixer](Channel-Mixer-Node.md)| [Contrast](Contrast-node.md) |
+|[Channel Mixer](Channel-Mixer-Node.md)| [Contrast](Contrast-Node.md) |
 |:---------:|:---------:|
-|![Image](Images\ChannelMixerNodeThumb.png)|![](images/ContrastNodeThumb.png)|
+|![Image](images/ChannelMixerNodeThumb.png)|![](images/ContrastNodeThumb.png)|
 |Controls the amount each of the channels of input In contribute to each of the output channels.|Adjusts the contrast of input In by the amount of input Contrast.|
 |[**Hue**](Hue-Node.md)|[**Invert Colors**](Invert-Colors-Node.md)|
 |![Image](images/HueNodeThumb.png)|![Image](images/InvertColorsNodeThumb.png)|
@@ -23,7 +23,7 @@
 
 |[Blend](Blend-Node.md)|
 |:---------:|
-|![Image](Images\BlendNodeThumb.png)|
+|![Image](images/BlendNodeThumb.png)|
 |Blends the value of input Blend onto input Base using the blending mode defined by parameter Mode.|
 
 
@@ -32,7 +32,7 @@
 
 |[Dither](Dither-Node.md)|
 |:---------:|
-|![Image](Images\DitherNodeThumb.png)|
+|![Image](images/DitherNodeThumb.png)|
 |Dither is an intentional form of noise used to randomize quantization error. It is used to prevent large-scale patterns such as color banding in images..|
 
 
@@ -42,7 +42,7 @@
 
 |[Channel Mask](Channel-Mask-Node.md)| [Color Mask](Color-Mask-Node.md) |
 |:---------:|:---------:|
-|![Image](Images\ChannelMaskNodeThumb.png)|![](images/ColorMaskNodeThumb.png)|
+|![Image](images/ChannelMaskNodeThumb.png)|![](images/ColorMaskNodeThumb.png)|
 |Masks values of input In on channels selected in dropdown Channels.|Creates a mask from values in input In equal to input Mask Color.|
 
 
@@ -50,9 +50,9 @@
 ## Normal
 
 
-|[Normal Blend](Normal-Blend-Node.md)| [Normal Create](Normal-Create-Node.md) |
+|[Normal Blend](Normal-Blend-Node.md)| [Normal From Height](Normal-From-Height-Node.md) |
 |:---------:|:---------:|
-|![Image](Images\NormalBlendNodeThumb.png)|![](images/NormalCreateNodeThumb.png)|
+|![Image](images/NormalBlendNodeThumb.png)|![](images/NormalFromHeightNodeThumb.png)|
 |Blends two normal maps defined by inputs A and B together.|Creates a normal map from a height map defined by input Texture.|
 |[**Normal Strength**](Normal-Strength-Node.md)|[**Normal Unpack**](Normal-Unpack-Node.md)|
 |![Image](images/NormalStrengthNodeThumb.png)|![Image](images/NormalUnpackNodeThumb.png)|
@@ -65,5 +65,5 @@
 
 |    [Colorspace Conversion](Colorspace-Conversion-Node.md)    |
 | :----------------------------------------------------------: |
-|      ![Image](Images\ColorspaceConversionNodeThumb.png)      |
+|      ![Image](images/ColorspaceConversionNodeThumb.png)      |
 | Returns the result of converting the value of input In from one colorspace space to another. |

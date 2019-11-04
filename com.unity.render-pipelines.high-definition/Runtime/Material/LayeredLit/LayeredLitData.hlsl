@@ -282,23 +282,23 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 
 // In the case of subsurface profile index, the goal is to take the index with the hights weights.
 // Or the last found in case of equality.
-float BlendLayeredDiffusionProfile(float x0, float x1, float x2, float x3, float weight[4])
+uint BlendLayeredDiffusionProfile(uint x0, uint x1, uint x2, uint x3, float weight[4])
 {
-    int diffusionProfileId = x0;
+    uint diffusionProfileHash = x0;
     float currentMax = weight[0];
 
-    diffusionProfileId = currentMax < weight[1] ? x1 : diffusionProfileId;
+    diffusionProfileHash = currentMax < weight[1] ? x1 : diffusionProfileHash;
     currentMax = max(currentMax, weight[1]);
 
 #if _LAYER_COUNT >= 3
-    diffusionProfileId = currentMax < weight[2] ? x2 : diffusionProfileId;
+    diffusionProfileHash = currentMax < weight[2] ? x2 : diffusionProfileHash;
     currentMax = max(currentMax, weight[2]);
 #endif
 #if _LAYER_COUNT >= 4
-    diffusionProfileId = currentMax < weight[3] ? x3 : diffusionProfileId;
+    diffusionProfileHash = currentMax < weight[3] ? x3 : diffusionProfileHash;
 #endif
 
-    return diffusionProfileId;
+    return diffusionProfileHash;
 }
 
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
@@ -397,7 +397,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #endif
 
     GetLayerTexCoord(   input.texCoord0.xy, input.texCoord1.xy, input.texCoord2.xy, input.texCoord3.xy,
-                        input.positionRWS, input.worldToTangent[2].xyz, layerTexCoord);
+                        input.positionRWS, input.tangentToWorld[2].xyz, layerTexCoord);
 }
 
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
@@ -494,16 +494,8 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
     float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    #if defined(_VERTEX_WIND)
-    // For multiplicative vertex color blend mask. 1.0f is the neutral value
-    maskVertexColor.a = 1.0f;
-    #endif
     blendMasks *= maskVertexColor;
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
-    #if defined(_VERTEX_WIND)
-    // For additive vertex color blend mask. 0.5f is the neutral value (0.5 * 2.0 - 1.0 = 0.0)
-    maskVertexColor.a = 0.5f;
-    #endif
     blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
 #endif
 
@@ -529,11 +521,27 @@ float GetMaxHeight(float4 heights)
     return maxHeight;
 }
 
+float GetMinHeight(float4 heights)
+{
+    float minHeight = min(heights.r, heights.g);
+#ifdef _LAYEREDLIT_4_LAYERS
+    minHeight = min(Min3(heights.r, heights.g, heights.b), heights.a);
+#endif
+#ifdef _LAYEREDLIT_3_LAYERS
+    minHeight = Min3(heights.r, heights.g, heights.b);
+#endif
+
+    return minHeight;
+}
+
 // Returns layering blend mask after application of height based blend.
 float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 {
     // We need to mask out inactive layers so that their height does not impact the result.
-    float4 maskedHeights = heights * blendMask.argb;
+    // First we make every value positive by substracting the minimum value.
+    // Otherwise multiplicating by blendMask can invert negative heights.
+    // For example, 2 heights value of -10.0 and -5 multiplied by blend mask 0.1 and 1.0 (intent is to give LESS importance to the first value) makes the first value heigher
+    float4 maskedHeights = (heights - GetMinHeight(heights)) * blendMask.argb;
 
     float maxHeight = GetMaxHeight(maskedHeights);
     // Make sure that transition is not zero otherwise the next computation will be wrong.
@@ -636,7 +644,7 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
     return influenceFactor * factor + baseColor;
 }
 
-#include "LayeredLitDataDisplacement.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitDataDisplacement.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -646,7 +654,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     LODDitheringTransition(fadeMaskSeed, unity_LODFade.x);
 #endif
 
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+#ifdef _DOUBLESIDED_ON
+    float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+#else
+    float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+#endif
+
+    ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -706,10 +720,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
     surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
-    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
+    surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz); // The tangent is not normalize in tangentToWorld for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = SURFACEDATA_BLEND_SCALAR(surfaceData, subsurfaceMask, weights);
     surfaceData.thickness = SURFACEDATA_BLEND_SCALAR(surfaceData, thickness, weights);
-    surfaceData.diffusionProfile = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfile, weights);
+    surfaceData.diffusionProfileHash = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfileHash, weights); // We don't need the hash as we only use it to compute the diffusion profile index
 
     // Layered shader support SSS and Transmission features
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
@@ -735,12 +749,26 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
+
+    surfaceData.geomNormalWS = input.tangentToWorld[2];
+
+    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+
+#if HAVE_DECALS
+    if (_EnableDecals)
+    {
+        // Both uses and modifies 'surfaceData.normalWS'.
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+    }
+#endif
+
     // Use bent normal to sample GI if available
     // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)
     // Note: the code in LitDataInternal ensure that we fallback on normal map for layer that have no bentnormal
 #if defined(_BENTNORMALMAP0) || defined(_BENTNORMALMAP1) || defined(_BENTNORMALMAP2) || defined(_BENTNORMALMAP3)
-    GetNormalWS(input, bentNormalTS, bentNormalWS);
+    GetNormalWS(input, bentNormalTS, bentNormalWS, doubleSidedConstants);
 #else // if no bent normal are available at all just keep the calculation fully
     bentNormalWS = surfaceData.normalWS;
 #endif
@@ -756,21 +784,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #endif
 #elif defined(_MASKMAP0) || defined(_MASKMAP1) || defined(_MASKMAP2) || defined(_MASKMAP3)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-#else
-    surfaceData.specularOcclusion = 1.0;
-#endif
-
-#if HAVE_DECALS
-    if (_EnableDecals)
-    {
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
-    }
 #endif
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
     // Specular AA
-    surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.worldToTangent[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
+    surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
 #if defined(DEBUG_DISPLAY)
@@ -782,7 +800,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
     // as it can modify attribute use for static lighting
-    ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
+    ApplyDebugToSurfaceData(input.tangentToWorld, surfaceData);
 #endif
 
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);

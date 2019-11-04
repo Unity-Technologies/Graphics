@@ -1,17 +1,17 @@
 EnumConversionControlView {
     flex-direction: row;
-    padding-left: 8;
-    padding-right: 8;
-    padding-top: 4;
-    padding-bottom: 4;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 
 .unity-base-field {
-    width: 80;
+    width: 80px;
 	flex:1;
-    margin-top: 1;
-    margin-bottom: 1;
+    margin-top: 1px;
+    margin-bottom: 1px;
 }
 
 .unity-base-field__input {
@@ -23,12 +23,7 @@ EnumConversionControlView {
 }
 
 EnumConversionControlView > Label {
-    margin-left: 4;
-    margin-right: 4;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
-    padding-bottom: 0;
+    margin-left: 4px;
+    margin-right: 4px;
+    -unity-text-align : middle-left;
 }

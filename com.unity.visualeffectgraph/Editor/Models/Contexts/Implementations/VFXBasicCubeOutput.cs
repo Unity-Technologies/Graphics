@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     [VFXInfo]
     class VFXBasicCubeOutput : VFXAbstractParticleOutput
     {
-        public override string name { get { return "Cube Output"; } }
+        public override string name { get { return "Output Particle Cube"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleBasicCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 
         public override bool supportsUV { get { return true; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
@@ -56,7 +57,18 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
+            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+        }
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                yield return "colorMapping";
+            }
         }
     }
 }

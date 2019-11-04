@@ -5,7 +5,7 @@
 #ifndef MIPMAPDEBUG_CS_HLSL
 #define MIPMAPDEBUG_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.DebugMipMapMode:  static fields
+// UnityEngine.Rendering.HighDefinition.DebugMipMapMode:  static fields
 //
 #define DEBUGMIPMAPMODE_NONE (0)
 #define DEBUGMIPMAPMODE_MIP_RATIO (1)
@@ -15,7 +15,7 @@
 #define DEBUGMIPMAPMODE_STREAMING_MIP (5)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.DebugMipMapModeTerrainTexture:  static fields
+// UnityEngine.Rendering.HighDefinition.DebugMipMapModeTerrainTexture:  static fields
 //
 #define DEBUGMIPMAPMODETERRAINTEXTURE_CONTROL (0)
 #define DEBUGMIPMAPMODETERRAINTEXTURE_LAYER0 (1)

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Velocity")]
+    [VFXInfo(category = "Velocity", experimental = true)]
     class VelocitySpherical : VelocityBase
     {
         public override string name { get { return string.Format(base.name, "Spherical"); } }
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The center of the spherical direction.")]
+            [Tooltip("Sets the center of the spherical direction. Particles will move outwards from this position.")]
             public Vector3 center;
         }
 

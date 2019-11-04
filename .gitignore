@@ -7,6 +7,7 @@
 [Ss]treaming[Aa]ssets/
 [Aa]ctual[Ii]mages/
 [Ll]og/
+[Ll]ogs/
 [Aa]ctual[Ii]mages.meta
 [Ss]treaming[Aa]ssets.meta
 .vs
@@ -33,5 +34,5 @@
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
-TestProjects/ShaderGraph/ProjectSettings/ProjectVersion.txt
-TestProjects/VisualEffectGraph/ProjectSettings/ProjectVersion.txt
+TestProjects/*/ProjectSettings/ProjectVersion.txt
+

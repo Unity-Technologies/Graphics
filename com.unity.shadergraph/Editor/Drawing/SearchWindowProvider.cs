@@ -14,15 +14,16 @@ namespace UnityEditor.ShaderGraph.Drawing
     class SearchWindowProvider : ScriptableObject, ISearchWindowProvider
     {
         EditorWindow m_EditorWindow;
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
         GraphView m_GraphView;
         Texture2D m_Icon;
         public ShaderPort connectedPort { get; set; }
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; private set; }
         public Vector2 targetPosition { get; private set; }
+        private const string k_HiddenFolderName = "Hidden";
 
-        public void Initialize(EditorWindow editorWindow, AbstractMaterialGraph graph, GraphView graphView)
+        public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
         {
             m_EditorWindow = editorWindow;
             m_Graph = graph;
@@ -63,6 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
                         && type != typeof(PropertyNode)
+                        && type != typeof(KeywordNode)
                         && type != typeof(SubGraphNode))
                     {
                         var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
@@ -75,34 +77,44 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (!(m_Graph is SubGraph))
+            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
             {
-                foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(MaterialSubGraphAsset))))
+                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                var node = new SubGraphNode { asset = asset };
+                var title = asset.path.Split('/').ToList();
+                
+                if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
-                    var asset = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
-                    var node = new SubGraphNode { subGraphAsset = asset };
+                    continue;
+                }
 
-                    if (string.IsNullOrEmpty(asset.subGraph.path))
-                    {
-                        AddEntries(node, new string[1] { asset.name }, nodeEntries);
-                    }
-                    else
-                    {
-                        var title = asset.subGraph.path.Split('/').ToList();
-                        title.Add(asset.name);
-                        AddEntries(node, title.ToArray(), nodeEntries);
-                    }
+                if (string.IsNullOrEmpty(asset.path))
+                {
+                    AddEntries(node, new string[1] { asset.name }, nodeEntries);
+                }
+
+                else if (title[0] != k_HiddenFolderName)
+                {
+                    title.Add(asset.name);
+                    AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }
 
             foreach (var property in m_Graph.properties)
             {
                 var node = new PropertyNode();
-                var property1 = property;
                 node.owner = m_Graph;
-                node.propertyGuid = property1.guid;
+                node.propertyGuid = property.guid;
                 node.owner = null;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
+            }
+            foreach (var keyword in m_Graph.keywords)
+            {
+                var node = new KeywordNode();
+                node.owner = m_Graph;
+                node.keywordGuid = keyword.guid;
+                node.owner = null;
+                AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
 
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
@@ -184,9 +196,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> nodeEntries)
         {
-            if (m_Graph is SubGraph && !node.allowedInSubGraph)
+            if (m_Graph.isSubGraph && !node.allowedInSubGraph)
                 return;
-            if (m_Graph is MaterialGraph && !node.allowedInMainGraph)
+            if (!m_Graph.isSubGraph && !node.allowedInMainGraph)
                 return;
             if (connectedPort == null)
             {

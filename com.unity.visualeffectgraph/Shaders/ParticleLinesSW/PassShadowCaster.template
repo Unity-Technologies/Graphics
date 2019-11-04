@@ -13,8 +13,10 @@ Pass
 	{
 		float4 pos : SV_POSITION;
 		#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
-		nointerpolation float2 builtInInterpolants : TEXCOORD0;
+		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants : TEXCOORD0;
 		#endif
+
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -22,19 +24,21 @@ Pass
 #define VFX_VARYING_ALPHA builtInInterpolants.y
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 		
-	${VFXBegin:VFXVertexAdditionalProcess}
-		o.pos = VFXApplyShadowBias(o.pos);
-	${VFXEnd}
+${VFXBegin:VFXVertexAdditionalProcess}
+float3 posWS = TransformPositionVFXToWorld(vPos);
+VFXApplyShadowBias(o.VFX_VARYING_POSCS, posWS);
+${VFXEnd}
 	
 // Needed for HDRP
 #define SHADERPASS SHADERPASS_SHADOWS
-#define USE_LEGACY_UNITY_MATRIX_VARIABLES
 		
 	${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+		VFXTransformPSInputs(i);
 		float alpha = VFXGetFragmentColor(i);
 		VFXClipFragmentColor(alpha,i);
 		return 0;

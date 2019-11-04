@@ -2,11 +2,12 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Matrix", "Matrix 2x2")]
-    class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode
+    class Matrix2Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
         const string kOutputSlotName = "Out";
@@ -45,10 +46,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Matrix-2x2-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -76,21 +73,18 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("{0}2 _{1}_m0 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision2 _{0}_m0 = $precision2 ({1}, {2});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row0.x),
                     NodeUtils.FloatToShaderValue(m_Row0.y));
-                sb.AppendLine("{0}2 _{1}_m1 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(),
+                sb.AppendLine("$precision2 _{0}_m1 = $precision2 ({1}, {2});", GetVariableNameForNode(),
                     NodeUtils.FloatToShaderValue(m_Row1.x),
                     NodeUtils.FloatToShaderValue(m_Row1.y));
             }
-            sb.AppendLine("{0}2x2 {1} = {0}2x2 (_{1}_m0.x, _{1}_m0.y, _{1}_m1.x, _{1}_m1.y);",
-                precision, GetVariableNameForNode());
-            visitor.AddShaderChunk(sb.ToString(), false);
+            sb.AppendLine("$precision2x2 {0} = $precision2x2 (_{0}_m0.x, _{0}_m0.y, _{0}_m1.x, _{0}_m1.y);", GetVariableNameForNode());
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -112,5 +106,33 @@ namespace UnityEditor.ShaderGraph
         {
             return GetVariableNameForNode();
         }
+
+        public AbstractShaderProperty AsShaderProperty()
+        {
+            return new Matrix2ShaderProperty
+            {
+                value = new Matrix4x4()
+                {
+                    m00 = row0.x,
+                    m01 = row0.y,
+                    m02 = 0,
+                    m03 = 0,
+                    m10 = row1.x,
+                    m11 = row1.y,
+                    m12 = 0,
+                    m13 = 0,
+                    m20 = 0,
+                    m21 = 0,
+                    m22 = 0,
+                    m23 = 0,
+                    m30 = 0,
+                    m31 = 0,
+                    m32 = 0,
+                    m33 = 0,
+                }
+            };
+        }
+
+        public int outputSlotId { get { return OutputSlotId; } }
     }
 }

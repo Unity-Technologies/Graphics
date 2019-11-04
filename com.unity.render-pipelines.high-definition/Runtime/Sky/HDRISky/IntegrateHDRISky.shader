@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
+Shader "Hidden/HDRP/IntegrateHDRI"
 {
     Properties
     {
@@ -52,7 +52,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             // compute the lux value without multiple importance sampling.
             // We instead use a brute force Uniforme Spherical integration of the upper hemisphere
             // with a large number of sample. This is fine as this happen in the editor.
-            real GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N)
+            real GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(skybox, sampler_skybox), real3 N)
             {
                 float sum = 0.0;
                 float dphi = 0.005;
@@ -76,7 +76,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
                 // Integrate upper hemisphere (Y up)
                 float3 N = float3(0.0, 1.0, 0.0);
 
-                float intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(_Cubemap, s_trilinear_clamp_sampler), N);
+                float intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(_Cubemap, s_trilinear_clamp_sampler), N);
 
                 return float4(intensity, 1.0, 1.0, 1.0);
             }

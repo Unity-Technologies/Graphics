@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -19,19 +19,19 @@ namespace UnityEditor.VFX.Block
             Sample2DLOD,
             Sample3DLOD,
             Random,
-            RandomUniformPerParticle,
+            RandomConstantPerParticle,
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
         public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the chosen attribute. The value derived from this block can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting, Tooltip("How to sample inside the AttributeMap")]
-        public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomUniformPerParticle;
+        [VFXSetting, Tooltip("Specifies the mode by which to sample the attribute map. This can be done via an index, sequentially, by sampling a 2D/3D texture, or randomly.")]
+        public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomConstantPerParticle;
 
-        [VFXSetting]
+        [VFXSetting, Tooltip("Specifies which channels to use in this block. This is useful for only affecting the relevant data if not all channels are used.")]
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 
@@ -52,8 +52,8 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
+        public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.Block
 
                 if (SampleMode == AttributeMapSampleMode.Sequential) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
                 if (SampleMode == AttributeMapSampleMode.Random) yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                if (SampleMode == AttributeMapSampleMode.RandomUniformPerParticle) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
+                if (SampleMode == AttributeMapSampleMode.RandomConstantPerParticle) yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
             }
         }
 
@@ -121,6 +121,11 @@ namespace UnityEditor.VFX.Block
                         break;
                     case AttributeMapSampleMode.Sample3DLOD:
                         properties = properties.Concat(PropertiesFromType("InputPropertiesSample3DLOD"));
+                        break;
+                    case AttributeMapSampleMode.RandomConstantPerParticle:
+                        properties = properties.Concat(PropertiesFromType("InputPropertiesRandomConstant"));
+                        break;
+                    default:
                         break;
                 }
 
@@ -191,19 +196,21 @@ namespace UnityEditor.VFX.Block
                     string samplePos = "0";
                     switch (SampleMode)
                     {
-                        case AttributeMapSampleMode.IndexRelative: samplePos = "relativePos * count"; break;
+                        case AttributeMapSampleMode.IndexRelative: samplePos = "clamp(relativePos * count,  0u, count - 1u)"; break;
                         case AttributeMapSampleMode.Index: samplePos = "index % count"; break;
                         case AttributeMapSampleMode.Sequential: samplePos = "particleId % count"; break;
                         case AttributeMapSampleMode.Random: samplePos = "RAND * count"; break;
-                        case AttributeMapSampleMode.RandomUniformPerParticle: samplePos = "FIXED_RAND(0x8ef09666) * count"; break; // TODO expose hash
+                        case AttributeMapSampleMode.RandomConstantPerParticle: samplePos = "FIXED_RAND(Seed) * count"; break;
                     }
 
                     output += string.Format(@"
 uint width, height;
 attributeMap.t.GetDimensions(width, height);
 uint count = width * height;
-uint id = clamp(uint({0}), 0, count - 1);
-{1} value = ({1})attributeMap.t.Load(int3(id % width, id / width,0));
+uint id = {0};
+uint y = id / width;
+uint x = id - y * width;
+{1} value = ({1})attributeMap.t.Load(int3(x, y, 0));
 {2}
 ", samplePos, GetCompatTypeString(valueType), biasScale);
                 }
@@ -259,6 +266,11 @@ uint id = clamp(uint({0}), 0, count - 1);
             [Tooltip("Absolute index to sample")]
             public Vector3 SamplePosition = Vector2.zero;
             public float LOD = 0.0f;
+        }
+        public class InputPropertiesRandomConstant
+        {
+            [Tooltip("Seed to compute the constant random")]
+            public uint Seed = 0;
         }
 
         public class InputPropertiesBlend

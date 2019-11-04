@@ -14,10 +14,12 @@ namespace UnityEditor.ShaderGraph
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = new SubGraph();
-            graph.AddNode(new SubGraphOutputNode());
+            var graph = new GraphData { isSubGraph = true };
+            var outputNode = new SubGraphOutputNode();
+            graph.AddNode(outputNode);
+            outputNode.AddSlot(ConcreteSlotValueType.Vector4);
             graph.path = "Sub Graphs";
-            File.WriteAllText(pathName, EditorJsonUtility.ToJson(graph));
+            FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
         }
     }

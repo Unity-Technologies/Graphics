@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX
 {
     [VFXType]
-    public struct GPUEvent
+    struct GPUEvent
     {
         /* expected emptiness */
     };
@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
     [VFXInfo(experimental = true)]
     class VFXBasicGPUEvent : VFXContext
     {
-        public VFXBasicGPUEvent() : base(VFXContextType.kSpawnerGPU, VFXDataType.kNone, VFXDataType.kSpawnEvent) {}
+        public VFXBasicGPUEvent() : base(VFXContextType.SpawnerGPU, VFXDataType.None, VFXDataType.SpawnEvent) {}
         public override string name { get { return "GPUEvent"; } }
 
         public class InputProperties

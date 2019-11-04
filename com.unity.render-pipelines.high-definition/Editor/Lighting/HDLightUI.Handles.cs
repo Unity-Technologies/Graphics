@@ -1,21 +1,21 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
-{ 
+namespace UnityEditor.Rendering.HighDefinition
+{
     partial class HDLightUI
     {
-        public static void DrawHandles(SerializedHDLight serialized, Editor owner)
+        public static void DrawHandles(HDAdditionalLightData additionalData, Editor owner)
         {
-            HDAdditionalLightData src = (HDAdditionalLightData)serialized.serializedLightDatas.targetObject;
-            Light light = (Light)owner.target;
+            Light light = additionalData.legacyLight;
 
             Color wireframeColorAbove = (owner as HDLightEditor).legacyLightColor;
             Color handleColorAbove = CoreLightEditorUtilities.GetLightHandleColor(wireframeColorAbove);
             Color wireframeColorBehind = CoreLightEditorUtilities.GetLightBehindObjectWireframeColor(wireframeColorAbove);
             Color handleColorBehind = CoreLightEditorUtilities.GetLightHandleColor(wireframeColorBehind);
 
-            switch (src.lightTypeExtent)
+            switch (additionalData.lightTypeExtent)
             {
                 case LightTypeExtent.Punctual:
                     switch (light.type)
@@ -26,18 +26,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             //See HDLightEditor
                             break;
                         case LightType.Spot:
-                            switch (src.spotLightShape)
+                            switch (additionalData.spotLightShape)
                             {
                                 case SpotLightShape.Cone:
                                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                                     {
-                                        Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * src.GetInnerSpotPercent01(), light.range);
+                                        Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = wireframeColorBehind;
-                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, src.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, additionalData.shadowNearPlane);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = wireframeColorAbove;
-                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, src.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpotlightWireframe(outterAngleInnerAngleRange, additionalData.shadowNearPlane);
                                         EditorGUI.BeginChangeCheck();
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = handleColorBehind;
@@ -47,8 +47,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                         outterAngleInnerAngleRange = CoreLightEditorUtilities.DrawSpotlightHandle(outterAngleInnerAngleRange);
                                         if (EditorGUI.EndChangeCheck())
                                         {
-                                            Undo.RecordObjects(new UnityEngine.Object[] { light, src }, "Adjust Cone Spot Light");
-                                            src.m_InnerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
+                                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
+                                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / Mathf.Max(0.1f, outterAngleInnerAngleRange.x);
                                             light.spotAngle = outterAngleInnerAngleRange.x;
                                             light.range = outterAngleInnerAngleRange.z;
                                         }
@@ -59,24 +59,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 case SpotLightShape.Pyramid:
                                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                                     {
-                                        Vector4 aspectFovMaxRangeMinRange = new Vector4(src.aspectRatio, light.spotAngle, light.range);
+                                        Vector4 aspectFovMaxRangeMinRange = new Vector4(additionalData.aspectRatio, light.spotAngle, light.range);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = wireframeColorBehind;
-                                        CoreLightEditorUtilities.DrawPyramidFrustumWireframe(aspectFovMaxRangeMinRange, src.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = wireframeColorAbove;
-                                        CoreLightEditorUtilities.DrawPyramidFrustumWireframe(aspectFovMaxRangeMinRange, src.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, additionalData.shadowNearPlane);
                                         EditorGUI.BeginChangeCheck();
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = handleColorBehind;
-                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawPyramidFrustumHandle(aspectFovMaxRangeMinRange, false);
+                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = handleColorAbove;
-                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawPyramidFrustumHandle(aspectFovMaxRangeMinRange, false);
+                                        aspectFovMaxRangeMinRange = CoreLightEditorUtilities.DrawSpherePortionHandle(aspectFovMaxRangeMinRange, false);
                                         if (EditorGUI.EndChangeCheck())
                                         {
-                                            Undo.RecordObjects(new UnityEngine.Object[] { light, src }, "Adjust Pyramid Spot Light");
-                                            src.aspectRatio = aspectFovMaxRangeMinRange.x;
+                                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Pyramid Spot Light");
+                                            additionalData.aspectRatio = aspectFovMaxRangeMinRange.x;
                                             light.spotAngle = aspectFovMaxRangeMinRange.y;
                                             light.range = aspectFovMaxRangeMinRange.z;
                                         }
@@ -87,13 +87,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 case SpotLightShape.Box:
                                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                                     {
-                                        Vector4 widthHeightMaxRangeMinRange = new Vector4(src.shapeWidth, src.shapeHeight, light.range);
+                                        Vector4 widthHeightMaxRangeMinRange = new Vector4(additionalData.shapeWidth, additionalData.shapeHeight, light.range);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = wireframeColorBehind;
-                                        CoreLightEditorUtilities.DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, src.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, additionalData.shadowNearPlane);
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                                         Handles.color = wireframeColorAbove;
-                                        CoreLightEditorUtilities.DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, src.shadowNearPlane);
+                                        CoreLightEditorUtilities.DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, additionalData.shadowNearPlane);
                                         EditorGUI.BeginChangeCheck();
                                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                                         Handles.color = handleColorBehind;
@@ -103,9 +103,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                         widthHeightMaxRangeMinRange = CoreLightEditorUtilities.DrawOrthoFrustumHandle(widthHeightMaxRangeMinRange, false);
                                         if (EditorGUI.EndChangeCheck())
                                         {
-                                            Undo.RecordObjects(new UnityEngine.Object[] { light, src }, "Adjust Box Spot Light");
-                                            src.shapeWidth = widthHeightMaxRangeMinRange.x;
-                                            src.shapeHeight = widthHeightMaxRangeMinRange.y;
+                                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Box Spot Light");
+                                            additionalData.shapeWidth = widthHeightMaxRangeMinRange.x;
+                                            additionalData.shapeHeight = widthHeightMaxRangeMinRange.y;
                                             light.range = widthHeightMaxRangeMinRange.z;
                                         }
 
@@ -118,10 +118,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case LightTypeExtent.Rectangle:
                 case LightTypeExtent.Tube:
-                    bool withYAxis = src.lightTypeExtent == LightTypeExtent.Rectangle;
+                    bool withYAxis = additionalData.lightTypeExtent == LightTypeExtent.Rectangle;
                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
-                        Vector2 widthHeight = new Vector4(src.shapeWidth, withYAxis ? src.shapeHeight : 0f);
+                        Vector2 widthHeight = new Vector4(additionalData.shapeWidth, withYAxis ? additionalData.shapeHeight : 0f);
                         float range = light.range;
                         EditorGUI.BeginChangeCheck();
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
@@ -138,13 +138,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                         Handles.color = handleColorAbove;
                         widthHeight = CoreLightEditorUtilities.DrawAreaLightHandle(widthHeight, withYAxis);
+                        widthHeight = Vector2.Max(Vector2.one * k_MinLightSize, widthHeight);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObjects(new UnityEngine.Object[] { light, src }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
-                            src.shapeWidth = widthHeight.x;
+                            Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
+                            additionalData.shapeWidth = widthHeight.x;
                             if (withYAxis)
                             {
-                                src.shapeHeight = widthHeight.y;
+                                additionalData.shapeHeight = widthHeight.y;
                             }
                             light.range = range;
                         }
@@ -158,10 +159,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [DrawGizmo(GizmoType.Selected)]
         static void DrawGizmoForHDAdditionalLightData(HDAdditionalLightData src, GizmoType gizmoType)
         {
-            if (!(UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset))
+            if (!(UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset))
                 return;
 
-            var light = src.gameObject.GetComponent<Light>();
+            var light = src.legacyLight;
 
             if (light.type != LightType.Directional)
             {

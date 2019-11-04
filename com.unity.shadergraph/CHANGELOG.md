@@ -4,9 +4,215 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2019-XX-XX
+### Added
+- Added samples for Procedural Patterns to the package.
+- You can now use the right-click context menu to delete Sticky Notes.
+- You can now save your graph as a new Asset.
+- Added support for vertex skinning when you use the DOTS animation package.
+- You can now use the right-click context menu to set the precision on multiple selected nodes.
+
+### Fixed
+- Edges no longer produce errors when you save a Shader Graph.
+- Shader Graph no longer references the `NUnit` package.
+- Fixed a shader compatibility issue in the SRP Batcher when you use a hybrid instancing custom variable.
+- Fixed an issue where Unity would crash when you imported a Shader Graph Asset with invalid formatting.
+- Fixed an issue with the animated preview when there is no Camera with animated Materials in the Editor.
+- Triplanar nodes no longer use Camera-relative world space by default in HDRP.
+- Errors no longer occur when you activate `Enable GPU Instancing` on Shader Graph Materials. [1184870](https://issuetracker.unity3d.com/issues/universalrp-shader-compilation-error-when-using-gpu-instancing)
+- Errors no longer occur when there are multiple tangent transform nodes on a graph. [1185752](https://issuetracker.unity3d.com/issues/shadergraph-fails-to-compile-with-redefinition-of-transposetangent-when-multiple-tangent-transform-nodes-are-plugged-in)
+- The Main Preview for Sprite Lit and Sprite Unlit master nodes now displays the correct color. [1184656](https://issuetracker.unity3d.com/issues/shadergraph-preview-for-lit-and-unlit-master-node-wrong-color-when-color-is-set-directly-on-master-node)
+- Shader Graph shaders in `Always Include Shaders` no longer crash builds. [1191757](https://issuetracker.unity3d.com/issues/lwrp-build-crashes-when-built-with-shadergraph-file-added-to-always-include-shaders-list)
+- The `Transform` node now correctly transforms Absolute World to Object.
+
+## [7.1.1] - 2019-09-05
+### Added
+- You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
+- The tab now shows whether you are working in a Sub Graph or a Shader Graph file.
+- The Shader Graph importer now bakes the output node type name into a meta-data object.
+
+### Fixed
+- The Shader Graph preview no longer breaks when you create new PBR Graphs.
+- Fixed an issue where deleting a group and a property at the same time would cause an error.
+- Fixed the epsilon that the Hue Node uses to avoid NaN on platforms that support half precision.
+- Emission nodes no longer produce errors when you use them in Sub Graphs.
+- Exposure nodes no longer produce errors when you use them in Sub Graphs.
+- Unlit master nodes no longer define unnecessary properties in the Universal Render Pipeline.
+- Errors no longer occur when you convert a selection to a Sub Graph.
+- Color nodes now handle Gamma and Linear conversions correctly.
+- Sub Graph Output nodes now link to the correct documentation page.
+- When you use Keywords, PBR and Unlit master nodes no longer produce errors.
+- PBR master nodes now calculate Global Illumination (GI) correctly.
+- PBR master nodes now apply surface normals.
+- PBR master nodes now apply fog.
+- The Editor now displays correct errors for missing or deleted Sub Graph Assets.
+- You can no longer drag and drop recursive nodes onto Sub Graph Assets.
+
+## [7.0.1] - 2019-07-25
+### Changed
+- New Shader Graph windows are now docked to either existing Shader Graph windows, or to the Scene View.
+
+### Fixed
+- Fixed various dependency tracking issues with Sub Graphs and HLSL files from Custom Function Nodes.
+- Fixed an error that previously occurred when you used `Sampler State` input ports on Sub Graphs.
+- `Normal Reconstruct Z` node is now compatible with both fragment and vertex stages. 
+- `Position` node now draws the correct label for **Absolute World**. 
+- Node previews now inherit preview type correctly.
+- Normal maps now unpack correctly for mobile platforms.
+- Fixed an error that previously occurred when you used the Gradient Sample node and your system locale uses commas instead of periods.
+- Fixed an issue where you couldn't group several nodes.
+
+## [7.0.0] - 2019-07-10
+### Added
+- You can now use the `SHADERGRAPH_PREVIEW` keyword in `Custom Function Node` to generate different code for preview Shaders.
+- Color Mode improves node visibility by coloring the title bar by Category, Precision, or custom colors.
+- You can now set the precision of a Shader Graph and individual nodes.
+- Added the `_TimeParameters` variable which contains `Time`, `Sin(Time)`, and `Cosine(Time)`
+- _Absolute World_ space on `Position Node` now provides absolute world space coordinates regardless of the active render pipeline.
+- You can now add sticky notes to graphs.
+
+### Changed
+- The `Custom Function Node` now uses an object field to reference its source when using `File` mode.
+- To enable master nodes to generate correct motion vectors for time-based vertex modification, time is now implemented as an input to the graph rather than as a global uniform.
+- **World** space on `Position Node` now uses the default world space coordinates of the active render pipeline. 
+
+### Fixed
+- Fixed an error in `Custom Function Node` port naming.
+- `Sampler State` properties and nodes now serialize correctly.
+- Labels in the Custom Port menu now use the correct coloring when using the Personal skin.
+- Fixed an error that occured when creating a Sub Graph from a selection containing a Group Node.
+- When you change a Sub Graph, Shader Graph windows now correctly reload.
+- When you save a Shader Graph, all other Shader Graph windows no longer re-compile their preview Shaders.
+- Shader Graph UI now draws with correct styling for 2019.3.
+- When deleting edge connections to nodes with a preview error, input ports no longer draw in the wrong position.
+- Fixed an error involving deprecated components from VisualElements.
+- When you convert nodes to a Sub Graph, the nodes are now placed correctly in the Sub Graph.
+- The `Bitangent Vector Node` now generates all necessary shader requirements.
+
+## [6.7.0-preview] - 2019-05-16
+### Added
+- Added a hidden path namespace for Sub Graphs to prevent certain Sub Graphs from populating the Create Node menu.
+
+### Changed
+- Anti-aliasing (4x) is now enabled on Shader Graph windows.
+
+### Fixed
+- When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
+- Sub Graph Output and Custom Function Node now validate slot names, and display an appropriate error badge when needed.
+- Remaining outdated documentation has been removed. 
+- When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
+- When you rapidly perform an undo or redo, Shader Graph windows no longer break.
+- Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
+- You can now reference sub-assets such as Textures.
+- You can now reference Scene Color and Scene Depth correctly from within a Sub Graph.
+- When you create a new empty Sub Graph, it no longer shows a warning about a missing output.
+- When you create outputs that start with a digit, Shader generation no longer fails.
+- You can no longer add nodes that are not allowed into Sub Graphs.
+- A graph must now always contain at least one Master Node.
+- Duplicate output names are now allowed.
+- Fixed an issue where the main preview was always redrawing.
+- When you set a Master Node as active, the Main Preview now shows the correct result.
+- When you save a graph that contains a Sub Graph node, the Shader Graph window no longer freezes.
+- Fixed an error that occured when using multiple Sampler State nodes with different parameters.
+- Fixed an issue causing default inputs to be misaligned in certain cases.
+- You can no longer directly connect slots with invalid types. When the graph detects that situation, it now doesn't break and gives an error instead.
+
+## [6.6.0] - 2019-04-01
+### Added
+- You can now add Matrix, Sampler State and Gradient properties to the Blackboard.
+- Added Custom Function node. Use this node to define a custom HLSL function either via string directly in the graph, or via a path to an HLSL file.
+- You can now group nodes by pressing Ctrl + G.
+- Added "Delete Group and Contents" and removed "Ungroup All Nodes" from the context menu for groups.
+- You can now use Sub Graphs in other Sub Graphs.
+- Preview shaders now compile in the background, and only redraw when necessary.
+
+### Changed
+- Removed Blackboard fields, which had no effect on Sub Graph input ports, from the Sub Graph Blackboard.
+- Subgraph Output node is now called Outputs.
+- Subgraph Output node now supports renaming of ports.
+- Subgraph Output node now supports all port types.
+- Subgraph Output node now supports reordering ports.
+- When you convert nodes to a Sub Graph, Shader Graph generates properties and output ports in the Sub Graph, and now by default, names those resulting properties and output ports based on their types.
+- When you delete a group, Shader Graph now deletes the Group UI, but doesn't delete the nodes inside.
+
+### Fixed
+- You can now undo edits to Vector port default input fields.
+- You can now undo edits to Gradient port default input fields.
+- Boolean port input fields now display correct values when you undo changes.
+- Vector type properties now behave as expected when you undo changes.
+- Fixed an error that previously occurred when you opened saved Shader Graphs containing one or more Voronoi nodes.
+- You can now drag normal map type textures on to a Shader Graph to create Sample Texture 2D nodes with the correct type set.
+- Fixed the Multiply node so default input values are applied correctly.
+- Added padding on input values for Blend node to prevent NaN outputs.
+- Fixed an issue where `IsFaceSign` would not compile within Sub Graph Nodes.
+- Null reference errors no longer occur when you remove ports with connected edges.
+- Default input fields now correctly hide and show when connections change.
+
+## [6.5.0] - 2019-03-07
+
+### Fixed
+- Fixed master preview for HDRP master nodes when alpha clip is enabled.
+
+## [6.4.0] - 2019-02-21
+### Fixed
+- Fixed the Transform node, so going from Tangent Space to any other space now works as expected.
+
+## [6.3.0] - 2019-02-18
+### Fixed
+- Fixed an issue where the Normal Reconstruct Z Node sometimes caused Not a Number (NaN) errors when using negative values.
+
+## [6.2.0] - 2019-02-15
+### Fixed
+- Fixed the property blackboard so it no longer goes missing or turns very small.
+
+### Changed
+- Code refactor: all macros with ARGS have been swapped with macros with PARAM. This is because the ARGS macros were incorrectly named.
+
+## [6.1.0] - 2019-02-13
+
+## [6.0.0] - 2019-02-23
+### Added
+- When you hover your cursor over a property in the blackboard, this now highlights the corresponding property elements in your Shader Graph. Similarly, if you hover over a property in the Shader Graph itself, this highlights the corresponding property in the blackboard.
+- Property nodes in your Shader Graph now have a similar look and styling as the properties in the blackboard.
+
+### Changed
+- Errors in the compiled shader are now displayed as badges on the appropriate node.
+- In the `Scene Depth` node you can now choose the depth sampling mode: `Linear01`, `Raw` or `Eye`.
+
+### Fixed
+- When you convert an inline node to a `Property` node, this no longer allows duplicate property names.
+- When you move a node, you'll now be asked to save the Graph file.
+- You can now Undo edits to Property parameters on the Blackboard.
+- You can now Undo conversions between `Property` nodes and inline nodes.
+- You can now Undo moving a node.
+- You can no longer select the `Texture2D` Property type `Mode`, if the Property is not exposed.
+- The `Vector1` Property type now handles default values more intuitively when switching `Mode` dropdown.
+- The `Color` node control is now a consistent width.
+- Function declarations no longer contain double delimiters.
+- The `Slider` node control now functions correctly.
+- Fixed an issue where the Editor automatically re-imported Shader Graphs when there were changes to the asset database.
+- Reverted the visual styling of various graph elements to their previous correct states.
+- Previews now repaint correctly when Unity does not have focus.
+- Code generation now works correctly for exposed Vector1 shader properties where the decimal separator is not a dot.
+- The `Rotate About Axis` node's Modes now use the correct function versions.
+- Shader Graph now preserves grouping when you convert nodes between property and inline.
+- The `Flip` node now greys out labels for inactive controls.
+- The `Boolean` property type now uses the `ToggleUI` property attribute, so as to not generate keywords.
+- The `Normal Unpack` node no longer generates errors in Object space.
+- The `Split` node now uses values from its default Port input fields.
+- The `Channel Mask` node now allows multiple node instances, and no longer generates any errors.
+- Serialized the Alpha control value on the `Flip` node.
+- The `Is Infinite` and `Is NaN` nodes now use `Vector 1` input ports, but the output remains the same.
+- You can no longer convert a node inside a `Sub Graph` into a `Sub Graph`, which previously caused errors.
+- The `Transformation Matrix` node's Inverse Projection and Inverse View Projection modes no longer produce errors.
+- The term `Shader Graph` is now captilized correctly in the Save Graph prompt. 
+
 ## [5.2.0] - 2018-11-27
 ### Added
 - Shader Graph now has __Group Node__, where you can group together several nodes. You can use this to keep your Graphs organized and nice.
+
+### Fixed
+- The expanded state of blackboard properties are now remembered during a Unity session.
 
 ## [5.1.0] - 2018-11-19
 ### Added
@@ -39,6 +245,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Default reference name for shader properties are now serialized. You cannot change them after initial creation.
 - When you save Shader Graph and Sub Graph files, they're now automatically checked out on version control.
 - Shader Graph no longer throws an exception when you double-click a folder in the Project window.
+- Gradient Node no longer throws an error when you undo a deletion.
 
 ## [5.0.0-preview] - 2018-09-28
 

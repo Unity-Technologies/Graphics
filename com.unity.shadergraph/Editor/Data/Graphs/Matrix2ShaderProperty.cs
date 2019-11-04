@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -9,25 +10,18 @@ namespace UnityEditor.ShaderGraph
     {
         public Matrix2ShaderProperty()
         {
-            displayName = "Matrix2";
+            displayName = "Matrix2x2";
+            value = Matrix4x4.identity;
         }
 
-        public override PropertyType propertyType
+        public override PropertyType propertyType => PropertyType.Matrix2;
+
+        internal override string GetPropertyAsArgumentString()
         {
-            get { return PropertyType.Matrix2; }
+            return $"{concretePrecision.ToShaderString()}2x2 {referenceName}";
         }
 
-        public override bool isBatchable
-        {
-            get { return true; }
-        }
-
-        public override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            return "float4x4 " + referenceName + " = float4x4(1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)" + delimiter;
-        }
-
-        public override INode ToConcreteNode()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix2Node
             {
@@ -36,12 +30,23 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override IShaderProperty Copy()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            var copied = new Matrix2ShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new PreviewProperty(propertyType)
+            {
+                name = referenceName,
+                matrixValue = value
+            };
+        }
+
+        internal override ShaderInput Copy()
+        {
+            return new Matrix2ShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Profiling;
 

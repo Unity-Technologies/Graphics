@@ -8,14 +8,14 @@
 // AggregateLighting is init to zero and transfer to EvaluateBSDF, but the LightLoop can't access its content.
 struct DirectLighting
 {
-    float3 diffuse;
-    float3 specular;
+    real3 diffuse;
+    real3 specular;
 };
 
 struct IndirectLighting
 {
-    float3 specularReflected;
-    float3 specularTransmitted;
+    real3 specularReflected;
+    real3 specularTransmitted;
 };
 
 struct AggregateLighting
@@ -43,23 +43,30 @@ void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting ds
 // Ambient occlusion
 struct AmbientOcclusionFactor
 {
-    float3 indirectAmbientOcclusion;
-    float3 directAmbientOcclusion;
-    float3 indirectSpecularOcclusion;
+    real3 indirectAmbientOcclusion;
+    real3 directAmbientOcclusion;
+    real3 indirectSpecularOcclusion;
+    real3 directSpecularOcclusion;
 };
 
 // Get screen space ambient occlusion only:
 float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
 {
-    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
-    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
-    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
-     // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
-#else
-    float indirectAmbientOcclusion = 1.0;
-#endif
+    #if (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
+        // When we are in raytracing mode, we do not want to take the screen space computed AO texture
+        float indirectAmbientOcclusion = 1.0;
+    #else
+        // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+        // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+        // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+        // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+        #ifndef _SURFACE_TYPE_TRANSPARENT
+        float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D_X(_AmbientOcclusionTexture, positionSS).x;
+        #else
+        float indirectAmbientOcclusion = 1.0;
+        #endif
+    #endif
+
     return indirectAmbientOcclusion;
 }
 
@@ -69,11 +76,13 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+    float indirectSpecularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+    float directSpecularOcclusion = lerp(1.0, indirectSpecularOcclusion, _AmbientOcclusionParam.w);
 
-    aoFactor.indirectSpecularOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, specularOcclusion));
+    aoFactor.indirectSpecularOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, indirectSpecularOcclusion));
     aoFactor.indirectAmbientOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(ambientOcclusionFromData, indirectAmbientOcclusion));
-    aoFactor.directAmbientOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
+    aoFactor.directSpecularOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directSpecularOcclusion);
+    aoFactor.directAmbientOcclusion = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);    
 }
 
 // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
@@ -83,10 +92,12 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
 
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+    float indirectSpecularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+    float directSpecularOcclusion = lerp(1.0, indirectSpecularOcclusion, _AmbientOcclusionParam.w);
 
-    aoFactor.indirectSpecularOcclusion = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
+    aoFactor.indirectSpecularOcclusion = GTAOMultiBounce(min(specularOcclusionFromData, indirectSpecularOcclusion), fresnel0);
     aoFactor.indirectAmbientOcclusion = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
+    aoFactor.directSpecularOcclusion = GTAOMultiBounce(directSpecularOcclusion, fresnel0);
     aoFactor.directAmbientOcclusion = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
 }
 
@@ -102,6 +113,7 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
     builtinData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
     lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
     lighting.direct.diffuse *= aoFactor.directAmbientOcclusion;
+    lighting.direct.specular *= aoFactor.directSpecularOcclusion;
 }
 
 #ifdef DEBUG_DISPLAY
@@ -114,7 +126,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         switch (_DebugShadowMapMode)
         {
         case SHADOWMAPDEBUGMODE_SINGLE_SHADOW:
-            diffuseLighting = debugShadowAttenuation.xxx;
+            diffuseLighting = g_DebugShadowAttenuation.xxx;
             specularLighting = float3(0, 0, 0);
             break ;
         }
@@ -146,7 +158,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
-         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
+        case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
             #ifdef SHADOWS_SHADOWMASK
             diffuseLighting = float3(
                 builtinData.shadowMask0 / 2 + builtinData.shadowMask1 / 2,

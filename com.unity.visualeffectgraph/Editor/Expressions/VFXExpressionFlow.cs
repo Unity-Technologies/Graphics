@@ -1,10 +1,10 @@
 using System;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
     // Must match enum in C++
-    public enum VFXCondition
+    enum VFXCondition
     {
         Equal,
         NotEqual,

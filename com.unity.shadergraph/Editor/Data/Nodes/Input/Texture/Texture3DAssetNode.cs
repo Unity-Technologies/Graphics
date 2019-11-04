@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -18,10 +19,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Texture-3D-Asset-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -35,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         [Texture3DControl("")]
         public Texture3D texture
         {
-            get { return (Texture3D)m_Texture.texture; }
+            get { return m_Texture.texture as Texture3D; }
             set
             {
                 if (m_Texture.texture == value)
@@ -65,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public IShaderProperty AsShaderProperty()
+        public AbstractShaderProperty AsShaderProperty()
         {
             var prop = new Texture3DShaderProperty { value = m_Texture };
             if (texture != null)

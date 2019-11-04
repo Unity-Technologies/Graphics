@@ -1,10 +1,9 @@
 using System;
-using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
 
-    [Serializable]
+    [Serializable, VolumeComponentMenu("Lighting/Screen Space Refraction")]
     public class ScreenSpaceRefraction : VolumeComponent
     {
         public enum RefractionModel

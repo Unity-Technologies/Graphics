@@ -1,9 +1,6 @@
-using UnityEngine;
-using System;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class LTCAreaLight
+    partial class LTCAreaLight
     {
         // Table contains 3x3 matrix coefficients of M^-1 for the fitting of the GGX BRDF using the LTC technique
         // From "Real-Time Polygonal-Light Shading with Linearly Transformed Cosines" 2016 (https://eheitzresearch.wordpress.com/415-2/)

@@ -1,9 +1,6 @@
-using System;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class PreIntegratedFGD
+    partial class PreIntegratedFGD
     {
         [GenerateHLSL]
         public enum FGDTexture
@@ -38,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTexture[] m_PreIntegratedFGD = new RenderTexture[(int)FGDIndex.Count];
 
         PreIntegratedFGD()
-        {            
+        {
             for (int i = 0; i < (int)FGDIndex.Count; ++i)
             {
                 m_isInit[i] = false;
@@ -53,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (m_refCounting[(int)index] == 0)
             {
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                var hdrp = HDRenderPipeline.defaultAsset;
                 int res  = (int)FGDTexture.Resolution;
 
                 switch(index)
@@ -118,16 +115,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_refCounting[(int)index] >= 0);
         }
 
-        public void Bind(FGDIndex index)
+        public void Bind(CommandBuffer cmd, FGDIndex index)
         {
             switch (index)
             {
                 case FGDIndex.FGD_GGXAndDisneyDiffuse:
-                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_GGXDisneyDiffuse, m_PreIntegratedFGD[(int)index]);
+                    cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_GGXDisneyDiffuse, m_PreIntegratedFGD[(int)index]);
                     break;
 
                 case FGDIndex.FGD_CharlieAndFabricLambert:
-                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndFabric, m_PreIntegratedFGD[(int)index]);
+                    cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndFabric, m_PreIntegratedFGD[(int)index]);
                     break;
 
                 default:

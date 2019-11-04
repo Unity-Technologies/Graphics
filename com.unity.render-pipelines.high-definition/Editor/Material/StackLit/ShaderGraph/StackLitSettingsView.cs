@@ -6,10 +6,11 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEditor.Experimental.Rendering.HDPipeline;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
+namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
     class StackLitSettingsView : VisualElement
     {
@@ -114,10 +115,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                         field.RegisterValueChangedCallback(ChangeSortPriority);
                     });
                 });
+
+                ps.Add(new PropertyRow(CreateLabel("ZWrite", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.zWrite.isOn;
+                        toggle.OnToggleChanged(ChangeZWrite);
+                    });
+                });
+
+                if (m_Node.doubleSidedMode == DoubleSidedMode.Disabled)
+                {
+                    ps.Add(new PropertyRow(CreateLabel("Cull Mode", indentLevel)), (row) =>
+                    {
+                        row.Add(new EnumField(m_Node.transparentCullMode), (e) =>
+                        {
+                            e.value = m_Node.transparentCullMode;
+                            e.RegisterValueChangedCallback(ChangeTransparentCullMode);
+                        });
+                    });
+                }
+
+                ps.Add(new PropertyRow(CreateLabel("Z Test", indentLevel)), (row) =>
+                {
+                    row.Add(new EnumField(m_Node.zTest), (e) =>
+                    {
+                        e.value = m_Node.zTest;
+                        e.RegisterValueChangedCallback(ChangeZTest);
+                    });
+                });
+
                 --indentLevel;
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Alpha Cutoff", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Alpha Clipping", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -126,7 +158,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Double Sided", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
                 row.Add(new EnumField(DoubleSidedMode.Disabled), (field) =>
                 {
@@ -139,7 +171,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             //
             //  baseParametrization
             //    energyConservingSpecular
-            //  
+            //
             //  anisotropy
             //  coat
             //  coatNormal
@@ -149,12 +181,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             //  iridescence
             //  subsurfaceScattering
             //  transmission
-            //  
+            //
             //  receiveDecals
             //  receiveSSR
+            //  addPrecomputedVelocity
             //  geometricSpecularAA
             //  specularOcclusion
-            //  
+            //
             //  anisotropyForAreaLights
             //  recomputeStackPerLight
             //  shadeBaseUsingRefractedAngles
@@ -264,14 +297,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
+            if (m_Node.surfaceType != SurfaceType.Transparent)
             {
-                row.Add(new Toggle(), (toggle) =>
+                ps.Add(new PropertyRow(CreateLabel("Subsurface Scattering", indentLevel)), (row) =>
                 {
-                    toggle.value = m_Node.subsurfaceScattering.isOn;
-                    toggle.OnToggleChanged(ChangeSubsurfaceScattering);
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.subsurfaceScattering.isOn;
+                        toggle.OnToggleChanged(ChangeSubsurfaceScattering);
+                    });
                 });
-            });
+            }
 
             ps.Add(new PropertyRow(CreateLabel("Transmission", indentLevel)), (row) =>
             {
@@ -301,7 +337,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Specular AA (for geometry)", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Add Precomputed Velocity", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.addPrecomputedVelocity.isOn;
+                    toggle.OnToggleChanged(ChangeAddPrecomputedVelocity);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Geometric Specular AA", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -310,14 +355,117 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Specular Occlusion", indentLevel)), (row) =>
+            //ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (main enable)", indentLevel)), (row) =>
+            //{
+            //    row.Add(new Toggle(), (toggle) =>
+            //    {
+            //        toggle.value = m_Node.specularOcclusion.isOn;
+            //        toggle.OnToggleChanged(ChangeSpecularOcclusion);
+            //    });
+            //});
+
+            // SpecularOcclusion from SSAO
+            if (m_Node.devMode.isOn)
             {
-                row.Add(new Toggle(), (toggle) =>
+                // Only in dev mode do we show controls for SO fed from SSAO: otherwise, we keep the default which is DirectFromAO
+                ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (from SSAO)", indentLevel)), (row) =>
                 {
-                    toggle.value = m_Node.specularOcclusion.isOn;
-                    toggle.OnToggleChanged(ChangeSpecularOcclusion);
+                    row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionBaseMode.DirectFromAO), (field) =>
+                    {
+                        field.value = m_Node.screenSpaceSpecularOcclusionBaseMode;
+                        field.RegisterValueChangedCallback(ChangeScreenSpaceSpecularOcclusionBaseMode);
+                    });
+
                 });
-            });
+                if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(m_Node.screenSpaceSpecularOcclusionBaseMode))
+                {
+                    ++indentLevel;
+                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (SS) AO Cone Weight", indentLevel)), (row) =>
+                    {
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionAOConeSize.CosWeightedAO), (field) =>
+                        {
+                            field.value = m_Node.screenSpaceSpecularOcclusionAOConeSize;
+                            field.RegisterValueChangedCallback(ChangeScreenSpaceSpecularOcclusionAOConeSize);
+                        });
+                    });
+                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (SS) AO Cone Dir", indentLevel)), (row) =>
+                    {
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionAOConeDir.ShadingNormal), (field) =>
+                        {
+                            field.value = m_Node.screenSpaceSpecularOcclusionAOConeDir;
+                            field.RegisterValueChangedCallback(ChangeScreenSpaceSpecularOcclusionAOConeDir);
+                        });
+                    });
+                    --indentLevel;
+                }
+            }
+
+            // SpecularOcclusion from input AO (baked or data-based SO)
+            {
+                ps.Add(new PropertyRow(CreateLabel("Specular Occlusion (from input AO)", indentLevel)), (row) =>
+                {
+                    if (m_Node.devMode.isOn)
+                    {
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionBaseMode.DirectFromAO), (field) =>
+                        {
+                            field.value = m_Node.dataBasedSpecularOcclusionBaseMode;
+                            field.RegisterValueChangedCallback(ChangeDataBasedSpecularOcclusionBaseMode);
+                        });
+                    }
+                    else
+                    {
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionBaseModeSimple.DirectFromAO), (field) =>
+                        {
+                            // In non-dev mode, parse any enum value set to a method not shown in the simple UI as SPTD (highest quality) method:
+                            StackLitMasterNode.SpecularOcclusionBaseModeSimple simpleUIEnumValue =
+                                Enum.TryParse(m_Node.dataBasedSpecularOcclusionBaseMode.ToString(), out StackLitMasterNode.SpecularOcclusionBaseModeSimple parsedValue) ?
+                                    parsedValue : StackLitMasterNode.SpecularOcclusionBaseModeSimple.SPTDIntegrationOfBentAO;
+                            field.value = simpleUIEnumValue;
+                            field.RegisterValueChangedCallback(ChangeDataBasedSpecularOcclusionBaseModeSimpleUI);
+                        });
+                    }
+                });
+                if (StackLitMasterNode.SpecularOcclusionModeUsesVisibilityCone(m_Node.dataBasedSpecularOcclusionBaseMode))
+                {
+                    ++indentLevel;
+                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion AO Cone Weight", indentLevel)), (row) =>
+                    {
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO), (field) =>
+                        {
+                            field.value = m_Node.dataBasedSpecularOcclusionAOConeSize;
+                            field.RegisterValueChangedCallback(ChangeDataBasedSpecularOcclusionAOConeSize);
+                        });
+                    });
+                    --indentLevel;
+                }
+            }
+
+            if (m_Node.SpecularOcclusionUsesBentNormal())
+            {
+                if (m_Node.devMode.isOn)
+                {
+                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Bent Cone Fixup", indentLevel)), (row) =>
+                    {
+                        row.Add(new EnumField(StackLitMasterNode.SpecularOcclusionConeFixupMethod.Off), (field) =>
+                        {
+                            field.value = m_Node.specularOcclusionConeFixupMethod;
+                            field.RegisterValueChangedCallback(ChangeSpecularOcclusionConeFixupMethod);
+                        });
+                    });
+                }
+                else
+                {
+                    // Just show a simple toggle when not in dev mode
+                    ps.Add(new PropertyRow(CreateLabel("Specular Occlusion Bent Cone Fixup", indentLevel)), (row) =>
+                    {
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.specularOcclusionConeFixupMethod != StackLitMasterNode.SpecularOcclusionConeFixupMethod.Off;
+                            toggle.OnToggleChanged(ChangeSpecularOcclusionConeFixupMethodSimpleUI);
+                        });
+                    });
+                }
+            }
 
             ps.Add(new PropertyRow(CreateLabel("Advanced Options", indentLevel)), (row) => {} );
             ++indentLevel;
@@ -331,44 +479,83 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 });
             });
 
-            if (m_Node.coat.isOn || m_Node.iridescence.isOn)
+            // Per Punctual/Directional Lights
             {
                 ps.Add(new PropertyRow(CreateLabel("Per Punctual/Directional Lights:", indentLevel)), (row) => { });
                 ++indentLevel;
-            }
-            if (m_Node.coat.isOn)
-            {
-                ps.Add(new PropertyRow(CreateLabel("Base Layer Uses Refracted Angles", indentLevel)), (row) =>
+
+                if (m_Node.coat.isOn)
+                {
+                    ps.Add(new PropertyRow(CreateLabel("Base Layer Uses Refracted Angles", indentLevel)), (row) =>
+                    {
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.shadeBaseUsingRefractedAngles.isOn;
+                            toggle.OnToggleChanged(ChangeShadeBaseUsingRefractedAngles);
+                        });
+                    });
+                }
+                if (m_Node.coat.isOn || m_Node.iridescence.isOn)
+                {
+                    ps.Add(new PropertyRow(CreateLabel("Recompute Stack & Iridescence", indentLevel)), (row) =>
+                    {
+                        row.Add(new Toggle(), (toggle) =>
+                        {
+                            toggle.value = m_Node.recomputeStackPerLight.isOn;
+                            toggle.OnToggleChanged(ChangeRecomputeStackPerLight);
+                        });
+                    });
+                }
+                ps.Add(new PropertyRow(CreateLabel("Honor Per Light Max Smoothness", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = m_Node.shadeBaseUsingRefractedAngles.isOn;
-                        toggle.OnToggleChanged(ChangeShadeBaseUsingRefractedAngles);
+                        toggle.value = m_Node.honorPerLightMinRoughness.isOn;
+                        toggle.OnToggleChanged(ChangeHonorPerLightMinRoughness);
                     });
                 });
-            }
-            if (m_Node.coat.isOn || m_Node.iridescence.isOn)
+
+                --indentLevel;
+            } // Per Punctual/Directional Lights
+
+            // Uncomment to show the dev mode UI:
+            //
+            //ps.Add(new PropertyRow(CreateLabel("Enable Dev Mode", indentLevel)), (row) =>
+            //{
+            //    row.Add(new Toggle(), (toggle) =>
+            //    {
+            //        toggle.value = m_Node.devMode.isOn;
+            //        toggle.OnToggleChanged(ChangeDevMode);
+            //    });
+            //});
+
+            if (m_Node.devMode.isOn)
             {
-                ps.Add(new PropertyRow(CreateLabel("Recompute Stack & Iridescence", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Show And Enable StackLit Debugs", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
-                        toggle.value = m_Node.recomputeStackPerLight.isOn;
-                        toggle.OnToggleChanged(ChangeRecomputeStackPerLight);
+                        toggle.value = m_Node.debug.isOn;
+                        toggle.OnToggleChanged(ChangeDebug);
                     });
                 });
-            }
-            if (m_Node.coat.isOn || m_Node.iridescence.isOn)
-            {
-                --indentLevel; // Per Punctual/Directional Lights:
             }
 
-            ps.Add(new PropertyRow(CreateLabel("Show And Enable StackLit Debugs", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Override Baked GI", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
-                    toggle.value = m_Node.debug.isOn;
-                    toggle.OnToggleChanged(ChangeDebug);
+                    toggle.value = m_Node.overrideBakedGI.isOn;
+                    toggle.OnToggleChanged(ChangeoverrideBakedGI);
+                });
+            });
+
+            ps.Add(new PropertyRow(CreateLabel("Depth Offset", indentLevel)), (row) =>
+            {
+                row.Add(new Toggle(), (toggle) =>
+                {
+                    toggle.value = m_Node.depthOffset.isOn;
+                    toggle.OnToggleChanged(ChangeDepthOffset);
                 });
             });
 
@@ -391,7 +578,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             if (Equals(m_Node.doubleSidedMode, evt.newValue))
                 return;
 
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Double Sided Mode Change");
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Double-Sided Mode Change");
             m_Node.doubleSidedMode = (DoubleSidedMode)evt.newValue;
         }
 
@@ -468,7 +655,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
 
         void ChangeSortPriority(ChangeEvent<int> evt)
         {
-            m_Node.sortPriority = Math.Max(-HDRenderQueue.k_TransparentPriorityQueueRange, Math.Min(evt.newValue, HDRenderQueue.k_TransparentPriorityQueueRange));
+            m_Node.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(evt.newValue);
             // Force the text to match.
             m_SortPiorityField.value = m_Node.sortPriority;
             if (Equals(m_Node.sortPriority, evt.newValue))
@@ -499,6 +686,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             ToggleData td = m_Node.receiveSSR;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
+        }
+
+        void ChangeAddPrecomputedVelocity(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Add Precomputed Velocity");
+            ToggleData td = m_Node.addPrecomputedVelocity;
+            td.isOn = evt.newValue;
+            m_Node.addPrecomputedVelocity = td;
         }
 
         void ChangeGeometricSpecularAA(ChangeEvent<bool> evt)
@@ -581,12 +776,99 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.transmission = td;
         }
 
-        void ChangeSpecularOcclusion(ChangeEvent<bool> evt)
+        //void ChangeSpecularOcclusion(ChangeEvent<bool> evt)
+        //{
+        //    m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusion Change");
+        //    ToggleData td = m_Node.specularOcclusion;
+        //    td.isOn = evt.newValue;
+        //    m_Node.specularOcclusion = td;
+        //}
+
+        void ChangeScreenSpaceSpecularOcclusionBaseMode(ChangeEvent<Enum> evt)
         {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusion Change");
-            ToggleData td = m_Node.specularOcclusion;
-            td.isOn = evt.newValue;
-            m_Node.specularOcclusion = td;
+            if (Equals(m_Node.screenSpaceSpecularOcclusionBaseMode, evt.newValue))
+                return;
+
+            if (Equals(evt.newValue, StackLitMasterNode.SpecularOcclusionBaseMode.Custom))
+            {
+                Debug.LogWarning("Custom input not supported for SSAO based specular occlusion.");
+                // Make sure the UI field doesn't switch and stays in synch with the master node property:
+                if (evt.currentTarget is EnumField enumField)
+                {
+                    enumField.value = m_Node.screenSpaceSpecularOcclusionBaseMode;
+                }
+                return;
+            }
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("ScreenSpaceSpecularOcclusionBaseMode Change");
+            m_Node.screenSpaceSpecularOcclusionBaseMode = (StackLitMasterNode.SpecularOcclusionBaseMode)evt.newValue;
+        }
+
+        void ChangeScreenSpaceSpecularOcclusionAOConeSize(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.screenSpaceSpecularOcclusionAOConeSize, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("ScreenSpaceSpecularOcclusionAOConeSize Change");
+            m_Node.screenSpaceSpecularOcclusionAOConeSize = (StackLitMasterNode.SpecularOcclusionAOConeSize)evt.newValue;
+        }
+
+        void ChangeScreenSpaceSpecularOcclusionAOConeDir(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.screenSpaceSpecularOcclusionAOConeDir, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("ScreenSpaceSpecularOcclusionAOConeDir Change");
+            m_Node.screenSpaceSpecularOcclusionAOConeDir = (StackLitMasterNode.SpecularOcclusionAOConeDir)evt.newValue;
+        }
+
+        void ChangeDataBasedSpecularOcclusionBaseMode(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.dataBasedSpecularOcclusionBaseMode, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DataBasedSpecularOcclusionBaseMode Change");
+            m_Node.dataBasedSpecularOcclusionBaseMode = (StackLitMasterNode.SpecularOcclusionBaseMode)evt.newValue;
+        }
+
+        void ChangeDataBasedSpecularOcclusionBaseModeSimpleUI(ChangeEvent<Enum> evt)
+        {
+            // StackLitMasterNode.SpecularOcclusionBaseModeSimple should always be a subset of StackLitMasterNode.SpecularOcclusionBaseMode:
+            if (Equals(m_Node.dataBasedSpecularOcclusionBaseMode, (StackLitMasterNode.SpecularOcclusionBaseMode) evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DataBasedSpecularOcclusionBaseMode (simple UI) Change");
+            m_Node.dataBasedSpecularOcclusionBaseMode = (StackLitMasterNode.SpecularOcclusionBaseMode)evt.newValue;
+        }
+
+        void ChangeDataBasedSpecularOcclusionAOConeSize(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.dataBasedSpecularOcclusionAOConeSize, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DataBasedSpecularOcclusionAOConeSize Change");
+            m_Node.dataBasedSpecularOcclusionAOConeSize = (StackLitMasterNode.SpecularOcclusionAOConeSize)evt.newValue;
+        }
+
+        void ChangeSpecularOcclusionConeFixupMethod(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.specularOcclusionConeFixupMethod, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusionConeFixupMethod Change");
+            m_Node.specularOcclusionConeFixupMethod = (StackLitMasterNode.SpecularOcclusionConeFixupMethod)evt.newValue;
+        }
+
+        void ChangeSpecularOcclusionConeFixupMethodSimpleUI(ChangeEvent<bool> evt)
+        {
+            if ( (evt.newValue == false && Equals(m_Node.specularOcclusionConeFixupMethod, StackLitMasterNode.SpecularOcclusionConeFixupMethod.Off))
+                || (evt.newValue == true && Equals(m_Node.specularOcclusionConeFixupMethod, StackLitMasterNode.SpecularOcclusionConeFixupMethod.BoostAndTilt)) )
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SpecularOcclusionConeFixupMethod Change");
+
+            m_Node.specularOcclusionConeFixupMethod = evt.newValue ? StackLitMasterNode.SpecularOcclusionConeFixupMethod.BoostAndTilt
+                                                                     : StackLitMasterNode.SpecularOcclusionConeFixupMethod.Off;
         }
 
         void ChangeAnisotropyForAreaLights(ChangeEvent<bool> evt)
@@ -597,12 +879,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.anisotropyForAreaLights = td;
         }
 
+        void ChangeoverrideBakedGI(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("overrideBakedGI Change");
+            ToggleData td = m_Node.overrideBakedGI;
+            td.isOn = evt.newValue;
+            m_Node.overrideBakedGI = td;
+        }
+
         void ChangeRecomputeStackPerLight(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("RecomputeStackPerLight Change");
             ToggleData td = m_Node.recomputeStackPerLight;
             td.isOn = evt.newValue;
             m_Node.recomputeStackPerLight = td;
+        }
+
+        void ChangeHonorPerLightMinRoughness(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("HonorPerLightMinRoughness Change");
+            ToggleData td = m_Node.honorPerLightMinRoughness;
+            td.isOn = evt.newValue;
+            m_Node.honorPerLightMinRoughness = td;
         }
 
         void ChangeShadeBaseUsingRefractedAngles(ChangeEvent<bool> evt)
@@ -613,6 +911,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.shadeBaseUsingRefractedAngles = td;
         }
 
+        void ChangeDevMode(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("StackLit DevMode Change");
+            ToggleData td = m_Node.devMode;
+            td.isOn = evt.newValue;
+            m_Node.devMode = td;
+        }
+
         void ChangeDebug(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("StackLit Debug Change");
@@ -621,13 +927,47 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
             m_Node.debug = td;
         }
 
+        void ChangeDepthOffset(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("DepthOffset Change");
+            ToggleData td = m_Node.depthOffset;
+            td.isOn = evt.newValue;
+            m_Node.depthOffset = td;
+        }
+
+        void ChangeZWrite(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("ZWrite Change");
+            ToggleData td = m_Node.zWrite;
+            td.isOn = evt.newValue;
+            m_Node.zWrite = td;
+        }
+
+        void ChangeTransparentCullMode(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.transparentCullMode, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Transparent Cull Mode Change");
+            m_Node.transparentCullMode = (TransparentCullMode)evt.newValue;
+        }
+
+        void ChangeZTest(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.zTest, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
+            m_Node.zTest = (CompareFunction)evt.newValue;
+        }
+
         public AlphaMode GetAlphaMode(StackLitMasterNode.AlphaModeLit alphaModeLit)
         {
             switch (alphaModeLit)
             {
                 case StackLitMasterNode.AlphaModeLit.Alpha:
                     return AlphaMode.Alpha;
-                case StackLitMasterNode.AlphaModeLit.PremultipliedAlpha:
+                case StackLitMasterNode.AlphaModeLit.Premultiply:
                     return AlphaMode.Premultiply;
                 case StackLitMasterNode.AlphaModeLit.Additive:
                     return AlphaMode.Additive;
@@ -636,7 +976,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                         Debug.LogWarning("Not supported: " + alphaModeLit);
                         return AlphaMode.Alpha;
                     }
-                    
+
             }
         }
 
@@ -647,14 +987,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline.Drawing
                 case AlphaMode.Alpha:
                     return StackLitMasterNode.AlphaModeLit.Alpha;
                 case AlphaMode.Premultiply:
-                    return StackLitMasterNode.AlphaModeLit.PremultipliedAlpha;
+                    return StackLitMasterNode.AlphaModeLit.Premultiply;
                 case AlphaMode.Additive:
                     return StackLitMasterNode.AlphaModeLit.Additive;
                 default:
                     {
                         Debug.LogWarning("Not supported: " + alphaMode);
                         return StackLitMasterNode.AlphaModeLit.Alpha;
-                    }                    
+                    }
             }
         }
     }

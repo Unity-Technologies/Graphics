@@ -1,11 +1,11 @@
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    public class ReflectionMenuItems
+    class ReflectionMenuItems
     {
         [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateMirrorGameObject(MenuCommand menuCommand)
@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var planarProbe = plane.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(10, 0.01f, 10);
 
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.defaultAsset;
             var material = hdrp != null ? hdrp.GetDefaultMirrorMaterial() : null;
 
             if (material)

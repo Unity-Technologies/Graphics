@@ -25,4 +25,34 @@ namespace UnityEditor.VFX
 
         public readonly VisibleFlags visibleFlags;
     }
+
+    struct VFXSetting
+    {
+        public FieldInfo field;
+        public VFXModel instance;
+
+        public VFXSetting(FieldInfo field, VFXModel instance)
+        {
+            this.field = field;
+            this.instance = instance;
+        }
+
+        public bool valid => field != null && instance != null;
+        public string name => field != null ? field.Name : null;
+
+        public object value
+        {
+            get
+            {
+                return field.GetValue(instance);
+            }
+
+            set
+            {
+                field.SetValue(instance, value);
+                instance.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            }
+        }
+
+    }
 }

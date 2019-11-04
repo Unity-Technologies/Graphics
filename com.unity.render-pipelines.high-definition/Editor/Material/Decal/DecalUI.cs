@@ -1,42 +1,65 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
-    class DecalUI : ExpandableAreaMaterial
+    /// <summary>
+    /// GUI for HDRP Decal materials (does not include ShaderGraphs)
+    /// </summary>
+    class DecalUI : HDShaderGUI
     {
         [Flags]
         enum Expandable : uint
         {
-            Input = 1 << 0
+            Input = 1 << 0,
+            Sorting = 1 << 1,
         }
-        protected override uint defaultExpandedState { get { return (uint)Expandable.Input; } }
 
-        protected static class Styles
+        MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            public static string InputsText = "Inputs";
+            new DecalSurfaceInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Input),
+            new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
+        };
 
-            public static GUIContent baseColorText = new GUIContent("BaseColor (RGB) and Opacity (A)", "BaseColor (RGB) and Opacity (A)");
-            public static GUIContent baseColorText2 = new GUIContent("Opacity(A)", "Opacity (A)");
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
-            public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
-            public static GUIContent AlbedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
- 			public static GUIContent MeshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "prevents z-fighting");
-	 		public static GUIContent DrawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
+        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        {
+            LoadMaterialProperties(props);
 
-            public static GUIContent[] maskMapText =
+            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
+            instancing.boolValue = true;
+
+            using (var changed = new EditorGUI.ChangeCheckScope())
             {
-                new GUIContent("Error", "Mask map"), // Not possible
-                new GUIContent("Mask Map - M(R), Opacity(B)", "Mask map - Metal(R), Opacity(B)"), // Decal.MaskBlendFlags.Metal:
-                new GUIContent("Mask Map - AO(G), Opacity(B)", "Mask map - Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map - M(R), AO(G), Opacity(B)", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
-                new GUIContent("Mask Map - Opacity(B), S(A)", "Mask map - Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - M(R), Opacity(B), S(A)", "Mask map - Metal(R), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - AO(G), Opacity(B), S(A)", "Mask map - Ambient Occlusion(G), Opacity(B), Smoothness(A)"), // Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
-                new GUIContent("Mask Map - M(R), AO(G), Opacity(B), S(A)", "Mask map - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)") // Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
-            };
+                uiBlocks.OnGUI(materialEditor, props);
+
+                var surfaceInputs = uiBlocks.FetchUIBlock< DecalSurfaceInputsUIBlock >();
+
+                // Apply material keywords and pass:
+                if (changed.changed)
+                {
+                    normalBlendSrc.floatValue = surfaceInputs.normalBlendSrcValue;
+                    maskBlendSrc.floatValue = surfaceInputs.maskBlendSrcValue;
+                    maskBlendMode.floatValue = (float)surfaceInputs.maskBlendFlags;
+                    smoothnessRemapMin.floatValue = surfaceInputs.smoothnessRemapMinValue;
+                    smoothnessRemapMax.floatValue = surfaceInputs.smoothnessRemapMaxValue;
+                    AORemapMin.floatValue = surfaceInputs.AORemapMinValue;
+                    AORemapMax.floatValue = surfaceInputs.AORemapMaxValue;
+                    if (useEmissiveIntensity.floatValue == 1.0f)
+                    {
+                        emissiveColor.colorValue = emissiveColorLDR.colorValue * emissiveIntensity.floatValue;
+                    }
+                    else
+                    {
+                        emissiveColor.colorValue = emissiveColorHDR.colorValue;
+                    }
+
+                    foreach (var material in uiBlocks.materials)
+                        SetupMaterialKeywordsAndPassInternal(material);
+                }
+            }
+            materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
         enum BlendSource
@@ -44,26 +67,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             BaseColorMapAlpha,
             MaskMapBlue
         }
-        protected string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
-
-        protected string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
-
-        protected MaterialProperty baseColorMap = new MaterialProperty();
         protected const string kBaseColorMap = "_BaseColorMap";
 
-        protected MaterialProperty baseColor = new MaterialProperty();
         protected const string kBaseColor = "_BaseColor";
 
-        protected MaterialProperty normalMap = new MaterialProperty();
         protected const string kNormalMap = "_NormalMap";
 
-        protected MaterialProperty maskMap = new MaterialProperty();
         protected const string kMaskMap = "_MaskMap";
 
-        protected MaterialProperty decalBlend = new MaterialProperty();
         protected const string kDecalBlend = "_DecalBlend";
 
-        protected MaterialProperty albedoMode = new MaterialProperty();
         protected const string kAlbedoMode = "_AlbedoMode";
 
         protected MaterialProperty normalBlendSrc = new MaterialProperty();
@@ -75,46 +88,72 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty maskBlendMode = new MaterialProperty();
         protected const string kMaskBlendMode = "_MaskBlendMode";
 
-        protected MaterialProperty maskmapMetal = new MaterialProperty();
         protected const string kMaskmapMetal = "_MaskmapMetal";
 
-        protected MaterialProperty maskmapAO = new MaterialProperty();
         protected const string kMaskmapAO = "_MaskmapAO";
 
-        protected MaterialProperty maskmapSmoothness = new MaterialProperty();
         protected const string kMaskmapSmoothness = "_MaskmapSmoothness";
 
-        protected MaterialProperty decalMeshDepthBias = new MaterialProperty();
         protected const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
 
-        protected MaterialProperty drawOrder = new MaterialProperty();
         protected const string kDrawOrder = "_DrawOrder";
 
         protected const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
         protected const string kDecalStencilRef = "_DecalStencilRef";
 
-        protected MaterialEditor m_MaterialEditor;
+        protected MaterialProperty AORemapMin = new MaterialProperty();
+        protected const string kAORemapMin = "_AORemapMin";
 
-        void FindMaterialProperties(MaterialProperty[] props)
+        protected MaterialProperty AORemapMax = new MaterialProperty();
+        protected const string kAORemapMax = "_AORemapMax";
+
+        protected MaterialProperty smoothnessRemapMin = new MaterialProperty();
+        protected const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
+
+        protected MaterialProperty smoothnessRemapMax = new MaterialProperty();
+        protected const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
+
+        protected const string kMetallicScale = "_MetallicScale";
+
+        protected const string kMaskMapBlueScale = "_DecalMaskMapBlueScale";
+
+        protected MaterialProperty emissiveColor = new MaterialProperty();
+        protected const string kEmissiveColor = "_EmissiveColor";
+
+        protected MaterialProperty emissiveColorMap = new MaterialProperty();
+        protected const string kEmissiveColorMap = "_EmissiveColorMap";
+
+        protected const string kEmissive = "_Emissive";
+
+        protected MaterialProperty emissiveIntensity = null;
+        protected const string kEmissiveIntensity = "_EmissiveIntensity";
+
+        protected const string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
+
+        protected MaterialProperty useEmissiveIntensity = null;
+        protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+
+        protected MaterialProperty emissiveColorLDR = null;
+        protected const string kEmissiveColorLDR = "_EmissiveColorLDR";
+
+        protected MaterialProperty emissiveColorHDR = null;
+        protected const string kEmissiveColorHDR = "_EmissiveColorHDR";
+
+        void LoadMaterialProperties(MaterialProperty[] properties)
         {
-            baseColor = FindProperty(kBaseColor, props);
-            baseColorMap = FindProperty(kBaseColorMap, props);
-            normalMap = FindProperty(kNormalMap, props);
-            maskMap = FindProperty(kMaskMap, props);
-            decalBlend = FindProperty(kDecalBlend, props);
-            albedoMode = FindProperty(kAlbedoMode, props);
-            normalBlendSrc = FindProperty(kNormalBlendSrc, props);
-            maskBlendSrc = FindProperty(kMaskBlendSrc, props);
-            maskBlendMode = FindProperty(kMaskBlendMode, props);
-            maskmapMetal = FindProperty(kMaskmapMetal, props);
-            maskmapAO = FindProperty(kMaskmapAO, props);
-            maskmapSmoothness = FindProperty(kMaskmapSmoothness, props);            
-            decalMeshDepthBias = FindProperty(kDecalMeshDepthBias, props);            
-            drawOrder = FindProperty(kDrawOrder, props);
-
-            // always instanced
-            SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
-            instancing.boolValue = true;
+            normalBlendSrc = FindProperty(kNormalBlendSrc, properties);
+            maskBlendSrc = FindProperty(kMaskBlendSrc, properties);
+            maskBlendMode = FindProperty(kMaskBlendMode, properties);
+            AORemapMin = FindProperty(kAORemapMin, properties);
+            AORemapMax = FindProperty(kAORemapMax, properties);
+            smoothnessRemapMin = FindProperty(kSmoothnessRemapMin, properties);
+            smoothnessRemapMax = FindProperty(kSmoothnessRemapMax, properties);
+            emissiveColor = FindProperty(kEmissiveColor, properties);
+            emissiveColorMap = FindProperty(kEmissiveColorMap, properties);
+            useEmissiveIntensity = FindProperty(kUseEmissiveIntensity, properties);
+            emissiveIntensity = FindProperty(kEmissiveIntensity, properties);
+            emissiveColorLDR = FindProperty(kEmissiveColorLDR, properties);
+            emissiveColorHDR = FindProperty(kEmissiveColorHDR, properties);
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
@@ -126,6 +165,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+            CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
 
             material.SetInt(kDecalStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.Decals);
             material.SetInt(kDecalStencilRef, (int)HDRenderPipeline.StencilBitMask.Decals);
@@ -137,6 +177,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOSStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOSStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecals3RTStr, true);
+            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsForwardEmissive, material.GetFloat("_Emissive") == 1.0f);
             switch (blendMode)
             {
                 case Decal.MaskBlendFlags.Metal:
@@ -169,118 +210,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected void SetupMaterialKeywordsAndPassInternal(Material material)
+        protected override void SetupMaterialKeywordsAndPassInternal(Material material)
         {
             SetupMaterialKeywordsAndPass(material);
-        }
-
-        public void ShaderPropertiesGUI(Material material)
-        {
-            // Use default labelWidth
-            EditorGUIUtility.labelWidth = 0f;
-            float normalBlendSrcValue = normalBlendSrc.floatValue;
-            float maskBlendSrcValue =  maskBlendSrc.floatValue;
-
-            Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;              
-
-            HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
-
-            using (var header = new HeaderScope(Styles.InputsText, (uint)Expandable.Input, this))
-            {
-                if (header.expanded)
-                {
-                    // Detect any changes to the material
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        m_MaterialEditor.TexturePropertySingleLine((material.GetFloat(kAlbedoMode) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
-                        // Currently always display Albedo contribution as we have an albedo tint that apply
-                        EditorGUI.indentLevel++;
-                        m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
-                        EditorGUI.indentLevel--;
-
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
-                        if (material.GetTexture(kNormalMap))
-                        {
-                            EditorGUI.indentLevel++;
-                            normalBlendSrcValue = EditorGUILayout.Popup("Normal Opacity channel", (int)normalBlendSrcValue, blendSourceNames);
-                            EditorGUI.indentLevel--;
-                        }
-
-                        m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText[(int)maskBlendFlags], maskMap);
-                        if (material.GetTexture(kMaskMap))
-                        {
-                            EditorGUI.indentLevel++;
-                            maskBlendSrcValue = EditorGUILayout.Popup("Mask Opacity channel", (int)maskBlendSrcValue, blendSourceNames);
-                            if (perChannelMask)
-                            {
-                                // Following condition force users to always have at least one attribute enabled
-                                m_MaterialEditor.ShaderProperty(maskmapMetal, "Affect Metal");
-                                if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
-                                    maskmapMetal.floatValue = 1.0f;
-                                m_MaterialEditor.ShaderProperty(maskmapAO, "Affect AO");
-                                if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
-                                    maskmapAO.floatValue = 1.0f;
-                                m_MaterialEditor.ShaderProperty(maskmapSmoothness, "Affect Smoothness");
-                                if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
-                                    maskmapSmoothness.floatValue = 1.0f;
-
-                                maskBlendFlags = 0; // Re-init the mask
-
-                                if (maskmapMetal.floatValue == 1.0f)
-                                    maskBlendFlags |= Decal.MaskBlendFlags.Metal;
-                                if (maskmapAO.floatValue == 1.0f)
-                                    maskBlendFlags |= Decal.MaskBlendFlags.AO;
-                                if (maskmapSmoothness.floatValue == 1.0f)
-                                    maskBlendFlags |= Decal.MaskBlendFlags.Smoothness;
-                            }
-                            else // if perChannelMask is not enabled, force to have smoothness
-                            {
-                                maskBlendFlags = Decal.MaskBlendFlags.Smoothness;
-                            }
-                            EditorGUI.indentLevel--;
-                        }
-
-                        m_MaterialEditor.ShaderProperty(drawOrder, Styles.DrawOrderText);
-                        m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.MeshDecalDepthBiasText);
-                        m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
-
-                        EditorGUI.indentLevel--;
-
-                        EditorGUILayout.HelpBox(
-                            "Control of AO and Metal is based on option 'Enable Metal and AO properties' in HDRP Asset.\nThere is a performance cost of enabling this option.",
-                            MessageType.Info);
-                    }
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        normalBlendSrc.floatValue = normalBlendSrcValue;
-                        maskBlendSrc.floatValue = maskBlendSrcValue;
-                        maskBlendMode.floatValue = (float)maskBlendFlags;
-                        foreach (var obj in m_MaterialEditor.targets)
-                            SetupMaterialKeywordsAndPassInternal((Material)obj);
-                    }
-                }
-            }
-        }
-
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
-        {
-            m_MaterialEditor = materialEditor;
-
-            // We should always register the key used to keep collapsable state
-            InitExpandableState(materialEditor);
-
-            // We should always do this call at the beginning
-            m_MaterialEditor.serializedObject.Update();
-            
-            FindMaterialProperties(props);
-
-            Material material = materialEditor.target as Material;
-            ShaderPropertiesGUI(material);
-
-            // We should always do this call at the end
-            m_MaterialEditor.serializedObject.ApplyModifiedProperties();
         }
     }
 }

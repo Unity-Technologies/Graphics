@@ -3,22 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
-float3 GetAbsolutePositionWS(float3 positionWS)
-{
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS += _WorldSpaceCameraPos;
-#endif
-    return positionWS;
-}
-
-float3 GetCameraRelativePositionWS(float3 positionWS)
-{
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS -= _WorldSpaceCameraPos;
-#endif
-    return positionWS;
-}
-
 // Note: '_WorldSpaceCameraPos' is set by the legacy Unity code.
 float3 GetPrimaryCameraPosition()
 {

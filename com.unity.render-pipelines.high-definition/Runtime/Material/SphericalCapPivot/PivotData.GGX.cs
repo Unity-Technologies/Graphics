@@ -1,19 +1,16 @@
-using UnityEngine;
-using System;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class SPTDistribution
+    partial class SPTDistribution
     {
         //-------------------------------------------------------------------------------------------
         // SPTD (Spherical Pivot Transformed Distributions): Pivot parameter for GGX.
         // The pivot transform fits the GGX from the transform of a uniform distribution,
-        // so the integral against solid angle measure yields 4*pi. 
+        // so the integral against solid angle measure yields 4*pi.
         // Use FGD (with D == GGX) to renormalize to GGX.
         //-------------------------------------------------------------------------------------------
 
-        // This table is precomputed and indexed by sqrt(roughness) = PerceptualRoughness 
-        // and (2*theta)/PI, both in 64 steps. 
+        // This table is precomputed and indexed by sqrt(roughness) = PerceptualRoughness
+        // and (2*theta)/PI, both in 64 steps.
         // entry[0] == PivotNorm, entry[1] == PivotElevation (rest is pre-integration, not used)
         public static double[,] s_PivotLUTData = new double[k_PivotLUTResolution * k_PivotLUTResolution, k_PivotLUTEntryDim]
         {

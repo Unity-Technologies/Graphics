@@ -1,7 +1,7 @@
 using System;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;

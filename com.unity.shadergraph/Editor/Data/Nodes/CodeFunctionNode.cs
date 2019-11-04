@@ -5,6 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -340,13 +341,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
             foreach (var outSlot in s_TempSlots)
             {
-                visitor.AddShaderChunk(GetParamTypeName(outSlot) + " " + GetVariableNameForSlot(outSlot.id) + ";", true);
+                sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
             }
 
             string call = GetFunctionName() + "(";
@@ -369,18 +370,13 @@ namespace UnityEditor.ShaderGraph
             }
             call += ");";
 
-            visitor.AddShaderChunk(call, true);
-        }
-
-        private string GetParamTypeName(MaterialSlot slot)
-        {
-            return NodeUtils.ConvertConcreteSlotValueTypeToString(precision, slot.concreteValueType);
+            sb.AppendLine(call);
         }
 
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + "_" + (function.IsStatic ? string.Empty : GuidEncoder.Encode(guid) + "_") + precision 
+            return function.Name + (function.IsStatic ? string.Empty : "_" + GuidEncoder.Encode(guid)) + "_" + concretePrecision.ToShaderString()
                 + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
                 + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
@@ -403,7 +399,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot.isOutputSlot)
                     header += "out ";
 
-                header += GetParamTypeName(slot) + " " + slot.shaderOutputName;
+                header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
             }
 
             header += ")";
@@ -426,7 +422,6 @@ namespace UnityEditor.ShaderGraph
             if (string.IsNullOrEmpty(result))
                 return string.Empty;
 
-            result = result.Replace("{precision}", precision.ToString());
             s_TempSlots.Clear();
             GetSlots(s_TempSlots);
             foreach (var slot in s_TempSlots)
@@ -438,7 +433,7 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public virtual void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {

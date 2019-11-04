@@ -2,10 +2,11 @@
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    
+
     [Title("Input", "Texture", "Texel Size")]
     class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
@@ -24,10 +25,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Texel-Size-Node"; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -38,10 +35,10 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-			visitor.AddShaderChunk(string.Format("{0} {1} = {2}_TexelSize.z;", precision, GetVariableNameForSlot(OutputSlotWId), GetSlotValue(TextureInputId, generationMode)), true);
-			visitor.AddShaderChunk(string.Format("{0} {1} = {2}_TexelSize.w;", precision, GetVariableNameForSlot(OutputSlotHId), GetSlotValue(TextureInputId, generationMode)), true);
+			sb.AppendLine(string.Format("$precision {0} = {1}_TexelSize.z;", GetVariableNameForSlot(OutputSlotWId), GetSlotValue(TextureInputId, generationMode)));
+			sb.AppendLine(string.Format("$precision {0} = {1}_TexelSize.w;", GetVariableNameForSlot(OutputSlotHId), GetSlotValue(TextureInputId, generationMode)));
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

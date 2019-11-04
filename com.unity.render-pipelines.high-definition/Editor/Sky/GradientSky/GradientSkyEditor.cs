@@ -1,11 +1,11 @@
 using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(GradientSky))]
-    public class GradientSkySettingsEditor : SkySettingsEditor
+    class GradientSkySettingsEditor : SkySettingsEditor
     {
         SerializedDataParameter m_Bottom;
         SerializedDataParameter m_Middle;
@@ -15,6 +15,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnEnable()
         {
             base.OnEnable();
+
+            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
+                | (uint)SkySettingsUIElement.Exposure
+                | (uint)SkySettingsUIElement.Multiplier;
 
             var o = new PropertyFetcher<GradientSky>(serializedObject);
 
@@ -30,10 +34,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_Middle);
             PropertyField(m_Bottom);
             PropertyField(m_GradientMultiplier);
-
-            EditorGUILayout.Space();
-
-            m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode;
 
             base.CommonSkySettingsGUI();
         }

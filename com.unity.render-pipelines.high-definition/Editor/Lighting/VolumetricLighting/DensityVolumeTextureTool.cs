@@ -1,11 +1,11 @@
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Rendering
 {
 
-    public class DensityVolumeTextureTool : EditorWindow 
+    class DensityVolumeTextureTool : EditorWindow
     {
         private Texture2D sourceTexture = null;
         private string assetPath;
@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.Rendering
 
         private static GUIContent windowTitle = new GUIContent("Create Density Volume Texture");
         private static GUIContent textureLabel = new GUIContent("Slice Texture");
-        private static GUIContent tileSizeLabel = new GUIContent("Texture Slice Size", "Dimensions of the created 3D Texture in pixels.  Width, Height and Depth are all the same size");
+        private static GUIContent tileSizeLabel = new GUIContent("Texture Slice Size", "Dimensions for the 3D Texture in pixels.  Width, Height and Depth are all the same size");
         private static GUIContent createLabel = new GUIContent("Create 3D Texture");
 
         [MenuItem("Window/Rendering/Density Volume Texture Tool")]
@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering
             if (create)
             {
                 assetPath = AssetDatabase.GetAssetPath(sourceTexture);
-                assetDirectory = System.IO.Directory.GetParent(assetPath).ToString(); 
+                assetDirectory = System.IO.Directory.GetParent(assetPath).ToString();
 
                 //Check if the texture is set to read write.
                 //Only need to do this since CopyTexture is currently broken on D3D11
@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental.Rendering
             Texture3D volumeTexture = AssetDatabase.LoadAssetAtPath(volumeTextureAssetPath, typeof(Texture3D)) as Texture3D;
 
             //If we already have the asset then we are just updating it. make sure it's the right size.
-            if (!volumeTexture || volumeTexture.width != tileSize || volumeTexture.height != tileSize || volumeTexture.depth != tileSize) 
+            if (!volumeTexture || volumeTexture.width != tileSize || volumeTexture.height != tileSize || volumeTexture.depth != tileSize)
             {
                 volumeTexture = new Texture3D(tileSize, tileSize, tileSize, sourceTexture.format, false);
                 volumeTexture.filterMode = sourceTexture.filterMode;
@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 AssetDatabase.SaveAssets();
                 //Asset can be currently used by Density Volume Manager so trigger refresh
-                DensityVolumeManager.manager.TriggerVolumeAtlasRefresh();  
+                DensityVolumeManager.manager.TriggerVolumeAtlasRefresh();
             }
         }
     }

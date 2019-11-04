@@ -1,9 +1,6 @@
-using UnityEngine.Rendering;
-using System.Collections.Generic;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public class IBLFilterGGX : IBLFilterBSDF
+    class IBLFilterGGX : IBLFilterBSDF
     {
         RenderTexture m_GgxIblSampleData;
         int           m_GgxIblMaxSampleCount          = TextureCache.isMobileBuildTarget ? 34 : 89;   // Width

@@ -29,6 +29,24 @@ float4x4 GetViewToHClipMatrix()
     return UNITY_MATRIX_P;
 }
 
+// This function always return the absolute position in WS
+float3 GetAbsolutePositionWS(float3 positionRWS)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    positionRWS += _WorldSpaceCameraPos;
+#endif
+    return positionRWS;
+}
+
+// This function return the camera relative position in WS
+float3 GetCameraRelativePositionWS(float3 positionWS)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    positionWS -= _WorldSpaceCameraPos;
+#endif
+    return positionWS;
+}
+
 real GetOddNegativeScale()
 {
     return unity_WorldTransformParams.w;
@@ -92,17 +110,17 @@ real3 TransformWorldToHClipDir(real3 directionWS)
 }
 
 // Transforms normal from object to world space
-real3 TransformObjectToWorldNormal(real3 normalOS)
+float3 TransformObjectToWorldNormal(float3 normalOS)
 {
 #ifdef UNITY_ASSUME_UNIFORM_SCALING
     return TransformObjectToWorldDir(normalOS);
 #else
     // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (real3x3)GetWorldToObjectMatrix()));
+    return normalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
 #endif
 }
 
-real3x3 CreateWorldToTangent(real3 normal, real3 tangent, real flipSign)
+real3x3 CreateTangentToWorld(real3 normal, real3 tangent, real flipSign)
 {
     // For odd-negative scale transforms we need to flip the sign
     real sgn = flipSign * GetOddNegativeScale();
@@ -111,27 +129,31 @@ real3x3 CreateWorldToTangent(real3 normal, real3 tangent, real flipSign)
     return real3x3(tangent, bitangent, normal);
 }
 
-real3 TransformTangentToWorld(real3 dirTS, real3x3 worldToTangent)
+real3 TransformTangentToWorld(real3 dirTS, real3x3 tangentToWorld)
 {
-    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
-    return mul(dirTS, worldToTangent);
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    return mul(dirTS, tangentToWorld);
 }
 
-real3 TransformWorldToTangent(real3 dirWS, real3x3 worldToTangent)
+real3 TransformWorldToTangent(real3 dirWS, real3x3 tangentToWorld)
 {
-    return mul(worldToTangent, dirWS);
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    // Use transpose transformation to go from "tangent to world" to "world to tangent" as the matrix is orthogonal
+    return mul(tangentToWorld, dirWS);
 }
 
-real3 TransformTangentToObject(real3 dirTS, real3x3 worldToTangent)
+real3 TransformTangentToObject(real3 dirTS, real3x3 tangentToWorld)
 {
-    // Use transpose transformation to go from tangent to world as the matrix is orthogonal
-    real3 normalWS = mul(dirTS, worldToTangent);
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    real3 normalWS = mul(dirTS, tangentToWorld);
     return mul((real3x3)GetWorldToObjectMatrix(), normalWS);
 }
 
-real3 TransformObjectToTangent(real3 dirOS, real3x3 worldToTangent)
+real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
 {
-    return mul(worldToTangent, TransformObjectToWorldDir(dirOS));
+    // Note matrix is in row major convention with left multiplication as it is build on the fly
+    // Use transpose transformation to go from "tangent to world" to "world to tangent" as the matrix is orthogonal
+    return mul(tangentToWorld, TransformObjectToWorldDir(dirOS));
 }
 
 #endif

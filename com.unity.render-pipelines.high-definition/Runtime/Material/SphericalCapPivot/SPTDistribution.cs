@@ -1,9 +1,6 @@
-using System;
-using UnityEngine.Rendering;
-
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class SPTDistribution
+    partial class SPTDistribution
     {
         static SPTDistribution s_Instance;
 
@@ -78,9 +75,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Debug.Assert(m_refCounting >= 0);
         }
 
-        public void Bind()
+        public void Bind(CommandBuffer cmd)
         {
-            Shader.SetGlobalTexture("_PivotData", m_PivotData);
+            cmd.SetGlobalTexture("_PivotData", m_PivotData);
         }
     }
 }

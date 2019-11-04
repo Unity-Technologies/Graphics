@@ -3,87 +3,72 @@ using System.Text;
 using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    class CubemapShaderProperty : AbstractShaderProperty<SerializableCubemap>
+    [FormerName("UnityEditor.ShaderGraph.CubemapShaderProperty")]
+    public sealed class CubemapShaderProperty : AbstractShaderProperty<SerializableCubemap>
     {
-        [SerializeField]
-        private bool m_Modifiable = true;
-
-        public CubemapShaderProperty()
+        internal CubemapShaderProperty()
         {
-            value = new SerializableCubemap();
             displayName = "Cubemap";
+            value = new SerializableCubemap();
         }
 
-        public override PropertyType propertyType
+        public override PropertyType propertyType => PropertyType.Cubemap;
+
+        internal override bool isBatchable => false;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+
+        internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
+
+        internal override string GetPropertyBlockString()
         {
-            get { return PropertyType.Cubemap; }
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", CUBE) = \"\" {{}}";
         }
 
-        public bool modifiable
+        internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            get { return m_Modifiable; }
-            set { m_Modifiable = value; }
+            return $"TEXTURECUBE({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
         }
 
-        public override Vector4 defaultValue
+        internal override string GetPropertyAsArgumentString()
         {
-            get { return new Vector4(); }
+            return $"TEXTURECUBE_PARAM({referenceName}, sampler{referenceName})";
         }
 
-        public override bool isBatchable
+        [SerializeField]
+        bool m_Modifiable = true;
+
+        internal bool modifiable
         {
-            get { return false; }
+            get => m_Modifiable;
+            set => m_Modifiable = value;
         }
 
-        public override string GetPropertyBlockString()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
-            var result = new StringBuilder();
-            if (!m_Modifiable)
-            {
-                result.Append("[NonModifiableTextureData] ");
-            }
-            result.Append("[NoScaleOffset] ");
-
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            result.Append("\", CUBE) = \"\" {}");
-            return result.ToString();
+            return new CubemapAssetNode { cubemap = value.cubemap };
         }
 
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            return string.Format("TEXTURECUBE({0}){1} SAMPLER(sampler{0}){1}", referenceName, delimiter);
-        }
-
-        public override string GetPropertyAsArgumentString()
-        {
-            return string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", referenceName);
-        }
-
-        public override PreviewProperty GetPreviewMaterialProperty()
-        {
-            return new PreviewProperty(PropertyType.Cubemap)
+            return new PreviewProperty(propertyType)
             {
                 name = referenceName,
                 cubemapValue = value.cubemap
             };
         }
 
-        public override INode ToConcreteNode()
+        internal override ShaderInput Copy()
         {
-            return new CubemapAssetNode { cubemap = value.cubemap };
-        }
-
-        public override IShaderProperty Copy()
-        {
-            var copied = new CubemapShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new CubemapShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value
+            };
         }
     }
 }

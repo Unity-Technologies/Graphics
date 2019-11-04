@@ -10,10 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Sawtooth Wave";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Sawtooth-Wave-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

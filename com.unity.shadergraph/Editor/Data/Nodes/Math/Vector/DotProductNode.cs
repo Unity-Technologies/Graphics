@@ -11,10 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Dot Product";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Dot-Product-Node"; }
-        }
 
         protected override MethodInfo GetFunctionToConvert()
         {

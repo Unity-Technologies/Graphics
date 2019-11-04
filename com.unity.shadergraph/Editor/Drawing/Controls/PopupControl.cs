@@ -12,10 +12,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     class PopupControlAttribute : Attribute, IControlAttribute
     {
         string m_Label;
+        //string[] m_Entries;
 
         public PopupControlAttribute(string label = null)
         {
             m_Label = label;
+            //m_Entries = entries;
         }
 
         public VisualElement InstantiateControl(AbstractMaterialNode node, PropertyInfo propertyInfo)
@@ -28,7 +30,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
     struct PopupList
     {
         public int selectedEntry;
-        public List<string> popupEntries;
+        public string[] popupEntries;
+
+        public PopupList(string[] entries, int defaultEntry)
+        {
+            popupEntries = entries;
+            selectedEntry = defaultEntry;
+        }
     }
 
     class PopupControlView : VisualElement
@@ -51,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
             Add(new Label(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name)));
             var value = (PopupList)propertyInfo.GetValue(m_Node, null);
-            m_PopupField = new PopupField<string>(value.popupEntries, value.selectedEntry);
+            m_PopupField = new PopupField<string>(new List<string>(value.popupEntries), value.selectedEntry);
             m_PopupField.RegisterValueChangedCallback(OnValueChanged);
             Add(m_PopupField);
         }

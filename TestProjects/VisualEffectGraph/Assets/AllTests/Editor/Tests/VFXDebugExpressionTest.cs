@@ -2,20 +2,22 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
 using UnityEditor.VFX.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 namespace UnityEditor.VFX.Test
 {
     public class VFXDebugExpressionTest
     {
-        string tempFilePath = "Assets/TmpTests/vfxTest.vfx";
+        static readonly string tempDirectory = "Assets/TmpTests";
+        static readonly string tempFilePath = tempDirectory + "/vfxTest_time.vfx";
 
         VFXGraph MakeTemporaryGraph()
         {
@@ -24,25 +26,50 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.DeleteAsset(tempFilePath);
             }
 
-            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
+            if (!Directory.Exists(tempDirectory))
+            {
+                Directory.CreateDirectory(tempDirectory);
+            }
 
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
             VisualEffectResource resource = asset.GetResource(); // force resource creation
-
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
-
             graph.visualEffectResource = resource;
-
             return graph;
+        }
+
+        private float m_previousFixedTimeStep;
+        private float m_previousMaxDeltaTime;
+        private GameObject m_gameObject;
+        private GameObject m_camera;
+
+        [SetUp]
+        public void Init()
+        {
+            m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
+            m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
+
+            m_gameObject = new GameObject("MainGameObject");
+
+            m_camera = new GameObject("CreateAssetAndComponentSpawner_Camera");
+            var camera = m_camera.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(m_gameObject.transform);
         }
 
         [TearDown]
         public void CleanUp()
         {
+            UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
             AssetDatabase.DeleteAsset(tempFilePath);
+
+            UnityEngine.Object.DestroyImmediate(m_gameObject);
+            UnityEngine.Object.DestroyImmediate(m_camera);
         }
 
         [UnityTest]
-        public IEnumerator CreateAssetAndComponentTotalTime()
+        public IEnumerator Create_Asset_And_Component_Check_Expected_TotalTime()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
@@ -53,11 +80,15 @@ namespace UnityEditor.VFX.Test
             // Attach to a valid particle system so that spawner is compiled
             var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
+            graph.AddChild(initContext);
+            graph.AddChild(outputContext);
             spawnerContext.LinkTo(initContext);
             initContext.LinkTo(outputContext);
 
             var slotRate = constantRate.GetInputSlot(0);
-            var totalTime = VFXLibrary.GetOperators().First(o => o.name == VFXExpressionOperation.TotalTime.ToString()).CreateInstance();
+            string opName = ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString());
+
+            var totalTime = VFXLibrary.GetOperators().First(o => o.name == opName).CreateInstance();
             slotRate.Link(totalTime.GetOutputSlot(0));
 
             spawnerContext.AddChild(constantRate);
@@ -66,18 +97,14 @@ namespace UnityEditor.VFX.Test
             graph.RecompileIfNeeded();
             var expressionIndex = graph.FindReducedExpressionIndexFromSlotCPU(slotRate);
 
-            var gameObj = new GameObject("CreateAssetAndComponentDebugExpressionTest");
-            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            while (m_gameObject.GetComponent<VisualEffect>() != null) UnityEngine.Object.DestroyImmediate(m_gameObject.GetComponent<VisualEffect>());
+            var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
             vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
-
-            var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
-            var camera = cameraObj.AddComponent<Camera>();
-            camera.transform.localPosition = Vector3.one;
-            camera.transform.LookAt(vfxComponent.transform);
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
             {
+
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
@@ -88,9 +115,62 @@ namespace UnityEditor.VFX.Test
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
+        }
 
-            UnityEngine.Object.DestroyImmediate(gameObj);
-            UnityEngine.Object.DestroyImmediate(cameraObj);
+#pragma warning disable 0414
+        public static object[] updateModes = { VFXUpdateMode.FixedDeltaTime, VFXUpdateMode.DeltaTime };
+#pragma warning restore 0414
+
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Component_Check_Overflow_MaxDeltaTime([ValueSource("updateModes")] object updateMode)
+        {
+            var graph = MakeTemporaryGraph();
+            graph.visualEffectResource.updateMode = (VFXUpdateMode)updateMode;
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var outputContext = ScriptableObject.CreateInstance<VFXPointOutput>();
+            graph.AddChild(initContext);
+            graph.AddChild(outputContext);
+
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(outputContext);
+
+            spawnerContext.AddChild(constantRate);
+            graph.AddChild(spawnerContext);
+            graph.RecompileIfNeeded();
+
+            var vfxComponent = m_gameObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+
+            float fixedTimeStep = 1.0f / 20.0f;
+            float maxTimeStep = 1.0f / 10.0f;
+
+            UnityEngine.VFX.VFXManager.fixedTimeStep = fixedTimeStep;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = maxTimeStep;
+
+            /* waiting for culling (simulating big delay between each frame) */
+            int maxFrame = 512;
+            VFXSpawnerState spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
+            float sleepTimeInSeconds = maxTimeStep * 5.0f;
+            while (--maxFrame > 0 && spawnerState.deltaTime != maxTimeStep)
+            {
+                System.Threading.Thread.Sleep((int)(sleepTimeInSeconds * 1000.0f));
+                yield return null;
+                spawnerState = VisualEffectUtility.GetSpawnerState(vfxComponent, 0u);
+            }
+            Assert.IsTrue(maxFrame > 0);
+            if (graph.visualEffectResource.updateMode == VFXUpdateMode.FixedDeltaTime)
+            {
+                Assert.AreEqual(maxTimeStep, spawnerState.deltaTime);
+            }
+            else
+            {
+                Assert.AreEqual(maxTimeStep, spawnerState.deltaTime); //< There is clamp even in delta time mode
+                //Assert.AreEqual((double)sleepTimeInSeconds, spawnerState.deltaTime, 0.01f);
+            }
+            yield return null;
         }
 
         //TEMP disable LogAssert.Expect, still failing running on katana
@@ -144,7 +224,8 @@ namespace UnityEditor.VFX.Test
             branch.outputSlots[0].UnlinkAll();
             graph.RecompileIfNeeded(); //Back to a legal state
 
-            quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Masked);
+            quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Opaque);
+            quadOutput.SetSettingValue("useAlphaClipping", true);
             Assert.IsTrue(modulo.outputSlots[0].Link(quadOutput.inputSlots.First(o => o.name.Contains("alphaThreshold"))));
             graph.RecompileIfNeeded(); //Should also be legal (alphaTreshold relying on particleId)
 

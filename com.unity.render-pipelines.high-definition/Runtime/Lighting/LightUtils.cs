@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Light Utils contains function to convert light intensities between units
+    /// </summary>
     public class LightUtils
     {
         // Physical light unit helper
@@ -19,25 +20,47 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Ref: Moving Frostbite to PBR
         // Also good ref: https://www.radiance-online.org/community/workshops/2004-fribourg/presentations/Wandachowicz_paper.pdf
 
-        // convert intensity (lumen) to candela
+        /// <summary>
+        /// Convert an intensity in Lumen to Candela for a point light
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <returns></returns>
         public static float ConvertPointLightLumenToCandela(float intensity)
         {
             return intensity / (4.0f * Mathf.PI);
         }
 
-        // convert intensity (candela) to lumen
+        /// <summary>
+        /// Convert an intensity in Candela to Lumen for a point light
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <returns></returns>
         public static float ConvertPointLightCandelaToLumen(float intensity)
         {
             return intensity * (4.0f * Mathf.PI);
         }
 
-        // angle is the full angle, not the half angle in radiant
+        // angle is the full angle, not the half angle in radian
         // convert intensity (lumen) to candela
+        /// <summary>
+        /// Convert an intensity in Lumen to Candela for a cone spot light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="angle">Full angle in radian</param>
+        /// <param name="exact">Exact computation or an approximation</param>
+        /// <returns></returns>
         public static float ConvertSpotLightLumenToCandela(float intensity, float angle, bool exact)
         {
             return exact ? intensity / (2.0f * (1.0f - Mathf.Cos(angle / 2.0f)) * Mathf.PI) : intensity / Mathf.PI;
         }
 
+        /// <summary>
+        /// Convert an intensity in Candela to Lumen for a cone pot light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="angle">Full angle in radian</param>
+        /// <param name="exact">Exact computation or an approximation</param>
+        /// <returns></returns>
         public static float ConvertSpotLightCandelaToLumen(float intensity, float angle, bool exact)
         {
             return exact ? intensity * (2.0f * (1.0f - Mathf.Cos(angle / 2.0f)) * Mathf.PI) : intensity * Mathf.PI;
@@ -45,80 +68,159 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // angleA and angleB are the full opening angle, not half angle
         // convert intensity (lumen) to candela
+        /// <summary>
+        /// Convert an instensity in Lumen to Candela for a pyramid spot light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="angleA">Full opening angle in radian</param>
+        /// <param name="angleB">Full opening angle in radian</param>
+        /// <returns></returns>
         public static float ConvertFrustrumLightLumenToCandela(float intensity, float angleA, float angleB)
         {
             return intensity / (4.0f * Mathf.Asin(Mathf.Sin(angleA / 2.0f) * Mathf.Sin(angleB / 2.0f)));
         }
 
+        /// <summary>
+        /// Convert an instensity in Candela to Lumen for a pyramid spot light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="angleA">Full opening angle in radian</param>
+        /// <param name="angleB">Full opening angle in radian</param>
+        /// <returns></returns>
         public static float ConvertFrustrumLightCandelaToLumen(float intensity, float angleA, float angleB)
         {
             return intensity * (4.0f * Mathf.Asin(Mathf.Sin(angleA / 2.0f) * Mathf.Sin(angleB / 2.0f)));
         }
 
-        // convert intensity (lumen) to nits
+        /// <summary>
+        /// Convert an intensity in Lumen to Luminance(nits) for a sphere light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="sphereRadius"></param>
+        /// <returns></returns>
         public static float ConvertSphereLightLumenToLuminance(float intensity, float sphereRadius)
         {
             return intensity / ((4.0f * Mathf.PI * sphereRadius * sphereRadius) * Mathf.PI);
         }
 
-        // convert intensity (nits) to lumen
+        /// <summary>
+        /// Convert an intensity in Luminance(nits) to Lumen for a sphere light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="sphereRadius"></param>
+        /// <returns></returns>
         public static float ConvertSphereLightLuminanceToLumen(float intensity, float sphereRadius)
         {
             return intensity * ((4.0f * Mathf.PI * sphereRadius * sphereRadius) * Mathf.PI);
         }
 
-        // convert intensity (lumen) to nits
+        /// <summary>
+        /// Convert an intensity in Lumen to Luminance(nits) for a disc light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="discRadius"></param>
+        /// <returns></returns>
         public static float ConvertDiscLightLumenToLuminance(float intensity, float discRadius)
         {
             return intensity / ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
         }
 
-        // convert intensity (nits) to lumen
+        /// <summary>
+        /// Convert an intensity in Luminance(nits) to Lumen for a disc light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="discRadius"></param>
+        /// <returns></returns>
         public static float ConvertDiscLightLuminanceToLumen(float intensity, float discRadius)
         {
             return intensity * ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
         }
 
-        // convert intensity (lumen) to nits
+        /// <summary>
+        /// Convert an intensity in Lumen to Luminance(nits) for a rectangular light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public static float ConvertRectLightLumenToLuminance(float intensity, float width, float height)
         {
             return intensity / ((width * height) * Mathf.PI);
         }
 
-        // convert intensity (nits) to lumen
+        /// <summary>
+        /// Convert an intensity in Luminance(nits) to Lumen for a rectangular light.
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public static float ConvertRectLightLuminanceToLumen(float intensity, float width, float height)
         {
             return intensity * ((width * height) * Mathf.PI);
         }
 
         // Helper for Lux, Candela, Luminance, Ev conversion
+        /// <summary>
+        /// Convert intensity in Lux at a certain distance in Candela.
+        /// </summary>
+        /// <param name="lux"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         public static float ConvertLuxToCandela(float lux, float distance)
         {
             return lux * distance * distance;
         }
 
+        /// <summary>
+        /// Convert intensity in Candela at a certain distance in Lux.
+        /// </summary>
+        /// <param name="candela"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         public static float ConvertCandelaToLux(float candela, float distance)
         {
             return candela / (distance * distance);
         }
 
+        /// <summary>
+        /// Convert EV100 to Luminance(nits)
+        /// </summary>
+        /// <param name="ev"></param>
+        /// <returns></returns>
         public static float ConvertEvToLuminance(float ev)
         {
             return Mathf.Pow(2, ev - 3);
         }
 
+        /// <summary>
+        /// Convert EV100 to Candela
+        /// </summary>
+        /// <param name="ev"></param>
+        /// <returns></returns>
         public static float ConvertEvToCandela(float ev)
         {
             // From punctual point of view candela and luminance is the same
             return ConvertEvToLuminance(ev);
         }
 
+        /// <summary>
+        /// Convert EV100 to Lux at a certain distance
+        /// </summary>
+        /// <param name="ev"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         public static float ConvertEvToLux(float ev, float distance)
         {
             // From punctual point of view candela and luminance is the same
             return ConvertCandelaToLux(ConvertEvToLuminance(ev), distance);
-        }    
+        }
 
+        /// <summary>
+        /// Convert Luminance(nits) to EV100
+        /// </summary>
+        /// <param name="luminance"></param>
+        /// <returns></returns>
         public static float ConvertLuminanceToEv(float luminance)
         {
             const float k = 12.5f;
@@ -126,12 +228,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return (float)Math.Log((luminance * 100f) / k, 2);
         }
 
+        /// <summary>
+        /// Convert Candela to EV100
+        /// </summary>
+        /// <param name="candela"></param>
+        /// <returns></returns>
         public static float ConvertCandelaToEv(float candela)
         {
             // From punctual point of view candela and luminance is the same
             return ConvertLuminanceToEv(candela);
         }
 
+        /// <summary>
+        /// Convert Lux at a certain distance to EV100
+        /// </summary>
+        /// <param name="lux"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         public static float ConvertLuxToEv(float lux, float distance)
         {
             // From punctual point of view candela and luminance is the same
@@ -139,6 +252,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Helper for punctual and area light unit conversion
+        /// <summary>
+        /// Convert a punctual light intensity in Lumen to Candela
+        /// </summary>
+        /// <param name="lightType"></param>
+        /// <param name="lumen"></param>
+        /// <param name="initialIntensity"></param>
+        /// <param name="enableSpotReflector"></param>
+        /// <returns></returns>
         public static float ConvertPunctualLightLumenToCandela(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector)
         {
             if (lightType == LightType.Spot && enableSpotReflector)
@@ -150,22 +271,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return LightUtils.ConvertPointLightLumenToCandela(lumen);
         }
 
+        /// <summary>
+        /// Convert a punctual light intensity in Lumen to Lux
+        /// </summary>
+        /// <param name="lightType"></param>
+        /// <param name="lumen"></param>
+        /// <param name="initialIntensity"></param>
+        /// <param name="enableSpotReflector"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         public static float ConvertPunctualLightLumenToLux(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector, float distance)
         {
             float candela = ConvertPunctualLightLumenToCandela(lightType, lumen, initialIntensity, enableSpotReflector);
 
             return ConvertCandelaToLux(candela, distance);
         }
-        
 
-        public static float ConvertPunctualLightCandelaToLumen(LightType lightType, SpotLightShape spotLigthShape, float candela, bool enableSpotReflector, float spotAngle, float aspectRatio)
+        /// <summary>
+        /// Convert a punctual light intensity in Candela to Lumen
+        /// </summary>
+        /// <param name="lightType"></param>
+        /// <param name="spotLightShape"></param>
+        /// <param name="candela"></param>
+        /// <param name="enableSpotReflector"></param>
+        /// <param name="spotAngle"></param>
+        /// <param name="aspectRatio"></param>
+        /// <returns></returns>
+        public static float ConvertPunctualLightCandelaToLumen(LightType lightType, SpotLightShape spotLightShape, float candela, bool enableSpotReflector, float spotAngle, float aspectRatio)
         {
             if (lightType == LightType.Spot && enableSpotReflector)
             {
                 // We just need to multiply candela by solid angle in this case
-                if (spotLigthShape == SpotLightShape.Cone)
+                if (spotLightShape == SpotLightShape.Cone)
                     return LightUtils.ConvertSpotLightCandelaToLumen(candela, spotAngle * Mathf.Deg2Rad, true);
-                else if (spotLigthShape == SpotLightShape.Pyramid)
+                else if (spotLightShape == SpotLightShape.Pyramid)
                 {
                     float angleA, angleB;
                     LightUtils.CalculateAnglesForPyramid(aspectRatio, spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
@@ -179,21 +318,52 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return LightUtils.ConvertPointLightCandelaToLumen(candela);
         }
 
-        public static float ConvertPunctualLightLuxToLumen(LightType lightType, SpotLightShape spotLigthShape, float lux, bool enableSpotReflector, float spotAngle, float aspectRatio, float distance)
+        /// <summary>
+        /// Convert a punctual light intensity in Lux to Lumen
+        /// </summary>
+        /// <param name="lightType"></param>
+        /// <param name="spotLightShape"></param>
+        /// <param name="lux"></param>
+        /// <param name="enableSpotReflector"></param>
+        /// <param name="spotAngle"></param>
+        /// <param name="aspectRatio"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
+        public static float ConvertPunctualLightLuxToLumen(LightType lightType, SpotLightShape spotLightShape, float lux, bool enableSpotReflector, float spotAngle, float aspectRatio, float distance)
         {
             float candela = ConvertLuxToCandela(lux, distance);
-            return ConvertPunctualLightCandelaToLumen(lightType, spotLigthShape, candela, enableSpotReflector, spotAngle, aspectRatio);
+            return ConvertPunctualLightCandelaToLumen(lightType, spotLightShape, candela, enableSpotReflector, spotAngle, aspectRatio);
         }
 
         // This is not correct, we use candela instead of luminance but this is request from artists to support EV100 on punctual light
-        public static float ConvertPunctualLightEvToLumen(LightType lightType, SpotLightShape spotLigthShape, float ev, bool enableSpotReflector, float spotAngle, float aspectRatio)
+        /// <summary>
+        /// Convert a punctual light intensity in EV100 to Lumen.
+        /// This is not physically correct but it's handy to have EV100 for punctual lights.
+        /// </summary>
+        /// <param name="lightType"></param>
+        /// <param name="spotLightShape"></param>
+        /// <param name="ev"></param>
+        /// <param name="enableSpotReflector"></param>
+        /// <param name="spotAngle"></param>
+        /// <param name="aspectRatio"></param>
+        /// <returns></returns>
+        public static float ConvertPunctualLightEvToLumen(LightType lightType, SpotLightShape spotLightShape, float ev, bool enableSpotReflector, float spotAngle, float aspectRatio)
         {
             float candela = ConvertEvToCandela(ev);
 
-            return ConvertPunctualLightCandelaToLumen(lightType, spotLigthShape, candela, enableSpotReflector, spotAngle, aspectRatio);
+            return ConvertPunctualLightCandelaToLumen(lightType, spotLightShape, candela, enableSpotReflector, spotAngle, aspectRatio);
         }
 
-         // This is not correct, we use candela instead of luminance but this is request from artists to support EV100 on punctual light
+        // This is not correct, we use candela instead of luminance but this is request from artists to support EV100 on punctual light
+        /// <summary>
+        /// Convert a punctual light intensity in Lumen to EV100.
+        /// This is not physically correct but it's handy to have EV100 for punctual lights.
+        /// </summary>
+        /// <param name="lightType"></param>
+        /// <param name="lumen"></param>
+        /// <param name="initialIntensity"></param>
+        /// <param name="enableSpotReflector"></param>
+        /// <returns></returns>
         public static float ConvertPunctualLightLumenToEv(LightType lightType, float lumen, float initialIntensity, bool enableSpotReflector)
         {
             float candela = ConvertPunctualLightLumenToCandela(lightType, lumen, initialIntensity, enableSpotReflector);
@@ -201,6 +371,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return ConvertCandelaToEv(candela);
         }
 
+        /// <summary>
+        /// Convert area light intensity in Lumen to Luminance(nits)
+        /// </summary>
+        /// <param name="areaLightType"></param>
+        /// <param name="lumen"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public static float ConvertAreaLightLumenToLuminance(LightTypeExtent areaLightType, float lumen, float width, float height = 0)
         {
             switch (areaLightType)
@@ -214,6 +392,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return lumen;
         }
 
+        /// <summary>
+        /// Convert area light intensity in Luminance(nits) to Lumen
+        /// </summary>
+        /// <param name="areaLightType"></param>
+        /// <param name="luminance"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public static float ConvertAreaLightLuminanceToLumen(LightTypeExtent areaLightType, float luminance, float width, float height = 0)
         {
             switch (areaLightType)
@@ -227,6 +413,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return luminance;
         }
 
+        /// <summary>
+        /// Convert area light intensity in Lumen to EV100
+        /// </summary>
+        /// <param name="areaLightType"></param>
+        /// <param name="lumen"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public static float ConvertAreaLightLumenToEv(LightTypeExtent areaLightType, float lumen, float width, float height)
         {
             float luminance = ConvertAreaLightLumenToLuminance(areaLightType, lumen, width, height);
@@ -234,6 +428,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return ConvertLuminanceToEv(luminance);
         }
 
+        /// <summary>
+        /// Convert area light intensity in EV100 to Lumen
+        /// </summary>
+        /// <param name="areaLightType"></param>
+        /// <param name="ev"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
         public static float ConvertAreaLightEvToLumen(LightTypeExtent areaLightType, float ev, float width, float height)
         {
             float luminance = ConvertEvToLuminance(ev);
@@ -241,17 +443,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return ConvertAreaLightLuminanceToLumen(areaLightType, luminance, width, height);
         }
 
-        // convert intensity (lumen) to nits
+        /// <summary>
+        /// Convert line light intensity in Lumen to Luminance(nits)
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="lineWidth"></param>
+        /// <returns></returns>
         public static float CalculateLineLightLumenToLuminance(float intensity, float lineWidth)
         {
             //Line lights expect radiance (W / (sr * m^2)) in the shader.
             //In the UI, we specify luminous flux (power) in lumens.
-            //First, it needs to be converted to radiometric units (radiant flux, W).
+            //First, it needs to be converted to radiometric units (radian flux, W).
 
             //Then we must recall how to compute power from radiance:
 
-            //radiance = differential_power / (differrential_projected_area * differential_solid_angle),
-            //radiance = differential_power / (differrential_area * differential_solid_angle * <N, L>),
+            //radiance = differential_power / (differential_projected_area * differential_solid_angle),
+            //radiance = differential_power / (differential_area * differential_solid_angle * <N, L>),
             //power = Integral{area, Integral{hemisphere, radiance * <N, L>}}.
 
             //Unlike line lights, our line lights have no surface area, so the integral becomes:
@@ -265,12 +472,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return intensity / (4.0f * Mathf.PI * lineWidth);
         }
 
+        /// <summary>
+        /// Convert a line light intensity in Luminance(nits) to Lumen
+        /// </summary>
+        /// <param name="intensity"></param>
+        /// <param name="lineWidth"></param>
+        /// <returns></returns>
         public static float CalculateLineLightLuminanceToLumen(float intensity, float lineWidth)
         {
             return intensity * (4.0f * Mathf.PI * lineWidth);
         }
 
-        // spotAngle in radiant
+        // spotAngle in radian
+        /// <summary>
+        /// Calculate angles for the pyramid spot light to calculate it's intensity.
+        /// </summary>
+        /// <param name="aspectRatio"></param>
+        /// <param name="spotAngle">angle in radian</param>
+        /// <param name="angleA"></param>
+        /// <param name="angleB"></param>
         public static void CalculateAnglesForPyramid(float aspectRatio, float spotAngle, out float angleA, out float angleB)
         {
             // Since the smallest angles is = to the fov, and we don't care of the angle order, simply make sure the aspect ratio is > 1
@@ -287,30 +507,64 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             angleB = halfAngle * 2.0f;
         }
 
-        // TODO: Do a cheaper fitting
-        // Given a correlated color temperature (in Kelvin), estimate the RGB equivalent. Curve fit error is max 0.008.
-        // return color in linear RGB space
-        public static Color CorrelatedColorTemperatureToRGB(float temperature)
+        internal static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, HDAdditionalLightData hdLight, Light light)
         {
-            float r, g, b;
+            float intensity = hdLight.intensity;
+            float luxAtDistance = hdLight.luxAtDistance;
 
-            // Temperature must fall between 1000 and 40000 degrees
-            // The fitting require to divide kelvin by 1000 (allow more precision)
-            float kelvin = Mathf.Clamp(temperature, 1000.0f, 40000.0f) / 1000.0f;
-            float kelvin2 = kelvin * kelvin;
+            // For punctual lights
+            if (hdLight.lightTypeExtent == LightTypeExtent.Punctual)
+            {
+                // Lumen ->
+                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Candela)
+                    intensity = LightUtils.ConvertPunctualLightLumenToCandela(light.type, intensity, light.intensity, hdLight.enableSpotReflector);
+                else if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Lux)
+                    intensity = LightUtils.ConvertPunctualLightLumenToLux(light.type, intensity, light.intensity, hdLight.enableSpotReflector,
+                                                                            hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertPunctualLightLumenToEv(light.type, intensity, light.intensity, hdLight.enableSpotReflector);
+                // Candela ->
+                else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertPunctualLightCandelaToLumen(  light.type, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                                                                                light.spotAngle, hdLight.aspectRatio);
+                else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lux)
+                    intensity = LightUtils.ConvertCandelaToLux(intensity, hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertCandelaToEv(intensity);
+                // Lux ->
+                else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertPunctualLightLuxToLumen(light.type, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                                                                          light.spotAngle, hdLight.aspectRatio, hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Candela)
+                    intensity = LightUtils.ConvertLuxToCandela(intensity, hdLight.luxAtDistance);
+                else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertLuxToEv(intensity, hdLight.luxAtDistance);
+                // EV100 ->
+                else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertPunctualLightEvToLumen(light.type, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
+                                                                            light.spotAngle, hdLight.aspectRatio);
+                else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Candela)
+                    intensity = LightUtils.ConvertEvToCandela(intensity);
+                else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lux)
+                    intensity = LightUtils.ConvertEvToLux(intensity, hdLight.luxAtDistance);
+            }
+            else  // For area lights
+            {
+                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
+                    intensity = LightUtils.ConvertAreaLightLumenToLuminance(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertAreaLightLuminanceToLumen(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertLuminanceToEv(intensity);
+                if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Luminance)
+                    intensity = LightUtils.ConvertEvToLuminance(intensity);
+                if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
+                    intensity = LightUtils.ConvertAreaLightEvToLumen(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev100)
+                    intensity = LightUtils.ConvertAreaLightLumenToEv(hdLight.lightTypeExtent, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
+            }
 
-            // Using 6570 as a pivot is an approximation, pivot point for red is around 6580 and for blue and green around 6560.
-            // Calculate each color in turn (Note, clamp is not really necessary as all value belongs to [0..1] but can help for extremum).
-            // Red
-            r = kelvin < 6.570f ? 1.0f : Mathf.Clamp((1.35651f + 0.216422f * kelvin + 0.000633715f * kelvin2) / (-3.24223f + 0.918711f * kelvin), 0.0f, 1.0f);
-            // Green
-            g = kelvin < 6.570f ?
-                Mathf.Clamp((-399.809f + 414.271f * kelvin + 111.543f * kelvin2) / (2779.24f + 164.143f * kelvin + 84.7356f * kelvin2), 0.0f, 1.0f) :
-                Mathf.Clamp((1370.38f + 734.616f * kelvin + 0.689955f * kelvin2) / (-4625.69f + 1699.87f * kelvin), 0.0f, 1.0f);
-            //Blue
-            b = kelvin > 6.570f ? 1.0f : Mathf.Clamp((348.963f - 523.53f * kelvin + 183.62f * kelvin2) / (2848.82f - 214.52f * kelvin + 78.8614f * kelvin2), 0.0f, 1.0f);
-
-            return new Color(r, g, b, 1.0f);
+            hdLight.intensity = intensity;
         }
     }
 }

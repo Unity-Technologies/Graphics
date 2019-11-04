@@ -17,7 +17,7 @@ CBUFFER_END
 float unity_OneOverOutputBoost;
 float unity_MaxOutputValue;
 
-#include "VertMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
 PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 {
@@ -27,15 +27,15 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     UNITY_TRANSFER_INSTANCE_ID(inputMesh, output.vmesh);
 
     // Output UV coordinate in vertex shader
-    float2 uv;
+    float2 uv = float2(0.0, 0.0);
 
     if (unity_MetaVertexControl.x)
     {
-        uv = inputMesh.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
+        uv = inputMesh.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
     }
     else if (unity_MetaVertexControl.y)
     {
-        uv = inputMesh.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+        uv = inputMesh.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
     }
 
     // OpenGL right now needs to actually use the incoming vertex position

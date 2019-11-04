@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEditor.Experimental.VFX;
+using UnityEditor.VFX;
 
 using Object = UnityEngine.Object;
 
@@ -116,17 +116,18 @@ namespace UnityEditor.VFX.UI
 
         public void IncremenentGraphUndoRedoState(VFXModel model, VFXModel.InvalidationCause cause)
         {
-            if (cause == VFXModel.InvalidationCause.kParamChanged && model is VFXSlot)
+            if (cause == VFXModel.InvalidationCause.kParamChanged)
             {
-                m_graphUndoStack.AddSlotDelta(model as VFXSlot);
+                if(model is VFXSlot) // model not beeing a VFXSlot means it is a subgraph reporting a value change
+                {
+                    if (m_graphUndoStack != null)
+                        m_graphUndoStack.AddSlotDelta(model as VFXSlot);
+                }
                 return;
             }
 
-            if (cause != VFXModel.InvalidationCause.kStructureChanged &&
-                cause != VFXModel.InvalidationCause.kConnectionChanged &&
-                cause != VFXModel.InvalidationCause.kParamChanged &&
-                cause != VFXModel.InvalidationCause.kSettingChanged &&
-                cause != VFXModel.InvalidationCause.kUIChanged)
+            if (cause == VFXModel.InvalidationCause.kExpressionInvalidated ||   // Ignore invalidation which doesn't modify model
+                cause == VFXModel.InvalidationCause.kExpressionGraphChanged)
                 return;
 
             if (m_reentrant)

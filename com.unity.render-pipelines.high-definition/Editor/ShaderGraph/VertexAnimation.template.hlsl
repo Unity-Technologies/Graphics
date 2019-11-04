@@ -17,9 +17,10 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
     $VertexDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
     $VertexDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         input.positionOS;
-    $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS));
+    $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          TransformObjectToWorld(input.positionOS);
     $VertexDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(output.WorldSpacePosition);
     $VertexDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
+    $VertexDescriptionInputs.AbsoluteWorldSpacePosition:output.AbsoluteWorldSpacePosition =  GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS));
     $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
     $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
     $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
@@ -31,20 +32,26 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.uv2:                       output.uv2 =                         input.uv2;
     $VertexDescriptionInputs.uv3:                       output.uv3 =                         input.uv3;
     $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
+    $VertexDescriptionInputs.BoneWeights:               output.BoneWeights =                 input.weights;
+    $VertexDescriptionInputs.BoneIndices:               output.BoneIndices =                 input.indices;
 
     return output;
 }
 
-AttributesMesh ApplyMeshModification(AttributesMesh input)
+AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
+    // Override time paramters with used one (This is required to correctly handle motion vector for vertex animation based on time)
+    $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
     // copy graph output to the results
-    $VertexDescription.Position:    input.positionOS = vertexDescription.Position;
+    $VertexDescription.VertexPosition: input.positionOS = vertexDescription.VertexPosition;
+    $VertexDescription.VertexNormal:   input.normalOS = vertexDescription.VertexNormal;
+    $VertexDescription.VertexTangent:  input.tangentOS.xyz = vertexDescription.VertexTangent;
 
     return input;
 }

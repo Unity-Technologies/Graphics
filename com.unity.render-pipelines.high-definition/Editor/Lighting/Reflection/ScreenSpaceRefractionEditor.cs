@@ -1,11 +1,10 @@
-using UnityEditor.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ScreenSpaceRefraction))]
-    public class ScreenSpaceRefractionEditor : VolumeComponentEditor
+    class ScreenSpaceRefractionEditor : VolumeComponentEditor
     {
         protected SerializedDataParameter m_ScreenFadeDistance;
 
@@ -18,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_ScreenFadeDistance, CoreEditorUtils.GetContent("Screen Weight Distance"));
+            PropertyField(m_ScreenFadeDistance, EditorGUIUtility.TrTextContent("Screen Weight Distance"));
         }
     }
 }

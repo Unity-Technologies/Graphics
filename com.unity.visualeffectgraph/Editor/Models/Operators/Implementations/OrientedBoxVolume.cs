@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The box used for the volume calculation.")]
+            [Tooltip("Sets the box used for the volume calculation.")]
             public OrientedBox box = new OrientedBox();
         }
 
         public class OutputProperties
         {
-            [Tooltip("The volume of the box.")]
+            [Tooltip("Outputs the volume of the box.")]
             public float volume;
         }
 
@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new VFXExpression[] { VFXOperatorUtility.BoxVolume(inputExpression[2]) };
+            return new VFXExpression[] { VFXOperatorUtility.BoxVolume(new VFXExpressionExtractScaleFromMatrix(inputExpression[0])) };
         }
     }
 }

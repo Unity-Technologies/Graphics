@@ -1,8 +1,8 @@
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum CustomSamplerId
+    internal enum CustomSamplerId
     {
         PushGlobalParameters,
         CopySetDepthBuffer,
@@ -10,9 +10,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HTileForSSS,
         Forward,
         RenderSSAO,
-        RenderShadows,
+        ResolveSSAO,
+        RenderShadowMaps,
         ScreenSpaceShadows,
         BuildLightList,
+        ContactShadows,
         BlitToFinalRT,
         Distortion,
         ApplyDistortion,
@@ -22,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DBufferRender,
         DBufferPrepareDrawData,
         DBufferNormal,
+        DecalsForwardEmissive,
         DisplayDebugDecalsAtlas,
         DisplayDebugViewMaterial,
         DebugViewMaterialGBuffer,
@@ -33,11 +36,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ForwardTransparentDepthPrepass,
         RenderForwardError,
         TransparentDepthPostpass,
-        ObjectsVelocity,
-        CameraVelocity,
+        ObjectsMotionVector,
+        CameraMotionVectors,
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
+        AfterPostProcessing,
         RenderDebug,
         ClearBuffers,
         ClearDepthStencil,
@@ -55,6 +59,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         GizmosPrePostprocess,
         Gizmos,
 
+        RaytracingBuildCluster,
+        RaytracingCullLights,
+        RaytracingIntegrateReflection,
+        RaytracingFilterReflection,
+        RaytracingAmbientOcclusion,
+        RaytracingFilterAO,
+        RaytracingDirectionalLightShadow,
+        RaytracingLightShadow,
+        RaytracingIntegrateIndirectDiffuse,
+        RaytracingFilterIndirectDiffuse,
+        RaytracingDebug,
+
         // Profile sampler for tile pass
         TPPrepareLightsForGPU,
         TPPushGlobalParameters,
@@ -62,17 +78,53 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         TPScreenSpaceShadows,
         TPTileSettingsEnableTileAndCluster,
         TPForwardPass,
-        TPForwardTiledClusterpass,
         TPDisplayShadows,
         TPRenderDeferredLighting,
 
         // Misc
         VolumeUpdate,
 
+        // Low res transparency
+        DownsampleDepth,
+        LowResTransparent,
+        UpsampleLowResTransparent,
+
+        // Post-processing
+        AlphaCopy,
+        StopNaNs,
+        Exposure,
+        TemporalAntialiasing,
+        DepthOfField,
+        DepthOfFieldKernel,
+        DepthOfFieldCoC,
+        DepthOfFieldPrefilter,
+        DepthOfFieldPyramid,
+        DepthOfFieldDilate,
+        DepthOfFieldTileMax,
+        DepthOfFieldGatherFar,
+        DepthOfFieldGatherNear,
+        DepthOfFieldPreCombine,
+        DepthOfFieldCombine,
+        MotionBlur,
+        MotionBlurMotionVecPrep,
+        MotionBlurTileMinMax,
+        MotionBlurTileNeighbourhood,
+        MotionBlurKernel,
+        PaniniProjection,
+        Bloom,
+        ColorGradingLUTBuilder,
+        UberPost,
+        FXAA,
+        SMAA,
+        FinalPost,
+        CustomPostProcessBeforePP,
+        CustomPostProcessAfterPP,
+        CustomPostProcessBeforeTransparent,
+
         Max
     }
 
-    public static class HDCustomSamplerExtension
+    internal static class HDCustomSamplerExtension
     {
         static CustomSampler[] s_Samplers;
 

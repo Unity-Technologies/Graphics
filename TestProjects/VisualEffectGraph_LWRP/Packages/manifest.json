@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
+    "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
+    "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
+    "com.unity.test-framework": "1.1.1",
+    "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
+    "com.unity.testing.visualeffectgraph": "file:../../../com.unity.testing.visualeffectgraph",
+    "com.unity.timeline": "1.2.1",
+    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
+    "com.unity.modules.assetbundle": "1.0.0",
+    "com.unity.modules.director": "1.0.0",
+    "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.physics2d": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.vr": "1.0.0"
+  },
+  "testables": [
+    "com.unity.testing.visualeffectgraph",
+    "com.unity.render-pipelines.visualeffectgraph",
+    "com.unity.testframework.graphics"
+  ]
+}

@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using Object = System.Object;
 
 namespace UnityEditor.VFX
 {
-    class InlineTypeProvider : IVariantProvider
+    class InlineTypeProvider : VariantProvider
     {
-        public Dictionary<string, object[]> variants
+        protected override sealed Dictionary<string, object[]> variants
         {
             get
             {
@@ -40,14 +40,6 @@ namespace UnityEditor.VFX
             get
             {
                 return (Type)m_Type;
-            }
-        }
-
-        public override string libraryName
-        {
-            get
-            {
-                return "Inline: " + name;
             }
         }
 

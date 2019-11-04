@@ -1,9 +1,9 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.DeleteAsset(tempFilePath);
             }
 
-            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
+            var asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
 
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
@@ -47,7 +47,7 @@ namespace UnityEditor.VFX.Test
 #pragma warning restore 0414
 
         [UnityTest]
-        public IEnumerator CreateAssetAndComponent_Space_Bounds([ValueSource("available_Space")] VFXCoordinateSpace systemSpace, [ValueSource("available_Space")] VFXCoordinateSpace boundSpace)
+        public IEnumerator CreateAssetAndComponent_Space_Bounds([ValueSource("available_Space")] object systemSpace, [ValueSource("available_Space")] object boundSpace)
         {
             var objectPosition = new Vector3(0.123f, 0.0f, 0.0f);
             var boundPosition = new Vector3(0.0f, 0.0987f, 0.0f);
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Test
 
             var basicInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var basicUpdate = ScriptableObject.CreateInstance<VFXBasicUpdate>();
-            var quadOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
+            var quadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
             quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
 
             var setLifetime = ScriptableObject.CreateInstance<SetAttribute>(); //only needed to allocate a minimal attributeBuffer
@@ -78,8 +78,8 @@ namespace UnityEditor.VFX.Test
             basicUpdate.LinkFrom(basicInitialize);
             quadOutput.LinkFrom(basicUpdate);
 
-            basicInitialize.space = systemSpace;
-            basicInitialize.inputSlots[0].space = boundSpace;
+            basicInitialize.space = (VFXCoordinateSpace)systemSpace;
+            basicInitialize.inputSlots[0].space = (VFXCoordinateSpace)boundSpace;
             basicInitialize.inputSlots[0][0].value = boundPosition;
             basicInitialize.inputSlots[0][1].value = Vector3.one * 5.0f;
 
@@ -105,21 +105,21 @@ namespace UnityEditor.VFX.Test
 
             var renderer = vfxComponent.GetComponent<VFXRenderer>();
             var parentFromCenter = VFXSpacePropagationTest.CollectParentExpression(basicInitialize.inputSlots[0][0].GetExpression()).ToArray();
-            if (systemSpace == VFXCoordinateSpace.Local && boundSpace == VFXCoordinateSpace.Local)
+            if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.Local && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.Local)
             {
                 Assert.IsFalse(parentFromCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
                 Assert.AreEqual(boundPosition.x + objectPosition.x, renderer.bounds.center.x, 0.0001);
                 Assert.AreEqual(boundPosition.y + objectPosition.y, renderer.bounds.center.y, 0.0001);
                 Assert.AreEqual(boundPosition.z + objectPosition.z, renderer.bounds.center.z, 0.0001);
             }
-            else if (systemSpace == VFXCoordinateSpace.World && boundSpace == VFXCoordinateSpace.Local)
+            else if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.World && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.Local)
             {
                 Assert.IsFalse(parentFromCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
                 Assert.AreEqual(boundPosition.x + objectPosition.x, renderer.bounds.center.x, 0.0001);
                 Assert.AreEqual(boundPosition.y + objectPosition.y, renderer.bounds.center.y, 0.0001);
                 Assert.AreEqual(boundPosition.z + objectPosition.z, renderer.bounds.center.z, 0.0001);
             }
-            else if (systemSpace == VFXCoordinateSpace.World && boundSpace == VFXCoordinateSpace.World)
+            else if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.World && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.World)
             {
                 Assert.IsTrue(parentFromCenter.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
                 //object position has no influence in that case
@@ -127,7 +127,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(boundPosition.y, renderer.bounds.center.y, 0.0001);
                 Assert.AreEqual(boundPosition.z, renderer.bounds.center.z, 0.0001);
             }
-            else if (systemSpace == VFXCoordinateSpace.Local && boundSpace == VFXCoordinateSpace.World)
+            else if ((VFXCoordinateSpace)systemSpace == VFXCoordinateSpace.Local && (VFXCoordinateSpace)boundSpace == VFXCoordinateSpace.World)
             {
                 Assert.IsTrue(parentFromCenter.Count(o => o.operation == VFXExpressionOperation.WorldToLocal) == 1);
                 //object position has no influence in that case

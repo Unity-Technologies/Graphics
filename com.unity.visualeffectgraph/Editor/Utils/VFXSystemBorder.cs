@@ -71,17 +71,17 @@ namespace UnityEditor.VFX.UI
         {
             RecreateResources();
 
-            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXSystemBorder");
+            var tpl = VFXView.LoadUXML("VFXSystemBorder");
             tpl.CloneTree(this);
 
             this.AddStyleSheetPath("VFXSystemBorder");
 
-            this.cacheAsBitmap = false;
             this.style.overflow = Overflow.Visible;
 
             m_Title = this.Query<Label>("title");
             m_TitleField = this.Query<TextField>("title-field");
-            m_TitleField.visible = false;
+
+            m_TitleField.style.display = DisplayStyle.None;
 
             m_Title.RegisterCallback<MouseDownEvent>(OnTitleMouseDown);
 
@@ -98,6 +98,7 @@ namespace UnityEditor.VFX.UI
             Add(content);
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+            visible = false;
         }
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -107,10 +108,10 @@ namespace UnityEditor.VFX.UI
         {
             m_TitleField.RemoveFromClassList("empty");
             m_TitleField.value = m_Title.text;
-            m_TitleField.visible = true;
-            UpdateTitleFieldRect();
 
-            m_TitleField.Q("unity-text-input").Focus();
+            m_TitleField.style.display = DisplayStyle.Flex;
+            UpdateTitleFieldRect();
+            m_TitleField.Q(TextField.textInputUssName).Focus();
             m_TitleField.SelectAll();
         }
 
@@ -142,16 +143,16 @@ namespace UnityEditor.VFX.UI
             m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
 
 
-            m_TitleField.style.top = rect.yMin;
-            m_TitleField.style.left = rect.xMin;
-            m_TitleField.style.right = m_Title.resolvedStyle.marginRight + m_Title.resolvedStyle.borderRightWidth;
+            m_TitleField.style.top = rect.yMin - 6;
+            m_TitleField.style.left = rect.xMin - 5;
+            m_TitleField.style.right = m_Title.resolvedStyle.marginRight + m_Title.resolvedStyle.borderRightWidth + 2;
             m_TitleField.style.height = rect.height - m_Title.resolvedStyle.marginTop - m_Title.resolvedStyle.marginBottom;
         }
 
         void OnTitleBlur(FocusOutEvent e)
         {
             title = m_TitleField.value;
-            m_TitleField.visible = false;
+            m_TitleField.style.display = DisplayStyle.None;
 
             VFXView view = GetFirstAncestorOfType<VFXView>();
 
@@ -192,6 +193,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_WaitingRecompute)
                 return;
+            visible = true;
             //title width should be at least as wide as a context to be valid.
             float titleWidth = m_Title.layout.width;
             bool invalidTitleWidth = float.IsNaN(titleWidth) || titleWidth < 50;
@@ -348,8 +350,8 @@ namespace UnityEditor.VFX.UI
                 s_Mesh.uv2 = uvsDistance;
                 s_Mesh.SetIndices(indices, MeshTopology.Quads, 0);
             }
-
-            m_Mat = new Material(Shader.Find("Hidden/VFX/GradientDashedBorder"));
+            if( m_Mat == null)
+                m_Mat = new Material(Shader.Find("Hidden/VFX/GradientDashedBorder"));
         }
 
         void IDisposable.Dispose()
@@ -433,6 +435,8 @@ namespace UnityEditor.VFX.UI
             if (view == null || m_Controller == null)
                 return;
             contexts = controller.contexts.Select(t => view.GetGroupNodeElement(t) as VFXContextUI).ToArray();
+
+            title = controller.title;
         }
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {

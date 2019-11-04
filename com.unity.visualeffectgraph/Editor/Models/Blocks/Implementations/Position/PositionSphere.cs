@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The sphere used for positioning particles.")]
+            [Tooltip("Sets the sphere used for positioning the particles.")]
             public ArcSphere ArcSphere = ArcSphere.defaultValue;
         }
 
@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string outSource = @"float cosPhi = 2.0f * RAND - 1.0f;";
-                if (spawnMode == SpawnMode.Randomized)
+                if (spawnMode == SpawnMode.Random)
                     outSource += @"float theta = ArcSphere_arc * RAND;";
                 else
                     outSource += @"float theta = ArcSphere_arc * ArcSequencer;";

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using Type = System.Type;
 
 namespace UnityEditor.VFX
@@ -34,13 +34,47 @@ namespace UnityEditor.VFX
                 Invalidate(InvalidationCause.kStructureChanged);
             }
         }
+        public virtual bool isValid
+        {
+            get
+            {
+                if (GetParent() == null) return true; // a block is invalid only if added to incompatible context.
+                if ((compatibleContexts & GetParent().contextType) != GetParent().contextType)
+                    return false;
+                if (GetParent() is VFXBlockSubgraphContext subgraphContext)
+                    return (subgraphContext.compatibleContextType & compatibleContexts) == subgraphContext.compatibleContextType;
+
+                return true;
+            }
+        }
+
+        public bool isActive
+        {
+            get { return enabled && isValid; }
+        }
 
         public abstract VFXContextType compatibleContexts { get; }
         public abstract VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
-        public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); }}
+        public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
         public virtual string source { get { return null; } }
+
+        public IEnumerable<VFXAttributeInfo> mergedAttributes
+        {
+            get
+            {
+                 var attribs = new Dictionary< VFXAttribute, VFXAttributeMode >();
+                 foreach (var a in attributes)
+                 {
+                     VFXAttributeMode mode = VFXAttributeMode.None;
+                     attribs.TryGetValue(a.attrib, out mode);
+                     mode |= a.mode;
+                     attribs[a.attrib] = mode;
+                 }
+                 return attribs.Select(kvp => new VFXAttributeInfo(kvp.Key,kvp.Value));
+            }
+        }
 
         public VFXData GetData()
         {

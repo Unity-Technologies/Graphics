@@ -8,10 +8,10 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXContextBorderFactory : UxmlFactory<VFXContextBorder>
+    class VFXContextBorderFactory : UxmlFactory<VFXContextBorder>
     {}
 
-    public class VFXContextBorder : ImmediateModeElement, IDisposable
+    class VFXContextBorder : ImmediateModeElement, IDisposable
     {
         Material m_Mat;
 
@@ -66,8 +66,8 @@ namespace UnityEditor.VFX.UI
                 s_Mesh.uv = uvsBorder;
                 s_Mesh.SetIndices(indices, MeshTopology.Quads, 0);
             }
-
-            m_Mat = new Material(Shader.Find("Hidden/VFX/GradientBorder"));
+            if(m_Mat == null)
+                m_Mat = new Material(Shader.Find("Hidden/VFX/GradientBorder"));
         }
 
         void IDisposable.Dispose()

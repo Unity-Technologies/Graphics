@@ -4,7 +4,7 @@
 
 |[Boolean](Boolean-Node.md)|[Color](Color-Node.md)|
 |:--------:|:------:|
-|![Image](images\BooleanNodeThumb.png)|![](images/ColorNodeThumb.png)|
+|![Image](images/BooleanNodeThumb.png)|![](images/ColorNodeThumb.png)|
 | Defines a constant Boolean value in the shader. | Defines a constant Vector 4 value in the shader using a Color field. |
 |[**Constant**](Constant-Node.md)|[**Integer**](Integer-Node.md)|
 |![Image](images/ConstantNodeThumb.png)|![Image](images/IntegerNodeThumb.png)|
@@ -23,7 +23,7 @@
 
 |[Bitangent Vector](Bitangent-Vector-Node.md)|[Normal Vector](Normal-Vector-Node.md)|
 |:--------:|:------:|
-|[![Image](Images\BitangentVectorNodeThumb.png)](Combine-Node)|![](images/NormalVectorNodeThumb.png)|
+|[![Image](images/BitangentVectorNodeThumb.png)](Combine-Node)|![](images/NormalVectorNodeThumb.png)|
 | Provides access to the mesh vertex or fragment's Bitangent Vector. | Provides access to the mesh vertex or fragment's Normal Vector. |
 |[**Position**](Position-Node.md)|[**Screen Position**](Screen-Position-Node.md)|
 |![Image](images/PositionNodeThumb.png)|![Image](images/ScreenPositionNodeThumb.png)|
@@ -39,14 +39,14 @@
 
 |[Gradient](Gradient-Node.md)|[Sample Gradient](Sample-Gradient-Node.md)|
 |:--------:|:------:|
-|![Image](Images\GradientNodeThumb.png)|![](images/SampleGradientNodeThumb.png)|
+|![Image](images/GradientNodeThumb.png)|![](images/SampleGradientNodeThumb.png)|
 | Defines a constant Gradient in the shader. | Samples a Gradient given the input of Time. |
 
 ## Matrix
 
 |[Matrix 2x2](Matrix-2x2-Node.md)|[Matrix 3x3](Matrix-3x3-Node.md)|
 |:--------:|:------:|
-|![Image](Images\Matrix2x2NodeThumb.png)|![](images/Matrix3x3NodeThumb.png)|
+|![Image](images/Matrix2x2NodeThumb.png)|![](images/Matrix3x3NodeThumb.png)|
 | Defines a constant Matrix 2x2 value in the shader. | Defines a constant Matrix 3x3 value in the shader. |
 |[**Matrix 4x4**](Matrix-4x4-Node.md)|[**Transformation Matrix**](Transformation-Matrix-Node.md)|
 |![Image](images/Matrix4x4NodeThumb.png)|![Image](images/TransformationMatrixNodeThumb.png)|
@@ -58,7 +58,7 @@
 
 |    [**Dielectric Specular**](Dielectric-Specular-Node.md)    |      [**Metal Reflectance**](Metal-Reflectance-Node.md)      |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
-|       ![Image](Images\DielectricSpecularNodeThumb.png)       |          ![](images/MetalReflectanceNodeThumb.png)           |
+|       ![Image](images/DielectricSpecularNodeThumb.png)       |          ![](images/MetalReflectanceNodeThumb.png)           |
 | Returns a Dielectric Specular F0 value for a physically based material. | Returns a Metal Reflectance value for a physically based material. |
 
 
@@ -66,18 +66,18 @@
 
 |[Ambient](Ambient-Node.md)|[Camera](Camera-Node.md)|
 |:--------:|:------:|
-|![Image](Images\AmbientNodeThumb.png)|![](images/CameraNodeThumb.png)|
+|![Image](images/AmbientNodeThumb.png)|![](images/CameraNodeThumb.png)|
 | Provides access to the Scene's Ambient color values. | Provides access to various parameters of the current Camera. |
-|[**Fog**](Fog-Node.md)|[**Light Probe**](Light-Probe-Node.md)|
-|![Image](images/FogNodeThumb.png)|![Image](images/LightProbeNodeThumb.png)|
-|Provides access to the Scene's Fog parameters.|Provides access to the Light Probe parameters at the object's position.|
+|[**Fog**](Fog-Node.md)|[**Baked GI**](Baked-GI-Node.md)|
+|![Image](images/FogNodeThumb.png)||
+|Provides access to the Scene's Fog parameters.|Provides access to the Baked GI values at the vertex or fragment's position.|
 |[**Object**](Object-Node.md)|[**Reflection Probe**](Reflection-Probe-Node.md)|
 |![Image](images/ObjectNodeThumb.png)|![Image](images/ReflectionProbeNodeThumb.png)|
 |Provides access to various parameters of the Object.|Provides access to the nearest Reflection Probe to the object.|
 |[**Scene Color**](Scene-Color-Node.md)|[**Scene Depth**](Scene-Depth-Node.md)|
 |![Image](images/SceneColorNodeThumb.png)|![Image](images/SceneDepthNodeThumb.png)|
 |Provides access to the current Camera's color buffer.|Provides access to the current Camera's depth buffer.|
-|[**Screen**](Sreen-Node.md)||
+|[**Screen**](Screen-Node.md)||
 |![Image](images/ScreenNodeThumb.png)||
 |Provides access to parameters of the screen.||
 
@@ -85,7 +85,7 @@
 
 |[Cubemap Asset](Cubemap-Asset-Node.md)|[Sample Cubemap](Sample-Cubemap-Node.md)|
 |:--------:|:------:|
-|[![Image](Images\CubemapAssetNodeThumb.png)](Combine-Node)|![](images/SampleCubemapNodeThumb.png)|
+|[![Image](images/CubemapAssetNodeThumb.png)](Combine-Node)|![](images/SampleCubemapNodeThumb.png)|
 | Defines a constant Cubemap Asset for use in the shader. | Samples a Cubemap and returns a Vector 4 color value for use in the shader. |
 |[**Sample Texture 2D**](Sample-Texture-2D-Node.md)|[**Sample Texture 2D Array**](Sample-Texture-2D-Array-Node.md)|
 |![Image](images/SampleTexture2DNodeThumb.png)|![Image](images/SampleTexture2DArrayNodeThumb.png)|

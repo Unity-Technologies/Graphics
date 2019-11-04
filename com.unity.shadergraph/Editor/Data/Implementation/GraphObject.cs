@@ -1,20 +1,33 @@
 using System;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    class GraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
+    class GraphObject : ScriptableObject, ISerializationCallbackReceiver
     {
         [SerializeField]
         SerializationHelper.JSONSerializedElement m_SerializedGraph;
 
         [SerializeField]
+        int m_SerializedVersion;
+
+        [SerializeField]
         bool m_IsDirty;
 
-        IGraph m_Graph;
-        IGraph m_DeserializedGraph;
+        [SerializeField]
+        bool m_IsSubGraph;
 
-        public IGraph graph
+        [SerializeField]
+        string m_AssetGuid;
+
+        [NonSerialized]
+        GraphData m_Graph;
+
+        [NonSerialized]
+        int m_DeserializedVersion;
+
+        public GraphData graph
         {
             get { return m_Graph; }
             set
@@ -33,28 +46,52 @@ namespace UnityEditor.Graphing
             set { m_IsDirty = value; }
         }
 
-        public void RegisterCompleteObjectUndo(string name)
+        public void RegisterCompleteObjectUndo(string actionName)
         {
-            Undo.RegisterCompleteObjectUndo(this, name);
+            Undo.RegisterCompleteObjectUndo(this, actionName);
+            m_SerializedVersion++;
+            m_DeserializedVersion++;
             m_IsDirty = true;
         }
 
         public void OnBeforeSerialize()
         {
             if (graph != null)
+            {
                 m_SerializedGraph = SerializationHelper.Serialize(graph);
+                m_IsSubGraph = graph.isSubGraph;
+                m_AssetGuid = graph.assetGuid;
+            }
         }
 
         public void OnAfterDeserialize()
         {
-            var deserializedGraph = SerializationHelper.Deserialize<IGraph>(m_SerializedGraph, null);
             if (graph == null)
-                graph = deserializedGraph;
-            else
-                m_DeserializedGraph = deserializedGraph;
+            {
+                graph = DeserializeGraph();
+            }
         }
 
-        void Validate()
+        public bool wasUndoRedoPerformed => m_DeserializedVersion != m_SerializedVersion;
+
+        public void HandleUndoRedo()
+        {
+            Debug.Assert(wasUndoRedoPerformed);
+            var deserializedGraph = DeserializeGraph();
+            m_Graph.ReplaceWith(deserializedGraph);
+        }
+
+        GraphData DeserializeGraph()
+        {
+            var deserializedGraph = SerializationHelper.Deserialize<GraphData>(m_SerializedGraph, GraphUtil.GetLegacyTypeRemapping());
+            deserializedGraph.isSubGraph = m_IsSubGraph;
+            deserializedGraph.assetGuid = m_AssetGuid;
+            m_DeserializedVersion = m_SerializedVersion;
+            m_SerializedGraph = default(SerializationHelper.JSONSerializedElement);
+            return deserializedGraph;
+        }
+
+        public void Validate()
         {
             if (graph != null)
             {
@@ -66,23 +103,6 @@ namespace UnityEditor.Graphing
         void OnEnable()
         {
             Validate();
-
-            Undo.undoRedoPerformed += UndoRedoPerformed;
-            UndoRedoPerformed();
-        }
-
-        void OnDisable()
-        {
-            Undo.undoRedoPerformed -= UndoRedoPerformed;
-        }
-
-        void UndoRedoPerformed()
-        {
-            if (m_DeserializedGraph != null)
-            {
-                graph.ReplaceWith(m_DeserializedGraph);
-                m_DeserializedGraph = null;
-            }
         }
     }
 }

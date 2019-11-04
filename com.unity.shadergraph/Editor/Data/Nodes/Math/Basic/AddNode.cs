@@ -10,11 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Add";
         }
 
-        public override string documentationURL
-        {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Add-Node"; }
-        }
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Add", BindingFlags.Static | BindingFlags.NonPublic);

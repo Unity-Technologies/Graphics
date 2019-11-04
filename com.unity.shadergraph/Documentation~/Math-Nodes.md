@@ -12,7 +12,7 @@
 | [**Modulo**](Modulo-Node.md) | [**Negate**](Negate-Node.md) |
 | ![Image](images/ModuloNodeThumb.png) | ![Image](images/NegateNodeThumb.png) |
 | Returns the remainder of input A divided by input B. | Returns the inverse value of input In. |
-| [**Normalize**](Normalize-Node.md) | [**Posterize**](Poserize-Node.md) |
+| [**Normalize**](Normalize-Node.md) | [**Posterize**](Posterize-Node.md) |
 | ![Image](images/NormalizeNodeThumb.png) | ![Image](images/PosterizeNodeThumb.png) |
 | Returns the normalized vector of input In. | Returns the input In converted into a number of values defined by input Steps. |
 | [**Reciprocal**](Reciprocal-Node.md) | [**Reciprocal Square Root**](Reciprocal-Square-Root-Node.md) |
@@ -65,7 +65,7 @@
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | ![Image](images/MatrixConstructionNodeThumb.png)             | ![Image](images/MatrixDeterminantNodeThumb.png)              |
 | Constructs square matrices from the four input vectors M0, M1, M2 and M3. | Returns the determinant of the matrix defined by input In.   |
-| [**Matrix Split**](Matrix-Split-Node.md)                     | [**Matrix Transpose**](Matrix-Transpose.md)                  |
+| [**Matrix Split**](Matrix-Split-Node.md)                     | [**Matrix Transpose**](Matrix-Transpose-Node.md)                  |
 | ![Image](images/MatrixSplitNodeThumb.png)                    | ![Image](images/MatrixTransposeNodeThumb.png)                |
 | Splits a square matrix defined by input In into vectors.     | Returns the transposed value of the matrix defined by input In. |
 
@@ -111,14 +111,14 @@
 | [**Arctangent**](Arctangent-Node.md) | [**Arctangent2**](Arctangent2-Node.md) |
 | ![Image](images/ArctangentNodeThumb.png) | ![Image](images/Arctangent2NodeThumb.png) |
 | Returns the arctangent of the value of input In. Each component should be within the range of -Pi/2 to Pi/2. | Returns the arctangent of the values of both input A and input B. |
-| [**Cosine**](Cosine-Node.md) | [**Degrees to Radians**](Degrees-to-Radians-Node.md) |
-| ![Image](images/CosineNodeThumb.png) | ![Image](images/DegreestoRadiansNodeThumb.png) |
+| [**Cosine**](Cosine-Node.md) | [**Degrees to Radians**](Degrees-To-Radians-Node.md) |
+| ![Image](images/CosineNodeThumb.png) | ![Image](images/DegreesToRadiansNodeThumb.png) |
 | Returns the cosine of the value of input In. | Returns the value of input In converted from degrees to radians. |
 | [**Hyperbolic Cosine**](Hyperbolic-Cosine-Node.md) | [**Hyperbolic Sine**](Hyperbolic-Sine-Node.md) |
 | ![Image](images/HyperbolicCosineNodeThumb.png) | ![Image](images/HyperbolicSineNodeThumb.png) |
 | Returns the hyperbolic cosine of input In. | Returns the hyperbolic sine of input In. |
 | [**Hyperbolic Tangent**](Hyperbolic-Tangent-Node.md) | [**Radians to Degrees**](Radians-To-Degrees-Node.md) |
-| ![Image](images/HyperbolicTangentNodeThumb.png) | ![Image](images/RadianstoDegreesNodeThumb.png) |
+| ![Image](images/HyperbolicTangentNodeThumb.png) | ![Image](images/RadiansToDegreesNodeThumb.png) |
 | Returns the hyperbolic tangent of input In. | Returns the value of input In converted from radians to degrees. |
 | [**Sine**](Sine-Node.md) | [**Tangent**](Tangent-Node.md) |
 | ![Image](images/SineNodeThumb.png) | ![Image](images/TangentNodeThumb.png) |
@@ -154,7 +154,7 @@
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | ![Image](images/NoiseSineWaveNodeThumb.png)             | ![Image](images/SawtoothWaveNodeThumb.png)              |
 | Returns the sine of the value of input In. For variance, random noise is added to the amplitude of the sine wave. | Returns a sawtooth wave from the value of input In. |
-| [**Matrix Split**](Matrix-Split-Node.md)                     | [**Matrix Transpose**](Matrix-Transpose.md)                  |
+| [**Matrix Split**](Matrix-Split-Node.md)                     | [**Matrix Transpose**](Matrix-Transpose-Node.md)                  |
 | ![Image](images/MatrixSplitNodeThumb.png)                    | ![Image](images/MatrixTransposeNodeThumb.png)                |
 | Splits a square matrix defined by input In into vectors.     | Returns the transposed value of the matrix defined by input In. |
 

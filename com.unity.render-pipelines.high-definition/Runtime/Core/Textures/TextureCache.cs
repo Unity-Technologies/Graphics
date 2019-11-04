@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     // This class allows us to map each of texture to an internal Slice structure. The set of slices that have been produced are then stored into a child-class specific structure
-    public abstract class TextureCache
+    abstract class TextureCache
     {
         // Name that identifies the texture cache (Mainly used to generate the storage texture name)
         protected string m_CacheName;
@@ -28,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering
             public uint texId;
             // This counter tracks the number of frames since this slice was requested. The mechanic behind this is due to the fact that the number storage of the cache is limited
             public uint countLRU;
-            // Hash that tracks the version of the input texture (allows us to know if it needs an update)  
+            // Hash that tracks the version of the input texture (allows us to know if it needs an update)
             public uint sliceEntryHash;
         }
         // The array of slices  that the cache holds
@@ -47,14 +45,24 @@ namespace UnityEngine.Experimental.Rendering
         protected const int k_FP16SizeInByte = 2;
         protected const int k_NbChannel = 4;
         protected const float k_MipmapFactorApprox = 1.33f;
-        internal const int k_MaxSupported = 250; //vary along hardware and cube/2D but 250 should be always safe 
-        
+        internal const int k_MaxSupported = 250; //vary along hardware and cube/2D but 250 should be always safe
+
         protected TextureCache(string cacheName, int sliceSize = 1)
         {
             m_CacheName = cacheName;
             m_SliceSize = sliceSize;
             m_NumTextures = 0;
             m_NumMipLevels = 0;
+        }
+
+        public string GetCacheName()
+        {
+            return m_CacheName;
+        }
+
+        public int GetNumMipLevels()
+        {
+            return m_NumMipLevels;
         }
 
         // Function that initialize the texture cache with a maximal number of textures in the cache

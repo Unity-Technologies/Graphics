@@ -7,15 +7,20 @@ using UnityEditor.Experimental.GraphView;
 
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using System.Collections.ObjectModel;
 
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSubParameterController : IPropertyRMProvider
+    class VFXSubParameterController : Controller, IPropertyRMProvider
     {
+
+        public const int ExpandedChange = 1;
+        public override void ApplyChanges()
+        {
+        }
         VFXParameterController m_Parameter;
         //int m_Field;
         int[] m_FieldPath;
@@ -91,17 +96,14 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expanded
         {
-            get
-            {
-                return false;
-            }
+            get { return expanded;}
         }
         bool IPropertyRMProvider.editable
         {
             get { return true; }
         }
 
-        bool IPropertyRMProvider.expandable { get { return false; } }
+        bool IPropertyRMProvider.expandable { get { return children.Count() > 0; } }
 
         public string name
         {
@@ -114,14 +116,20 @@ namespace UnityEditor.VFX.UI
 
         int IPropertyRMProvider.depth { get { return m_FieldPath.Length; } }
 
+
+        public bool expanded { get; private set; }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
+
         void IPropertyRMProvider.ExpandPath()
         {
-            throw new NotImplementedException();
+            expanded = true;
+            NotifyChange(ExpandedChange);
         }
 
         void IPropertyRMProvider.RetractPath()
         {
-            throw new NotImplementedException();
+            expanded = false;
+            NotifyChange(ExpandedChange);
         }
 
         public Type portType
@@ -192,6 +200,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Owner.expandable; }
         }
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return true; } }
         public object value
         {
             get { return m_Min ? m_Owner.minValue : m_Owner.maxValue; }
@@ -303,7 +312,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(viewController, model)
         {
-            m_Slot = model.outputSlots[0];
+            m_Slot = isOutput?model.inputSlots[0]:model.outputSlots[0];
             viewController.RegisterNotification(m_Slot, OnSlotChanged);
 
             exposedName = MakeNameUnique(exposedName);
@@ -528,7 +537,7 @@ namespace UnityEditor.VFX.UI
             string candidateName = MakeNameUnique(model.exposedName, allNames);
             if (candidateName != model.exposedName)
             {
-                parameter.SetSettingValue("m_exposedName", candidateName);
+                parameter.SetSettingValue("m_ExposedName", candidateName);
             }
         }
 
@@ -541,7 +550,7 @@ namespace UnityEditor.VFX.UI
                 string candidateName = MakeNameUnique(value);
                 if (candidateName != null && candidateName != parameter.exposedName)
                 {
-                    parameter.SetSettingValue("m_exposedName", candidateName);
+                    parameter.SetSettingValue("m_ExposedName", candidateName);
                 }
             }
         }
@@ -550,7 +559,7 @@ namespace UnityEditor.VFX.UI
             get { return parameter.exposed; }
             set
             {
-                parameter.SetSettingValue("m_exposed", value);
+                parameter.SetSettingValue("m_Exposed", value);
             }
         }
 
@@ -688,7 +697,27 @@ namespace UnityEditor.VFX.UI
             {
                 VFXParameter model = this.model as VFXParameter;
 
-                return model.GetOutputSlot(0).property.type;
+                return m_Slot.property.type;
+            }
+        }
+        public bool isOutput
+        {
+            get
+            {
+                return model.isOutput;
+            }
+
+            set
+            {
+                if (model.isOutput != value)
+                {
+                    model.isOutput = value;
+
+                    viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
+                    m_Slot = model.isOutput ? model.inputSlots[0] : model.outputSlots[0];
+                    viewController.RegisterNotification(m_Slot, OnSlotChanged);
+                }
+
             }
         }
 
@@ -696,6 +725,8 @@ namespace UnityEditor.VFX.UI
         ParameterGizmoContext m_Context;
         public void DrawGizmos(VisualEffect component)
         {
+            if (isOutput)
+                return;
             if (m_Context == null)
             {
                 m_Context = new ParameterGizmoContext(this);
@@ -705,6 +736,8 @@ namespace UnityEditor.VFX.UI
 
         public Bounds GetGizmoBounds(VisualEffect component)
         {
+            if (isOutput)
+                return  new Bounds();
             if (m_Context == null)
             {
                 m_Context = new ParameterGizmoContext(this);
@@ -716,6 +749,8 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
+                if (isOutput)
+                    return false;
                 return VFXGizmoUtility.NeedsComponent(m_Context);
             }
         }
@@ -765,7 +800,7 @@ namespace UnityEditor.VFX.UI
         public bool UpdateControllers()
         {
             bool changed = false;
-            var nodes = model.nodes.ToDictionary(t => t.id, t => t);
+            var nodes = model.nodes.GroupBy(t=>t.id).ToDictionary(t => t.Key, t => t.First());
 
             foreach (var removedController in m_Controllers.Where(t => !nodes.ContainsKey(t.Key)).ToArray())
             {
@@ -806,6 +841,8 @@ namespace UnityEditor.VFX.UI
         }
 
         public bool expandable { get { return false; } }
+
+        bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
         public override string name { get { return "Value"; } }
 
@@ -855,6 +892,7 @@ namespace UnityEditor.VFX.UI
             if (!object.ReferenceEquals(m_Slot, null))
             {
                 viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
+                m_Slot = null;
             }
             base.OnDisable();
         }
@@ -870,7 +908,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class ParameterGizmoContext : VFXGizmoUtility.Context
+    class ParameterGizmoContext : VFXGizmoUtility.Context
     {
         internal ParameterGizmoContext(VFXParameterController controller)
         {

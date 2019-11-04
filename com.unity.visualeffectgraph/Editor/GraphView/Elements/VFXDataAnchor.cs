@@ -190,12 +190,16 @@ namespace UnityEditor.VFX.UI
 
             if (controller.expandedInHierachy)
             {
+                style.display = DisplayStyle.Flex;
                 RemoveFromClassList("hidden");
             }
             else
             {
+                style.display = DisplayStyle.None;
                 AddToClassList("hidden");
             }
+
+            UpdateCapColor();
 
 
             if (controller.direction == Direction.Output)
@@ -209,11 +213,6 @@ namespace UnityEditor.VFX.UI
             VFXView view = graphView as VFXView;
             VFXDataEdge dataEdge = edge as VFXDataEdge;
             VFXDataEdgeController edgeController = new VFXDataEdgeController(dataEdge.input.controller, dataEdge.output.controller);
-
-            if (dataEdge.controller != null)
-            {
-                view.controller.RemoveElement(dataEdge.controller);
-            }
 
             view.controller.AddElement(edgeController);
         }
@@ -279,7 +278,8 @@ namespace UnityEditor.VFX.UI
                 VFXModelDescriptorParameters parameterDesc = VFXLibrary.GetParameters().FirstOrDefault(t => t.name == controller.portType.UserFriendlyName());
                 if (parameterDesc != null)
                 {
-                    VFXParameter parameter = viewController.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(360, 0), parameterDesc);
+                    VFXParameter parameter = viewController.AddVFXParameter(view.contentViewContainer.GlobalToBound(position) - new Vector2(140, 20), parameterDesc);
+                    parameter.SetSettingValue("m_Exposed", true);
                     startSlot.Link(parameter.outputSlots[0]);
 
                     CopyValueToParameter(parameter);
@@ -287,7 +287,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 

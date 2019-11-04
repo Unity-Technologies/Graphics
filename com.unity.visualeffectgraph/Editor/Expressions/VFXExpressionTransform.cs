@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -57,11 +57,11 @@ namespace UnityEditor.VFX
         public VFXExpressionInverseMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, parent)
         {}
 
-        public override VFXExpressionOperation operation
+        sealed public override VFXExpressionOperation operation
         {
             get
             {
-                return VFXExpressionOperation.InverseTRS;
+                return VFXExpressionOperation.InverseMatrix;
             }
         }
 
@@ -69,6 +69,152 @@ namespace UnityEditor.VFX
         {
             var matrix = constParents[0].Get<Matrix4x4>();
             return VFXValue.Constant(matrix.inverse);
+        }
+    }
+
+    class VFXExpressionTransposeMatrix : VFXExpression
+    {
+        public VFXExpressionTransposeMatrix() : this(VFXValue<Matrix4x4>.Default)
+        {}
+
+        public VFXExpressionTransposeMatrix(VFXExpression parent) : base(Flags.None, parent)
+        {}
+
+        public sealed override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.TransposeMatrix;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrix = constParents[0].Get<Matrix4x4>();
+            return VFXValue.Constant(matrix.transpose);
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("transpose({0})", parents[0]);
+        }
+    }
+
+    class VFXExpressionInverseTRSMatrix : VFXExpression
+    {
+        public VFXExpressionInverseTRSMatrix() : this(VFXValue<Matrix4x4>.Default)
+        {}
+
+        public VFXExpressionInverseTRSMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, parent)
+        {}
+
+        sealed public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.InverseTRSMatrix;
+            }
+        }
+
+        // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
+        // Inverts upper left by calculating its determinant and multiplying it to the symmetric
+        // adjust matrix of each element. Finally deals with the translation by transforming the
+        // original translation using by the calculated inverse.
+        //https://github.com/erich666/GraphicsGems/blob/master/gemsii/inverse.c
+        static bool inputvertMatrix4x4_General3D(Matrix4x4 input, ref Matrix4x4 output) //*WIP* This function is not exposed, we will add an helper in Matrix4 bindings
+        {
+#if UNITY_2019_2_OR_NEWER
+            return Matrix4x4.Inverse3DAffine(input, ref output);
+#else
+            output = Matrix4x4.identity;
+
+            float pos, neg, t;
+            float det;
+
+            // Calculate the determinant of upper left 3x3 sub-matrix and
+            // determine if the matrix is singular.
+            pos = neg = 0.0f;
+            t =  input[0, 0] * input[1, 1] * input[2, 2];
+            if (t >= 0.0f)
+                pos += t;
+            else
+                neg += t;
+
+            t =  input[1, 0] * input[2, 1] * input[0, 2];
+            if (t >= 0.0f)
+                pos += t;
+            else
+                neg += t;
+
+            t =  input[2, 0] * input[0, 1] * input[1, 2];
+            if (t >= 0.0f)
+                pos += t;
+            else
+                neg += t;
+
+            t = -input[2, 0] * input[1, 1] * input[0, 2];
+            if (t >= 0.0f)
+                pos += t;
+            else
+                neg += t;
+
+            t = -input[1, 0] * input[0, 1] * input[2, 2];
+            if (t >= 0.0f)
+                pos += t;
+            else
+                neg += t;
+
+            t = -input[0, 0] * input[2, 1] * input[1, 2];
+            if (t >= 0.0f)
+                pos += t;
+            else
+                neg += t;
+
+            det = pos + neg;
+
+            if (det * det < 1e-25f)
+                return false;
+
+            det = 1.0f / det;
+            output[0, 0] = (input[1, 1] * input[2, 2] - input[2, 1] * input[1, 2]) * det;
+            output[0, 1] = -(input[0, 1] * input[2, 2] - input[2, 1] * input[0, 2]) * det;
+            output[0, 2] = (input[0, 1] * input[1, 2] - input[1, 1] * input[0, 2]) * det;
+            output[1, 0] = -(input[1, 0] * input[2, 2] - input[2, 0] * input[1, 2]) * det;
+            output[1, 1] = (input[0, 0] * input[2, 2] - input[2, 0] * input[0, 2]) * det;
+            output[1, 2] = -(input[0, 0] * input[1, 2] - input[1, 0] * input[0, 2]) * det;
+            output[2, 0] = (input[1, 0] * input[2, 1] - input[2, 0] * input[1, 1]) * det;
+            output[2, 1] = -(input[0, 0] * input[2, 1] - input[2, 0] * input[0, 1]) * det;
+            output[2, 2] = (input[0, 0] * input[1, 1] - input[1, 0] * input[0, 1]) * det;
+
+            // Do the translation part
+            output[0, 3] = -(input[0, 3] * output[0, 0] + input[1, 3] * output[0, 1] + input[2, 3] * output[0, 2]);
+            output[1, 3] = -(input[0, 3] * output[1, 0] + input[1, 3] * output[1, 1] + input[2, 3] * output[1, 2]);
+            output[2, 3] = -(input[0, 3] * output[2, 0] + input[1, 3] * output[2, 1] + input[2, 3] * output[2, 2]);
+
+            output[3, 0] = 0.0f;
+            output[3, 1] = 0.0f;
+            output[3, 2] = 0.0f;
+            output[3, 3] = 1.0f;
+
+            return true;
+#endif
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrix = constParents[0].Get<Matrix4x4>();
+
+            var result = Matrix4x4.identity;
+            if (!inputvertMatrix4x4_General3D(matrix, ref result))
+            {
+                throw new InvalidOperationException("VFXExpressionInverseTRSMatrix used on a not TRS Matrix");
+            }
+            return VFXValue.Constant(result);
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("VFXInverseTRSMatrix({0})", parents[0]);
         }
     }
 
@@ -88,6 +234,15 @@ namespace UnityEditor.VFX
             {
                 return VFXExpressionOperation.ExtractPositionFromMatrix;
             }
+        }
+
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionTRSToMatrix)
+                return parent.parents[0];
+
+            return base.Reduce(reducedParents);
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
@@ -122,6 +277,15 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionTRSToMatrix)
+                return parent.parents[1];
+
+            return base.Reduce(reducedParents);
+        }
+
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var matrixReduce = constParents[0];
@@ -147,6 +311,15 @@ namespace UnityEditor.VFX
             {
                 return VFXExpressionOperation.ExtractScaleFromMatrix;
             }
+        }
+
+        protected sealed override VFXExpression Reduce(VFXExpression[] reducedParents)
+        {
+            var parent = reducedParents[0];
+            if (parent is VFXExpressionTRSToMatrix)
+                return parent.parents[2];
+
+            return base.Reduce(reducedParents);
         }
 
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
@@ -185,7 +358,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("mul({0}, {1}).xyz", parents[0], parents[1]);
+            return string.Format("mul({0}, {1})", parents[0], parents[1]);
         }
     }
 
@@ -256,6 +429,50 @@ namespace UnityEditor.VFX
         public override string GetCodeString(string[] parents)
         {
             return string.Format("mul((float3x3){0}, {1})", parents[0], parents[1]);
+        }
+    }
+
+    class VFXExpressionTransformVector4 : VFXExpression
+    {
+        public VFXExpressionTransformVector4()
+            : this(VFXValue<Matrix4x4>.Default, VFXValue<Vector4>.Default)
+        {
+        }
+
+        public VFXExpressionTransformVector4(VFXExpression matrix, VFXExpression position)
+            : base(VFXExpression.Flags.InvalidOnCPU, new VFXExpression[] { matrix, position }) // TODO add CPU implementation in C++
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.None;
+            }
+        }
+
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var matrixReduce = constParents[0];
+            var positionReduce = constParents[1];
+
+            var matrix = matrixReduce.Get<Matrix4x4>();
+            var position = VFXValue.Constant<Vector4>(positionReduce.Get<Vector4>());
+
+            var dstX = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((0))), position);
+            var dstY = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((1))), position);
+            var dstZ = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((2))), position);
+            var dstW = VFXOperatorUtility.Dot(VFXValue.Constant<Vector4>(matrix.GetRow((3))), position);
+
+            return new VFXExpressionCombine(dstX, dstY, dstZ, dstW);
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("mul({0}, {1})", parents[0], parents[1]);
         }
     }
 

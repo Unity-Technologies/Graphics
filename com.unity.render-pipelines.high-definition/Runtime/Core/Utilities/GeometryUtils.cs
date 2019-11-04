@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Rendering.HighDefinition
 {
     public struct Frustum
     {
@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering
     } // struct Frustum
 
     [GenerateHLSL]
-    public struct OrientedBBox
+    struct OrientedBBox
     {
         // 3 x float4 = 48 bytes.
         // TODO: pack the axes into 16-bit UNORM per channel, and consider a quaternionic representation.
@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering
         public float   extentZ;
 
         public Vector3 forward { get { return Vector3.Cross(up, right); } }
-        
+
         public OrientedBBox(Matrix4x4 trs)
         {
             Vector3 vecX = trs.GetColumn(0);
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering
         }
     } // struct OrientedBBox
 
-    public static class GeometryUtils
+    static class GeometryUtils
     {
         // Returns 'true' if the OBB intersects (or is inside) the frustum, 'false' otherwise.
         public static bool Overlap(OrientedBBox obb, Frustum frustum, int numPlanes, int numCorners)
@@ -144,8 +144,6 @@ namespace UnityEngine.Experimental.Rendering
             return overlap;
         }
 
-        public static readonly Matrix4x4 FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
-
         public static Vector4 Plane(Vector3 position, Vector3 normal)
         {
             var n = normal;
@@ -154,12 +152,12 @@ namespace UnityEngine.Experimental.Rendering
             return plane;
         }
 
-        public static Vector4 CameraSpacePlane(Matrix4x4 worldToCamera, Vector3 pos, Vector3 normal, float sideSign = 1, float clipPlaneOffset = 0)
+        public static Vector4 CameraSpacePlane(Matrix4x4 worldToCamera, Vector3 positionWS, Vector3 normalWS, float sideSign = 1, float clipPlaneOffset = 0)
         {
-            var offsetPos = pos + normal * clipPlaneOffset;
-            var cpos = worldToCamera.MultiplyPoint(offsetPos);
-            var cnormal = worldToCamera.MultiplyVector(normal).normalized * sideSign;
-            return new Vector4(cnormal.x, cnormal.y, cnormal.z, -Vector3.Dot(cpos, cnormal));
+            var offsetPosWS = positionWS + normalWS * clipPlaneOffset;
+            var posCS = worldToCamera.MultiplyPoint(offsetPosWS);
+            var normalCS = worldToCamera.MultiplyVector(normalWS).normalized * sideSign;
+            return new Vector4(normalCS.x, normalCS.y, normalCS.z, -Vector3.Dot(posCS, normalCS));
         }
 
         public static Matrix4x4 CalculateWorldToCameraMatrixRHS(Vector3 position, Quaternion rotation)
@@ -227,16 +225,6 @@ namespace UnityEngine.Experimental.Rendering
             return reflectionMat;
         }
 
-        public static Matrix4x4 GetWorldToCameraMatrixLHS(this Camera camera)
-        {
-            return FlipMatrixLHSRHS * camera.worldToCameraMatrix;
-        }
-
-        public static Matrix4x4 GetProjectionMatrixLHS(this Camera camera)
-        {
-            return camera.projectionMatrix * FlipMatrixLHSRHS;
-        }
-
         public static bool IsProjectionMatrixOblique(Matrix4x4 projectionMatrix)
         {
             return projectionMatrix[2] != 0 || projectionMatrix[6] != 0;
@@ -251,11 +239,7 @@ namespace UnityEngine.Experimental.Rendering
                 return Matrix4x4.Ortho(-w, w, -h, h, camera.nearClipPlane, camera.farClipPlane);
             }
             else
-#if UNITY_2019_1_OR_NEWER
                 return Matrix4x4.Perspective(camera.GetGateFittedFieldOfView(), camera.aspect, camera.nearClipPlane, camera.farClipPlane);
-#else
-                return Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
-#endif
         }
     } // class GeometryUtils
 }

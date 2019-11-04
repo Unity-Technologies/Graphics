@@ -1,26 +1,29 @@
 using System;
+using System.Linq;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
     [Flags]
-    enum NeededCoordinateSpace
+    public enum NeededCoordinateSpace
     {
         None = 0,
         Object = 1 << 0,
         View = 1 << 1,
         World = 1 << 2,
-        Tangent = 1 << 3
+        Tangent = 1 << 3,
+        AbsoluteWorld = 1 << 4
     }
 
-    enum CoordinateSpace
+    public enum CoordinateSpace
     {
         Object,
         View,
         World,
-        Tangent
+        Tangent,
+        AbsoluteWorld
     }
 
-    enum InterpolatorType
+    public enum InterpolatorType
     {
         Normal,
         BiTangent,
@@ -29,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         Position
     }
 
-    static class CoordinateSpaceNameExtensions
+    public static class CoordinateSpaceExtensions
     {
         static int s_SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
         static int s_InterpolatorCount = Enum.GetValues(typeof(InterpolatorType)).Length;
@@ -55,8 +58,29 @@ namespace UnityEditor.ShaderGraph
                     return NeededCoordinateSpace.World;
                 case CoordinateSpace.Tangent:
                     return NeededCoordinateSpace.Tangent;
+                case CoordinateSpace.AbsoluteWorld:
+                    return NeededCoordinateSpace.AbsoluteWorld;
                 default:
-                    throw new ArgumentOutOfRangeException("space", space, null);
+                    throw new ArgumentOutOfRangeException(nameof(space), space, null);
+            }
+        }
+
+        public static CoordinateSpace ToCoordinateSpace(this NeededCoordinateSpace space)
+        {
+            switch (space)
+            {
+                case NeededCoordinateSpace.Object:
+                    return CoordinateSpace.Object;
+                case NeededCoordinateSpace.View:
+                    return CoordinateSpace.View;
+                case NeededCoordinateSpace.World:
+                    return CoordinateSpace.World;
+                case NeededCoordinateSpace.Tangent:
+                    return CoordinateSpace.Tangent;
+                case NeededCoordinateSpace.AbsoluteWorld:
+                    return CoordinateSpace.AbsoluteWorld;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(space), space, null);
             }
         }
     }

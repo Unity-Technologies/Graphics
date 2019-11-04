@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Graphing
 {
@@ -10,7 +11,7 @@ namespace UnityEditor.Graphing
         bool isOutputSlot { get; }
         int priority { get; set; }
         SlotReference slotReference { get; }
-        INode owner { get; set; }
+        AbstractMaterialNode owner { get; set; }
         bool hidden { get; set; }
     }
 }

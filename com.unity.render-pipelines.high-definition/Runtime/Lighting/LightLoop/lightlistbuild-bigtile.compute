@@ -1,11 +1,12 @@
 #pragma kernel BigTileLightListGen
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightingConvexHullUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
-
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #define EXACT_EDGE_TESTS
@@ -20,8 +21,8 @@
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
 
-uniform float4x4 g_mInvScrProjectionArr[2];
-uniform float4x4 g_mScrProjectionArr[2];
+uniform float4x4 g_mInvScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
+uniform float4x4 g_mScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
 
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
@@ -32,7 +33,11 @@ StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 
-#define NR_THREADS          64
+#ifdef PLATFORM_LANE_COUNT      // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
+#define NR_THREADS              PLATFORM_LANE_COUNT
+#else
+#define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
+#endif
 
 // output buffer
 RWStructuredBuffer<uint> g_vLightList : register( u0 );     // don't support RWBuffer yet in unity
@@ -44,9 +49,9 @@ groupshared uint lightOffs;
 
 // TODO: Remove this function and g_mInvScrProjectionArr from constants.
 // Only usage of that constant.
-float GetLinearDepth(float2 pixXY, float zDptBufSpace)    // 0 is near 1 is far
+float GetLinearDepth(float2 pixXY, float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
 {
-	float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[0];
+	float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
 
 #ifdef USE_OBLIQUE_MODE
 	float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;
@@ -120,7 +125,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
     if(t==0) lightOffs = 0;
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -149,7 +154,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
         }
     }
 
-#if /*!defined(SHADER_API_XBOXONE) && */!defined(SHADER_API_PSSL)
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_SWITCH) // not sure why XB1 and Switch need the barrier (it will not be correct without)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -202,8 +207,8 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
             lightsListLDS[l]=UINT_MAX;
     }
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
-        GroupMemoryBarrierWithGroupSync();
+#if NR_THREADS > PLATFORM_LANE_COUNT
+    GroupMemoryBarrierWithGroupSync();
 #endif
 }
 #endif
@@ -307,8 +312,8 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
             }
         }
     }
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
-        GroupMemoryBarrierWithGroupSync();
+#if NR_THREADS > PLATFORM_LANE_COUNT
+    GroupMemoryBarrierWithGroupSync();
 #endif
 }
 #endif

@@ -1,108 +1,117 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph.Internal
 {
-    enum FloatType
-    {
-        Default,
-        Slider,
-        Integer
-    }
-
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
-    class Vector1ShaderProperty : AbstractShaderProperty<float>
+    [FormerName("UnityEditor.ShaderGraph.Vector1ShaderProperty")]
+    public sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
-        public Vector1ShaderProperty()
+        internal Vector1ShaderProperty()
         {
             displayName = "Vector1";
         }
-
-        public override PropertyType propertyType
+        
+        public override PropertyType propertyType => PropertyType.Vector1;
+        
+        internal override bool isBatchable => true;
+        internal override bool isExposable => true;
+        internal override bool isRenamable => true;
+        internal override bool isGpuInstanceable => true;
+        
+        string enumTagString
         {
-            get { return PropertyType.Vector1; }
+            get
+            {
+                switch(enumType)
+                {
+                    case EnumType.CSharpEnum:
+                        return $"[Enum({m_CSharpEnumType.ToString()})]";
+                    case EnumType.KeywordEnum:
+                        return $"[KeywordEnum({string.Join(", ", enumNames)})]";
+                    default:
+                        string enumValuesString = "";
+                        for (int i = 0; i < enumNames.Count; i++)
+                        {
+                            int value = (i < enumValues.Count) ? enumValues[i] : i;
+                            enumValuesString += (enumNames[i] + ", " + value + ((i != enumNames.Count - 1) ? ", " : ""));
+                        }
+                        return $"[Enum({enumValuesString})]";
+                }
+            }
         }
 
-        public override Vector4 defaultValue
+        internal override string GetPropertyBlockString()
         {
-            get { return new Vector4(value, value, value, value); }
+            switch(floatType)
+            {
+                case FloatType.Slider:
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {NodeUtils.FloatToShaderValue(value)}";
+                case FloatType.Integer:
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {NodeUtils.FloatToShaderValue(value)}";
+                case FloatType.Enum:
+                    return $"{hideTagString}{enumTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+                default:
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {NodeUtils.FloatToShaderValue(value)}";
+            }
         }
-
-        public override bool isBatchable
-        {
-            get { return true; }
-        }
-
+        
         [SerializeField]
-        private FloatType m_FloatType = FloatType.Default;
+        FloatType m_FloatType = FloatType.Default;
 
         public FloatType floatType
         {
-            get { return m_FloatType; }
-            set
-            {
-                if (m_FloatType == value)
-                    return;
-                m_FloatType = value;
-            }
+            get => m_FloatType;
+            set => m_FloatType = value;
         }
 
         [SerializeField]
-        private Vector2 m_RangeValues = new Vector2(0, 1);
+        Vector2 m_RangeValues = new Vector2(0, 1);
 
         public Vector2 rangeValues
         {
-            get { return m_RangeValues; }
-            set
-            {
-                if (m_RangeValues == value)
-                    return;
-                m_RangeValues = value;
-            }
+            get => m_RangeValues;
+            set => m_RangeValues = value;
         }
 
-        public override string GetPropertyBlockString()
+        EnumType m_EnumType = EnumType.Enum;
+
+        public EnumType enumType
         {
-            var result = new StringBuilder();
-            result.Append(referenceName);
-            result.Append("(\"");
-            result.Append(displayName);
-            switch (floatType)
-            {
-                case FloatType.Slider:
-                    result.Append("\", Range(");
-                    result.Append(m_RangeValues.x + ", " + m_RangeValues.y);
-                    result.Append(")) = ");
-                    break;
-                case FloatType.Integer:
-                    result.Append("\", Int) = ");
-                    break;
-                default:
-                    result.Append("\", Float) = ");
-                    break;
-            }
-            result.Append(NodeUtils.FloatToShaderValue(value));
-            return result.ToString();
+            get => m_EnumType;
+            set => m_EnumType = value;
         }
+    
+        Type m_CSharpEnumType;
 
-        public override string GetPropertyDeclarationString(string delimiter = ";")
+        public Type cSharpEnumType
         {
-            return string.Format("float {0}{1}", referenceName, delimiter);
+            get => m_CSharpEnumType;
+            set => m_CSharpEnumType = value;
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        List<string> m_EnumNames = new List<string>();
+        
+        public List<string> enumNames
         {
-            return new PreviewProperty(PropertyType.Vector1)
-            {
-                name = referenceName,
-                floatValue = value
-            };
+            get => m_EnumNames;
+            set => m_EnumNames = value;
         }
 
-        public override INode ToConcreteNode()
+        List<int> m_EnumValues = new List<int>();
+
+        public List<int> enumValues
+        {
+            get => m_EnumValues;
+            set => m_EnumValues = value;
+        }
+        
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
             {
@@ -117,12 +126,32 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override IShaderProperty Copy()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            var copied = new Vector1ShaderProperty();
-            copied.displayName = displayName;
-            copied.value = value;
-            return copied;
+            return new PreviewProperty(propertyType)
+            {
+                name = referenceName,
+                floatValue = value
+            };
+        }
+
+        internal override ShaderInput Copy()
+        {
+            return new Vector1ShaderProperty()
+            {
+                displayName = displayName,
+                hidden = hidden,
+                value = value,
+                floatType = floatType,
+                rangeValues = rangeValues,
+                enumType = enumType,
+                enumNames = enumNames,
+                enumValues = enumValues
+            };
         }
     }
+
+    public enum FloatType { Default, Slider, Integer, Enum }
+
+    public enum EnumType { Enum, CSharpEnum, KeywordEnum, }
 }

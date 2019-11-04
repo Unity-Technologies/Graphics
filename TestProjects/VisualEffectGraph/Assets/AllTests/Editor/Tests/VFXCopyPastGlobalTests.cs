@@ -1,9 +1,10 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if false
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental.VFX;
+using UnityEngine.VFX;
+using UnityEditor.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace UnityEditor.VFX.Test
 
         VFXGraph MakeTemporaryGraph()
         {
-            m_Asset = VisualEffectResource.CreateNewAsset(tempFilePath);
+            m_Asset = VisualEffectAssetEditorUtility.CreateNewAsset(tempFilePath);
             VisualEffectResource resource = m_Asset.GetResource(); // force resource creation
             VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
             graph.visualEffectResource = resource;
@@ -166,4 +167,5 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
+#endif
 #endif
