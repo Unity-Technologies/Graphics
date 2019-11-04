@@ -15,9 +15,15 @@ MonoBehaviour:
   m_Version: 0
   defaultScene: {fileID: 4893056312182120781, guid: bc694eebc7afe0b42b02d231420b217a,
     type: 3}
+  defaultDXRScene: {fileID: 4893056312182120781, guid: a1dfdae16e0448542a6124642d4c13e9,
+    type: 3}
   defaultSkyAndFogProfile: {fileID: 11400000, guid: a817123acc6c86946bd0d80b00908e31,
     type: 2}
+  defaultDXRSkyAndFogProfile: {fileID: 11400000, guid: 42034e2547ecb3e45a60335e0f2c71d5,
+    type: 2}
   defaultPostProcessingProfile: {fileID: 11400000, guid: afc2e9b608c304f468d0c1818eba58d5,
+    type: 2}
+  defaultDXRPostProcessingProfile: {fileID: 11400000, guid: 62ad55275245cad4290c3d0f370a6be8,
     type: 2}
   defaultDiffusionProfileSettingsList:
   - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}

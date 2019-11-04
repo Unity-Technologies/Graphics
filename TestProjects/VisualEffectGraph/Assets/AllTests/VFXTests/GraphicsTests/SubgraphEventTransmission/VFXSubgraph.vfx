@@ -48,7 +48,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
   m_ParameterInfo: []
-  m_GraphVersion: 3
+  m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies:
   - {fileID: 8926484042661614526, guid: 3ec2dd25390a58343940f2d873e31c14, type: 3}
@@ -236,7 +236,7 @@ MonoBehaviour:
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: Spawn Rate (in number per seconds)
+      m_Tooltip: Sets the number of particles to be spawned per second.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0

@@ -43,4 +43,22 @@ namespace UnityEditor.VFX
             return string.Format("LoadTexture(VFX_SAMPLER({0}),(int4){1})", parents[0], parents[1]);
         }
     }
+
+    class VFXExpressionLoadTexture3D : VFXExpression
+    {
+        public VFXExpressionLoadTexture3D() : this(VFXTexture3DValue.Default, VFXValue<Vector4>.Default)
+        {
+        }
+        public VFXExpressionLoadTexture3D(VFXExpression texture, VFXExpression location)
+            : base(Flags.InvalidOnCPU, new VFXExpression[2] { texture, location })
+        { }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("LoadTexture(VFX_SAMPLER({0}),(int4){1})", parents[0], parents[1]);
+        }
+    }
 }
