@@ -23,6 +23,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Override material
         public Material overrideMaterial = null;
         public int overrideMaterialPassIndex = 0;
+
+        public bool overrideDepthState = false;
+        public CompareFunction depthCompareFunction = CompareFunction.LessEqual;
+        public bool depthWrite = true;
     
         int fadeValueId;
 
@@ -86,6 +90,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            var stateBlock = new RenderStateBlock(overrideDepthState ? RenderStateMask.Depth : 0)
+            {
+                depthState = new DepthState(depthWrite, depthCompareFunction),
+            };
+
             var result = new RendererListDesc(shaderPasses, cullingResult, hdCamera.camera)
             {
                 rendererConfiguration = PerObjectData.None,
@@ -94,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 excludeObjectMotionVectors = false,
                 overrideMaterial = (overrideMaterial != null) ? overrideMaterial : defaultOverrideMaterial,
                 overrideMaterialPassIndex = (overrideMaterial != null) ? overrideMaterialPassIndex : 0,
+                stateBlock = stateBlock,
                 layerMask = layerMask,
             };
 

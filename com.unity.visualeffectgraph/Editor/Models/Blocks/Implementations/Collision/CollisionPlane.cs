@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("The collision plane.")]
+            [Tooltip("Sets the plane with which particles can collide.")]
             public Plane Plane = new Plane() { normal = Vector3.up };
         }
 

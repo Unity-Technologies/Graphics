@@ -21,6 +21,13 @@
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
+// This only defines the ray tracing macro on the platforms that support ray tracing this should be dx12
+#if (SHADEROPTIONS_RAYTRACING && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12)) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL))
+#define RAYTRACING_ENABLED (1)
+#else
+#define RAYTRACING_ENABLED (0)
+#endif
+
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)
@@ -215,7 +222,7 @@ CBUFFER_START(UnityGlobal)
     uint   _VBufferSliceCount;
     float  _VBufferRcpSliceCount;
     float  _VBufferRcpInstancedViewCount;  // Used to remap VBuffer coordinates for XR
-    float  _Pad3;
+    float  _ContactShadowOpacity;
     float4 _VBufferUvScaleAndLimit;        // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
     float4 _VBufferDistanceEncodingParams; // See the call site for description
     float4 _VBufferDistanceDecodingParams; // See the call site for description

@@ -1,5 +1,6 @@
 editors:
   - version: trunk
+  - version: fast-trunk
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
@@ -9,8 +10,6 @@ projects:
     folder: ShaderGraph
   - name: ShaderGraph_Stereo
     folder: ShaderGraphUniversalStereo
-  - name: PostProcessing
-    folder: PostProcessing
   - name: HDRP
     folder: HDRP_Tests
   - name: HDRP_Standalone
@@ -20,10 +19,10 @@ projects:
   - name: VFX_LWRP
     folder: VisualEffectGraph_LWRP
 ---
-all_project_ci:
-  name: ABV for SRP repository
+{% for editor in editors %}
+all_project_ci_{{ editor.version }}:
+  name: ABV for SRP repository - {{ editor.version }}
   agent:
-    name: whatever
     type: Unity::VM
     image: cds-ops/ubuntu-18.04-agent:latest
     flavor: b1.small
@@ -31,8 +30,32 @@ all_project_ci:
   - dir
   dependencies:
   {% for project in projects %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_{{ editor.version }}
+      rerun: always
   {% endfor %}
+
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
+{% endfor %}
+
+
+# a separate job so that only trunk is run nightly, not fast-trunk
+all_project_ci_nightly:
+  name: Nightly ABV against trunk
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-agent:latest
+    flavor: b1.small
+  commands:
+  - dir
+  dependencies:
+  {% for project in projects %}
+    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#All_{{ project.name }}_trunk
+      rerun: always
+  {% endfor %}
+
   triggers:
     recurring:
       - branch: master

@@ -288,21 +288,62 @@ namespace UnityEditor.Rendering.HighDefinition
     internal static partial class SerializedPropertyExtention
     {
         /// <summary>
-        /// Helper to get an enum value from a SerializedProperty
+        /// Helper to get an enum value from a SerializedProperty.
+        /// This handle case where index do not correspond to enum value.
+        /// <example>
+        /// <code>
+        /// enum MyEnum
+        /// {
+        ///     A = 2,
+        ///     B = 4,
+        /// }
+        /// public class MyObject : MonoBehavior
+        /// {
+        ///     public MyEnum theEnum = MyEnum.A;
+        /// }    
+        /// #if UNITY_EDITOR
+        /// [CustomEditor(typeof(MyObject))]
+        /// class MyObjectEditor : Editor
+        /// {
+        ///     public override void OnInspectorGUI()
+        ///     {
+        ///         Debug.Log($"By enumValueIndex: {(MyEnum)serializedObject.FindProperty("theEnum").enumValueIndex}");         //write the value (MyEnum)(0)
+        ///         Debug.Log($"By GetEnumValue: {(MyEnum)serializedObject.FindProperty("theEnum").GetEnumValue<MyEnum>()}");   //write the value MyEnum.A
+        ///     }
+        /// }
+        /// #endif
+        /// </code>
+        /// </example>
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetEnumValue<T>(this SerializedProperty property)
-            => (T)System.Enum.GetValues(typeof(T)).GetValue(property.enumValueIndex);
+            where T : Enum
+            => GetEnumValue_Internal<T>(property);
 
         /// <summary>
         /// Helper to get an enum name from a SerializedProperty
         /// </summary>
-        public static T GetEnumName<T>(this SerializedProperty property)
-            => (T)System.Enum.GetNames(typeof(T)).GetValue(property.enumValueIndex);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string GetEnumName<T>(this SerializedProperty property)
+            where T : Enum
+            => property.hasMultipleDifferentValues
+            ? "MultipleDifferentValues"
+            : property.enumNames[property.enumValueIndex];
+
+        /// <summary>
+        /// Helper to set an enum value to a SerializedProperty
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void SetEnumValue<T>(this SerializedProperty property, T value)
+            where T : Enum
+            // intValue actually is the value underlying beside the enum
+            => SetEnumValue_Internal(property, value);
 
         /// <summary>
         /// Get the value of a <see cref="SerializedProperty"/>.
         ///
         /// This function will be inlined by the compiler.
+        /// Caution: The case of Enum is not handled here.
         /// </summary>
         /// <typeparam name="T">
         /// The type of the value to get.
@@ -329,8 +370,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (T)(object)serializedProperty.intValue;
             if (typeof(T) == typeof(bool))
                 return (T)(object)serializedProperty.boolValue;
-            if (typeof(T) == typeof(int))
-                return (T)(object)serializedProperty.enumValueIndex;
             if (typeof(T) == typeof(BoundsInt))
                 return (T)(object)serializedProperty.boundsIntValue;
             if (typeof(T) == typeof(Bounds))
@@ -349,6 +388,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (T)(object)serializedProperty.vector3Value;
             if (typeof(T) == typeof(Vector2))
                 return (T)(object)serializedProperty.vector2Value;
+            if (typeof(T).IsEnum)
+                return GetEnumValue_Internal<T>(serializedProperty);
             throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a valid type for a serialized property.");
         }
 
@@ -356,6 +397,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Set the value of a <see cref="SerializedProperty"/>.
         ///
         /// This function will be inlined by the compiler.
+        /// Caution: The case of Enum is not handled here.
         /// </summary>
         /// <typeparam name="T">
         /// The type of the value to set.
@@ -403,11 +445,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedProperty.boolValue = (bool)(object)value;
                 return;
             }
-            if (typeof(T) == typeof(int))
-            {
-                serializedProperty.enumValueIndex = (int)(object)value;
-                return;
-            }
             if (typeof(T) == typeof(BoundsInt))
             {
                 serializedProperty.boundsIntValue = (BoundsInt)(object)value;
@@ -453,7 +490,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedProperty.vector2Value = (Vector2)(object)value;
                 return;
             }
+            if (typeof(T).IsEnum)
+            {
+                SetEnumValue_Internal(serializedProperty, value);
+                return;
+            }
             throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a valid type for a serialized property.");
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static T GetEnumValue_Internal<T>(SerializedProperty property)
+            // intValue actually is the value underlying beside the enum
+            => (T)(object)property.intValue;
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void SetEnumValue_Internal<T>(SerializedProperty property, T value)
+            // intValue actually is the value underlying beside the enum
+            => property.intValue = (int)(object)value;
     }
 }

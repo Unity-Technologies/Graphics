@@ -38,7 +38,7 @@
     // Screen space shadows
     TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture);
 
-#if SHADEROPTIONS_RAYTRACING
+#if RAYTRACING_ENABLED
     // Indirect Diffuse Texture
     TEXTURE2D_X(_IndirectDiffuseTexture);
 #endif

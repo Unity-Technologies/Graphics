@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
 - Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
 - Added non temporal version of SSAO.
+- Added more detailed ray tracing stats in the debug window
+- Added Disc area light (bake only)
+- Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -96,6 +99,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with screen space shadows fallback texture was not set as a texture array.
 - Fixed Pyramid Lights bounding box
 - Fixed terrain heightmap default/null values and epsilons
+- Fixed custom post-processing effects breaking when an abstract class inherited from `CustomPostProcessVolumeComponent`
+- Fixed XR single-pass rendering in Editor by using ShaderConfig.s_XrMaxViews to allocate matrix array
+- Multiple different skies rendered at the same time by different cameras are now handled correctly without flickering
+- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present. 
+- Fixed issue causing planar probes to disappear if there is no light in the scene.
+- Fixed a number of issues with the prefab isolation mode (Volumes leaking from the main scene and reflection not working properly)
+- Fixed an issue with fog volume component upgrade not working properly
+- Fixed Spot light Pyramid Shape has shadow artifacts on aspect ratio values lower than 1
+- Fixed issue with AO upsampling in XR
+- Fixed camera without HDAdditionalCameraData component not rendering
+- Removed the macro ENABLE_RAYTRACING for most of the ray tracing code
+- Fixed prefab containing camera reloading in loop while selected in the Project view
+- Fixed issue causing NaN wheh the Z scale of an object is set to 0.
+- Fixed DXR shader passes attempting to render before pipeline loaded
+- Fixed black ambient sky issue when importing a project after deleting Library.
+- Fixed issue when upgrading a Standard transparent material (case 1186874)
+- Fixed area light cookies not working properly with stack lit
+- Fixed material render queue not updated when the shader is changed in the material inspector.
+- Fixed a number of issues with full screen debug modes not reseting correctly when setting another mutually exclusive mode
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -110,6 +132,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change default texture for detailmap to grey
 - Optimize Shadow RT load on Tile based architecture platforms. 
 - Improved quality of SSAO.
+- Moved RequestShadowMapRendering() back to public API.
+- Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
+- Added SceneSelection pass for TerrainLit shader.
+- Simplified Light's type API regrouping the logic in one place (Check type in HDAdditionalLightData)
+- The support of LOD CrossFade (Dithering transition) in master nodes now required to enable it in the master node settings (Save variant)
+- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias. 
+- Fix the default stencil values when a material is created from a SSS ShaderGraph.
 
 ## [7.1.1] - 2019-09-05
 

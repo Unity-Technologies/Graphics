@@ -121,16 +121,16 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     probe.enabled = true;
 
                     var settings = probe.settings;
-                    Assert.AreEqual((HDAdditionalCameraData.ClearColorMode)legacyProbeData.clearColorMode, settings.camera.bufferClearing.clearColorMode);
-                    Assert.AreEqual(legacyProbeData.backgroundColorHDR, settings.camera.bufferClearing.backgroundColorHDR);
-                    Assert.AreEqual(legacyProbeData.clearDepth, settings.camera.bufferClearing.clearDepth);
-                    Assert.AreEqual(legacyProbeData.cullingMask, (int)settings.camera.culling.cullingMask);
-                    Assert.AreEqual(legacyProbeData.useOcclusionCulling, settings.camera.culling.useOcclusionCulling);
-                    Assert.AreEqual(legacyProbeData.volumeLayerMask, (int)settings.camera.volumes.layerMask);
-                    Assert.AreEqual(legacyProbeData.nearClipPlane, settings.camera.frustum.nearClipPlane);
-                    Assert.AreEqual(legacyProbeData.farClipPlane, settings.camera.frustum.farClipPlane);
-                    Assert.AreEqual(legacyProbeData.fieldOfview, settings.camera.frustum.fieldOfView);
-                    Assert.AreEqual(legacyProbeData.renderingPath == (int)LegacyRenderingPath.Custom, settings.camera.customRenderingSettings);
+                    Assert.AreEqual((HDAdditionalCameraData.ClearColorMode)legacyProbeData.clearColorMode, settings.cameraSettings.bufferClearing.clearColorMode);
+                    Assert.AreEqual(legacyProbeData.backgroundColorHDR, settings.cameraSettings.bufferClearing.backgroundColorHDR);
+                    Assert.AreEqual(legacyProbeData.clearDepth, settings.cameraSettings.bufferClearing.clearDepth);
+                    Assert.AreEqual(legacyProbeData.cullingMask, (int)settings.cameraSettings.culling.cullingMask);
+                    Assert.AreEqual(legacyProbeData.useOcclusionCulling, settings.cameraSettings.culling.useOcclusionCulling);
+                    Assert.AreEqual(legacyProbeData.volumeLayerMask, (int)settings.cameraSettings.volumes.layerMask);
+                    Assert.AreEqual(legacyProbeData.nearClipPlane, settings.cameraSettings.frustum.nearClipPlane);
+                    Assert.AreEqual(legacyProbeData.farClipPlane, settings.cameraSettings.frustum.farClipPlane);
+                    Assert.AreEqual(legacyProbeData.fieldOfview, settings.cameraSettings.frustum.fieldOfView);
+                    Assert.AreEqual(legacyProbeData.renderingPath == (int)LegacyRenderingPath.Custom, settings.cameraSettings.customRenderingSettings);
                     Assert.IsTrue((influencePositionWS - probe.transform.position).sqrMagnitude < 0.001f);
                     Assert.IsTrue((capturePositionPS - settings.proxySettings.capturePositionProxySpace).sqrMagnitude < 0.001f);
                     Assert.AreEqual(ProbeSettings.ProbeType.ReflectionProbe, settings.type);
@@ -476,9 +476,9 @@ MonoBehaviour:
                     Assert.AreEqual(legacyProbeData.intensity, settings.lighting.multiplier);
                     Assert.AreEqual(legacyProbeData.boxSize, settings.influence.boxSize);
                     Assert.AreEqual(legacyProbeData.boxProjection, settings.proxySettings.useInfluenceVolumeAsProxyVolume);
-                    Assert.AreEqual(legacyProbeData.useOcclusionCulling, settings.camera.culling.useOcclusionCulling);
-                    Assert.AreEqual(legacyProbeData.nearClipPlane, settings.camera.frustum.nearClipPlane);
-                    Assert.AreEqual(legacyProbeData.farClipPlane, settings.camera.frustum.farClipPlane);
+                    Assert.AreEqual(legacyProbeData.useOcclusionCulling, settings.cameraSettings.culling.useOcclusionCulling);
+                    Assert.AreEqual(legacyProbeData.nearClipPlane, settings.cameraSettings.frustum.nearClipPlane);
+                    Assert.AreEqual(legacyProbeData.farClipPlane, settings.cameraSettings.frustum.farClipPlane);
                     Assert.AreEqual(ProbeSettings.ProbeType.ReflectionProbe, settings.type);
 
                     var targetMode = ProbeSettings.Mode.Baked;
