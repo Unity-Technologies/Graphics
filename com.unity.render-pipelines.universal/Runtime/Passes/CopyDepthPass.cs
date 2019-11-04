@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // TODO: we don't need a command buffer here. We can set these via Material.Set* API
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
-            if (renderingData.cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 switch(cameraSamples)
                 {

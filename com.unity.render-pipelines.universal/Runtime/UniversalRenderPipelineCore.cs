@@ -69,8 +69,6 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
-
-        internal bool isPureURPCamera;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
@@ -252,5 +250,11 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
         };
+    }
+
+    internal static class URPCameraMode
+    {
+        // Pure URP uses URP managed camera buffers
+        internal static bool isPureURP = true;
     }
 }

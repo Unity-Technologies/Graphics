@@ -251,7 +251,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             void Swap() => CoreUtils.Swap(ref source, ref destination);
 
             // Use SRP managed View&Proj
-            if(cameraData.isPureURPCamera)
+            if(URPCameraMode.isPureURP)
             {
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;
@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingSample(cmd, "Stop NaN"))
                 {
-                    if (cameraData.isPureURPCamera)
+                    if (URPCameraMode.isPureURP)
                     {
                         BlitDstDiscardContent(cmd, GetDestination());
                         cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), GetSource());
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetRenderTarget(m_Destination.Identifier(), colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                if (renderingData.cameraData.isPureURPCamera)
+                if (URPCameraMode.isPureURP)
                 {
                     Matrix4x4 projMatrix;
                     Matrix4x4 viewMatrix;
@@ -472,7 +472,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, m_Descriptor.width, m_Descriptor.height, tempDepthBits, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, m_Descriptor.width, m_Descriptor.height, 0, FilterMode.Point, GraphicsFormat.R8G8B8A8_UNorm);
 
-            if (cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 cmd.SetViewport(camera.pixelRect);
                 // Pass 1: Edge detection
@@ -571,7 +571,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetStereoCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
             // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
 
-            if (cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
 
                 // Compute CoC
@@ -722,7 +722,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetStereoCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
 
 
-            if (cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 // Compute CoC
                 cmd.SetRenderTarget(ShaderConstants._FullCoCTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
@@ -802,7 +802,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetFloat("_Intensity", m_MotionBlur.intensity.value);
             material.SetFloat("_Clamp", m_MotionBlur.clamp.value);
 
-            if (cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
@@ -841,7 +841,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance
             );
 
-            if (cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             { 
                 cmd.SetRenderTarget(destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
@@ -932,7 +932,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], desc, FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], desc, FilterMode.Bilinear);
 
-            if (cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 cmd.SetRenderTarget(ShaderConstants._BloomMipDown[0], RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
                 cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
@@ -1236,7 +1236,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
             cmd.SetRenderTarget(m_Destination.Identifier(), colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-            if (renderingData.cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;

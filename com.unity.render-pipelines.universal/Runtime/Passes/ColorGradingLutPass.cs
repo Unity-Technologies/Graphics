@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Render the lut
-            if(renderingData.cameraData.isPureURPCamera)
+            if(URPCameraMode.isPureURP)
             {
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;

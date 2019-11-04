@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
 
-            if (renderingData.cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;

@@ -272,9 +272,6 @@ namespace UnityEngine.Rendering.Universal
             cameraData.camera = camera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
 
-            // XRTODO: Wire this up with shader variants logic as pure mode requires pure version of shaders
-            //cameraData.isPureURPCamera = true;
-
             int msaaSamples = 1;
             if (camera.allowMSAA && settings.msaaSampleCount > 1)
                 msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : settings.msaaSampleCount;
@@ -286,6 +283,15 @@ namespace UnityEngine.Rendering.Universal
             // TODO: enable postfx for stereo rendering
             if (cameraData.isStereoEnabled && Application.isMobilePlatform)
                 cameraData.postProcessEnabled = false;
+
+            if (cameraData.isStereoEnabled)
+            {
+                URPCameraMode.isPureURP = false;
+            }
+            else
+            {
+                URPCameraMode.isPureURP = true;
+            }
 
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
@@ -602,16 +608,6 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(PerCameraBuffer._WorldSpaceCameraPos, camera.transform.position);
             Shader.SetGlobalVector(PerCameraBuffer._ScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
             Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
-
-            if (cameraData.isPureURPCamera)
-            {
-                Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                Shader.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                Shader.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                Shader.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), invViewProjMatrix);
-            }
         }
 
 

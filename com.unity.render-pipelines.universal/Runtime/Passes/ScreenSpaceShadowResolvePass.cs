@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool stereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            if (renderingData.cameraData.isPureURPCamera)
+            if (URPCameraMode.isPureURP)
             {
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;

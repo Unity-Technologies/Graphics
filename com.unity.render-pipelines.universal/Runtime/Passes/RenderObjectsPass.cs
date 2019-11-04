@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                     viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
 
-                    if (renderingData.cameraData.isPureURPCamera)
+                    if (URPCameraMode.isPureURP)
                     {
                         Matrix4x4 projMatrix;
                         projMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, true);
@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         camera.nearClipPlane, camera.farClipPlane);
 
                     cmd.Clear();
-                    if (renderingData.cameraData.isPureURPCamera)
+                    if (URPCameraMode.isPureURP)
                     {
                        // Pure Mode Does not require reset
                     }
