@@ -13,7 +13,10 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
-- Only call SetDirty on an object when actually modifying it in SRP updater utility 
+- Only call SetDirty on an object when actually modifying it in SRP updater utility
+
+### Fixed
+- Fixed compile errors for platforms with no VR support
 
 ## [7.1.1] - 2019-09-05
 
