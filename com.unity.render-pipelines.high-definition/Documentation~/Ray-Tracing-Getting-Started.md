@@ -80,7 +80,7 @@ The Unity Editor window should now include the <DX12> tag in the title bar like 
 
 #### HDRP Asset configuration
 
-Now that Unity is running in DirectX 12, and you have disabled static batching, enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.html). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
+Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.html). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
 2. In the Rendering section, enable Realtime Ray Tracing. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
