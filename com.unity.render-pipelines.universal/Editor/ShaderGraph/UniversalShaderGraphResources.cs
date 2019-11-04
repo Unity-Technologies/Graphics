@@ -87,9 +87,9 @@ namespace UnityEditor.Rendering.Universal
             bool cullFace;
             [Semantic("SV_RenderTargetArrayIndex")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
             uint stereoTargetEyeIndexSV;
-            [Semantic("BLENDINDICES0")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED) && !(defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
+            [Semantic("BLENDINDICES0")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
             uint stereoTargetEyeIndexGL;
-            [Semantic("SV_RenderTargetArrayIndex")] [PreprocessorIf("defined(UNITY_STEREO_INSTANCING_ENABLED)")]
+            [Semantic("SV_RenderTargetArrayIndex")] [PreprocessorIf("(defined(UNITY_STEREO_INSTANCING_ENABLED) && !(defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)))")]
             uint stereoTargetEyeIndex;
         };
 
