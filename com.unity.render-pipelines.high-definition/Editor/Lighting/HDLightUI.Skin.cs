@@ -54,6 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
             public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
             public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape of the Spot Light. Impacts the the cookie transformation and the Light's angular attenuation.");
+            public readonly GUIContent areaLightShape = new GUIContent("Shape", "The shape of the Area Light. Note that some are RealTime only and some Bake only.");
+            public readonly string[] areaShapeNames = { "Rectangle", "Tube (realtime)", "Disc (baked)" };
             public readonly GUIContent shapeWidthTube = new GUIContent("Length", "Length of the Tube Light.");
             public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "Sets the width of the Rectangle Light.");
             public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "Sets the height of the Rectangle Light.");
@@ -68,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent angularDiameter = new GUIContent("Angular Diameter", "Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees). Used to render the sun/moon disk.");
             public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera to the emissive celestial body represented by the light. Primarily used for sorting.");
 
-            public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, Rectangle, and Tube.");
+            public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent[] shapeNames;
             public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constent whatever the size of the cone.");
             public readonly GUIContent luxAtDistance = new GUIContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
@@ -86,12 +88,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
+            public readonly GUIContent rayTracedContactShadow = new GUIContent("Ray Tracing", "Uses ray tracing to compute the contact shadow for a light.");
             public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
             public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "When enabled, this Spot Light uses the custom angle for shadow map rendering.");
             public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");
 
             // Bias control
-            public readonly GUIContent constantScale = new GUIContent("Constant Depth Bias", "Controls the bias that HDRP adds to the distance in this Light's shadow map.");
+            public readonly GUIContent slopeBias = new GUIContent("Slope-Scale Depth Bias", "Controls the bias that HDRP adds to the rendered shadow map, it is proportional to the slope of the polygons relative to the light.");
 
             public readonly GUIContent normalBias = new GUIContent("Normal Bias", "Controls the bias this Light applies along the normal of surfaces it illuminates.");
 
@@ -102,12 +105,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent minFilterSize = new GUIContent("Minimum Size of the Filter", "Controls the minimum size of the shadow’s blur effect regardless of the distance between the pixel and the shadow caster.");
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
-#if ENABLE_RAYTRACING
             public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows", "If selected, ray traced shadows are used in place of rasterized ones.");
             public readonly GUIContent numRayTracingSamples = new GUIContent("Sample Count", "This defines the number of samples that will be used to evaluate this shadow.");
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
-#endif
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");
@@ -127,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public Styles()
             {
-                shapeNames = Enum.GetNames(typeof(HDLightUI.LightShape))
+                shapeNames = Enum.GetNames(typeof(UnityEngine.Rendering.HighDefinition.HDLightType))
                     .Select(x => new GUIContent(x))
                     .ToArray();
             }

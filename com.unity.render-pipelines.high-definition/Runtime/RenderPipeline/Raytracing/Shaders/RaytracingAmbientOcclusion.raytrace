@@ -97,6 +97,7 @@ void RayGenAmbientOcclusion()
 		rayIntersection.incidentDirection = rayDescriptor.Direction;
 		rayIntersection.origin = rayDescriptor.Origin;
 		rayIntersection.t = 0.0f;
+        rayIntersection.pixelCoord = posInput.positionSS;
 
 		// Evaluate the ray intersection
 		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_AMBIENT_OCCLUSION, 0, 1, 0, rayDescriptor, rayIntersection);
