@@ -13,9 +13,9 @@ namespace UnityEditor.ShaderGraph.Internal
             displayName = "Vector4";
         }
         internal override bool isGpuInstanceable => true;
-        
+
         public override PropertyType propertyType => PropertyType.Vector4;
-        
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();
@@ -41,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 displayName = displayName,
                 hidden = hidden,
+                expanded = expanded,
                 value = value
             };
         }

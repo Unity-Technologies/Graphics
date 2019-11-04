@@ -59,6 +59,14 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         [SerializeField]
+        bool m_Expanded = false;
+
+        public bool expanded
+        {
+            get => m_Expanded;
+            set => m_Expanded = value;
+        }
+
         bool m_GeneratePropertyBlock = true;
 
         internal bool generatePropertyBlock

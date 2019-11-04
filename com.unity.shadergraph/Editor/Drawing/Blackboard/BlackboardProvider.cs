@@ -22,13 +22,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
 
-        Dictionary<ShaderInput, bool> m_ExpandedInputs = new Dictionary<ShaderInput, bool>();
-
-        public Dictionary<ShaderInput, bool> expandedInputs
-        {
-            get { return m_ExpandedInputs; }
-        }
-
         public string assetName
         {
             get { return blackboard.title; }
@@ -273,11 +266,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
             }
 
-            foreach (var expandedInput in expandedInputs)
-            {
-                SessionState.SetBool(expandedInput.Key.guid.ToString(), expandedInput.Value);
-            }
-
             if (m_Graph.movedInputs.Any())
             {
                 foreach (var row in m_InputRows.Values)
@@ -289,7 +277,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var keyword in m_Graph.keywords)
                     m_KeywordSection.Add(m_InputRows[keyword.guid]);
             }
-            m_ExpandedInputs.Clear();
         }
 
         void AddInputRow(ShaderInput input, bool create = false, int index = -1)
@@ -322,6 +309,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_PropertySection.Add(row);
                     else
                         m_PropertySection.Insert(index, row);
+
                     break;
                 }
                 case ShaderKeyword keyword:
@@ -339,6 +327,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         m_KeywordSection.Add(row);
                     else
                         m_KeywordSection.Insert(index, row);
+
                     break;
                 }
                 default:
@@ -357,7 +346,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
 
             m_InputRows[input.guid] = row;
-            m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);
+            m_InputRows[input.guid].expanded = input.expanded;
 
             if (create)
             {
@@ -375,7 +364,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnExpanded(MouseDownEvent evt, ShaderInput input)
         {
-            m_ExpandedInputs[input] = !m_InputRows[input.guid].expanded;
+            input.expanded = !input.expanded;
+            m_Graph.owner.isDirty = true;
         }
 
         void DirtyNodes()
