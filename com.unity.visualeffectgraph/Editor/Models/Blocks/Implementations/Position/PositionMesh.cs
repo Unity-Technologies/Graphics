@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Block
 
                     switch (spawnMode)
                     {
-                        case SpawnMode.Randomized:
+                        case SpawnMode.Random:
                             {
                                 source += @"int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);";
                             }
