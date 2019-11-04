@@ -12,8 +12,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
-    //#pragma multi_compile _ SHADOWS_SHADOWMASK
-    //#pragma multi_compile _ _SURFACE_TYPE_TRANSPARENT
 
     #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -23,8 +21,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #define VARYINGS_NEED_TANGENT_TO_WORLD
 
     #define SHADERPASS SHADERPASS_FORWARD_UNLIT
-    //#define SHADERPASS SHADERPASS_SHADOWS
-    //#define SHADOWS_SHADOWMASK
 
     #define HAS_LIGHTLOOP
 
