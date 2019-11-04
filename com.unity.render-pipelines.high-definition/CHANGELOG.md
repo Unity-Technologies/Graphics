@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed area light cookies not working properly with stack lit
 - Fixed material render queue not updated when the shader is changed in the material inspector.
 - Fixed a number of issues with full screen debug modes not reseting correctly when setting another mutually exclusive mode
+- Fixed compile errors for platforms with no VR support
 - VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
 
 ### Changed
