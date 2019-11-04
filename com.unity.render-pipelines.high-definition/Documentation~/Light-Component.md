@@ -85,11 +85,15 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Size X**          | For **Box**. Adjusts the horizontal size of the Box Light. No light shines outside of the dimensions you set. |
 | **Size Y**          | For **Box**. Adjusts the vertical size of the Box Light. No light shines outside of the dimensions you set. |
 
+<a name="DirectionalLight"></a>
+
 #### Directional Light
 
 | **Property**         | **Description**                                              |
 | -------------------- | ------------------------------------------------------------ |
 | **Angular Diameter** | Allows you to set the area of a distant light source through an angle in degrees. This has an impact on the size of specular highlights and the softness of baked shadows and ray-traced shadows. |
+
+<a name="PointLight"></a>
 
 #### Point Light
 
