@@ -54,8 +54,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
             public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
             public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape of the Spot Light. Impacts the the cookie transformation and the Light's angular attenuation.");
-            public readonly GUIContent areaLightShape = new GUIContent("Shape", "The shape of the Area Light. Note that some are RealTime only and some Bake only.");
-            public readonly string[] areaShapeNames = { "Rectangle", "Tube (realtime)", "Disc (baked)" };
+            public readonly GUIContent areaLightShape = new GUIContent("Shape", "The shape of the Area Light. Note that some are Realtime only and some Baked only.");
+            public readonly GUIContent[] areaShapeNames =
+            {
+                new GUIContent("Rectangle"),
+                new GUIContent("Tube (Realtime only)"),
+                new GUIContent("Disc (Baked only)")
+            };
             public readonly GUIContent shapeWidthTube = new GUIContent("Length", "Length of the Tube Light.");
             public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "Sets the width of the Rectangle Light.");
             public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "Sets the height of the Rectangle Light.");

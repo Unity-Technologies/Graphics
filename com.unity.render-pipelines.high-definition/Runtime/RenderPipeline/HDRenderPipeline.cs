@@ -1166,6 +1166,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
+            using (HashSetPool<int>.Get(out HashSet<int> skipClearCullingResults))
             using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
             using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
@@ -1233,6 +1234,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reset pooled variables
                     cameraSettings.Clear();
                     cameraPositionSettings.Clear();
+                    skipClearCullingResults.Clear();
 
                     var cullingResults = GenericPool<HDCullingResults>.Get();
                     cullingResults.Reset();
@@ -1245,7 +1247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             out var hdCamera,
                             out var cullingParameters);
 
-                        // Note: In case of a custom render, we have false here and 'TryCull' is not executed
+                    // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                     if (!skipRequest)
                     {
                         var needCulling = true;
@@ -1257,7 +1259,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
                                 {
+                                    GenericPool<HDCullingResults>.Release(cullingResults);
                                     cullingResults = req.cullingResults;
+                                    skipClearCullingResults.Add(req.index);
                                     needCulling = false;
                                 }
                             }
@@ -1706,8 +1710,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderRequest.hdCamera.camera.targetTexture = null;
 
                             ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
-                            renderRequest.cullingResults.decalCullResults?.Clear();
-                            GenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
+
+                            // Culling results can be shared between render requests: clear only when required
+                            if (!skipClearCullingResults.Contains(renderRequest.index))
+                            {
+                                renderRequest.cullingResults.decalCullResults?.Clear();
+                                GenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
+                            }
                         }
 
                         // Render XR mirror view once all render requests have been completed
