@@ -162,6 +162,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int m_PreviousLightOrder = -1;
         int m_PreviousBlendStyleIndex;
         float       m_PreviousLightVolumeOpacity;
+        bool        m_PreviousLightCookieSpriteExists = false;
         Sprite      m_PreviousLightCookieSprite     = null;
         Mesh        m_Mesh;
         int         m_LightCullingIndex             = -1;
@@ -380,6 +381,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     m_LocalBounds = LightUtility.GenerateParametricMesh(ref m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                     break;
                 case LightType.Sprite:
+                    m_Mesh.Clear();
                     m_LocalBounds = LightUtility.GenerateSpriteMesh(ref m_Mesh, m_LightCookieSprite, 1);
                     break;
                 case LightType.Point:
@@ -524,6 +526,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
             rebuildMesh |= LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousLightVolumeOpacity);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
+            rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite != null, ref m_PreviousLightCookieSpriteExists);
             rebuildMesh |= LightUtility.CheckForChange(m_LightCookieSprite, ref m_PreviousLightCookieSprite);
             rebuildMesh |= LightUtility.CheckForChange(m_ShapeLightFalloffOffset, ref m_PreviousShapeLightFalloffOffset);
 
