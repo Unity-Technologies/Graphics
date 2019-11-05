@@ -1,5 +1,5 @@
 editors:
-  - version: 2019.3/staging
+  - version: 2019.3/assetpipeline/fix-scriptcompilationpipeline-assetpipeline-init
 packages:
   - name: Core
     id: core
