@@ -536,7 +536,8 @@ namespace UnityEngine.Rendering.HighDefinition
             skyContext.cachedSkyRenderingContextId = slot;
         }
 
-        void AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash)
+        // Returns whether or not the data should be updated
+        bool AcquireSkyRenderingContext(SkyUpdateContext updateContext, int newHash)
         {
             bool supportConvolution = true; // TODO: See how we can avoid allocating associated RT for static sky (issue is when the same sky is used for both static and lighting sky)
             SphericalHarmonicsL2 cachedAmbientProbe = new SphericalHarmonicsL2();
@@ -557,7 +558,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // If the hash hasn't changed, keep it.
-                    return;
+                    return false;
                 }
             }
 
@@ -570,7 +571,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_CachedSkyContexts[i].refCount++;
                     updateContext.cachedSkyRenderingContextId = i;
-                    return;
+                    updateContext.skyParametersHash = newHash;
+                    return false;
                 }
 
                 // Find the first available slot in case we don't find a matching one.
@@ -587,6 +589,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 int newContextId = m_CachedSkyContexts.Add(new CachedSkyContext());
                 AllocateNewRenderingContext(updateContext, newContextId, newHash, supportConvolution, cachedAmbientProbe);
             }
+
+            return true;
         }
 
         void ReleaseCachedContext(int id)
@@ -656,12 +660,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
                 bool forceUpdate = updateRequired;
 
-                // At first initialization, we need to acquire a rendering context and force a first update
-                if (!IsCachedContextValid(skyContext))
-                {
-                    AcquireSkyRenderingContext(skyContext, skyHash);
-                    forceUpdate = true;
-                }
+                // Acquire the rendering context, if the context was invalid or the hash has changed, this will request for an update.
+                forceUpdate |= AcquireSkyRenderingContext(skyContext, skyHash);
 
                 ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
                 var renderingContext = cachedContext.renderingContext;
@@ -677,9 +677,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingSample(cmd, "Update Env: Generate Lighting Cubemap"))
                         {
-                            // In case the hash has changed and update mode is "On Changed" we need to acquire a new context.
-                            AcquireSkyRenderingContext(skyContext, skyHash);
-
                             RenderSkyToCubemap(skyContext);
 
                             if (updateAmbientProbe)
@@ -780,7 +777,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BuiltinParameters.frameIndex = frameIndex;
                     m_BuiltinParameters.skySettings = skyContext.skySettings;
 
-                    int skyHash = ComputeSkyHash(skyContext, sunLight, SkyAmbientMode.Static);
+                    SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+                    int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
                     AcquireSkyRenderingContext(skyContext, skyHash);
                     var cachedContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
 
