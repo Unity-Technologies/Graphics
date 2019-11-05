@@ -68,7 +68,7 @@
 struct StackInfo
 {
     GraniteLookupData lookupData;
-    GraniteLODLookupData lookupDataLOD;
+    GraniteLODLookupData lookupDataLod;
 	float4 resolveOutput;
 };
 
@@ -84,7 +84,6 @@ struct StackInfo
 #ifndef RESOLVE_SCALE_OVERRIDE
 #define RESOLVE_SCALE_OVERRIDE float2(1,1)
 #endif
-
 
 #define DECLARE_STACK_CB(stackName) \
     float4x4 stackName##_spaceparams[2];\
@@ -120,7 +119,7 @@ StackInfo PrepareVT_##stackName(float2 uv)\
     GR_LOOKUP(grCB, translationTable, uv, info.lookupData, info.resolveOutput);\
 	return info;\
 } \
-StackInfo PrepareVT_Lod_##stackName(float2 uv, float mip) \
+StackInfo PrepareVTLod_##stackName(float2 uv, float mip) \
 { \
 	GraniteStreamingTextureConstantBuffer textureParamBlock;\
 	textureParamBlock.data[0] = stackName##_atlasparams[0];\
@@ -143,10 +142,9 @@ StackInfo PrepareVT_Lod_##stackName(float2 uv, float mip) \
 	translationTable.Sampler = sampler##stackName##_transtab;\
 \
 	StackInfo info;\
-    GR_LOOKUP_LOD(grCB, translationTable, uv, mip, info.lookupDataLOD, info.resolveOutput);\
+    GR_LOOKUP_LOD(grCB, translationTable, uv, mip, info.lookupDataLod, info.resolveOutput);\
 	return info;\
 }
-
 #define jj2(a, b) a##b
 #define jj(a, b) jj2(a, b)
 
@@ -184,7 +182,7 @@ float3 SampleVT_Normal_##layerSamplerName(StackInfo info, float scale)\
 {\
 	return Granite_UnpackNormal( jj(SampleVT_,layerSamplerName)( info ), scale ); \
 } \
-float4 SampleVT_Lod_##layerSamplerName(StackInfo info)\
+float4 SampleVTLod_##layerSamplerName(StackInfo info)\
 {\
 	GraniteStreamingTextureConstantBuffer textureParamBlock;\
 	textureParamBlock.data[0] = stackName##_atlasparams[0];\
@@ -207,12 +205,12 @@ float4 SampleVT_Lod_##layerSamplerName(StackInfo info)\
 	cache.Sampler = sampler##stackName##_c##layerIndex;\
 \
 	float4 output;\
-	Granite_Sample(grCB, info.lookupDataLOD, cache, layerIndex, output);\
+	Granite_Sample(grCB, info.lookupDataLod, cache, layerIndex, output);\
 	return output;\
 } \
-float3 SampleVT_Lod_Normal_##layerSamplerName(StackInfo info, float scale)\
+float3 SampleVTLod_Normal_##layerSamplerName(StackInfo info, float scale)\
 {\
-	return Granite_UnpackNormal( jj(SampleVT_Lod_,layerSamplerName)( info ), scale ); \
+	return Granite_UnpackNormal( jj(SampleVTLod_,layerSamplerName)( info ), scale ); \
 }
 
 #define DECLARE_STACK_RESOLVE(stackName)\
@@ -264,12 +262,13 @@ float4 ResolveVT_##stackName(float2 uv)\
 	DECLARE_STACK_LAYER(stackName, layer3SamplerName,3)
 
 #define PrepareStack(uv, stackName) PrepareVT_##stackName(uv)
-#define PrepareStack_Lod(uv, stackName, mip) PrepareVT_Lod_##stackName(uv, mip)
+#define PrepareStackLod(uv, stackName, mip) PrepareVTLod_##stackName(uv, mip)
 #define SampleStack(info, textureName) SampleVT_##textureName(info)
-#define SampleStack_Lod(info, textureName) SampleVT_Lod_##textureName(info)
-#define SampleStack_Normal(info, textureName, scale) SampleVT_Normal_##textureName(info, scale)
-#define SampleStack_Lod_Normal(info, textureName, scale) SampleVT_Lod_Normal_##textureName(info, scale)
+#define SampleStackLod(info, textureName) SampleVTLod_##textureName(info)
+#define SampleStackNormal(info, textureName, scale) (SampleVT_Normal_##textureName(info, scale)).xyz
+#define SampleStackLodNormal(info, textureName, scale) SampleVTLod_Normal_##textureName(info, scale)
 #define GetResolveOutput(info) info.resolveOutput
+#define PackResolveOutput(output) Granite_PackTileId(output)
 #define ResolveStack(uv, stackName) ResolveVT_##stackName(uv)
 
 float4 GetPackedVTFeedback(float4 feedback)
@@ -301,7 +300,7 @@ StackInfo MakeStackInfo(float2 uv)
     result.uv = uv;
     return result;
 }
-StackInfo MakeStackInfoLOD(float2 uv, float lod)
+StackInfo MakeStackInfoLod(float2 uv, float lod)
 {
     StackInfo result;
     result.uv = uv;
@@ -311,21 +310,19 @@ StackInfo MakeStackInfoLOD(float2 uv, float lod)
 
 // Prepare just passes the texture coord around
 #define PrepareStack(uv, stackName) MakeStackInfo(uv)
-#define PrepareStack_Lod(uv, stackName, mip) MakeStackInfoLOD(uv, mip)
-
+#define PrepareStackLod(uv, stackName, mip) MakeStackInfoLod(uv, mip)
 
 // Sample just samples the texture
 #define SampleStack(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
-#define SampleStack_Normal(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
+#define SampleStackNormal(info, texture) SAMPLE_TEXTURE2D(texture, sampler##texture, info.uv)
 
-#define SampleStack_Lod(info, textureName) SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.uv, info.lod)
-#define SampleStack_Lod_Normal(info, textureName) SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.uv, info.lod)
-
+#define SampleStackLod(info, texture) SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.uv, info.lod)
+#define SampleStackLodNormal(info, texture) SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.uv, info.lod)
 
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
 #define ResolveStack(uv, stackName) float4(1,1,1,1)
-#define GetPackedVTFeedback(feedback)
+#define PackResolveOutput(output) output
 
 #endif
 
