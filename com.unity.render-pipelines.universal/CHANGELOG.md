@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed user LUT sampling being done in Linear instead of sRGB.
 - Fixed an issue when trying to get the Renderer via API on the first frame [case 1189196](https://issuetracker.unity3d.com/product/unity/issues/guid/1189196/)
 - Fixed a material leak on domain reload.
-
+- Fixed multiple issues where Universal Shader Graph shaders fail to build for XR. 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
 - The render pipeline now handles custom renderers differently. You must now set up renderers for the Camera on the Render Pipeline Asset.
