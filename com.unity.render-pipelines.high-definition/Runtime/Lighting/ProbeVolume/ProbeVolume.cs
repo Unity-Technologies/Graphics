@@ -384,6 +384,8 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeAsset.resolutionY = parameters.resolutionY;
             probeVolumeAsset.resolutionZ = parameters.resolutionZ;
 
+            probeVolumeAsset.Dilate();
+
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
             UnityEditor.AssetDatabase.Refresh();
 
