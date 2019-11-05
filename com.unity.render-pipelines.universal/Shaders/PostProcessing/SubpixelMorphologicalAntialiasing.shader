@@ -11,6 +11,9 @@ Shader "Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing"
         #pragma multi_compile_local _SMAA_PRESET_LOW _SMAA_PRESET_MEDIUM _SMAA_PRESET_HIGH
         #pragma exclude_renderers gles
 
+        // Enable Pure URP Camera Management
+        #define PURE_URP_ON
+
     ENDHLSL
 
     SubShader

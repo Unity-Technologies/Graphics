@@ -6,6 +6,9 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
     }
 
     HLSLINCLUDE
+    // Enable Pure URP Camera Management
+    #define PURE_URP_ON
+
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
     struct Attributes

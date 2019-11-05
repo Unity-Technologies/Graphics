@@ -116,6 +116,9 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
 
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
+
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
@@ -138,6 +141,9 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma fragment frag
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
+
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"

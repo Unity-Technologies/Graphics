@@ -3,7 +3,10 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
     HLSLINCLUDE
 
         #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
-        
+
+        // Enable Pure URP Camera Management
+        #define PURE_URP_ON
+
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"

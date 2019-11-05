@@ -7,6 +7,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
     HLSLINCLUDE
 
+        // Enable Pure URP Camera Management
+        #define PURE_URP_ON
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

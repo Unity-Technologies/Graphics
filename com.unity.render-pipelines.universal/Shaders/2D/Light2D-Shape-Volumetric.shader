@@ -17,6 +17,9 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             #pragma fragment frag
             #pragma multi_compile_local SPRITE_LIGHT __
 
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 

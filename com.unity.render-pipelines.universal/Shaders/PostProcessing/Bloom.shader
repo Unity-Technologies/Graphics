@@ -9,6 +9,9 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
 
         #pragma multi_compile_local _ _USE_RGBM
 
+        // Enable Pure URP Camera Management
+        #define PURE_URP_ON
+
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

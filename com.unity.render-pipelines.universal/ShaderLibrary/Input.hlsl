@@ -5,7 +5,7 @@
 #define MAX_VISIBLE_LIGHTS_UBO  32
 
 // Experimental Code Path: Pure URP
-#if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON)
+#if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON) && defined(PURE_URP_ON)
 #define USING_PUREURP
 #endif
 
@@ -44,10 +44,9 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(USING_PUREURP)
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesMatrixDefsURP.hlsl"
-
-#else
+//#if defined(USING_PUREURP)
+//#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesMatrixDefsURP.hlsl"
+//#else
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
@@ -69,6 +68,39 @@ half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #endif
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+#if defined(USING_PUREURP)
+//float4x4 _ViewProjMatrix;
+//float4x4 _ViewMatrix;
+//float4x4 _ProjMatrix;
+//float4x4 _InvViewProjMatrix;
+//float4x4 _InvViewMatrix;
+//float4x4 _InvProjMatrix;
+//float4x4 BUILDIN_unity_CameraInvProjection;
+//float4x4 BUILDIN_unity_CameraToWorld;
+//int      BUILDIN_unity_StereoEyeIndex;
+// Define Getters
+// Note: In order to be able to define our macro/getter to forbid usage of unity_* build-in shader vars
+// We need to declare inline function.
+float4x4 GetRawUnityObjectToWorld() { return unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
+// To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
+//#define unity_ObjectToWorld        Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
+//#define unity_WorldToObject        Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
+
+#define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
+#define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
+#define UNITY_MATRIX_V     _ViewMatrix
+#define UNITY_MATRIX_I_V   _InvViewMatrix
+#define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)
+#define UNITY_MATRIX_I_P   _InvProjMatrix
+#define UNITY_MATRIX_VP    _ViewProjMatrix
+#define UNITY_MATRIX_I_VP  _InvViewProjMatrix
+#define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
+#define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
+#define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
+#define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
+#else
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     unity_MatrixV
@@ -81,8 +113,8 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 #endif
+//#endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"

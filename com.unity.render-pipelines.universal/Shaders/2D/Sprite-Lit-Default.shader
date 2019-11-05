@@ -53,6 +53,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float2	lightingUV  : TEXCOORD1;
             };
 
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
+
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
 
             TEXTURE2D(_MainTex);
@@ -112,6 +115,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma vertex NormalsRenderingVertex
             #pragma fragment NormalsRenderingFragment
 
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
+
             struct Attributes
             {
                 float3 positionOS   : POSITION;
@@ -168,6 +174,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             #pragma prefer_hlslcc gles
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
+
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
 
             struct Attributes
             {

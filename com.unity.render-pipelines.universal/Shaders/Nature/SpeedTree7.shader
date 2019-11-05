@@ -53,6 +53,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define ENABLE_WIND
             #define VERTEX_COLOR
 
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
+
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
 
@@ -80,6 +83,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define DEPTH_ONLY
             #define SCENESELECTIONPASS
 
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
+
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
             ENDHLSL
@@ -105,6 +111,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define ENABLE_WIND
             #define DEPTH_ONLY
             #define SHADOW_CASTER
+
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
@@ -132,6 +141,9 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
             #define ENABLE_WIND
             #define DEPTH_ONLY
+
+            // Enable Pure URP Camera Management
+            #define PURE_URP_ON
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
