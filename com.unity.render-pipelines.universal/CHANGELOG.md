@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
 - Eliminated some GC allocations from the 2D Renderer.
 - Added SceneSelection pass for TerrainLit shader.
+- Remove final blit pass to force alpha to 1.0 on mobile platforms.
+- Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -23,6 +25,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
 - Fixed Unlit and BakedLit shader compilations in the meta pass.
 - Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+- Fixed an issue where the Scene's Generate Lighting button didn't work when you used the 2D Renderer.
+- Fixed a performance regression when you used the 2D Renderer.
+- Fixed an issue where the Freeform 2D Light gizmo didn't correctly show the Falloff offset.
+- Fixed an issue where the 2D Renderer rendered nothing when you used shadow-casting lights with incompatible Renderer2DData.
+- Fixed an issue where Prefab previews were incorrectly lit when you used the 2D Renderer.
+- Fixed an issue where the Light didn't update correctly when you deleted a Sprite that a Sprite 2D Light uses.
 - Fixed an issue where 2D Lighting was broken for Perspective Cameras.
 - Fixed an issue where resetting a Freeform 2D Light would throw null reference exceptions. [case 1184536](https://issuetracker.unity3d.com/issues/lwrp-changing-light-type-to-freeform-after-clicking-on-reset-throws-multiple-arguementoutofrangeexception)
 - Fixed an issue where Freeform 2D Lights were not culled correctly when there was a Falloff Offset.
@@ -31,6 +39,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed user LUT sampling being done in Linear instead of sRGB.
 - Fixed an issue when trying to get the Renderer via API on the first frame [case 1189196](https://issuetracker.unity3d.com/product/unity/issues/guid/1189196/)
 - Fixed a material leak on domain reload.
+- Fixed an issue where deleting an entry from the Renderer List and then undoing that change could cause a null reference. [case 1191896](https://issuetracker.unity3d.com/issues/nullreferenceexception-when-attempting-to-remove-entry-from-renderer-features-list-after-it-has-been-removed-and-then-undone)
+- Fixed an issue where the user would get an error if they removed the Additional Camera Data component. [case 1189926](https://issuetracker.unity3d.com/issues/unable-to-remove-universal-slash-hd-additional-camera-data-component-serializedobject-target-destroyed-error-is-thrown)
+- Fixed post-processing with XR single-pass rendering modes.
+- Fixed an issue where Cinemachine v2.4 couldn't be used together with Universal RP due to a circular dependency between the two packages.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
