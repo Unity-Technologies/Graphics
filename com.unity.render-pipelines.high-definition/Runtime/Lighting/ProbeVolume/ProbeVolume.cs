@@ -7,6 +7,12 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum ProbeSpacingMode
+    {
+        Density = 0,
+        Resolution
+    };
+
     [Serializable]
     public struct ProbeVolumeArtistParameters
     {
@@ -25,6 +31,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceFadeEnd;
 
         public Vector4 scaleBias;
+
+        public ProbeSpacingMode probeSpacingMode;
+
+        public float densityX;
+        public float densityY;
+        public float densityZ;
 
         public int resolutionX;
         public int resolutionY;
@@ -83,9 +95,13 @@ namespace UnityEngine.Rendering.HighDefinition
             this.distanceFadeStart = 10000.0f;
             this.distanceFadeEnd = 10000.0f;
             this.scaleBias = Vector4.zero;
+            this.probeSpacingMode = ProbeSpacingMode.Density;
             this.resolutionX = 4;
             this.resolutionY = 4;
             this.resolutionZ = 4;
+            this.densityX = (float)this.resolutionX / this.size.x;
+            this.densityY = (float)this.resolutionY / this.size.y;
+            this.densityZ = (float)this.resolutionZ / this.size.z;
             this.weight = 1;
         }
 
@@ -94,9 +110,40 @@ namespace UnityEngine.Rendering.HighDefinition
             this.distanceFadeStart = Mathf.Max(0, this.distanceFadeStart);
             this.distanceFadeEnd = Mathf.Max(this.distanceFadeStart, this.distanceFadeEnd);
 
-            this.resolutionX = Mathf.Max(1, this.resolutionX);
-            this.resolutionY = Mathf.Max(1, this.resolutionY);
-            this.resolutionZ = Mathf.Max(1, this.resolutionZ);
+            switch (this.probeSpacingMode)
+            {
+                case ProbeSpacingMode.Density:
+                {
+                    // Compute resolution from density and size.
+                    this.densityX = Mathf.Max(1e-5f, this.densityX);
+                    this.densityY = Mathf.Max(1e-5f, this.densityY);
+                    this.densityZ = Mathf.Max(1e-5f, this.densityZ);
+
+                    this.resolutionX = Mathf.Max(1, Mathf.RoundToInt(this.densityX * this.size.x));
+                    this.resolutionY = Mathf.Max(1, Mathf.RoundToInt(this.densityY * this.size.y));
+                    this.resolutionZ = Mathf.Max(1, Mathf.RoundToInt(this.densityZ * this.size.z));
+                    break;
+                }
+
+                case ProbeSpacingMode.Resolution:
+                {
+                    // Compute density from resolution and size.
+                    this.resolutionX = Mathf.Max(1, this.resolutionX);
+                    this.resolutionY = Mathf.Max(1, this.resolutionY);
+                    this.resolutionZ = Mathf.Max(1, this.resolutionZ);
+
+                    this.densityX = (float)this.resolutionX / Mathf.Max(1e-5f, this.size.x);
+                    this.densityY = (float)this.resolutionY / Mathf.Max(1e-5f, this.size.y);
+                    this.densityZ = (float)this.resolutionZ / Mathf.Max(1e-5f, this.size.z);
+                    break;
+                }
+
+                default:
+                {
+                    Debug.Assert(false, "Error: ProbeVolume: Encountered unsupported Probe Spacing Mode: " + this.probeSpacingMode);
+                    break;
+                }
+            }
         }
 
         public ProbeVolumeEngineData ConvertToEngineData()

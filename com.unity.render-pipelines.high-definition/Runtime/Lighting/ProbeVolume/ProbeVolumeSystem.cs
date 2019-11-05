@@ -113,16 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2DAtlasDynamic probeVolumeAtlas = null;
         bool isClearProbeVolumeAtlasRequested = false;
 
-        // Note: These max resolution dimensions are implicitly defined from the way probe volumes are laid out in our 2D atlas.
-        // If this layout changes, these resolution constraints should be updated to reflect the actual constraint.
-        // Currently, the constraint is defined as: the maximum resolution that could possibly be allocated given the atlas size and only one probe volume resident.
-        public static void ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, int requestedX)
-        {
-            maxY = s_ProbeVolumeAtlasHeight;
-            maxX = s_ProbeVolumeAtlasWidth;
-            maxZ = s_ProbeVolumeAtlasWidth / Mathf.Clamp(requestedX, 1, maxX);
-        }
-
         public void Build(HDRenderPipelineAsset asset)
         {
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;

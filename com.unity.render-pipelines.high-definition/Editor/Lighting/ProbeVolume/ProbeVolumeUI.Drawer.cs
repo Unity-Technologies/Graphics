@@ -13,23 +13,28 @@ namespace UnityEditor.Rendering.HighDefinition
         [System.Flags]
         enum Expandable
         {
-            Volume = 1 << 0
+            Volume = 1 << 0,
+            Probes = 1 << 1
         }
 
-        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedState = new ExpandedState<Expandable, ProbeVolume>(Expandable.Volume, "HDRP");
+        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateVolume = new ExpandedState<Expandable, ProbeVolume>(Expandable.Volume, "HDRP");
+        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateProbes = new ExpandedState<Expandable, ProbeVolume>(Expandable.Probes, "HDRP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
-            CED.Group(
-                Drawer_ToolBar,
-                Drawer_PrimarySettings
-                ),
-            CED.space,
             CED.FoldoutGroup(
                 Styles.k_VolumeHeader,
                 Expandable.Volume,
-                k_ExpandedState,
+                k_ExpandedStateVolume,
+                Drawer_ToolBar,
                 Drawer_AdvancedSwitch,
                 Drawer_VolumeContent
+                ),
+            CED.space,
+            CED.FoldoutGroup(
+                Styles.k_ProbesHeader,
+                Expandable.Probes,
+                k_ExpandedStateProbes,
+                Drawer_PrimarySettings
                 ),
             CED.space,
             CED.Group(
@@ -70,19 +75,46 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.drawProbes, Styles.s_DrawProbesLabel);
-            EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serialized.resolutionX, Styles.s_ResolutionXLabel);
-            EditorGUILayout.PropertyField(serialized.resolutionY, Styles.s_ResolutionYLabel);
-            EditorGUILayout.PropertyField(serialized.resolutionZ, Styles.s_ResolutionZLabel);
-            if (EditorGUI.EndChangeCheck())
+            EditorGUILayout.PropertyField(serialized.probeSpacingMode, Styles.s_ProbeSpacingModeLabel);
+            switch ((ProbeSpacingMode)serialized.probeSpacingMode.enumValueIndex)
             {
-                ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, serialized.resolutionX.intValue);
-                serialized.resolutionX.intValue = Mathf.Clamp(serialized.resolutionX.intValue, 1, maxX);
-                serialized.resolutionY.intValue = Mathf.Clamp(serialized.resolutionY.intValue, 1, maxY);
-                serialized.resolutionZ.intValue = Mathf.Clamp(serialized.resolutionZ.intValue, 1, maxZ);
+                case ProbeSpacingMode.Density:
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(serialized.densityX, Styles.s_DensityXLabel);
+                    EditorGUILayout.PropertyField(serialized.densityY, Styles.s_DensityYLabel);
+                    EditorGUILayout.PropertyField(serialized.densityZ, Styles.s_DensityZLabel);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.resolutionX.intValue = Mathf.Max(1, Mathf.RoundToInt(serialized.densityX.floatValue * serialized.size.vector3Value.x));
+                        serialized.resolutionY.intValue = Mathf.Max(1, Mathf.RoundToInt(serialized.densityY.floatValue * serialized.size.vector3Value.y));
+                        serialized.resolutionZ.intValue = Mathf.Max(1, Mathf.RoundToInt(serialized.densityZ.floatValue * serialized.size.vector3Value.z));
+                    }
+                    break;
+                }
+
+                case ProbeSpacingMode.Resolution:
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(serialized.resolutionX, Styles.s_ResolutionXLabel);
+                    EditorGUILayout.PropertyField(serialized.resolutionY, Styles.s_ResolutionYLabel);
+                    EditorGUILayout.PropertyField(serialized.resolutionZ, Styles.s_ResolutionZLabel);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.resolutionX.intValue = Mathf.Max(1, serialized.resolutionX.intValue);
+                        serialized.resolutionY.intValue = Mathf.Max(1, serialized.resolutionY.intValue);
+                        serialized.resolutionZ.intValue = Mathf.Max(1, serialized.resolutionZ.intValue);
+
+                        serialized.densityX.floatValue = (float)serialized.resolutionX.intValue / Mathf.Max(1e-5f, serialized.size.vector3Value.x);
+                        serialized.densityY.floatValue = (float)serialized.resolutionY.intValue / Mathf.Max(1e-5f, serialized.size.vector3Value.y);
+                        serialized.densityZ.floatValue = (float)serialized.resolutionZ.intValue / Mathf.Max(1e-5f, serialized.size.vector3Value.z);
+                    }
+                    break;
+                }
+
+                default: break;
             }
-            EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
+
         }
 
         static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)
@@ -190,6 +222,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.distanceFadeEnd.floatValue   = distanceFadeEnd;
                 }
             }
+
+            EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
+            EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
         }
     }
 }

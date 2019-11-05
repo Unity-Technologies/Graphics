@@ -578,8 +578,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (EditorGUI.EndChangeCheck())
                     {
-                        ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, resolutionX.intValue);
-                        resolutionX.intValue = Mathf.Clamp(resolutionX.intValue, 1, maxX);
+                        resolutionX.intValue = Mathf.Max(1, resolutionX.intValue);
                     }
                 }, (lhs, rhs) =>
                 {
@@ -598,8 +597,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (EditorGUI.EndChangeCheck())
                     {
                         SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
-                        ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, resolutionX.intValue);
-                        resolutionY.intValue = Mathf.Clamp(resolutionY.intValue, 1, maxY);
+                        resolutionY.intValue = Mathf.Max(1, resolutionY.intValue);
                     }
                 }, (lhs, rhs) =>
                 {
@@ -618,8 +616,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (EditorGUI.EndChangeCheck())
                     {
                         SerializedProperty resolutionX = prop.FindPropertyRelative("resolutionX");
-                        ProbeVolumeSystem.ComputeProbeVolumeMaxResolutionFromConstraintX(out int maxX, out int maxY, out int maxZ, resolutionX.intValue);
-                        resolutionZ.intValue = Mathf.Clamp(resolutionZ.intValue, 1, maxZ);
+                        resolutionZ.intValue = Mathf.Max(1, resolutionZ.intValue);
                     }
                 }, (lhs, rhs) =>
                 {

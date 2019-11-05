@@ -7,9 +7,15 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty debugColor;
         public SerializedProperty drawProbes;
 
+        public SerializedProperty probeSpacingMode;
+
         public SerializedProperty resolutionX;
         public SerializedProperty resolutionY;
         public SerializedProperty resolutionZ;
+
+        public SerializedProperty densityX;
+        public SerializedProperty densityY;
+        public SerializedProperty densityZ;
 
         public SerializedProperty weight;
 
@@ -35,9 +41,15 @@ namespace UnityEditor.Rendering.HighDefinition
             debugColor = probeVolumeParams.FindPropertyRelative("debugColor");
             drawProbes = probeVolumeParams.FindPropertyRelative("drawProbes");
 
+            probeSpacingMode = probeVolumeParams.FindPropertyRelative("probeSpacingMode");
+
             resolutionX = probeVolumeParams.FindPropertyRelative("resolutionX");
             resolutionY = probeVolumeParams.FindPropertyRelative("resolutionY");
             resolutionZ = probeVolumeParams.FindPropertyRelative("resolutionZ");
+
+            densityX = probeVolumeParams.FindPropertyRelative("densityX");
+            densityY = probeVolumeParams.FindPropertyRelative("densityY");
+            densityZ = probeVolumeParams.FindPropertyRelative("densityZ");
 
             weight = probeVolumeParams.FindPropertyRelative("weight");
 
