@@ -1016,7 +1016,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetGlobalBuffer(ShaderConstants._RelLightList, dc.relLightList);
 
                     cmd.SetGlobalInt(ShaderConstants._InstanceOffset, dc.instanceOffset);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 0, topology, vertexCount, dc.instanceCount);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 0, topology, vertexCount, dc.instanceCount); // Lit
+                    cmd.DrawProcedural(Matrix4x4.identity, m_TileDeferredMaterial, 1, topology, vertexCount, dc.instanceCount); // SimpleLit
                 }
             }
 
@@ -1095,7 +1096,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
 
                     // Lighting pass.
-                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1);
+                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
+                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
                 }
 
                 cmd.DisableShaderKeyword(ShaderConstants._SPOT);
@@ -1121,7 +1123,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector(ShaderConstants._LightDirection, -(Vector3)vl.localToWorldMatrix.GetColumn(2));
 
                     // Lighting pass.
-                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 2);
+                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3); // Lit
+                    cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 4); // SimpleLit
                 }
 
                 cmd.DisableShaderKeyword(ShaderConstants._DIRECTIONAL);
@@ -1167,7 +1170,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 0);
 
                     // Lighting pass.
-                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1);
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
+                    cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
                 }
 
                 cmd.DisableShaderKeyword(ShaderConstants._POINT);
@@ -1198,7 +1202,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.EnableShaderKeyword(ShaderConstants._FOG);
                 cmd.EnableShaderKeyword(fogModeVariant);
 
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 3);
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 5);
 
                 cmd.DisableShaderKeyword(ShaderConstants._FOG);
                 cmd.DisableShaderKeyword(fogModeVariant);

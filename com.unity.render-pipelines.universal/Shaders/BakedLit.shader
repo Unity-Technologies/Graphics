@@ -141,11 +141,12 @@ Shader "Universal Render Pipeline/Baked Lit"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // We must set it for BakedLit materials.
+            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // We must set bit 5 and unset bit 6 it for BakedLit materials.
             Stencil {
-                Ref 32
-                WriteMask 32
+                Ref 32       // 0b00100000
+                WriteMask 96 // 0b01100000
                 Comp always
                 Pass Replace
                 Fail Keep

@@ -99,7 +99,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         Light unityLight;
 
-        #if _DIRECTIONAL
+        #if defined(_DIRECTIONAL)
             unityLight.direction = _LightDirection;
             unityLight.color = _LightColor.rgb;
             unityLight.distanceAttenuation = 1.0;
@@ -115,31 +115,31 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
         #endif
 
-        half3 color;
-        [branch] if (lightingMode == kLightingSimpleLit)
-        {
+        half3 color = 0.0.xxx;
+
+        #if defined(_LIT)
+            color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+        #elif defined(_SIMPLELIT)
             half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
             half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
             half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness);
             // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
             color = diffuseColor * surfaceData.albedo + specularColor;
-        }
-        else
-            color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+        #endif
 
-    #if 0 // Temporary debug output
-        // TO CHECK (does Forward support works??):
-        //color.rgb = surfaceData.emission;
+        #if 0 // Temporary debug output
+            // TO CHECK (does Forward support works??):
+            //color.rgb = surfaceData.emission;
 
-        // TO REVIEW (needed for cutouts?):
-        //color.rgb = half3(surfaceData.alpha, surfaceData.alpha, surfaceData.alpha);
+            // TO REVIEW (needed for cutouts?):
+            //color.rgb = half3(surfaceData.alpha, surfaceData.alpha, surfaceData.alpha);
 
-        // TODO (approach for shadows?)
-        //color.rgb = inputData.shadowCoord.xyz;
-        // TO REVIEW (support those? fog passed with VertexLight in forward)
-        //color.rgb = half3(inputData.fogCoord, inputData.fogCoord, inputData.fogCoord);
-        //color.rgb = inputData.vertexLighting;
-    #endif
+            // TODO (approach for shadows?)
+            //color.rgb = inputData.shadowCoord.xyz;
+            // TO REVIEW (support those? fog passed with VertexLight in forward)
+            //color.rgb = half3(inputData.fogCoord, inputData.fogCoord, inputData.fogCoord);
+            //color.rgb = inputData.vertexLighting;
+        #endif
 
         return half4(color, 0.0);
     }
@@ -194,10 +194,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 1 - Deferred Punctual Light
+        // 1 - Deferred Punctual Light (Lit)
         Pass
         {
-            Name "Deferred Punctual Light"
+            Name "Deferred Punctual Light (Lit)"
 
             ZTest GEqual
             ZWrite Off
@@ -205,12 +205,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // Bit 4 is used for the stencil volume.
-            // Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 4 is used for the stencil volume.
+            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
             Stencil {
-                Ref 16
-                WriteMask 16
-                ReadMask 48
+                Ref 16       // 0b00010000
+                WriteMask 16 // 0b00010000
+                ReadMask 112 // 0b01110000
                 CompBack Equal
                 PassBack Zero
                 FailBack Zero
@@ -220,6 +221,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             HLSLPROGRAM
 
             #pragma multi_compile _POINT _SPOT
+            #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -231,24 +233,24 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 2 - Directional Light
+        // 2 - Deferred Punctual Light (SimpleLit)
         Pass
         {
-            Name "Deferred Directional Light"
+            Name "Deferred Punctual Light (SimpleLit)"
 
-            ZTest Less
-            ZTest NotEqual
+            ZTest GEqual
             ZWrite Off
-            Cull Off
+            Cull Front
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // Bit 4 is used for the stencil volume.
-            // Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 4 is used for the stencil volume.
+            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
             Stencil {
-                Ref 16
-                WriteMask 16
-                ReadMask 48
+                Ref 80       // 0b01010000
+                WriteMask 16 // 0b00010000
+                ReadMask 112 // 0b01110000
                 CompBack Equal
                 PassBack Zero
                 FailBack Zero
@@ -257,7 +259,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             HLSLPROGRAM
 
-            #pragma multi_compile _DIRECTIONAL
+            #pragma multi_compile _POINT _SPOT
+            #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -269,7 +272,87 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 3 - Legacy fog
+        // 3 - Directional Light (Lit)
+        Pass
+        {
+            Name "Deferred Directional Light (Lit)"
+
+            ZTest Less
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One One, Zero One
+            BlendOp Add, Add
+
+            // [Stencil] Bit 4 is used for the stencil volume.
+            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            Stencil {
+                Ref 0       // 0b00000000
+                WriteMask 0 // 0b00000000
+                ReadMask 96 // 0b01100000
+                Comp Equal
+                Pass Keep
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _DIRECTIONAL
+            #pragma multi_compile_fragment _LIT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 4 - Directional Light (SimpleLit)
+        Pass
+        {
+            Name "Deferred Directional Light (SimpleLit)"
+
+            ZTest Less
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One One, Zero One
+            BlendOp Add, Add
+
+            // [Stencil] Bit 4 is used for the stencil volume.
+            // [Stencil] Bit 5 are marked pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            Stencil {
+                Ref 64      // 0b01000000
+                WriteMask 0 // 0b00000000
+                ReadMask 96 // 0b01100000
+                Comp Equal
+                Pass Keep
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _DIRECTIONAL
+            #pragma multi_compile_fragment _SIMPLELIT
+            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+
+            #pragma vertex Vertex
+            #pragma fragment DeferredShading
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
+
+        // 5 - Legacy fog
         Pass
         {
             Name "Fog"
