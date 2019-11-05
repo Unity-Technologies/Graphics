@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader Graph shaders in `Always Include Shaders` no longer crash builds. [1191757](https://issuetracker.unity3d.com/issues/lwrp-build-crashes-when-built-with-shadergraph-file-added-to-always-include-shaders-list)
 - The `Transform` node now correctly transforms Absolute World to Object.
 
+### Fixed
+- Sticky Notes can now be grouped properly.
+- Fixed an issue where nodes couldn't be copied from a group.
+
 ## [7.1.1] - 2019-09-05
 ### Added
 - You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
