@@ -17,7 +17,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-#if defined(USING_PUREURP)
+#if defined(UNITY_PURE_URP_ENABLED)
         TEXTURE2D_X(_BlitTex);
         float4 _BlitTex_TexelSize;
         #define _MainTex _BlitTex

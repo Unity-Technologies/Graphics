@@ -253,10 +253,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Use SRP managed View&Proj
             if(URPCameraMode.isPureURP)
             {
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                Matrix4x4 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
@@ -371,10 +369,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (URPCameraMode.isPureURP)
                 {
-                    Matrix4x4 projMatrix;
-                    Matrix4x4 viewMatrix;
-                    projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
-                    viewMatrix = Matrix4x4.identity;
+                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
+                    Matrix4x4 viewMatrix = Matrix4x4.identity;
                     Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                     Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
                     cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);

@@ -6,7 +6,7 @@
 
 // Experimental Code Path: Pure URP
 #if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON) && defined(PURE_URP_ON)
-#define USING_PUREURP
+#define UNITY_PURE_URP_ENABLED
 #endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
@@ -43,10 +43,6 @@ struct InputData
 ///////////////////////////////////////////////////////////////////////////////
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
-
-//#if defined(USING_PUREURP)
-//#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesMatrixDefsURP.hlsl"
-//#else
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
@@ -69,24 +65,15 @@ half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
 #endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
-#if defined(USING_PUREURP)
-//float4x4 _ViewProjMatrix;
-//float4x4 _ViewMatrix;
-//float4x4 _ProjMatrix;
-//float4x4 _InvViewProjMatrix;
-//float4x4 _InvViewMatrix;
-//float4x4 _InvProjMatrix;
-//float4x4 BUILDIN_unity_CameraInvProjection;
-//float4x4 BUILDIN_unity_CameraToWorld;
-//int      BUILDIN_unity_StereoEyeIndex;
+#if defined(UNITY_PURE_URP_ENABLED)
 // Define Getters
 // Note: In order to be able to define our macro/getter to forbid usage of unity_* build-in shader vars
 // We need to declare inline function.
 float4x4 GetRawUnityObjectToWorld() { return unity_ObjectToWorld; }
 float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 // To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
-//#define unity_ObjectToWorld        Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
-//#define unity_WorldToObject        Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
+#define unity_ObjectToWorld        Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
+#define unity_WorldToObject        Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 
 #define UNITY_MATRIX_M     GetRawUnityObjectToWorld()
 #define UNITY_MATRIX_I_M   GetRawUnityWorldToObject()
@@ -114,7 +101,6 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
 #define UNITY_MATRIX_MVP   mul(UNITY_MATRIX_VP, UNITY_MATRIX_M)
 #endif
-//#endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"

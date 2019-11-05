@@ -108,6 +108,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
                         cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
                         cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                        // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
+                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                     }
                     else
                     {

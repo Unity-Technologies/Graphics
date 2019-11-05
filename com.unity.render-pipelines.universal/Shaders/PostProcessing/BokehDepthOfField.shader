@@ -22,7 +22,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         // a small cost to the pre-filtering pass
         #define COC_LUMA_WEIGHTING      0
 
-#if defined(USING_PUREURP)
+#if defined(UNITY_PURE_URP_ENABLED)
         TEXTURE2D_X(_BlitTex);
         float4 _BlitTex_TexelSize;
         #define _MainTex _BlitTex

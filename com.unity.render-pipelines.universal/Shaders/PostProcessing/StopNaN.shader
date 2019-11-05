@@ -18,7 +18,7 @@ Shader "Hidden/Universal Render Pipeline/Stop NaN"
 
         #define NAN_COLOR half3(0.0, 0.0, 0.0)
 
-#if defined(USING_PUREURP)
+#if defined(UNITY_PURE_URP_ENABLED)
         TEXTURE2D_X(_BlitTex);
         #define _MainTex _BlitTex
 #else
