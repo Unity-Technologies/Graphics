@@ -13,7 +13,7 @@ Please add any useful notes about the feature/fix that might be helpful for othe
 - [ ] Opened test project + Run graphic tests locally
 - [ ] Built a player
 - [ ] Checked new UI names with UX convention
-- [ ] Tested UI multi-edition + Undo/Redo
+- [ ] Tested UI multi-edition + Undo/Redo + Prefab overrides
 - [ ] C# and shader warnings (supress shader cache to see them)
 - [ ] Checked new resources path for the reloader (in devloper mode, you have a button at end of resources that check the pathes)
 - Other: 
