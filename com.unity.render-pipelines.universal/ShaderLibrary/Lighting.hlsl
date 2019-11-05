@@ -247,6 +247,7 @@ struct BRDFData
 {
     half3 diffuse;
     half3 specular;
+    half reflectivity;
     half perceptualRoughness;
     half roughness;
     half roughness2;
@@ -278,22 +279,11 @@ half OneMinusReflectivityMetallic(half metallic)
     return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, half alpha, out BRDFData outBRDFData)
 {
-#ifdef _SPECULAR_SETUP
-    half reflectivity = ReflectivitySpecular(specular);
-    half oneMinusReflectivity = 1.0 - reflectivity;
-
-    outBRDFData.diffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    outBRDFData.diffuse = diffuse;
     outBRDFData.specular = specular;
-#else
-
-    half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
-    half reflectivity = 1.0 - oneMinusReflectivity;
-
-    outBRDFData.diffuse = albedo * oneMinusReflectivity;
-    outBRDFData.specular = lerp(kDieletricSpec.rgb, albedo, metallic);
-#endif
+    outBRDFData.reflectivity = reflectivity;
 
     outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
     outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
@@ -307,6 +297,25 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.diffuse *= alpha;
     alpha = alpha * oneMinusReflectivity + reflectivity;
 #endif
+}
+
+inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha, out BRDFData outBRDFData)
+{
+#ifdef _SPECULAR_SETUP
+    half reflectivity = ReflectivitySpecular(specular);
+    half oneMinusReflectivity = 1.0 - reflectivity;
+    half3 brdfDiffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    half3 brdfSpecular = specular;
+
+#else
+    half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
+    half reflectivity = 1.0 - oneMinusReflectivity;
+    half3 brdfDiffuse = albedo * oneMinusReflectivity;
+    half3 brdfSpecular = lerp(kDieletricSpec.rgb, albedo, metallic);
+
+#endif
+
+    InitializeBRDFDataDirect(brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, outBRDFData);
 }
 
 half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)

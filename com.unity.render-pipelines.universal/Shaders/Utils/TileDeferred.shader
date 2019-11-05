@@ -193,11 +193,13 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
         posWS.xyz *= 1.0 / posWS.w;
 
-        int lightingMode;
-        SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, lightingMode);
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
-        BRDFData brdfData;
-        InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+
+        #if defined(_LIT)
+            BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+        #elif defined(_SIMPLELIT)
+            SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
+        #endif
 
         half3 color = 0.0.xxx;
 

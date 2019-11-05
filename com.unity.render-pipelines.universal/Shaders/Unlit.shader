@@ -134,8 +134,6 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma vertex UnlitGBufferPassVertex
             #pragma fragment UnlitGBufferPassFragment
 
-            #pragma vertex vert
-            #pragma fragment frag
             #pragma shader_feature _ALPHATEST_ON
             //#pragma shader_feature _ALPHAPREMULTIPLY_ON
 

@@ -3,10 +3,8 @@
 
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
-#define kLightingInvalid     -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
-#define kLightingLitMetallic 0  // Standard lit with metallic workflow => !defined(_SPECULAR_SETUP)
-#define kLightingLitSpecular 1  // Standard lit with specular workflow =>  defined(_SPECULAR_SETUP)
-#define kLightingSimpleLit 2    // Simple lit shader
+#define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
+#define kLightingSimpleLit 2  // Simple lit shader
 // clearcoat 3
 // backscatter 4 
 // skin 5
@@ -34,15 +32,9 @@ FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, Inpu
 
     half metallic = surfaceData.metallic;
     half packedSmoothness = surfaceData.smoothness;
-    if (lightingMode == kLightingLitMetallic)
-        metallic *= 253.0 / 255.0;
-    if (lightingMode == kLightingLitSpecular)
-        metallic = 254.0 / 255.0;
-    else if (lightingMode == kLightingSimpleLit)
-    {
-        metallic = 255.0 / 255.0;
+
+    if (lightingMode == kLightingSimpleLit)
         packedSmoothness = (0.1 * log2(packedSmoothness) - 1); // See SimpleLitInput.hlsl, SampleSpecularSmoothness(): TODO pass in the original smoothness value
-    }
 
     FragmentOutput output;
     output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo          albedo          albedo          occlusion    (sRGB rendertarget)
@@ -54,34 +46,19 @@ FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, Inpu
 }
 
 // This decodes the Gbuffer into a SurfaceData struct
-SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2, out int lightingMode)
+SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2, int lightingMode)
 {
     SurfaceData surfaceData;
 
     surfaceData.albedo = gbuffer0.rgb;
     surfaceData.occlusion = gbuffer0.a;
-
     surfaceData.specular = gbuffer1.rgb;
 
     half metallic = gbuffer1.a;
     half smoothness = gbuffer2.a;
 
-    if (metallic == 255.0 / 255.0)
-    {
-        lightingMode = kLightingSimpleLit;
-        metallic = 0.0; // unused
+    if (lightingMode == kLightingSimpleLit)
         smoothness = exp2(10.0 * smoothness + 1);
-    }
-    else if (metallic == 254.0 / 255.0)
-    {
-        lightingMode = kLightingLitSpecular;
-        metallic = 0.0; // unused
-    }
-    else
-    {
-        lightingMode = kLightingLitMetallic;
-        metallic *= 255.0 / 253.0;
-    }
 
     surfaceData.metallic = metallic;
     surfaceData.alpha = 1.0; // gbuffer only contains opaque materials
@@ -91,6 +68,41 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
     surfaceData.normalTS = (half3)0; // Note: does this normalTS member need to be in SurfaceData? It looks like an intermediate value
 
     return surfaceData;
+}
+
+// This will encode SurfaceData into GBuffer
+FragmentOutput BRDFDataAndMainLightingToGbuffer(BRDFData brdfData, InputData inputData, half occlusion, half smoothness, half3 emission, half3 globalIllumination)
+{
+#if PACK_NORMALS_OCT
+    half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
+    half2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
+#else
+    half3 packedNormalWS = inputData.normalWS * 0.5 + 0.5;   // values between [ 0,  1]
+#endif
+
+    FragmentOutput output;
+    output.GBuffer0 = half4(brdfData.diffuse.rgb, occlusion);              // diffuse         diffuse         diffuse         occlusion    (sRGB rendertarget)
+    output.GBuffer1 = half4(brdfData.specular.rgb, brdfData.reflectivity); // specular        specular        specular        metallic     (sRGB rendertarget)
+    output.GBuffer2 = half4(packedNormalWS, smoothness);                   // encoded-normal  encoded-normal  encoded-normal  smoothness
+    output.GBuffer3 = half4(emission.rgb + globalIllumination, 0);         // emission+GI     emission+GI     emission+GI     [unused]     (lighting buffer)
+
+    return output;
+}
+
+// This decodes the Gbuffer into a SurfaceData struct
+BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
+{
+    half3 diffuse = gbuffer0.rgb;
+    half3 specular = gbuffer1.rgb;
+    half reflectivity = gbuffer1.a;
+    half oneMinusReflectivity = 1.0h - reflectivity;
+    half smoothness = gbuffer2.a;
+
+    BRDFData brdfData;
+    InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, 1.0, brdfData);
+
+    return brdfData;
 }
 
 InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)

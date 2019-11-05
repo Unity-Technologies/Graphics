@@ -150,13 +150,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS); // TODO move this to a separate full-screen single gbuffer pass?
 
-    #ifdef _SPECULAR_SETUP
-    int lightingMode = kLightingLitSpecular;
-    #else
-    int lightingMode = kLightingLitMetallic;
-    #endif
-
-    return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color, lightingMode);
+    return BRDFDataAndMainLightingToGbuffer(brdfData, inputData, surfaceData.occlusion, surfaceData.smoothness, surfaceData.emission, color);
 }
 
 #endif

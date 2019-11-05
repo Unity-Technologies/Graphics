@@ -130,7 +130,7 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
 
-    return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color, kLightingSimpleLit);
+    return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 };
 
 #endif
