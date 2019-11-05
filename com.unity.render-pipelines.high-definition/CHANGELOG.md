@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a number of issues with full screen debug modes not reseting correctly when setting another mutually exclusive mode
 - Fixed compile errors for platforms with no VR support
 - Fixed an issue with volumetrics and RTHandle scaling (case 1155236)
+- Fixed an issue where sky lighting might be updated uselessly
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
