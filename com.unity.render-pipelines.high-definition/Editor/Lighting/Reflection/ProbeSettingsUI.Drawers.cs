@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((displayedFields.probe & frustum) != 0)
             {
                 PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.frustumFieldOfViewMode, serialized.frustumFieldOfViewMode, EditorGUIUtility.TrTextContent("Field Of View Mode"), @override.probe, displayedFields.probe, overridableFields.probe);
-                switch ((ProbeSettings.Frustum.FOVMode)serialized.frustumFieldOfViewMode.enumValueIndex)
+                switch (serialized.frustumFieldOfViewMode.GetEnumValue<ProbeSettings.Frustum.FOVMode>())
                 {
                     case ProbeSettings.Frustum.FOVMode.Fixed:
                         PropertyFieldWithFlagToggleIfDisplayed(ProbeSettingsFields.frustumFixedValue, serialized.frustumFixedValue, EditorGUIUtility.TrTextContent("Value"), @override.probe, displayedFields.probe, overridableFields.probe, indent: 1);

@@ -843,8 +843,8 @@ namespace UnityEditor.ShaderGraph
 
                 GroupData newGroup = new GroupData(group.title, position);
 
-                var oldGuid = group.legacyGuid;
-                var newGuid = newGroup.legacyGuid;
+                var oldGuid = group.guid;
+                var newGuid = newGroup.guid;
                 groupGuidMap[oldGuid] = newGuid;
 
                 AddGroup(newGroup);
@@ -858,9 +858,9 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
 
                 StickyNoteData pastedStickyNote = new StickyNoteData(stickyNote.title, stickyNote.content, position);
-                if (groupGuidMap.ContainsKey(stickyNote.legacyGroupGuid))
+                if (groupGuidMap.ContainsKey(stickyNote.groupGuid))
                 {
-                    pastedStickyNote.legacyGroupGuid = groupGuidMap[stickyNote.legacyGroupGuid];
+                    pastedStickyNote.groupGuid = groupGuidMap[stickyNote.groupGuid];
                 }
 
                 AddStickyNote(pastedStickyNote);
@@ -872,7 +872,7 @@ namespace UnityEditor.ShaderGraph
             {
                 AbstractMaterialNode pastedNode = node;
 
-                var oldGuid = node.legacyGuid;
+                var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
                 nodeGuidMap[oldGuid] = newGuid;
 
@@ -889,18 +889,27 @@ namespace UnityEditor.ShaderGraph
                         {
                             pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
                             pastedNode.drawState = node.drawState;
-                            nodeGuidMap[oldGuid] = pastedNode.legacyGuid;
+                            nodeGuidMap[oldGuid] = pastedNode.guid;
                         }
                     }
                 }
 
                 AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
+
+                // If the node has a group guid and no group has been copied, reset the group guid.
                 // Check if the node is inside a group
-                if (groupGuidMap.ContainsKey(abstractMaterialNode.legacyGroupGuid))
+                if (abstractMaterialNode.groupGuid != Guid.Empty)
                 {
-                    var absNode = pastedNode as AbstractMaterialNode;
-                    absNode.legacyGroupGuid = groupGuidMap[abstractMaterialNode.legacyGroupGuid];
-                    pastedNode = absNode;
+                    if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
+                    {
+                        var absNode = pastedNode as AbstractMaterialNode;
+                        absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
+                        pastedNode = absNode;
+                    }
+                    else
+                    {
+                        pastedNode.groupGuid = Guid.Empty;
+                    }
                 }
 
                 var drawState = node.drawState;
@@ -945,10 +954,12 @@ namespace UnityEditor.ShaderGraph
 
                 Guid remappedOutputNodeGuid;
                 Guid remappedInputNodeGuid;
-                if (nodeGuidMap.TryGetValue(outputSlot.owner.guid, out remappedOutputNodeGuid)
-                    && nodeGuidMap.TryGetValue(inputSlot.owner.guid, out remappedInputNodeGuid))
+                if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
+                    && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
                 {
-                    remappedEdges.Add(Connect(outputSlot, inputSlot));
+                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
+                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
+                    remappedEdges.Add(Connect(outputSlotRef, inputSlotRef));
                 }
             }
 

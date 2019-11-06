@@ -5,7 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class HDTemporalFilter
     {
-#if ENABLE_RAYTRACING
         // Resources used for the denoiser
         ComputeShader m_TemporalFilterCS;
 
@@ -88,6 +87,5 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
         }
-#endif
     }
 }
