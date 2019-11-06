@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [FormerName("UnityEditor.ShaderGraph.BooleanShaderProperty")]
     public sealed class BooleanShaderProperty : AbstractShaderProperty<bool>
     {
-        internal BooleanShaderProperty()
+        public BooleanShaderProperty()
         {
             displayName = "Boolean";
         }

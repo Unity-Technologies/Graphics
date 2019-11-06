@@ -50,9 +50,9 @@ namespace UnityEditor.ShaderGraph
 
         public virtual void ProcessPreviewMaterial(Material Material) {}
     }
-    
+
     [Serializable]
-    abstract class MasterNode<T> : AbstractMaterialNode, IMasterNode, IHasSettings
+    abstract class MasterNode<T> : MasterNode
         where T : JsonObject, ISubShader
     {
         [SerializeField]
@@ -168,8 +168,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
-
-        public virtual void ProcessPreviewMaterial(Material material) {}
 
         internal override void OnDeserialized(string json)
         {

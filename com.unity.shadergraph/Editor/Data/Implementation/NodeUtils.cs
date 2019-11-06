@@ -128,12 +128,11 @@ namespace UnityEditor.Graphing
         {
             var node = slot.owner;
             var graph = node.owner;
-            foreach (var edge in graph.GetEdges(node.GetSlotReference(slot.id)))
+            foreach (var edge in graph.GetEdges(slot))
             {
-                var outputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                if (outputNode != null)
+                if (edge.outputSlot != null)
                 {
-                    CollectNodeSet(nodeSet, outputNode);
+                    CollectNodeSet(nodeSet, edge.outputSlot);
                 }
             }
         }

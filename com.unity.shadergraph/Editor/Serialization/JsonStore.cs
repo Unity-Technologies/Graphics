@@ -49,7 +49,11 @@ namespace UnityEditor.ShaderGraph.Serialization
         public JsonObject root
         {
             get => Get(m_RootId);
-            set => m_RootId = value.jsonId;
+            set
+            {
+                m_RootId = value.jsonId;
+                objectMap[m_RootId] = value;
+            }
         }
 
         public T First<T>() where T : JsonObject
@@ -119,7 +123,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             foreach (var (serializedObject, _) in serializedObjects)
             {
                 sb.AppendLine($"--- {serializedObject.type} {serializedObject.id}");
-                sb.AppendLine(serializedObject.id);
+                sb.AppendLine(serializedObject.json);
                 sb.AppendLine();
             }
 
@@ -158,12 +162,12 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public static JsonStore Deserialize(string str)
         {
-            var rawItems = new List<RawJsonStoreItem>();
+            var rawItems = new List<RawJsonObject>();
 
             // Handle legacy graphs
             if (str.StartsWith("{"))
             {
-                rawItems.Add(new RawJsonStoreItem
+                rawItems.Add(new RawJsonObject
                 {
                     typeFullName = typeof(GraphData).FullName,
                     id = Guid.NewGuid().ToString(),
@@ -172,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
             else
             {
-                rawItems = JsonStoreFormat.Parse(str);
+                rawItems = JsonAsset.Parse(str);
             }
 
             var jsonStore = CreateInstance<JsonStore>();
@@ -185,6 +189,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 {
                     if (!typeMap.TryGetValue(rawItem.typeFullName, out var type))
                     {
+                        Debug.LogWarning($"Could not find type {rawItem.typeFullName}");
                         // TODO: Handle fallback
                         continue;
                     }
@@ -192,14 +197,15 @@ namespace UnityEditor.ShaderGraph.Serialization
                     var obj = (JsonObject)Activator.CreateInstance(type);
                     obj.jsonId = rawItem.id;
                     Assert.AreEqual(rawItem.id, obj.jsonId);
+                    jsonStore.objectMap.Add(obj.jsonId, obj);
                     items.Add((obj, rawItem.json));
                 }
 
                 for (var i = 0; i < items.Count; i++)
                 {
                     var (instance, json) = items[i];
+                    instance.OnDeserializing();
                     EditorJsonUtility.FromJsonOverwrite(json, instance);
-                    jsonStore.objectMap.Add(instance.jsonId, instance);
                     instance.OnDeserialized(json);
                 }
 
@@ -367,6 +373,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                         var (instance, json) = items[i];
                         if (!string.IsNullOrEmpty(json))
                         {
+                            instance.OnDeserializing();
                             EditorJsonUtility.FromJsonOverwrite(json, instance);
                         }
                         instance.OnDeserialized(json);

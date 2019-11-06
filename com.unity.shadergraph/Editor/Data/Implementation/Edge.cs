@@ -57,9 +57,9 @@ namespace UnityEditor.ShaderGraph
         {
             if (ReferenceEquals(this, other)) return 0;
             if (ReferenceEquals(null, other)) return 1;
-            var outputSlotComparison = m_OutputSlot.CompareTo(other.m_OutputSlot);
+            var outputSlotComparison = m_OutputSlot.target.jsonId.CompareTo(other.m_OutputSlot.target.jsonId);
             if (outputSlotComparison != 0) return outputSlotComparison;
-            return m_InputSlot.CompareTo(other.m_InputSlot);
+            return m_InputSlot.target.jsonId.CompareTo(other.m_InputSlot.target.jsonId);
         }
     }
 }

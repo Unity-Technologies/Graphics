@@ -8,6 +8,8 @@ using System.Text;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -57,14 +59,19 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
-        
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
+            // TODO: Implement minimal deserializer for new path
+            if (File.ReadAllText(assetPath).StartsWith("---"))
+            {
+                return new string[0];
+            }
             try
             {
-            return MinimalGraphData.GetDependencyPaths(assetPath);
-        }
+                return MinimalGraphData.GetDependencyPaths(assetPath);
+            }
             catch (Exception e)
             {
                 Debug.LogException(e);
@@ -86,7 +93,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var set = JsonStore.Deserialize(textGraph);
-            graph = set.First<GraphData>();
+            var graph = set.First<GraphData>();
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
             graph.OnEnable();
@@ -95,7 +102,7 @@ Shader ""Hidden/GraphErrorShader2""
             if (graph.outputNode is VfxMasterNode vfxMasterNode)
             {
                 var vfxAsset = GenerateVfxShaderGraphAsset(vfxMasterNode);
-                
+
                 mainObject = vfxAsset;
             }
             else
@@ -252,10 +259,10 @@ Shader ""Hidden/GraphErrorShader2""
                 portNodeSets[portIndex] = nodeSet;
             }
 
-            var portPropertySets = new HashSet<Guid>[ports.Count];
+            var portPropertySets = new HashSet<AbstractShaderProperty>[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
-                portPropertySets[portIndex] = new HashSet<Guid>();
+                portPropertySets[portIndex] = new HashSet<AbstractShaderProperty>();
             }
 
             foreach (var node in nodes)
@@ -270,7 +277,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var portNodeSet = portNodeSets[portIndex];
                     if (portNodeSet.Contains(node))
                     {
-                        portPropertySets[portIndex].Add(propertyNode.propertyGuid);
+                        portPropertySets[portIndex].Add(propertyNode.property);
                     }
                 }
             }
@@ -317,7 +324,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var message = new StringBuilder($"Precision mismatch for function {name}:");
                     foreach (var node in source.nodes)
                     {
-                        message.AppendLine($"{node.name} ({node.guid}): {node.concretePrecision}");
+                        message.AppendLine($"{node.name} ({node.jsonId}): {node.concretePrecision}");
                     }
                     throw new InvalidOperationException(message.ToString());
                 }
@@ -350,7 +357,7 @@ Shader ""Hidden/GraphErrorShader2""
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.guid))
+                    if (portPropertySet.Contains(property))
                     {
                         portCodeIndices[portIndex].Add(codeSnippets.Count);
                     }
@@ -479,7 +486,7 @@ Shader ""Hidden/GraphErrorShader2""
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.guid))
+                    if (portPropertySet.Contains(property))
                 {
                         portCodeIndices[portIndex].Add(codeIndex);
                         portPropertyIndices[portIndex].Add(propertyIndex);

@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Internal
     [FormerName("UnityEditor.ShaderGraph.Vector2ShaderProperty")]
     public sealed class Vector2ShaderProperty : VectorShaderProperty
     {
-        internal Vector2ShaderProperty()
+        public Vector2ShaderProperty()
         {
             displayName = "Vector2";
         }

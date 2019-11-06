@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public enum DefaultType { White, Black, Grey, Bump }
 
-        internal Texture2DShaderProperty()
+        public Texture2DShaderProperty()
         {
             displayName = "Texture2D";
         }

@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ConnectorListener = connectorListener;
             node = inNode;
-            viewDataKey = node.guid.ToString();
+            viewDataKey = node.jsonId;
             UpdateTitle();
 
             // Add controls container
@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var nodeTypeSettings = node as IHasSettings;
             if (nodeTypeSettings != null)
                 m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-            
+
             // Add manipulators
             m_SettingsButton.AddManipulator(new Clickable(() =>
                 {
@@ -204,6 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            ChangeDispatcher.Connect(this, node, OnChange);
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -222,6 +223,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(badge);
             badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
         }
+
 
         public void ClearMessage()
         {
@@ -243,7 +245,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_TitleContainer.style.borderBottomColor = color;
         }
-        
+
         public void ResetColor()
         {
             m_TitleContainer.style.borderBottomColor = noColor;
@@ -305,7 +307,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is Node)
             {
                 var isMaster = node is IMasterNode;
-                var isActive = node.guid == node.owner.activeOutputNodeGuid;
+                var isActive = node == node.owner.outputNode;
                 if (isMaster)
                 {
                     evt.menu.AppendAction("Set Active", SetMasterAsActive,
@@ -333,7 +335,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SetMasterAsActive(DropdownMenuAction action)
         {
-            node.owner.activeOutputNodeGuid = node.guid;
+            node.owner.owner.RegisterCompleteObjectUndo("Set Active Master Node");
+            node.owner.outputNode = node;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -352,7 +355,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var mode = (GenerationMode)action.userData;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.guid, mode == GenerationMode.Preview ? "-Preview" : "");
+                SanitizeName(node.name), node.jsonId, mode == GenerationMode.Preview ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }
@@ -382,7 +385,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             if (evt.newValue.Equals(node.precision))
                                 return;
-                            
+
                             var editorView = GetFirstAncestorOfType<GraphEditorView>();
                             var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
 
@@ -517,6 +520,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 title = node.name;
         }
 
+        public void OnChange()
+        {
+            SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
+            OnModified(ModificationScope.Topological);
+        }
+
         public void OnModified(ModificationScope scope)
         {
             UpdateTitle();
@@ -634,7 +643,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_PortInputContainer.Add(portInputView);
                     SetPortInputPosition(port, portInputView);
                 }
-                
+
                 port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
             }
         }
@@ -643,7 +652,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = (ShaderPort)evt.target;
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-            
+
             // Ensure PortInputViews are initialized correctly
             // Dynamic port lists require one update to validate before init
             if(inputViews.Count() != 0)
@@ -651,7 +660,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
-            
+
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 
@@ -720,7 +729,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: Move to new NodeView type when keyword node has unique style
             if(node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())

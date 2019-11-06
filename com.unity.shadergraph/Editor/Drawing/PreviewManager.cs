@@ -477,14 +477,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode))
                     continue;
-
-                    results = m_Graph.GetPreviewShader(node);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Error while generating shader for node {node.name}:\n{e}");
-                    continue;
-                }
+                var results = m_Graph.GetPreviewShader(node);
 
                 if (!m_RenderDatas.TryGetValue(node, out var renderData))
                 {

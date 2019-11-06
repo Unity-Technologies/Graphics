@@ -8,14 +8,14 @@ namespace UnityEditor.ShaderGraph.Internal
     [FormerName("UnityEditor.ShaderGraph.Vector4ShaderProperty")]
     public sealed class Vector4ShaderProperty : VectorShaderProperty
     {
-        internal Vector4ShaderProperty()
+        public Vector4ShaderProperty()
         {
             displayName = "Vector4";
         }
         internal override bool isGpuInstanceable => true;
-        
+
         public override PropertyType propertyType => PropertyType.Vector4;
-        
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();

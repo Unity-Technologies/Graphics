@@ -789,7 +789,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var materialNodeView = new MaterialNodeView {userData = materialNode};
                 m_GraphView.AddElement(materialNodeView);
-                materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener);
+                materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, m_GraphView);
                 m_ColorManager.UpdateNodeView(materialNodeView);
                 nodeView = materialNodeView;
             }

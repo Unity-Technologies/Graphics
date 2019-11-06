@@ -15,6 +15,7 @@ using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using Object = System.Object;
 
@@ -110,10 +111,12 @@ namespace UnityEditor.ShaderGraph
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
+            var jsonStore = CreateInstance<JsonStore>();
             var graph = new GraphData();
+            jsonStore.root = graph;
             graph.AddNode(node);
             graph.path = "Shader Graphs";
-            FileUtilities.WriteShaderGraphToDisk(pathName, graph);
+            FileUtilities.WriteToDisk(pathName, jsonStore.Serialize(true));
             AssetDatabase.Refresh();
 
             UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<Shader>(pathName);

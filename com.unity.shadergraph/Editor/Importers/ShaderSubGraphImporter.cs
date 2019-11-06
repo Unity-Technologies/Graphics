@@ -8,6 +8,8 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -21,8 +23,8 @@ namespace UnityEditor.ShaderGraph
         {
             try
             {
-            return MinimalGraphData.GetDependencyPaths(assetPath);
-        }
+                return MinimalGraphData.GetDependencyPaths(assetPath);
+            }
             catch (Exception e)
             {
                 Debug.LogException(e);
@@ -42,6 +44,7 @@ namespace UnityEditor.ShaderGraph
             graphData.isSubGraph = true;
             var messageManager = new MessageManager();
             graphData.messageManager = messageManager;
+
 //            JsonUtility.FromJsonOverwrite(textGraph, graphData);
 
             try
@@ -67,6 +70,7 @@ namespace UnityEditor.ShaderGraph
                         }
                     }
                 }
+
                 messageManager.ClearAll();
             }
 
@@ -238,7 +242,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (!dependencyMap.ContainsKey(assetPath))
             {
-                if(assetPath.EndsWith(Extension))
+                if (assetPath.EndsWith(Extension))
                     MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
 
                 var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
@@ -277,6 +281,7 @@ namespace UnityEditor.ShaderGraph
                     return true;
                 }
             }
+
             ancestors.RemoveAt(ancestors.Count - 1);
 
             return false;

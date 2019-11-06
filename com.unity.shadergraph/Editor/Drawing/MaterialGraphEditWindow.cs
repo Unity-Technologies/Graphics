@@ -13,6 +13,7 @@ using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UIEdge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
@@ -122,7 +123,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (EditorUtility.DisplayDialog("Graph has changed on disk, do you want to reload?", AssetDatabase.GUIDToAssetPath(selectedGuid), "Reload", "Don't Reload"))
             {
-                graphObject = null;
+                jsonStore = null;
             }
         }
 
@@ -257,7 +258,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool IsDirty()
         {
-            var currentJson = EditorJsonUtility.ToJson(graphObject.graph, true);
+            var currentJson = jsonStore.Serialize(true);
             var fileJson = File.ReadAllText(AssetDatabase.GUIDToAssetPath(selectedGuid));
             return !string.Equals(currentJson, fileJson, StringComparison.Ordinal);
         }
@@ -351,8 +352,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
                     if (shader != null)
                     {
-                    GraphData.onSaveGraph(shader);
-                    }                    
+                        GraphData.onSaveGraph(shader);
+                    }
                 }
             }
 
@@ -361,20 +362,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void SaveAs()
         {
-            if (selectedGuid != null && graphObject != null)
+            if (selectedGuid != null && jsonStore != null)
             {
                 var path = AssetDatabase.GUIDToAssetPath(selectedGuid);
-                if (string.IsNullOrEmpty(path) || graphObject == null)
+                if (string.IsNullOrEmpty(path) || jsonStore == null)
                     return;
 
-                var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
+                var extension = graphData.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
                 var newPath = EditorUtility.SaveFilePanel("Save Graph As", path, Path.GetFileNameWithoutExtension(path), extension);
                 newPath = newPath.Replace(Application.dataPath, "Assets");
                 if (newPath != path)
                 {
                     if (!string.IsNullOrEmpty(newPath))
                     {
-                        var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
+                        var success = FileUtilities.WriteToDisk(newPath, jsonStore.Serialize(true));
                         AssetDatabase.ImportAsset(newPath);
                         if (success)
                         {
@@ -394,9 +395,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-/*
         public void ToSubGraph()
         {
+/*
             var graphView = graphEditorView.graphView;
 
             var path = EditorUtility.SaveFilePanelInProject("Save Sub Graph", "New Shader Sub Graph", ShaderSubGraphImporter.Extension, "");
@@ -710,12 +711,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 new GroupData[] {},
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
             graphObject.graph.ValidateGraph();
-        }
 */
+        }
 
         void UpdateShaderGraphOnDisk(string path)
         {
-            if(FileUtilities.WriteShaderGraphToDisk(path, graphData))
+            if(FileUtilities.WriteToDisk(path, jsonStore.Serialize(true)))
                 AssetDatabase.ImportAsset(path);
         }
 
