@@ -91,11 +91,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
         posWS.xyz *= 1.0 / posWS.w;
 
-        int lightingMode;
-        SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, lightingMode);
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
-        BRDFData brdfData;
-        InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
         Light unityLight;
 
@@ -118,8 +114,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half3 color = 0.0.xxx;
 
         #if defined(_LIT)
+            BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
             color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
         #elif defined(_SIMPLELIT)
+            SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
             half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
             half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
             half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness);
@@ -172,12 +170,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // Bit 4 is used for the stencil volume.
             Stencil {
                 WriteMask 16
-                CompFront always
-                PassFront keep
-                ZFailFront invert
-                CompBack always
-                PassBack keep
-                ZFailBack invert
+                ReadMask 16
+                CompFront Always
+                PassFront Keep
+                ZFailFront Invert
+                CompBack Always
+                PassBack Keep
+                ZFailBack Invert
             }
 
             HLSLPROGRAM
@@ -214,8 +213,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 ReadMask 112 // 0b01110000
                 CompBack Equal
                 PassBack Zero
-                FailBack Zero
-                ZFailBack Zero
+                FailBack Keep
+                ZFailBack Keep
             }
 
             HLSLPROGRAM
@@ -253,8 +252,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 ReadMask 112 // 0b01110000
                 CompBack Equal
                 PassBack Zero
-                FailBack Zero
-                ZFailBack Zero
+                FailBack Keep
+                ZFailBack Keep
             }
 
             HLSLPROGRAM
