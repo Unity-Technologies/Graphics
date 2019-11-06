@@ -127,6 +127,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        [NonSerialized]
+        int m_StoreVersion;
+
         void Update()
         {
             if (m_HasError)
@@ -179,6 +182,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 jsonStore.CheckForChanges();
                 graphData.owner = jsonStore;
+
+                if (m_StoreVersion != jsonStore.version)
+                {
+                    UpdateTitle();
+                    m_StoreVersion = jsonStore.version;
+                }
 
                 if (graphEditorView == null)
                 {
