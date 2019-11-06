@@ -15,19 +15,19 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, a Normal Bending Factor slider becomes available in the output which can be used to adjust the curvature of the normals.")]
         protected bool normalBending = false;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies the way the UVs are interpolated along the strip. They can either be stretched or repeated per segment.")]
         private StripTilingMode tilingMode = StripTilingMode.Stretch;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
         public class NormalBendingProperties
         {
-            [Range(0, 1)]
-            public float bentNormalFactor = 0.1f;
+            [Range(0, 1), Tooltip("Controls the amount by which the normals will be bent, creating a rounder look.")]
+            public float normalBendingFactor = 0.1f;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
                 yield return exp;
 
             if (normalBending)
-                yield return slotExpressions.First(o => o.name == "bentNormalFactor");
+                yield return slotExpressions.First(o => o.name == "normalBendingFactor");
         }
 
         public override IEnumerable<string> additionalDefines

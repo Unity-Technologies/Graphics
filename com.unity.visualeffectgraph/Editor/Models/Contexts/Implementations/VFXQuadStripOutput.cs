@@ -8,10 +8,10 @@ namespace UnityEditor.VFX
     [VFXInfo(experimental = true)]
     class VFXQuadStripOutput : VFXShaderGraphParticleOutput
     {
-        [VFXSetting, SerializeField]
+        [VFXSetting, SerializeField, Tooltip("Specifies the way the UVs are interpolated along the strip. They can either be stretched or repeated per segment.")]
         protected StripTilingMode tilingMode = StripTilingMode.Stretch;
 
-        [VFXSetting, SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
         protected VFXQuadStripOutput() : base(true) { }
