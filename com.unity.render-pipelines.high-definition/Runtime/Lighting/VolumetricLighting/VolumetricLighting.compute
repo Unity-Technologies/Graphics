@@ -581,9 +581,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            centerWS,
                                            _PrevCamPosRWS,
                                            UNITY_MATRIX_PREV_VP,
-                                           _VBufferPrevResolution,
-                                           _VBufferPrevUvScaleAndLimit.xy,
-                                           _VBufferPrevUvScaleAndLimit.zw,
+                                           _VBufferPrevViewportSize,
+                                           _VBufferHistoryPrevUvScaleAndLimit.xy,
+                                           _VBufferHistoryPrevUvScaleAndLimit.zw,
                                            _VBufferPrevDepthEncodingParams,
                                            _VBufferPrevDepthDecodingParams,
                                            false, true) * float4(GetInversePreviousExposureMultiplier().xxx, 1);
@@ -718,7 +718,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.jitterDirWS = ray.centerDirWS;
 #endif
 
-    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
 
     // TODO
     LightLoopContext context;
