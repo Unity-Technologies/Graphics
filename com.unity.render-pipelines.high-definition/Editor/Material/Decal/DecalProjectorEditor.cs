@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
+        bool showAffectTransparency => ((target as DecalProjector).material != null) && DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {

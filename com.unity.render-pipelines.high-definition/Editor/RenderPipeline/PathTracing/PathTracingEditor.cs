@@ -36,27 +36,30 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                 EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
                 return;
             }
-#if ENABLE_RAYTRACING
-            if (currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier != RenderPipelineSettings.RaytracingTier.Tier2)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Path Tracing.", MessageType.Error, wide: true);
-                return;
-            }
 
-            PropertyField(m_Enable);
-
-            if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
+            // If ray tracing is supported display the content of the volume component
+            if (((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported))
             {
-                EditorGUI.indentLevel++;
-                PropertyField(m_LayerMask);
-                PropertyField(m_MaxSamples);
-                PropertyField(m_MinDepth);
-                PropertyField(m_MaxDepth);
-                PropertyField(m_MaxIntensity);
-                EditorGUI.indentLevel--;
+                if (currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier != RenderPipelineSettings.RaytracingTier.Tier2)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.HelpBox("The current HDRP Asset does not support Path Tracing.", MessageType.Error, wide: true);
+                    return;
+                }
+
+                PropertyField(m_Enable);
+
+                if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_LayerMask);
+                    PropertyField(m_MaxSamples);
+                    PropertyField(m_MinDepth);
+                    PropertyField(m_MaxDepth);
+                    PropertyField(m_MaxIntensity);
+                    EditorGUI.indentLevel--;
+                }
             }
-#endif
         }
     }
 }

@@ -24,8 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum intensity value computed for a path.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
     }
-
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // String values
@@ -116,5 +114,4 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchRays(pathTracingShader, m_PathTracingRayGenShaderName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
         }
     }
-#endif
 }

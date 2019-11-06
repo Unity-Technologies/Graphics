@@ -67,21 +67,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR)
         {
+            BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,
+                out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
+                out int stencilRefMV, out int stencilWriteMaskMV
+            );
+
             // All these properties values will be patched with the material keyword update
-            collector.AddIntProperty("_StencilRef", 0); // StencilLightingUsage.NoLighting
-            collector.AddIntProperty("_StencilWriteMask", 3); // StencilMask.Lighting
+            collector.AddIntProperty("_StencilRef", stencilRef); // StencilLightingUsage.NoLighting
+            collector.AddIntProperty("_StencilWriteMask", stencilWriteMask); // StencilMask.Lighting
             // Depth prepass
-            collector.AddIntProperty("_StencilRefDepth", 0); // Nothing
-            collector.AddIntProperty("_StencilWriteMaskDepth", 32); // DoesntReceiveSSR
+            collector.AddIntProperty("_StencilRefDepth", stencilRefDepth); // Nothing
+            collector.AddIntProperty("_StencilWriteMaskDepth", stencilWriteMaskDepth); // DoesntReceiveSSR
             // Motion vector pass
-            collector.AddIntProperty("_StencilRefMV", 128); // StencilBitMask.ObjectMotionVectors
-            collector.AddIntProperty("_StencilWriteMaskMV", 128); // StencilBitMask.ObjectMotionVectors
+            collector.AddIntProperty("_StencilRefMV", stencilRefMV); // StencilBitMask.ObjectMotionVectors
+            collector.AddIntProperty("_StencilWriteMaskMV", stencilWriteMaskMV); // StencilBitMask.ObjectMotionVectors
             // Distortion vector pass
             collector.AddIntProperty("_StencilRefDistortionVec", 64); // StencilBitMask.DistortionVectors
             collector.AddIntProperty("_StencilWriteMaskDistortionVec", 64); // StencilBitMask.DistortionVectors
             // Gbuffer
-            collector.AddIntProperty("_StencilWriteMaskGBuffer", 3); // StencilMask.Lighting
-            collector.AddIntProperty("_StencilRefGBuffer", 2); // StencilLightingUsage.RegularLighting
+            collector.AddIntProperty("_StencilWriteMaskGBuffer", stencilWriteMaskGBuffer); // StencilMask.Lighting
+            collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer); // StencilLightingUsage.RegularLighting
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
@@ -103,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
             collector.AddToggleProperty("_ZWrite", zWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
-            collector.AddIntProperty("_TransparentSortPriority", sortingPriority);
+            collector.AddIntProperty(kTransparentSortPriority, sortingPriority);
             collector.AddFloatProperty("_CullModeForward", (int)CullMode.Back);
             collector.AddShaderProperty(new Vector1ShaderProperty{
                 overrideReferenceName = kTransparentCullMode,
@@ -131,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddAlphaCutoffShaderProperties(PropertyCollector collector, bool alphaCutoff, bool shadowThreshold)
         {
             collector.AddToggleProperty("_AlphaCutoffEnable", alphaCutoff);
-            collector.AddFloatProperty("_TransparentSortPriority", "_TransparentSortPriority", 0);
+            collector.AddFloatProperty(kTransparentSortPriority, kTransparentSortPriority, 0);
             collector.AddToggleProperty("_UseShadowThreshold", shadowThreshold);
         }
 
@@ -170,10 +175,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 case HDRenderQueue.RenderQueueType.AfterPostprocessTransparent:
                     return "After Post-process";
 
-#if ENABLE_RAYTRACING
-                case HDRenderQueue.RenderQueueType.RaytracingOpaque: return "Raytracing";
-                case HDRenderQueue.RenderQueueType.RaytracingTransparent: return "Raytracing";
-#endif
+                case HDRenderQueue.RenderQueueType.RaytracingOpaque:
+                {
+                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                        return "RayTracing";
+                    return "None";
+                }
+                case HDRenderQueue.RenderQueueType.RaytracingTransparent:
+                {
+                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+                        return "RayTracing";
+                    return "None";
+                }
                 default:
                     return "None";
             }
@@ -181,15 +194,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
+            // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
+            bool supportsRayTracing = HDRenderPipeline.AggreateRayTracingSupport(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings);
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
             if (opaque)
             {
                 result.Add(HDRenderQueue.RenderQueueType.Opaque);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostProcessOpaque);
-#if ENABLE_RAYTRACING
-                result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
-#endif
+                if (supportsRayTracing)
+                    result.Add(HDRenderQueue.RenderQueueType.RaytracingOpaque);
             }
             else
             {
@@ -198,9 +212,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)
                     result.Add(HDRenderQueue.RenderQueueType.AfterPostprocessTransparent);
-#if ENABLE_RAYTRACING
-                result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
-#endif
+                if (supportsRayTracing)
+                    result.Add(HDRenderQueue.RenderQueueType.RaytracingTransparent);
             }
 
             return result;

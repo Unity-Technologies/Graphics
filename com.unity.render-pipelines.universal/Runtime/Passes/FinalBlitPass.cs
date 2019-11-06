@@ -43,7 +43,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
-            bool killAlpha = renderingData.killAlphaInFinalBlit;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
@@ -51,11 +50,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
-
-            if (killAlpha)
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.KillAlpha);
-            else
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.KillAlpha);
 
             ref CameraData cameraData = ref renderingData.cameraData;
 

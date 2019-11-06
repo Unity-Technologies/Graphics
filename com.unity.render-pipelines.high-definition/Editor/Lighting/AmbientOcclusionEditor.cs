@@ -68,16 +68,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-#if ENABLE_RAYTRACING
-            PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion."));
-#endif
+            // If the current pipeline supports ray tracing, display first the ray tracing checkbox
+            bool raytracingSupported = (RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported;
+            if (raytracingSupported)
+                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion."));
 
             // Shared attributes
             PropertyField(m_Intensity, EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas."));
             PropertyField(m_DirectLightingStrength, EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient light affects occlusion."));
 
-#if ENABLE_RAYTRACING
-            if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+            // If ray tracing is supported and it is enabled on this volume, display the ray tracing options.
+            if (raytracingSupported && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
                 PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
@@ -90,7 +91,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
             else
-#endif
             {
                 PropertyField(m_Radius, EditorGUIUtility.TrTextContent("Radius", "Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses."));
                 PropertyField(m_MaximumRadiusInPixels, EditorGUIUtility.TrTextContent("Maximum Radius In Pixels", "This poses a maximum radius in pixels that we consider. It is very important to keep this as tight as possible to preserve good performance. Note that this is the value used for 1080p when *not* running the effect at full resolution, it will be scaled accordingly for other resolutions."));

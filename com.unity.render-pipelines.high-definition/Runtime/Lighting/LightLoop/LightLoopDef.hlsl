@@ -365,10 +365,10 @@ void InitContactShadow(PositionInputs posInput, inout LightLoopContext context)
     UnpackContactShadowData(packedContactShadow, context.contactShadowFade, context.contactShadow);
 }
 
-float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask)
+float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask, float rayTracedShadow)
 {
     bool occluded = (lightLoopContext.contactShadow & contactShadowMask) != 0;
-    return 1.0 - (occluded * lightLoopContext.contactShadowFade);
+    return 1.0 - occluded * lerp(lightLoopContext.contactShadowFade, 1.0, rayTracedShadow) * _ContactShadowOpacity;
 }
 
 float GetScreenSpaceShadow(PositionInputs posInput, int shadowIndex)
