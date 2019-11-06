@@ -54,6 +54,7 @@
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
+    * [ShadowMatte Shader](ShadowMatte-Shader)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
@@ -100,6 +101,10 @@
     * [Tonemapping](Post-Processing-Tonemapping)
     * [Vignette](Post-Processing-Vignette)
     * [White Balance](Post-Processing-White-Balance)
+  * Authoring Lookup Textures
+    * [Overview](Authoring-LUTs)
+    * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
+    * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
