@@ -369,72 +369,17 @@ namespace UnityEngine.Rendering.Universal
                 context.Submit();
         }
 
-        public static uint NonNullColorBuffersCount(RenderTargetIdentifier[] colorBuffers)
-        {
-            uint nonNullColorBuffers = 0;
-            foreach (var identifier in colorBuffers)
-            {
-                if (identifier != 0)
-                    ++nonNullColorBuffers;
-            }
-            return nonNullColorBuffers;
-        }
-
-        static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
-        {
-            return NonNullColorBuffersCount(colorBuffers) > 1;
-        }
-
-        static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
-        {
-            foreach (var identifier in source)
-            {
-                if (identifier == value)
-                    return true;
-            }
-            return false;
-        }
-
-        static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
-        {
-            for(int i = 0; i<source.Length; ++i)
-            {
-                if (source[i] == value)
-                    return i;
-            }
-            return -1;
-        }
-
-        // returns true if a contains b
-        static bool Contains(ClearFlag a, ClearFlag b)
-        {
-            return (a & b) == b;
-        }
-
-        // return true if "left" and "right" are the same
-        static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
-        {
-            if (left.Length != right.Length)
-                return false;
-
-            for(int i = 0; i< left.Length; ++i)
-                if (left[i] != right[i])
-                    return false;
-
-            return true;
-        }
-
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
 
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
-            if(IsMRT(renderPass.colorAttachments))
+            if(RenderingUtils.IsMRT(renderPass.colorAttachments))
             {
                 ref CameraData cameraData = ref renderingData.cameraData;
 
-                int cameraTargetColorIndex = IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
+                int cameraTargetColorIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
 
                 if( cameraTargetColorIndex != -1 && !m_FirstCameraRenderPassExecuted)
                 {
@@ -449,7 +394,7 @@ namespace UnityEngine.Rendering.Universal
 //                        clearFlag = ClearFlag.None;
 
                     // apply "clearFlag" to m_CameraColorTarget (if it is not included by renderPass.clearFlag)
-                    if(!Contains(renderPass.clearFlag, clearFlag))
+                    if(!RenderingUtils.Contains(renderPass.clearFlag, clearFlag))
                         SetRenderTarget(cmd, renderPass.colorAttachments[cameraTargetColorIndex], renderPass.depthAttachment, clearFlag,
                             CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
@@ -468,7 +413,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Only setup render target if current render pass attachments are different from the active ones
-                else if ( !SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments)  || renderPass.depthAttachment != m_ActiveDepthAttachment)
+                else if ( !RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments)  || renderPass.depthAttachment != m_ActiveDepthAttachment)
                     SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
             }
             else

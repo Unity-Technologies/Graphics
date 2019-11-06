@@ -134,5 +134,95 @@ namespace UnityEngine.Rendering.Universal
 
             return support;
         }
+
+        /// <summary>
+        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        public static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorBuffers != null)
+            {
+                foreach (var identifier in colorBuffers)
+                {
+                    if (identifier != 0)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        /// <summary>
+        /// Return true if colorBuffers is an actual MRT setup
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        public static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            return GetValidColorBufferCount(colorBuffers) > 1;
+        }
+
+        /// <summary>
+        /// Return true if value can be found in source (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            foreach (var identifier in source)
+            {
+                if (identifier == value)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Return the index where value was found source. Otherwise, return -1. (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        {
+            for (int i = 0; i < source.Length; ++i)
+            {
+                if (source[i] == value)
+                    return i;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Return true if ClearFlag a contains ClearFlag b
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static bool Contains(ClearFlag a, ClearFlag b)
+        {
+            return (a & b) == b;
+        }
+
+        /// <summary>
+        /// Return true if "left" and "right" are the same (without recurring to Linq)
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
+        {
+            if (left.Length != right.Length)
+                return false;
+
+            for (int i = 0; i < left.Length; ++i)
+                if (left[i] != right[i])
+                    return false;
+
+            return true;
+        }
     }
 }

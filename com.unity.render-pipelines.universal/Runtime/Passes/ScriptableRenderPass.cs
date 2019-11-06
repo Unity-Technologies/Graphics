@@ -88,13 +88,8 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
-            overrideCameraTarget = true;
-
-            m_ColorAttachments[0] = colorAttachment;
-            for (int i = 1; i < m_ColorAttachments.Length; ++i)
-                m_ColorAttachments[i] = 0;
-
             m_DepthAttachment = depthAttachment;
+            ConfigureTarget(colorAttachment);
         }
 
         /// <summary>
@@ -108,9 +103,9 @@ namespace UnityEngine.Rendering.Universal
         {
             overrideCameraTarget = true;
 
-            uint nonNullColorBuffers = ScriptableRenderer.NonNullColorBuffersCount(colorAttachments);
+            uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
             if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
-                Debug.LogError("Trying to set " + nonNullColorBuffers + "renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
+                Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
@@ -139,14 +134,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
-            overrideCameraTarget = true;
-
-            uint nonNullColorBuffers = ScriptableRenderer.NonNullColorBuffersCount(colorAttachments);
-            if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
-                Debug.LogError("Trying to set " + nonNullColorBuffers + "renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
-
-            m_ColorAttachments = colorAttachments;
-            m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.CameraTarget);
         }
 
         /// <summary>
