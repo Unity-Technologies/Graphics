@@ -89,6 +89,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
         protected bool enableEnvLight = true;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, specular lighting will be rendered regardless of opacity.")]
+        public bool preserveSpecularLighting = false;
+
         protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
 
         protected virtual bool allowTextures { get { return shaderGraph == null; }}
@@ -401,7 +404,10 @@ namespace UnityEditor.VFX
                     yield return "useEmissive";
 
                 if (isBlendModeOpaque)
+                {
                     yield return "onlyAmbientLighting";
+                    yield return "preserveSpecularLighting";
+                }
             }
         }
 
@@ -435,7 +441,11 @@ namespace UnityEditor.VFX
                         break;
                 }
                 if (!isBlendModeOpaque)
+                {
                     forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
+                    if (preserveSpecularLighting)
+                        forwardDefines.WriteLine("#define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
+                }
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);
                 var forwardPassName = new VFXShaderWriter();
