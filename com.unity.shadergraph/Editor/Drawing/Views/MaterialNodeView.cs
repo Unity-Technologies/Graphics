@@ -520,7 +520,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 title = node.name;
         }
 
-        public void OnChange()
+        void OnChange()
         {
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             OnModified(ModificationScope.Topological);

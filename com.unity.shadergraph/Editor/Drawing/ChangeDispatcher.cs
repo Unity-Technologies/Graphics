@@ -123,17 +123,33 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Action = action;
                 m_GeometryChangedCallback = OnGeometryChanged;
                 element.RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+                if (element.panel != null)
+                {
+                    OnAttachToPanel(null);
+                }
                 element.RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
             }
 
             void OnAttachToPanel(AttachToPanelEvent evt)
             {
-                m_Element.RegisterCallback(m_GeometryChangedCallback);
+                if (float.IsNaN(m_Element.layout.x))
+                {
+                    m_Element.RegisterCallback(m_GeometryChangedCallback);
+                }
+                else
+                {
+                    Register();
+                }
             }
 
             void OnGeometryChanged(GeometryChangedEvent evt)
             {
                 m_Element.UnregisterCallback(m_GeometryChangedCallback);
+                Register();
+            }
+
+            void Register()
+            {
                 m_Dispatcher = FindChangeDispatcher(m_Element);
                 m_Handle = m_Dispatcher.Register(m_JsonObject, m_Version, m_Action);
             }
