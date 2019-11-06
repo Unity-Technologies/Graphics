@@ -381,9 +381,12 @@ namespace UnityEditor.ShaderGraph.Serialization
                         objectMap[instance.jsonId] = instance;
                     }
 
-                    foreach (var (instance, json) in items)
+                    if (version != currentVersion)
                     {
-                        instance.OnStoreDeserialized(json);
+                        foreach (var serializedObject in m_SerializedObjects)
+                        {
+                            objectMap[serializedObject.id].OnStoreDeserialized(serializedObject.json);
+                        }
                     }
                 }
 
