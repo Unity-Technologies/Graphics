@@ -6,5 +6,6 @@
         public string renderQueueOverride;
         public string renderTypeOverride;
         public PassCollection passes;
+        public string customEditorOverride;
     }
 }

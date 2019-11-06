@@ -144,6 +144,8 @@ namespace UnityEditor.ShaderGraph
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields);
                 }
             }
+            if (!string.IsNullOrEmpty(descriptor.customEditorOverride))
+                m_Builder.AppendLine(descriptor.customEditorOverride);
         }
 
         void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields)
