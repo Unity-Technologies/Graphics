@@ -9,9 +9,13 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+        //TODO: Remove
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
         
         TEXTURE2D_X(_InputTexture);
+
+        //TODO: Setup params
 
         struct Attributes
         {
