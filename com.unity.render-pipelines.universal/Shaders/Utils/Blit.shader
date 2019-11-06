@@ -20,7 +20,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma fragment Fragment
 
             #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
-            #pragma multi_compile _ _KILL_ALPHA
 
             // Enable Pure URP Camera Management
             #define PURE_URP_ON
@@ -58,9 +57,6 @@ Shader "Hidden/Universal Render Pipeline/Blit"
                 half4 col = SAMPLE_TEXTURE2D(_BlitTex, sampler_BlitTex, input.uv);
                 #ifdef _LINEAR_TO_SRGB_CONVERSION
                 col = LinearToSRGB(col);
-                #endif
-                #ifdef _KILL_ALPHA
-                col.a = 1.0;
                 #endif
                 return col;
             }

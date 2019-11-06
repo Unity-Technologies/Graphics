@@ -92,6 +92,8 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Property**         | **Description**                                              |
 | -------------------- | ------------------------------------------------------------ |
 | **Angular Diameter** | Allows you to set the area of a distant light source through an angle in degrees. This has an impact on the size of specular highlights and the softness of baked shadows and ray-traced shadows. |
+| **Affect Physically Based Sky** | When **Physically Based Sky** is in use, displays a sun disc in the sky in the direction of the directional light with a diameter, color and intensity that match the parameters of the directional light.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
+| **- Distance** | Controls the distance of the sun disc which is useful for tweaking the sorting of multiple sun discs displayed in the sky. Smaller distance discs draw on top of longer distance discs.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
 
 <a name="PointLight"></a>
 
@@ -105,7 +107,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Shape**    | HDRP Area Lights can use three shapes. <br />• **Rectangle** : Projects light from a rectangle shape at the GameObject’s position and orientation, in perpendicular direction, out to a certain **Range**. <br />• **Tube** : Projects light from a single line at the GameObject’s position in every direction, out to a certain **Range**.  This shape is only **RealtimeOnly** at the moment.<br />• **Disc** : Projects light from a disc shape at the GameObject’s position and orientation, in perpendicular direction, out to a certain **Range**.  This shape is only **BakeOnly** at the moment. |
+| **Shape**    | HDRP Area Lights can use three shapes. <br />• **Rectangle** : Projects light from a rectangle shape at the GameObject’s position and orientation, in perpendicular direction, out to a certain **Range**. <br />• **Tube** : Projects light from a single line at the GameObject’s position in every direction, out to a certain **Range**.  This shape is only for **Realtime Mode** at the moment.<br />• **Disc** : Projects light from a disc shape at the GameObject’s position and orientation, in perpendicular direction, out to a certain **Range**.  This shape is only for **Baked Mode** at the moment. |
 | **Size X**   | For **Rectangle**. Defines the horizontal size of the Rectangle Light. |
 | **Size Y**   | For **Rectangle**. Defines the vertical size of the Rectangle Light. |
 | **Length**   | For **Tube**. Defines the length of the Tube Light. The center of the Light is the Transform Position and the Light itself extends out from the center symmetrically. The **Length** is the distance from one end of the tube to the other. |
@@ -129,11 +131,11 @@ These settings define the emissive behavior of your Light. You can set the Light
 | **Range**                 | The range of influence for this Light. Defines how far the emitted light reaches. This property is available for all **Light Types** except **Directional**. |
 | **Indirect Multiplier**   | The intensity of [indirect](https://docs.unity3d.com/Manual/LightModes-TechnicalInformation.html) light in your Scene. A value of 1 mimics realistic light behavior. A value of 0 disables indirect lighting for this Light. If both **Realtime** and **Baked** Global Illumination are disabled in Lighting Settings (menu: **Window > Rendering > Lighting Settings**), the Indirect Multiplier has no effect. |
 | **Cookie**                | An RGB Texture that the Light projects. For example, to create silhouettes or patterned illumination for the Light. Texture shapes should be 2D for Spot and Directional Lights and Cube for Point Lights. Always import **Cookie** textures as the default texture type. This property is available for **Spot**, **Directional**, and **Point** Lights. |
-| **Affect Diffuse**        | Enable the checkbox to apply [diffuse](<https://docs.unity3d.com/Manual/shader-NormalDiffuse.html>) lighting to this Light.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
-| **Affect Specular**       | Enable the checkbox to apply [specular](https://docs.unity3d.com/Manual/shader-NormalSpecular.html) lighting to this Light.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
-| **Range Attenuation**     | Enable the checkbox to make this Light shine uniformly across its range. This stops light from fading around the edges. This setting is useful when the range limit is not visible on screen, and you do not want the edges of your light to fade out. This property is available for all **Light Types** except **Directional**.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
-| **Fade Distance**         | The distance between the Light source and the Camera at which the Light begins to fade out. Measured in meters. This property is available for all **Light Types** except **Directional**.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
-| **Dimmer**                | Dims the Light. Does not affect the intensity of the light. You can also modify this property via [Timeline](https://docs.unity3d.com/Manual/TimelineSection.html), Scripting or [animation](https://docs.unity3d.com/Manual/animeditor-AnimatingAGameObject.html). The parameter lets you fade the Light in and out without having to store its original intensity.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
+| **Affect Diffuse**        | Enable the checkbox to apply [diffuse](<https://docs.unity3d.com/Manual/shader-NormalDiffuse.html>) lighting to this Light.<br />This property only appears when you enable [more options](More-Options.html) for this section. It is only available in Realtime or Mixed light **Mode**. |
+| **Affect Specular**       | Enable the checkbox to apply [specular](https://docs.unity3d.com/Manual/shader-NormalSpecular.html) lighting to this Light.<br />This property only appears when you enable [more options](More-Options.html) for this section. It is only available in Realtime or Mixed light **Mode**. |
+| **Range Attenuation**     | Enable the checkbox to make this Light shine uniformly across its range. This stops light from fading around the edges. This setting is useful when the range limit is not visible on screen, and you do not want the edges of your light to fade out. This property is available for all **Light Types** except **Directional**.<br />This property only appears when you enable [more options](More-Options.html) for this section. It is only available in Realtime or Mixed light **Mode** for **Type** Area. |
+| **Fade Distance**         | The distance between the Light source and the Camera at which the Light begins to fade out. Measured in meters. This property is available for all **Light Types** except **Directional**.<br />This property only appears when you enable [more options](More-Options.html) for this section. It is only available in Realtime or Mixed light **Mode**. |
+| **Dimmer**                | Dims the Light. Does not affect the intensity of the light. You can also modify this property via [Timeline](https://docs.unity3d.com/Manual/TimelineSection.html), Scripting or [animation](https://docs.unity3d.com/Manual/animeditor-AnimatingAGameObject.html). The parameter lets you fade the Light in and out without having to store its original intensity.<br />This property only appears when you enable [more options](More-Options.html) for this section. It is only available in Realtime or Mixed light **Mode**. |
 | **Display Emissive Mesh** | Enable the checkbox to make Unity automatically generate a Mesh with an emissive Material using the size, colour, and intensity of this Light. Unity automatically adds the Mesh and Material to the GameObject the Light component is attached to. This property is available for **Rectangle** and **Tube** Lights.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
 
 #### Spot Light
@@ -153,7 +155,7 @@ These settings define the emissive behavior of your Light. You can set the Light
 
 ### **Volumetrics**
 
-These settings define the volumetric behavior of this Light. Alter these settings to change how this Light behaves with [Atmospheric Scattering](Atmospheric-Scattering.html). All Light **Types** share the same **Volumetric** properties.
+These settings define the volumetric behavior of this Light. Alter these settings to change how this Light behaves with [Atmospheric Scattering](Atmospheric-Scattering.html). All Light **Types** share the same **Volumetric** properties, except **Area** Light. It is only available in Realtime or Mixed light **Mode**.
 
 #### Shared Properties
 
@@ -179,6 +181,8 @@ Unity exposes extra properties in the **Shadows** section depending on the **Mod
 
 ##### Shadow Map
 
+This section is only available in Realtime or Mixed light **Mode**.
+
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
 | **Enable**                 | Enable the checkbox to let this Light cast shadows.          |
@@ -201,6 +205,23 @@ Unity exposes extra properties in the **Shadows** section depending on the **Mod
 | **Link Light Layer**       | Enable the checkbox to use the same [Light Layer](Light-Layers.html) for shadows and lighting. If you enable this feature, then HDRP uses the Light Layer from the **Light Layer** drop-down in the **General** section for shadowing. If you disable this feature, then HDRP uses the **Light Layer** drop-down in this section for shadowing.<br /> This property only appears if you enable the [advanced properties](Advanced-Properties.html) for this section.To access this property, enable **Light Layers** in your [HDRP Asset](HDRP-Asset.html). |
 | **Light Layer**            | Use the drop-down to set the Light Layer HDRP uses for shadowing. This Light therefore only casts shadows for GameObjects that use a matching Light Layer. For more information about using Light Layers for shadowing, see [Shadow Light Layers](Light-Layers.html#ShadowLightLayers).<br /> This property only appears if you enable the [advanced properties](Advanced-Properties.html) for this section.To access this property, disable the **Link Light Layer** checkbox. |
 
+##### Contact Shadows
+
+This section is only available in Realtime or Mixed light **Mode**.
+
+| **Property** | **Description**                                              |
+| ------------ | ------------------------------------------------------------ |
+| **Enable**   | Add [Contact Shadows](Override-Contact-Shadows.html) to this Light. Use the drop-down to select a quality mode for the Contact Shadows. Select **Custom** to expose a checkbox that allows you to enable or disable Contact Shadows at will. |
+
+##### Baked Shadows
+
+This section is only available in Baked light **Mode**.
+
+| **Property**   | **Description**                                                                 |
+| -------------- | ------------------------------------------------------------------------------- |
+| **Enable**     | Enable the checkbox to let this Light cast shadows.                             |
+| **Near Plane** | The distance, in meters, from the Light that GameObjects begin to cast shadows. |
+
 ##### High Filtering Quality properties
 
 In your [HDRP Asset](HDRP-Asset.html), select **High** from the **Filtering Quality** drop-down to expose the following properties.
@@ -211,9 +232,3 @@ In your [HDRP Asset](HDRP-Asset.html), select **High** from the **Filtering Qual
 | **Blocker Sample Count**       | The number of samples HDRP uses to evaluate the distance between the pixel receiving the shadow and the shadow caster. Higher values give better accuracy. |
 | **Filter Sample Count**        | The number of samples HDRP uses to blur shadows. Higher values give smoother results. |
 | **Minimum Size of the Filter** | The minimum size of the whole shadow’s blur effect, no matter the distance between the pixel and the shadow caster. Higher values give blurrier results. |
-
-##### Contact Shadows
-
-| **Property** | **Description**                                              |
-| ------------ | ------------------------------------------------------------ |
-| **Enable**   | Add [Contact Shadows](Override-Contact-Shadows.html) to this Light. Use the drop-down to select a quality mode for the Contact Shadows. Select **Custom** to expose a checkbox that allows you to enable or disable Contact Shadows at will. |

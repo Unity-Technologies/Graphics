@@ -118,6 +118,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material render queue not updated when the shader is changed in the material inspector.
 - Fixed a number of issues with full screen debug modes not reseting correctly when setting another mutually exclusive mode
 - Fixed compile errors for platforms with no VR support
+- Fixed an issue with volumetrics and RTHandle scaling (case 1155236)
+- Fixed an issue where sky lighting might be updated uselessly
+- Fixed issue preventing to allow setting decal material to none (case 1196129)
+- Fixed XR multi-pass decals rendering
+- Fixed several fields on Light Inspector that not supported Prefab overrides
+- Fixed EOL for some files
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -140,6 +146,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias. 
 - Fix the default stencil values when a material is created from a SSS ShaderGraph.
 - Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
+- Slightly tweaked the behaviour of bloom when resolution is low to reduce artifacts.
+- Hidden fields in Light Inspector that is not relevant while in BakingOnly mode.
 
 ## [7.1.1] - 2019-09-05
 

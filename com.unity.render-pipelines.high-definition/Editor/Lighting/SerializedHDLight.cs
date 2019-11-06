@@ -1,7 +1,6 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -78,8 +77,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Bias control
         public SerializedProperty slopeBias;
-
         public SerializedProperty normalBias;
+
+        private SerializedProperty pointLightHDType;
+        private SerializedProperty areaLightShapeProperty;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
@@ -118,6 +119,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
             }
         }
+
+        // This scope is here mainly to keep pointLightHDType isolated 
+        public struct LightTypeEditionScope : System.IDisposable
+        {
+            public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
+            {
+                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
+                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+            }
+        }
         
         //areaLightShape need to be accessed by its property to always report modification in the right way
         public AreaLightShape areaLightShape
@@ -147,6 +164,24 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (value != (objects[index] as HDAdditionalLightData).areaLightShape)
                         return true;
                 return false;
+            }
+        }
+
+        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated 
+        public struct AreaLightShapeEditionScope : System.IDisposable
+        {
+            public AreaLightShapeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
+            {
+                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
+                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
+                EditorGUI.BeginProperty(rect, label, serialized.areaLightShapeProperty);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
             }
         }
 
@@ -228,6 +263,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
 				slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
+
+                // private references for prefab handling
+                pointLightHDType = o.Find("m_PointlightHDType");
+                areaLightShapeProperty = o.Find("m_AreaLightShape");
             }
         }
 

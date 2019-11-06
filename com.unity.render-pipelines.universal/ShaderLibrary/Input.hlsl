@@ -5,7 +5,7 @@
 #define MAX_VISIBLE_LIGHTS_UBO  32
 
 // Experimental Code Path: Pure URP
-#if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON) && defined(PURE_URP_ON)
+#if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON) && !defined(STEREO_MULTIVIEW_ON) && !defined(UNITY_SINGLE_PASS_STEREO) && defined(PURE_URP_ON)
 #define UNITY_PURE_URP_ENABLED
 #endif
 
