@@ -2432,7 +2432,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetRenderTarget(cmd, destination);
                     using (new ProfilingSample(cmd, customPP.name))
                     {
-                        customPP.Render(cmd, camera, source, destination);
+                        customPP.Render(cmd, camera, HDShaderIDs._PostProcessInputTexture, source, destination);
                     }
                     PoolSourceGuard(ref source, destination, colorBuffer);
 

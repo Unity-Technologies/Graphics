@@ -1504,4 +1504,20 @@ namespace UnityEngine.Rendering
 
         // TODO: Curve interpolation
     }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds an <c>Material</c> value.
+    /// </summary>
+    [Serializable]
+    public class MaterialParameter : VolumeParameter<Material>
+    {
+        /// <summary>
+        /// Creates a new <seealso cref="MaterialParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to be stored in the parameter</param>
+        /// <param name="overrideState">The initial override state for the parameter</param>
+        public MaterialParameter(Material value, bool overrideState = false)
+            : base(value, overrideState) {}
+
+    }    
 }

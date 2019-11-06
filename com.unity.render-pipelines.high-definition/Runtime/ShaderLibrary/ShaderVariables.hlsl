@@ -99,6 +99,9 @@ TEXTURE2D_X(_ColorPyramidTexture);
 TEXTURE2D_X(_CustomDepthTexture);
 TEXTURE2D_X(_CustomColorTexture);
 
+// For custom post process
+TEXTURE2D_X(_PostProcessInputTexture);
+
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
