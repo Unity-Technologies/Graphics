@@ -13,11 +13,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public bool IsValid(IMasterNode masterNode)
         {
-            #if ENABLE_RAYTRACING
             return (masterNode is FabricMasterNode ||
                     masterNode is HDLitMasterNode ||
                     masterNode is HDUnlitMasterNode);
-            #endif
             return false;
         }
 

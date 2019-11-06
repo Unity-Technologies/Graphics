@@ -673,6 +673,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                                                                         IsSlotConnected(VertexNormalSlotID) || 
                                                                                         IsSlotConnected(VertexTangentSlotID)),
                 new ConditionalField(Fields.GraphPixel,                             true),
+                new ConditionalField(Fields.LodCrossFade,                           supportLodCrossFade.isOn),
                 
                 // Surface Type
                 new ConditionalField(Fields.SurfaceOpaque,                          surfaceType == SurfaceType.Opaque),

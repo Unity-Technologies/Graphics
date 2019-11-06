@@ -24,6 +24,7 @@
         public static FieldDescriptor SpecularSetup =         new FieldDescriptor(string.Empty, "SpecularSetup", "_SPECULAR_SETUP");
         public static FieldDescriptor Normal =                new FieldDescriptor(string.Empty, "Normal", "_NORMALMAP 1");
         public static FieldDescriptor IsPreview =             new FieldDescriptor(string.Empty, "isPreview", "SHADERGRAPH_PREVIEW");
+        public static FieldDescriptor LodCrossFade =          new FieldDescriptor(string.Empty, "LodCrossFade", "_LODCROSSFADE 1");
 #endregion
     }
 }

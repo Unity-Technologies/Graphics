@@ -1004,6 +1004,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                                                                 IsSlotConnected(VertexNormalSlotID) || 
                                                                                 IsSlotConnected(VertexTangentSlotID)),
                 new ConditionalField(Fields.GraphPixel,                     true),
+                new ConditionalField(Fields.LodCrossFade,                   supportLodCrossFade.isOn),
                 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&

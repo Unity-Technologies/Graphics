@@ -307,7 +307,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection HDGBuffer = new KeywordCollection
         {
-            { Descriptors.LodFadeCrossfade },
+            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.DoubleSided },
             { Descriptors.BlendMode },
@@ -322,7 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection HDBase = new KeywordCollection
         {
-            { Descriptors.LodFadeCrossfade },
+            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
             { Descriptors.DoubleSided },
@@ -332,7 +332,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Descriptors.WriteMsaaDepth },
             { Descriptors.WriteNormalBuffer },
-            { Descriptors.LodFadeCrossfade },
+            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
             { Descriptors.DoubleSided },
@@ -340,7 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection HDForward = new KeywordCollection
         {
-            { Descriptors.LodFadeCrossfade },
+            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.DoubleSided },
             { Descriptors.BlendMode },
@@ -357,7 +357,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordCollection HDDepthMotionVectorsNoNormal = new KeywordCollection
         {
             { Descriptors.WriteMsaaDepth },
-            { Descriptors.LodFadeCrossfade },
+            { Descriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
             { Descriptors.SurfaceTypeTransparent },
             { Descriptors.BlendMode },
             { Descriptors.DoubleSided },
