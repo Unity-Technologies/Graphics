@@ -124,7 +124,8 @@ namespace UnityEngine.Rendering.Universal
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
-                (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
+                (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData))) ||
+                m_DeferredLights.tiledDeferredShading;
             requiresDepthPrepass |= resolveShadowsInScreenSpace;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
@@ -197,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
             for (int gbufferIndex = 0; gbufferIndex < GBufferSlicesCount; ++gbufferIndex)
                 gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
             gbufferColorAttachments[GBufferSlicesCount] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferPass.Setup(ref renderingData, m_DepthTexture, gbufferColorAttachments);
+            m_GBufferPass.Setup(ref renderingData, m_DepthTexture, gbufferColorAttachments, requiresDepthPrepass);
             EnqueuePass(m_GBufferPass);
 
             m_CopyDepthPass.Setup(m_DepthTexture, m_DepthCopyTexture);

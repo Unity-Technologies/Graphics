@@ -13,6 +13,8 @@ namespace UnityEngine.Rendering.Universal
         RenderTextureDescriptor[] m_GBufferDescriptors = new RenderTextureDescriptor[DeferredRenderer.GBufferSlicesCount];
         RenderTextureDescriptor m_DepthBufferDescriptor;
 
+        bool m_HasDepthPrepass;
+
         ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
 
         FilteringSettings m_FilteringSettings;
@@ -28,10 +30,12 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);  // encoded-normal  encoded-normal  encoded-normal  smoothness
             //m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.B10G11R11_UFloatPack32, 0);  // emission+GI     emission+GI     emission+GI  [unused] (lighting buffer)  // <- initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
 
+            m_HasDepthPrepass = false;
+
             m_FilteringSettings = new FilteringSettings(renderQueueRange);
         }
 
-        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments)
+        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, bool hasDepthPrepass)
         {
             for(int gbufferIndex = 0; gbufferIndex < m_GBufferDescriptors.Length ; ++gbufferIndex)
             {
@@ -46,6 +50,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_DepthBufferAttachment = depthTexture;
             m_ColorAttachments = colorAttachments;
+
+            m_HasDepthPrepass = hasDepthPrepass;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
@@ -65,8 +71,8 @@ namespace UnityEngine.Rendering.Universal
 
             ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
 
-            // TODO: if depth-prepass is enabled, do not clear depth here!
-            ConfigureClear(ClearFlag.Depth, Color.black);
+            // If depth-prepass exists, do not clear depth here or we will lose it.
+            ConfigureClear(m_HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext scriptableRenderContext, ref RenderingData renderingData)
