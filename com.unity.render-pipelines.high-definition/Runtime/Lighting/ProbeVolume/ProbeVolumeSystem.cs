@@ -291,13 +291,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (isUploadNeeded || volume.dataUpdated)
                 {
-                    var data = volume.GetData();
+                    (var data, var dataValidity) = volume.GetData();
 
                     if (data == null || data.Length == 0 || !volume.IsAssetCompatible())
                         // TODO: Implement clear/removal from atlas
                         return false;
-
-                    var dataValidity = volume.GetDataValidity();
 
                     //Debug.Log("Uploading Probe Volume Data with key " + key + " at scale bias = " + volume.parameters.scaleBias);
                     cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, "_ProbeVolumeResolution", new Vector3(
@@ -320,7 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)m_ProbeVolumeAtlasSHRTHandle.rt.height
                     ));
 
-                    Debug.Assert(data.Length == size, "Error: ProbeVolumeSystem: volume data length = " + data.Length + ", resolution size = " + size);
+                    Debug.Assert(data.Length == size, "ProbeVolumeSystem: The probe volume baked data and its resolution are out of sync! Volume data length is " + data.Length + ", but resolution size is " + size + ".");
 
                     s_ProbeVolumeAtlasBlitDataBuffer.SetData(data);
                     s_ProbeVolumeAtlasBlitDataValidityBuffer.SetData(dataValidity);
@@ -339,7 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
-            Debug.Assert(isSlotAllocated, "Warning: ProbeVolumeSystem: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
+            Debug.Assert(isSlotAllocated, "ProbeVolumeSystem: Texture Atlas failed to allocate space for texture { key: " + key + "width: " + width + ", height: " + height);
             return false;
         }
 

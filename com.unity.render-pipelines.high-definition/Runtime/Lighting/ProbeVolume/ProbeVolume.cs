@@ -200,26 +200,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetInstanceID();
         }
 
-        public SphericalHarmonicsL1[] GetData()
+        public (SphericalHarmonicsL1[], float[]) GetData()
         {
-            // TODO: May want to move this flag out to an explicit function call i.e: ClearDataUpdated()
-            // Now that we have multiple data payloads, it's a bit non-obvious that GetData() clears the flag,
-            // but GetDataValidity() does not for example.
-            // Do we need to handle cases where only one payload is polled, but not another?
             dataUpdated = false;
 
             if (!probeVolumeAsset)
-                return null;
+                return (null, null);
 
-            return probeVolumeAsset.data;
-        }
-
-        public float[] GetDataValidity()
-        {
-            if (!probeVolumeAsset)
-                return null;
-
-            return probeVolumeAsset.dataValidity;
+            return (probeVolumeAsset.data, probeVolumeAsset.dataValidity);
         }
 
         protected void Awake()
