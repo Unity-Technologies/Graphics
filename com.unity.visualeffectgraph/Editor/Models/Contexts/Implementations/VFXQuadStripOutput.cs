@@ -5,14 +5,14 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //[VFXInfo] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
+    [VFXInfo(experimental = true)]
     class VFXQuadStripOutput : VFXAbstractParticleOutput
     {
         [VFXSetting, SerializeField]
         protected StripTilingMode tilingMode = StripTilingMode.Stretch; 
 
         protected VFXQuadStripOutput() : base(true) { }
-        public override string name { get { return "Quad Strip Output"; } }
+        public override string name { get { return "Output ParticleStrip Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
 
@@ -20,6 +20,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
+            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
 

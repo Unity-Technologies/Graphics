@@ -35,6 +35,18 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 }
 #endif
 
+float4 VFXTransformFinalColor(float4 color)
+{
+#ifdef DEBUG_DISPLAY
+	if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    {
+        color = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
+    }
+
+#endif
+	return color;
+}
+
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
 #if VFX_WORLD_SPACE
@@ -51,7 +63,7 @@ float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
 
 float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 {
-    float3 posWS = TransformObjectToWorld(posOS);
+    float3 posWS = TransformPreviousObjectToWorld(posOS);
     return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
 }
 
@@ -149,8 +161,10 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
 	float exposure = lerp(1.0f, GetCurrentExposureMultiplier(),input.VFX_VARYING_EXPOSUREWEIGHT);
+#elif VFX_BYPASS_EXPOSURE
+    float exposure = 1.0f;
 #else
-    float exposure = GetCurrentExposureMultiplier();
+	float exposure = GetCurrentExposureMultiplier();
 #endif
 	color.xyz *= exposure;
     return color;

@@ -337,7 +337,7 @@ namespace UnityEditor.VFX.UI
 
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            if (evt.target == this)
+            if (evt.target == this && (capabilities & Capabilities.Selectable)!= 0)
             {
                 evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
 

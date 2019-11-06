@@ -5,6 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -340,7 +341,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             s_TempSlots.Clear();
             GetOutputSlots(s_TempSlots);
@@ -432,7 +433,7 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
-        public virtual void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {

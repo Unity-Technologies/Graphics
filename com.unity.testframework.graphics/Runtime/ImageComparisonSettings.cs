@@ -38,5 +38,11 @@ namespace UnityEngine.TestTools.Graphics
         /// </summary>
         [Tooltip("The maximum permitted average error value across the entire image.")]
         public float AverageCorrectnessThreshold;
+
+        /// <summary>
+        /// Use HDR rendering
+        /// </summary>
+        [Tooltip("If enabled, render textures will be created with DefaultHDR format.")]
+        public bool UseHDR = false;
     }
 }

@@ -176,7 +176,7 @@ bool ComputeContactShadow(PositionInputs posInput, float3 direction, inout float
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
 void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
     uint2 tileCoord = groupId;

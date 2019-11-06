@@ -71,7 +71,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDUnlitMasterNode.PositionSlotId
+                HDUnlitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false,
         };
@@ -108,7 +110,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             VertexShaderSlots = new List<int>()
             {
-                HDUnlitMasterNode.PositionSlotId
+                HDUnlitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false,
 
@@ -152,7 +156,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDUnlitMasterNode.PositionSlotId
+                HDUnlitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false,
 
@@ -184,7 +190,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDUnlitMasterNode.PositionSlotId
+                HDUnlitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
 
@@ -240,7 +248,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDUnlitMasterNode.PositionSlotId
+                HDUnlitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false,
         };
@@ -272,7 +282,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDUnlitMasterNode.PositionSlotId
+                HDUnlitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = true,
 
@@ -306,7 +318,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -331,7 +345,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -359,7 +375,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -387,7 +405,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
+                HDUnlitMasterNode.VertexNormalSlotId,
+                HDUnlitMasterNode.VertexTangentSlotId
             },
             UseInPreview = false
         };
@@ -436,7 +456,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(HDUnlitMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(HDUnlitMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(HDUnlitMasterNode.VertexNormalSlotId) ||
+                    masterNode.IsSlotConnected(HDUnlitMasterNode.VertexTangentSlotId) )
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

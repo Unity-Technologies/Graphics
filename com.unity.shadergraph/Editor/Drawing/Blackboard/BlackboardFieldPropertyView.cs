@@ -8,6 +8,7 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using Toggle = UnityEngine.UIElements.Toggle;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -41,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ColorShaderProperty colorProperty:
                     BuildColorPropertyField(colorProperty);
                     break;
-                case TextureShaderProperty texture2DProperty:
+                case Texture2DShaderProperty texture2DProperty:
                     BuildTexture2DPropertyField(texture2DProperty);
                     break;
                 case Texture2DArrayShaderProperty texture2DArrayProperty:
@@ -89,6 +90,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 DirtyNodes();
             });
             AddRow("Precision", precisionField);
+            if (property.isGpuInstanceable)
+            {
+                Toggle gpuInstancedToogle = new Toggle { value = property.gpuInstanced };
+                gpuInstancedToogle.OnToggleChanged(evt =>
+                {
+                    graph.owner.RegisterCompleteObjectUndo("Change Hybrid Instanced Toggle");
+                    property.gpuInstanced = evt.newValue;
+                    DirtyNodes(ModificationScope.Graph);
+                });
+                AddRow("Hybrid Instanced (experimental)", gpuInstancedToogle);
+            }
+
         }
 
         void BuildVector1PropertyField(Vector1ShaderProperty property)
@@ -293,7 +306,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void BuildTexture2DPropertyField(TextureShaderProperty property)
+        void BuildTexture2DPropertyField(Texture2DShaderProperty property)
         {
             var field = new ObjectField { value = property.value.texture, objectType = typeof(Texture) };
             field.RegisterValueChangedCallback(evt =>
@@ -304,17 +317,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             AddRow("Default", field);
 
-            var defaultMode = (Enum)TextureShaderProperty.DefaultType.Grey;
+            var defaultMode = (Enum)Texture2DShaderProperty.DefaultType.Grey;
             var textureMode = property.generatePropertyBlock ? (Enum)property.defaultType : defaultMode;
             var defaultModeField = new EnumField(textureMode);
-            defaultModeField.RegisterValueChangedCallback(evt =>
-                {
-                    graph.owner.RegisterCompleteObjectUndo("Change Texture Mode");
-                    if (property.defaultType == (TextureShaderProperty.DefaultType)evt.newValue)
-                        return;
-                    property.defaultType = (TextureShaderProperty.DefaultType)evt.newValue;
-                    DirtyNodes(ModificationScope.Graph);
-                });
+                defaultModeField.RegisterValueChangedCallback(evt =>
+                    {
+                        graph.owner.RegisterCompleteObjectUndo("Change Texture Mode");
+                        if (property.defaultType == (Texture2DShaderProperty.DefaultType)evt.newValue)
+                            return;
+                        property.defaultType = (Texture2DShaderProperty.DefaultType)evt.newValue;
+                        DirtyNodes(ModificationScope.Graph);
+                    });
             AddRow("Mode", defaultModeField, !graph.isSubGraph && property.generatePropertyBlock);
         }
 

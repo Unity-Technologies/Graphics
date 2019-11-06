@@ -17,6 +17,11 @@
     background-color: #CBCBCB;
 }
 
+.list-environment-overlay > ToolbarButton:hover
+{
+    background-color: #e8e8e8;
+}
+
 #inspector-header
 {
     background-color: #CBCBCB;
@@ -31,4 +36,34 @@
 Image.unity-list-view__item:selected
 {
     border-color: #3A72B0;
+}
+
+#environmentContainer
+{
+    border-color: #999999;
+}
+
+#debugContainer
+{
+    border-color: #999999;
+}
+
+#debugToolbar
+{
+    border-color: #999999;
+}
+
+MultipleSourcePopupField > MultipleDifferentValue
+{
+    background-color: #DFDFDF;
+}
+
+MultipleSourcePopupField > MultipleDifferentValue:hover
+{
+    background-color: #e8e8e8;
+}
+
+#sunToBrightestButton:hover
+{
+    background-color: #e8e8e8;
 }

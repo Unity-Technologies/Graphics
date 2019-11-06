@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph
@@ -201,9 +202,9 @@ namespace UnityEditor.ShaderGraph
         #region Edge data
 
         [NonSerialized]
-        List<IEdge> m_Edges = new List<IEdge>();
+        List<Edge> m_Edges = new List<Edge>();
 
-        public IEnumerable<IEdge> edges
+        public IEnumerable<Edge> edges
         {
             get { return m_Edges; }
         }
@@ -315,6 +316,9 @@ namespace UnityEditor.ShaderGraph
 
         public bool didActiveOutputNodeChange { get; set; }
 
+        internal delegate void SaveGraphDelegate(Shader shader);
+        internal static SaveGraphDelegate onSaveGraph;
+
         public GraphData()
         {
             m_GroupItems[Guid.Empty] = new List<IGroupItem>();
@@ -355,7 +359,9 @@ namespace UnityEditor.ShaderGraph
 
                 // If adding a Sub Graph node whose asset contains Keywords
                 // Need to restest Keywords against the variant limit
-                if(node is SubGraphNode subGraphNode && subGraphNode.asset.keywords.Count > 0)
+                if(node is SubGraphNode subGraphNode &&
+                    subGraphNode.asset != null && 
+                    subGraphNode.asset.keywords.Count > 0)
                 {
                     OnKeywordChangedNoValidate();
                 }
@@ -443,6 +449,12 @@ namespace UnityEditor.ShaderGraph
             {
                 groupItems.Remove(stickyNote);
             }
+        }
+
+        public void RemoveStickyNote(StickyNoteData stickyNote)
+        {
+            RemoveNoteNoValidate(stickyNote);
+            ValidateGraph();
         }
 
         public void SetGroup(IGroupItem node, GroupData group)
@@ -629,7 +641,7 @@ namespace UnityEditor.ShaderGraph
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
-            m_Edges.Remove(e);
+            m_Edges.Remove(e as Edge);
 
             List<IEdge> inputNodeEdges;
             if (m_NodeEdges.TryGetValue(e.inputSlot.nodeGuid, out inputNodeEdges))
@@ -771,7 +783,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (string.IsNullOrEmpty(newName))
                 return;
-            
+
             string name = newName.Trim();
             if (string.IsNullOrEmpty(name))
                 return;
@@ -1253,9 +1265,14 @@ namespace UnityEditor.ShaderGraph
 
         public void OnBeforeSerialize()
         {
-            m_SerializableNodes = SerializationHelper.Serialize(GetNodes<AbstractMaterialNode>());
-            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            var nodes = GetNodes<AbstractMaterialNode>().ToList();
+            nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
+            m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
+            m_Edges.Sort();
+            m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
+            m_Properties.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
+            m_Keywords.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
             m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
             m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
         }
@@ -1293,7 +1310,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+            m_Edges = SerializationHelper.Deserialize<Edge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableEdges = null;
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);

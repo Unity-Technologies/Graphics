@@ -10,10 +10,7 @@ namespace UnityEngine.Rendering
         {
             set
             {
-                //if (value > HighDefinition.ShaderConfig.s_XrMaxViews)
-                //    throw new System.NotImplementedException("Invalid XR setup for single-pass instancing: you must increase ShaderConfig.XrMaxViews");
-                //else
-                    m_MaxViews = value;
+                m_MaxViews = value;
             }
         }
 
@@ -74,6 +71,7 @@ namespace UnityEngine.Rendering
         static RTHandle         m_BlackTexture2DArrayRTH;
         static RTHandle         m_BlackTextureRTH;
         public static RTHandle GetBlackTexture() { return useTexArray ? m_BlackTexture2DArrayRTH : m_BlackTextureRTH; }
+        public static RTHandle GetBlackTextureArray() { return m_BlackTexture2DArrayRTH; }
 
         static Texture2DArray   m_WhiteTexture2DArray;
         static RTHandle         m_WhiteTexture2DArrayRTH;

@@ -2,18 +2,21 @@
 
 ## Description
 
-A **Sub Graph** is a special type of [Shader Graph](Shader-Graph.md). It is used to create graphs that can be referenced inside other graphs. This is useful when you wish to perform the same operations multiple times in one graph or across multiple graphs. A **Sub Graph** differs from a [Shader Graph](Shader-Graph.md) in 3 main ways:
-- [Properties](Property-Types.md) in the [Blackboard](Blackboard.md) of a **Sub Graph** define the input [Ports](Port.md) of a [Sub Graph Node](Sub-graph-Node.md) when the **Sub Graph** is referenced in another graph. 
-- A **Sub-graph** has its own asset type. For more information, including how to make a new **Sub-graph**, see [Sub-graph Asset](Sub-graph-Asset.md).
-- A **Sub Graph** does not have a [Master Node](Master-Node.md). Instead it has a [Node](Node.md) called **Output**. For more information see below.
+A Sub Graph is a special type of Shader Graph, which you can reference from inside other graphs. This is useful when you wish to perform the same operations multiple times in one graph or across multiple graphs. A Sub Graph differs from a Shader Graph in three main ways:
+- [Properties](Property-Types) in the [Blackboard](Blackboard) of a Sub Graph define the input [Ports](Port) of a [Sub Graph Node](Sub-graph-Node) when you reference the Sub Graph from inside another graph. 
+- A Sub Graph has its own Asset type. For more information, including instructions on how to make a new Sub Graph, see [Sub Graph Asset](Sub-graph-Asset).
+- A Sub Graph does not have a [Master Node](Master-Node). Instead, it has a [Node](Node) called **Output**. For more information, see [Output Node](#OutputNode).
 
-For components of a **Sub-graph** see:
-* [Sub-graph Asset](Sub-graph-Asset.md)
+For information about the components of a Sub Graph, see [Sub Graph Asset](Sub-graph-Asset).
 
+<a name="OutputNode"></a>
 ## Output Node
+The Output Node defines the output ports of a [Sub Graph Node](Sub-graph-Node.md) when you reference the Sub Graph from inside another graph. To add and remove ports, use the [Custom Port Menu](Custom-Port-Menu).
 
-The **Output** [Node](Node.md) defines the output [Ports](Port.md) of a [Sub Graph Node](Sub-graph-Node.md) when the **Sub Graph** is referenced in another graph. You can add and remove [Ports](Port.md) using the [Custom Port Menu](Custom-Port-Menu) available via the cog icon in the top right corner of the node.
+## Sub Graphs and shader stages
+If a Node within a Sub Graph specifies a shader stage (for example, like how the [Sample Texture 2D Node](Sample-Texture-2D-Node.md) specifies the **fragment** shader stage), the Editor locks the entire Sub Graph to that stage. You cannot connect any Nodes that specify a different shader stage to the Sub Graph Output Node, and the Editor locks any Sub Graph Nodes that reference the graph to that shader stage.
 
-## Sub Graphs and Shader Stages
+## Sub Graphs and Keywords
+[Keywords](Keywords) that you define on the [Blackboard](Blackboard) in a Sub Graph behave similarly to those in regular Shader Graphs. When you add a Sub Graph Node to a Shader Graph, Unity defines all Keywords in that Sub Graph in the Shader Graph as well, so that the Sub Graph works as intended.
 
-If a [Node](Node.md) within a **Sub Graph** specifies a shader stage, such as how [Sample Texture 2D Node](Sample-Texture-2D-Node.md) specifies the **fragment** shader stage, then that entire **Sub Graph** is now locked to that stage. No [Nodes](Node.md) that specify a different shader stage will be able to be connected to the **Sub-graph Output Node** and any [Sub Graph Nodes](Sub-graph-Node.md) that reference the graph will also be locked to that shader stage.
+To use a Sub Graph Keyword inside a Shader Graph, or to expose that Keyword in the Material Inspector, copy it from the Sub Graph to the Shader Graph's Blackboard.

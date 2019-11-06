@@ -40,7 +40,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
     float4 result = 0;
 
     #if defined(UNITY_STEREO_INSTANCING_ENABLED)
-        // With XR single-pass instancing, one 3D buffer is used to store all views (split along w)
+        // With XR single-pass, one 3D buffer is used to store all views (split along w)
         w = (w + unity_StereoEyeIndex) * _VBufferRcpInstancedViewCount;
 
         // Manually clamp w with a safe limit to avoid linear interpolation from the others views

@@ -47,7 +47,7 @@ CBUFFER_END
 
 
 #if defined(USING_STEREO_MATRICES)
-#define _PrevVPMatrixNoTranslation          _XRViewConstants[unity_StereoEyeIndex].prevViewProjMatrixNoCameraTrans
+#define _PrevVPMatrixNoTranslation          _XRPrevViewProjMatrixNoCameraTrans[unity_StereoEyeIndex]
 #endif
 
 

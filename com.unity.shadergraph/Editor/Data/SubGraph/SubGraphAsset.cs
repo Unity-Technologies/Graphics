@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph

@@ -18,7 +18,7 @@ const float faceMul = 1.0f;
 float3 normalWS = i.VFX_VARYING_NORMAL * faceMul;
 const VFXUVData uvData = GetUVData(i);
 
-#if defined(VFX_VARYING_TANGENT) && (USE_NORMAL_MAP || USE_NORMAL_BENDING)
+#if defined(VFX_VARYING_TANGENT) && (USE_NORMAL_MAP || USE_NORMAL_BENDING || VFX_SHADERGRAPH)
 float3 tangentWS = i.VFX_VARYING_TANGENT;
 float3 bitangentWS = cross(i.VFX_VARYING_TANGENT,i.VFX_VARYING_NORMAL);
 

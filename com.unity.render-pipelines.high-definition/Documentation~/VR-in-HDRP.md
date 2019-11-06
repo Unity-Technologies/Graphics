@@ -1,37 +1,32 @@
 # Virtual Reality in the High Definition Render Pipeline
 
-To use Virtual Reality (VR) in HDRP, you must enable VR in your Unity Project. To do this, see the [VR tab](#Render-Pipeline-Wizard.html#VRTab) in the Render Pipeline Wizard.
+To use Virtual Reality (VR) in the High Definition Render Pipeline (HDRP), you must enable VR in your Unity Project. To do this, see the [VR tab](#Render-Pipeline-Wizard.html#VRTab) in the Render Pipeline Wizard.
 
-Some HDRP features are not compatible with VR. When you enable VR in your Project, HDRP automatically disables the features that it does not support . If you encounter an issue with a specific feature, you can disable it in your Project’s [HDRP Asset](HDRP-Asset.html).
+## Recommended Settings
 
-## Supported features by Unity version
+HDRP has been designed to fully support Single-Pass Instanced mode. This mode gives you the best performance on all platforms.
+HDRP also supports multi-pass but this is slower and some features, like Auto-Exposure, can cause issues.
+If you encounter an issue with a specific feature, you can disable it in your Project’s [HDRP Asset](HDRP-Asset.html).
 
-### Unity 2019.3
+## Supported Platforms and Devices
+* **PC with DX11**:
+  * Oculus Rift
+  * OpenVR
+  * Windows Mixed Reality
+* **PS4**:
+  * PSVR
 
-You can use Multi-pass or Single-pass instancing for VR in HDRP.
+## Resolution Control
+There are multiple methods that you can use to control the resolution of your render targets in HDRP, but be aware that HDRP does not support every method available in standard Unity using the built-in render pipeline. [XRSettings.renderViewportScale](https://docs.unity3d.com/ScriptReference/XR.XRSettings-renderViewportScale.html) has no effect in HDRP and generates a warning if you use it. Use one of the following methods instead:
+* **Dynamic Resolution**: You can use the [dynamic resolution system](Dynamic-Resolution.md) to change the resolution at run time. This is the best method to use if you want to change the resolution at run time.
+* **Eye Texture**: You can set the device back-buffer resolution by changing [XRSettings.eyeTextureResolutionScale](https://docs.unity3d.com/ScriptReference/XR.XRSettings-eyeTextureResolutionScale.html). This is a resource intensive operation that reallocates all render targets.
 
-#### Not supported
 
-- Single-pass Stereo (double-wide)
+## C# defines
 
-### Unity 2019.2
+You can use the following defines to include or exclude code from your scripts.
 
-You can use Multi-pass or Single Pass instancing for VR in HDRP.
 
-#### Not supported
-
-- Single-pass Stereo (double-wide)
-- VFX Graph with Single-pass instancing
-
-### Unity 2019.1
-
-You must use Single-pass Stereo (double-wide) rendering for VR in HDRP.
-
-#### Not supported
-
-- Multi-pass rendering
-- Single-pass instancing
-- Tile lighting
-- Deferred rendering
-- Volumetrics
-- Render and viewport scale
+* ENABLE_VR: The C++ side of the engine sets this define to indicate if the platform supports VR.
+* ENABLE_VR_MODULE: Unity sets this define if your Project includes the [built-in VR module com.unity.modules.vr](https://docs.unity3d.com/Manual/upm-ui-disable.html).
+* ENABLE_XR_MODULE: Unity sets this define if your Project includes the [built-in XR module com.unity.modules.xr](https://docs.unity3d.com/Manual/upm-ui-disable.html).

@@ -96,7 +96,7 @@ void WriteDebugInfo(uint2 positionSS, float4 value)
 [numthreads(8, 8, 1)]
 void ScreenSpaceReflectionsTracing(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
 
 #ifdef SSR_USE_STENCIL
@@ -310,7 +310,7 @@ float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, fl
 [numthreads(8, 8, 1)]
 void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?
@@ -352,7 +352,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     // Inverse pre-exposure
     float prevExposure = GetPreviousExposureMultiplier();
     color /= prevExposure + (prevExposure == 0.0); // zero-div guard
-    
+
     // Disable SSR for negative, infinite and NaN history values.
     uint3 intCol   = asuint(color);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;

@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
         static void CreateForwardRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
-        
+
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
         }
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
 
-        [SerializeField] StencilStateData m_DefaultStencilState = null;
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
 
         protected override ScriptableRenderer Create()
         {
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal
             base.OnEnable();
 
             // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
-            // We need to call the OnEnable for data migration when updating from old versions of LWRP that
+            // We need to call the OnEnable for data migration when updating from old versions of UniversalRP that
             // serialized resources in a different format. Early returning here when OnEnable is called
             // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
             if (shaders == null)

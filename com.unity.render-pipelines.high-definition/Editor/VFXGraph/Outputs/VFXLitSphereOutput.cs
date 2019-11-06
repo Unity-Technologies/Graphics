@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXLitSphereOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Lit Sphere Output"; } }
+        public override string name { get { return "Output Particle Lit Sphere"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleSphere"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
 
@@ -59,7 +59,9 @@ namespace UnityEditor.VFX
 
                 yield return "cullMode";
                 yield return "blendMode";
+                yield return "useAlphaClipping";
                 yield return "doubleSided";
+                yield return "shaderGraph";
             }
         }
     }

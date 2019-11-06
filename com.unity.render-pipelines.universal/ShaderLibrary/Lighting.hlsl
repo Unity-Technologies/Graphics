@@ -123,20 +123,22 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 {
     // Abstraction over Light input constants
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    float3 lightPositionWS = _AdditionalLightsBuffer[perObjectLightIndex].position.xyz;
+    float4 lightPositionWS = _AdditionalLightsBuffer[perObjectLightIndex].position;
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
     half4 lightOcclusionProbeInfo = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
 #else
-    float3 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex].xyz;
+    float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
     half4 lightOcclusionProbeInfo = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
 
-    float3 lightVector = lightPositionWS - positionWS;
+    // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
+    // This way the following code will work for both directional and punctual lights.
+    float3 lightVector = lightPositionWS.xyz - positionWS * lightPositionWS.w;
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
@@ -253,7 +255,7 @@ struct BRDFData
     // We save some light invariant BRDF terms so we don't have to recompute
     // them in the light loop. Take a look at DirectBRDF function for detailed explaination.
     half normalizationTerm;     // roughness * 4.0 + 2.0
-    half roughness2MinusOne;    // roughness² - 1.0
+    half roughness2MinusOne;    // roughness^2 - 1.0
 };
 
 half ReflectivitySpecular(half3 specular)
@@ -295,7 +297,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 
     outBRDFData.grazingTerm = saturate(smoothness + reflectivity);
     outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
-    outBRDFData.roughness = PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness);
+    outBRDFData.roughness = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN);
     outBRDFData.roughness2 = outBRDFData.roughness * outBRDFData.roughness;
 
     outBRDFData.normalizationTerm = outBRDFData.roughness * 4.0h + 2.0h;
@@ -319,7 +321,7 @@ half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSp
 // Implementation is slightly different from original derivation: http://www.thetenthplanet.de/archives/255
 //
 // * NDF [Modified] GGX
-// * Modified Kelemen and Szirmay-​Kalos for Visibility term
+// * Modified Kelemen and Szirmay-Kalos for Visibility term
 // * Fresnel approximated with 1/LdotH
 half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
 {
@@ -331,12 +333,12 @@ half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 
     // GGX Distribution multiplied by combined approximation of Visibility and Fresnel
     // BRDFspec = (D * V * F) / 4.0
-    // D = roughness² / ( NoH² * (roughness² - 1) + 1 )²
-    // V * F = 1.0 / ( LoH² * (roughness + 0.5) )
+    // D = roughness^2 / ( NoH^2 * (roughness^2 - 1) + 1 )^2
+    // V * F = 1.0 / ( LoH^2 * (roughness + 0.5) )
     // See "Optimizing PBR for Mobile" from Siggraph 2015 moving mobile graphics course
     // https://community.arm.com/events/1155
 
-    // Final BRDFspec = roughness² / ( NoH² * (roughness² - 1) + 1 )² * (LoH² * (roughness + 0.5) * 4.0)
+    // Final BRDFspec = roughness^2 / ( NoH^2 * (roughness^2 - 1) + 1 )^2 * (LoH^2 * (roughness + 0.5) * 4.0)
     // We further optimize a few light invariant terms
     // brdfData.normalizationTerm = (roughness + 0.5) * 4.0 rewritten as roughness * 4.0 + 2.0 to a fit a MAD.
     float d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001f;

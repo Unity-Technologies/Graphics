@@ -76,24 +76,6 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 #define VARYINGS_NEED_PASS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
-// Transforms normal from object to world space
-float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
-{
-#ifdef UNITY_ASSUME_UNIFORM_SCALING
-    return normalize(mul((float3x3)unity_MatrixPreviousM, normalOS));
-#else
-    // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (float3x3)unity_MatrixPreviousMI));
-#endif
-}
-
-// Transforms local position to camera relative world space
-float3 TransformPreviousObjectToWorld(float3 positionOS)
-{
-    float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
-    return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
-}
-
 void MotionVectorPositionZBias(VaryingsToPS input)
 {
 #if defined(UNITY_REVERSED_Z)

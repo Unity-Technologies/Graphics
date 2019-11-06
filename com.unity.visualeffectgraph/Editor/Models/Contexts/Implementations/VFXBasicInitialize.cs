@@ -15,11 +15,14 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType { get { return VFXTaskType.Initialize; } }
         public override VFXDataType outputType { get { return GetData() == null ? VFXDataType.Particle : GetData().type; } }
 
-        public override IEnumerable<string> additionalDefines
+
+        private bool hasGPUSpawner => inputContexts.Any(o => o.contextType == VFXContextType.SpawnerGPU);
+
+    public override IEnumerable<string> additionalDefines
         {
             get
             {
-                if (inputContexts.Any(o => o.contextType == VFXContextType.SpawnerGPU))
+                if (hasGPUSpawner)
                     yield return "VFX_USE_SPAWNER_FROM_GPU";
 
                 if (ownedType == VFXDataType.ParticleStrip)
@@ -29,6 +32,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
+            [Tooltip("The culling bounds of this system. The Visual Effect is only visible if the bounding box specified here is visible to the camera.")]
             public AABox bounds = new AABox() { size = Vector3.one };
         }
 
@@ -37,12 +41,20 @@ namespace UnityEditor.VFX
             public uint stripIndex = 0;
         }
 
+        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            if (model == this && cause == InvalidationCause.kConnectionChanged)
+                ResyncSlots(false); // To add/remove stripIndex
+
+            base.OnInvalidate(model, cause);
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
                 var prop = base.inputProperties;
-                if (ownedType == VFXDataType.ParticleStrip)
+                if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
                     prop = prop.Concat(PropertiesFromType("StripInputProperties"));
                 return prop;
             }
@@ -61,7 +73,7 @@ namespace UnityEditor.VFX
             if (target == VFXDeviceTarget.GPU)
             {
                 var gpuMapper = VFXExpressionMapper.FromBlocks(activeFlattenedChildrenWithImplicit);
-                if (ownedType == VFXDataType.ParticleStrip)
+                if (ownedType == VFXDataType.ParticleStrip && !hasGPUSpawner)
                     gpuMapper.AddExpressionsFromSlot(inputSlots[1], -1); // strip index
                 return gpuMapper;
             }

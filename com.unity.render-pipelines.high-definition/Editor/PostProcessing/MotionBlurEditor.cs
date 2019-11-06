@@ -1,12 +1,12 @@
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-
 
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     [VolumeComponentEditor(typeof(MotionBlur))]
-    sealed class MotionBlurEditor : VolumeComponentEditor
+    sealed class MotionBlurEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;
         SerializedDataParameter m_SampleCount;
@@ -22,10 +22,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
-            m_SampleCount = Unpack(o.Find(x => x.sampleCount));
+            m_SampleCount = Unpack(o.Find("m_SampleCount"));
             m_MinVelInPixels = Unpack(o.Find(x => x.minimumVelocity));
             m_MaxVelocityInPixels = Unpack(o.Find(x => x.maximumVelocity));
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
@@ -37,7 +39,12 @@ namespace UnityEditor.Rendering.HighDefinition
             bool advanced = isInAdvancedMode;
 
             PropertyField(m_Intensity);
+
+            base.OnInspectorGUI();
+
+            GUI.enabled = useCustomValue;
             PropertyField(m_SampleCount);
+            GUI.enabled = true;
 
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);

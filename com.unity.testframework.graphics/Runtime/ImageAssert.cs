@@ -61,7 +61,10 @@ namespace UnityEngine.TestTools.Graphics
             // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
             int dummyRenderedFrameCount = 1;
 
-            var rt = RenderTexture.GetTemporary(width, height, 24);
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, settings.UseHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default, 24);
+            desc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
+
+            var rt = RenderTexture.GetTemporary(desc);
             Texture2D actual = null;
             try
             {
@@ -78,9 +81,22 @@ namespace UnityEngine.TestTools.Graphics
 					if (dummyRenderedFrameCount == i)
 					{
 						actual = new Texture2D(width, height, format, false);
-						RenderTexture.active = rt;
+                        RenderTexture dummy = null;
+
+                        if (settings.UseHDR)
+                        {
+                            desc.colorFormat = RenderTextureFormat.Default;
+                            dummy = RenderTexture.GetTemporary(desc);
+                            UnityEngine.Graphics.Blit(rt, dummy);
+                        }
+                        else
+                            RenderTexture.active = rt;
+
 						actual.ReadPixels(new Rect(0, 0, width, height), 0, 0);
 						RenderTexture.active = null;
+
+                        if (dummy != null)
+                            RenderTexture.ReleaseTemporary(dummy);
 
 						actual.Apply();
 

@@ -908,7 +908,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class ParameterGizmoContext : VFXGizmoUtility.Context
+    class ParameterGizmoContext : VFXGizmoUtility.Context
     {
         internal ParameterGizmoContext(VFXParameterController controller)
         {

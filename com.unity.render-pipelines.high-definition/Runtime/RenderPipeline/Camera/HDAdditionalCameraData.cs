@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
-    public partial class HDAdditionalCameraData : MonoBehaviour
+    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
     {
         public enum FlipYMode
         {
@@ -142,6 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool dithering = false;
         public bool stopNaNs = false;
 
+        [Range(0, 2)]
+        public float taaSharpenStrength = 0.6f;
+
         // Physical parameters
         public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
 
@@ -160,9 +163,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public LayerMask probeLayerMask = ~0;
 
+        /// <summary>
+        /// Enable to retain history buffers even if the camera is disabled.
+        /// </summary>
+        public bool hasPersistentHistory = false;
+
         // Event used to override HDRP rendering for this particular camera.
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         public bool hasCustomRender { get { return customRender != null; } }
+
+        internal float probeCustomFixedExposure = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.defaultCamera;
@@ -170,6 +180,35 @@ namespace UnityEngine.Rendering.HighDefinition
         public FrameSettingsRenderType defaultFrameSettings;
 
         public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
+
+        bool IFrameSettingsHistoryContainer.hasCustomFrameSettings
+            => customRenderingSettings;
+
+        FrameSettingsOverrideMask IFrameSettingsHistoryContainer.frameSettingsMask
+            => renderingPathCustomFrameSettingsOverrideMask;
+
+        FrameSettings IFrameSettingsHistoryContainer.frameSettings
+            => m_RenderingPathCustomFrameSettings;
+
+        FrameSettingsHistory m_RenderingPathHistory = new FrameSettingsHistory()
+        {
+            defaultType = FrameSettingsRenderType.Camera
+        };
+
+        FrameSettingsHistory IFrameSettingsHistoryContainer.frameSettingsHistory
+        {
+            get => m_RenderingPathHistory;
+            set => m_RenderingPathHistory = value;
+        }
+
+        string IFrameSettingsHistoryContainer.panelName
+            => m_CameraRegisterName;
+
+        Action IDebugData.GetReset()
+                //caution: we actually need to retrieve the right
+                //m_FrameSettingsHistory as it is a struct so no direct
+                // => m_FrameSettingsHistory.TriggerReset
+                => () => m_RenderingPathHistory.TriggerReset();
 
         AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
 
@@ -270,9 +309,10 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
 
-        public bool IsDebugRegistred()
+        public bool isDebugRegistred
         {
-            return m_IsDebugRegistered;
+            get => m_IsDebugRegistered;
+            internal set => m_IsDebugRegistered = value;
         }
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
@@ -295,6 +335,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
             data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
             data.defaultFrameSettings = defaultFrameSettings;
+
+            data.probeCustomFixedExposure = probeCustomFixedExposure;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
@@ -319,27 +361,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 // doesn't affect the serialized version
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
-                if (/*m_camera.cameraType != CameraType.Preview &&*/ m_camera.cameraType != CameraType.Reflection)
+                m_CameraRegisterName = name;
+                if (m_camera.cameraType != CameraType.Preview && m_camera.cameraType != CameraType.Reflection)
                 {
-                    DebugDisplaySettings.RegisterCamera(m_camera, this);
+                    DebugDisplaySettings.RegisterCamera(this);
                 }
-                m_CameraRegisterName = m_camera.name;
                 m_IsDebugRegistered = true;
             }
         }
 
         void UnRegisterDebug()
         {
-            if (m_camera == null)
-                return;
-
             if (m_IsDebugRegistered)
             {
                 // Note camera's preview camera is registered with preview type but then change to game type that lead to issue.
                 // Do not attempt to not register them till this issue persist.
-                if (/*m_camera.cameraType != CameraType.Preview &&*/ m_camera.cameraType != CameraType.Reflection)
+                if (m_camera.cameraType != CameraType.Preview && m_camera?.cameraType != CameraType.Reflection)
                 {
-                    DebugDisplaySettings.UnRegisterCamera(m_camera, this);
+                    DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;
             }
@@ -367,7 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateDebugCameraName()
         {
-            if (m_camera.name != m_CameraRegisterName)
+            if (name != m_CameraRegisterName)
             {
                 UnRegisterDebug();
                 RegisterDebug();
@@ -377,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             UnRegisterDebug();
-            
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateDebugCameraName;
 #endif

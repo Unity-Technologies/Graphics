@@ -14,7 +14,7 @@ using UnityEditor.VFX.UI;
 using UnityObject = UnityEngine.Object;
 
 [CustomEditor(typeof(UnityEditor.VFXManager))]
-public class VFXManagerEditor : Editor
+class VFXManagerEditor : Editor
 {
     SerializedProperty[] m_TimeProperties;
     SerializedProperty[] m_ShaderProperties;

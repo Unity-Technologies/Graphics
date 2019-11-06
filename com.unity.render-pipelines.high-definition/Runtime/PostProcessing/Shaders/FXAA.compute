@@ -13,7 +13,7 @@ TEXTURE2D_X(_InputTexture);
 [numthreads(8,8,1)]
 void FXAA(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); 
 

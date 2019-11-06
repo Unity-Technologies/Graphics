@@ -599,8 +599,9 @@ namespace UnityEditor.VFX.UI
                 case VFXDataType.SpawnEvent:
                     return VFXView.LoadImage("Execution");
                 case VFXDataType.Particle:
-                case VFXDataType.ParticleStrip: // TODO Add an icon
                     return VFXView.LoadImage("Particles");
+                case VFXDataType.ParticleStrip:
+                    return VFXView.LoadImage("ParticleStrips");
             }
             return null;
         }
@@ -767,8 +768,12 @@ namespace UnityEditor.VFX.UI
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
                     continue;
 
+                var sourceSetting = controller.model.GetSetting(setting.name);
+                if (!sourceSetting.valid)
+                    continue;
+
                 object value;
-                if (VFXConverter.TryConvertTo(setting.value, setting.field.FieldType, out value))
+                if (VFXConverter.TryConvertTo(sourceSetting.value, setting.field.FieldType, out value))
                     newContextController.model.SetSettingValue(setting.field.Name, value);
             }
 

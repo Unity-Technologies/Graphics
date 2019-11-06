@@ -139,6 +139,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  useQualitySettings:
+    m_OverrideState: 0
+    m_Value: 0
+  quality:
+    m_OverrideState: 1
+    m_Value: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.2
@@ -162,16 +168,16 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
     min: 0
-  highQualityFiltering:
-    m_OverrideState: 0
-    m_Value: 1
-  resolution:
-    m_OverrideState: 0
-    m_Value: 2
   prefilter:
     m_OverrideState: 0
     m_Value: 0
   anamorphic:
+    m_OverrideState: 0
+    m_Value: 1
+  m_Resolution:
+    m_OverrideState: 0
+    m_Value: 2
+  m_HighQualityFiltering:
     m_OverrideState: 0
     m_Value: 1
 --- !u!114 &8689955086501673153

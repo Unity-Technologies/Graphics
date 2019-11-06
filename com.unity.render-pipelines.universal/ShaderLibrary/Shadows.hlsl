@@ -55,11 +55,7 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 
-#if UNITY_REVERSED_Z
-#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= UNITY_RAW_FAR_CLIP_VALUE
-#else
-#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z >= UNITY_RAW_FAR_CLIP_VALUE
-#endif
+#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
 
 struct ShadowSamplingData
 {

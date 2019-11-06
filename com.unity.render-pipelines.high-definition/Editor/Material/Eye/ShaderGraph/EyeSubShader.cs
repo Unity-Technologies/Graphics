@@ -76,7 +76,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-               EyeMasterNode.PositionSlotId
+               EyeMasterNode.PositionSlotId,
+               EyeMasterNode.VertexNormalSlotID,
+               EyeMasterNode.VertexTangentSlotID
             },
             UseInPreview = false,
         };
@@ -106,7 +108,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-               EyeMasterNode.PositionSlotId
+               EyeMasterNode.PositionSlotId,
+               EyeMasterNode.VertexNormalSlotID,
+               EyeMasterNode.VertexTangentSlotID
             },
             UseInPreview = false
         };
@@ -156,7 +160,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             VertexShaderSlots = new List<int>()
             {
-               EyeMasterNode.PositionSlotId
+               EyeMasterNode.PositionSlotId,
+               EyeMasterNode.VertexNormalSlotID,
+               EyeMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -208,7 +214,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-               EyeMasterNode.PositionSlotId
+               EyeMasterNode.PositionSlotId,
+               EyeMasterNode.VertexNormalSlotID,
+               EyeMasterNode.VertexTangentSlotID
             },
             UseInPreview = false,
 
@@ -273,7 +281,9 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             VertexShaderSlots = new List<int>()
             {
-               EyeMasterNode.PositionSlotId
+               EyeMasterNode.PositionSlotId,
+               EyeMasterNode.VertexNormalSlotID,
+               EyeMasterNode.VertexTangentSlotID
             },
             UseInPreview = true,
 
@@ -435,7 +445,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
                 // use standard shader pass generation
-                bool vertexActive = masterNode.IsSlotConnected(EyeMasterNode.PositionSlotId);
+                bool vertexActive = false;
+                if (masterNode.IsSlotConnected(EyeMasterNode.PositionSlotId) ||
+                    masterNode.IsSlotConnected(EyeMasterNode.VertexNormalSlotID) ||
+                    masterNode.IsSlotConnected(EyeMasterNode.VertexTangentSlotID) )
+                {
+                    vertexActive = true;
+                }
                 return HDSubShaderUtilities.GenerateShaderPass(masterNode, pass, mode, activeFields, result, sourceAssetDependencyPaths, vertexActive);
             }
             else

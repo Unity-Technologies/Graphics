@@ -23,6 +23,7 @@ Shader "Hidden/HDRP/FinalPass"
         TEXTURE2D(_GrainTexture);
         TEXTURE2D_X(_AfterPostProcessTexture);
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
+        TEXTURE2D_X(_AlphaTexture);
 
         SAMPLER(sampler_LinearClamp);
         SAMPLER(sampler_LinearRepeat);
@@ -86,17 +87,20 @@ Shader "Hidden/HDRP/FinalPass"
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             float3 outColor = UpscaledResult(positionNDC.xy);
             #else
-            float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
+            float4 inputColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS);
+            float3 outColor = inputColor.rgb;
             #endif
+
+            float outAlpha = LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x;
 
             #if FXAA
             RunFXAA(_InputTexture, sampler_LinearClamp, outColor, positionSS, positionNDC);
             #endif
 
             // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
-#if defined(GRAIN) || defined(DITHER)
+            #if defined(GRAIN) || defined(DITHER)
             outColor = saturate(outColor);
-#endif
+            #endif
 
             #if GRAIN
             {
@@ -137,7 +141,7 @@ Shader "Hidden/HDRP/FinalPass"
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
 
-            return float4(outColor, 1.0);
+            return float4(outColor, outAlpha);
         }
 
     ENDHLSL
@@ -148,8 +152,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         Pass
         {
-            Cull Off ZWrite Off
-            ZTest Less // Required for XR occlusion mesh optimization
+            Cull Off ZWrite Off ZTest Always
 
             HLSLPROGRAM
 

@@ -1,9 +1,12 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
-    internal class ForwardLights
+    /// <summary>
+    /// Computes and submits lighting data to the GPU.
+    /// </summary>
+    public class ForwardLights
     {
         static class LightConstantBuffer
         {
@@ -25,9 +28,14 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetupLightConstants = "Setup Light Constants";
         MixedLightingSetup m_MixedLightingSetup;
 
-        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+        // Holds light direction for directional lights or position for punctual lights.
+        // When w is set to 1.0, it means it's a punctual light.
+        Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         Vector4 k_DefaultLightColor = Color.black;
-        Vector4 k_DefaultLightAttenuation = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+
+        // Default light attenuation is setup in a particular way that it causes
+        // directional lights to return 1.0 for both distance and angle attenuation
+        Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
 
@@ -71,12 +79,10 @@ namespace UnityEngine.Rendering.Universal
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SetupPerObjectLightIndices(renderingData.cullResults, ref renderingData.lightData);
-
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
             CommandBuffer cmd = CommandBufferPool.Get(k_SetupLightConstants);
-            SetupShaderLightConstants(cmd, renderingData.cullResults, ref renderingData.lightData);
+            SetupShaderLightConstants(cmd, ref renderingData);
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
                 additionalLightsCount > 0 && additionalLightsPerVertex);
@@ -106,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
             if (lightData.lightType == LightType.Directional)
             {
                 Vector4 dir = -lightData.localToWorldMatrix.GetColumn(2);
-                lightPos = new Vector4(dir.x, dir.y, dir.z, 1.0f);
+                lightPos = new Vector4(dir.x, dir.y, dir.z, 0.0f);
             }
             else
             {
@@ -163,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
                 // Particle lights will use an inline function
                 float cosInnerAngle;
                 if (lightData.light != null)
-                    cosInnerAngle = Mathf.Cos(LightmapperUtils.ExtractInnerCone(lightData.light) * 0.5f);
+                    cosInnerAngle = Mathf.Cos(lightData.light.innerSpotAngle * Mathf.Deg2Rad * 0.5f);
                 else
                     cosInnerAngle = Mathf.Cos((2.0f * Mathf.Atan(Mathf.Tan(lightData.spotAngle * 0.5f * Mathf.Deg2Rad) * (64.0f - 18.0f) / 64.0f)) * 0.5f);
                 float smoothAngleRange = Mathf.Max(0.001f, cosInnerAngle - cosOuterAngle);
@@ -195,14 +201,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void SetupShaderLightConstants(CommandBuffer cmd, CullingResults cullResults, ref LightData lightData)
+        void SetupShaderLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
             m_MixedLightingSetup = MixedLightingSetup.None;
 
             // Main light has an optimized shader path for main light. This will benefit games that only care about a single light.
             // Universal pipeline also supports only a single shadow light, if available it will be the main light.
-            SetupMainLightConstants(cmd, ref lightData);
-            SetupAdditionalLightConstants(cmd, cullResults, ref lightData);
+            SetupMainLightConstants(cmd, ref renderingData.lightData);
+            SetupAdditionalLightConstants(cmd, ref renderingData);
         }
 
         void SetupMainLightConstants(CommandBuffer cmd, ref LightData lightData)
@@ -214,11 +220,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(LightConstantBuffer._MainLightColor, lightColor);
         }
 
-        void SetupAdditionalLightConstants(CommandBuffer cmd, CullingResults cullResults, ref LightData lightData)
+        void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            ref LightData lightData = ref renderingData.lightData;
+            var cullResults = renderingData.cullResults;
             var lights = lightData.visibleLights;
-            int additionalLightsCount = lightData.additionalLightsCount;
             int maxAdditionalLightsCount = UniversalRenderPipeline.maxVisibleAdditionalLights;
+            int additionalLightsCount = SetupPerObjectLightIndices(cullResults, ref lightData);
             if (additionalLightsCount > 0)
             {
                 if (m_UseStructuredBuffer)
@@ -227,7 +235,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
                         VisibleLight light = lights[i];
-                        if (lightData.mainLightIndex != i && light.lightType != LightType.Directional)
+                        if (lightData.mainLightIndex != i)
                         {
                             ShaderInput.LightData data;
                             InitializeLightConstants(lights, i,
@@ -254,7 +262,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0, lightIter = 0; i < lights.Length && lightIter < maxAdditionalLightsCount; ++i)
                     {
                         VisibleLight light = lights[i];
-                        if (lightData.mainLightIndex != i && light.lightType != LightType.Directional)
+                        if (lightData.mainLightIndex != i)
                         {
                             InitializeLightConstants(lights, i, out m_AdditionalLightPositions[lightIter],
                                 out m_AdditionalLightColors[lightIter],
@@ -281,14 +289,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
         
-        void SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData)
+        int SetupPerObjectLightIndices(CullingResults cullResults, ref LightData lightData)
         {
             if (lightData.additionalLightsCount == 0)
-                return;
+                return lightData.additionalLightsCount;
 
             var visibleLights = lightData.visibleLights;
             var perObjectLightIndexMap = cullResults.GetLightIndexMap(Allocator.Temp);
-            int directionalLightsCount = 0;
+            int globalDirectionalLightsCount = 0;
             int additionalLightsCount = 0;
 
             // Disable all directional lights from the perobject light indices
@@ -299,32 +307,33 @@ namespace UnityEngine.Rendering.Universal
                     break;
 
                 VisibleLight light = visibleLights[i];
-                if (light.lightType == LightType.Directional)
+                if (i == lightData.mainLightIndex)
                 {
                     perObjectLightIndexMap[i] = -1;
-                    ++directionalLightsCount;
+                    ++globalDirectionalLightsCount;
                 }
                 else
                 {
-                    perObjectLightIndexMap[i] -= directionalLightsCount;
+                    perObjectLightIndexMap[i] -= globalDirectionalLightsCount;
                     ++additionalLightsCount;
                 }
             }
 
             // Disable all remaining lights we cannot fit into the global light buffer.
-            for (int i = directionalLightsCount + additionalLightsCount; i < perObjectLightIndexMap.Length; ++i)
+            for (int i = globalDirectionalLightsCount + additionalLightsCount; i < perObjectLightIndexMap.Length; ++i)
                 perObjectLightIndexMap[i] = -1;
 
             cullResults.SetLightIndexMap(perObjectLightIndexMap);
 
-            if (m_UseStructuredBuffer)
+            if (m_UseStructuredBuffer && additionalLightsCount > 0)
             {
-                int lightIndices = cullResults.lightAndReflectionProbeIndexCount;
-                if (lightIndices > 0)
-                    cullResults.FillLightAndReflectionProbeIndices(ShaderData.instance.GetLightIndicesBuffer(lightIndices));
+                int lightAndReflectionProbeIndices = cullResults.lightAndReflectionProbeIndexCount;
+                Assertions.Assert.IsTrue(lightAndReflectionProbeIndices > 0, "Pipelines configures additional lights but per-object light and probe indices count is zero.");
+                cullResults.FillLightAndReflectionProbeIndices(ShaderData.instance.GetLightIndicesBuffer(lightAndReflectionProbeIndices));
             }
             
             perObjectLightIndexMap.Dispose();
+            return additionalLightsCount;
         }
     }
 }

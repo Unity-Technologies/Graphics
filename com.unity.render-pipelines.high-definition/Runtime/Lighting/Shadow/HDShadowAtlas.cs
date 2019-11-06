@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
             frameCounter++;
         }
 
-        private void PruneDeadCachedLightSlots()
+        internal void PruneDeadCachedLightSlots()
         {
             m_ListOfCachedShadowRequests.RemoveAll(x => (x.emptyRequest));
             frameOfCacheValidity = 0; // Invalidate cached data.
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int shadowIndex = -1;
             for(int i=0; i< m_ListOfCachedShadowRequests.Count; ++i)
             {
-                if(m_ListOfCachedShadowRequests[i].lightID == request.lightID && m_ListOfCachedShadowRequests[i].indexInLight == request.indexInLight)
+                if(!m_ListOfCachedShadowRequests[i].emptyRequest && m_ListOfCachedShadowRequests[i].lightID == request.lightID && m_ListOfCachedShadowRequests[i].indexInLight == request.indexInLight)
                 {
                     shadowIndex = i;
                     break;
@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ScriptableRenderContext renderContext,
                                     CommandBuffer           cmd)
         {
-            cmd.SetRenderTarget(atlasRenderTexture);
+            cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.SetGlobalVector(parameters.atlasSizeShaderID, new Vector4(atlasRenderTexture.rt.width, atlasRenderTexture.rt.height, 1.0f / atlasRenderTexture.rt.width, 1.0f / atlasRenderTexture.rt.height));
 
             // Clear the whole atlas to avoid garbage outside of current request when viewing it.

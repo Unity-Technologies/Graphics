@@ -234,7 +234,7 @@ void SubsurfaceScattering(uint2 groupId          : SV_GroupID,
                           uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     groupThreadId &= GROUP_SIZE_2D - 1; // Help the compiler
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadLaneFirst(groupThreadId / 64);

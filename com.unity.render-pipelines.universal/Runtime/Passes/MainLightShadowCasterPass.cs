@@ -1,8 +1,11 @@
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.Internal
 {
-    internal class MainLightShadowCasterPass : ScriptableRenderPass
+    /// <summary>
+    /// Renders a shadow map for the main Light.
+    /// </summary>
+    public class MainLightShadowCasterPass : ScriptableRenderPass
     {
         private static class MainLightShadowConstantBuffer
         {

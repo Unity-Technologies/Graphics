@@ -38,6 +38,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Rect   pixelRect           = Rect.zero;
         internal float  orthoSize           = 1.0f;
         internal float  unitsPerPixel       = 0.0f;
+        internal int    cinemachineVCamZoom = 1;
 
         internal PixelPerfectCameraInternal(IPixelPerfectCamera component)
         {
@@ -205,5 +206,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return pixelRect;
         }
+
+#if CM_2_3_4_OR_NEWER
+        // Find a pixel-perfect orthographic size as close to targetOrthoSize as possible.
+        internal float CorrectCinemachineOrthoSize(float targetOrthoSize)
+        {
+            float correctedOrthoSize;
+
+            if (m_Component.upscaleRT)
+            {
+                cinemachineVCamZoom = Math.Max(1, Mathf.RoundToInt(orthoSize / targetOrthoSize));
+                correctedOrthoSize = orthoSize / cinemachineVCamZoom;
+            }
+            else
+            {
+                cinemachineVCamZoom = Math.Max(1, Mathf.RoundToInt(zoom * orthoSize / targetOrthoSize));
+                correctedOrthoSize = zoom * orthoSize / cinemachineVCamZoom;
+            }
+
+            // In this case the actual zoom level is cinemachineVCamZoom instead of zoom.
+            if (!m_Component.upscaleRT && !m_Component.pixelSnapping)
+                unitsPerPixel = 1.0f / (cinemachineVCamZoom * m_Component.assetsPPU);
+
+            return correctedOrthoSize;
+        }
+#endif
     }
 }

@@ -29,7 +29,7 @@ void BUILDINDIRECT(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (dispatchThreadId.x >= g_NumTiles)
         return;
 
-    UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint featureFlags = g_TileFeatureFlags[dispatchThreadId.x + unity_StereoEyeIndex * g_NumTiles];
 

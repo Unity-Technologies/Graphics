@@ -1,11 +1,17 @@
+using UnityEngine.Rendering.Universal.Internal;
+
 namespace UnityEngine.Rendering.Universal
 {
-    internal class ForwardRenderer : ScriptableRenderer
+    /// <summary>
+    /// Default renderer for Universal RP.
+    /// This renderer is supported on all Universal RP supported platforms.
+    /// It uses a classic forward rendering strategy with per-object light culling.
+    /// </summary>
+    public sealed class ForwardRenderer : ScriptableRenderer
     {
         const int k_DepthStencilBufferBits = 32;
         const string k_CreateCameraTextures = "Create Camera Texture";
 
-        VolumeBlendingPass m_VolumeBlendingPass;
         ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -55,7 +61,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
-            m_VolumeBlendingPass = new VolumeBlendingPass(RenderPassEvent.BeforeRendering);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
@@ -87,12 +92,12 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights = new ForwardLights();
         }
 
+        /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Camera camera = renderingData.cameraData.camera;
+            ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-
-            EnqueuePass(m_VolumeBlendingPass);
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents. 
             bool isOffscreenDepthTexture = camera.targetTexture != null && camera.targetTexture.format == RenderTextureFormat.Depth;
@@ -112,18 +117,18 @@ namespace UnityEngine.Rendering.Universal
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);
             bool resolveShadowsInScreenSpace = mainLightShadows && renderingData.shadowData.requiresScreenSpaceShadowResolve;
-            
+
             // Depth prepass is generated in the following cases:
             // - We resolve shadows in screen space
             // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             bool requiresDepthPrepass = renderingData.cameraData.isSceneViewCamera ||
-                (renderingData.cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
+                (cameraData.requiresDepthTexture && (!CanCopyDepth(ref renderingData.cameraData)));
             requiresDepthPrepass |= resolveShadowsInScreenSpace;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until
             // we have a proper fix.
-            if (renderingData.cameraData.isStereoEnabled && renderingData.cameraData.requiresDepthTexture)
+            if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
                 requiresDepthPrepass = true;
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref renderingData, cameraTargetDescriptor)
@@ -131,16 +136,16 @@ namespace UnityEngine.Rendering.Universal
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read
             // later by effect requiring it.
-            bool createDepthTexture = renderingData.cameraData.requiresDepthTexture && !requiresDepthPrepass;
-            bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
+            bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
+            bool postProcessEnabled = cameraData.postProcessEnabled;
 
             m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : RenderTargetHandle.CameraTarget;
             m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : RenderTargetHandle.CameraTarget;
             bool intermediateRenderTexture = createColorTexture || createDepthTexture;
             
             if (intermediateRenderTexture)
-                CreateCameraRenderTarget(context, ref renderingData.cameraData);
-            
+                CreateCameraRenderTarget(context, ref cameraData);
+
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), m_ActiveCameraDepthAttachment.Identifier());
 
             // if rendering to intermediate render texture we don't have to create msaa backbuffer
@@ -223,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
                 // perform post with src / dest the same
                 if (postProcessEnabled)
                 {
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, requiresFinalPostProcessPass);
                     EnqueuePass(m_PostProcessPass);
                 }
 
@@ -254,14 +259,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (requiresFinalPostProcessPass)
                     {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, true);
                         EnqueuePass(m_PostProcessPass);
                         m_FinalPostProcessPass.SetupFinalPass(m_AfterPostProcessColor);
                         EnqueuePass(m_FinalPostProcessPass);
                     }
                     else
                     {
-                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut);
+                        m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, RenderTargetHandle.CameraTarget, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false);
                         EnqueuePass(m_PostProcessPass);
                     }
                 }
@@ -281,11 +286,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_ForwardLights.Setup(context, ref renderingData);
         }
 
+        /// <inheritdoc />
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters,
             ref CameraData cameraData)
         {
@@ -297,9 +304,14 @@ namespace UnityEngine.Rendering.Universal
             //     cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             // }
 
-            cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
+            // If shadow is disabled, disable shadow caster culling
+            if (Mathf.Approximately(cameraData.maxShadowDistance, 0.0f))
+                cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;
+
+            cullingParameters.shadowDistance = cameraData.maxShadowDistance;
         }
 
+        /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)

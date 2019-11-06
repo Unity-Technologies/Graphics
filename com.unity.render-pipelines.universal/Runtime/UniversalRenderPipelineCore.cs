@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 
+using UnityEngine.Experimental.GlobalIllumination;
+using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
+
 namespace UnityEngine.Rendering.Universal
 {
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum MixedLightingSetup
@@ -148,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples)
+            bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha)
         {
             RenderTextureDescriptor desc;
             RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
@@ -165,17 +168,88 @@ namespace UnityEngine.Rendering.Universal
                 desc.height = (int)((float)desc.height * renderScale);
             }
 
-            // TODO: when preserve framebuffer alpha is enabled we can't use RGB111110Float format.
-            bool useRGB111110 = Application.isMobilePlatform && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
-            RenderTextureFormat hdrFormat = (useRGB111110) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
-            desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
-            desc.depthBufferBits = 32;
+            bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
+            RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+            if (camera.targetTexture != null)
+            {
+                desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
+                desc.depthBufferBits = camera.targetTexture.descriptor.depthBufferBits;
+                desc.msaaSamples = camera.targetTexture.descriptor.msaaSamples;
+                desc.sRGB = camera.targetTexture.descriptor.sRGB;
+            }
+            else
+            {
+                desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
+                desc.depthBufferBits = 32;
+                desc.msaaSamples = msaaSamples;
+                desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            }
+
             desc.enableRandomWrite = false;
-            desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-            desc.msaaSamples = msaaSamples;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
             return desc;
         }
+
+        static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        {
+            // Editor only.
+#if UNITY_EDITOR
+            LightDataGI lightData = new LightDataGI();
+
+            for (int i = 0; i < requests.Length; i++)
+            {
+                Light light = requests[i];
+                switch (light.type)
+                {
+                    case LightType.Directional:
+                        DirectionalLight directionalLight = new DirectionalLight();
+                        LightmapperUtils.Extract(light, ref directionalLight);
+                        lightData.Init(ref directionalLight);
+                        break;
+                    case LightType.Point:
+                        PointLight pointLight = new PointLight();
+                        LightmapperUtils.Extract(light, ref pointLight);
+                        lightData.Init(ref pointLight);
+                        break;
+                    case LightType.Spot:
+                        SpotLight spotLight = new SpotLight();
+                        LightmapperUtils.Extract(light, ref spotLight);
+                        spotLight.innerConeAngle = light.innerSpotAngle * Mathf.Deg2Rad;
+                        spotLight.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
+                        lightData.Init(ref spotLight);
+                        break;
+                    case LightType.Area:
+                        RectangleLight rectangleLight = new RectangleLight();
+                        LightmapperUtils.Extract(light, ref rectangleLight);
+                        rectangleLight.mode = LightMode.Baked;
+                        lightData.Init(ref rectangleLight);
+                        break;
+                    case LightType.Disc:
+                        DiscLight discLight = new DiscLight();
+                        LightmapperUtils.Extract(light, ref discLight);
+                        discLight.mode = LightMode.Baked;
+                        lightData.Init(ref discLight);
+                        break;
+                    default:
+                        lightData.InitNoBake(light.GetInstanceID());
+                        break;
+                }
+
+                lightData.falloff = FalloffType.InverseSquared;
+                lightsOutput[i] = lightData;
+            }
+#else
+            LightDataGI lightData = new LightDataGI();
+
+            for (int i = 0; i < requests.Length; i++)
+            {
+                Light light = requests[i];
+                lightData.InitNoBake(light.GetInstanceID());
+                lightsOutput[i] = lightData;
+            }
+            Debug.LogWarning("Realtime GI is not supported in Universal Pipeline.");
+#endif
+        };
     }
 }

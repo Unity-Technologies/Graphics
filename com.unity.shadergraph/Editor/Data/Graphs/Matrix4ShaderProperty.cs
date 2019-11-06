@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -12,10 +13,11 @@ namespace UnityEditor.ShaderGraph
             displayName = "Matrix4x4";
             value = Matrix4x4.identity;
         }
+        internal override bool isGpuInstanceable => true;
         
         public override PropertyType propertyType => PropertyType.Matrix4;
         
-        public override AbstractMaterialNode ToConcreteNode()
+        internal override AbstractMaterialNode ToConcreteNode()
         {
             return new Matrix4Node
             {
@@ -26,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override PreviewProperty GetPreviewMaterialProperty()
+        internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
@@ -35,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             };
         }
 
-        public override ShaderInput Copy()
+        internal override ShaderInput Copy()
         {
             return new Matrix4ShaderProperty()
             {
