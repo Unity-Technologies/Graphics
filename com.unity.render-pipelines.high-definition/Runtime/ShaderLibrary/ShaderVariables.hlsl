@@ -447,12 +447,21 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
 #define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 
-// Define View/Projection matrix macro
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
-
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+#undef unity_ObjectToWorld
+#undef unity_WorldToObject
+UNITY_DOTS_INSTANCING_START(UnityPerDraw)
+    UNITY_DOTS_INSTANCED_PROP(unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP(unity_WorldToObject)
+UNITY_DOTS_INSTANCING_END
+#endif
+
+// Define View/Projection matrix macro
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
 
 // This is located after the include of UnityInstancing.hlsl so it can be used for declaration
 // Undef in order to include all textures and buffers declarations

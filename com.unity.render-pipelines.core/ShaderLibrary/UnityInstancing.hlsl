@@ -57,7 +57,7 @@
 // basic instancing setups
 // - UNITY_VERTEX_INPUT_INSTANCE_ID     Declare instance ID field in vertex shader input / output struct.
 // - UNITY_GET_INSTANCE_ID              (Internal) Get the instance ID from input struct.
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_DOTS_INSTANCING_ENABLED)
 
     // A global instance ID variable that functions can directly access.
     static uint unity_InstanceID;
@@ -208,10 +208,38 @@
         #endif
     #endif
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+    #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf)
+    #define UNITY_INSTANCING_BUFFER_END(arr)        UNITY_INSTANCING_CBUFFER_SCOPE_END
+    #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
+    #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var
+
+    // TODO: Revisit naming
+    #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
+    #define UNITY_DOTS_INSTANCING_END         }
+    #define UNITY_DOTS_INSTANCED_PROP(name) uint unity_DOTSInstancingMetadata_##name;
+
+
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(var) LoadDOTSInstancedData(var, unity_DOTSInstancingMetadata_##var)
+    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(arr, var) LoadDOTSInstancedData(var, unity_DOTSInstancingMetadata_##var)
+
+#else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
     #define UNITY_INSTANCING_BUFFER_END(arr)        } arr##Array[UNITY_INSTANCED_ARRAY_SIZE]; UNITY_INSTANCING_CBUFFER_SCOPE_END
     #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   arr##Array[unity_InstanceID].var
+
+    #define UNITY_DOTS_INSTANCING_START(name)
+    #define UNITY_DOTS_INSTANCING_END
+    #define UNITY_DOTS_INSTANCED_PROP(name)
+
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(var) var
+    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(arr, var) UNITY_ACCESS_INSTANCED_PROP(arr, var)
+#endif
+
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
+#endif
 
     // Put worldToObject array to a separate CB if UNITY_ASSUME_UNIFORM_SCALING is defined. Most of the time it will not be used.
     #ifdef UNITY_ASSUME_UNIFORM_SCALING
@@ -311,6 +339,19 @@
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
 
+    // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
+    #if defined(UNITY_DOTS_INSTANCING_ENABLED)
+        #undef UNITY_MATRIX_M
+        #undef UNITY_MATRIX_I_M
+        #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_WorldToObject))
+        #else
+            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_ObjectToWorld)
+            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP(unity_WorldToObject)
+        #endif
+    #else
+
     #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
@@ -322,6 +363,8 @@
             #define UNITY_MATRIX_M      UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
             #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
         #endif
+    #endif
+
     #endif
 
 #else // UNITY_INSTANCING_ENABLED
