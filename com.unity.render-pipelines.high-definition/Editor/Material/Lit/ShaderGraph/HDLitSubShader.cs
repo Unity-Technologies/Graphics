@@ -187,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.VertexNormalSlotID,
                 HDLitMasterNode.VertexTangentSlotID
             },
-            UseInPreview = false,
+            UseInPreview = false
         };
 
         Pass m_SceneSelectionPass = new Pass()
@@ -440,7 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.VertexNormalSlotID,
                 HDLitMasterNode.VertexTangentSlotID
             },
-            UseInPreview = true,
+            UseInPreview = true
         };
 
         Pass m_PassTransparentBackface = new Pass()
@@ -503,6 +503,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UseInPreview = true,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
+                var masterNode = node as HDLitMasterNode;
                 HDSubShaderUtilities.SetBlendModeForTransparentBackface(ref pass);
             }
         };
@@ -622,7 +623,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDLitMasterNode.VertexNormalSlotID,
                 HDLitMasterNode.VertexTangentSlotID
             },
-            UseInPreview = true,
+            UseInPreview = true
         };
 
         Pass m_PassRaytracingIndirect = new Pass()
@@ -1083,6 +1084,16 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.supportLodCrossFade.isOn)
                 baseActiveFields.AddAll("LodCrossFade");
 
+            // Speedtree asset version
+            if (masterNode.speedTreeVersion == HDLitMasterNode.SpeedTreeVersion.SpeedTree7)
+            {
+                baseActiveFields.AddAll("SpeedtreeVersion7");
+            }
+            else if (masterNode.speedTreeVersion == HDLitMasterNode.SpeedTreeVersion.SpeedTree8)
+            {
+                baseActiveFields.AddAll("SpeedtreeVersion8");
+            }
+
             return activeFields;
         }
 
@@ -1091,6 +1102,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (mode == GenerationMode.ForReals || pass.UseInPreview)
             {
                 pass.OnGeneratePass(masterNode);
+
+                // Make sure Speedtree-specific stuff is added 
+                masterNode.AddSpeedTreeGeometryDefines(ref pass.ExtraDefines);
 
                 // apply master node options to active fields
                 var activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
