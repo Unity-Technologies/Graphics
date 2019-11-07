@@ -471,8 +471,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
-                    // TEMP: Place accumulation here for now.
-                    if (!isSceneView)
+                    if (!isSceneView && m_MotionBlur.IsActive() && m_MotionBlur.algorithm == MotionBlurAlgorithm.Accumulation)
                     {
                         var destination = m_Pool.Get(Vector2.one, k_AccumulationFormat);
                         DoAccumulationMotionBlur(cmd, camera, source, destination, depthBuffer);
@@ -502,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Motion blur after depth of field for aesthetic reasons (better to see motion
                     // blurred bokeh rather than out of focus motion blur)
-                    if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !m_ResetHistory && m_MotionBlurFS)
+                    if (m_MotionBlur.IsActive() && m_MotionBlur.algorithm == MotionBlurAlgorithm.Realtime && m_AnimatedMaterialsEnabled && !m_ResetHistory && m_MotionBlurFS)
                     {
                         using (new ProfilingSample(cmd, "Motion Blur", CustomSamplerId.MotionBlur.GetSampler()))
                         {

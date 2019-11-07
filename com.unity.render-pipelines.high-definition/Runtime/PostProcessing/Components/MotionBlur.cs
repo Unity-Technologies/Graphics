@@ -3,9 +3,21 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum MotionBlurAlgorithm { Realtime, Accumulation }
+
+    [Serializable]
+    public sealed class MotionBlurAlgorithmParameter : VolumeParameter<MotionBlurAlgorithm> 
+    { 
+        public MotionBlurAlgorithmParameter(MotionBlurAlgorithm value, bool overrideState = false)
+            : base(value, overrideState) {}
+    }
+
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
     public sealed class MotionBlur : VolumeComponentWithQuality, IPostProcessComponent
     {
+        [Tooltip("TODO")]
+        public MotionBlurAlgorithmParameter algorithm = new MotionBlurAlgorithmParameter(MotionBlurAlgorithm.Realtime);
+
         [Tooltip("Sets the intensity of the motion blur effect. Acts as a multiplier for velocities.")]
         public MinFloatParameter intensity = new MinFloatParameter(0.0f, 0.0f);
         [Tooltip("Controls the maximum velocity, in pixels, that HDRP allows for all sources of motion blur except Camera rotation.")]

@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MinVelInPixels;
 
         //  Advanced properties 
+        SerializedDataParameter m_Algorithm;
         SerializedDataParameter m_CameraRotClamp;
         SerializedDataParameter m_DepthCmpScale;
 
@@ -30,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SampleCount = Unpack(o.Find("m_SampleCount"));
             m_MinVelInPixels = Unpack(o.Find(x => x.minimumVelocity));
             m_MaxVelocityInPixels = Unpack(o.Find(x => x.maximumVelocity));
+            m_Algorithm = Unpack(o.Find(x => x.algorithm));
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
             m_DepthCmpScale = Unpack(o.Find(x => x.depthComparisonExtent));
         }
@@ -38,6 +40,27 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             bool advanced = isInAdvancedMode;
 
+            if(advanced)
+            {
+                PropertyField(m_Algorithm);
+                EditorGUI.indentLevel++;
+            }
+
+            switch(m_Algorithm.value.GetEnumValue<MotionBlurAlgorithm>())
+            {
+                case MotionBlurAlgorithm.Realtime: RealtimeMotionBlurGUI(); break;
+                case MotionBlurAlgorithm.Accumulation: AccumulationMotionBlurGUI(); break;
+                default: break;
+            }
+
+            if(advanced)
+            {
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        void RealtimeMotionBlurGUI()
+        {
             PropertyField(m_Intensity);
 
             base.OnInspectorGUI();
@@ -49,11 +72,17 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);
 
-            if(advanced)
+            if(isInAdvancedMode)
             {
                 PropertyField(m_DepthCmpScale);
                 PropertyField(m_CameraRotClamp);
             }
+        }
+
+        void AccumulationMotionBlurGUI()
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox("", MessageType.Warning);
         }
     }
 }
