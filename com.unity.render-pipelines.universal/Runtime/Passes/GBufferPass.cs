@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
 
             // If depth-prepass exists, do not clear depth here or we will lose it.
+            // Lighting buffer is cleared independently regardless of what we ask for here.
             ConfigureClear(m_HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
         }
 
