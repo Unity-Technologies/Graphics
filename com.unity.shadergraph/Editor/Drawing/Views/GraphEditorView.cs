@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
 using Object = UnityEngine.Object;
 
 using UnityEditor.Experimental.GraphView;
@@ -29,14 +28,14 @@ namespace UnityEditor.ShaderGraph.Drawing
     class UserViewSettings
     {
         public bool isBlackboardVisible = true;
-        public bool isPreviewVisible = true;
+        public bool isInspectorVisible = true;
         public string colorProvider = NoColors.Title;
     }
 
     class GraphEditorView : VisualElement, IDisposable
     {
         MaterialGraphView m_GraphView;
-        MasterPreviewView m_MasterPreviewView;
+        InspectorView m_InspectorView;
 
         GraphData m_Graph;
         PreviewManager m_PreviewManager;
@@ -98,8 +97,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_ColorManager;
         }
 
-        InspectorView m_InspectorView;
-
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
@@ -110,7 +107,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph, messageManager);
-            previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
 
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
@@ -207,7 +203,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     GUILayout.Space(6);
 
-                    m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
                     if (EditorGUI.EndChangeCheck())
                     {
                         if(newColorIdx != m_ColorManager.activeIndex)
@@ -216,7 +212,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
                         }
 
-                        m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
+                        m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
                         m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
                         var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
                         EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
@@ -242,9 +238,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
 
-                CreateMasterPreview();
-
                 m_InspectorView = new InspectorView(graph, graphView, previewManager);
+                m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
                 m_GraphView.OnSelectionChange += m_InspectorView.UpdateSelection;
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
@@ -301,19 +296,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.groupTitleChanged = null;
             m_GraphView.elementsAddedToGroup = null;
             m_GraphView.elementsRemovedFromGroup = null;
-        }
-
-        void CreateMasterPreview()
-        {
-            m_MasterPreviewView = new MasterPreviewView(previewManager, m_Graph) {name = "masterPreview"};
-
-            var masterPreviewViewDraggable = new WindowDraggable(null, this);
-            m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
-            m_GraphView.Add(m_MasterPreviewView);
-
-            masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
-            m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
-            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -955,13 +937,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnPrimaryMasterChanged()
-        {
-            m_MasterPreviewView?.RemoveFromHierarchy();
-            CreateMasterPreview();
-            ApplyMasterPreviewLayout();
-        }
-
         void HandleEditorViewChanged(GeometryChangedEvent evt)
         {
             m_BlackboardProvider.blackboard.SetPosition(m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout));
@@ -975,8 +950,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ApplySerializewindowLayouts(GeometryChangedEvent evt)
         {
             UnregisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
-
-            ApplyMasterPreviewLayout();
 
             // Restore blackboard layout, and make sure that it remains in the view.
             Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
@@ -1001,25 +974,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<GeometryChangedEvent>(HandleEditorViewChanged);
         }
 
-        void ApplyMasterPreviewLayout()
-        {
-            m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
-            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
-            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
-        }
-
         void UpdateSerializedWindowLayout()
         {
-            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
-            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
-
             m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.blackboardLayout.ClampToParentWindow();
-
-            if (m_MasterPreviewView.expanded)
-            {
-                m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.previewTextureView.layout.size;
-            }
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
             EditorUserSettings.SetConfigValue(k_FloatingWindowsLayoutKey, serializedWindowLayout);

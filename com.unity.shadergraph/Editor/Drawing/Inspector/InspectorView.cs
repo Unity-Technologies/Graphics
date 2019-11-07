@@ -40,7 +40,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
         Vector2 m_PreviewScrollPosition;
-        Mesh m_PreviousMesh;
+        Vector2 m_ExpandedPreviewSize = new Vector2(256f, 256f);
+        Mesh m_PreviousPreviewMesh;
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
         // Passing both the manager and the data here is really bad
@@ -204,6 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewImage.AddManipulator(contextMenu);
             m_PreviewImage.AddManipulator(new Scrollable(OnPreviewScroll));
             m_PreviewImage.AddManipulator(new Draggable(OnPreviewDrag, true));
+            m_PreviewImage.RegisterCallback<GeometryChangedEvent>(OnPreviewGeometryChanged);
         }
 
         void ChangePreviewMesh(Mesh mesh)
@@ -232,7 +234,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.menu.AppendAction("Custom Mesh", e =>
             {
                 MethodInfo ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] {typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>)}, new ParameterModifier[7]);
-                m_PreviousMesh = m_GraphData.previewData.serializedMesh.mesh;
+                m_PreviousPreviewMesh = m_GraphData.previewData.serializedMesh.mesh;
                 ShowMethod.Invoke(GetMeshSelectionWindow(), new object[] { null, typeof(Mesh), null, false, null, (Action<UnityEngine.Object>)OnPreviewMeshChanged, (Action<UnityEngine.Object>)OnPreviewMeshChanged });
             });
         }
@@ -247,7 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var mesh = obj as Mesh;
             if (mesh == null)
-                mesh = m_PreviousMesh;
+                mesh = m_PreviousPreviewMesh;
             ChangePreviewMesh(mesh);
         }
 
@@ -278,6 +280,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_GraphData.previewData.rotation = previewRotation;
             m_GraphData.outputNode.Dirty(ModificationScope.Node);
+        }
+
+        void OnPreviewGeometryChanged(GeometryChangedEvent evt)
+        {
+            var currentWidth = m_PreviewRenderData?.texture != null ? m_PreviewRenderData.texture.width : -1;
+            var currentHeight = m_PreviewRenderData?.texture != null ? m_PreviewRenderData.texture.height : -1;
+
+            var targetWidth = Mathf.Max(1f, m_PreviewImage.contentRect.width);
+            var targetHeight = Mathf.Max(1f, m_PreviewImage.contentRect.height);
+
+            if (Mathf.Approximately(currentWidth, targetHeight) && Mathf.Approximately(currentHeight, targetWidth))
+                return;
+
+            m_PreviewManager.ResizeMasterPreview(new Vector2(targetWidth, targetHeight));
         }
 #endregion
     }

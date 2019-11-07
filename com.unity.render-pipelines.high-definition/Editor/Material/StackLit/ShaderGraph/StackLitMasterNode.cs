@@ -8,7 +8,6 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 
