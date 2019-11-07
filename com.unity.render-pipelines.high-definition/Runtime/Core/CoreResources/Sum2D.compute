@@ -1,0 +1,72 @@
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+//#pragma kernel CSMain   SUM_PER_THREAD=2    DIRECTION=HORIZONTAL
+//#pragma kernel CSMain   SUM_PER_THREAD=4    DIRECTION=HORIZONTAL
+//#pragma kernel CSMain   SUM_PER_THREAD=8    DIRECTION=HORIZONTAL
+//#pragma kernel CSMain   SUM_PER_THREAD=16   DIRECTION=HORIZONTAL
+//#pragma kernel CSMain   SUM_PER_THREAD=32   DIRECTION=HORIZONTAL
+//#pragma kernel CSMain   SUM_PER_THREAD=64   DIRECTION=HORIZONTAL
+//#pragma kernel CSMain   SUM_PER_THREAD=128  DIRECTION=HORIZONTAL
+//#pragma kernel CSMain   SUM_PER_THREAD=2    DIRECTION=VERTICAL
+//#pragma kernel CSMain   SUM_PER_THREAD=4    DIRECTION=VERTICAL
+//#pragma kernel CSMain   SUM_PER_THREAD=8    DIRECTION=VERTICAL
+//#pragma kernel CSMain   SUM_PER_THREAD=16   DIRECTION=VERTICAL
+//#pragma kernel CSMain   SUM_PER_THREAD=32   DIRECTION=VERTICAL
+//#pragma kernel CSMain   SUM_PER_THREAD=64   DIRECTION=VERTICAL
+//#pragma kernel CSMain   SUM_PER_THREAD=128  DIRECTION=VERTICAL
+
+#pragma kernel CSMain
+//#pragma kernel CSMain SUM_PER_THREAD=16
+//#pragma kernel CSMain SUM_PER_THREAD=8
+
+//#define SUM_PER_THREAD  16
+//#define DIRECTION       VERTICAL
+
+//#pragma multi_compile VERTICAL HORIZONTAL
+
+//#define DIRECTION       VERTICAL
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+  Texture2D<float4> _Input;
+RWTexture2D<float4> _Output;
+
+uint  _SumPerThread;
+uint4 _Sizes; // xy: InputSize; zw: OutputSize
+
+#define _InputSizes     _Sizes.xy
+#define _OutputSizes    _Sizes.zw
+
+float GetSample(uint2 id, uint i)
+{
+#ifdef VERTICAL
+    return dot(_Input[uint2(id.x    , id.y + i)].rgb, float3(1, 1, 1));
+#else
+    return dot(_Input[uint2(id.x + i, id.y    )].rgb, float3(1, 1, 1));
+#endif
+}
+
+[numthreads(8, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+          float sum  = 0.0f;
+    const float coef = (1.0f/1024.0f/3.0f);
+    int i;
+    for (i = 0; i < 1024; ++i)
+    {
+        sum += GetSample(id.xy, i)*coef;
+    }
+
+    for (i = 0; i < 32; ++i)
+    {
+#ifdef VERTICAL
+        _Output[uint2(id.x    , id.y + i)] = sum.xxxx;
+#else
+        _Output[uint2(id.x + i, id.y    )] = sum.xxxx;
+#endif
+    }
+}

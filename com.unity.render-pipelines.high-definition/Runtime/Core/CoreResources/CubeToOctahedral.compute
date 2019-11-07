@@ -1,0 +1,25 @@
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma kernel CSMain
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+TEXTURECUBE(_Cubemap);
+SAMPLER(sampler_Cubemap);
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+float4 _ThreadID2UV; // xy: Scale, zw: Bias
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    const float2 uv = float2(id.xy)*_ThreadID2UV.xy + _ThreadID2UV.zw;
+    const float3 w = UnpackNormalOctQuadEncode(2.0*uv - 1.0);
+
+    Result[id.xy] = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, w, 0);
+}

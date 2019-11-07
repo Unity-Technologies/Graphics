@@ -12,6 +12,13 @@ namespace UnityEngine.Rendering.HighDefinition
         private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
         private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
+        //private RenderTexture m_OctahedralMap;
+        //private RenderTexture m_PDFHorizontal;
+        private RTHandle m_OctahedralMap;
+        private RTHandle m_PDFHorizontal;
+
+        private int m_HDRISkyHash = 0;
+
         public HDRISkyRenderer()
         {
         }
@@ -73,9 +80,59 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }
 
+        public void SaveOcta(AsyncGPUReadbackRequest request)
+        {
+            if (!request.hasError)
+            {
+                Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                float[] copy = new float[result.Length];
+                result.CopyTo(copy);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                string path = @"C:\UProjects\OctSkyExport.exr";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                    System.IO.File.Delete(path);
+                }
+                System.IO.File.WriteAllBytes(path, bytes0);
+            }
+        }
+
         public override void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
+
+            int currentHash = hdriSky.hdriSky.GetHashCode();
+            if (m_HDRISkyHash != currentHash)
+            {
+                m_HDRISkyHash = currentHash;
+
+                const int size = 1024;
+
+                RenderTextureDescriptor desc0 = new RenderTextureDescriptor(size, size, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, 0);
+                desc0.enableRandomWrite = true;
+                RenderTextureDescriptor desc1 = new RenderTextureDescriptor(size, 32,   Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, 0);
+                desc1.enableRandomWrite = true;
+                m_OctahedralMap = RTHandles.Alloc(size, size, colorFormat: Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite: true, name: "OctahedralMap");
+
+                Cubemap cubemap = hdriSky.hdriSky.value;
+
+                var hdrp = HDRenderPipeline.defaultAsset;
+                Material cubeToOctahedral = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cubeToOctahedral);
+
+                cubeToOctahedral.SetTexture(HDShaderIDs._Cubemap, cubemap);
+                builtinParams.commandBuffer.SetRenderTarget(m_OctahedralMap);
+                builtinParams.commandBuffer.SetViewport(new Rect(0.0f, 0.0f, (float)size, (float)size));
+                CoreUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToOctahedral);
+                builtinParams.commandBuffer.RequestAsyncReadback(m_OctahedralMap, SaveOcta);
+
+                ParallelSum.ComputeSum(m_OctahedralMap,
+                                       builtinParams.commandBuffer,
+                                       ParallelSum.SumDirection.Horizontal,
+                                       2,
+                                       Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+            }
+
             if (hdriSky.enableBackplate.value == false)
             {
                 return;

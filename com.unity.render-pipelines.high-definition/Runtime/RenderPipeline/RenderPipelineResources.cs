@@ -14,6 +14,12 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Material/Lit/Lit.shader")]
             public Shader defaultPS;
 
+            // Core
+            [Reload("Runtime/Core/CoreResources/ParallelSum.compute")]
+            public ComputeShader ParallelSumCS;
+            [Reload("Runtime/Core/CoreResources/ParallelSumFinal.compute")]
+            public ComputeShader ParallelSumFinalCS;
+
             // Debug
             [Reload("Runtime/Debug/DebugDisplayLatlong.Shader")]
             public Shader debugDisplayLatlongPS;
@@ -109,6 +115,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader hdriSkyPS;
             [Reload("Runtime/Sky/HDRISky/IntegrateHDRISky.shader")]
             public Shader integrateHdriSkyPS;
+            [Reload("Runtime/Core/CoreResources/CubeToOctahedral.shader")]
+            public Shader cubeToOctahedral;
             [Reload("Skybox/Cubemap", ReloadAttribute.Package.Builtin)]
             public Shader skyboxCubemapPS;
             [Reload("Runtime/Sky/GradientSky/GradientSky.shader")]
@@ -145,6 +153,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
+            [Reload("Runtime/Core/CoreResources/CubeToOctahedral.compute")]
+            public ComputeShader cubeToOctahedralCS;
+            [Reload("Runtime/Core/CoreResources/Sum2D.compute")]
+            public ComputeShader sum2DCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]

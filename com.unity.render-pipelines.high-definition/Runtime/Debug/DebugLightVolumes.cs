@@ -219,7 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
             int texWidth = parameters.hdCamera.actualWidth; // m_ColorAccumulationBuffer.rt.width;
             int texHeight = parameters.hdCamera.actualHeight; // m_ColorAccumulationBuffer.rt.width;
 
-
             // Dispatch the compute
             int lightVolumesTileSize = 8;
             int numTilesX = (texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;

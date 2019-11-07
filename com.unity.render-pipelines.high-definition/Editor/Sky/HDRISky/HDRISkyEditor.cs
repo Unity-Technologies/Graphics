@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using System.IO;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -29,6 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DirLightShadow;
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
+
+        //SerializedDataParameter m_RebuildMarginal;
+        SerializedDataParameter m_OctahedralMap;
 
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
@@ -104,6 +108,47 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
+        public void RebuildMaginalTexture()
+        {
+            //int size = 1024;
+            ////RTHandle octahedralMap = RTHandles.Alloc(size, size, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
+            //Texture2D octBack = new Texture2D(size, size, TextureFormat.RGBAFloat, false);
+            //var hdrp = HDRenderPipeline.defaultAsset;
+            //Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
+            //
+            //if (hdri == null)
+            //    return;
+            //
+            //m_CubeToOctahedral.SetTexture(HDShaderIDs._Cubemap, hdri);
+            //
+            //RenderTexture octahedralMap = m_OctahedralMap.value.objectReferenceValue as RenderTexture;
+            //octahedralMap = new RenderTexture(size, size, 1, GraphicsFormat.R32G32B32A32_SFloat);
+            //Graphics.Blit(Texture2D.whiteTexture, octahedralMap, m_CubeToOctahedral);
+            //
+            //RenderTexture.active = octahedralMap;
+            //octBack.ReadPixels(new Rect(0.0f, 0.0f, size, size), 0, 0);
+            //octBack.Apply();
+            //RenderTexture.active = null;
+
+            //var hdrp = HDRenderPipeline.defaultAsset;
+            //ComputeShader m_ComputeCDF = hdrp.renderPipelineResources.shaders.sum2DCS;
+            //
+            //m_ComputeCDF.Dispatch();
+
+            //byte[] bytes = octBack.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
+            //
+            //string assetPath = EditorUtility.SaveFilePanel("Export OctMap", "Assets", "OctSkyExport", "exr");
+            //if (!string.IsNullOrEmpty(assetPath))
+            //{
+            //    File.WriteAllBytes(assetPath, bytes);
+            //    AssetDatabase.Refresh();
+            //}
+
+            //UnityEngine.Graphics.SetRenderTarget(null);
+            //CoreUtils.Destroy(octBack);
+            ////CoreUtils.Destroy(octahedralMap);
+        }
+
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
@@ -114,12 +159,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_IntensityMode);
             }
+
             bool updateDefaultShadowTint = false;
+
             if (EditorGUI.EndChangeCheck())
             {
                 GetUpperHemisphereLuxValue();
+
                 updateDefaultShadowTint = true;
             }
+
+            //((HDRISky)target).RebuildParameters();
 
             if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
             {
