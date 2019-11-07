@@ -373,19 +373,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnExpanded(MouseDownEvent evt, ShaderInput input)
         {
-            if (evt.altKey)
-            {
-                bool expanded = !m_InputRows[input.guid].expanded;
-                foreach (var blackboardRow in m_InputRows)
-                {
-                   blackboardRow.Value.expanded = expanded;
-                   m_ExpandedInputs[blackboardRow.Key] = expanded;
-                }
-            }
-            else
-            {
-                m_ExpandedInputs[input.guid] = !m_InputRows[input.guid].expanded;
-            }
+            m_ExpandedInputs[input.guid] = !m_InputRows[input.guid].expanded;
         }
 
         void DirtyNodes()
