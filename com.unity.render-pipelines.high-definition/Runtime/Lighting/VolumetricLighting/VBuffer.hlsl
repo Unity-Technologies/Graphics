@@ -15,7 +15,7 @@
 float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float2 positionNDC,
                      float  linearDistance,
-                     float4 VBufferResolution,
+                     float4 VBufferViewportSize,
                      float2 VBufferUvScale,
                      float2 VBufferUvLimit,
                      float4 VBufferDistanceEncodingParams,
@@ -55,14 +55,14 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
     {
         if (quadraticFilterXY)
         {
-            float2 xy = uv * VBufferResolution.xy;
+            float2 xy = uv * VBufferViewportSize.xy;
             float2 ic = floor(xy);
             float2 fc = frac(xy);
 
             float2 weights[2], offsets[2];
             BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
-            const float2 ssToUv = VBufferResolution.zw * VBufferUvScale;
+            const float2 ssToUv = VBufferViewportSize.zw * VBufferUvScale;
 
             // The sampler clamps to edge. This takes care of 4 frustum faces out of 6.
             // Due to the RTHandle scaling system, we must take care of the other 2 manually.
@@ -87,7 +87,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float3   positionWS,
                      float3   cameraPositionWS,
                      float4x4 viewProjMatrix,
-                     float4   VBufferResolution,
+                     float4   VBufferViewportSize,
                      float2   VBufferUvScale,
                      float2   VBufferUvLimit,
                      float4   VBufferDistanceEncodingParams,
@@ -101,7 +101,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
     return SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                          positionNDC,
                          linearDistance,
-                         VBufferResolution,
+                         VBufferViewportSize,
                          VBufferUvScale,
                          VBufferUvLimit,
                          VBufferDistanceEncodingParams,

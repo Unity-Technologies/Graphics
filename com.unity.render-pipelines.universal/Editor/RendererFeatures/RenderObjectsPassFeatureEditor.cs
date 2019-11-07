@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using UnityEngine;
 using UnityEditorInternal;
 using UnityEngine.Experimental.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal 
+namespace UnityEditor.Experimental.Rendering.Universal
 {
 	[CustomPropertyDrawer(typeof(RenderObjects.RenderObjectsSettings), true)]
     internal class RenderObjectsPassFeatureEditor : PropertyDrawer
@@ -12,33 +12,32 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    internal class Styles
 	    {
 		    public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-		    public static GUIContent callback = new GUIContent("Event", "Chose the Callback position for this render pass object.");
+		    public static GUIContent callback = new GUIContent("Event", "Choose at which point this render pass is executed in the frame.");
 
 		    //Headers
-		    public static GUIContent filtersHeader = new GUIContent("Filters", "Filters.");
-		    public static GUIContent renderHeader = new GUIContent("Overrides", "Different parts fo the rendering that you can choose to override.");
+		    public static GUIContent filtersHeader = new GUIContent("Filters", "Settings that control which objects should be rendered.");
+		    public static GUIContent renderHeader = new GUIContent("Overrides", "Different parts of the rendering that you can choose to override.");
 		    
 		    //Filters
-		    public static GUIContent renderQueueFilter = new GUIContent("Queue", "Filter the render queue range you want to render.");
-		    public static GUIContent layerMask = new GUIContent("Layer Mask", "Chose the Callback position for this render pass object.");
-		    public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Chose the Callback position for this render pass object.");
+		    public static GUIContent renderQueueFilter = new GUIContent("Queue", "Only render objects in the selected render queue range.");
+		    public static GUIContent layerMask = new GUIContent("Layer Mask", "Only render objects in a layer that match the given layer mask.");
+		    public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Controls which shader passes to use when rendering objects. The name given here must match the LightMode tag in a shader pass.");
 		    
 		    //Render Options
-		    public static GUIContent overrideMaterial = new GUIContent("Material", "Chose an override material, every renderer will be rendered with this material.");
+		    public static GUIContent overrideMaterial = new GUIContent("Material", "Choose an override material, every renderer will be rendered with this material.");
 		    public static GUIContent overrideMaterialPass = new GUIContent("Pass Index", "The pass index for the override material to use.");
 		    
 		    //Depth Settings
 		    public static GUIContent overrideDepth = new GUIContent("Depth", "Override depth rendering.");
-		    public static GUIContent writeDepth = new GUIContent("Write Depth", "Chose to write depth to the screen.");
-		    public static GUIContent depthState = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
+		    public static GUIContent writeDepth = new GUIContent("Write Depth", "Choose to write depth to the screen.");
+		    public static GUIContent depthState = new GUIContent("Depth Test", "Choose a new depth test function.");
 
 		    //Camera Settings
-		    public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
+		    public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera matrices.");
 		    public static GUIContent cameraFOV = new GUIContent("Field Of View", "Field Of View to render this pass in.");
 		    public static GUIContent positionOffset = new GUIContent("Position Offset", "This Vector acts as a relative offset for the camera.");
-		    public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera projection before this pass.");
-
-	    }
+		    public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera matrices before this pass.");
+        }
 
 	    //Headers and layout
 	    private HeaderBool m_FiltersFoldout;
@@ -47,9 +46,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    private int m_MaterialLines = 2;
 	    private int m_DepthLines = 3;
 	    private int m_CameraLines = 4;
-	    
-	    private bool firstTime = true;
-	    
+
+	    private SerializedProperty m_Property;
+
 	    // Serialized Properties
 	    private SerializedProperty m_Callback;
 	    private SerializedProperty m_PassTag;
@@ -83,7 +82,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 		    m_FiltersFoldout = new HeaderBool($"{key}.FiltersFoldout", true);
 		    m_RenderFoldout = new HeaderBool($"{key}.RenderFoldout");
 
-		    
+
 		    m_Callback = property.FindPropertyRelative("Event");
 		    m_PassTag = property.FindPropertyRelative("passTag");
 		    //Filter props
@@ -106,7 +105,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 		    m_FOV = m_CameraSettings.FindPropertyRelative("cameraFieldOfView");
 		    m_CameraOffset = m_CameraSettings.FindPropertyRelative("offset");
 		    m_RestoreCamera = m_CameraSettings.FindPropertyRelative("restoreCamera");
-		    
+
 		    m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
 		    m_ShaderPassesList.drawElementCallback =
@@ -119,20 +118,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
 			    element.stringValue = EditorGUI.TextField(propRect, "Name", element.stringValue);
 			    EditorGUIUtility.labelWidth = labelWidth;
 		    };
-		    
+
 		    m_ShaderPassesList.drawHeaderCallback = (Rect testHeaderRect) => {
 			    EditorGUI.LabelField(testHeaderRect, Styles.shaderPassFilter);
 		    };
-		    
-		    firstTime = false;
+
+		    m_Property = property;
 	    }
 
 	    public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
 	    {
-			rect.height = EditorGUIUtility.singleLineHeight;
+            rect.height = EditorGUIUtility.singleLineHeight;
 			EditorGUI.BeginChangeCheck();
 			EditorGUI.BeginProperty(rect, label, property);
-			if(firstTime)
+			if (property != m_Property)
 			    Init(property);
 
 			var passName = property.serializedObject.FindProperty("m_Name").stringValue;
@@ -169,7 +168,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
 				EditorGUI.indentLevel--;
 			}
-			
+
 			EditorGUI.EndProperty();
 			if (EditorGUI.EndChangeCheck())
 				property.serializedObject.ApplyModifiedProperties();
@@ -227,7 +226,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 			    EditorGUI.indentLevel--;
 		    }
 	    }
-	    
+
 	    void DoCameraOverride(ref Rect rect)
 	    {
 		    EditorGUI.PropertyField(rect, m_OverrideCamera, Styles.overrideCamera);
@@ -248,7 +247,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 			    //Restore prev camera projections
 			    EditorGUI.PropertyField(rect, m_RestoreCamera, Styles.restoreCamera);
 			    rect.y += Styles.defaultLineSpace;
-			    
+
 			    EditorGUI.indentLevel--;
 		    }
 	    }
@@ -256,25 +255,26 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 	    {
 		    float height = Styles.defaultLineSpace;
-		    if (!firstTime)
-		    {
-			    
-		        height += Styles.defaultLineSpace * (m_FiltersFoldout.value ? m_FilterLines : 1);
-		        height += m_FiltersFoldout.value ? m_ShaderPassesList.GetHeight() : 0;
+            if (property != m_Property)
+            {
+                Init(property);
+            }
 
-		        height += Styles.defaultLineSpace; // add line for overrides dropdown
-			    if (m_RenderFoldout.value)
-			    {
-				    height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
-				    height += Styles.defaultLineSpace * (m_OverrideDepth.boolValue ? m_DepthLines : 1);
-				    height += EditorGUI.GetPropertyHeight(m_OverrideStencil);
-				    height += Styles.defaultLineSpace * (m_OverrideCamera.boolValue ? m_CameraLines : 1);
-			    }
-		    }
+            height += Styles.defaultLineSpace * (m_FiltersFoldout.value ? m_FilterLines : 1);
+            height += m_FiltersFoldout.value ? m_ShaderPassesList.GetHeight() : 0;
 
-		    return height;
+            height += Styles.defaultLineSpace; // add line for overrides dropdown
+            if (m_RenderFoldout.value)
+            {
+                height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
+                height += Styles.defaultLineSpace * (m_OverrideDepth.boolValue ? m_DepthLines : 1);
+                height += EditorGUI.GetPropertyHeight(m_OverrideStencil);
+                height += Styles.defaultLineSpace * (m_OverrideCamera.boolValue ? m_CameraLines : 1);
+            }
+
+            return height;
 	    }
-	    
+
 	    private void SaveHeaderBool(HeaderBool boolObj)
 	    {
 		    EditorPrefs.SetBool(boolObj.key, boolObj.value);

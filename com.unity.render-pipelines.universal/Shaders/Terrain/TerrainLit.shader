@@ -174,5 +174,5 @@ Shader "Universal Render Pipeline/Terrain/Lit"
     
     CustomEditor "UnityEditor.Rendering.Universal.TerrainLitShaderGUI"
 
-    Fallback "Hidden/InternalErrorShader"
+    Fallback "Hidden/Universal Render Pipeline/FallbackError"
 }

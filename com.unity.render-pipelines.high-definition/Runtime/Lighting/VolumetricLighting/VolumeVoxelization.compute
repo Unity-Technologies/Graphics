@@ -375,7 +375,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
     ray.jitterDirWS = ray.centerDirWS; // TODO
 
-    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
 
     ApplyCameraRelativeXR(ray.originWS);
 
