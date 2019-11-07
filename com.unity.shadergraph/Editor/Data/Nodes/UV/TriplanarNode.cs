@@ -2,6 +2,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {    
@@ -60,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
-            AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, CoordinateSpace.World));
+            AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, CoordinateSpace.AbsoluteWorld));
             AddSlot(new NormalMaterialSlot(NormalInputId, kNormalInputName, kNormalInputName, CoordinateSpace.World));
             AddSlot(new Vector1MaterialSlot(TileInputId, kTileInputName, kTileInputName, SlotType.Input, 1));
             AddSlot(new Vector1MaterialSlot(BlendInputId, kBlendInputName, kBlendInputName, SlotType.Input, 1));
@@ -70,13 +71,13 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
-            textureSlot.defaultType = (textureType == TextureType.Normal ? TextureShaderProperty.DefaultType.Bump : TextureShaderProperty.DefaultType.White);
+            textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
 
             base.ValidateNode();
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             sb.AppendLine("$precision3 {0}_UV = {1} * {2};", GetVariableNameForNode(),
                 GetSlotValue(PositionInputId, generationMode), GetSlotValue(TileInputId, generationMode));
@@ -162,7 +163,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            return CoordinateSpace.World.ToNeededCoordinateSpace();
+            return CoordinateSpace.AbsoluteWorld.ToNeededCoordinateSpace() | CoordinateSpace.World.ToNeededCoordinateSpace();
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)

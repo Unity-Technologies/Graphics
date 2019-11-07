@@ -1,7 +1,6 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
-${VFXPerPassInclude}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
@@ -16,7 +15,11 @@ RWStructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripData;
+RWBuffer<uint> stripDataBuffer;
+#endif
+
+#if VFX_USE_STRIPALIVE_CURRENT
+Buffer<uint> attachedStripDataBuffer;
 #endif
 
 CBUFFER_START(updateParams)
@@ -24,6 +27,8 @@ CBUFFER_START(updateParams)
 	uint dispatchWidth;
 	uint systemSeed;
 CBUFFER_END
+
+${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
 
@@ -35,18 +40,27 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	uint index = id;
 	if (id < nbMax)
 	{
+        Attributes attributes = (Attributes)0;
+		SourceAttributes sourceAttributes = (SourceAttributes)0;
+
 #if VFX_USE_ALIVE_CURRENT
-		${VFXLoadAttributes:{alive}}
-		if (alive)
+		${VFXLoadAttributes:{alive|stripAlive}}
+		if (attributes.alive)
 		{
-			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
-			
+			${VFXLoadAttributes:{(?!(alive|stripAlive))(\b\w)}}
+
+// Initialize built-in needed attributes
 #if VFX_USE_OLDPOSITION_CURRENT
-			oldPosition = position;
+			attributes.oldPosition = attributes.position;
+#endif
+#if HAS_STRIPS
+            const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+            InitStripAttributes(index, attributes, stripData);
 #endif
 			
 			${VFXProcessBlocks}
-			if (alive)
+
+			if (attributes.alive)
 			{
 				${VFXStoreAttributes:{(?!(alive))(\b\w)}}
 #if VFX_HAS_INDIRECT_DRAW
@@ -54,27 +68,42 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				indirectBuffer[indirectIndex] = index;
 #endif
 
-#if HAS_STRIPS
-				uint stripIndex = index / PARTICLE_PER_STRIP_COUNT;
-				uint relativeIndexInStrip = (PARTICLE_PER_STRIP_COUNT + index - STRIP_DATA(STRIP_FIRST_INDEX)) % PARTICLE_PER_STRIP_COUNT;
-				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE),relativeIndexInStrip);
-				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE),relativeIndexInStrip);
+#if HAS_STRIPS			
+				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
+				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex), relativeIndexInStrip);
+				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex), relativeIndexInStrip);
 #endif
 			}
 			else
 			{
 				${VFXStoreAttributes:{alive|eventCount}}
-#if USE_DEAD_LIST
+#if USE_DEAD_LIST && !VFX_USE_STRIPALIVE_CURRENT
 				uint deadIndex = deadListOut.IncrementCounter();
 				deadListOut[deadIndex] = index;
 #endif
 			}
 		}
+#if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT
+        else if (attributes.stripAlive)
+        {
+            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle 
+            {
+                uint deadIndex = deadListOut.IncrementCounter();
+				deadListOut[deadIndex] = index;
+                attributes.stripAlive = false;
+                ${VFXStoreAttributes:{stripAlive}}
+            }            
+        }
+#endif
 #else
 		${VFXLoadAttributes}
 		
 #if VFX_USE_OLDPOSITION_CURRENT
-		oldPosition = position;
+		attributes.oldPosition = attributes.position;
+#endif
+#if HAS_STRIPS
+        const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
+        InitStripAttributes(index, attributes, stripData);
 #endif
 		
 		${VFXProcessBlocks}

@@ -27,6 +27,7 @@ Pass
 		// y: motion vector scale v
 		VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD2;
 		#endif
+        ${VFXAdditionalInterpolantsDeclaration}
 
 		UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -45,16 +46,27 @@ ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 #define SHADERPASS SHADERPASS_SHADOWS
 		
 	${VFXInclude("Shaders/ParticlePlanarPrimitives/Pass.template")}	
-		
+	
+    ${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+    
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET
 	{
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 		VFXTransformPSInputs(i);
+    #ifdef VFX_SHADERGRAPH
+    
+        ${VFXAdditionalInterpolantsPreparation}
+        
+        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+        
+        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    #else
 		float alpha = VFXGetFragmentColor(i).a;
-#if HDRP_USE_BASE_COLOR_MAP_ALPHA
-		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;	
-#endif
+        #if HDRP_USE_BASE_COLOR_MAP_ALPHA
+                alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;	
+        #endif
+    #endif
 		VFXClipFragmentColor(alpha,i);
 
 		return 0;

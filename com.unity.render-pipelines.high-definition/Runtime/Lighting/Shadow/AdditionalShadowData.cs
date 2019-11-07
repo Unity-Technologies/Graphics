@@ -8,84 +8,56 @@ namespace UnityEngine.Rendering
     [ExecuteAlways]
     class AdditionalShadowData : MonoBehaviour
     {
-// Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
-#pragma warning disable 414
         [SerializeField]
-        [UnityEngine.Serialization.FormerlySerializedAs("version")]
-        private int m_Version = 1;
-#pragma warning restore 414
-
         [Obsolete("Obsolete, use HDAdditionalLightData.customResolution instead.")]
         [UnityEngine.Serialization.FormerlySerializedAs("shadowResolution")]
-        public int customResolution = HDAdditionalLightData.k_DefaultShadowResolution;
+        internal int customResolution = HDAdditionalLightData.k_DefaultShadowResolution;
 
+        [SerializeField]
         [Range(0.0f, 1.0f)]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowDimmer instead.")]
-        public float shadowDimmer = 1.0f;
+        internal float shadowDimmer = 1.0f;
 
+        [SerializeField]
         [Range(0.0f, 1.0f)]
         [Obsolete("Obsolete, use HDAdditionalLightData.volumetricShadowDimmer instead.")]
-        public float volumetricShadowDimmer = 1.0f;
+        internal float volumetricShadowDimmer = 1.0f;
 
+        [SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowFadeDistance instead.")]
-        public float shadowFadeDistance = 10000.0f;
+        internal float shadowFadeDistance = 10000.0f;
 
+        [SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.contactShadows instead.")]
-        public bool contactShadows = false;
+        internal bool contactShadows = false;
 
+        [SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowTint instead.")]
-        public Color shadowTint = Color.black;
+        internal Color shadowTint = Color.black;
 
         // bias control
+        [SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.normalBias instead.")]
-        public float normalBias = 0.75f;
+        internal float normalBias = 0.75f;
 
-        [Obsolete("Obsolete, use HDAdditionalLightData.constantBias instead.")]
-        public float constantBias = 0.15f;
-
+        [SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowUpdateMode instead.")]
-        public ShadowUpdateMode shadowUpdateMode = ShadowUpdateMode.EveryFrame;
+        internal ShadowUpdateMode shadowUpdateMode = ShadowUpdateMode.EveryFrame;
 
         [HideInInspector, SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowCascadeRatios instead.")]
-        float[] shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
+        internal float[] shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
         [HideInInspector, SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowCascadeBorders instead.")]
-        float[] shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
+        internal float[] shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
         [HideInInspector, SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowAlgorithm instead.")]
-        int shadowAlgorithm = 0;
+        internal int shadowAlgorithm = 0;
         [HideInInspector, SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowVariant instead.")]
-        int shadowVariant = 0;
+        internal int shadowVariant = 0;
         [HideInInspector, SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowPrecision instead.")]
-        int shadowPrecision = 0;
-
-        void OnEnable()
-        {
-            var additionalData = GetComponent< HDAdditionalLightData >();
-
-            // If the additional datas is null, then we can't upgrade
-            if (additionalData != null)
-            {
-                additionalData.customResolution = customResolution;
-                additionalData.shadowDimmer = shadowDimmer;
-                additionalData.volumetricShadowDimmer = volumetricShadowDimmer;
-                additionalData.shadowFadeDistance = shadowFadeDistance;
-                additionalData.contactShadows = contactShadows;
-                additionalData.shadowTint = shadowTint;
-                additionalData.normalBias = normalBias;
-                additionalData.constantBias = constantBias;
-                additionalData.shadowUpdateMode = shadowUpdateMode;
-                additionalData.shadowCascadeRatios = shadowCascadeRatios;
-                additionalData.shadowCascadeBorders = shadowCascadeBorders;
-                additionalData.shadowAlgorithm = shadowAlgorithm;
-                additionalData.shadowVariant = shadowVariant;
-                additionalData.shadowPrecision = shadowPrecision;
-
-                CoreUtils.Destroy(this);
-            }
-        }
+        internal int shadowPrecision = 0;
     }
 }

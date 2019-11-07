@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -67,13 +68,13 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public void GenerateNodeCode(ShaderStringBuilder sb, GraphContext graphContext, GenerationMode generationMode)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            string exposure = generationMode.IsPreview() ? "1.0" : exposureFunctions[exposureType];
-
-            sb.AppendLine("$precision {0} = {1};",
-                GetVariableNameForSlot(kExposureOutputSlotId),
-                exposure);
+            sb.AppendLine("#ifdef SHADERGRAPH_PREVIEW");
+            sb.AppendLine($"$precision {GetVariableNameForSlot(kExposureOutputSlotId)} = 1.0;");
+            sb.AppendLine("#else");
+            sb.AppendLine($"$precision {GetVariableNameForSlot(kExposureOutputSlotId)} = {exposureFunctions[exposureType]};");
+            sb.AppendLine("#endif");
         }
     }
 }

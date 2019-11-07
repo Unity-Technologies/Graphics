@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
@@ -19,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "HDRP/Eye (Experimental)")]
     class EyeMasterNode : MasterNode<IEyeSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
-        public const string PositionSlotName = "Position";
+        public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
         public const int PositionSlotId = 0;
 
@@ -461,6 +462,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_ZTest = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_SupportLodCrossFade;
+
+        public ToggleData supportLodCrossFade
+        {
+            get { return new ToggleData(m_SupportLodCrossFade); }
+            set
+            {
+                if (m_SupportLodCrossFade == value.isOn)
+                    return;
+                m_SupportLodCrossFade = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Node);
             }
         }
 

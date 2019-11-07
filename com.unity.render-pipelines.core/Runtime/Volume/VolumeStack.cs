@@ -3,10 +3,16 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Holds the state of a Volume blending update. A global stack is
+    /// available by default in <see cref="VolumeManager"/> but you can also create your own using
+    /// <see cref="VolumeManager.CreateStack"/> if you need to update the manager with specific
+    /// settings and store the results for later use.
+    /// </summary>
     public sealed class VolumeStack : IDisposable
     {
         // Holds the state of _all_ component types you can possibly add on volumes
-        public Dictionary<Type, VolumeComponent> components;
+        internal Dictionary<Type, VolumeComponent> components;
 
         internal VolumeStack()
         {
@@ -26,6 +32,13 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Gets the current state of the <see cref="VolumeComponent"/> of type <typeparamref name="T"/>
+        /// in the stack.
+        /// </summary>
+        /// <typeparam name="T">A type of <see cref="VolumeComponent"/>.</typeparam>
+        /// <returns>The current state of the <see cref="VolumeComponent"/> of type <typeparamref name="T"/>
+        /// in the stack.</returns>
         public T GetComponent<T>()
             where T : VolumeComponent
         {
@@ -33,13 +46,20 @@ namespace UnityEngine.Rendering
             return (T)comp;
         }
 
+        /// <summary>
+        /// Gets the current state of the <see cref="VolumeComponent"/> of the specified type in the
+        /// stack.
+        /// </summary>
+        /// <param name="type">The type of <see cref="VolumeComponent"/> to look for.</param>
+        /// <returns>The current state of the <see cref="VolumeComponent"/> of the specified type,
+        /// or <c>null</c> if the type is invalid.</returns>
         public VolumeComponent GetComponent(Type type)
         {
-            VolumeComponent comp;
-            components.TryGetValue(type, out comp);
+            components.TryGetValue(type, out var comp);
             return comp;
         }
 
+        /// <inheritdoc cref="IDisposable.Dispose"/>
         public void Dispose()
         {
             foreach (var component in components)

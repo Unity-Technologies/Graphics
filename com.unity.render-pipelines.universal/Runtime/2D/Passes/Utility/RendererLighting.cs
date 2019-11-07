@@ -17,10 +17,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static readonly string[] k_UseBlendStyleKeywords =
         {
-            "USE_SHAPE_LIGHT_TYPE_0",
-            "USE_SHAPE_LIGHT_TYPE_1",
-            "USE_SHAPE_LIGHT_TYPE_2",
-            "USE_SHAPE_LIGHT_TYPE_3"
+            "USE_SHAPE_LIGHT_TYPE_0", "USE_SHAPE_LIGHT_TYPE_1", "USE_SHAPE_LIGHT_TYPE_2", "USE_SHAPE_LIGHT_TYPE_3"
+        };
+
+        static readonly string[] k_BlendFactorsPropNames =
+        {
+            "_ShapeLightBlendFactors0", "_ShapeLightBlendFactors1", "_ShapeLightBlendFactors2", "_ShapeLightBlendFactors3"
+        };
+
+        static readonly string[] k_MaskFilterPropNames =
+        {
+            "_ShapeLightMaskFilter0", "_ShapeLightMaskFilter1", "_ShapeLightMaskFilter2", "_ShapeLightMaskFilter3"
+        };
+
+        static readonly string[] k_InvertedFilterPropNames =
+        {
+            "_ShapeLightInvertedFilter0", "_ShapeLightInvertedFilter1", "_ShapeLightInvertedFilter2", "_ShapeLightInvertedFilter3"
         };
 
         static Renderer2DData s_RendererData;
@@ -34,6 +46,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static Material[] s_LightMaterials;
         static Material[] s_ShadowMaterials;
         static Material[] s_RemoveSelfShadowMaterials;
+
+        static RenderTextureFormat s_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
+        static bool s_HasSetupRenderTextureFormatToUse;
 
         static public void Setup(Renderer2DData rendererData)
         {
@@ -73,14 +88,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static public void CreateRenderTextures(CommandBuffer cmd, int width, int height)
         {
-            var renderTextureFormatToUse = RenderTextureFormat.ARGB32;
-            if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                renderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-            else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                renderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+            if (!s_HasSetupRenderTextureFormatToUse)
+            {
+                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
+                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
+                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
+                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+
+                s_HasSetupRenderTextureFormatToUse = true;
+            }
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.colorFormat = renderTextureFormatToUse;
+            descriptor.colorFormat = s_RenderTextureFormatToUse;
             descriptor.sRGB = false;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
@@ -137,16 +156,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static private void RenderShadows(CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
         {
-            // Render light's shadows
-            cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
-            cmdBuffer.ClearRenderTarget(true, true, Color.black);
-
             cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
             cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
 
-            // TODO: We need an alternate (more efficient) code path if the light has a shadowIntensity of 0
             if (shadowIntensity > 0)
             {
+                cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
+                cmdBuffer.ClearRenderTarget(true, true, Color.black);
+
                 BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...
 
                 cmdBuffer.SetGlobalVector("_LightPos", light.transform.position);
@@ -218,9 +235,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
                     }
                 }
-            }
 
-            cmdBuffer.SetRenderTarget(renderTexture);
+                cmdBuffer.SetRenderTarget(renderTexture);
+            }
         }
 
         static private bool RenderLightSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
@@ -339,13 +356,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     cmdBuffer.DisableShaderKeyword(keyword);
                     continue;
-                } 
+                }
                 else
                 {
                     cmdBuffer.EnableShaderKeyword(keyword);
-                    cmdBuffer.SetGlobalVector("_ShapeLightBlendFactors" + i, s_BlendStyles[i].blendFactors);
-                    cmdBuffer.SetGlobalVector("_ShapeLightMaskFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.mask);
-                    cmdBuffer.SetGlobalVector("_ShapeLightInvertedFilter" + i, s_BlendStyles[i].maskTextureChannelFilter.inverted);
+                    cmdBuffer.SetGlobalVector(k_BlendFactorsPropNames[i], s_BlendStyles[i].blendFactors);
+                    cmdBuffer.SetGlobalVector(k_MaskFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.mask);
+                    cmdBuffer.SetGlobalVector(k_InvertedFilterPropNames[i], s_BlendStyles[i].maskTextureChannelFilter.inverted);
                 }
             }
 
@@ -417,6 +434,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.SetGlobalTexture("_LightLookup", GetLightLookupTexture());
             cmdBuffer.SetGlobalTexture("_FalloffLookup", GetFalloffLookupTexture());
             cmdBuffer.SetGlobalFloat("_FalloffIntensity", light.falloffIntensity);
+            cmdBuffer.SetGlobalFloat("_IsFullSpotlight", innerAngle == 1 ? 1.0f : 0.0f);
 
             cmdBuffer.SetGlobalFloat("_LightZDistance", light.pointLightDistance);
 

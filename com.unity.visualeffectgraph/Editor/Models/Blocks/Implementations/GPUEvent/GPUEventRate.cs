@@ -14,8 +14,11 @@ namespace UnityEditor.VFX.Block
             OverDistance
         }
 
-        [SerializeField, VFXSetting, Tooltip("Controls whether particles are spawned based on a rate per second or per parent particle distance travelled")]
+        [SerializeField, VFXSetting, Tooltip("Specifies whether particles are spawned over time (rate per second) or over distance (rate per parent particle distance change).")]
         protected Mode mode = Mode.OverTime;
+
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("True to allow one event max per frame")]
+        protected bool clampToOne = true;
 
         public override string name { get { return string.Format("Trigger Event Rate ({0})", ObjectNames.NicifyVariableName(mode.ToString())); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
@@ -49,12 +52,13 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Rate (in particles per second or space unit (depending on the mode)")]
+            [Tooltip("Sets the rate of spawning particles via a GPU event based on the selected mode.")]
             public float Rate = 10.0f;
         }
 
         public class OutputProperties
         {
+            [Tooltip("Outputs a GPU event which can connect to another system via a GPUEvent context. Attributes from the current system can be inherited in the new system.")]
             public GPUEvent evt = new GPUEvent();
         }
 
@@ -84,6 +88,12 @@ namespace UnityEditor.VFX.Block
 uint count = floor({rateCount});
 {rateCount} = frac({rateCount});
 eventCount = count;";
+
+                if (clampToOne)
+                    outSource += @"
+eventCount = min(eventCount,1);
+";
+
                 return outSource;
             }
         }

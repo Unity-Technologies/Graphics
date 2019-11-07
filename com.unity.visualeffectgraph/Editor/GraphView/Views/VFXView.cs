@@ -13,12 +13,13 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
+using UnityEditor.VersionControl;
 
 using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 
@@ -46,6 +47,7 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_NoAssetLabel;
+        VisualElement m_LockedElement;
 
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -53,6 +55,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
         }
 
+        public Button checkoutButton;
 
         void DisconnectController()
         {
@@ -294,8 +297,12 @@ namespace UnityEditor.VFX.UI
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
             if( ! EditorGUIUtility.isProSkin)
-            { 
+            {
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
+            }
+            else
+            {
+                styleSheets.Add(LoadStyleSheet("VFXView-dark"));
             }
 
             AddLayer(-1);
@@ -326,6 +333,16 @@ namespace UnityEditor.VFX.UI
             selectAssetButton.text = "Show in Project";
             m_Toolbar.Add(selectAssetButton);
 
+            spacer = new ToolbarSpacer();
+            spacer.style.width = 10;
+            m_Toolbar.Add(spacer);
+
+            checkoutButton = new ToolbarButton(() => { Checkout(); });
+            checkoutButton.text = "Check Out";
+            checkoutButton.visible = false;
+            checkoutButton.AddToClassList("toolbarItem");
+            m_Toolbar.Add(checkoutButton);
+
             var flexSpacer = new ToolbarSpacer();
             flexSpacer.style.flexGrow = 1f;
             m_Toolbar.Add(flexSpacer);
@@ -350,7 +367,7 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("Please Select An Asset");
+            m_NoAssetLabel = new Label("Please Open An Asset");
             m_NoAssetLabel.style.position = PositionType.Absolute;
             m_NoAssetLabel.style.left = 0f;
             m_NoAssetLabel.style.right = new StyleLength(0f);
@@ -361,6 +378,16 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.color = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
+
+            m_LockedElement = new Label("Asset is Locked");
+            m_LockedElement.style.position = PositionType.Absolute;
+            m_LockedElement.style.left = 0f;
+            m_LockedElement.style.right = new StyleLength(0f);
+            m_LockedElement.style.top = new StyleLength(0f);
+            m_LockedElement.style.bottom = new StyleLength(0f);
+            m_LockedElement.style.unityTextAlign = TextAnchor.MiddleCenter;
+            m_LockedElement.style.fontSize = new StyleLength(72f);
+            m_LockedElement.style.color = Color.white * 0.75f;
 
             m_Blackboard = new VFXBlackboard(this);
             bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
@@ -375,6 +402,7 @@ namespace UnityEditor.VFX.UI
             toggleComponentBoard.value = componentBoardVisible;*/
 
             Add(m_Toolbar);
+            m_Toolbar.SetEnabled(false);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
@@ -638,16 +666,30 @@ namespace UnityEditor.VFX.UI
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
+                m_Toolbar.SetEnabled(true);
 
                 pasteOffset = Vector2.zero; // if we change asset we want to paste exactly at the same place as the original asset the first time.
+
+                if (!AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
+                    Insert(this.IndexOf(m_Toolbar), m_LockedElement);
             }
             else
             {
                 if (m_NoAssetLabel.parent == null)
                 {
                     Add(m_NoAssetLabel);
+                    m_Toolbar.SetEnabled(false);
                 }
             }
+        }
+
+        public void OnFocus()
+        {   
+            if (controller != null && controller.model.asset != null && !AssetDatabase.IsOpenForEdit(controller.model.asset, StatusQueryOptions.UseCachedIfPossible))
+                Insert(this.IndexOf(m_Toolbar),m_LockedElement);
+            else
+                m_LockedElement.RemoveFromHierarchy();
+
         }
 
         public void FrameNewController()
@@ -1248,7 +1290,7 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-                
+
                 foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);
@@ -1372,6 +1414,13 @@ namespace UnityEditor.VFX.UI
                 Selection.activeObject = controller.model.visualEffectObject;
                 EditorGUIUtility.PingObject(controller.model.visualEffectObject);
             }
+        }
+
+        void Checkout()
+        {
+            Task task = Provider.Checkout(controller.model.visualEffectObject, CheckoutMode.Both);
+            task.Wait();
+            OnFocus();
         }
 
         void ElementAddedToGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
@@ -1705,7 +1754,7 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(3, "Convert to Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
-            
+
         }
 
 
@@ -1719,6 +1768,8 @@ namespace UnityEditor.VFX.UI
 
             foreach( var context in GetAllContexts())
             {
+                if (context.controller.model is VFXBlockSubgraphContext)
+                    return false;
                 if (usedDatas.Contains(context.controller.model.GetData()) && !selectedContexts.Contains(context))
                     return false;
             }

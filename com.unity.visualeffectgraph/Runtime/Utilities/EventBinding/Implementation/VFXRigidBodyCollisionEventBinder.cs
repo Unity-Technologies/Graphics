@@ -5,7 +5,7 @@ namespace UnityEngine.VFX.Utility
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Collider))]
-    public class VFXRigidBodyCollisionEventBinder : VFXEventBinderBase
+    class VFXRigidBodyCollisionEventBinder : VFXEventBinderBase
     {
         private ExposedProperty positionParameter = "position";
         private ExposedProperty directionParameter = "velocity";

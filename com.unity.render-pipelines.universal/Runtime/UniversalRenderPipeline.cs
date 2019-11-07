@@ -149,6 +149,11 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            if (asset != null)
+                foreach (var renderer in asset.m_Renderers)
+                    renderer?.Cleanup();
+
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
@@ -252,13 +257,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-		static bool PlatformNeedsToKillAlpha()
-		{
-			return Application.platform == RuntimePlatform.IPhonePlayer ||
-                Application.platform == RuntimePlatform.Android ||
-                Application.platform == RuntimePlatform.tvOS;
-		}
-
         static void InitializeCameraData(UniversalRenderPipelineAsset settings, Camera camera, UniversalAdditionalCameraData additionalCameraData, out CameraData cameraData)
         {
             const float kRenderScaleThreshold = 0.05f;
@@ -272,11 +270,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isHdrEnabled = camera.allowHDR && settings.supportsHDR;
-
-            // Disables postprocessing in mobile VR. It's not stable on mobile yet.
-            // TODO: enable postfx for stereo rendering
-            if (cameraData.isStereoEnabled && Application.isMobilePlatform)
-                cameraData.postProcessEnabled = false;
 
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
@@ -345,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(camera);
 
-			bool needsAlphaChannel = camera.targetTexture == null && Graphics.preserveFramebufferAlpha && PlatformNeedsToKillAlpha();
+			bool needsAlphaChannel = camera.targetTexture == null && Graphics.preserveFramebufferAlpha;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
                 cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
         }
@@ -392,8 +385,9 @@ namespace UnityEngine.Rendering.Universal
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
 
-			bool isOffscreenCamera = cameraData.camera.targetTexture != null && !cameraData.isSceneViewCamera;
-            renderingData.killAlphaInFinalBlit = !Graphics.preserveFramebufferAlpha && PlatformNeedsToKillAlpha() && !isOffscreenCamera;
+#pragma warning disable // avoid warning because killAlphaInFinalBlit has attribute Obsolete
+            renderingData.killAlphaInFinalBlit = false;
+#pragma warning restore
         }
 
         static void InitializeShadowData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool mainLightCastShadows, bool additionalLightsCastShadows, out ShadowData shadowData)

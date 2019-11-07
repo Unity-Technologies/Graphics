@@ -26,7 +26,26 @@ namespace UnityEditor.Rendering.HighDefinition
 			public static GUIContent targetColorBuffer = new GUIContent("Target Color Buffer");
 			public static GUIContent clearFlags = new GUIContent("Clear Flags", "Clear Flags used when the render targets will are bound, before the pass renders.");
 	    }
-	    
+
+		[Flags]
+		/// <summary>
+		/// List of the elements you can show/hide in the default custom pass UI.
+		/// </summary>
+		public enum PassUIFlag
+		{
+			None				= 0x00,
+			Name				= 0x01,
+			TargetColorBuffer	= 0x02,
+			TargetDepthBuffer	= 0x04,
+			ClearFlags			= 0x08,
+			All					= ~0,
+		}
+
+		/// <summary>
+		/// Controls which field of the common pass UI is displayed.
+		/// </summary>
+		protected virtual PassUIFlag commonPassUIFlags => PassUIFlag.All;
+
 	    bool firstTime = true;
 
 	    // Serialized Properties
@@ -51,8 +70,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
 		void LoadUserProperties(SerializedProperty customPass)
 		{
-			foreach (var field in m_PassType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
+			// Store all fields in CustomPass so we can exclude them when retrieving the user custom pass type
+			var customPassFields = typeof(CustomPass).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+			foreach (var field in m_PassType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
 			{
+				var serializeField = field.GetCustomAttribute<SerializeField>();
+				var hideInInspector = field.GetCustomAttribute<HideInInspector>();
+				var nonSerialized = field.GetCustomAttribute<NonSerializedAttribute>();
+
+				if (customPassFields.Any(f => f.Name == field.Name))
+					continue;
+
+				if (nonSerialized != null || hideInInspector != null)
+					continue;
+
+				if (!field.IsPublic && serializeField == null)
+					continue;
+				
 				var prop = customPass.FindPropertyRelative(field.Name);
 				if (prop != null)
 					m_CustomPassUserProperties.Add(prop);
@@ -75,7 +110,6 @@ namespace UnityEditor.Rendering.HighDefinition
 	    {
 			rect.height = EditorGUIUtility.singleLineHeight;
 			EditorGUI.BeginChangeCheck();
-			EditorGUI.BeginProperty(rect, label, property);
 
 			if (firstTime)
 			    InitInternal(property);
@@ -83,7 +117,10 @@ namespace UnityEditor.Rendering.HighDefinition
 			DoHeaderGUI(ref rect);
 
 			if (m_PassFoldout.boolValue)
+			{
+				EditorGUI.EndChangeCheck();
 				return;
+			}
 
 			EditorGUI.BeginDisabledGroup(!m_Enabled.boolValue);
 			{
@@ -93,25 +130,36 @@ namespace UnityEditor.Rendering.HighDefinition
 			}
 			EditorGUI.EndDisabledGroup();
 
-			EditorGUI.EndProperty();
 			if (EditorGUI.EndChangeCheck())
 				property.serializedObject.ApplyModifiedProperties();
 	    }
 
 		void DoCommonSettingsGUI(ref Rect rect)
 		{
-			EditorGUI.PropertyField(rect, m_Name);
-			rect.y += Styles.defaultLineSpace;
-			
-#if true
-			m_TargetColorBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetColorBuffer, (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue);
-			rect.y += Styles.defaultLineSpace;
+			if ((commonPassUIFlags & PassUIFlag.Name) != 0)
+			{
+				EditorGUI.PropertyField(rect, m_Name);
+				rect.y += Styles.defaultLineSpace;
+			}
 
-			m_TargetDepthBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetDepthBuffer, (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue);
-			rect.y += Styles.defaultLineSpace;
-			
-			m_ClearFlags.intValue = (int)(ClearFlag)EditorGUI.EnumPopup(rect, Styles.clearFlags, (ClearFlag)m_ClearFlags.intValue);
-			rect.y += Styles.defaultLineSpace;
+#if true
+			if ((commonPassUIFlags & PassUIFlag.TargetColorBuffer) != 0)
+            {
+                m_TargetColorBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetColorBuffer, (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue);
+                rect.y += Styles.defaultLineSpace;
+            }
+
+            if ((commonPassUIFlags & PassUIFlag.TargetDepthBuffer) != 0)
+            {
+                m_TargetDepthBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetDepthBuffer, (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue);
+                rect.y += Styles.defaultLineSpace;
+            }
+
+            if ((commonPassUIFlags & PassUIFlag.ClearFlags) != 0)
+            {
+                m_ClearFlags.intValue = (int)(ClearFlag)EditorGUI.EnumPopup(rect, Styles.clearFlags, (ClearFlag)m_ClearFlags.intValue);
+                rect.y += Styles.defaultLineSpace;
+			}
 			
 #else		// TODO: remove all this code when the fix for SerializedReference lands
 			
@@ -147,7 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
 			enabledRect.x = rect.xMax - enabledSize.x;
 			enabledRect.width = enabledSize.x;
 
-			m_PassFoldout.boolValue = EditorGUI.Foldout(headerRect, m_PassFoldout.boolValue, m_Name.stringValue, true, EditorStyles.boldLabel);
+			m_PassFoldout.boolValue = EditorGUI.Foldout(headerRect, m_PassFoldout.boolValue, $"{m_Name.stringValue} ({m_PassType.Name})", true, EditorStyles.boldLabel);
 			EditorGUIUtility.labelWidth = enabledRect.width - 14;
 			m_Enabled.boolValue = EditorGUI.Toggle(enabledRect, Styles.enabled, m_Enabled.boolValue);
 			EditorGUIUtility.labelWidth = 0;
@@ -178,7 +226,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
 		    if (!firstTime)
 		    {
-				height += Styles.defaultLineSpace * 4; // name + target buffers + clearFlags
+				int lines = 4; // name + target buffers + clearFlags
+
+				if (commonPassUIFlags != PassUIFlag.All)
+				{
+					lines = 0;
+					for (int i = 0; i < 32; i++)
+						lines += (((int)commonPassUIFlags & (1 << i)) != 0) ? 1 : 0;
+				}
+
+				height += Styles.defaultLineSpace * lines;
 		    }
 
 		    return height + GetPassHeight(property);

@@ -3,6 +3,24 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl"
 
+struct Attributes
+{
+    float4 positionOS   : POSITION;
+    float3 normalOS     : NORMAL;
+    float2 uv0          : TEXCOORD0;
+    float2 uv1          : TEXCOORD1;
+    float2 uv2          : TEXCOORD2;
+#ifdef _TANGENT_TO_WORLD
+    float4 tangentOS     : TANGENT;
+#endif
+};
+
+struct Varyings
+{
+    float4 positionCS   : SV_POSITION;
+    float2 uv           : TEXCOORD0;
+};
+
 Varyings UniversalVertexMeta(Attributes input)
 {
     Varyings output;

@@ -5,7 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipelineRayTracingResources : ScriptableObject
     {
-#if ENABLE_RAYTRACING
         // Reflection
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Reflections/RaytracingReflections.raytrace")]
         public RayTracingShader reflectionRaytracingRT;
@@ -31,9 +30,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Light cluster
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute")]
         public ComputeShader lightClusterBuildCS;
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.shader")]
+        public Shader lightClusterDebugS;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DebugLightCluster.compute")]
         public ComputeShader lightClusterDebugCS;
-
+        
         // Indirect Diffuse
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/IndirectDiffuse/RaytracingIndirectDiffuse.raytrace")]
         public RayTracingShader indirectDiffuseRaytracingRT;
@@ -58,6 +59,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingDeferred.compute")]
         public ComputeShader deferredRaytracingCS;
 
+        // Path Tracing
+        [Reload("Runtime/RenderPipeline/PathTracing/Shaders/PathTracingMain.raytrace")]
+        public RayTracingShader pathTracing;
+
         // Ray Binning
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Common/RayBinning.compute")]
         public ComputeShader rayBinningCS;
@@ -65,7 +70,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ray count
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/CountTracedRays.compute")]
         public ComputeShader countTracedRays;
-#endif
 
     #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]

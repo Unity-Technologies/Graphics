@@ -24,6 +24,7 @@ float _DebugTransparencyOverdrawWeight;
 float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
 float4 _DebugLightingNormal; // x == bool override
+float4 _DebugLightingAmbientOcclusion; // x == bool override, y == override value
 float4 _DebugLightingSpecularColor; // x == bool override, yzw = specular color
 float4 _DebugLightingEmissiveColor; // x == bool override, yzw = emissive color
 float4 _DebugLightingMaterialValidateHighColor; // user can specific the colors for the validator error conditions

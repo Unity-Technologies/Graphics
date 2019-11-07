@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
-    public class PCache
+    class PCache
     {
         public List<PropertyDesc> properties;
         public List<List<object>> buckets;

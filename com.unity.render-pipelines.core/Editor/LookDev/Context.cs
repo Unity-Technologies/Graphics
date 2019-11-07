@@ -39,14 +39,22 @@ namespace UnityEditor.Rendering.LookDev
     /// <summary>
     /// Status of the side panel of the LookDev window
     /// </summary>
-    [Flags]
     public enum SidePanel
     {
-        Environment = 1,
-        DebugView1 = 2,
-        DebugView2 = 4,
-        DebugViewBoth = 6,
+        None = -1,
+        Environment,
+        Debug,
     }
+
+    /// <summary>
+    /// The target views of the debug panel
+    /// </summary>
+    public enum TargetDebugView
+    {
+        First,
+        Both,
+        Second
+    };
 
     /// <summary>
     /// Class containing all data used by the LookDev Window to render
@@ -198,6 +206,9 @@ namespace UnityEditor.Rendering.LookDev
         public ViewIndex lastFocusedView = ViewIndex.First;
         /// <summary>The state of the side panel</summary>
         public SidePanel showedSidePanel;
+        /// <summary>The view to change when manipulating the Debug side panel</summary>
+        [NonSerialized]
+        public TargetDebugView debugPanelSource = TargetDebugView.Both;
 
         [SerializeField]
         internal ComparisonGizmoState gizmoState = new ComparisonGizmoState();
@@ -216,7 +227,7 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>The position and rotation of the camera</summary>
         [field: SerializeField]
         public CameraState camera { get; private set; } = new CameraState();
-        
+
         /// <summary>The currently viewed debugState</summary>
         public DebugContext debug { get; private set; } = new DebugContext();
 
@@ -287,7 +298,7 @@ namespace UnityEditor.Rendering.LookDev
             else //Cubemap
             {
                 environment = new Environment();
-                environment.sky.cubemap = environmentOrCubemapAsset as Cubemap;
+                environment.cubemap = environmentOrCubemapAsset as Cubemap;
             }
         }
 
@@ -326,7 +337,7 @@ namespace UnityEditor.Rendering.LookDev
             {
                 Cubemap cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
                 environment = new Environment();
-                environment.sky.cubemap = cubemap;
+                environment.cubemap = cubemap;
             }
         }
 

@@ -14,11 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public class Styles
         {
-            public static readonly GUIContent materialToCopyHeader = EditorGUIUtility.TrTextContent("Material to copy");
-            public static readonly GUIContent layerNameHeader = EditorGUIUtility.TrTextContent("Layer name");
-            public static readonly GUIContent uvHeader = EditorGUIUtility.TrTextContent("UV", "Also copy UV.");
-            public static readonly GUIContent copyButtonIcon = EditorGUIUtility.IconContent("d_UnityEditor.ConsoleWindow", "Copy Material parameters to layer. If UV is disabled, this will not copy UV.");
-
             public static readonly string[] headers =
             {
                 "Main layer",
@@ -47,17 +42,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty layerCount = null;
 
-        MaterialUIBlockList[] layerUIBlocks = new MaterialUIBlockList[4];
+        MaterialUIBlockList[] layerUIBlocks;
 
         // Enable sub-headers for surface and detail inputs
         LitSurfaceInputsUIBlock.Features litInputsFeatures = (LitSurfaceInputsUIBlock.Features.All ^ LitSurfaceInputsUIBlock.Features.LayerOptions) | LitSurfaceInputsUIBlock.Features.SubHeader;
         DetailInputsUIBlock.Features detailInputsFeatures = DetailInputsUIBlock.Features.All | DetailInputsUIBlock.Features.SubHeader;
 
-        public LayersUIBlock()
+        void CreateUIBlockLayers()
         {
+            layerUIBlocks = new MaterialUIBlockList[4];
+
             for (int i = 0; i < 4; i++)
             {
-                layerUIBlocks[i] = new MaterialUIBlockList
+                layerUIBlocks[i] = new MaterialUIBlockList(parent)
                 {
                     new LayeringOptionsUIBlock(Styles.layeringOptionsExpandableBits[i], i),
                     new LitSurfaceInputsUIBlock((Expandable)((uint)Expandable.MainInput + i), kMaxLayerCount, i, features: litInputsFeatures),
@@ -73,9 +70,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnGUI()
         {
+            if (layerUIBlocks == null)
+                CreateUIBlockLayers();
+
             for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
             {
-                using (var header = new MaterialHeaderScope(Styles.headers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor))
+                using (var header = new MaterialHeaderScope(Styles.headers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor, colorDot: kLayerColors[layerIndex]))
                 {
                     if (header.expanded)
                     {

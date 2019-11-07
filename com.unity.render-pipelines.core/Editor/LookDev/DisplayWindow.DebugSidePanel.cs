@@ -21,9 +21,7 @@ namespace UnityEditor.Rendering.LookDev
             // /!\ WARNING:
             //The following const are used in the uss.
             //If you change them, update the uss file too.
-            internal const string k_DebugToolbarLineName = "debugToolbarLine";
             internal const string k_DebugToolbarName = "debugToolbar";
-            internal const string k_Lock = "lock";
 
         }
 
@@ -36,7 +34,28 @@ namespace UnityEditor.Rendering.LookDev
 
         ViewContext lastFocusedViewContext
             => LookDev.currentContext.GetViewContent(LookDev.currentContext.layout.lastFocusedView);
-        
+
+        TargetDebugView targetDebugView
+        {
+            get => layout.debugPanelSource;
+            set
+            {
+                if (layout.debugPanelSource != value)
+                {
+                    layout.debugPanelSource = value;
+                    UpdateSideDebugPanelProperties();
+                }
+            }
+        }
+
+        bool debugView1SidePanel
+            => targetDebugView == TargetDebugView.First
+            || targetDebugView == TargetDebugView.Both;
+
+        bool debugView2SidePanel
+            => targetDebugView == TargetDebugView.Second
+            || targetDebugView == TargetDebugView.Both;
+
         void ApplyInFilteredViewsContext(Action<ViewContext> action)
         {
             if (debugView1SidePanel)
@@ -212,8 +231,10 @@ namespace UnityEditor.Rendering.LookDev
 
             m_DebugContainer = new VisualElement() { name = Style.k_DebugContainerName };
             m_MainContainer.Add(m_DebugContainer);
-            if (debugOneOfViewSidePanel)
+            if (sidePanel == SidePanel.Debug)
                 m_MainContainer.AddToClassList(Style.k_ShowDebugPanelClass);
+
+            AddDebugViewSelector(); 
             
             AddDebugShadow();
             AddDebugViewMode();
@@ -230,8 +251,26 @@ namespace UnityEditor.Rendering.LookDev
             //[TODO: debug why list sometimes empty on resource reloading]
             //[TODO: display only per view]
             
-            if (debugOneOfViewSidePanel)
+            if (sidePanel == SidePanel.Debug)
                 UpdateSideDebugPanelProperties();
+        }
+
+        void AddDebugViewSelector()
+        {
+            ToolbarRadio viewSelector = new ToolbarRadio()
+            {
+                name = Style.k_DebugToolbarName
+            };
+            viewSelector.AddRadios(new[]
+            {
+                Style.k_Camera1Icon,
+                Style.k_LinkIcon,
+                Style.k_Camera2Icon
+            });
+            viewSelector.SetValueWithoutNotify((int)targetDebugView);
+            viewSelector.RegisterValueChangedCallback(evt
+                => targetDebugView = (TargetDebugView)evt.newValue);
+            m_DebugContainer.Add(viewSelector);
         }
 
         void AddDebugShadow()
@@ -250,7 +289,7 @@ namespace UnityEditor.Rendering.LookDev
             //So compute the list on next frame only.
             if (LookDev.dataProvider == null)
             {
-                EditorApplication.delayCall += () => AddDebugViewMode(1); //1 = hardcoded position of this field
+                EditorApplication.delayCall += () => AddDebugViewMode(2); //2 = hardcoded position of this field
                 return;
             }
 
@@ -260,7 +299,7 @@ namespace UnityEditor.Rendering.LookDev
             listDebugMode = new List<string>(LookDev.dataProvider?.supportedDebugModes ?? Enumerable.Empty<string>());
             listDebugMode.Insert(0, "None");
             m_DebugView = new MultipleSourcePopupField(Style.k_DebugViewMode, listDebugMode);
-            if (debugOneOfViewSidePanel)
+            if (sidePanel == SidePanel.Debug)
                 ReadValueFromSourcesWithoutNotify(m_DebugView, view => listDebugMode[view.debug.viewMode + 1]);
             m_DebugView.RegisterValueChangedCallback(evt
                 => ApplyInFilteredViewsContext(view => view.debug.viewMode = listDebugMode.IndexOf(evt.newValue) - 1));

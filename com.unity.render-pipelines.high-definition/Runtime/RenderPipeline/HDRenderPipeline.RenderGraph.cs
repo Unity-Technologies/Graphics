@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Once render graph move is implemented, we can probably remove the branch and this.
             ShadowResult shadowResult = new ShadowResult();
 
-            if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled())
+            if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
                 StartSinglePass(m_RenderGraph, hdCamera);
                 RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, colorBuffer);
@@ -45,28 +45,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-#if ENABLE_RAYTRACING
-                // Update the light clusters that we need to update
-                m_RayTracingManager.UpdateCameraData(cmd, hdCamera);
-
-                // We only request the light cluster if we are gonna use it for debug mode
-                if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+                if (m_RayTracingSupported)
                 {
-                    var rSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>();
-                    var rrSettings = VolumeManager.instance.stack.GetComponent<RecursiveRendering>();
-                    HDRaytracingEnvironment rtEnv = m_RayTracingManager.CurrentEnvironment();
-                    if (rSettings.rayTracing.value && rtEnv != null)
+                    // Update the light clusters that we need to update
+                    BuildRayTracingLightCluster(cmd, hdCamera);
+
+                    if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
                     {
-                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.reflLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
-                    }
-                    else if (rrSettings.enable.value && rtEnv != null)
-                    {
-                        HDRaytracingLightCluster lightCluster = m_RayTracingManager.RequestLightCluster(rtEnv.raytracedLayerMask);
-                        PushFullScreenDebugTexture(hdCamera, cmd, lightCluster.m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
+                        HDRaytracingLightCluster lightCluster = RequestLightCluster();
+                        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                     }
                 }
-#endif
 
                 BuildGPULightList(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.stencilBufferCopy, prepassOutput.gbuffer);
 
@@ -694,7 +683,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, RenderGraphMutableResource colorBuffer, RenderGraphResource volumetricLighting, RenderGraphMutableResource depthStencilBuffer, RenderGraphResource depthTexture)
         {
-            if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.MatcapView)
+            if (m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
             {
                 return;
             }
@@ -726,7 +715,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     data.skyManager.RenderSky(data.hdCamera, data.sunLight, destination, depthBuffer, data.debugDisplaySettings, m_FrameCount, context.cmd);
 
-                    if ((data.visualEnvironment.fogType.value != FogType.None) || (data.visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased))
+                    if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                     {
                         var pixelCoordToViewDirWS = data.hdCamera.mainViewConstants.pixelCoordToViewDirWS;
                         data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, destination, inputVolumetric, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));

@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 
 // Include material common properties names
@@ -25,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
     class StackLitMasterNode : MasterNode<IStackLitSubShader>, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
-        public const string PositionSlotName = "Position";
+        public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
 
         public const string BaseColorSlotName = "BaseColor";
@@ -938,6 +939,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_ZTest = value;
                 UpdateNodeAfterDeserialization();
                 Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_SupportLodCrossFade;
+
+        public ToggleData supportLodCrossFade
+        {
+            get { return new ToggleData(m_SupportLodCrossFade); }
+            set
+            {
+                if (m_SupportLodCrossFade == value.isOn)
+                    return;
+                m_SupportLodCrossFade = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Node);
             }
         }
 

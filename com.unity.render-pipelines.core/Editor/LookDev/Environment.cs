@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
-using System.Linq;
 
 namespace UnityEditor.Rendering.LookDev
 {
@@ -11,166 +10,121 @@ namespace UnityEditor.Rendering.LookDev
     /// </summary>
     public class Environment : ScriptableObject
     {
-        [Serializable]
-        public abstract class BaseEnvironmentCubemapHandler
+        [SerializeField]
+        string m_CubemapGUID;
+        Cubemap m_Cubemap;
+
+        /// <summary>
+        /// Offset on the longitude. Affect both sky and sun position in Shadow part
+        /// </summary>
+        public float rotation = 0.0f;
+        /// <summary>
+        /// Exposure to use with this Sky
+        /// </summary>
+        public float exposure = 0f;
+
+        // Setup default position to be on the sun in the default HDRI.
+        // This is important as the defaultHDRI don't call the set brightest spot function on first call.
+        [SerializeField]
+        float m_Latitude = 60.0f; // [-90..90]
+        [SerializeField]
+        float m_Longitude = 299.0f; // [0..360[
+
+        /// <summary>
+        /// The shading tint to used when computing shadow from sun
+        /// </summary>
+        public Color shadowColor = new Color(0.7f, 0.7f, 0.7f);
+
+        /// <summary>
+        /// The cubemap used for this part of the lighting environment
+        /// </summary>
+        public Cubemap cubemap
         {
-            [SerializeField]
-            string m_CubemapGUID;
-            Cubemap m_Cubemap;
-
-            /// <summary>
-            /// The cubemap used for this part of the lighting environment
-            /// </summary>
-            public Cubemap cubemap
+            get
             {
-                get
-                {
-                    if (m_Cubemap == null || m_Cubemap.Equals(null))
-                        LoadCubemap();
-                    return m_Cubemap;
-                }
-                set
-                {
-                    m_Cubemap = value;
-                    m_CubemapGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Cubemap));
-                }
+                if (m_Cubemap == null || m_Cubemap.Equals(null))
+                    LoadCubemap();
+                return m_Cubemap;
             }
-
-            void LoadCubemap()
+            set
             {
-                m_Cubemap = null;
-
-                GUID storedGUID;
-                GUID.TryParse(m_CubemapGUID, out storedGUID);
-                if (!storedGUID.Empty())
-                {
-                    string path = AssetDatabase.GUIDToAssetPath(m_CubemapGUID);
-                    m_Cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
-                }
+                m_Cubemap = value;
+                m_CubemapGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m_Cubemap));
             }
         }
 
         /// <summary>
-        /// Class containing editor data for shadow part of the lighting environment 
+        /// The Latitude position of the sun casting shadows
         /// </summary>
-        [Serializable]
-        public class Shadow : BaseEnvironmentCubemapHandler
+        public float sunLatitude
         {
-            // Setup default position to be on the sun in the default HDRI.
-            // This is important as the defaultHDRI don't call the set brightest spot function on first call.
-            [SerializeField]
-            float m_Latitude = 60.0f; // [-90..90]
-            [SerializeField]
-            float m_Longitude = 299.0f; // [0..360[
-
-            /// <summary>
-            /// The shading tint to used when computing shadow from sun
-            /// </summary>
-            public Color color = Color.white;
-
-            /// <summary>
-            /// The Latitude position of the sun casting shadows
-            /// </summary>
-            public float sunLatitude
-            {
-                get => m_Latitude;
-                set => m_Latitude = ClampLatitude(value);
-            }
-
-            internal static float ClampLatitude(float value) => Mathf.Clamp(value, -90, 90);
-
-            /// <summary>
-            /// The Longitude position of the sun casting shadows
-            /// </summary>
-            public float sunLongitude
-            {
-                get => m_Longitude;
-                set => m_Longitude = ClampLongitude(value);
-            }
-
-            internal static float ClampLongitude(float value)
-            {
-                value = value % 360f;
-                if (value < 0.0)
-                    value += 360f;
-                return value;
-            }
+            get => m_Latitude;
+            set => m_Latitude = ClampLatitude(value);
         }
 
         /// <summary>
-        /// Class containing editor data for sky part of the lighting environment 
+        /// The Longitude position of the sun casting shadows
         /// </summary>
-        [Serializable]
-        public class Sky : BaseEnvironmentCubemapHandler
+        public float sunLongitude
         {
-            /// <summary>
-            /// Offset on the longitude. Affect both sky and sun position in Shadow part
-            /// </summary>
-            public float rotation = 0.0f;
-            /// <summary>
-            /// Exposure to use with this Sky
-            /// </summary>
-            public float exposure = 1f;
-
-            /// <summary>
-            /// Implicit conversion operator to runtime version of sky datas
-            /// </summary>
-            /// <param name="sky">Editor version of the datas</param>
-            public static implicit operator UnityEngine.Rendering.LookDev.Sky(Sky sky)
-                => sky == null
-                ? default
-                : new UnityEngine.Rendering.LookDev.Sky()
-                {
-                    cubemap = sky.cubemap,
-                    longitudeOffset = sky.rotation,
-                    exposure = sky.exposure
-                };
+            get => m_Longitude;
+            set => m_Longitude = ClampLongitude(value);
         }
 
-        /// <summary>
-        /// The sky part of the lighting environment 
-        /// </summary>
-        public Sky sky = new Sky();
-
-        /// <summary>
-        /// The shadow part of the lighting environment 
-        /// </summary>
-        public Shadow shadow = new Shadow();
-
-        /// <summary>
-        /// Compute the shadow runtime data with editor datas
-        /// </summary>
-        public UnityEngine.Rendering.LookDev.Sky shadowSky
-            => new UnityEngine.Rendering.LookDev.Sky()
-            {
-                cubemap = shadow.cubemap ?? sky.cubemap,
-                longitudeOffset = sky.rotation,
-                exposure = sky.exposure
-            };
-
-        internal float shadowIntensity
-            => shadow.cubemap == null ? 0.3f : 1f;
+        internal static float ClampLatitude(float value) => Mathf.Clamp(value, -90, 90);
+        
+        internal static float ClampLongitude(float value)
+        {
+            value = value % 360f;
+            if (value < 0.0)
+                value += 360f;
+            return value;
+        }
 
         internal void UpdateSunPosition(Light sun)
-            => sun.transform.rotation = Quaternion.Euler(shadow.sunLatitude, sky.rotation + shadow.sunLongitude, 0f);
-
-        internal void CopyTo(Environment other)
-        {
-            other.sky.cubemap = sky.cubemap;
-            other.sky.exposure = sky.exposure;
-            other.sky.rotation = sky.rotation;
-            other.shadow.cubemap = shadow.cubemap;
-            other.shadow.sunLatitude = shadow.sunLatitude;
-            other.shadow.sunLongitude = shadow.sunLongitude;
-            other.shadow.color = shadow.color;
-            other.name = name + " (copy)";
-        }
-
+            => sun.transform.rotation = Quaternion.Euler(sunLatitude, rotation + sunLongitude, 0f);
+        
         /// <summary>
         /// Compute sun position to be brightest spot of the sky
         /// </summary>
         public void ResetToBrightestSpot()
             => EnvironmentElement.ResetToBrightestSpot(this);
+
+        void LoadCubemap()
+        {
+            m_Cubemap = null;
+
+            GUID storedGUID;
+            GUID.TryParse(m_CubemapGUID, out storedGUID);
+            if (!storedGUID.Empty())
+            {
+                string path = AssetDatabase.GUIDToAssetPath(m_CubemapGUID);
+                m_Cubemap = AssetDatabase.LoadAssetAtPath<Cubemap>(path);
+            }
+        }
+
+        internal void CopyTo(Environment other)
+        {
+            other.cubemap = cubemap;
+            other.exposure = exposure;
+            other.rotation = rotation;
+            other.sunLatitude = sunLatitude;
+            other.sunLongitude = sunLongitude;
+            other.shadowColor = shadowColor;
+            other.name = name + " (copy)";
+        }
+
+        /// <summary>
+        /// Implicit conversion operator to runtime version of sky datas
+        /// </summary>
+        /// <param name="sky">Editor version of the datas</param>
+        public UnityEngine.Rendering.LookDev.Sky sky
+            => new UnityEngine.Rendering.LookDev.Sky()
+            {
+                cubemap = cubemap,
+                longitudeOffset = rotation,
+                exposure = exposure
+            };
     }
 
     [CustomEditor(typeof(Environment))]
@@ -196,10 +150,6 @@ namespace UnityEditor.Rendering.LookDev
     {
         internal const int k_SkyThumbnailWidth = 200;
         internal const int k_SkyThumbnailHeight = 100;
-        const int k_SkadowThumbnailWidth = 60;
-        const int k_SkadowThumbnailHeight = 30;
-        const int k_SkadowThumbnailXPosition = 130;
-        const int k_SkadowThumbnailYPosition = 10;
         static Material s_cubeToLatlongMaterial;
         static Material cubeToLatlongMaterial
         {
@@ -220,7 +170,6 @@ namespace UnityEditor.Rendering.LookDev
         ObjectField skyCubemapField;
         FloatField skyRotationOffset;
         FloatField skyExposureField;
-        ObjectField shadowCubemapField;
         Vector2Field sunPosition;
         ColorField shadowColor;
         TextField environmentName;
@@ -264,12 +213,11 @@ namespace UnityEditor.Rendering.LookDev
 
             if (latlong != null && !latlong.Equals(null))
                 latlong.image = GetLatLongThumbnailTexture();
-            skyCubemapField.SetValueWithoutNotify(environment.sky.cubemap);
-            skyRotationOffset.SetValueWithoutNotify(environment.sky.rotation);
-            skyExposureField.SetValueWithoutNotify(environment.sky.exposure);
-            shadowCubemapField.SetValueWithoutNotify(environment.shadow.cubemap);
-            sunPosition.SetValueWithoutNotify(new Vector2(environment.shadow.sunLongitude, environment.shadow.sunLatitude));
-            shadowColor.SetValueWithoutNotify(environment.shadow.color);
+            skyCubemapField.SetValueWithoutNotify(environment.cubemap);
+            skyRotationOffset.SetValueWithoutNotify(environment.rotation);
+            skyExposureField.SetValueWithoutNotify(environment.exposure);
+            sunPosition.SetValueWithoutNotify(new Vector2(environment.sunLongitude, environment.sunLatitude));
+            shadowColor.SetValueWithoutNotify(environment.shadowColor);
             environmentName.SetValueWithoutNotify(environment.name);
         }
 
@@ -293,9 +241,9 @@ namespace UnityEditor.Rendering.LookDev
 
         public static void ResetToBrightestSpot(Environment environment)
         {
-            cubeToLatlongMaterial.SetTexture("_MainTex", environment.sky.cubemap);
+            cubeToLatlongMaterial.SetTexture("_MainTex", environment.cubemap);
             cubeToLatlongMaterial.SetVector("_WindowParams", new Vector4(10000, -1000.0f, 2, 0.0f)); // Neutral value to not clip
-            cubeToLatlongMaterial.SetVector("_CubeToLatLongParams", new Vector4(Mathf.Deg2Rad * environment.sky.rotation, 0.5f, 1.0f, 3.0f)); // We use LOD 3 to take a region rather than a single pixel in the map
+            cubeToLatlongMaterial.SetVector("_CubeToLatLongParams", new Vector4(Mathf.Deg2Rad * environment.rotation, 0.5f, 1.0f, 3.0f)); // We use LOD 3 to take a region rather than a single pixel in the map
             cubeToLatlongMaterial.SetPass(0);
 
             int width = k_SkyThumbnailWidth;
@@ -305,7 +253,7 @@ namespace UnityEditor.Rendering.LookDev
             Texture2D brightestPointTexture = new Texture2D(width, height, TextureFormat.RGBAHalf, false);
 
             // Convert cubemap to a 2D LatLong to read on CPU
-            Graphics.Blit(environment.sky.cubemap, temporaryRT, cubeToLatlongMaterial);
+            Graphics.Blit(environment.cubemap, temporaryRT, cubeToLatlongMaterial);
             brightestPointTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
             brightestPointTexture.Apply();
 
@@ -328,8 +276,8 @@ namespace UnityEditor.Rendering.LookDev
                 }
             }
             Vector2 sunPosition = PositionToLatLong(new Vector2(((maxIndex % width) / (float)(width - 1)) * 2f - 1f, ((maxIndex / width) / (float)(height - 1)) * 2f - 1f));
-            environment.shadow.sunLatitude = sunPosition.x;
-            environment.shadow.sunLongitude = sunPosition.y - environment.sky.rotation;
+            environment.sunLatitude = sunPosition.x;
+            environment.sunLongitude = sunPosition.y - environment.rotation;
         }
 
         public Texture2D GetLatLongThumbnailTexture()
@@ -341,7 +289,7 @@ namespace UnityEditor.Rendering.LookDev
             RenderTexture oldActive = RenderTexture.active;
             RenderTexture temporaryRT = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             RenderTexture.active = temporaryRT;
-            cubeToLatlongMaterial.SetTexture("_MainTex", environment.sky.cubemap);
+            cubeToLatlongMaterial.SetTexture("_MainTex", environment.cubemap);
             cubeToLatlongMaterial.SetVector("_WindowParams",
                 new Vector4(
                     height, //height
@@ -350,7 +298,7 @@ namespace UnityEditor.Rendering.LookDev
                     1f));   //Pixel per Point
             cubeToLatlongMaterial.SetVector("_CubeToLatLongParams",
                 new Vector4(
-                    Mathf.Deg2Rad * environment.sky.rotation,    //rotation of the environment in radian
+                    Mathf.Deg2Rad * environment.rotation,    //rotation of the environment in radian
                     1f,     //alpha
                     1f,     //intensity
                     0f));   //LOD
@@ -359,33 +307,6 @@ namespace UnityEditor.Rendering.LookDev
             GL.Clear(true, true, Color.black);
             Rect skyRect = new Rect(0, 0, width, height);
             Renderer.DrawFullScreenQuad(skyRect);
-
-            if (environment.shadow.cubemap != null)
-            {
-                cubeToLatlongMaterial.SetTexture("_MainTex", environment.shadow.cubemap);
-                cubeToLatlongMaterial.SetVector("_WindowParams",
-                    new Vector4(
-                        height, //height
-                        -1000f, //y position, -1000f to be sure to not have clipping issue (we should not clip normally but don't want to create a new shader)
-                        2f,      //margin value
-                        1f));   //Pixel per Point
-                cubeToLatlongMaterial.SetVector("_CubeToLatLongParams",
-                    new Vector4(
-                        Mathf.Deg2Rad * environment.sky.rotation,    //rotation of the environment in radian
-                        1f,   //alpha
-                        0.3f,   //intensity
-                        0f));   //LOD
-                cubeToLatlongMaterial.SetPass(0);
-                int shadowWidth = (int)(width * (k_SkadowThumbnailWidth / (float)k_SkyThumbnailWidth));
-                int shadowXPosition = (int)(width * (k_SkadowThumbnailXPosition / (float)k_SkyThumbnailWidth));
-                int shadowYPosition = (int)(width * (k_SkadowThumbnailYPosition / (float)k_SkyThumbnailWidth));
-                Rect shadowRect = new Rect(
-                    shadowXPosition,
-                    shadowYPosition,
-                    shadowWidth,
-                    shadowWidth >> 1);
-                Renderer.DrawFullScreenQuad(shadowRect);
-            }
 
             Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, false);
             result.ReadPixels(new Rect(0, 0, width, height), 0, 0, false);
@@ -430,34 +351,19 @@ namespace UnityEditor.Rendering.LookDev
             skyCubemapField.objectType = typeof(Cubemap);
             skyCubemapField.RegisterValueChangedCallback(evt =>
             {
-                var tmp = environment.sky.cubemap;
+                var tmp = environment.cubemap;
                 RegisterChange(ref tmp, evt.newValue as Cubemap);
-                environment.sky.cubemap = tmp;
+                environment.cubemap = tmp;
                 latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
             });
             foldout.Add(skyCubemapField);
-
-            shadowCubemapField = new ObjectField("Sky without Sun")
-            {
-                tooltip = "[Optional] A cubemap that will be used to compute self shadowing.\nIt should be the same sky without the sun.\nIf nothing is provided, the sky with sun will be used with lower intensity."
-            };
-            shadowCubemapField.allowSceneObjects = false;
-            shadowCubemapField.objectType = typeof(Cubemap);
-            shadowCubemapField.RegisterValueChangedCallback(evt =>
-            {
-                var tmp = environment.shadow.cubemap;
-                RegisterChange(ref tmp, evt.newValue as Cubemap);
-                environment.shadow.cubemap = tmp;
-                latlong.image = GetLatLongThumbnailTexture(environment, k_SkyThumbnailWidth);
-            });
-            foldout.Add(shadowCubemapField);
 
             skyRotationOffset = new FloatField("Rotation")
             {
                 tooltip = "Rotation offset on the longitude of the sky."
             };
             skyRotationOffset.RegisterValueChangedCallback(evt
-                => RegisterChange(ref environment.sky.rotation, Environment.Shadow.ClampLongitude(evt.newValue), skyRotationOffset, updatePreview: true));
+                => RegisterChange(ref environment.rotation, Environment.ClampLongitude(evt.newValue), skyRotationOffset, updatePreview: true));
             foldout.Add(skyRotationOffset);
 
             skyExposureField = new FloatField("Exposure")
@@ -465,7 +371,7 @@ namespace UnityEditor.Rendering.LookDev
                 tooltip = "The exposure to apply with this sky."
             };
             skyExposureField.RegisterValueChangedCallback(evt
-                => RegisterChange(ref environment.sky.exposure, evt.newValue));
+                => RegisterChange(ref environment.exposure, evt.newValue));
             foldout.Add(skyExposureField);
             var style = foldout.Q<Toggle>().style;
             style.marginLeft = 3;
@@ -481,14 +387,14 @@ namespace UnityEditor.Rendering.LookDev
             sunPosition.RegisterValueChangedCallback(evt =>
             {
                 var tmpContainer = new Vector2(
-                    environment.shadow.sunLongitude,
-                    environment.shadow.sunLatitude);
+                    environment.sunLongitude,
+                    environment.sunLatitude);
                 var tmpNewValue = new Vector2(
-                    Environment.Shadow.ClampLongitude(evt.newValue.x),
-                    Environment.Shadow.ClampLatitude(evt.newValue.y));
+                    Environment.ClampLongitude(evt.newValue.x),
+                    Environment.ClampLatitude(evt.newValue.y));
                 RegisterChange(ref tmpContainer, tmpNewValue, sunPosition);
-                environment.shadow.sunLongitude = tmpContainer.x;
-                environment.shadow.sunLatitude = tmpContainer.y;
+                environment.sunLongitude = tmpContainer.x;
+                environment.sunLatitude = tmpContainer.y;
             });
             foldout.Add(sunPosition);
 
@@ -496,8 +402,8 @@ namespace UnityEditor.Rendering.LookDev
             {
                 ResetToBrightestSpot(environment);
                 sunPosition.SetValueWithoutNotify(new Vector2(
-                    Environment.Shadow.ClampLongitude(environment.shadow.sunLongitude),
-                    Environment.Shadow.ClampLatitude(environment.shadow.sunLatitude)));
+                    Environment.ClampLongitude(environment.sunLongitude),
+                    Environment.ClampLatitude(environment.sunLatitude)));
             })
             {
                 name = "sunToBrightestButton"
@@ -516,7 +422,7 @@ namespace UnityEditor.Rendering.LookDev
                 tooltip = "The wanted shadow tint to be used when computing shadow."
             };
             shadowColor.RegisterValueChangedCallback(evt
-                => RegisterChange(ref environment.shadow.color, evt.newValue));
+                => RegisterChange(ref environment.shadowColor, evt.newValue));
             foldout.Add(shadowColor);
 
             style = foldout.Q<Toggle>().style;

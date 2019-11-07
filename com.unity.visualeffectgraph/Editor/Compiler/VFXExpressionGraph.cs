@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    public enum VFXDeviceTarget
+    enum VFXDeviceTarget
     {
         CPU,
         GPU,

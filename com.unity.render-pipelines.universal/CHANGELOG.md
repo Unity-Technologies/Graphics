@@ -4,7 +4,50 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.1.1] - 2019-XX-XX
+## [8.0.0] - 2019-XX-XX
+### Added
+- Added the option to strip Terrain hole Shader variants.
+- Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
+
+### Changed
+- Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
+- Eliminated some GC allocations from the 2D Renderer.
+- Added SceneSelection pass for TerrainLit shader.
+- Remove final blit pass to force alpha to 1.0 on mobile platforms.
+- Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
+
+### Fixed
+- Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
+- Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
+- Fixed an issue where Unity rendered fullscreen quads with the pink error shader when you enabled the Stop NaN post-processing pass.
+- Fixed an issue where Terrain hole Shader changes were missing. [case 1179808](https://issuetracker.unity3d.com/issues/terrain-brush-tool-is-not-drawing-when-paint-holes-is-selected)
+- Fixed an issue where the Shader Graph `SceneDepth` node didn't work with XR single-pass (double-wide) rendering. See [case 1123069](https://issuetracker.unity3d.com/issues/lwrp-vr-shadergraph-scenedepth-doesnt-work-in-single-pass-rendering).
+- Fixed Unlit and BakedLit shader compilations in the meta pass.
+- Fixed an issue where the Bokeh Depth of Field shader would fail to compile on PS4.
+- Fixed an issue where the Scene lighting button didn't work when you used the 2D Renderer.
+- Fixed a performance regression when you used the 2D Renderer.
+- Fixed an issue where the Freeform 2D Light gizmo didn't correctly show the Falloff offset.
+- Fixed an issue where the 2D Renderer rendered nothing when you used shadow-casting lights with incompatible Renderer2DData.
+- Fixed an issue where Prefab previews were incorrectly lit when you used the 2D Renderer.
+- Fixed an issue where the Light didn't update correctly when you deleted a Sprite that a Sprite 2D Light uses.
+- Fixed an issue where 2D Lighting was broken for Perspective Cameras.
+- Fixed an issue where resetting a Freeform 2D Light would throw null reference exceptions. [case 1184536](https://issuetracker.unity3d.com/issues/lwrp-changing-light-type-to-freeform-after-clicking-on-reset-throws-multiple-arguementoutofrangeexception)
+- Fixed an issue where Freeform 2D Lights were not culled correctly when there was a Falloff Offset.
+- Fixed an issue where Tilemap palettes were invisible in the Tile Palette window when the 2D Renderer was in use. [case 1162550](https://issuetracker.unity3d.com/issues/adding-tiles-in-the-tile-palette-makes-the-tiles-invisible)
+- Fixed issue where black emission would cause unneccesary inspector UI repaints [case 1105661](https://issuetracker.unity3d.com/issues/lwrp-inspector-window-is-being-repainted-when-using-the-material-with-emission-enabled-and-set-to-black-00-0)
+- Fixed user LUT sampling being done in Linear instead of sRGB.
+- Fixed an issue when trying to get the Renderer via API on the first frame [case 1189196](https://issuetracker.unity3d.com/product/unity/issues/guid/1189196/)
+- Fixed a material leak on domain reload.
+- Fixed an issue where deleting an entry from the Renderer List and then undoing that change could cause a null reference. [case 1191896](https://issuetracker.unity3d.com/issues/nullreferenceexception-when-attempting-to-remove-entry-from-renderer-features-list-after-it-has-been-removed-and-then-undone)
+- Fixed an issue where the user would get an error if they removed the Additional Camera Data component. [case 1189926](https://issuetracker.unity3d.com/issues/unable-to-remove-universal-slash-hd-additional-camera-data-component-serializedobject-target-destroyed-error-is-thrown)
+- Fixed post-processing with XR single-pass rendering modes.
+- Fixed an issue where Cinemachine v2.4 couldn't be used together with Universal RP due to a circular dependency between the two packages.
+- Fixed an issue that caused shaders containing `HDRP` string in their path to be stripped from the build.
+- Fixed an issue that caused only selected object to render in SceneView when Wireframe drawmode was selected.
+- Fixed Renderer Features UI tooltips. [case 1191901](https://issuetracker.unity3d.com/issues/forward-renderers-render-objects-layer-mask-tooltip-is-incorrect-and-contains-a-typo)
+
+## [7.1.1] - 2019-09-05
 ### Upgrade Guide
 - The render pipeline now handles custom renderers differently. You must now set up renderers for the Camera on the Render Pipeline Asset.
 - Render Pipeline Assets upgrades automatically and either creates a default forward renderer in your project or links the existing custom one that you've assigned.
@@ -14,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader function `GetMainLightShadowParams`. This returns a half4 for the main light that packs shadow strength in x component and shadow soft property in y component.
 - Added shader function `GetAdditionalLightShadowParams`. This returns a half4 for an additional light that packs shadow strength in x component and shadow soft property in y component.
 - Added a `Debug Level` option to the Render Pipeline Asset. With this, you can control the amount of debug information generated by the render pipeline.
-- Added ability to set the `ScriptableRenderer` that the Camera renders with via C# using `UniversalAdditionalCameraData.SerRenderer(int index)`. This maps to the **Renderer List** on the Render Pipeline Asset.
+- Added ability to set the `ScriptableRenderer` that the Camera renders with via C# using `UniversalAdditionalCameraData.SetRenderer(int index)`. This maps to the **Renderer List** on the Render Pipeline Asset.
 - Added shadow support for the 2D Renderer. 
 - Added ShadowCaster2D, and CompositeShadowCaster2D components.
 - Added shadow intensity and shadow volume intensity properties to Light2D.
@@ -22,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added CinemachineUniversalPixelPerfect, a Cinemachine Virtual Camera Extension that solves some compatibility issues between Cinemachine and Pixel Perfect Camera.
 - Added an option that disables the depth/stencil buffer for the 2D Renderer.
 - Added manipulation handles for the inner cone angle for spot lights.
+- Added documentation for the built-in post-processing solution and Volumes framework (and removed incorrect mention of the PPv2 package). 
 
 ### Changed
 - Increased visible lights limit for the forward renderer. It now supports 256 visible lights except in mobile platforms. Mobile platforms support 32 visible lights.
@@ -32,6 +76,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - There is now a list of `ScriptableRendererData` on the Render Pipeline Asset as opposed to a renderer type. These are available to all Cameras and are included in builds.
 - The renderer override on the Camera is now an enum that maps to the list of `ScriptableRendererData` on the Render Pipeline Asset.
 - Pixel Perfect Camera now allows rendering to a render texture.
+- Light2D GameObjects that you've created now have a default position with z equal to 0.
+- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.  
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
@@ -51,12 +97,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused specular highlights to disappear when the smoothness value was set to 1.0. [case 1161827](https://issuetracker.unity3d.com/issues/lwrp-hdrp-lit-shader-max-smoothness-value-is-incosistent-between-pipelines)
 - Fixed an issue in the Material upgrader that caused transparent Materials to not upgrade correctly to Universal RP. [case 1170419](https://issuetracker.unity3d.com/issues/shader-conversion-upgrading-project-materials-causes-standard-transparent-materials-to-flicker-when-moving-the-camera).
 - Fixed post-processing for the 2D Renderer.
+- Fixed an issue in Light2D that caused a black line to appear for a 360 degree spotlight.
 - Fixed a post-processing rendering issue with non-fullscreen viewport. [case 1177660](https://issuetracker.unity3d.com/issues/urp-render-scale-slider-value-modifies-viewport-coordinates-of-the-screen-instead-of-the-resolution)
 - Fixed an issue where **Undo** would not undo the creation of Additional Camera Data. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
 - Fixed an issue where selecting the same drop-down menu item twice would trigger a change event. [case 1158861](https://issuetracker.unity3d.com/issues/lwrp-additional-camera-data-script-component-appears-on-camera-after-manually-re-picking-use-pipeline-settings)
 - Fixed an issue where selecting certain objects that use instancing materials would throw console warnings. [case 1127324](https://issuetracker.unity3d.com/issues/console-warning-is-being-spammed-when-having-lwrp-enabled-and-shader-with-gpu-instancing-present-in-the-scene)
 - Fixed a GUID conflict with LWRP. [case 1179895](https://issuetracker.unity3d.com/product/unity/issues/guid/1179895/)
+- Fixed an issue where the Terrain shader generated NaNs.
 - Fixed an issue that caused the `Opaque Color` pass to never render at half or quarter resolution.
+- Fixed and issue where stencil state on a `ForwardRendererData` was reset each time rendering happened.
 
 ## [7.0.1] - 2019-07-25
 ### Changed

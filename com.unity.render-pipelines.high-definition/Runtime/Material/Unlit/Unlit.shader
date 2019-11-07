@@ -395,6 +395,7 @@ Shader "HDRP/Unlit"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "IndirectDXR"
@@ -501,6 +502,34 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "PathTracingDXR"
+            Tags{ "LightMode" = "PathTracingDXR" }
+
+            HLSLPROGRAM
+
+            #pragma raytracing test
+
+            #define SHADOW_LOW
+            #define SHADERPASS SHADERPASS_PATH_TRACING
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracingData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl"
 
             ENDHLSL
         }

@@ -240,6 +240,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &725531160
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -333,6 +334,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &880984194
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -386,7 +388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23c1ce4fb46143f46bc5cb5224c934f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 6
+  m_Version: 7
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
     overrides: 0
@@ -444,6 +446,7 @@ MonoBehaviour:
   SMAAQuality: 2
   dithering: 0
   stopNaNs: 0
+  taaSharpenStrength: 0.6
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
@@ -455,19 +458,23 @@ MonoBehaviour:
   flipYMode: 0
   fullscreenPassthrough: 0
   allowDynamicResolution: 0
-  customRenderingSettings: 1
+  customRenderingSettings: 0
   invertFaceCulling: 0
   probeLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  hasPersistentHistory: 0
   m_RenderingPathCustomFrameSettings:
     bitDatas:
-      data1: 69456063594269
+      data1: 70005819408221
       data2: 4539628424926265344
     lodBias: 1
     lodBiasMode: 0
+    lodBiasQualityLevel: 0
     maximumLODLevel: 0
     maximumLODLevelMode: 0
+    maximumLODLevelQualityLevel: 0
+    materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
     mask:
       data1: 32768
@@ -609,6 +616,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1323211077
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -736,11 +744,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 5
-  directionalIntensity: 3.1415927
-  punctualIntensity: 600
-  areaIntensity: 200
-  lightLayers: 1
+  m_Version: 6
+  m_ObsoleteShadowResolutionTier: 1
+  m_ObsoleteUseShadowQualitySettings: 0
+  m_ObsoleteCustomShadowResolution: 512
+  m_ObsoleteContactShadows: 0
   m_Intensity: 3.1415927
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
@@ -783,13 +791,17 @@ MonoBehaviour:
   m_KernelSize: 5
   m_LightAngle: 1
   m_MaxDepthBias: 0.001
-  m_ShadowResolutionTier: 1
-  m_UseShadowQualitySettings: 0
-  m_CustomShadowResolution: 512
+  m_ShadowResolution:
+    m_Override: 512
+    m_UseOverride: 1
+    m_Level: 1
   m_ShadowDimmer: 1
   m_VolumetricShadowDimmer: 1
   m_ShadowFadeDistance: 10000
-  m_ContactShadows: 0
+  m_UseContactShadow:
+    m_Override: 0
+    m_UseOverride: 1
+    m_Level: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
   m_ConstantBias: 0.15
@@ -881,6 +893,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1519213920
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -975,6 +988,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1641247291
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1102,6 +1116,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1827381202
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1182,12 +1197,12 @@ PrefabInstance:
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Version
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
-      value: 69456063102749
+      value: 70005818916701
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}

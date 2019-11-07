@@ -4,11 +4,11 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //[VFXInfo] // TODO Put back VFXInfo once C++ PR for strips has landed
+    [VFXInfo(experimental = true)]
     class VFXLineStripOutput : VFXAbstractParticleOutput
     {
         protected VFXLineStripOutput() : base(true) { }
-        public override string name { get { return "Line Strip Output"; } }
+        public override string name { get { return "Output ParticleStrip Line"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLinesHW"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleLineOutput; } }
 

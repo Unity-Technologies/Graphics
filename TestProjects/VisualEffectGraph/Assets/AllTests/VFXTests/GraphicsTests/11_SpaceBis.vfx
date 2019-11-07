@@ -1154,7 +1154,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -1766,7 +1766,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -1774,6 +1774,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661614787
@@ -5540,7 +5542,7 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615078}
-  shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!114 &8926484042661615096
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8497,7 +8499,7 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661615180}
-  shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!114 &8926484042661615202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10024,7 +10026,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -10032,6 +10034,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661615271
@@ -12222,7 +12226,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -13770,7 +13774,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -14570,7 +14574,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -20970,7 +20974,7 @@ MonoBehaviour:
   title: 
   m_Owners:
   - {fileID: 8926484042661616355}
-  shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!114 &8926484042661616372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27539,7 +27543,7 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  colorMappingMode: 0
+  colorMapping: 0
   uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
@@ -27547,6 +27551,8 @@ MonoBehaviour:
   indirectDraw: 0
   castShadows: 0
   useExposureWeight: 0
+  shaderGraph: {fileID: 0}
+  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &8926484042661616623

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Dot
 {
-    public abstract class DotElement
+    abstract class DotElement
     {
         public abstract string Name { get; }
 
@@ -28,7 +28,7 @@ namespace UnityEditor.Dot
         }
     }
 
-    public class DotNode : DotElement
+    class DotNode : DotElement
     {
         public DotNode() {}
         public DotNode(string name)
@@ -39,7 +39,7 @@ namespace UnityEditor.Dot
         public override string Name { get { return "node"; } }
     }
 
-    public class DotEdge : DotElement
+    class DotEdge : DotElement
     {
         public DotEdge(DotNode from, DotNode to)
         {

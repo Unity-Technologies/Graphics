@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -32,8 +34,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             const int k_LabelWidth = 220;
 
-            VolumeComponentListEditor m_ComponentList;
             Editor m_Cached;
+
+            ReorderableList m_BeforeTransparentCustomPostProcesses;
+            ReorderableList m_BeforePostProcessCustomPostProcesses;
+            ReorderableList m_AfterPostProcessCustomPostProcesses;
 
             public DefaultSettingsPanel(string searchContext)
             {
@@ -84,6 +89,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 {
                     var volumeInspector = new IMGUIContainer(Draw_VolumeInspector);
+                    volumeInspector.style.flexGrow = 1;
+                    volumeInspector.style.flexDirection = FlexDirection.Row;
+                    scrollView.contentContainer.Add(volumeInspector);
+                }
+                {
+                    var title = new Label
+                    {
+                        text = "Custom Post Process Orders"
+                    };
+                    title.AddToClassList("h1");
+                    scrollView.contentContainer.Add(title);
+                }
+
+                InitializeCustomPostProcessesLists();
+
+                {
+                    var volumeInspector = new IMGUIContainer(Draw_CustomPostProcess);
                     volumeInspector.style.flexGrow = 1;
                     volumeInspector.style.flexDirection = FlexDirection.Row;
                     scrollView.contentContainer.Add(volumeInspector);
@@ -160,6 +182,78 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 HDRenderPipelineUI.FrameSettingsSection.Draw(serializedHDRPAsset, null);
                 serializedObject.ApplyModifiedProperties();
+            }
+
+            void InitializeCustomPostProcessesLists()
+            {
+                var hdrpAsset = HDRenderPipeline.defaultAsset;
+                if (hdrpAsset == null)
+                    return;
+
+                var ppVolumeTypes = TypeCache.GetTypesDerivedFrom<CustomPostProcessVolumeComponent>();
+                var ppVolumeTypeInjectionPoints = new Dictionary<Type, CustomPostProcessInjectionPoint>();
+                foreach (var ppVolumeType in ppVolumeTypes)
+                {
+                    if (ppVolumeType.IsAbstract)
+                        continue;
+
+                    var comp = ScriptableObject.CreateInstance(ppVolumeType) as CustomPostProcessVolumeComponent;
+                    ppVolumeTypeInjectionPoints[ppVolumeType] = comp.injectionPoint;
+                    CoreUtils.Destroy(comp);
+                }
+
+                InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "Before Transparent", CustomPostProcessInjectionPoint.BeforeTransparent);
+                InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
+                InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
+                
+                void InitList(ref ReorderableList reorderableList, List<string> customPostProcessTypes, string headerName, CustomPostProcessInjectionPoint injectionPoint)
+                {
+                    // Sanitize the list:
+                    customPostProcessTypes.RemoveAll(s => Type.GetType(s) == null);
+
+                    reorderableList = new ReorderableList(customPostProcessTypes, typeof(string));
+                    reorderableList.drawHeaderCallback = (rect) =>
+                        EditorGUI.LabelField(rect, headerName, EditorStyles.boldLabel);
+                    reorderableList.drawElementCallback = (rect, index, isActive, isFocused) =>
+                    {
+                        rect.height = EditorGUIUtility.singleLineHeight;
+                        var elemType = Type.GetType(customPostProcessTypes[index]);
+                        EditorGUI.LabelField(rect, elemType.ToString(), EditorStyles.boldLabel);
+                    };
+                    reorderableList.onAddCallback = (list) =>
+                    {
+                        var menu = new GenericMenu();
+
+                        foreach (var kp in ppVolumeTypeInjectionPoints)
+                        {
+                            if (kp.Value == injectionPoint && !customPostProcessTypes.Contains(kp.Key.AssemblyQualifiedName))
+                                menu.AddItem(new GUIContent(kp.Key.ToString()), false, () => customPostProcessTypes.Add(kp.Key.AssemblyQualifiedName));
+                        }
+
+                        if (menu.GetItemCount() == 0)
+                            menu.AddDisabledItem(new GUIContent("No Custom Post Process Availble"));
+
+                        menu.ShowAsContext();
+                        EditorUtility.SetDirty(hdrpAsset);
+                    };
+                    reorderableList.onRemoveCallback = (list) =>
+                    {
+                        customPostProcessTypes.RemoveAt(list.index);
+                        EditorUtility.SetDirty(hdrpAsset);
+                    };
+                    reorderableList.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                }
+            }
+
+            void Draw_CustomPostProcess()
+            {
+                var hdrpAsset = HDRenderPipeline.defaultAsset;
+                if (hdrpAsset == null)
+                    return;
+
+                m_BeforeTransparentCustomPostProcesses.DoLayoutList();
+                m_BeforePostProcessCustomPostProcesses.DoLayoutList();
+                m_AfterPostProcessCustomPostProcesses.DoLayoutList();
             }
         }
     }

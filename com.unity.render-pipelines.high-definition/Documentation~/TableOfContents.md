@@ -5,7 +5,7 @@
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering)
-  * [Exposing Advanced Properties](Advanced-Properties)
+  * [Exposing More Options](More-Options)
   * [VR in HDRP](VR-in-HDRP)
 * Upgrading HDRP between Unity Versions
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
@@ -17,16 +17,12 @@
   * Volume Overrides List
     * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
-    * Fog
-      * [Exponential Fog](Override-Exponential-Fog)
-      * [Linear Fog](Override-Linear-Fog)
-      * [Volumetric Fog](Override-Volumetric-Fog)
+    * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
-      * [Volumetric Fog Quality](Override-Volumetric-Fog-Quality)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
@@ -40,6 +36,7 @@
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
+  * [Default Settings](Default-Settings-Window)
 * Materials
   * [Alpha Clipping](Alpha-Clipping)
   * [Ambient Occlusion](Ambient-Occlusion)
@@ -57,6 +54,7 @@
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
+    * [ShadowMatte Shader](ShadowMatte-Shader)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
@@ -71,18 +69,18 @@
     * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
-  * [Static Lighting Sky](Static-Lighting-Sky)
   * [Atmospheric Scattering](Atmospheric-Scattering)
   * [Density Volume](Density-Volume)
   * [Light Layers](Light-Layers)
   * [Shadows](Shadows-in-HDRP)
+  * [Shadowmasks](Lighting-Mode-Shadowmask)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
 * Camera
   * [HD Camera](HDRP-Camera)
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
-  * [Multisampling Anti-Aliasing](MSAA)
+  * [Anti-Aliasing](Anti-Aliasing)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
   * [Effect Execution Order](Post-Processing-Execution-Order)
@@ -103,6 +101,22 @@
     * [Tonemapping](Post-Processing-Tonemapping)
     * [Vignette](Post-Processing-Vignette)
     * [White Balance](Post-Processing-White-Balance)
+  * Authoring Lookup Textures
+    * [Overview](Authoring-LUTs)
+    * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
+    * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+* Ray Tracing
+  * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
+  * Effects and Volume Overrides
+    * [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
+    * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
+    * [Ray-Traced Reflections](Ray-Traced-Reflections)
+    * [Ray-Traced Shadows](Ray-Traced-Shadows)
+    * [Light Cluster](Ray-Tracing-Light-Cluster)
+    * [Path Tracing](Ray-Tracing-Path-Tracing)
+    * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
+  * Debugging
+    * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
   * [Decal Projector](Decal-Projector)
 * Tools

@@ -23,6 +23,27 @@ namespace UnityEngine.Rendering.HighDefinition
         // Override material
         public Material overrideMaterial = null;
         public int overrideMaterialPassIndex = 0;
+
+        public bool overrideDepthState = false;
+        public CompareFunction depthCompareFunction = CompareFunction.LessEqual;
+        public bool depthWrite = true;
+    
+        int fadeValueId;
+
+        Material m_DefaultOverrideMaterial;
+        Material defaultOverrideMaterial
+        {
+            get
+            {
+                if (m_DefaultOverrideMaterial == null)
+                {
+                    var res = HDRenderPipeline.defaultAsset.renderPipelineResources;
+                    m_DefaultOverrideMaterial = CoreUtils.CreateEngineMaterial(res.shaders.defaultRendererCustomPass);
+                }
+
+                return m_DefaultOverrideMaterial;
+            }
+        }
         
         static List<ShaderTagId> m_HDRPShaderTags;
         static List<ShaderTagId> hdrpShaderTags
@@ -32,12 +53,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_HDRPShaderTags == null)
                 {
                     m_HDRPShaderTags = new List<ShaderTagId>() {
+                        HDShaderPassNames.s_ForwardName,            // HD Lit shader
                         HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
                         HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
                     };
                 }
                 return m_HDRPShaderTags;
             }
+        }
+
+        protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            fadeValueId = Shader.PropertyToID("_FadeValue");
         }
 
         /// <summary>
@@ -54,6 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (overrideMaterial != null)
             {
                 shaderPasses[hdrpShaderTags.Count] = new ShaderTagId(overrideMaterial.GetPassName(overrideMaterialPassIndex));
+                overrideMaterial.SetFloat(fadeValueId, fadeValue);
             }
 
             if (shaderPasses.Length == 0)
@@ -62,42 +90,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            var stateBlock = new RenderStateBlock(overrideDepthState ? RenderStateMask.Depth : 0)
+            {
+                depthState = new DepthState(depthWrite, depthCompareFunction),
+            };
+
             var result = new RendererListDesc(shaderPasses, cullingResult, hdCamera.camera)
             {
                 rendererConfiguration = PerObjectData.None,
                 renderQueueRange = GetRenderQueueRange(renderQueueType),
                 sortingCriteria = sortingCriteria,
-                excludeObjectMotionVectors = true,
-                overrideMaterial = overrideMaterial,
-                overrideMaterialPassIndex = overrideMaterialPassIndex,
+                excludeObjectMotionVectors = false,
+                overrideMaterial = (overrideMaterial != null) ? overrideMaterial : defaultOverrideMaterial,
+                overrideMaterialPassIndex = (overrideMaterial != null) ? overrideMaterialPassIndex : 0,
+                stateBlock = stateBlock,
                 layerMask = layerMask,
             };
 
             HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
         }
 
-        /// <summary>
-        /// Returns the render queue range associated with the custom render queue type
-        /// </summary>
-        /// <returns></returns>
-        protected RenderQueueRange GetRenderQueueRange(CustomPass.RenderQueueType type)
+        protected override void Cleanup()
         {
-            switch (type)
-            {
-                case CustomPass.RenderQueueType.OpaqueNoAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest;
-                case CustomPass.RenderQueueType.OpaqueAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueAlphaTest;
-                case CustomPass.RenderQueueType.AllOpaque: return HDRenderQueue.k_RenderQueue_AllOpaque;
-                case CustomPass.RenderQueueType.AfterPostProcessOpaque: return HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque;
-                case CustomPass.RenderQueueType.PreRefraction: return HDRenderQueue.k_RenderQueue_PreRefraction;
-                case CustomPass.RenderQueueType.Transparent: return HDRenderQueue.k_RenderQueue_Transparent;
-                case CustomPass.RenderQueueType.LowTransparent: return HDRenderQueue.k_RenderQueue_LowTransparent;
-                case CustomPass.RenderQueueType.AllTransparent: return HDRenderQueue.k_RenderQueue_AllTransparent;
-                case CustomPass.RenderQueueType.AllTransparentWithLowRes: return HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
-                case CustomPass.RenderQueueType.AfterPostProcessTransparent: return HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent;
-                case CustomPass.RenderQueueType.All:
-                default:
-                    return HDRenderQueue.k_RenderQueue_All;
-            }
+            if (m_DefaultOverrideMaterial != null)
+                CoreUtils.Destroy(m_DefaultOverrideMaterial);
         }
     }
 }
