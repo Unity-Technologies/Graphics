@@ -58,5 +58,6 @@
     "com.unity.render-pipelines.high-definition",
     "com.unity.testframework.graphics",
     "com.unity.testing.hdrp"
-  ]
+  ],
+  "disableProjectUpdate": true
 }
