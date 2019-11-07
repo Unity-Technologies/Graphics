@@ -4,14 +4,39 @@ namespace UnityEditor.ShaderGraph
 {
     static class PreviewTargetResources
     {
-        public static SubShaderDescriptor PreviewSubShader = new SubShaderDescriptor()
+        static KeywordDescriptor s_PreviewKeyword = new KeywordDescriptor()
         {
-            renderQueueOverride = "Geometry",
-            renderTypeOverride = "Opaque",
-            passes = new PassCollection { PreviewPass },
+            displayName = "Preview",
+            referenceName = "SHADERGRAPH_PREVIEW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
         };
 
-        public static PassDescriptor PreviewPass = new PassDescriptor()
+        static StructDescriptor s_PreviewVaryings = new StructDescriptor()
+        {
+            name = "Varyings",
+            packFields = true,
+            fields = new[]
+            {
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,
+                StructFields.Varyings.texCoord0,
+                StructFields.Varyings.texCoord1,
+                StructFields.Varyings.texCoord2,
+                StructFields.Varyings.texCoord3,
+                StructFields.Varyings.color,
+                StructFields.Varyings.viewDirectionWS,
+                StructFields.Varyings.bitangentWS,
+                StructFields.Varyings.screenPosition,
+                StructFields.Varyings.instanceID,
+                StructFields.Varyings.cullFace,
+            }
+        };
+
+        static PassDescriptor s_PreviewPass = new PassDescriptor()
         {
             // Definition
             referenceName = "SHADERPASS_PREVIEW",
@@ -21,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             structs = new StructCollection
             {
                 { Structs.Attributes },
-                { PreviewVaryings },
+                { s_PreviewVaryings },
                 { Structs.SurfaceDescriptionInputs },
                 { Structs.VertexDescriptionInputs },
             },
@@ -33,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             },
             defines = new DefineCollection
             {
-                { PreviewKeyword, 1 },
+                { s_PreviewKeyword, 1 },
             },
             includes = new IncludeCollection
             {
@@ -54,36 +79,11 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        public static StructDescriptor PreviewVaryings = new StructDescriptor()
+        public static SubShaderDescriptor PreviewSubShader = new SubShaderDescriptor()
         {
-            name = "Varyings",
-            packFields = true,
-            fields = new FieldDescriptor[]
-            {
-                StructFields.Varyings.positionCS,
-                StructFields.Varyings.positionWS,
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,
-                StructFields.Varyings.texCoord0,
-                StructFields.Varyings.texCoord1,
-                StructFields.Varyings.texCoord2,
-                StructFields.Varyings.texCoord3,
-                StructFields.Varyings.color,
-                StructFields.Varyings.viewDirectionWS,
-                StructFields.Varyings.bitangentWS,
-                StructFields.Varyings.screenPosition,
-                StructFields.Varyings.instanceID,
-                StructFields.Varyings.cullFace,
-            }
-        };
-
-        public static KeywordDescriptor PreviewKeyword = new KeywordDescriptor()
-        {
-            displayName = "Preview",
-            referenceName = "SHADERGRAPH_PREVIEW",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
+            renderQueueOverride = "Geometry",
+            renderTypeOverride = "Opaque",
+            passes = new PassCollection { s_PreviewPass },
         };
     }
 }
