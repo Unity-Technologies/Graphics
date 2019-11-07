@@ -1,0 +1,74 @@
+InspectorView
+{
+    flex-direction: column;
+    position: absolute;
+    background-color: rgb(42, 42, 42);
+    justify-content: flex-start;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: rgb(25,25,25);
+}
+
+InspectorView > #titleContainer
+{
+    flex-direction: column;
+    background-color: rgb(60, 60, 60);
+    justify-content: space-between;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-width: 1px;
+    border-color: rgb(32,32,32);
+}
+
+InspectorView > #titleContainer > #titleLabel 
+{
+    font-size: 15px;
+    padding: 6px;
+    color: rgb(200, 200, 200);
+}
+
+InspectorView > #titleContainer > #titleValue 
+{
+    font-size: 11px;
+    padding-left: 6px;
+    padding-top: 1px;
+    padding-bottom: 6px;
+    color: rgb(100, 100, 100);
+}
+
+InspectorView > #contentContainer
+{
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+InspectorView > #contentContainer > #propertyContainer
+{
+    flex-grow: 1;
+}
+
+InspectorView > #contentContainer > #previewTitleContainer
+{
+    background-color: rgb(60, 60, 60);
+    flex-shrink: 0;
+    border-bottom-top: 1px;
+    border-bottom-width: 1px;
+    border-color: rgb(32,32,32);
+}
+
+InspectorView > #contentContainer > #previewTitleContainer > #previewTitleLabel
+{
+    font-size: 11px;
+    padding: 6px;
+    color: rgb(200, 200, 200);
+}
+
+InspectorView > #contentContainer > #previewContainer
+{
+    
+}
+
+InspectorView > #contentContainer > #previewContainer > #previewImage
+{
+    flex-grow: 1;
+}

@@ -209,6 +209,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        public delegate void SelectionChanged(List<ISelectable> selection); 
+        public SelectionChanged OnSelectionChange;
+
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+
+            if(OnSelectionChange != null)
+                OnSelectionChange(selection);
+        }
+
+        public override void ClearSelection()
+        {
+            base.ClearSelection();
+
+            if(OnSelectionChange != null)
+                OnSelectionChange(selection);
+        }
+
         void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
         {
             graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");

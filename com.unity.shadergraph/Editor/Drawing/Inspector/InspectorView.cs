@@ -1,0 +1,284 @@
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
+using UnityEditor.Experimental.GraphView;
+
+namespace UnityEditor.ShaderGraph.Drawing
+{
+    class InspectorView : VisualElement
+    {
+        // References
+        GraphData m_GraphData;
+        GraphView m_GraphView;
+
+        // GenericView
+        const string kTitle = "Inspector";
+        const string kElementName = "inspectorView";
+        const string kStyleName = "InspectorView";
+        const string kLayoutKey = "ShaderGraph.Inspector";
+        WindowDockingLayout m_Layout;
+        WindowDockingLayout m_DefaultLayout = new WindowDockingLayout
+        {
+            dockingTop = true,
+            dockingLeft = true,
+            verticalOffset = 16,
+            horizontalOffset = 16,
+            size = new Vector2(200, 400),
+        };
+
+        // Context
+        Label m_ContextTitle;
+        VisualElement m_PropertyContainer;
+
+        // Preview
+        PreviewManager m_PreviewManager;
+        PreviewRenderData m_PreviewRenderData;
+        Image m_PreviewImage;
+        Vector2 m_PreviewScrollPosition;
+        Mesh m_PreviousMesh;
+        static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
+
+        // Passing both the manager and the data here is really bad
+        // Inspector preview should be directly reactive to the preview manager
+        public InspectorView(GraphData graphData, GraphView graphView, PreviewManager previewManager)
+        {
+            m_GraphData = graphData;
+            m_GraphView = graphView;
+
+            m_PreviewManager = previewManager;
+            m_PreviewRenderData = previewManager.masterRenderData;
+            if (m_PreviewRenderData != null)
+                m_PreviewRenderData.onPreviewChanged += OnPreviewChanged;
+
+            BuildView();
+            DeserializeLayout();
+        }
+
+#region GenericView
+        // All code in this region is generic to any floating tool window
+        // This should be extracted for document based tool modes
+
+        void BuildView()
+        {
+            name = kElementName;
+            styleSheets.Add(Resources.Load<StyleSheet>($"Styles/{kStyleName}"));
+            m_GraphView.Add(this);
+
+            BuildTitleContainer();
+            BuildContentContainer();
+            BuildManipulators();
+        }
+
+        void BuildTitleContainer()
+        {
+            var titleContainer = new VisualElement() { name = "titleContainer" };
+            {
+                var titleLabel = new Label(kTitle) { name = "titleLabel" };
+                m_ContextTitle = new Label(" ") { name = "titleValue" };
+
+                titleContainer.Add(titleLabel);
+                titleContainer.Add(m_ContextTitle);
+            }
+            Add(titleContainer);
+        }
+
+        void BuildContentContainer()
+        {
+            var contentContainer = new VisualElement() { name = "contentContainer" };
+            BuildContent(contentContainer);
+            Add(contentContainer);
+        }
+
+        void BuildManipulators()
+        {
+            var resizeBorderFrame = new ResizeBorderFrame(this) { name = "resizeBorderFrame" };
+            resizeBorderFrame.OnResizeFinished += SerializeLayout;
+            Add(resizeBorderFrame);
+
+            var windowDraggable = new WindowDraggable(null, m_GraphView);
+            windowDraggable.OnDragFinished += SerializeLayout;
+            this.AddManipulator(windowDraggable);
+        }
+
+        void SerializeLayout()
+        {
+            m_Layout.CalculateDockingCornerAndOffset(layout, m_GraphView.layout);
+            m_Layout.ClampToParentWindow();
+
+            var serializedLayout = JsonUtility.ToJson(m_Layout);
+            EditorUserSettings.SetConfigValue(kLayoutKey, serializedLayout);
+        }
+
+        void DeserializeLayout()
+        {
+            var serializedLayout = EditorUserSettings.GetConfigValue(kLayoutKey);
+            if (!string.IsNullOrEmpty(serializedLayout))
+                m_Layout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
+            else
+                m_Layout = m_DefaultLayout;
+            
+            m_Layout.ApplyPosition(this);
+            m_Layout.ApplySize(this);
+        }
+#endregion
+
+#region Content
+        void BuildContent(VisualElement container)
+        {
+            BuildPreview(container);
+        }
+
+        public void UpdateSelection(List<ISelectable> selection)
+        {
+            var propertyItemCount = m_PropertyContainer.childCount;
+            for(int i = 0; i < propertyItemCount; i++)
+                m_PropertyContainer.RemoveAt(0);
+
+            if(selection.Count == 0)
+            {
+                m_ContextTitle.text = " ";
+                return;
+            }
+
+            if(selection.Count > 1)
+            {
+                m_ContextTitle.text = $"{selection.Count} Objects.";
+                var sheet = new PropertySheet();
+                sheet.Add(new PropertyRow(new Label("Multi-editing not supported.")));
+                m_PropertyContainer.Add(sheet);
+                return;
+            }
+                
+            IInspectable inspectable = selection.Select(x => x as IInspectable).FirstOrDefault();
+            if(inspectable != null)
+            {
+                m_ContextTitle.text = inspectable.displayName;
+                m_PropertyContainer.Add(inspectable.GetInspectorContent());
+            }
+            m_PropertyContainer.MarkDirtyRepaint();
+        }
+#endregion
+
+#region Preview
+        void BuildPreview(VisualElement container)
+        {
+            m_PropertyContainer = new VisualElement { name = "propertyContainer" };
+            container.Add(m_PropertyContainer);
+
+            var previewTitleContainer = new VisualElement() { name = "previewTitleContainer" };
+            {
+                var titleLabel = new Label("Preview") { name = "previewTitleLabel" };
+                previewTitleContainer.Add(titleLabel);
+            }
+            container.Add(previewTitleContainer);
+
+            var previewContainer = new VisualElement { name = "previewContainer" };
+            {
+                CreatePreviewImage(Texture2D.blackTexture);
+                previewContainer.Add(m_PreviewImage);
+                previewContainer.style.height = 200;
+            }
+            container.Add(previewContainer);
+
+            var draggable = new Draggable(s =>
+            {
+                previewContainer.style.height = new StyleLength(previewContainer.style.height.value.value - s.y);
+            }, true);
+            previewTitleContainer.AddManipulator(draggable);
+        }
+
+        void CreatePreviewImage(Texture texture)
+        {
+            if (m_PreviewRenderData?.texture != null)
+                texture = m_PreviewRenderData.texture;
+
+            m_PreviewImage = new Image { name = "previewImage", image = texture };
+
+            // Manipulators
+            var contextMenu = (IManipulator)Activator.CreateInstance(typeof(ContextualMenuManipulator), (Action<ContextualMenuPopulateEvent>)BuildPreviewContextMenu);
+            m_PreviewImage.AddManipulator(contextMenu);
+            m_PreviewImage.AddManipulator(new Scrollable(OnPreviewScroll));
+            m_PreviewImage.AddManipulator(new Draggable(OnPreviewDrag, true));
+        }
+
+        void ChangePreviewMesh(Mesh mesh)
+        {
+            m_GraphData.outputNode.Dirty(ModificationScope.Node);
+
+            if (m_GraphData.previewData.serializedMesh.mesh != mesh)
+            {
+                m_GraphData.previewData.rotation = Quaternion.identity;
+                m_PreviewScrollPosition = Vector2.zero;
+                m_GraphData.previewData.serializedMesh.mesh = mesh;
+            }
+        }
+
+        void BuildPreviewContextMenu(ContextualMenuPopulateEvent evt)
+        {
+            foreach (var primitiveTypeName in Enum.GetNames(typeof(PrimitiveType)))
+            {
+                evt.menu.AppendAction(primitiveTypeName, e => 
+                {
+                    Mesh mesh = Resources.GetBuiltinResource(typeof(Mesh), string.Format("{0}.fbx", primitiveTypeName)) as Mesh;
+                    ChangePreviewMesh(mesh);
+                }, DropdownMenuAction.AlwaysEnabled);
+            }
+
+            evt.menu.AppendAction("Custom Mesh", e =>
+            {
+                MethodInfo ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] {typeof(UnityEngine.Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<UnityEngine.Object>), typeof(Action<UnityEngine.Object>)}, new ParameterModifier[7]);
+                m_PreviousMesh = m_GraphData.previewData.serializedMesh.mesh;
+                ShowMethod.Invoke(GetMeshSelectionWindow(), new object[] { null, typeof(Mesh), null, false, null, (Action<UnityEngine.Object>)OnPreviewMeshChanged, (Action<UnityEngine.Object>)OnPreviewMeshChanged });
+            });
+        }
+
+        EditorWindow GetMeshSelectionWindow()
+        {
+            PropertyInfo P = s_ObjectSelector.GetProperty("get", BindingFlags.Public | BindingFlags.Static);
+            return P.GetValue(null, null) as EditorWindow;
+        }
+
+        void OnPreviewMeshChanged(UnityEngine.Object obj)
+        {
+            var mesh = obj as Mesh;
+            if (mesh == null)
+                mesh = m_PreviousMesh;
+            ChangePreviewMesh(mesh);
+        }
+
+        void OnPreviewChanged()
+        {
+            m_PreviewImage.image = m_PreviewRenderData?.texture ?? Texture2D.blackTexture;
+            if (m_PreviewRenderData != null && m_PreviewRenderData.shaderData.isCompiling)
+                m_PreviewImage.tintColor = new Color(1.0f, 1.0f, 1.0f, 0.3f);
+            else
+                m_PreviewImage.tintColor = Color.white;
+            m_PreviewImage.MarkDirtyRepaint();
+        }
+
+        void OnPreviewScroll(float scrollValue)
+        {
+            var rescaleMultiplier = 0.03f;
+            var rescaleAmount = -scrollValue * rescaleMultiplier;
+            m_GraphData.previewData.scale = Mathf.Clamp(m_GraphData.previewData.scale + rescaleAmount, 0.2f, 5f);
+            m_GraphData.outputNode.Dirty(ModificationScope.Node);
+        }
+
+        void OnPreviewDrag(Vector2 mouseDelta)
+        {
+            var previewSize = m_PreviewImage.contentRect.size;
+
+            m_PreviewScrollPosition -= mouseDelta * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;
+            m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
+            Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
+            m_GraphData.previewData.rotation = previewRotation;
+            m_GraphData.outputNode.Dirty(ModificationScope.Node);
+        }
+#endregion
+    }
+}

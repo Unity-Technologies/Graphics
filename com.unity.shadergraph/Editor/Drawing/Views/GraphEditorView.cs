@@ -98,6 +98,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_ColorManager;
         }
 
+        InspectorView m_InspectorView;
+
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
@@ -241,6 +243,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider.blackboard.visible = m_UserViewSettings.isBlackboardVisible;
 
                 CreateMasterPreview();
+
+                m_InspectorView = new InspectorView(graph, graphView, previewManager);
+                m_GraphView.OnSelectionChange += m_InspectorView.UpdateSelection;
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
