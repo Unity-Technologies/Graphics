@@ -95,6 +95,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetIdentifier m_CameraDepthTarget;
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
+        bool m_FirstTimeStereoTargetIsBound = true;
 
         const string k_SetCameraRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -353,6 +354,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_FirstTimeCameraColorTargetIsBound = true;
             m_FirstTimeCameraDepthTargetIsBound = true;
+            m_FirstTimeStereoTargetIsBound = true;
             m_InsideStereoRenderBlock = false;
             m_ActiveRenderPassQueue.Clear();
         }
@@ -426,86 +428,153 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        internal static void SetColorRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, ClearFlag clearFlag, Color clearColor)
+        {
+            m_ActiveColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+            m_ActiveDepthAttachment = 0;
+
+            RenderBufferLoadAction colorLoadAction = clearFlag.HasFlag(ClearFlag.Color) ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
+            SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
+                clearFlag, clearColor, dimension);
+        }
+
+        internal static void SetDepthRenderTarget(CommandBuffer cmd, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag)
+        {
+            for (int i = 0; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+            m_ActiveDepthAttachment = depthAttachment;
+
+            RenderBufferLoadAction depthLoadAction = clearFlag.HasFlag(ClearFlag.Depth) ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
+            SetRenderTarget(cmd, depthAttachment, depthLoadAction, RenderBufferStoreAction.Store,
+                clearFlag, Color.black, dimension);
+        }
+
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            bool firstTimeStereo = false;
+
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
-            renderPass.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+            renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+
+            ClearFlag cameraClearFlag = GetCameraClearFlag(camera.clearFlags);
 
             // We use a different code path for MRT since it calls a different version of API SetRenderTarget
             if(IsMRT(renderPass.colorAttachments))
             {
-                ref CameraData cameraData = ref renderingData.cameraData;
+                // In the MRT path we assume that all color attachments are REAL color attachments,
+                // and that the depth attachment is a REAL depth attachment too.
 
-                int cameraTargetColorIndex = IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
 
-                bool renderTargetAlreadySet = false;
+                // Determine what attachments need to be cleared. ----------------
 
-                if( cameraTargetColorIndex != -1 && m_FirstTimeCameraColorTargetIsBound)
+                bool needCustomCameraColorClear = false;
+                bool needCustomCameraDepthClear = false;
+
+                int cameraColorTargetIndex = IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
+                if( cameraColorTargetIndex != -1 && m_FirstTimeCameraColorTargetIsBound)
                 {
                     m_FirstTimeCameraColorTargetIsBound = false;
-
-                    Camera camera = cameraData.camera;
-                    ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+                    firstTimeStereo = true;
 
                     // Overlay cameras composite on top of previous ones. They don't clear.
                     // MTT: Commented due to not implemented yet
-//                    if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
-//                        clearFlag = ClearFlag.None;
+                    //                    if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
+                    //                        clearFlag = ClearFlag.None;
 
-                    // TODO (1): "use clearFlag on m_CameraColorTarget individually"
-                    SetRenderTarget(cmd, renderPass.colorAttachments[cameraTargetColorIndex], renderPass.depthAttachment, clearFlag,
-                            CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
-
-                    // TODO (2): "use renderPass.clearFlag on other RenderTargets in the MRT (i.e those that are not m_CameraColorTarget)"
-                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, renderPass.clearFlag,
-                        CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
-
-                    // TODO (1+2): which API / code to combine (1) and (2)? Do a separate clear pass on m_CameraColorTarget, then on renderTargets that are not m_CameraColorTarget, then set them as the renderTargets?
-                    // {
-                    //     ...
-                    // }
-
-                    renderTargetAlreadySet = true;
-
-                    context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    if (cameraData.isStereoEnabled)
-                    {
-                        context.StartMultiEye(cameraData.camera);
-                        XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
-                    }
+                    // We need to specifically clear the camera color target.
+                    // But there is still a chance we don't need to issue individual clear() on each render-targets if they all have the same clear parameters.
+                    needCustomCameraColorClear = cameraClearFlag.HasFlag(ClearFlag.Color) != renderPass.clearFlag.HasFlag(ClearFlag.Color)
+                                              || CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor) != renderPass.clearColor;
                 }
 
-
-                // TODO (MRT Depth): should we test this instead?
+                // Note: if we have to give up the assumption that no depthTarget can be included in the MRT colorAttachments, we might need something like this:
                 // int cameraTargetDepthIndex = IndexOf(renderPass.colorAttachments, m_CameraDepthTarget);
-                // if( !renderTargetAlreadySet && cameraTargetDepthIndex != -1 && m_FirstTimeCameraColorTargetIsBound)
-                if (!renderTargetAlreadySet && renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
+                // if( !renderTargetAlreadySet && cameraTargetDepthIndex != -1 && m_FirstTimeCameraDepthTargetIsBound)
+                // { ...
+                // }
+
+                if (renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
-
-                    Camera camera = cameraData.camera;
-                    ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-
-                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, clearFlag,
-                        CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
-
-                    renderTargetAlreadySet = true;
+                    firstTimeStereo = true;
+                    needCustomCameraDepthClear = cameraClearFlag.HasFlag(ClearFlag.Depth) != renderPass.clearFlag.HasFlag(ClearFlag.Depth);
                 }
 
-                if (!renderTargetAlreadySet)
+
+
+                // Perform all clear operations needed. ----------------
+
+                if (needCustomCameraColorClear)
                 {
-                    // Only setup render target if current render pass attachments are different from the active ones
-                    if (!SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment)
-                        SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
+                    // Clear m_CameraColorTarget
+                    if (cameraClearFlag.HasFlag(ClearFlag.Color))
+                        SetColorRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], ClearFlag.Color, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+
+                    // Perform individual clear for other render-targets
+                    if (renderPass.clearFlag.HasFlag(ClearFlag.Color))
+                    {
+                        for (int index = 0; index < renderPass.colorAttachments.Length; ++index)
+                        {
+                            if (renderPass.colorAttachments[index] != m_CameraColorTarget)
+                                SetColorRenderTarget(cmd, renderPass.colorAttachments[index], ClearFlag.Color, renderPass.clearColor);
+                        }
+
+                        // note: could we clear the renderTargets that are not m_CameraColorTarget in one pass??
+                        // i.e something like this:
+                        //
+                        // // Clear renderTargets that are not m_CameraColorTarget
+                        // RenderTargetIdentifier[] otherMRTtargets = { 0, 0, 0, 0, 0, 0, 0 };
+                        // int otherMRTtargetsCount = 0;
+                        // for (int index = 0; index < renderPass.colorAttachments.Length; ++index)
+                        // {
+                        //     if (renderPass.colorAttachments[index] != m_CameraColorTarget)
+                        //     {
+                        //         otherMRTtargets[otherMRTtargetsCount] = renderPass.colorAttachments[index];
+                        //         ++otherMRTtargetsCount;
+                        //     }
+                        // }
+                        //
+                        // SetRenderTarget(cmd, otherMRTtargets, renderPass.depthAttachment, ClearFlag.Color, renderPass.clearColor);
+                    }
                 }
+                else if (renderPass.clearFlag.HasFlag(ClearFlag.Color))
+                {
+                    SetRenderTarget(cmd, renderPass.colorAttachment, 0, ClearFlag.Color, renderPass.clearColor);
+                }
+
+                if (needCustomCameraDepthClear)
+                {
+                    if (cameraClearFlag.HasFlag(ClearFlag.Depth))
+                        SetDepthRenderTarget(cmd, renderPass.depthAttachment, ClearFlag.Depth);
+                }
+                else if (renderPass.clearFlag.HasFlag(ClearFlag.Depth))
+                {
+                    SetDepthRenderTarget(cmd, renderPass.depthAttachment, ClearFlag.Depth);
+                }
+
+                // Bind attachments, but don't clear again. ------------------
+
+                // Only setup render target if current render pass attachments are different from the active ones
+                if (!SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment)
+                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, renderPass.clearFlag, renderPass.clearColor);
+
             }
             else
             {
+                // Currently in non-MRT case, color attachment can actually be a depth attachment.
+
                 RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
                 RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
-                ref CameraData cameraData = ref renderingData.cameraData;
 
                 // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
                 // which might be backbuffer or the framebuffer render textures.
@@ -519,44 +588,33 @@ namespace UnityEngine.Rendering.Universal
                 
                 if (passColorAttachment == m_CameraColorTarget && m_FirstTimeCameraColorTargetIsBound)
                 {
+                    // m_CameraColorTarget can be an opaque pointer to a RenderTexture with depth-surface.
+                    // We cannot infer this information here, so we assume both camera color and depth are first-time bound here.
                     m_FirstTimeCameraColorTargetIsBound = false;
-
-                    Camera camera = cameraData.camera;
-                    ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
 
                 // Overlay cameras composite on top of previous ones. They don't clear.
                 // MTT: Commented due to not implemented yet
 //                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
 //                    clearFlag = ClearFlag.None;
 
-                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, clearFlag,
+                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, cameraClearFlag,
                         CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
                     renderTargetAlreadySet = true;
-
-                    context.ExecuteCommandBuffer(cmd);
-                    cmd.Clear();
-
-                    if (cameraData.isStereoEnabled)
-                    {
-                        context.StartMultiEye(cameraData.camera);
-                        XRUtils.DrawOcclusionMesh(cmd, cameraData.camera);
-                    }
+                    firstTimeStereo = true;
                 }
 
-                // TODO (Single RT Depth): should we test this instead?
+                // TODO (Single RT Depth): should we test this instead/also?
               //if (!renderTargetAlreadySet && passColorAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
                 if (!renderTargetAlreadySet && passDepthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
-                    Camera camera = cameraData.camera;
-                    ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
-
-                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, clearFlag,
+                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, cameraClearFlag,
                         CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
                     renderTargetAlreadySet = true;
+                    firstTimeStereo = true;
                 }
 
                 if(!renderTargetAlreadySet)
@@ -567,8 +625,20 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // We must execute the commands recorded at this point because potential call to context.StartMultiEye(cameraData.camera) below will alter internal renderer states
+            // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
+            if (firstTimeStereo && cameraData.isStereoEnabled && m_FirstTimeStereoTargetIsBound)
+            {
+                m_FirstTimeStereoTargetIsBound = false;
+
+                // The following call alters internal renderer states (we can think of some of the states as global states).
+                // So any cmd recorded before must be executed before calling into that built-in call.
+                context.StartMultiEye(camera);
+                XRUtils.DrawOcclusionMesh(cmd, camera);
+            }
 
             renderPass.Execute(context, ref renderingData);
         }
