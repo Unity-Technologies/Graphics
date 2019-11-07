@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Renderer settings
         [SerializeField] internal ScriptableRendererData[] m_RendererDataList = new ScriptableRendererData[1];
-        internal ScriptableRenderer[] m_Renderers;
+        internal ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
         [SerializeField] int m_DefaultRendererIndex = 0;
 
         // General settings
