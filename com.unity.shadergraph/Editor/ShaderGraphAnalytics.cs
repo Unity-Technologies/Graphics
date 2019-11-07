@@ -1,11 +1,8 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
-using UnityEditor.Analytics;
 using UnityEngine.Analytics;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.ShaderGraph
 {
