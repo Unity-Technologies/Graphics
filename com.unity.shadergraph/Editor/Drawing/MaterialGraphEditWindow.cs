@@ -339,6 +339,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (string.IsNullOrEmpty(path) || graphObject == null)
                     return;
 
+                var nodes = graphObject.graph.GetNodes<AbstractMaterialNode>();
+
+                ShaderGraphAnalytics.SendShaderGraphEvent(selectedGuid, nodes);
+                
                 UpdateShaderGraphOnDisk(path);
 
                 if (GraphData.onSaveGraph != null)
@@ -347,7 +351,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader);
-                    }                    
+                    }
                 }
             }
 
