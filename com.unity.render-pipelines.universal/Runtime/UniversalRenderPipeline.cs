@@ -274,10 +274,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.isStereoEnabled)
             {
+                Shader.DisableKeyword("UNITY_PURE_URP_ON");
                 URPCameraMode.isPureURP = false;
             }
             else
             {
+                Shader.EnableKeyword("UNITY_PURE_URP_ON");
                 URPCameraMode.isPureURP = true;
             }
 

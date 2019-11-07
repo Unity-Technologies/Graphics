@@ -165,10 +165,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Render the lut
             if(URPCameraMode.isPureURP)
             {
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                viewMatrix = Matrix4x4.identity;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                Matrix4x4 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
 

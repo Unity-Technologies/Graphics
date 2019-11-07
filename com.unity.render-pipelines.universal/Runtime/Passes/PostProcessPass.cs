@@ -468,6 +468,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 tempDepthBits = 0;
             }
 
+            cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm, tempDepthBits), FilterMode.Point);
+            cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
+
             if (URPCameraMode.isPureURP)
             {
                 cmd.SetViewport(camera.pixelRect);
@@ -497,9 +500,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
-                cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm, tempDepthBits), FilterMode.Point);
-                cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetStereoCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
-
                 // Prepare for manual blit
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(camera.pixelRect);
@@ -539,14 +539,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         void DoDepthOfField(ref CameraData cameraData, CommandBuffer cmd, int source, int destination)
         {
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
-                DoGaussianDepthOfField(ref cameraData, cmd, source, destination);
+                DoGaussianDepthOfField( cameraData.camera, cmd, source, destination);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
                 DoBokehDepthOfField(ref cameraData, cmd, source, destination);
         }
 
         void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, int source, int destination)
         {
-            var camera = cameraData.camera;
             var material = m_Materials.gaussianDepthOfField;
             int wh = m_Descriptor.width / 2;
             int hh = m_Descriptor.height / 2;
