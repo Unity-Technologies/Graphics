@@ -473,9 +473,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (!isSceneView && m_MotionBlur.IsActive() && m_MotionBlur.algorithm == MotionBlurAlgorithm.Accumulation)
                     {
-                        var destination = m_Pool.Get(Vector2.one, k_AccumulationFormat);
-                        DoAccumulationMotionBlur(cmd, camera, source, destination, depthBuffer);
-                        PoolSource(ref source, destination);
+                        using (new ProfilingSample(cmd, "Accumulation Motion Blur", CustomSamplerId.AccumulationMotionBlur))
+                        {
+                            var destination = m_Pool.Get(Vector2.one, k_AccumulationFormat);
+                            DoAccumulationMotionBlur(cmd, camera, source, destination, depthBuffer);
+                            PoolSource(ref source, destination);
+                        }
                     }
 
                     if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))

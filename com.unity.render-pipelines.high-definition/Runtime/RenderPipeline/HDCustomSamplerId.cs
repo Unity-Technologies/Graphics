@@ -110,6 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MotionBlurTileMinMax,
         MotionBlurTileNeighbourhood,
         MotionBlurKernel,
+        AccumulationMotionBlur,
         PaniniProjection,
         Bloom,
         ColorGradingLUTBuilder,
