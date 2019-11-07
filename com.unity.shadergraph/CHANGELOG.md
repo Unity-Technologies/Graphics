@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now save your graph as a new Asset.
 - Added support for vertex skinning when you use the DOTS animation package.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
+- Properties in the blackboard remember its state now for the duration of each session.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -34,7 +35,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now define shader keywords on the Blackboard. Use these keywords on the graph to create static branches in the generated shader.
 - The tab now shows whether you are working in a Sub Graph or a Shader Graph file.
 - The Shader Graph importer now bakes the output node type name into a meta-data object.
-- You can now hold down Alt and click to fold or unfold properties in the Blackboard.
 
 ### Fixed
 - The Shader Graph preview no longer breaks when you create new PBR Graphs.
