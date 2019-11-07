@@ -215,6 +215,18 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        [MenuItem("CONTEXT/Camera/Remove Component")]
+        static void RemoveComponent(MenuCommand command)
+        {
+            Camera cam = command.context as Camera;
+            var comp = cam.GetComponent<UniversalAdditionalCameraData>();
+            if (comp)
+            {
+                Undo.DestroyObjectImmediate(comp);
+            }
+            Undo.DestroyObjectImmediate(command.context);
+        }
+
         public new void OnEnable()
         {
             m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
@@ -231,7 +243,6 @@ namespace UnityEditor.Rendering.Universal
             settings.OnEnable();
 
             // Additional Camera Data
-            m_AdditionalCameraData = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
             if (m_AdditionalCameraData == null)
             {
                 m_AdditionalCameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
