@@ -117,7 +117,7 @@ namespace UnityEngine.Rendering
                 sumFinalStep.DisableKeyword("HORIZONTAL");
                 sumStep.EnableKeyword("VERTICAL");
                 sumFinalStep.EnableKeyword("VERTICAL");
-                m_Final = RTHandles.Alloc(width: outWidth, height: 32, colorFormat: format, enableRandomWrite: true);
+                m_Final = RTHandles.Alloc(width: outWidth, height: 1, colorFormat: format, enableRandomWrite: true);
             }
             else
             {
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering
                 sumFinalStep.DisableKeyword("VERTICAL");
                 sumStep.EnableKeyword("HORIZONTAL");
                 sumFinalStep.EnableKeyword("HORIZONTAL");
-                m_Final = RTHandles.Alloc(width: 32, height: outHeight, colorFormat: format, enableRandomWrite: true);
+                m_Final = RTHandles.Alloc(width: 1, height: outHeight, colorFormat: format, enableRandomWrite: true);
             }
             for (int curSumPerThread = 1; curSumPerThread < 7; ++curSumPerThread)
             {
@@ -147,15 +147,13 @@ namespace UnityEngine.Rendering
             if (sumDirection == SumDirection.Vertical)
             {
                 numTilesX =  m_Temp0.rt.width;
-                numTilesY = (m_Temp0.rt.height + (sumPerThread - 1))/sumPerThread;
+                numTilesY = (m_Temp0.rt.height + (8 - 1))/8;
             }
             else
             {
-                numTilesX = (m_Temp0.rt.width  + (sumPerThread - 1))/sumPerThread;
+                numTilesX = (m_Temp0.rt.width  + (8 - 1))/8;
                 numTilesY =  m_Temp0.rt.height;
             }
-            numTilesX = m_Temp0.rt.width;
-            numTilesY = m_Temp0.rt.height;
             cmd.DispatchCompute(sumStep, kernel, numTilesX, numTilesY, 1);
             cmd.RequestAsyncReadback(m_Temp0, SaveTempImg);
 
@@ -169,17 +167,15 @@ namespace UnityEngine.Rendering
                 if (sumDirection == SumDirection.Vertical)
                 {
                     numTilesX =  outRT.rt.width;
-                    numTilesY = (outRT.rt.height + (sumPerThread - 1))/sumPerThread;
+                    numTilesY = (curSize + (8 - 1))/8;
                     cmd.SetComputeIntParams(sumStep, HDShaderIDs._Sizes, width, curSize, width, curSize/sumPerThread);
                 }
                 else
                 {
-                    numTilesX = (outRT.rt.width  + (sumPerThread - 1))/sumPerThread;
+                    numTilesX = (curSize + (8 - 1))/8;
                     numTilesY =  outRT.rt.height;
                     cmd.SetComputeIntParams(sumStep, HDShaderIDs._Sizes, curSize, height, curSize/sumPerThread, height);
                 }
-                numTilesX = outRT.rt.width;
-                numTilesY = outRT.rt.height;
                 cmd.DispatchCompute(sumStep, kernel, numTilesX, numTilesY, 1);
                 cmd.RequestAsyncReadback(outRT, SaveTempImg);
 
@@ -193,18 +189,16 @@ namespace UnityEngine.Rendering
             cmd.SetComputeTextureParam(sumFinalStep, kernel, HDShaderIDs._Output,   m_Final);
             if (sumDirection == SumDirection.Vertical)
             {
-                numTilesX = m_Final.rt.width;
-                numTilesY = 32;
-                cmd.SetComputeIntParams(sumFinalStep, HDShaderIDs._Sizes, width, /*inRT.rt.height*/curSize*sumPerThread, width, m_Final.rt.height);
+                numTilesX = (m_Final.rt.width + (8 - 1))/8;
+                numTilesY = 1;
+                cmd.SetComputeIntParams(sumFinalStep, HDShaderIDs._Sizes, width, curSize*sumPerThread, width, m_Final.rt.height);
             }
             else
             {
-                numTilesX = 32;
-                numTilesY = m_Final.rt.height;
-                cmd.SetComputeIntParams(sumFinalStep, HDShaderIDs._Sizes, /*inRT.rt.width*/curSize*sumPerThread, height, m_Final.rt.width, height);
+                numTilesX = 1;
+                numTilesY = (m_Final.rt.height + (8 - 1))/8;
+                cmd.SetComputeIntParams(sumFinalStep, HDShaderIDs._Sizes, curSize*sumPerThread, height, m_Final.rt.width, height);
             }
-            numTilesX = m_Final.rt.width;
-            numTilesY = m_Final.rt.height;
             cmd.DispatchCompute(sumFinalStep, kernel, numTilesX, numTilesY, 1);
             cmd.RequestAsyncReadback(m_Final, SaveTempImg);
 

@@ -22,9 +22,9 @@ uint4 _Sizes; // xy: InputSize; zw: OutputSize
 
 #ifdef VERTICAL
     #define THREAD_PER_GROUP_X 1
-    #define THREAD_PER_GROUP_Y 1
+    #define THREAD_PER_GROUP_Y 8
 #else // if HORIZONTAL
-    #define THREAD_PER_GROUP_X 1
+    #define THREAD_PER_GROUP_X 8
     #define THREAD_PER_GROUP_Y 1
 #endif
 
@@ -77,40 +77,33 @@ float4 ToOutput(OutType v)
 [numthreads(THREAD_PER_GROUP_X, THREAD_PER_GROUP_Y, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    if (all(id.xy < _OutputSizes))
+    int i;
+    OutType sum = 0.0f;
+#ifdef VERTICAL
+    int sumCount = _InputSizes.y;
+    if (id.y == 0u)
+#else
+    int sumCount = _InputSizes.x;
+    if (id.x == 0u)
+#endif
     {
-        int i;
-        OutType sum = 0.0f;
-    #ifdef VERTICAL
-        int sumCount = _InputSizes.y;
-        if (id.y == 0u)
-    #else
-        int sumCount = _InputSizes.x;
-        if (id.x == 0u)
-    #endif
+//#ifdef RGB
+        const float coef = (1.0f/float(sumCount)/3.0f); // div by 3, for rgb & dot product cf. GetSample
+//#elif defined(RGBA)
+//        const float coef = (1.0f/float(SumPerThread)/4.0f); // div by 4, for rgba & dot product cf. GetSample
+//#endif
+        for (i = 0; i < sumCount; ++i)
         {
-    //#ifdef RGB
-            const float coef = (1.0f/float(sumCount)/3.0f); // div by 3, for rgb & dot product cf. GetSample
-    //#elif defined(RGBA)
-    //        const float coef = (1.0f/float(SumPerThread)/4.0f); // div by 4, for rgba & dot product cf. GetSample
-    //#endif
-            for (i = 0; i < sumCount; ++i)
-            {
-                sum += GetSample(id.xy, i)*coef;
-            }
-
-            for (i = 0; i < 32; ++i)
-            {
-    #ifdef VERTICAL
-                _Output[uint2(id.x    , id.y + i)] = ToOutput(sum);
-    #else
-                _Output[uint2(id.x + i, id.y    )] = ToOutput(sum);
-    #endif
-            }
+            sum += GetSample(id.xy, i)*coef;
         }
-    }
-    else
-    {
-        _Output[id.xy] = float4(1, 0, 0, 1);
+
+        for (i = 0; i < 32; ++i)
+        {
+#ifdef VERTICAL
+            _Output[uint2(id.x    , id.y + i)] = ToOutput(sum);
+#else
+            _Output[uint2(id.x + i, id.y    )] = ToOutput(sum);
+#endif
+        }
     }
 }

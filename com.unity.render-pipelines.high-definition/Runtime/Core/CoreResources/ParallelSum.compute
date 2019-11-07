@@ -39,9 +39,9 @@ uint4 _Sizes; // xy: InputSize; zw: OutputSize
 
 #ifdef VERTICAL
 #define THREAD_PER_GROUP_X 1
-#define THREAD_PER_GROUP_Y 1
+#define THREAD_PER_GROUP_Y 8
 #else // if HORIZONTAL
-#define THREAD_PER_GROUP_X 1
+#define THREAD_PER_GROUP_X 8
 #define THREAD_PER_GROUP_Y 1
 #endif
 
@@ -109,9 +109,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
         }
 
         _Output[id.xy] = ToOutput(sum);
-    }
-    else
-    {
-        _Output[id.xy] = float4(1, 0, 0, 1);
     }
 }
