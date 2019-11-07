@@ -51,7 +51,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_instancing
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "UnlitInput.hlsl"
 
@@ -134,7 +134,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_instancing
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
@@ -157,7 +157,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma fragment UniversalFragmentMetaUnlit
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitMetaPass.hlsl"

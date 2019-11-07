@@ -14,7 +14,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
         #pragma exclude_renderers d3d11_9x
 
         // Enable Pure URP Camera Management
-        #define PURE_URP_ON
+        #pragma shader_feature _ UNITY_PURE_URP_ON
 
         //Keep compiler quiet about Shadows.hlsl.
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

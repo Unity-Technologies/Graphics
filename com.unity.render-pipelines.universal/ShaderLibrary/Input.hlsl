@@ -9,10 +9,6 @@
 #define UNITY_PURE_URP_ENABLED
 #endif
 
-#if !defined(STEREO_INSTANCING_ON) && !defined(STEREO_ON) && !defined(STEREO_MULTIVIEW_ON) && !defined(UNITY_SINGLE_PASS_STEREO) && defined(PURE_URP_ON)
-#define UNITY_PURE_URP_ENABLED
-#endif
-
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
 // There are some performance issues by using SSBO in mobile.

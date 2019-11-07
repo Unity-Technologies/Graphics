@@ -22,7 +22,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #ifdef _LINEAR_TO_SRGB_CONVERSION

@@ -73,7 +73,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #define EFFECT_BACKSIDE_NORMALS
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
@@ -106,7 +106,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #define SCENESELECTIONPASS
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
@@ -137,7 +137,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #define SHADOW_CASTER
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
@@ -169,7 +169,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #define DEPTH_ONLY
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"

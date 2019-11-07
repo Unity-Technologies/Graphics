@@ -25,7 +25,7 @@ Shader "Hidden/Light2D-Shape"
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"

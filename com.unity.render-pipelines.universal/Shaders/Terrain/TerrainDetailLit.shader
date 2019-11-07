@@ -40,7 +40,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile_fog
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -151,7 +151,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile_instancing
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
@@ -175,7 +175,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma shader_feature _SPECGLOSSMAP
 
             // Enable Pure URP Camera Management
-            #define PURE_URP_ON
+            #pragma shader_feature _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitMetaPass.hlsl"
