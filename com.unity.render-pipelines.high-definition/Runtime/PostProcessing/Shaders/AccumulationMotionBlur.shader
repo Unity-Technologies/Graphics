@@ -14,6 +14,8 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
         
         TEXTURE2D_X(_InputTexture);
+        TEXTURE2D_X(_InputHistoryTexture);
+        RW_TEXTURE2D_X(float3, _OutputHistoryTexture);
 
         //TODO: Setup params
 
@@ -46,8 +48,12 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             
             float2 uv = input.texcoord;
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
+            float3 history = Fetch(_InputHistoryTexture, uv, 0.0, _RTHandleScale.xy); //TODO: History Scale
+
+            color = lerp(color, history, 0.99);
 
             //Pass-thru for now.
+            _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color;
         }
     ENDHLSL

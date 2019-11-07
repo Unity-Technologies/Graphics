@@ -471,6 +471,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
+                    // 
                     if (!isSceneView && m_MotionBlur.IsActive() && m_MotionBlur.algorithm == MotionBlurAlgorithm.Accumulation)
                     {
                         using (new ProfilingSample(cmd, "Accumulation Motion Blur", CustomSamplerId.AccumulationMotionBlur))
@@ -1449,12 +1450,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 //TODO
             }
 
-            //TODO: Property Block?
             m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
+            m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
 
-            //TODO: Draw
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
+            cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.DrawProcedural(Matrix4x4.identity, m_AccumulationMotionBlurMaterial, 0, MeshTopology.Triangles, 3, 1, m_AccumulationMotionBlurPropertyBlock);
+            cmd.ClearRandomWriteTargets();
         }
 
         static void GrabAccumulationMotionBlurHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
