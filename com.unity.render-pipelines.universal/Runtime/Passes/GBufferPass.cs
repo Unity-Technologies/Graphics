@@ -25,10 +25,10 @@ namespace UnityEngine.Rendering.Universal
 
             const int initialWidth = 1920;
             const int initialHeight = 1080;
-            m_GBufferDescriptors[0] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);   // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
-            m_GBufferDescriptors[1] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);   // specular        specular        specular        metallic        (sRGB rendertarget)
-            m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);  // encoded-normal  encoded-normal  encoded-normal  smoothness
-            //m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.B10G11R11_UFloatPack32, 0);  // emission+GI     emission+GI     emission+GI  [unused] (lighting buffer)  // <- initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
+            m_GBufferDescriptors[0] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);            // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
+            m_GBufferDescriptors[1] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB, 0);            // specular        specular        specular        metallic        (sRGB rendertarget)
+            m_GBufferDescriptors[2] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 0);           // encoded-normal  encoded-normal  encoded-normal  smoothness
+            //m_GBufferDescriptors[3] = new RenderTextureDescriptor(initialWidth, initialHeight, Experimental.Rendering.GraphicsFormat.B10G11R11_UFloatPack32, 0); // GI              GI              GI              [unused]        (lighting buffer)  // <- initialized in DeferredRenderer.cs as DeferredRenderer.m_CameraColorAttachment
 
             m_HasDepthPrepass = false;
 
