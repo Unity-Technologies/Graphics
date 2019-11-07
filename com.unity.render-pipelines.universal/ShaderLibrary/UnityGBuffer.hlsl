@@ -40,7 +40,7 @@ FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, Inpu
     output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo          albedo          albedo          occlusion    (sRGB rendertarget)
     output.GBuffer1 = half4(surfaceData.specular.rgb, metallic);                // specular        specular        specular        metallic     (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                  // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
-    output.GBuffer3 = half4(surfaceData.emission.rgb + globalIllumination, 0);  // emission+GI     emission+GI     emission+GI     [unused]     (lighting buffer)
+    output.GBuffer3 = half4(globalIllumination, 0);                             // GI              GI              GI              [unused]     (lighting buffer)
 
     return output;
 }
@@ -71,7 +71,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput BRDFDataAndMainLightingToGbuffer(BRDFData brdfData, InputData inputData, half occlusion, half smoothness, half3 emission, half3 globalIllumination)
+FragmentOutput BRDFDataAndMainLightingToGbuffer(BRDFData brdfData, InputData inputData, half occlusion, half smoothness, half3 globalIllumination)
 {
 #if PACK_NORMALS_OCT
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
@@ -85,7 +85,7 @@ FragmentOutput BRDFDataAndMainLightingToGbuffer(BRDFData brdfData, InputData inp
     output.GBuffer0 = half4(brdfData.diffuse.rgb, occlusion);              // diffuse         diffuse         diffuse         occlusion    (sRGB rendertarget)
     output.GBuffer1 = half4(brdfData.specular.rgb, brdfData.reflectivity); // specular        specular        specular        metallic     (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, smoothness);                   // encoded-normal  encoded-normal  encoded-normal  smoothness
-    output.GBuffer3 = half4(emission.rgb + globalIllumination, 0);         // emission+GI     emission+GI     emission+GI     [unused]     (lighting buffer)
+    output.GBuffer3 = half4(globalIllumination, 0);                        // GI              GI              GI              [unused]     (lighting buffer)
 
     return output;
 }

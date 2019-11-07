@@ -150,7 +150,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataAndMainLightingToGbuffer(brdfData, inputData, surfaceData.occlusion, surfaceData.smoothness, surfaceData.emission, color);
+    return BRDFDataAndMainLightingToGbuffer(brdfData, inputData, surfaceData.occlusion, surfaceData.smoothness, surfaceData.emission + color);
 }
 
 #endif
