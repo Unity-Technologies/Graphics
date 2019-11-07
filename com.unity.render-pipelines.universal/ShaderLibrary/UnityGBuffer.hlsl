@@ -34,7 +34,7 @@ FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, Inpu
     half packedSmoothness = surfaceData.smoothness;
 
     if (lightingMode == kLightingSimpleLit)
-        packedSmoothness = (0.1 * log2(packedSmoothness) - 1); // See SimpleLitInput.hlsl, SampleSpecularSmoothness(): TODO pass in the original smoothness value
+        packedSmoothness = 0.1h * log2(packedSmoothness) - 0.1h; // See SimpleLitInput.hlsl, SampleSpecularSmoothness(): TODO pass in the original smoothness value
 
     FragmentOutput output;
     output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo          albedo          albedo          occlusion    (sRGB rendertarget)
