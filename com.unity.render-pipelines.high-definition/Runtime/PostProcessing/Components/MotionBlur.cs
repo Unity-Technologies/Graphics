@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
     public sealed class MotionBlur : VolumeComponentWithQuality, IPostProcessComponent
     {
-        [Tooltip("TODO")]
+        [Tooltip("")]
         public MotionBlurAlgorithmParameter algorithm = new MotionBlurAlgorithmParameter(MotionBlurAlgorithm.Realtime);
 
         [Tooltip("Sets the intensity of the motion blur effect. Acts as a multiplier for velocities.")]
@@ -53,14 +53,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool IsActive()
         {
-            if(algorithm != MotionBlurAlgorithm.Accumulation)
-            { 
-                //TODO: Explore activation needs (play mode only?)
-                return true;
-            }
-            else
+            switch(algorithm)
             {
-                return intensity.value > 0.0f;
+                case MotionBlurAlgorithm.Realtime: return intensity.value > 0.0f;
+                case MotionBlurAlgorithm.Accumulation: return true; //TODO: Explore accumulation activation needs (play mode only?)
+                default: return false;
             }
         }
     }
