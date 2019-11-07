@@ -20,7 +20,7 @@ struct FragmentOutput
 #define PACK_NORMALS_OCT 1
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode)
+FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode)
 {
 #if PACK_NORMALS_OCT
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
@@ -30,7 +30,6 @@ FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, Inpu
     half3 packedNormalWS = inputData.normalWS * 0.5 + 0.5;   // values between [ 0,  1]
 #endif
 
-    half metallic = surfaceData.metallic;
     half packedSmoothness = surfaceData.smoothness;
 
     if (lightingMode == kLightingSimpleLit)
@@ -38,7 +37,7 @@ FragmentOutput SurfaceDataAndMainLightingToGbuffer(SurfaceData surfaceData, Inpu
 
     FragmentOutput output;
     output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo          albedo          albedo          occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(surfaceData.specular.rgb, metallic);                // specular        specular        specular        metallic     (sRGB rendertarget)
+    output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                       // specular        specular        specular        [unused]     (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                  // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                             // GI              GI              GI              [unused]     (lighting buffer)
 
@@ -54,13 +53,12 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
     surfaceData.occlusion = gbuffer0.a;
     surfaceData.specular = gbuffer1.rgb;
 
-    half metallic = gbuffer1.a;
     half smoothness = gbuffer2.a;
 
     if (lightingMode == kLightingSimpleLit)
         smoothness = exp2(10.0 * smoothness + 1);
 
-    surfaceData.metallic = metallic;
+    surfaceData.metallic = 0.0; // Not used by SimpleLit material.
     surfaceData.alpha = 1.0; // gbuffer only contains opaque materials
     surfaceData.smoothness = smoothness;
 
@@ -71,7 +69,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput BRDFDataAndMainLightingToGbuffer(BRDFData brdfData, InputData inputData, half occlusion, half smoothness, half3 globalIllumination)
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half occlusion, half smoothness, half3 globalIllumination)
 {
 #if PACK_NORMALS_OCT
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
@@ -81,9 +79,17 @@ FragmentOutput BRDFDataAndMainLightingToGbuffer(BRDFData brdfData, InputData inp
     half3 packedNormalWS = inputData.normalWS * 0.5 + 0.5;   // values between [ 0,  1]
 #endif
 
+#ifdef _SPECULARHIGHLIGHTS_OFF
+    // During deferred shading pass, we don't use a shader variant that disable specular calculations.
+    // Instead, we can silence specular contribution when writing the gbuffer.
+    half3 specular = 0.0;
+#else
+    half3 specular = brdfData.specular.rgb;
+#endif
+
     FragmentOutput output;
     output.GBuffer0 = half4(brdfData.diffuse.rgb, occlusion);              // diffuse         diffuse         diffuse         occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(brdfData.specular.rgb, brdfData.reflectivity); // specular        specular        specular        metallic     (sRGB rendertarget)
+    output.GBuffer1 = half4(specular, brdfData.reflectivity);              // specular        specular        specular        reflectivity (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, smoothness);                   // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                        // GI              GI              GI              [unused]     (lighting buffer)
 

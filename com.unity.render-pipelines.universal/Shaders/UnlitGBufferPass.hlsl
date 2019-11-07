@@ -65,7 +65,7 @@ FragmentOutput UnlitGBufferPassFragment(Varyings input)
 
     InputData inputData = (InputData)0;
 
-    return SurfaceDataAndMainLightingToGbuffer(surfaceData, inputData, color, kLightingInvalid);
+    return SurfaceDataToGbuffer(surfaceData, inputData, color, kLightingInvalid);
 }
 
 #endif
