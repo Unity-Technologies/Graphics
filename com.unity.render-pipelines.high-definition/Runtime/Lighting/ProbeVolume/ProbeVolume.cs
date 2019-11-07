@@ -527,7 +527,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var pointMeshList = probeVolume.m_DebugProbePointMeshList;
 
-            probeVolume.m_DebugMaterial.SetPass(8);
             foreach (Mesh debugMesh in pointMeshList)
                 Graphics.DrawMeshNow(debugMesh, Matrix4x4.identity);
         }
