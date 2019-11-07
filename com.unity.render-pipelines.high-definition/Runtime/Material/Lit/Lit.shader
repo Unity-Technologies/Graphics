@@ -771,7 +771,6 @@ Shader "HDRP/Lit"
 
     SubShader
     {
-        Tags{ "RenderPipeline"="HDRenderPipeline" }
         Pass
         {
             Name "IndirectDXR"

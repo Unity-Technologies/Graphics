@@ -125,9 +125,9 @@ namespace UnityEditor.TestTools.Graphics
                     Scene currentScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(1);
 
                     EditorSceneManagement.EditorSceneManager.SetActiveScene(currentScene);
-#pragma warning disable 618
+
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
-#pragma warning restore 618
+                    
                     EditorUtility.DisplayProgressBar($"Baking Test Scenes {(sceneIndex + 1).ToString()}/{totalScenes.ToString()}", $"Baking {sceneAsset.name}", ((float)sceneIndex / totalScenes));
 
                     Lightmapping.Bake();
@@ -218,9 +218,7 @@ ReflectionProbe-*";
 
                     EditorSceneManagement.EditorSceneManager.OpenScene(scenePath, EditorSceneManagement.OpenSceneMode.Single);
                     EditorSceneManagement.EditorSceneManager.SetActiveScene( EditorSceneManagement.EditorSceneManager.GetSceneAt(0) );
-#pragma warning disable 618
                     Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
-#pragma warning restore 618
                     EditorSceneManagement.EditorSceneManager.SaveScene( EditorSceneManagement.EditorSceneManager.GetSceneAt(0) );
                 }
 

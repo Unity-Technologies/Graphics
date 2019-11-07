@@ -32,7 +32,6 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            [Tooltip("The culling bounds of this system. The Visual Effect is only visible if the bounding box specified here is visible to the camera.")]
             public AABox bounds = new AABox() { size = Vector3.one };
         }
 

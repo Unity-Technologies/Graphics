@@ -4,6 +4,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class HDSimpleDenoiser
     {
+#if ENABLE_RAYTRACING
         ComputeShader m_SimpleDenoiserCS;
 
         SharedRTManager m_SharedRTManager;
@@ -138,5 +139,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
             cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
         }
+#endif
     }
 }

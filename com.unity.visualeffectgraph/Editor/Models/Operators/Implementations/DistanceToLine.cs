@@ -9,17 +9,17 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the line used for the distance calculation.")]
+            [Tooltip("The line used for the distance calculation.")]
             public Line line = new Line();
-            [Tooltip("Sets the position used for the distance calculation.")]
+            [Tooltip("The position used for the distance calculation.")]
             public Position position = new Position();
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the closest point on the line to the supplied position.")]
+            [Tooltip("The closest point on the line to the supplied position.")]
             public Vector3 closestPosition;
-            [Tooltip("Outputs the unsigned distance from the line.")]
+            [Tooltip("The unsigned distance from the line.")]
             public float distance;
         }
 

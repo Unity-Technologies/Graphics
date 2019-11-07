@@ -211,6 +211,6 @@ Shader "Universal Render Pipeline/Simple Lit"
             ENDHLSL
         }
     }
-    Fallback "Hidden/Universal Render Pipeline/FallbackError"
+    Fallback "Hidden/InternalErrorShader"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.SimpleLitShader"
 }

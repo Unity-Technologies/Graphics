@@ -45,9 +45,6 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
-
-            [Reload("Shaders/Utils/FallbackError.shader")]
-            public Shader fallbackErrorPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

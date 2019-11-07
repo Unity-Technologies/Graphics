@@ -51,8 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var hideFlags = serializedAdditionalDataObject.FindProperty("m_ObjectHideFlags");
             // We don't hide additional camera data anymore on UX team request. To be compatible with already author scene we force to be visible
-            if ((hideFlags.intValue & (int)HideFlags.HideInInspector) > 0)
-                hideFlags.intValue = (int)HideFlags.None;
+            //hideFlags.intValue = (int)HideFlags.HideInInspector;
+            hideFlags.intValue = (int)HideFlags.None;
             serializedAdditionalDataObject.ApplyModifiedProperties();
 
             //backgroundColor = serializedObject.FindProperty("m_BackGroundColor");

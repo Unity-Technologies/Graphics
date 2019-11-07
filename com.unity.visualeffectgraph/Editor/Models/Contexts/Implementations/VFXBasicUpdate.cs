@@ -4,108 +4,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX.Block;
-using System.Reflection;
 
 namespace UnityEditor.VFX
 {
-    [CustomEditor(typeof(VFXBasicUpdate))]
-    [CanEditMultipleObjects]
-    class VFXBasicUpdateEditor : VFXContextEditor
-    {
-        class UpdateStyles
-        {
-            public static GUIContent header = new GUIContent("Particle Update Options", "Particle Update Options");
-            public static GUIContent updatePosition = new GUIContent("Update Position", "When enabled, particle positions are automatically updated using their velocity.");
-            public static GUIContent updateRotation = new GUIContent("Update Rotation", "When enabled, particle rotations are automatically updated using their angular velocity.");
-            public static GUIContent ageParticles = new GUIContent("Age Particles", "When enabled, the particle age attribute will increase every frame based on deltaTime.");
-            public static GUIContent reapParticles = new GUIContent("Reap Particles", "When enabled, particles whose age exceeds their lifetime will be destroyed.");
-        }
-
-        SerializedProperty m_IntegrationProperty;
-        SerializedProperty m_AngularIntegrationProperty;
-        SerializedProperty m_AgeParticlesProperty;
-        SerializedProperty m_ReapParticlesProperty;
-
-        protected new void OnEnable()
-        {
-            base.OnEnable();
-            m_IntegrationProperty = serializedObject.FindProperty("integration");
-            m_AngularIntegrationProperty = serializedObject.FindProperty("angularIntegration");
-            m_AgeParticlesProperty = serializedObject.FindProperty("ageParticles");
-            m_ReapParticlesProperty = serializedObject.FindProperty("reapParticles");
-        }
-
-        private static Func<VFXBasicUpdate, IEnumerable<string>> s_fnGetFilteredOutSettings = delegate (VFXBasicUpdate context)
-        {
-            var property = typeof(VFXBasicUpdate).GetProperty("filteredOutSettings", BindingFlags.Instance | BindingFlags.NonPublic);
-            return property.GetValue(context) as IEnumerable<string>;
-        };
-
-        void DisplayToggle(GUIContent content, SerializedProperty property, bool? input, bool isIntegrationMode)
-        {
-            EditorGUI.BeginChangeCheck();
-
-            bool actualInput = input.HasValue ? input.Value : false;
-            if (!input.HasValue)
-            {
-                EditorGUI.showMixedValue = true;
-            }
-            actualInput = EditorGUILayout.Toggle(content, actualInput);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (isIntegrationMode)
-                    property.enumValueIndex = actualInput ? (int)VFXBasicUpdate.VFXIntegrationMode.Euler : (int)VFXBasicUpdate.VFXIntegrationMode.None;
-                else
-                    property.boolValue = actualInput;
-            }
-        }
-
-        public override void OnInspectorGUI()
-        {
-            serializedObject.Update();
-
-            DisplaySpace();
-            DisplayName();
-
-            EditorGUILayout.LabelField(UpdateStyles.header, EditorStyles.boldLabel);
-            
-            bool? updatePosition = null;
-            bool? updateRotation = null;
-            bool? ageParticles = null;
-            bool? reapParticles = null;
-
-            if (!m_IntegrationProperty.hasMultipleDifferentValues)
-                updatePosition = m_IntegrationProperty.enumValueIndex == (int)VFXBasicUpdate.VFXIntegrationMode.Euler;
-            if (!m_AngularIntegrationProperty.hasMultipleDifferentValues)
-                updateRotation = m_AngularIntegrationProperty.enumValueIndex == (int)VFXBasicUpdate.VFXIntegrationMode.Euler;
-            if (!m_AgeParticlesProperty.hasMultipleDifferentValues)
-                ageParticles = m_AgeParticlesProperty.boolValue;
-            if (!m_ReapParticlesProperty.hasMultipleDifferentValues)
-                reapParticles = m_ReapParticlesProperty.boolValue;
-
-            bool filterOutAgeParticles = targets.OfType<VFXBasicUpdate>().All(o => s_fnGetFilteredOutSettings(o).Contains("ageParticles"));
-            bool filterOutReapParticles = targets.OfType<VFXBasicUpdate>().All(o => s_fnGetFilteredOutSettings(o).Contains("reapParticles"));
-            
-            DisplayToggle(UpdateStyles.updatePosition, m_IntegrationProperty, updatePosition, true);
-            DisplayToggle(UpdateStyles.updateRotation, m_AngularIntegrationProperty, updateRotation, true);
-            if (!filterOutAgeParticles)
-                DisplayToggle(UpdateStyles.ageParticles, m_AgeParticlesProperty, ageParticles, false);
-            if (!filterOutReapParticles)
-                DisplayToggle(UpdateStyles.reapParticles, m_ReapParticlesProperty, reapParticles, false);
-
-            if (serializedObject.ApplyModifiedProperties())
-            {
-                foreach (var context in targets.OfType<VFXBasicUpdate>())
-                {
-                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-                }
-            }
-
-            DisplaySummary();
-        }
-    }
-
     [VFXInfo]
     class VFXBasicUpdate : VFXContext
     {
@@ -116,17 +17,17 @@ namespace UnityEditor.VFX
         }
 
         [Header("Particle Update Options")]
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, particle positions are automatically updated using their velocity.")]
-        private VFXIntegrationMode integration = VFXIntegrationMode.Euler;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, particle rotations are automatically updated using their angular velocity.")]
-        private VFXIntegrationMode angularIntegration = VFXIntegrationMode.Euler;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        public VFXIntegrationMode angularIntegration = VFXIntegrationMode.Euler;
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, the particle age attribute will increase every frame based on deltaTime.")]
-        private bool ageParticles = true;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Automatically increase particle age every frame, based on deltaTime")]
+        public bool ageParticles = true;
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, particles whose age exceeds their lifetime will be destroyed.")]
-        private bool reapParticles = true;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Destroy particles if age > lifetime")]
+        public bool reapParticles = true;
 
         public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) {}
         public override string name { get { return "Update " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
@@ -175,10 +76,10 @@ namespace UnityEditor.VFX
             {
                 var data = GetData();
 
-                if (integration == VFXIntegrationMode.Euler && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
+                if (integration != VFXIntegrationMode.None && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
                     yield return VFXBlock.CreateImplicitBlock<EulerIntegration>(data);
 
-                if (angularIntegration == VFXIntegrationMode.Euler &&
+                if (angularIntegration != VFXIntegrationMode.None &&
                     (
                         data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
                         data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||

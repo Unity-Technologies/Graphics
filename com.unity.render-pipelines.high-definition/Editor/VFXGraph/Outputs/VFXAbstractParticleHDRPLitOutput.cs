@@ -44,49 +44,49 @@ namespace UnityEditor.VFX
             "TranslucentProperties",
         };
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting"), Tooltip("Specifies the surface type of this output. Surface types determine how the particle will react to light.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting")]
         protected MaterialType materialType = MaterialType.Standard;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles in this output are not affected by any lights in the scene and only receive ambient and light probe lighting.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool onlyAmbientLighting = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the diffusion profile to be used to simulate light passing through the particle. The diffusion profile needs to be also added to the HDRP asset or in the scene’s diffusion profile override.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected UnityEngine.Rendering.HighDefinition.DiffusionProfileSettings diffusionProfileAsset = null;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the thickness of the particle is multiplied with its alpha value.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool multiplyThicknessWithAlpha = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept a Mask Map to control how the particle receives lighting.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useMaskMap = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept a Normal Map to simulate additional surface details when illuminated.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useNormalMap = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept an Emissive Map to control how particles glow.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useEmissiveMap = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the color attribute is applied to the particles. It can be disregarded, used for the base color, used for the emissiveness, or used for both the base color and the emissiveness.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected ColorMode colorMode = ColorMode.BaseColor;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, an emissive color field becomes available in the output to make particles glow.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useEmissive = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the normals of the particle are inverted when seen from behind, allowing quads with culling set to off to receive correct lighting information.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool doubleSided = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features"), Tooltip("When enabled, the particle will receive shadows.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features")]
         protected bool enableShadows = true;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will receive specular highlights.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableSpecular = true;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by light cookies.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableCookie = true;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool enableEnvLight = true;
 
         protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
@@ -95,65 +95,61 @@ namespace UnityEditor.VFX
 
         public class HDRPLitInputProperties
         {
-            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s smoothness.")]
+            [Range(0, 1)]
             public float smoothness = 0.5f;
         }
 
         public class StandardProperties
         {
-            [Range(0, 1), Tooltip("Controls the scale factor for the particle’s metallicity.")]
+            [Range(0, 1)]
             public float metallic = 0.5f;
         }
 
         public class SpecularColorProperties
         {
-            [Tooltip("Sets the specular color of the particle.")]
             public Color specularColor = Color.gray;
         }
 
         public class TranslucentProperties
         {
-            [Range(0, 1), Tooltip("Sets the thickness of the translucent particle. This affects the influence of the diffusion profile.")]
+            [Range(0, 1)]
             public float thickness = 1.0f;
         }
 
         public class BaseColorMapProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
+            [Tooltip("Base Color (RGB) Opacity (A)")]
             public Texture2D baseColorMap = VFXResources.defaultResources.particleTexture;
         }
 
         public class MaskMapProperties
         {
-            [Tooltip("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")]
+            [Tooltip("Metallic (R) AO (G) Smoothness (A)")]
             public Texture2D maskMap = VFXResources.defaultResources.noiseTexture;
         }
 
         public class NormalMapProperties
         {
-            [Tooltip("Specifies the Normal map to obtain normals in tangent space for the particle.")]
+            [Tooltip("Normal in tangent space")]
             public Texture2D normalMap = null; // TODO Add normal map to default resources
-            [Range(0, 2), Tooltip("Sets the scale of the normals. Larger values increase the impact of the normals.")]
+            [Range(0, 2)]
             public float normalScale = 1.0f;
         }
 
         public class EmissiveMapProperties
         {
-            [Tooltip("Specifies the Emissive map (RGB) used to make particles glow.")]
+            [Tooltip("Normal in tangent space")]
             public Texture2D emissiveMap = null;
-            [Tooltip("Sets the scale of the emission obtained from the emissive map.")]
             public float emissiveScale = 1.0f;
         }
 
         public class BaseColorProperties
         {
-            [Tooltip("Sets the base color of the particle.")]
             public Color baseColor = Color.white;
         }
 
         public class EmissiveColorProperties
         {
-            [Tooltip("Sets the emissive color to make particles glow.")]
             public Color emissiveColor = Color.black;
         }
 

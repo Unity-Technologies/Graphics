@@ -9,15 +9,14 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the transform to be used in the transformation.")]
+            [Tooltip("The transform.")]
             public Transform transform = Transform.defaultValue;
-            [Tooltip("Sets the normalized vector to be transformed.")]
+            [Tooltip("The normalized vector to be transformed.")]
             public DirectionType direction = DirectionType.defaultValue;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the transformed normalized vector.")]
             public Vector3 tDir = Vector3.zero;
         }
 

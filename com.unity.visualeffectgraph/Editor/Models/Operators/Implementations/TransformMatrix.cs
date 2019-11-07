@@ -9,15 +9,14 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the transform to be used in the transformation.")]
+            [Tooltip("The transform.")]
             public Transform transform = Transform.defaultValue;
-            [Tooltip("Sets the Matrix4x4 to be transformed.")]
+            [Tooltip("The Matrix4x4 to be transformed.")]
             public Matrix4x4 matrix = Matrix4x4.identity;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the transformed Matrix4x4.")]
             public Matrix4x4 o = Matrix4x4.identity;
         }
 

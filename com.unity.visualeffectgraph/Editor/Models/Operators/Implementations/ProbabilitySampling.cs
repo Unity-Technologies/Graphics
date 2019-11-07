@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting, Tooltip("The random number may either remain constant, or change every time it is evaluated."), SerializeField]
         public bool m_Constant = true;
 
-        [VFXSetting, SerializeField, Tooltip("Sets the number of possible entries to be sampled.")]
+        [VFXSetting, SerializeField]
         uint m_EntryCount = 3u;
 
         public class ConstantInputProperties

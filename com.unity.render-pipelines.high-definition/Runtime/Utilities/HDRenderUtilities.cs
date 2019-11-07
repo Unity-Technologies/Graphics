@@ -192,14 +192,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void GenerateRenderingSettingsFor(
             ProbeSettings settings, ProbeCapturePositionSettings position,
             List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
-            ulong overrideSceneCullingMask,
             bool forceFlipY = false, float referenceFieldOfView = 90
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
                 settings, position,
-                out var cameraSettings, out var cameraPositionSettings, overrideSceneCullingMask,
+                out var cameraSettings, out var cameraPositionSettings,
                 referenceFieldOfView
             );
 
@@ -235,12 +234,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeCapturePositionSettings position,
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings,
-            ulong overrideSceneCullingMask,
             float referenceFieldOfView = 90
         )
         {
             // Copy settings
-            cameraSettings = settings.cameraSettings;
+            cameraSettings = settings.camera;
             cameraPositionSettings = CameraPositionSettings.@default;
 
             // Update settings
@@ -249,8 +247,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ref cameraSettings, ref cameraPositionSettings,
                 referenceFieldOfView
             );
-
-            cameraSettings.culling.sceneCullingMaskOverride = overrideSceneCullingMask;
         }
 
         public static void Render(
@@ -268,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
                 settings, position,
-                out cameraSettings, out cameraPositionSettings, 0
+                out cameraSettings, out cameraPositionSettings
             );
 
             if (forceFlipY)

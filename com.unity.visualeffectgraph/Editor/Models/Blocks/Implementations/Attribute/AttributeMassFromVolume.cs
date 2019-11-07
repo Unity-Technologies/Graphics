@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the mass attribute of a particle, based on its volume. This is measured in kg/dm^3.")]
+            [Tooltip("Particle density, measured in kg/dm^3")]
             public float Density = 1.0f;
         }
 

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public abstract class CustomPostProcessVolumeComponent : VolumeComponent
     {
-        bool m_IsInitialized = false;
+        bool isInitialized = false;
 
         /// <summary>
         /// Injection point of the custom post process in HDRP.
@@ -35,18 +35,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void CleanupInternal()
         {
-            if (m_IsInitialized)
+            if (isInitialized)
                 Cleanup();
 
-            m_IsInitialized = false;
+            isInitialized = false;
         }
 
         internal void SetupIfNeeded()
         {
-            if (!m_IsInitialized)
+            if (!isInitialized)
             {
                 Setup();
-                m_IsInitialized = true;
+                isInitialized = true;
             }
         }
     }

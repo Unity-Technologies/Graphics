@@ -159,18 +159,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     return RenderQueueType.AfterPostprocessTransparent;
                 case RenderQueueType.LowTransparent:
                     return RenderQueueType.LowTransparent;
+#if ENABLE_RAYTRACING
                 case RenderQueueType.RaytracingOpaque:
-                {
-                    if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-                        return RenderQueueType.RaytracingTransparent;
-                    return RenderQueueType.Transparent;
-                }
-                case RenderQueueType.RaytracingTransparent:
-                {
-                    if (!(RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-                        return RenderQueueType.Transparent;
                     return RenderQueueType.RaytracingTransparent;
-                }
+#else
+                case RenderQueueType.RaytracingOpaque:
+                case RenderQueueType.RaytracingTransparent:
+                    return RenderQueueType.Transparent;
+#endif
                 default:
                     //keep transparent mapped to transparent
                     return type;
@@ -190,18 +186,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     return RenderQueueType.Opaque;
                 case RenderQueueType.AfterPostprocessTransparent:
                     return RenderQueueType.AfterPostProcessOpaque;
+#if ENABLE_RAYTRACING
                 case RenderQueueType.RaytracingTransparent:
-                    {
-                        if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-                            return RenderQueueType.RaytracingOpaque;
-                        return RenderQueueType.Opaque;
-                    }
+                    return RenderQueueType.RaytracingOpaque;
+#else
+                case RenderQueueType.RaytracingTransparent:
                 case RenderQueueType.RaytracingOpaque:
-                    {
-                        if (!(RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-                            return RenderQueueType.Opaque;
-                        return RenderQueueType.RaytracingOpaque;
-                    }
+                    return RenderQueueType.Opaque;
+#endif
                 default:
                     //keep opaque mapped to opaque
                     return type;

@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the gravity acting upon the particles.")]
+            [Tooltip("Gravity Force applied to Particle Velocity")]
             public Vector Force = new Vector3(0.0f, -9.81f, 0.0f);
         }
 

@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
-#if UNITY_EDITOR
-using UnityEditor.SceneManagement;
-#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -65,7 +62,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
+                HDRenderPipelineAsset hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+
+                return hdPipelineAsset.currentPlatformRenderPipelineSettings;
             }
         }
         public static int debugStep => MousePositionDebug.instance.debugStep;
@@ -431,7 +430,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return (buildTarget == UnityEditor.BuildTarget.StandaloneWindows ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneWindows64 ||
                     buildTarget == UnityEditor.BuildTarget.StandaloneLinux64 ||
+#if !UNITY_2019_2_OR_NEWER
+                    buildTarget == UnityEditor.BuildTarget.StandaloneLinuxUniversal ||
+#endif
+#if UNITY_2019_3_OR_NEWER
                     buildTarget == UnityEditor.BuildTarget.Stadia ||
+#endif
                     buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
@@ -465,7 +469,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 case UnityEditor.BuildTarget.StandaloneWindows64:
                     return OperatingSystemFamily.Windows;
                 case UnityEditor.BuildTarget.StandaloneLinux64:
+#if !UNITY_2019_2_OR_NEWER
+                case UnityEditor.BuildTarget.StandaloneLinuxUniversal:
+#endif
+#if UNITY_2019_3_OR_NEWER
                 case UnityEditor.BuildTarget.Stadia:
+#endif
                     return OperatingSystemFamily.Linux;
                 default:
                     return OperatingSystemFamily.Other;
@@ -693,42 +702,5 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal static float ClampFOV(float fov) => Mathf.Clamp(fov, 0.00001f, 179);
-
-        internal static UInt64 GetSceneCullingMaskFromCamera(Camera camera)
-        {
-#if UNITY_EDITOR
-            if (camera.overrideSceneCullingMask != 0)
-                return camera.overrideSceneCullingMask;
-
-            if (camera.scene.IsValid())
-                return EditorSceneManager.GetSceneCullingMask(camera.scene);
-
-            #if UNITY_2020_1_OR_NEWER
-            switch (camera.cameraType)
-            {
-                case CameraType.SceneView:
-                    return SceneCullingMasks.MainStageSceneViewObjects;
-                default:
-                    return SceneCullingMasks.GameViewObjects;
-            }
-            #else
-            return 0;
-            #endif
-#else
-            return 0;
-#endif
-
-        }
-
-        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
-        {
-            if (camera == null || camera.Equals(null))
-                return s_DefaultHDAdditionalCameraData;
-
-            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
-                return hdCamera;
-
-            return s_DefaultHDAdditionalCameraData;
-        }
     }
 }

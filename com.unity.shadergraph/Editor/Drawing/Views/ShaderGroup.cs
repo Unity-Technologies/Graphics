@@ -19,15 +19,25 @@ namespace UnityEditor.ShaderGraph
             set => base.userData = value;
         }
 
-        public ShaderGroup()
+        public ShaderGroup(GraphData graph)
         {
+            m_Graph = graph;
             VisualElementExtensions.AddManipulator(this, new ContextualMenuManipulator(BuildContextualMenu));
-            style.backgroundColor = new StyleColor(new Color(25/255f, 25/255f, 25/255f, 25/255f));
-            capabilities |= Capabilities.Ascendable;
         }
 
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            if (evt.target is ShaderGroup)
+            {
+                evt.menu.AppendAction("Delete Group and Contents", RemoveNodesInsideGroup, DropdownMenuAction.AlwaysEnabled);
+            }
+        }
+
+        void RemoveNodesInsideGroup(DropdownMenuAction action)
+        {
+            m_Graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
+            var groupItems = m_Graph.GetItemsInGroup(userData);
+            m_Graph.RemoveElements(groupItems.OfType<AbstractMaterialNode>().ToArray(), new IEdge[] {}, new [] {userData}, groupItems.OfType<StickyNoteData>().ToArray());
         }
     }
 }

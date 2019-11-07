@@ -11,13 +11,12 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             static public bool FallbackValue = false;
-            [Tooltip("Sets the operand.")]
+            [Tooltip("The operand.")]
             public bool a = FallbackValue;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the opposite of the operand.")]
             public bool o = false;
         }
 

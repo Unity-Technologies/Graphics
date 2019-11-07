@@ -9,15 +9,15 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the coordinate in the noise field to take the sample from.")]
+            [Tooltip("The coordinate in the noise field to take the sample from.")]
             public Vector2 coordinate = Vector2.zero;
-            [Tooltip("Sets the magnitude of the noise. Higher amplitudes result in a greater range of the noise value.")]
+            [Tooltip("The magnitude of the noise.")]
             public float amplitude = 1.0f;
-            [Min(0.0f), Tooltip("Sets the period in which the noise is sampled. Higher frequencies result in more frequent noise change.")]
+            [Min(0.0f), Tooltip("The frequency of the noise.")]
             public float frequency = 1.0f;
-            [Range(0.0f, 1.0f), Tooltip("Sets the warp factor for the shape of the cells.")]
+            [Range(0.0f, 1.0f), Tooltip("Warp the shape of the cells.")]
             public float warp = 0.0f;
-            [Range(0.0f, 1.0f), Tooltip("Sets the smoothness of the hard edges between the cells.")]
+            [Range(0.0f, 1.0f), Tooltip("Smooth or hard edges between cells.")]
             public float smoothness = 0.0f;
         }
 

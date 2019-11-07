@@ -8,7 +8,6 @@ namespace UnityEditor.VFX.Block
     class KillAABox : VFXBlock
     {
         [VFXSetting]
-        [Tooltip("Specifies the mode by which particles are killed off. ‘Solid’ affects only particles within the specified volume, while ‘Inverted’ affects only particles outside of the volume.")]
         public CollisionBase.Mode mode = CollisionBase.Mode.Solid;
 
         public override string name { get { return "Kill (AABox)"; } }
@@ -18,7 +17,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the center and size of the axis-aligned box used to determine the kill volume.")]
+            [Tooltip("The kill bounding box.")]
             public AABox box = new AABox() { size = Vector3.one };
         }
 

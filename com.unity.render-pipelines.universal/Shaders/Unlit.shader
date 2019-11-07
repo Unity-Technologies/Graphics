@@ -156,6 +156,6 @@ Shader "Universal Render Pipeline/Unlit"
             ENDHLSL
         }
     }
-    FallBack "Hidden/Universal Render Pipeline/FallbackError"
+    FallBack "Hidden/InternalErrorShader"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.UnlitShader"
 }

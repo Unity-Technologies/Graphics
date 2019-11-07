@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (s_ErrorMaterial == null)
-                    s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
+                    s_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
 
                 return s_ErrorMaterial;
             }

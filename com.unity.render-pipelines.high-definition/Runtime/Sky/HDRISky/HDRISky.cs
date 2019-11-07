@@ -1,5 +1,3 @@
-using System;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Sky/HDRI Sky")]
@@ -8,6 +6,11 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [Tooltip("Specify the cubemap HDRP uses to render the sky.")]
         public CubemapParameter hdriSky = new CubemapParameter(null);
+
+        public override SkyRenderer CreateRenderer()
+        {
+            return new HDRISkyRenderer(this);
+        }
 
         public override int GetHashCode()
         {
@@ -20,7 +23,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return hash;
         }
-
-        public override Type GetSkyRendererType() { return typeof(HDRISkyRenderer); }
     }
 }

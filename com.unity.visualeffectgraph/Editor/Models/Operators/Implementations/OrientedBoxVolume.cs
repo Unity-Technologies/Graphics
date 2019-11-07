@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the box used for the volume calculation.")]
+            [Tooltip("The box used for the volume calculation.")]
             public OrientedBox box = new OrientedBox();
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the volume of the box.")]
+            [Tooltip("The volume of the box.")]
             public float volume;
         }
 

@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
     class VFXPlanarPrimitiveOutput : VFXShaderGraphParticleOutput
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what primitive type to use for this output. Triangle outputs have fewer vertices, octagons can be used to conform the geometry closer to the texture to avoid overdraw, and quads are a good middle ground.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VFXPrimitiveType primitiveType = VFXPrimitiveType.Quad;
 
         //[VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
@@ -76,7 +76,6 @@ namespace UnityEditor.VFX
         }
         public class OptionalInputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
 
@@ -105,6 +104,5 @@ namespace UnityEditor.VFX
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
         }
-
     }
 }

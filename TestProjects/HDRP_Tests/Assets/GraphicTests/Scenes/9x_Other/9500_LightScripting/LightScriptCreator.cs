@@ -33,38 +33,38 @@ public class LightScriptCreator : MonoBehaviour
 
             // Position the light in front of the plane
             go.transform.localPosition = new Vector3(position.x, position.y, -3);
-            
-            var hdLight = go.AddHDLight(HDLightTypeAndShape.Point);
+
+            var hdLight = go.AddHDLight(HDLightType.BoxSpot);
 
             // Set global parameters
-            hdLight.SetIntensity(50);
+            hdLight.SetIntensity(05);
             hdLight.SetRange(1.01f);
             hdLight.SetSpotAngle(60);
 
             switch (position.y)
             {
                 case 0: // Spot Box
-                    hdLight.SetLightTypeAndShape(HDLightTypeAndShape.BoxSpot);
+                    hdLight.SetLightType(HDLightType.BoxSpot);
                     break;
                 case 1: // Spot Pyramid
-                    hdLight.SetLightTypeAndShape(HDLightTypeAndShape.PyramidSpot);
+                    hdLight.SetLightType(HDLightType.PyramidSpot);
                     break;
                 case 2: // Spot Cone
-                    hdLight.SetLightTypeAndShape(HDLightTypeAndShape.ConeSpot);
+                    hdLight.SetLightType(HDLightType.ConeSpot);
                     break;
                 case 3: // Point
-                    hdLight.SetLightTypeAndShape(HDLightTypeAndShape.Point);
+                    hdLight.SetLightType(HDLightType.Point);
                     break;
                 case 4: // Directional
-                    hdLight.SetLightTypeAndShape(HDLightTypeAndShape.Directional);
+                    hdLight.SetLightType(HDLightType.Directional);
                     hdLight.SetIntensity(0.01f);
                     break;
                 case 5: // Rectangle
-                    hdLight.SetLightTypeAndShape(HDLightTypeAndShape.RectangleArea);
+                    hdLight.SetLightType(HDLightType.Rectangle);
                     hdLight.intensity /= 4;
                     break;
                 case 6: // Tube
-                    hdLight.SetLightTypeAndShape(HDLightTypeAndShape.TubeArea);
+                    hdLight.SetLightType(HDLightType.Tube);
                     hdLight.intensity /= 2;
                     break;
                 default:
@@ -72,7 +72,7 @@ public class LightScriptCreator : MonoBehaviour
             }
 
             var supportedLightUnits = hdLight.GetSupportedLightUnits();
-            var type = hdLight.GetLightTypeAndShape();
+            var type = hdLight.GetLightType();
 
             switch (position.x)
             {
@@ -83,13 +83,13 @@ public class LightScriptCreator : MonoBehaviour
                     hdLight.SetIntensity(hdLight.intensity * Random.Range(.5f, 1f), supportedLightUnits[0]);
                     break;
                 case 2: // Cookie
-                    hdLight.SetCookie(type == HDLightTypeAndShape.Point ? (Texture)cookieCube : cookie2D);
+                    hdLight.SetCookie(type == HDLightType.Point ? (Texture)cookieCube : cookie2D);
                     break;
                 case 3: // Range
                     hdLight.range *= Random.Range(0.5f, 0.8f); // Note spot box is not visible with this range
                     break;
                 case 4: // Light Unit
-                    if (type != HDLightTypeAndShape.Directional)
+                    if (type != HDLightType.Directional)
                         hdLight.SetLightUnit(supportedLightUnits.Length > 1 ? supportedLightUnits[1] : supportedLightUnits[0]);
                     break;
                 case 5: // Color temperature
@@ -97,11 +97,11 @@ public class LightScriptCreator : MonoBehaviour
                     hdLight.SetColor(hdLight.color, Random.Range(1000, 20000));
                     break;
                 case 6: // Spot: Outer Angle / Inner Angle | Area Light: Set size | Box Spot: size
-                    if (type == HDLightTypeAndShape.BoxSpot)
+                    if (type == HDLightType.BoxSpot)
                         hdLight.SetBoxSpotSize(new Vector2(0.1f, 0.6f));
-                    else if (type == HDLightTypeAndShape.PyramidSpot)
+                    else if (type == HDLightType.PyramidSpot)
                         hdLight.aspectRatio = 2;
-                    else if (type == HDLightTypeAndShape.ConeSpot)
+                    else if (type == HDLightType.ConeSpot)
                         hdLight.SetSpotAngle(30, Random.Range(20, 90));
                     else if (type.IsArea())
                         hdLight.SetAreaLightSize(new Vector2(0.1f, 1.5f));

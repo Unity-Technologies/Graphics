@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the cylinder with which particles can collide.")]
+            [Tooltip("The collision cylinder.")]
             public Cylinder Cylinder = new Cylinder() { height = 1.0f, radius = 0.5f };
         }
 

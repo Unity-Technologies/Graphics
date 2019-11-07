@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Block
             CurveOverLife,
         }
 
-        [VFXSetting, Tooltip("Specifies whether particles use a constant frame rate or a curve sampled over the particle’s lifetime when playing the flipbook.")]
+        [VFXSetting]
         public Mode mode = Mode.Constant;
 
         public override string name { get { return "Flipbook Player"; } }
@@ -61,13 +61,13 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesConstant
         {
-            [Tooltip("Sets the frame rate of the flipbook in frames per second.")]
+            [Tooltip("Frame rate of the flipbook")]
             public float FrameRate = 25.0f;
         }
 
         public class InputPropertiesCurveOverLife
         {
-            [Tooltip("Sets the frame rate of the flipbook from a curve sampled over its lifetime.")]
+            [Tooltip("Frame rate of the flipbook over particle relative lifetime")]
             public AnimationCurve FrameRate = new AnimationCurve(new Keyframe[] { new Keyframe(0.0f, 25.0f), new Keyframe(1.0f, 2.0f) });
         }
 

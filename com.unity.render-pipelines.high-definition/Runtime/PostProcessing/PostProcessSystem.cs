@@ -258,14 +258,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FarBokehTileList          = null;
 
             // Cleanup Custom Post Process
-            var currentHDRP = HDRenderPipeline.currentAsset;
-            if (currentHDRP != null)
+            if (HDRenderPipeline.defaultAsset != null)
             {
-                foreach (var typeString in currentHDRP.beforeTransparentCustomPostProcesses)
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
                     CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.beforePostProcessCustomPostProcesses)
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
                     CleanupCustomPostProcess(typeString);
-                foreach (var typeString in currentHDRP.afterPostProcessCustomPostProcesses)
+                foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
                     CleanupCustomPostProcess(typeString);
 
                 void CleanupCustomPostProcess(string typeString)
@@ -464,12 +463,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
                     }
-
+                
                     if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
                     {
                         using (new ProfilingSample(cmd, "Custom Post Processes Before PP", CustomSamplerId.CustomPostProcessBeforePP.GetSampler()))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.beforePostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -570,7 +569,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         using (new ProfilingSample(cmd, "Custom Post Processes After PP", CustomSamplerId.CustomPostProcessAfterPP.GetSampler()))
                         {
-                            foreach (var typeString in HDRenderPipeline.currentAsset.afterPostProcessCustomPostProcesses)
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
                                 RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
                         }
                     }
@@ -1694,19 +1693,8 @@ namespace UnityEngine.Rendering.HighDefinition
         unsafe void DoBloom(CommandBuffer cmd, HDCamera camera, RTHandle source, ComputeShader uberCS, int uberKernel)
         {
             var resolution = m_Bloom.resolution;
-            var highQualityFiltering = m_Bloom.highQualityFiltering;
             float scaleW = 1f / ((int)resolution / 2f);
             float scaleH = 1f / ((int)resolution / 2f);
-
-            // If the scene is less than 50% of 900p, then we operate on full res, since it's going to be cheap anyway and this might improve quality in challenging situations.
-            // Also we switch to bilinear upsampling as it goes less wide than bicubic and due to our border/RTHandle handling, going wide on small resolution
-            // where small mips have a strong influence, might result problematic. 
-            if (camera.actualWidth < 800 || camera.actualHeight < 450)
-            {
-                scaleW = 1.0f;
-                scaleH = 1.0f;
-                highQualityFiltering = false;
-            }
 
             if (m_Bloom.anamorphic.value)
             {
@@ -1818,7 +1806,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Upsample & combine
             cs = m_Resources.shaders.bloomUpsampleCS;
-            kernel = cs.FindKernel(highQualityFiltering ? "KMainHighQ" : "KMainLowQ");
+            kernel = cs.FindKernel(m_Bloom.highQualityFiltering ? "KMainHighQ" : "KMainLowQ");
 
             float scatter = Mathf.Lerp(0.05f, 0.95f, m_Bloom.scatter.value);
 
@@ -2413,7 +2401,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, "Custom Post Processes Before Transparent", CustomSamplerId.CustomPostProcessBeforeTransparent.GetSampler()))
             {
                 bool needsBlitToColorBuffer = false;
-                foreach (var typeString in HDRenderPipeline.currentAsset.beforeTransparentCustomPostProcesses)
+                foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses)
                     needsBlitToColorBuffer |= RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
 
                 if (needsBlitToColorBuffer)

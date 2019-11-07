@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the bounding box with which particles can collide.")]
+            [Tooltip("The collision bounding box.")]
             public AABox box = new AABox() { size = Vector3.one };
         }
 

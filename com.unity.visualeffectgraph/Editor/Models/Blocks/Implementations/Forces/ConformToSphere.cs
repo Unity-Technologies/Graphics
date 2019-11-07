@@ -35,15 +35,10 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the sphere to which particles can conform.")]
             public Sphere Sphere = Sphere.defaultValue;
-            [Tooltip("Sets the speed with which particles are attracted towards the surface of the sphere.")]
             public float attractionSpeed = 5.0f;
-            [Tooltip("Sets the strength of the force pulling particles towards the sphere.")]
             public float attractionForce = 20.0f;
-            [Tooltip("Sets the distance at which particles attempt to stick to the sphere.")]
             public float stickDistance = 0.1f;
-            [Tooltip("Sets the strength of the force keeping particles on the sphere.")]
             public float stickForce = 50.0f;
         }
 

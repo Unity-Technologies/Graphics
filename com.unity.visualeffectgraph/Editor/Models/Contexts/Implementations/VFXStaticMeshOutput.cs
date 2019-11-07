@@ -10,13 +10,13 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXStaticMeshOutput : VFXContext, IVFXSubRenderer
     {
-        [VFXSetting, Tooltip("Specifies the shader with which the mesh output is rendered.")]
+        [VFXSetting]
         private Shader shader; // not serialized here but in VFXDataMesh
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options")]
         protected int sortPriority = 0;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the mesh output will cast shadows.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool castShadows = false;
 
         // IVFXSubRenderer interface

@@ -217,6 +217,6 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
         }
 
         UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
-        UsePass "HDRP/TerrainLit/SceneSelectionPass"
+        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
 }

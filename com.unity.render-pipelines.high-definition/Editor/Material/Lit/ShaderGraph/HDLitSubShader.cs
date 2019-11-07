@@ -1080,9 +1080,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.depthOffset.isOn && pass.PixelShaderUsesSlot(HDLitMasterNode.DepthOffsetSlotId))
                 baseActiveFields.AddAll("DepthOffset");
 
-            if (masterNode.supportLodCrossFade.isOn)
-                baseActiveFields.AddAll("LodCrossFade");
-
             return activeFields;
         }
 
@@ -1204,12 +1201,12 @@ namespace UnityEditor.Rendering.HighDefinition
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);
 
-            if (mode == GenerationMode.ForReals)
+#if ENABLE_RAYTRACING
+            if(mode == GenerationMode.ForReals)
             {
                 subShader.AddShaderChunk("SubShader", false);
-                subShader.AddShaderChunk("{", false);                
+                subShader.AddShaderChunk("{", false);
                 subShader.Indent();
-                HDSubShaderUtilities.AddTags(subShader, HDRenderPipeline.k_ShaderTagName);
                 {
                     GenerateShaderPassLit(masterNode, m_PassRaytracingIndirect, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingVisibility, mode, subShader, sourceAssetDependencyPaths);
@@ -1219,7 +1216,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);
             }
-            
+#endif
             subShader.AddShaderChunk(@"CustomEditor ""UnityEditor.Rendering.HighDefinition.HDLitGUI""");
 
             return subShader.GetShaderString(0);

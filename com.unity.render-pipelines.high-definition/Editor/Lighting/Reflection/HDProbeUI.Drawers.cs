@@ -30,10 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
             ProbeSettingsOverride displayedAdvancedCaptureSettings { get; }
             ProbeSettingsOverride overrideableCaptureSettings { get; }
             ProbeSettingsOverride overrideableAdvancedCaptureSettings { get; }
-            ProbeSettingsOverride displayedCustomSettings { get; }
-            ProbeSettingsOverride displayedAdvancedCustomSettings { get; }
-            ProbeSettingsOverride overrideableCustomSettings { get; }
-            ProbeSettingsOverride overrideableAdvancedCustomSettings { get; }
+            ProbeSettingsOverride displayedAdvancedSettings { get; }
+            ProbeSettingsOverride overrideableAdvancedSettings { get; }
             Type customTextureType { get; }
             ToolBar[] toolbars { get; }
             Dictionary<KeyCode, ToolBar> shortcuts { get; }
@@ -227,17 +225,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProbeSettingsUI.Draw(
                     serialized.probeSettings, owner,
                     serialized.probeSettingsOverride,
-                    provider.displayedCustomSettings, provider.overrideableCustomSettings
-                );
-            }
-
-            public static void DrawAdvancedCustomSettings(SerializedHDProbe serialized, Editor owner)
-            {
-                var provider = new TProvider();
-                ProbeSettingsUI.Draw(
-                    serialized.probeSettings, owner,
-                    serialized.probeSettingsOverride,
-                    provider.displayedAdvancedCustomSettings, provider.overrideableAdvancedCustomSettings
+                    provider.displayedAdvancedSettings, provider.overrideableAdvancedSettings
                 );
             }
 
@@ -262,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.proxyVolume.objectReferenceValue != null)
                 {
                     var proxy = (ReflectionProxyVolumeComponent)serialized.proxyVolume.objectReferenceValue;
-                    if (proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
+                    if ((int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
                         && proxy.proxyVolume.shape != ProxyShape.Infinite)
                         EditorGUILayout.HelpBox(
                             k_ProxyInfluenceShapeMismatchHelpBoxText,
@@ -342,14 +330,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     case ProbeSettings.Mode.Baked:
                         {
-#pragma warning disable 618
                             if (UnityEditor.Lightmapping.giWorkflowMode
                                 != UnityEditor.Lightmapping.GIWorkflowMode.OnDemand)
                             {
                                 EditorGUILayout.HelpBox("Baking of this probe is automatic because this probe's type is 'Baked' and the Lighting window is using 'Auto Baking'. The texture created is stored in the GI cache.", MessageType.Info);
                                 break;
                             }
-#pragma warning restore 618
+
                             GUI.enabled = serialized.target.enabled;
 
                             // Bake button in non-continous mode
@@ -428,7 +415,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var proxy = serialized.proxyVolume.objectReferenceValue as ReflectionProxyVolumeComponent;
             if (proxy != null
-                && proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
+                && (int)proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.enumValueIndex
                 && proxy.proxyVolume.shape != ProxyShape.Infinite)
             {
                 EditorGUILayout.HelpBox(

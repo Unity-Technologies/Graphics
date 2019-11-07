@@ -32,7 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty lightingWeight;
         internal SerializedProperty lightingFadeDistance;
         internal SerializedProperty lightingLightLayer;
-        internal SerializedProperty lightingRangeCompressionFactor;
         internal SerializedProperty proxyUseInfluenceVolumeAsProxyVolume;
         internal SerializedProperty proxyCapturePositionProxySpace;
         internal SerializedProperty proxyCaptureRotationProxySpace;
@@ -55,7 +54,6 @@ namespace UnityEditor.Rendering.HighDefinition
             lightingWeight = root.FindPropertyRelative("lighting.weight");
             lightingFadeDistance = root.FindPropertyRelative("lighting.fadeDistance");
             lightingLightLayer = root.FindPropertyRelative("lighting.lightLayer");
-            lightingRangeCompressionFactor = root.FindPropertyRelative("lighting.rangeCompressionFactor");
             proxyUseInfluenceVolumeAsProxyVolume = root.FindPropertyRelative("proxySettings.useInfluenceVolumeAsProxyVolume");
             proxyCapturePositionProxySpace = root.FindPropertyRelative("proxySettings.capturePositionProxySpace");
             proxyCaptureRotationProxySpace = root.FindPropertyRelative("proxySettings.captureRotationProxySpace");
@@ -66,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             frustumViewerScale = root.FindPropertyRelative("frustum.viewerScale");
             frustumAutomaticScale = root.FindPropertyRelative("frustum.automaticScale");
 
-            cameraSettings = new SerializedCameraSettings(root.Find((ProbeSettings p) => p.cameraSettings));
+            cameraSettings = new SerializedCameraSettings(root.Find((ProbeSettings p) => p.camera));
             influence = new SerializedInfluenceVolume(root.Find((ProbeSettings p) => p.influence));
             proxy = new SerializedProxyVolume(root.Find((ProbeSettings p) => p.proxy));
         }

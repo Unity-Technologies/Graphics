@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the circle used for the area calculation.")]
+            [Tooltip("The circle used for the area calculation.")]
             public Circle circle = new Circle();
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the area of the circle.")]
+            [Tooltip("The area of the circle.")]
             public float area;
         }
 

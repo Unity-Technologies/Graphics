@@ -23,38 +23,37 @@ namespace UnityEditor.VFX.Block
         }
 		
         public class InputProperties
-        {   [Tooltip("Sets a scale multiplier to the depth value. Values above 1 push particles further back, values lower than 1 pull them closer to the camera.")]
+        {   
             public float ZMultiplier = 1.0f;
         }
 
         public class SequentialInputProperties
         {
-            [Tooltip("Sets the space between sequentially-placed particles. Lower numbers produce a denser placement.")]
             public uint GridStep = 1;
         }
 		
 		public class CustomInputProperties
 		{
-            [Range(0.0f, 1.0f), Tooltip("Sets the UV coordinates with which to sample the depth buffer.")]
+            [Range(0.0f, 1.0f)]
             public Vector2 UVSpawn;
 		}
 
         public class RangeInputProperties
         {
-            [Range(0.0f,1.0f), Tooltip("Sets the depth range within which to spawn particles. Particles outside of this range are culled.")]
+            [Range(0.0f,1.0f)]
             public Vector2 DepthRange = new Vector2(0.0f,1.0f);
         }
 
-        [VFXSetting, Tooltip("Specifies which Camera to use to project particles onto its depth. Can use the camera tagged 'Main', or a custom camera.")]
+        [VFXSetting]
         public CameraMode camera;
 
-        [VFXSetting, Tooltip("Specifies how particles are positioned on the screen. They can be placed sequentially in an even grid, randomly, or with a custom UV position.")]
+        [VFXSetting]
 		public PositionMode mode;
 
-        [VFXSetting, Tooltip("Specifies how to determine whether the particle should be alive. A particle can be culled when it is projected on the far camera plane, between a specific range, or culling can be disabled.")]
+        [VFXSetting]
         public CullMode cullMode;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, particles inherit the color from the color buffer.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool inheritSceneColor = false;
 
         public override string name { get { return "Position (Depth)"; } }

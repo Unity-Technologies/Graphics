@@ -2,7 +2,6 @@
 #define COMBINED_SHAPE_LIGHT_PASS
 
 half _HDREmulationScale;
-half _UseSceneLighting;
 
 half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 {
@@ -81,8 +80,6 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 #endif
 
     finalOutput.a = color.a;
-
-    finalOutput = finalOutput *_UseSceneLighting + (1 - _UseSceneLighting)*color;
     return finalOutput;
 }
 #endif

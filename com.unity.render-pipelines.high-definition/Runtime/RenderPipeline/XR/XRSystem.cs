@@ -4,10 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-
-#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
-#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -33,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
         // XR SDK display interface
         static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
         XRDisplaySubsystem display = null;
@@ -46,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal XRSystem(RenderPipelineResources.ShaderResources shaders)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
             RefreshXrSdk();
 
             if (shaders != null)
@@ -59,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureXR.maxViews = GetMaxViews();
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
         // With XR SDK: disable legacy VR system before rendering first frame
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
@@ -76,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int maxViews = 1;
 
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
             if (display != null)
             {
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
@@ -160,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool RefreshXrSdk()
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
             SubsystemManager.GetInstances(displayList);
 
             if (displayList.Count > 0)
@@ -213,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
         void CreateLayoutFromXrSdk(Camera camera)
         {
             bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
@@ -271,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Cleanup()
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
 #endif
@@ -284,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderMirrorView(CommandBuffer cmd)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_XR_MODULE
             if (display == null || !display.running)
                 return;
 

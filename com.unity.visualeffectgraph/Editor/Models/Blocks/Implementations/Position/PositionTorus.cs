@@ -12,8 +12,8 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the torus used for positioning the particles.")]
-            public ArcTorus ArcTorus =  ArcTorus.defaultValue;
+            [Tooltip("The torus used for positioning particles.")]
+            public ArcTorus Torus = new ArcTorus() { majorRadius = 1.0f, minorRadius = 0.2f, arc = Mathf.PI * 2.0f };
         }
 
         public class CustomProperties
@@ -50,12 +50,12 @@ namespace UnityEditor.VFX.Block
                 if (spawnMode == SpawnMode.Random)
                 {
                     outSource += @"float3 u = RAND3;";
-                    outSource += @"float arc = ArcTorus_arc;";
+                    outSource += @"float arc = Torus_arc;";
                 }
                 else
                 {
                     outSource += @"float3 u = float3(RAND, 1.0f, RAND);";
-                    outSource += @"float arc = ArcTorus_arc * ArcSequencer;";
+                    outSource += @"float arc = Torus_arc * ArcSequencer;";
                 }
 
                 outSource += @"
@@ -85,7 +85,7 @@ float s,c;
 sincos(phi,c,s);
 float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);
 
-position += ArcTorus_center + ArcTorus_majorRadius * t2;
+position += Torus_center + Torus_majorRadius * t2;
 direction = t2;
 ";
 

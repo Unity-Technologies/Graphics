@@ -89,5 +89,5 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             ENDHLSL
         }
     }
-    Fallback "Hidden/Universal Render Pipeline/FallbackError"
+    Fallback "Hidden/InternalErrorShader"
 }

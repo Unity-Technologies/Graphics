@@ -247,15 +247,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Support LOD CrossFade", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.supportLodCrossFade.isOn;
-                    toggle.OnToggleChanged(ChangeSupportLODCrossFade);
-                });
-            });
-
             Add(ps);
         }
 
@@ -453,14 +444,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
             m_Node.zTest = (CompareFunction)evt.newValue;
-        }
-
-        void ChangeSupportLODCrossFade(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("Support LOD CrossFade Change");
-            ToggleData td = m_Node.supportLodCrossFade;
-            td.isOn = evt.newValue;
-            m_Node.supportLodCrossFade = td;
         }
 
         public AlphaMode GetAlphaMode(HairMasterNode.AlphaModeLit alphaModeLit)

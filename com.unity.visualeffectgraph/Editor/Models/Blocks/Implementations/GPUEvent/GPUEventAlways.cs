@@ -21,13 +21,11 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the number of particles spawned via a GPU event when this block is triggered.")]
             public uint count = 1u;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs a GPU event which can connect to another system via a GPUEvent context. Attributes from the current system can be inherited in the new system.")]
             public GPUEvent evt = new GPUEvent();
         }
 

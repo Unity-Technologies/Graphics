@@ -57,7 +57,7 @@ real3 SurfaceGradientFromTriplanarProjection(real3 nrmVertexNormal, real3 tripla
 
 real3 SurfaceGradientResolveNormal(real3 nrmVertexNormal, real3 surfGrad)
 {
-    return SafeNormalize(nrmVertexNormal - surfGrad);
+    return normalize(nrmVertexNormal - surfGrad);
 }
 
 real2 ConvertTangentSpaceNormalToHeightMapGradient(real2 normalXY, real rcpNormalZ, real scale)

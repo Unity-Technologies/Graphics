@@ -33,9 +33,8 @@ public class HDRP_GraphicTestRunner
 
         Time.captureFramerate = settings.captureFramerate;
 
-        // Skip incompatible XR tests (layout set to None in the scene)
-        if (XRSystem.testModeEnabled && settings.xrLayout == XRLayoutOverride.None)
-            yield break;
+        if (XRSystem.testModeEnabled)
+            XRSystem.layoutOverride = settings.xrLayout;
 
         if (settings.doBeforeTest != null)
         {

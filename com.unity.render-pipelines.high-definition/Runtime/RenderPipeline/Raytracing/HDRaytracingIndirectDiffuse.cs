@@ -3,6 +3,7 @@ using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // Buffers used for the evaluation
@@ -125,7 +126,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             deferredParameters.halfResolution = false;
             deferredParameters.rayCountFlag = m_RayCountManager.RayCountIsEnabled();
-            deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
             deferredParameters.preExpose = true;
 
             // Camera data
@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Prepare the components for the deferred lighting
                     DeferredLightingRTParameters deferredParamters = PrepareIndirectDiffuseDeferredLightingRTParameters(hdCamera);
-                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(hdCamera, m_RaytracingDirectionBuffer, m_IDIntermediateBuffer0);
+                    DeferredLightingRTResources deferredResources = PrepareDeferredLightingRTResources(m_RaytracingDirectionBuffer, m_IDIntermediateBuffer0);
 
                     // Evaluate the deferred lighting
                     RenderRaytracingDeferredLighting(cmd, deferredParamters, deferredResources);
@@ -303,13 +303,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
 
             // Compute the pixel spread value
-            cmd.SetRayTracingFloatParam(indirectDiffuseShader, HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
+            float pixelSpreadAngle = Mathf.Atan(2.0f * Mathf.Tan(hdCamera.camera.fieldOfView * Mathf.PI / 360.0f) / Mathf.Min(hdCamera.actualWidth, hdCamera.actualHeight));
+            cmd.SetRayTracingFloatParam(indirectDiffuseShader, HDShaderIDs._RaytracingPixelSpreadAngle, pixelSpreadAngle);
 
             // LightLoop data
             lightCluster.BindLightClusterData(cmd);
 
             // Set the data for the ray miss
-            cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
+            cmd.SetRayTracingTextureParam(indirectDiffuseShader, HDShaderIDs._SkyTexture, m_SkyManager.skyReflection);
 
             // Set the number of bounces to 1
             cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
@@ -381,4 +382,5 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
+#endif
 }

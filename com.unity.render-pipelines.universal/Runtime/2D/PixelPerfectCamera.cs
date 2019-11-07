@@ -61,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
+#if CM_2_3_4_OR_NEWER
                 if (m_CinemachineCompatibilityMode)
                 {
                     if (m_UpscaleRT)
@@ -69,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         return m_Internal.cinemachineVCamZoom;
                 }
                 else
+#endif
                 {
                     return m_Internal.zoom;
                 }
@@ -95,21 +97,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             result.z = Mathf.Round(position.z / unitsPerPixel) * unitsPerPixel;
 
             return result;
-        }
-
-        /// <summary>
-        /// Find a pixel-perfect orthographic size as close to targetOrthoSize as possible. Used by Cinemachine to solve compatibility issues with Pixel Perfect Camera.
-        /// </summary>
-        /// <param name="targetOrthoSize">Orthographic size from the live Cinemachine Virtual Camera.</param>
-        /// <returns>The corrected orthographic size.</returns>
-        public float CorrectCinemachineOrthoSize(float targetOrthoSize)
-        {
-            m_CinemachineCompatibilityMode = true;
-
-            if (m_Internal == null)
-                return targetOrthoSize;
-            else
-                return m_Internal.CorrectCinemachineOrthoSize(targetOrthoSize);
         }
 
         [SerializeField] int    m_AssetsPPU         = 100;
@@ -171,6 +158,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Camera.worldToCameraMatrix = offsetMatrix * m_Camera.transform.worldToLocalMatrix;
         }
 
+#if CM_2_3_4_OR_NEWER
+        // Find a pixel-perfect orthographic size as close to targetOrthoSize as possible.
+        // Will also put us into Cinemachine compatibility mode.
+        internal float CorrectCinemachineOrthoSize(float targetOrthoSize)
+        {
+            m_CinemachineCompatibilityMode = true;
+            if (m_Internal == null)
+                return targetOrthoSize;
+            else
+                return m_Internal.CorrectCinemachineOrthoSize(targetOrthoSize);
+        }
+#endif
+
         void Awake()
         {
             m_Camera = GetComponent<Camera>();
@@ -181,6 +181,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         void LateUpdate()
         {
+#if CM_2_3_4_OR_NEWER
 #if UNITY_EDITOR
             if (!UnityEditor.EditorApplication.isPaused)
 #endif
@@ -191,6 +192,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // guaranteed to be after PixelPerfectCamera's LateUpdate()).
                 m_CinemachineCompatibilityMode = false;
             }
+#endif
         }
 
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -210,11 +212,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
 
+#if CM_2_3_4_OR_NEWER
             // In Cinemachine compatibility mode the control over orthographic size should
             // be given to the virtual cameras, whose orthographic sizes will be corrected to
             // be pixel-perfect. This way when there's blending between virtual cameras, we
             // can have temporary not-pixel-perfect but smooth transitions.
             if (!m_CinemachineCompatibilityMode)
+#endif
             {
                 m_Camera.orthographicSize = m_Internal.orthoSize;
             }

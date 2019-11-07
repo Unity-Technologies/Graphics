@@ -92,9 +92,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public uint screenSpaceShadowIndex = 0;
             // Raytracing
+#if ENABLE_RAYTRACING
             public bool countRays = false;
             public bool showRaysPerFrame = false;
             public Color raysPerFrameFontColor = Color.white;
+#endif
 
             public int debugCameraToFreeze = 0;
 
@@ -243,7 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void DisableNonMaterialDebugSettings()
         {
-            data.fullScreenDebugMode = FullScreenDebugMode.None;
             data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
             data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
         }
@@ -295,12 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
                 value = 0;
 
-            if (value != FullScreenDebugMode.None)
-            {
-                data.lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
-                data.materialDebugSettings.DisableMaterialDebug();
-            }
-
             data.fullScreenDebugMode = value;
         }
 
@@ -326,7 +321,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (value != 0)
             {
-                data.fullScreenDebugMode = FullScreenDebugMode.None;
                 data.materialDebugSettings.DisableMaterialDebug();
                 data.mipMapDebugSettings.debugMipMapMode = DebugMipMapMode.None;
             }
@@ -379,31 +373,25 @@ namespace UnityEngine.Rendering.HighDefinition
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 30f });
             list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 30f });
-            list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
+#if ENABLE_RAYTRACING
+            list.Add(new DebugUI.BoolField { displayName = "Count Rays", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
             if (data.countRays)
             {
                 list.Add(new DebugUI.Container
                 {
                     children =
                     {
-                        new DebugUI.Value { displayName = "Ambient Occlusion", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.AmbientOcclusion)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Shadows Directional", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ShadowDirectional)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Shadows Area", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ShadowAreaLight)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Shadows Point/Spot", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ShadowPointSpot)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Reflections Forward ", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ReflectionForward)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Reflections Deferred", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.ReflectionDeferred)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Diffuse GI Forward", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.DiffuseGI_Forward)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Diffuse GI Deferred", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.DiffuseGI_Deferred)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Recursive Rendering", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Recursive)) / 1e6f, refreshRate = 1f / 30f },
-                        new DebugUI.Value { displayName = "Total", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f },
-                        /*
+                        new DebugUI.Value { displayName = "Visibility (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Visibility)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Indirect (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Indirect)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Forward (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Forward)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "GBuffer (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.GBuffer)) / 1e6f, refreshRate = 1f / 30f },
+                        new DebugUI.Value { displayName = "Total (MRays/frame)", getter = () => ((float)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetRaysPerFrame(RayCountValues.Total)) / 1e6f, refreshRate = 1f / 30f },
                         new DebugUI.BoolField { displayName = "Display Ray Count", getter = () => data.showRaysPerFrame, setter = value => data.showRaysPerFrame = value, onValueChanged = RefreshDisplayStatsDebug },
                         new DebugUI.ColorField { displayName = "Ray Count Font Color", getter = () => data.raysPerFrameFontColor, setter = value => data.raysPerFrameFontColor = value },
-                        */
                     }
                 });
             }
-
+#endif
             m_DebugDisplayStatsItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
             panel.flags = DebugUI.Flags.RuntimeOnly;
@@ -736,7 +724,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var widgetList = new List<DebugUI.Widget>();
 
             widgetList.Add(
-                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingFulscreenDebugModeEnumIndex = value; } }
+                new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => data.fullScreenDebugMode = (FullScreenDebugMode)value, onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => data.renderingFulscreenDebugModeEnumIndex = value }
             );
 
             if (data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)

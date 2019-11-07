@@ -48,6 +48,9 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedShader(ShaderFeatures features, Shader shader, ShaderCompilerData compilerData)
         {
+            if (shader.name.Contains("HDRP"))
+                return true;
+
             if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) &&
                 shader.name.Contains("ScreenSpaceShadows"))
                 return true;

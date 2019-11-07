@@ -53,7 +53,6 @@ RW_TEXTURE2D_X(float4, _GBufferTexture5RW); // shadow mask
 
 int _RaytracingHalfResolution;
 uint _RayTracingLayerMask;
-int _RayCountType;
 
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
@@ -104,11 +103,9 @@ void RayGenGBuffer()
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
-    // Keep track of the new ray in the counters
     if (_RayCountEnabled > 0)
     {
-        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_RayCountType));
-        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
+        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_GBUFFER] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_GBUFFER] + 1;
     }
 
     // Read the ray distance
@@ -210,11 +207,9 @@ void RayGenGBufferBinned()
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
-    // Keep track of the new ray in the counters
     if (_RayCountEnabled > 0)
     {
-        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_RayCountType));
-        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
+        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_GBUFFER] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_GBUFFER] + 1;
     }
     
     // Read the ray distance

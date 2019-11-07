@@ -2,8 +2,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public abstract class SkyRenderer
     {
-        int m_LastFrameUpdate = -1;
-
         /// <summary>
         /// Called on startup. Create resources used by the renderer (shaders, materials, etc).
         /// </summary>
@@ -18,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// HDRP calls this function once every frame. Implement it if your SkyRenderer needs to iterate independently of the user defined update frequency (see SkySettings UpdateMode).
         /// </summary>
         /// <returns>True if the update determines that sky lighting needs to be re-rendered. False otherwise.</returns>
-        protected virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
+        public virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
 
         /// <summary>
         /// Implements actual rendering of the sky. HDRP calls this when rendering the sky into a cubemap (for lighting) and also during main frame rendering.
@@ -27,6 +25,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
         /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
         public abstract void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk);
+
+        /// <summary>
+        /// Sky Renderer validity check.
+        /// </summary>
+        /// <returns>Returns true if the current sky is valid. False otherwise.</returns>
+        public abstract bool IsValid();
 
         /// <summary>
         /// Returns exposure setting for the provided SkySettings. This will also take debug exposure into accound
@@ -48,21 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Setup global parameters for the sky renderer.
         /// </summary>
         /// <param name="cmd">Command buffer provided to setup shader constants.</param>
-        /// <param name="sky">Settings for the sky.</param>
-        public virtual void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky)
+        public virtual void SetGlobalSkyData(CommandBuffer cmd)
         {
 
-        }
-
-        public bool DoUpdate(BuiltinSkyParameters parameters)
-        {
-            if (m_LastFrameUpdate < parameters.frameIndex)
-            {
-                m_LastFrameUpdate = parameters.frameIndex;
-                return Update(parameters);
-            }
-
-            return false;
         }
     }
 }

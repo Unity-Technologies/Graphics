@@ -86,13 +86,13 @@ namespace UnityEditor.VFX
                 using (new SettingsWindow.GUIScope())
                 {
                     LoadIfNeeded();
-                    m_DisplayExperimentalOperator = EditorGUILayout.Toggle(new GUIContent("Experimental Operators/Blocks", "When enabled, operators and blocks which are still in an experimental state become available to use within the Visual Effect Graph."), m_DisplayExperimentalOperator);
-                    m_DisplayExtraDebugInfo = EditorGUILayout.Toggle(new GUIContent("Show Additional Debug info", "When enabled, additional information becomes available in the inspector when selecting blocks, such as the attributes they use and their shader code."), m_DisplayExtraDebugInfo);
-                    m_AdvancedLogs = EditorGUILayout.Toggle(new GUIContent("Verbose Mode for compilation", "When enabled, additional information about the data, expressions, and generated shaders is displayed in the console whenever a graph is compiled."), m_AdvancedLogs);
-                    m_AllowShaderExternalization = EditorGUILayout.Toggle(new GUIContent("Experimental shader externalization", "When enabled, the generated shaders are stored alongside the Visual Effect asset, enabling their direct modification."), m_AllowShaderExternalization);
+                    m_DisplayExperimentalOperator = EditorGUILayout.Toggle("Experimental Operators/Blocks", m_DisplayExperimentalOperator);
+                    m_DisplayExtraDebugInfo = EditorGUILayout.Toggle("Show Additional Debug info", m_DisplayExtraDebugInfo);
+                    m_AdvancedLogs = EditorGUILayout.Toggle("Verbose Mode for compilation", m_AdvancedLogs);
+                    m_AllowShaderExternalization = EditorGUILayout.Toggle("Experimental shader externalization", m_AllowShaderExternalization);
 
                     bool oldForceEditionCompilation = m_ForceEditionCompilation;
-                    m_ForceEditionCompilation = EditorGUILayout.Toggle(new GUIContent("Force Compilation in Edition Mode", "When enabled, the unoptimized edit version of the Visual Effect is compiled even when the effect is not being edited. Otherwise, an optimized runtime version is compiled."), m_ForceEditionCompilation);
+                    m_ForceEditionCompilation = EditorGUILayout.Toggle("Force Compilation in Edition Mode", m_ForceEditionCompilation);
                     if (m_ForceEditionCompilation != oldForceEditionCompilation)
                     {
                         // TODO Factorize that somewhere

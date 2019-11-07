@@ -60,11 +60,9 @@ void RayGenAmbientOcclusion()
 	// the number of samples based on the roughness
 	int numSamples = _RaytracingNumSamples;
 
-    // Count the number of rays that we will be traced
     if (_RayCountEnabled > 0)
     {
-        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_AMBIENT_OCCLUSION));
-        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + (uint)numSamples;
+        _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] = _RayCountTexture[COORD_TEXTURE2D_X(currentPixelCoord)][RAYCOUNTVALUES_VISIBILITY] + (uint)numSamples;
     }
 
 	// Variable that accumulate the radiance
@@ -97,7 +95,6 @@ void RayGenAmbientOcclusion()
 		rayIntersection.incidentDirection = rayDescriptor.Direction;
 		rayIntersection.origin = rayDescriptor.Origin;
 		rayIntersection.t = 0.0f;
-        rayIntersection.pixelCoord = posInput.positionSS;
 
 		// Evaluate the ray intersection
 		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_AMBIENT_OCCLUSION, 0, 1, 0, rayDescriptor, rayIntersection);

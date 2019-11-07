@@ -26,16 +26,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-
-            bool isLitView = true;
-
 #if UNITY_EDITOR
-            if(renderingData.cameraData.isSceneViewCamera)
-                isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
-
-            if(renderingData.cameraData.camera.cameraType == CameraType.Preview)
-                isLitView = false;
-
             if (!Application.isPlaying)
                 s_SortingLayers = SortingLayer.layers;
 #endif
@@ -52,7 +43,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             cmd.SetGlobalFloat("_HDREmulationScale", m_RendererData.hdrEmulationScale);
             cmd.SetGlobalFloat("_InverseHDREmulationScale", 1.0f / m_RendererData.hdrEmulationScale);
-            cmd.SetGlobalFloat("_UseSceneLighting", isLitView ? 1.0f : 0.0f);
             RendererLighting.SetShapeLightShaderGlobals(cmd);
 
             context.ExecuteCommandBuffer(cmd);

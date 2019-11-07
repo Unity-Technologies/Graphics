@@ -19,15 +19,6 @@ half _DiffuseHasAlpha0, _DiffuseHasAlpha1, _DiffuseHasAlpha2, _DiffuseHasAlpha3;
 half _LayerHasMask0, _LayerHasMask1, _LayerHasMask2, _LayerHasMask3;
 half4 _Splat0_ST, _Splat1_ST, _Splat2_ST, _Splat3_ST;
 half _HeightTransition;
-
-#ifdef UNITY_INSTANCING_ENABLED
-float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-#endif
-#ifdef SCENESELECTIONPASS
-int _ObjectId;
-int _PassValue;
-#endif
 CBUFFER_END
 
 TEXTURE2D(_Control);    SAMPLER(sampler_Control);

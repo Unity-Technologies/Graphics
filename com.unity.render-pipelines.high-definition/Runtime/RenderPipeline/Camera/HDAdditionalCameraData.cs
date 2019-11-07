@@ -172,8 +172,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         public bool hasCustomRender { get { return customRender != null; } }
 
-        internal float probeCustomFixedExposure = 1.0f;
-
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.defaultCamera;
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
@@ -335,8 +333,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
             data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
             data.defaultFrameSettings = defaultFrameSettings;
-
-            data.probeCustomFixedExposure = probeCustomFixedExposure;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;

@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the torus used for the volume calculation.")]
+            [Tooltip("The torus used for the volume calculation.")]
             public Torus torus = new Torus();
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the volume of the torus.")]
+            [Tooltip("The volume of the torus.")]
             public float volume;
         }
 

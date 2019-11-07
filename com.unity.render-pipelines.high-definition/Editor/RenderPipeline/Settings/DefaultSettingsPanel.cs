@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             const int k_LabelWidth = 220;
 
+            VolumeComponentListEditor m_ComponentList;
             Editor m_Cached;
 
             ReorderableList m_BeforeTransparentCustomPostProcesses;
@@ -194,9 +195,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var ppVolumeTypeInjectionPoints = new Dictionary<Type, CustomPostProcessInjectionPoint>();
                 foreach (var ppVolumeType in ppVolumeTypes)
                 {
-                    if (ppVolumeType.IsAbstract)
-                        continue;
-
                     var comp = ScriptableObject.CreateInstance(ppVolumeType) as CustomPostProcessVolumeComponent;
                     ppVolumeTypeInjectionPoints[ppVolumeType] = comp.injectionPoint;
                     CoreUtils.Destroy(comp);

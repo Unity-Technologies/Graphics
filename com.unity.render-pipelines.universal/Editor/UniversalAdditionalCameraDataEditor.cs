@@ -10,10 +10,13 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
         }
-        [MenuItem("CONTEXT/UniversalAdditionalCameraData/Remove Component")]
+        [MenuItem("CONTEXT/LWRPAdditionalCameraData/Remove Component")]
         static void RemoveComponent(MenuCommand command)
         {
-            EditorUtility.DisplayDialog("Component Info", "You can not delete this component, you will have to remove the camera.", "OK");
+            if (EditorUtility.DisplayDialog("Remove Component?", "Are you sure you want to remove this component? If you do, you will lose some settings.", "Remove", "Cancel"))
+            {
+                Undo.DestroyObjectImmediate(command.context);
+            }
         }
     }
 }

@@ -78,9 +78,7 @@ void DecodeFromDBuffer(
 {
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     surfaceData.baseColor = inDBuffer0;
-    // Use (254.0 / 255.0) instead of 0.5 to allow to encode 0 perfectly (encode as 127)
-    // Range goes from -0.99607 to 1.0039
-    surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - (254.0 / 255.0);
+    surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - 1.0;
     surfaceData.normalWS.w = inDBuffer1.w;
     surfaceData.mask = inDBuffer2;
 #ifdef DECALS_4RT

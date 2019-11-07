@@ -100,11 +100,11 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the boolean whose state determines the branch output.")]
+            [Tooltip("The predicate")]
             public bool predicate = true;
-            [Tooltip("Sets the value which will be returned if the predicate is true.")]
+            [Tooltip("The true branch")]
             public float True = 0.0f;
-            [Tooltip("Sets the value which will be returned if the predicate is false.")]
+            [Tooltip("The false branch")]
             public float False = 1.0f;
         }
 

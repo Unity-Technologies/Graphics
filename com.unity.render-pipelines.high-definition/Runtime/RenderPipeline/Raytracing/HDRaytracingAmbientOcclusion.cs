@@ -3,6 +3,7 @@ using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+#if ENABLE_RAYTRACING
     class HDRaytracingAmbientOcclusion
     {
         // External structures
@@ -145,4 +146,5 @@ namespace UnityEngine.Rendering.HighDefinition
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.SSAO);
         }
     }
+#endif
 }

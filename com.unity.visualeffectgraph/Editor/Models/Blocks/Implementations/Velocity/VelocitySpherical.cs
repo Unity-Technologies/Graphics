@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the center of the spherical direction. Particles will move outwards from this position.")]
+            [Tooltip("The center of the spherical direction.")]
             public Vector3 center;
         }
 

@@ -10,13 +10,12 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            [Tooltip("Sets the operand")]
+            [Tooltip("The operand.")]
             public uint x = 0;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the result of the logical NOT operation for the specified operand. For example, 7 (0111 in binary) will return 8 (1000 in binary).")]
             public uint o = 0;
         }
 

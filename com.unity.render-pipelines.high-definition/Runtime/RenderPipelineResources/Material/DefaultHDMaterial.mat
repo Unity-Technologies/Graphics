@@ -170,7 +170,6 @@ Material:
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
-    - _AddPrecomputedVelocity: 0
     - _AddVelocityChange: 0
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
@@ -258,7 +257,7 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _NormalMapSpace: 0
-    - _NormalScale: 1
+    - _NormalScale: 1.088
     - _OcclusionStrength: 1
     - _PPDLodThreshold: 5
     - _PPDMaxSamples: 15
@@ -274,7 +273,7 @@ Material:
     - _SSSAndTransmissionType: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
-    - _Smoothness: 0.7
+    - _Smoothness: 0.712
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SmoothnessTextureChannel: 0

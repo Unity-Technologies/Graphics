@@ -39,17 +39,11 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Specifies the signed distance field texture to which particles can conform.")]
             public Texture3D DistanceField = VFXResources.defaultResources.signedDistanceField;
-            [Tooltip("Sets the transform with which to position, scale, or rotate the field.")]
             public OrientedBox FieldTransform = OrientedBox.defaultValue;
-            [Tooltip("Sets the speed with which particles are attracted towards the signed distance field.")]
             public float attractionSpeed = 5.0f;
-            [Tooltip("Sets the strength of the force pulling particles towards the signed distance field.")]
             public float attractionForce = 20.0f;
-            [Tooltip("Sets the distance at which particles attempt to stick to the signed distance field.")]
             public float stickDistance = 0.1f;
-            [Tooltip("Sets the strength of the force keeping particles on the signed distance field.")]
             public float stickForce = 50.0f;
         }
 

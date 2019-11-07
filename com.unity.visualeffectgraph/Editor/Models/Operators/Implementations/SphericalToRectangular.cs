@@ -9,17 +9,16 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the radial coordinate (Radius r).")]
+            [Tooltip("The radial coordinate (Radius).")]
             public float distance = 1.0f;
-            [Tooltip("Sets the angular coordinate (Polar angle θ) in radians.")]
+            [Tooltip("The angular coordinate (Polar angle) in radians.")]
             public float theta = 45.0f;
-            [Tooltip("Sets the pitch coordinate (Azimuth angle ϕ) in radians.")]
+            [Tooltip("The pitch coordinate (Azimuth angle) in radians.")]
             public float phi = 45.0f;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the spherical coordinates (r,θ,ϕ) in rectangular (x,y,z) coordinates.")]
             public Vector3 coord = Vector3.zero;
         }
 

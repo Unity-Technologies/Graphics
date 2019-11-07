@@ -383,19 +383,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (evt.actionKey && evt.keyCode == KeyCode.G)
+            if (evt.ctrlKey && evt.keyCode == KeyCode.G)
             {
-                if (m_GraphView.selection.OfType<GraphElement>().Any())
+                if (m_GraphView.selection.OfType<MaterialNodeView>().Any())
                 {
                     m_GraphView.GroupSelection();
-                }
-            }
-
-            if (evt.actionKey && evt.keyCode == KeyCode.U)
-            {
-                if (m_GraphView.selection.OfType<GraphElement>().Any())
-                {
-                    m_GraphView.RemoveFromGroupNode();
                 }
             }
         }
@@ -867,7 +859,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddGroup(GroupData groupData)
         {
-            ShaderGroup graphGroup = new ShaderGroup();
+            ShaderGroup graphGroup = new ShaderGroup(m_Graph);
 
             graphGroup.userData = groupData;
             graphGroup.title = groupData.title;

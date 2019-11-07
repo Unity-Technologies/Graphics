@@ -21,15 +21,15 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the cone used for positioning the particles.")]
-            public ArcCone ArcCone = ArcCone.defaultValue;
+            [Tooltip("The cone used for positioning particles.")]
+            public ArcCone Cone = new ArcCone() { radius0 = 0.0f, radius1 = 1.0f, height = 0.5f, arc = Mathf.PI * 2.0f };
         }
 
         public class CustomProperties
         {
-            [Range(0, 1), Tooltip("Sets the position along the height to emit particles from when ‘Custom Emission’ is used.")]
+            [Range(0, 1), Tooltip("When using customized emission, control the position along the height to emit particles from.")]
             public float HeightSequencer = 0.0f;
-            [Range(0, 1), Tooltip("Sets the position on the arc to emit particles from when ‘Custom Emission’ is used.")]
+            [Range(0, 1), Tooltip("When using customized emission, control the position around the arc to emit particles from.")]
             public float ArcSequencer = 0.0f;
         }
 
@@ -68,9 +68,9 @@ namespace UnityEditor.VFX.Block
                 string outSource = "";
 
                 if (spawnMode == SpawnMode.Random)
-                    outSource += @"float theta = ArcCone_arc * RAND;";
+                    outSource += @"float theta = Cone_arc * RAND;";
                 else
-                    outSource += @"float theta = ArcCone_arc * ArcSequencer;";
+                    outSource += @"float theta = Cone_arc * ArcSequencer;";
 
                 outSource += @"
 float rNorm = sqrt(volumeFactor + (1 - volumeFactor) * RAND);
@@ -86,15 +86,15 @@ float2 pos = (sincosTheta * rNorm);
                 {
                     outSource += @"
 float hNorm = 0.0f;
-float3 base = float3(pos * ArcCone_radius0, 0.0f);
+float3 base = float3(pos * Cone_radius0, 0.0f);
 ";
                 }
                 else if (spawnMode == SpawnMode.Random)
                 {
                     outSource += @"
-float heightFactor = pow(ArcCone_radius0 / ArcCone_radius1, 3.0f);
+float heightFactor = pow(Cone_radius0 / Cone_radius1, 3.0f);
 float hNorm = pow(heightFactor + (1 - heightFactor) * RAND, 1.0f / 3.0f);
-float3 base = float3(0.0f, 0.0f, ArcCone_height - fullConeHeight);
+float3 base = float3(0.0f, 0.0f, Cone_height - fullConeHeight);
 ";
                 }
                 else
@@ -107,7 +107,7 @@ float3 base = float3(0.0f, 0.0f, 0.0f);
 
                 outSource += @"
 direction.xzy = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-position.xzy += lerp(base, float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy;
+position.xzy += lerp(base, float3(pos * Cone_radius1, Cone_height), hNorm) + Cone_center.xzy;
 ";
 
                 return outSource;

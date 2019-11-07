@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the color used for the luminance calculation.")]
+            [Tooltip("The color used for the luminance calculation.")]
             public Color color = Color.white;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the luminance (perceived brightness) of the color.")]
+            [Tooltip("The luminance of the color.")]
             public float luma;
         }
 

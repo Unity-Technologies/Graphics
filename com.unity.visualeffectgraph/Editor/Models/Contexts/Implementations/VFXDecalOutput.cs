@@ -19,7 +19,6 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
 

@@ -12,7 +12,7 @@ New Materials in HDRP use the [Lit Shader](Lit-Shader.html) by default. To creat
 
 2. Right-click the Asset Window and select __Create > Material__. This adds a new Material to your Unity Project’s Asset folder. 
 
-3. Click the __Shader__ drop-down at the top of the Material Inspector, and select to __HDRP > Unlit__.
+3. To use the Unlit Shader with your Material, click the __Shader__ drop-down at the top of the Material Inspector, and select to __HDRP > Unlit__.
 
 ![](Images/UnlitShader1.png)
 
@@ -26,8 +26,8 @@ Surface options control the overall look of your Material's surface and how Unit
 |:---|:---|
 | **Surface type** | Use the drop-down to define whether your Material supports transparency or not. Materials with a **Transparent Surface Type** are more resource intensive to render than Materials with an **Opaque** **Surface Type**. HDRP exposes more properties, depending on the **Surface Type** you select. For more information about the feature and for the list of properties each **Surface Type** exposes, see the [Surface Type documentation](Surface-Type.html). |
 | **- Render Pass** | Use the drop-down to set the rendering pass that HDRP processes this Material in. For information on this property, see the [Surface Type documentation](Surface-Type.html). |
-| **Double-Sided**   | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the  list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
-| **Alpha Clipping** | Enable the checkbox to make this Material act like a Cutout Shader. Enabling this feature exposes more properties. For more information about the feature and for the  list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
+| **Double-Sided**   | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the  list of properties enabling this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
+| **Alpha Clipping** | Enable the checkbox to make this Material act like a Cutout Shader. Enabling this feature exposes more properties. For more information about the feature and for the  list of properties enabling this feature exposes, see the [Double-Sided documentation](Double-Sided.html). |
 
 
 ### Surface Inputs
@@ -35,8 +35,8 @@ Surface options control the overall look of your Material's surface and how Unit
 | Property| Description |
 |:---|:---|
 | **Color** | The texture and base color of the Material. The RGB values define the color and the alpha channel defines the opacity. If you set a texture to this field, HDRP multiplies the texture by the color. If you do not set a texture in this field then HDRP only uses the base color to draw Meshes that use this Material.|
-| **- Tiling** | HDRP uses the **X** and **Y** values of this property to tile the texture set as the **Color** property along the object space x-axis and y-axis respectively. |
-| **- Offset** | HDRP uses the **X** and **Y** values of this property to offset the texture set as the **Color** property along the object space x-axis and y-axis respectively. |
+| **- Tiling** | HDRP uses the **X** and **Y** values of this property to tile the texture from the **Color** property on the object space x-axis and y-axis respectively. |
+| **- Offset** | HDRP uses the **X** and **Y** values of this property to offset the texture from the **Color** property on the object space x-axis and y-axis respectively. |
 
 ### Emission Inputs
 
@@ -59,7 +59,7 @@ Unity exposes this section if you select **Transparent** from the **Surface Type
 
 | Property| Description |
 |:---|:---|
-| **Enable GPU instancing** | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them.  |
+| **Enable GPU instancing** | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material/Shader in one batch when possible. This makes rendering faster. HDRP can not render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not static-batch GameObjects that have an animation based on the object pivot, but the GPU can instance them.  |
 
 
 

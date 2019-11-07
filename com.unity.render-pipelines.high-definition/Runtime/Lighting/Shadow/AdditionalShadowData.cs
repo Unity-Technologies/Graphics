@@ -41,6 +41,10 @@ namespace UnityEngine.Rendering
         internal float normalBias = 0.75f;
 
         [SerializeField]
+        [Obsolete("Obsolete, use HDAdditionalLightData.constantBias instead.")]
+        internal float constantBias = 0.15f;
+
+        [SerializeField]
         [Obsolete("Obsolete, use HDAdditionalLightData.shadowUpdateMode instead.")]
         internal ShadowUpdateMode shadowUpdateMode = ShadowUpdateMode.EveryFrame;
 

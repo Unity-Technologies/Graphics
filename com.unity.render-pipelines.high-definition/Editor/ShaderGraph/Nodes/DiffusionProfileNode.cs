@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.ValidateNode();
 
-            var hdPipelineAsset = HDRenderPipeline.currentAsset;
+            var hdPipelineAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
 
             if (hdPipelineAsset == null)
                 return;

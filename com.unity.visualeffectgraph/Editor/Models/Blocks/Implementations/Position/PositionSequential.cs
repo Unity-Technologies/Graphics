@@ -38,23 +38,24 @@ namespace UnityEditor.VFX.Block
 
 
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
-        [Tooltip("Specifies the type of shape to use for the position sequence.")]
+        [Tooltip(@"Shape used for this sequence")]
         protected SequentialShape shape = SequentialShape.Line;
 
         [SerializeField, VFXSetting]
-        [Tooltip("Specifies whether to use the Particle ID or a custom index when fetching the progression in the sequence.")]
+        [Tooltip(@"Index used for fetching progression in this sequence:
+- Particle ID
+- Custom provided index")]
         protected IndexMode index = IndexMode.ParticleID;
 
         [SerializeField, VFXSetting]
-        [Tooltip("When enabled, the block will write to the particle position attribute.")]
+        [Tooltip("Write position")]
         private bool writePosition = true;
 
         [SerializeField, VFXSetting]
-        [Tooltip("When enabled, the block will write to the particle target position attribute.")]
+        [Tooltip("Write target position")]
         private bool writeTargetPosition = false;
 
         [SerializeField, VFXSetting]
-        [Tooltip("Specifies how the sequence should behave at the end. It can either wrap back to the beginning, clamp, or continue in a mirrored direction.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
 
         public override string name { get { return string.Format("Position : Sequential ({0})", shape); } }
@@ -67,63 +68,59 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesCustomIndex
         {
-            [Tooltip("Sets the index used to sample the sequential distribution.")]
+            [Tooltip("Index used to sample the sequential distribution")]
             public uint Index = 0;
         }
 
         public class InputPropertiesWritePosition
         {
-            [Tooltip("Sets an offset to the initial index used to compute the position.")]
+            [Tooltip("Offset applied to the initial index used to compute the position")]
             public int OffsetIndex = 0;
         }
 
         public class InputPropertiesWriteTargetPosition
         {
-            [Tooltip("Sets an offset to the initial index used to compute the target position.")]
+            [Tooltip("Offset applied to the initial index used to compute the target position")]
             public int OffsetTargetIndex = 1;
         }
 
         public class InputPropertiesLine
         {
-            [Tooltip("Sets the count used to loop over the entire sequence.")]
+            [Tooltip("Element count used to loop over the sequence")]
             public uint Count = 64;
-            [Tooltip("Sets the start position of the sequential line.")]
+            [Tooltip("Start Position")]
             public Position Start = Position.defaultValue;
-            [Tooltip("Sets the end position of the sequential line.")]
+            [Tooltip("End Position")]
             public Position End = new Position() { position = new Vector3(1, 0, 0) };
         }
 
         public class InputPropertiesCircle
         {
-            [Tooltip("Sets the count used to loop over the entire sequence.")]
+            [Tooltip("Element count used to loop over the sequence")]
             public uint Count = 64;
-            [Tooltip("Sets the center of the sequential circle.")]
+            [Tooltip("Center of the circle")]
             public Position Center = Position.defaultValue;
-            [Tooltip("Sets the Forward axis of the sequential circle.")]
+            [Tooltip("Rotation Axis")]
             public DirectionType Normal = new DirectionType() { direction = Vector3.forward };
-            [Tooltip("Sets the Up axis of the sequential circle.")]
+            [Tooltip("Start Angle (Midnight direction)")]
             public DirectionType Up = new DirectionType() { direction = Vector3.up };
-            [Tooltip("Sets the radius of the sequential circle.")]
+            [Tooltip("Radius of the circle")]
             public float Radius = 1.0f;
         }
 
         public class InputPropertiesThreeDimensional
         {
-            [Tooltip("Sets the count on the X axis used to loop over the entire sequence.")]
+            [Tooltip("Element X count used to loop over the sequence")]
             public uint CountX = 8;
-            [Tooltip("Sets the count on the Y axis used to loop over the entire sequence.")]
+            [Tooltip("Element Y count used to loop over the sequence")]
             public uint CountY = 8;
-            [Tooltip("Sets the count on the Z axis used to loop over the entire sequence.")]
+            [Tooltip("Element Z count used to loop over the sequence")]
             public uint CountZ = 8;
 
-            [Tooltip("Sets the origin position of the sequence.")]
             public Position Origin = Position.defaultValue;
 
-            [Tooltip("Sets the X axis of the sequence.")]
             public Vector AxisX = Vector3.right;
-            [Tooltip("Sets the Y axis of the sequence.")]
             public Vector AxisY = Vector3.up;
-            [Tooltip("Sets the Z axis of the sequence.")]
             public Vector AxisZ = Vector3.forward;
         }
 

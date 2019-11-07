@@ -5,6 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class HDDiffuseDenoiser
     {
+#if ENABLE_RAYTRACING
         // Resources used for the denoiser
         ComputeShader m_SimpleDenoiserCS;
         Texture m_OwenScrambleRGBA;
@@ -20,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
         }
 
         public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager)
-        {
+        {   
             // Keep track of the resources
             m_SimpleDenoiserCS = rpRTResources.diffuseDenoiserCS;
             m_OwenScrambleRGBA = rpResources.textures.owenScrambledRGBATex;
@@ -61,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, halfResolutionFilter ? m_IntermediateBuffer0 : outputSignal);
             cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._HalfResolutionFilter, halfResolutionFilter ? 1 : 0);
-            cmd.SetComputeFloatParam(m_SimpleDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
             cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             if (halfResolutionFilter)
@@ -72,5 +72,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
                 cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
             }
         }
+#endif
     }
 }

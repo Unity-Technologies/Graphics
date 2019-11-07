@@ -643,11 +643,7 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-
-                    // Post-processing is disabled in scene view if either showImageEffects is disabled or we are
-                    // rendering in wireframe mode.
-                    if (sv.camera == camera &&
-                        (sv.sceneViewState.showImageEffects && sv.cameraMode.drawMode != UnityEditor.DrawCameraMode.Wireframe))
+                    if (sv.camera == camera && sv.sceneViewState.showImageEffects)
                     {
                         enabled = true;
                         break;

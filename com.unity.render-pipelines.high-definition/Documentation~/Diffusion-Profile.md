@@ -57,6 +57,6 @@ Because you cannot control the distances HDRP derives from the shadow map, the b
 For HDRP 5.5.0-preview and 6.3.0-preview or newer. 
 Materials should smoothly upgrade themselves to reference the __Diffusion Profile__ Asset instead of the old index in the Diffusion Profile List. There are some exceptions:
 
-- ShaderGraphs produce an error message saying that HDRP cannot upgrade the __Diffusion Profile__. You must set the __Diffusion Profile__ slot / node value manually.
+- ShaderGraphs produce an error message saying that HDRP can not upgrade the __Diffusion Profile__. You must set the __Diffusion Profile__ slot / node value manually.
 - Visual Effect Graphs also produce an error and you must set the __Diffusion Profile__ reference manually.
 - You must update Materials serialized inside the Scene (not existing as an Asset) manually. Navigate to __Edit > Render Pipeline > Upgrade all Materials to newer version__. Note that you must load the Materials in the Scene to upgrade them.

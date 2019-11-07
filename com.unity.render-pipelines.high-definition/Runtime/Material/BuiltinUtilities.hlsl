@@ -31,7 +31,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     }
     else
     {
-#if RAYTRACING_ENABLED
+#if SHADEROPTIONS_RAYTRACING
         if (unity_ProbeVolumeParams.w == 1.0)
             return SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
@@ -139,7 +139,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
     builtinData.opacity = alpha;
 
-#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
+#if SHADEROPTIONS_RAYTRACING && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)
     if (_RaytracedIndirectDiffuse == 1)
     {
         #if SHADERPASS == SHADERPASS_GBUFFER

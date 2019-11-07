@@ -36,9 +36,6 @@ RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 
 // Radius of the filter (world space)
 float _DenoiserFilterRadius;
-float _PixelSpreadAngleTangent;
-#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 8
-
 // Flag used to do a half resolution filter
 int _HalfResolutionFilter;
 
@@ -78,13 +75,8 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     // Define the sample count for this pixel. 16 samples per pixels if it is a full res or 4 if half resolution
     int numSamples = _HalfResolutionFilter ? 4 : 16;
 
-    // Compute the radius of the filter. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel
-    const float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(center.position);
-    const float realPixelFootPrint = parallelPixelFootPrint / abs(dot(center.normal, -GetViewForwardDir()));
-    const float denoisingRadius = max(_DenoiserFilterRadius, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
-
     // Compute the sigma value
-    const float sigma = 0.5 * denoisingRadius;
+    const float sigma = 0.5 * _DenoiserFilterRadius;
 
     // Index of the pixel in the 2x2 group that are used for the half res filter
     int localIndex = (centerCoord.x & 1) + (centerCoord.y & 1) * 2;
@@ -101,7 +93,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         newSample = SampleDiskUniform(newSample.x * newSample.x, newSample.y);
 
         // Distribute them according a square profile
-        newSample *= denoisingRadius * denoisingRadius;
+        newSample *= _DenoiserFilterRadius * _DenoiserFilterRadius;
 
         // Convert the point to hemogenous clip space
         float3 wsPos = center.position + localToWorld[0] * newSample.x + localToWorld[1] * newSample.y;

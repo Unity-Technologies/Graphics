@@ -8,7 +8,6 @@ using UnityEditor.SceneManagement;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Collections.Generic;
-using System.IO;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -23,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Normal = 1,
             High = 2
         }
-
+        
         static Func<BuildTargetGroup, LightmapEncodingQualityCopy> GetLightmapEncodingQualityForPlatformGroup;
         static Action<BuildTargetGroup, LightmapEncodingQualityCopy> SetLightmapEncodingQualityForPlatformGroup;
         static Func<BuildTarget> CalculateSelectedBuildTarget;
@@ -110,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Running = true;
                 EditorApplication.update += Run;
             }
-
+            
             void End()
             {
                 EditorApplication.update -= Run;
@@ -163,9 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 () => { if (!IsShadowmaskCorrect())     FixShadowmask();                    });
             FixHdrpAsset();
             m_Fixer.Add(
-                () => { if (!IsDefaultSceneCorrect())               FixDefaultScene(fromAsync: true); },
-                () => { if (!IsDefaultVolumeProfileAssigned())      FixDefaultVolumeProfileAssigned(); }
-            );
+                () => { if (!IsDefaultSceneCorrect())   FixDefaultScene(fromAsync: true);   });
         }
 
         bool IsHdrpAssetCorrect() =>
@@ -174,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
             && IsHdrpAssetEditorResourcesCorrect()
             && IsSRPBatcherCorrect()
             && IsHdrpAssetDiffusionProfileCorrect();
-        void FixHdrpAsset()
+        void FixHdrpAsset() 
         {
             m_Fixer.Add(
                 () => { if (!IsHdrpAssetUsedCorrect())              FixHdrpAssetUsed(fromAsync: true);  },
@@ -183,7 +180,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 () => { if (!IsSRPBatcherCorrect())                 FixSRPBatcher();                    },
                 () => { if (!IsHdrpAssetDiffusionProfileCorrect())  FixHdrpAssetDiffusionProfile();     });
         }
-
+        
         bool IsColorSpaceCorrect()
             => PlayerSettings.colorSpace == ColorSpace.Linear;
         void FixColorSpace()
@@ -257,15 +254,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsSRPBatcherCorrect()
-            => IsHdrpAssetUsedCorrect() && HDRenderPipeline.currentAsset.enableSRPBatcher;
+            => IsHdrpAssetUsedCorrect() && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher;
         void FixSRPBatcher()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
-            hdAsset.enableSRPBatcher = true;
-            EditorUtility.SetDirty(hdAsset);
+            (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).enableSRPBatcher = true;
         }
 
         bool IsHdrpAssetDiffusionProfileCorrect()
@@ -273,14 +268,14 @@ namespace UnityEditor.Rendering.HighDefinition
             var profileList = HDRenderPipeline.defaultAsset?.diffusionProfileSettingsList;
             return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
+
         void FixHdrpAssetDiffusionProfile()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             hdAsset.diffusionProfileSettingsList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
-            EditorUtility.SetDirty(hdAsset);
         }
 
         bool IsDefaultSceneCorrect()
@@ -298,7 +293,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 return false;
 
-            var hdAsset = HDRenderPipeline.currentAsset;
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             return hdAsset.defaultVolumeProfile != null && !hdAsset.defaultVolumeProfile.Equals(null);
         }
         void FixDefaultVolumeProfileAssigned()
@@ -306,9 +301,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdAsset = HDRenderPipeline.currentAsset;
+            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(hdAsset);
-            EditorUtility.SetDirty(hdAsset);
         }
 
         #endregion
@@ -339,7 +333,6 @@ namespace UnityEditor.Rendering.HighDefinition
             && IsDXRScreenSpaceShadowCorrect()
             && IsDXRActivationCorrect()
             && IsDXRAssetCorrect()
-            && IsDXRShaderConfigCorrect()
             && IsDXRDefaultSceneCorrect();
 
         void FixDXRAll()
@@ -351,7 +344,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 () => { if (!IsDXRScreenSpaceShadowCorrect())   FixDXRScreenSpaceShadow();          },
                 () => { if (!IsDXRActivationCorrect())          FixDXRActivation();                 },
                 () => { if (!IsDXRAssetCorrect())               FixDXRAsset();                      },
-                () => { if (!IsDXRShaderConfigCorrect())        FixDXRShaderConfig();               },
                 () => { if (!IsDXRDefaultSceneCorrect())        FixDXRDefaultScene(fromAsync: true);});
         }
 
@@ -414,7 +406,8 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRAssetCorrect()
-            => HDRenderPipeline.defaultAsset != null
+            => GraphicsSettings.renderPipelineAsset != null
+            && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset
             && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null;
         void FixDXRAsset()
         {
@@ -425,115 +418,16 @@ namespace UnityEditor.Rendering.HighDefinition
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
         }
 
-        bool IsDXRShaderConfigCorrect()
-        {
-            // To be accurate, to check that the config package is doing the right thing is to make sure we are referencing in the manifest a specific folder (defined by us)
-            // and to check if the ray tracing shader config value is set to 1 in the .cs.hlsl file. Because doing that is a bit of an over check, let's supposed that if
-            // we are pointing to our custom location, it means it has been previously set up.
-            StreamReader streamReader = new StreamReader("Packages/manifest.json");
-            while (!streamReader.EndOfStream)
-            {
-                string line = streamReader.ReadLine();
-                if (line == "    \"com.unity.render-pipelines.high-definition-config\": \"file:../LocalPackages/com.unity.render-pipelines.high-definition-config\",")
-                {
-                    streamReader.Close();
-                    return true;
-                }
-            }
-            streamReader.Close();
-            return false;
-        }
-
-        static void CopyFolder(string sourceFolder, string destFolder)
-        {
-            if (!Directory.Exists(destFolder))
-                Directory.CreateDirectory(destFolder);
-            string[] files = Directory.GetFiles(sourceFolder);
-            foreach (string file in files)
-            {
-                string name = Path.GetFileName(file);
-                string dest = Path.Combine(destFolder, name);
-                File.Copy(file, dest);
-            }
-            string[] folders = Directory.GetDirectories(sourceFolder);
-            foreach (string folder in folders)
-            {
-                string name = Path.GetFileName(folder);
-                string dest = Path.Combine(destFolder, name);
-                CopyFolder(folder, dest);
-            }
-        }
-
-        static PackageManager.Requests.AddRequest s_AddRequest = null;
-        void FixDXRShaderConfig()
-        {
-            // Make sure to delete the previous local package (if any)
-            if (Directory.Exists("LocalPackages/com.unity.render-pipelines.high-definition-config"))
-            {
-                Directory.Delete("LocalPackages/com.unity.render-pipelines.high-definition-config", true);
-            }
-
-            // First let's try to grab the cached version of pack-man
-            bool found = false;
-            string packageCache = Environment.ExpandEnvironmentVariables("%LOCALAPPDATA%");
-            var directories = Directory.GetDirectories(packageCache + "/Unity/cache/packages/packages.unity.com");
-            for(int dirIdx = 0; dirIdx < directories.Length; ++dirIdx)
-            {
-                if (directories[dirIdx].Contains("com.unity.render-pipelines.high-definition-config"))
-                {
-                    CopyFolder(directories[dirIdx], "LocalPackages/com.unity.render-pipelines.high-definition-config");
-                    found = true;
-                    break;
-                }
-            }
-
-            // If we were not able to find it, we can't solve it
-            if (!found)
-                return;
-
-            // Then we want to make sure that the shader config value is set to 1
-            string[] lines = System.IO.File.ReadAllLines("LocalPackages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl");
-            for (int lineIdx = 0; lineIdx < lines.Length; ++lineIdx)
-            {
-                if (lines[lineIdx].Contains("SHADEROPTIONS_RAYTRACING"))
-                {
-                    lines[lineIdx] = "#define SHADEROPTIONS_RAYTRACING (1)";
-                    break;
-                }
-            }
-            File.WriteAllLines("LocalPackages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl", lines);
-
-            // Replace the path of this package using the packman API
-            s_AddRequest = PackageManager.Client.Add("file:../LocalPackages/com.unity.render-pipelines.high-definition-config");
-            EditorApplication.update += RequestUpdate;
-        }
-
-        void RequestUpdate()
-        {
-            if (s_AddRequest != null)
-            {
-                if (s_AddRequest.Status == PackageManager.StatusCode.Success || s_AddRequest.Status == PackageManager.StatusCode.Failure)
-                {
-                    if (s_AddRequest.Status == PackageManager.StatusCode.Failure)
-                    {
-                        Debug.LogError("Failed to update HDRP Config Package");
-                        Debug.LogError(s_AddRequest.Error.message);
-                    }
-                    s_AddRequest = null;
-                    EditorApplication.update -= RequestUpdate;
-                }
-            }
-        }
-
         bool IsDXRScreenSpaceShadowCorrect()
-            => HDRenderPipeline.currentAsset != null
-            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
+            => GraphicsSettings.renderPipelineAsset != null
+            && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset
+            && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows;
         void FixDXRScreenSpaceShadow()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
-            var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
+            var serializedObject = new SerializedObject(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
             var propertySupportScreenSpaceShadow = serializedObject.FindProperty("m_RenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows");
             propertySupportScreenSpaceShadow.boolValue = true;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
@@ -545,19 +439,20 @@ namespace UnityEditor.Rendering.HighDefinition
             => SetStaticBatching(CalculateSelectedBuildTarget(), false);
 
         bool IsDXRActivationCorrect()
-            => HDRenderPipeline.currentAsset != null
-            && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing;
+            => GraphicsSettings.renderPipelineAsset != null
+            && GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset
+            && (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset).currentPlatformRenderPipelineSettings.supportRayTracing;
         void FixDXRActivation()
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
             //as property returning struct make copy, use serializedproperty to modify it
-            var serializedObject = new SerializedObject(HDRenderPipeline.currentAsset);
+            var serializedObject = new SerializedObject(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
             var propertySupportRayTracing = serializedObject.FindProperty("m_RenderPipelineSettings.supportRayTracing");
             propertySupportRayTracing.boolValue = true;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
-
+        
         bool IsDXRDefaultSceneCorrect()
             => HDProjectSettings.defaultDXRScenePrefab != null;
         void FixDXRDefaultScene(bool fromAsync)

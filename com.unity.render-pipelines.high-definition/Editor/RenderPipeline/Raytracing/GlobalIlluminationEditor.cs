@@ -59,57 +59,55 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            HDRenderPipelineAsset currentAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
                 return;
             }
+#if ENABLE_RAYTRACING
 
-            // If ray tracing is supported display the content of the volume component
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            PropertyField(m_RayTracing);
+
+            if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
-                PropertyField(m_RayTracing);
+                EditorGUI.indentLevel++;
+                PropertyField(m_LayerMask);
+                PropertyField(m_RayLength);
+                PropertyField(m_ClampValue);
 
-                if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+                RenderPipelineSettings.RaytracingTier currentTier = currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
+                switch (currentTier)
+                {
+                    case RenderPipelineSettings.RaytracingTier.Tier1:
+                    {
+                        PropertyField(m_DeferredMode);
+                        PropertyField(m_RayBinning);
+                        PropertyField(m_FullResolution);
+                        PropertyField(m_UpscaleRadius);
+                    }
+                    break;
+                    case RenderPipelineSettings.RaytracingTier.Tier2:
+                    {
+                        PropertyField(m_SampleCount);
+                        PropertyField(m_BounceCount);
+                    }
+                    break;
+                }
+
+                PropertyField(m_Denoise);
                 {
                     EditorGUI.indentLevel++;
-                    PropertyField(m_LayerMask);
-                    PropertyField(m_RayLength);
-                    PropertyField(m_ClampValue);
-
-                    RenderPipelineSettings.RaytracingTier currentTier = currentAsset.currentPlatformRenderPipelineSettings.supportedRaytracingTier;
-                    switch (currentTier)
-                    {
-                        case RenderPipelineSettings.RaytracingTier.Tier1:
-                            {
-                                PropertyField(m_DeferredMode);
-                                PropertyField(m_RayBinning);
-                                PropertyField(m_FullResolution);
-                                PropertyField(m_UpscaleRadius);
-                            }
-                            break;
-                        case RenderPipelineSettings.RaytracingTier.Tier2:
-                            {
-                                PropertyField(m_SampleCount);
-                                PropertyField(m_BounceCount);
-                            }
-                            break;
-                    }
-
-                    PropertyField(m_Denoise);
-                    {
-                        EditorGUI.indentLevel++;
-                        PropertyField(m_HalfResolutionDenoiser);
-                        PropertyField(m_DenoiserRadius);
-                        PropertyField(m_SecondDenoiserPass);
-                        PropertyField(m_SecondDenoiserRadius);
-                        EditorGUI.indentLevel--;
-                    }
+                    PropertyField(m_HalfResolutionDenoiser);
+                    PropertyField(m_DenoiserRadius);
+                    PropertyField(m_SecondDenoiserPass);
+                    PropertyField(m_SecondDenoiserRadius);
                     EditorGUI.indentLevel--;
                 }
+                EditorGUI.indentLevel--;
             }
+#endif
         }
     }
 }

@@ -44,10 +44,10 @@ namespace UnityEditor.VFX.Block
             XZ = 5,
         }
 
-        [VFXSetting, Tooltip("Specifies the orientation mode of the particle. It can face towards the camera or a specific position, orient itself along the velocity or a fixed axis, or use more advanced facing behavior.")]
+        [VFXSetting]
         public Mode mode;
 
-        [VFXSetting, Tooltip("Specifies which two axes to use for the particle orientation.")]
+        [VFXSetting]
         public AxesPair axes = AxesPair.ZY;
         protected override IEnumerable<string> filteredOutSettings
         {

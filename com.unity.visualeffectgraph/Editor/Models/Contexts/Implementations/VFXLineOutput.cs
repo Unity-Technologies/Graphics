@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.VFX.Block;
 using UnityEngine;
-using UnityEngine.Serialization;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -12,10 +13,10 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate(useNativeLines ? "VFXParticleLinesHW" : "VFXParticleLinesSW"); } }
         public override VFXTaskType taskType { get { return useNativeLines ? VFXTaskType.ParticleLineOutput : VFXTaskType.ParticleQuadOutput; } }
 
-        [VFXSetting, SerializeField, FormerlySerializedAs("targetFromAttributes"), Tooltip("When enabled, a custom offset from the particle position can be specified for the particle line to connect to. When disabled, the line connects with the particle’s Target Position attribute.")]
-        protected bool useTargetOffset = true;
+        [VFXSetting, SerializeField]
+        protected bool targetFromAttributes = true;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the Line Output will render native line primitives. These might be faster on some platforms, but they cannot be anti-aliased.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useNativeLines = false;
 
         protected override IEnumerable<string> filteredOutSettings
@@ -44,7 +45,7 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha,           VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive,           VFXAttributeMode.Read);
 
-                if (useTargetOffset)
+                if (targetFromAttributes)
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.PivotX, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.PivotY, VFXAttributeMode.Read);
@@ -72,9 +73,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        public class TargetOffsetProperties
+        public class TargetFromAttributesProperties
         {
-            [Tooltip("Sets an offset from the particle position for the line to connect to.")]
             public Vector3 targetOffset = Vector3.up;
         }
 
@@ -83,7 +83,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (useTargetOffset)
+            if (targetFromAttributes)
                 yield return slotExpressions.First(o => o.name == "targetOffset");
         }
 
@@ -92,8 +92,8 @@ namespace UnityEditor.VFX
             get
             {
                 var properties = base.inputProperties;
-                if (useTargetOffset)
-                    properties = PropertiesFromType("TargetOffsetProperties").Concat(properties);
+                if (targetFromAttributes)
+                    properties = PropertiesFromType("TargetFromAttributesProperties").Concat(properties);
 
                 return properties;
             }
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
-                if (useTargetOffset)
+                if (targetFromAttributes)
                     yield return "TARGET_FROM_ATTRIBUTES";
             }
         }

@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AORemapMaxValue = AORemapMax.floatValue;
             maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;
 
-            HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
+            HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
             // Detect any changes to the material

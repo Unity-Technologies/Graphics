@@ -31,27 +31,6 @@ Varyings Vert(Attributes input)
 }
 
 // ----------------------------------------------------------------------------------
-// Render fullscreen mesh by using a matrix set directly by the pipeline instead of
-// relying on the matrix set by the C++ engine to avoid issues with XR
-
-float4x4 _FullscreenProjMat;
-
-float4 TransformFullscreenMesh(half3 positionOS)
-{
-    return mul(_FullscreenProjMat, half4(positionOS, 1));
-}
-
-Varyings VertFullscreenMesh(Attributes input)
-{
-    Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
-    output.uv = input.uv;
-    return output;
-}
-
-// ----------------------------------------------------------------------------------
 // Samplers
 
 SAMPLER(sampler_LinearClamp);
@@ -77,13 +56,7 @@ half GetLuminance(half3 colorLinear)
 
 half3 ApplyVignette(half3 input, float2 uv, float2 center, float intensity, float roundness, float smoothness, half3 color)
 {
-    center = UnityStereoTransformScreenSpaceTex(center);
     float2 dist = abs(uv - center) * intensity;
-
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    dist.x /= unity_StereoScaleOffset[unity_StereoEyeIndex].x;
-#endif
-
     dist.x *= roundness;
     float vfactor = pow(saturate(1.0 - dot(dist, dist)), smoothness);
     return input * lerp(color, (1.0).xxx, vfactor);
@@ -118,10 +91,8 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         if (userLutContrib > 0.0)
         {
             input = saturate(input);
-            input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
             half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
-            input.rgb = SRGBToLinear(input.rgb);
         }
     }
 
@@ -136,10 +107,8 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         UNITY_BRANCH
         if (userLutContrib > 0.0)
         {
-            input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
             half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
-            input.rgb = SRGBToLinear(input.rgb);
         }
 
         input = ApplyLut2D(TEXTURE2D_ARGS(lutTex, lutSampler), input, lutParams);

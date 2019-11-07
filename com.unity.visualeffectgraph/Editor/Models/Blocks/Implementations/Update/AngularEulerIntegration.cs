@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Implicit")]
     class AngularEulerIntegration : VFXBlock
     {
-        public override string name { get { return "Integration : Update Rotation"; } }
+        public override string name { get { return "Angular Integration : Euler"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.Update; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
         public override IEnumerable<VFXAttributeInfo> attributes

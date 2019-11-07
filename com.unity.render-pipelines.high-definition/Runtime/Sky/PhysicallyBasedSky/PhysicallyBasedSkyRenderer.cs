@@ -26,6 +26,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // We need to store the frame index because more than one render can happen during a frame (cubemap update + regular rendering).
         int m_LastPrecomputedBounce;
 
+        bool m_IsBuilt = false;
+
+        PhysicallyBasedSky           m_Settings;
+
         // Precomputed data below.
         RTHandle[]                   m_GroundIrradianceTables;    // All orders, one order
         RTHandle[]                   m_InScatteredRadianceTables; // Air SS, Aerosol SS, Atmosphere MS, Atmosphere one order, Temp
@@ -66,13 +70,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return table;
         }
 
-        public PhysicallyBasedSkyRenderer()
+        public PhysicallyBasedSkyRenderer(PhysicallyBasedSky settings)
         {
+            m_Settings = settings;
         }
 
         public override void Build()
         {
-            var hdrpAsset     = HDRenderPipeline.currentAsset;
+            var hdrpAsset     = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             var hdrpResources = HDRenderPipeline.defaultAsset.renderPipelineResources;
 
             // Shaders
@@ -92,11 +97,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InScatteredRadianceTables[0] = AllocateInScatteredRadianceTable(0);
             m_InScatteredRadianceTables[1] = AllocateInScatteredRadianceTable(1);
             m_InScatteredRadianceTables[2] = AllocateInScatteredRadianceTable(2);
+
+            m_IsBuilt = true;
         }
 
-        public override void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky)
+        public override void SetGlobalSkyData(CommandBuffer cmd)
         {
-            UpdateGlobalConstantBuffer(cmd, sky);
+            UpdateGlobalConstantBuffer(cmd);
 
             // TODO: ground irradiance table? Volume SH? Something else?
             if (m_LastPrecomputedBounce > 0)
@@ -114,8 +121,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
+        public override bool IsValid()
+        {
+            return m_IsBuilt;
+        }
+
         public override void Cleanup()
         {
+            m_Settings = null;
+
             RTHandles.Release(m_GroundIrradianceTables[0]);    m_GroundIrradianceTables[0]    = null;
             RTHandles.Release(m_GroundIrradianceTables[1]);    m_GroundIrradianceTables[1]    = null;
             RTHandles.Release(m_InScatteredRadianceTables[0]); m_InScatteredRadianceTables[0] = null;
@@ -125,6 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_InScatteredRadianceTables[4]); m_InScatteredRadianceTables[4] = null;
 
             m_LastPrecomputedBounce = 0;
+            m_IsBuilt = false;
         }
 
         static float CornetteShanksPhasePartConstant(float anisotropy)
@@ -135,15 +150,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // For both precomputation and runtime lighting passes.
-        void UpdateGlobalConstantBuffer(CommandBuffer cmd, SkySettings sky)
+        void UpdateGlobalConstantBuffer(CommandBuffer cmd)
         {
-            var pbrSky = sky as PhysicallyBasedSky;
-
-            float R    = pbrSky.planetaryRadius.value;
-            float D    = Mathf.Max(pbrSky.airMaximumAltitude.value, pbrSky.aerosolMaximumAltitude.value);
-            float airH = pbrSky.GetAirScaleHeight();
-            float aerH = pbrSky.GetAerosolScaleHeight();
-            float iMul = Mathf.Pow(2.0f, pbrSky.exposure.value) * pbrSky.multiplier.value;
+            float R    = m_Settings.planetaryRadius.value;
+            float D    = Mathf.Max(m_Settings.airMaximumAltitude.value, m_Settings.aerosolMaximumAltitude.value);
+            float airH = m_Settings.GetAirScaleHeight();
+            float aerH = m_Settings.GetAerosolScaleHeight();
+            float iMul = Mathf.Pow(2.0f, m_Settings.exposure.value) * m_Settings.multiplier.value;
 
             cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
             cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
@@ -151,24 +164,24 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat( HDShaderIDs._RcpAtmosphericDepth,       1.0f / D);
 
             cmd.SetGlobalFloat( HDShaderIDs._AtmosphericRadius,         R + D);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolAnisotropy,         pbrSky.aerosolAnisotropy.value);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolPhasePartConstant,  CornetteShanksPhasePartConstant(pbrSky.aerosolAnisotropy.value));
+            cmd.SetGlobalFloat( HDShaderIDs._AerosolAnisotropy,         m_Settings.aerosolAnisotropy.value);
+            cmd.SetGlobalFloat( HDShaderIDs._AerosolPhasePartConstant,  CornetteShanksPhasePartConstant(m_Settings.aerosolAnisotropy.value));
 
             cmd.SetGlobalFloat( HDShaderIDs._AirDensityFalloff,         1.0f / airH);
             cmd.SetGlobalFloat( HDShaderIDs._AirScaleHeight,            airH);
             cmd.SetGlobalFloat( HDShaderIDs._AerosolDensityFalloff,     1.0f / aerH);
             cmd.SetGlobalFloat( HDShaderIDs._AerosolScaleHeight,        aerH);
 
-            cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelExtinction,     pbrSky.GetAirExtinctionCoefficient());
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelExtinction, pbrSky.GetAerosolExtinctionCoefficient());
+            cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelExtinction,     m_Settings.GetAirExtinctionCoefficient());
+            cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelExtinction, m_Settings.GetAerosolExtinctionCoefficient());
 
-            cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelScattering,     pbrSky.GetAirScatteringCoefficient());
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelScattering, pbrSky.GetAerosolScatteringCoefficient());
+            cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelScattering,     m_Settings.GetAirScatteringCoefficient());
+            cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelScattering, m_Settings.GetAerosolScatteringCoefficient());
 
-            cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              pbrSky.groundColor.value);
+            cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              m_Settings.groundColor.value);
             cmd.SetGlobalFloat(HDShaderIDs._IntensityMultiplier,        iMul);
 
-            cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      pbrSky.planetCenterPosition.value);
+            cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      m_Settings.planetCenterPosition.value);
         }
 
         void PrecomputeTables(CommandBuffer cmd)
@@ -255,12 +268,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected override bool Update(BuiltinSkyParameters builtinParams)
+        public override bool Update(BuiltinSkyParameters builtinParams)
         {
-            UpdateGlobalConstantBuffer(builtinParams.commandBuffer, builtinParams.skySettings);
-            var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
+            var cmd = builtinParams.commandBuffer;
+            UpdateGlobalConstantBuffer(cmd);
 
-            int currPrecomputationParamHash = pbrSky.GetPrecomputationHashCode();
+            int currPrecomputationParamHash = m_Settings.GetPrecomputationHashCode();
             if (currPrecomputationParamHash != m_LastPrecomputationParamHash)
             {
                 // Hash does not match, have to restart the precomputation from scratch.
@@ -286,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (m_LastPrecomputedBounce == pbrSky.numberOfBounces.value)
+            if (m_LastPrecomputedBounce == m_Settings.numberOfBounces.value)
             {
                 // Free temp tables.
                 // This is a deferred release (one frame late)!
@@ -298,16 +311,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_InScatteredRadianceTables[4] = null;
             }
 
-            if (m_LastPrecomputedBounce < pbrSky.numberOfBounces.value)
+            if (m_LastPrecomputedBounce < m_Settings.numberOfBounces.value)
             {
-                PrecomputeTables(builtinParams.commandBuffer);
+                PrecomputeTables(cmd);
                 m_LastPrecomputedBounce++;
 
                 // Update the hash for the current bounce.
                 m_LastPrecomputationParamHash = currPrecomputationParamHash;
 
                 // If the sky is realtime, an upcoming update will update the sky lighting. Otherwise we need to force an update.
-                return builtinParams.skySettings.updateMode != EnvironmentUpdateMode.Realtime;
+                return builtinParams.updateMode != EnvironmentUpdateMode.Realtime;
             }
 
             return false;
@@ -318,23 +331,22 @@ namespace UnityEngine.Rendering.HighDefinition
         // (to support multiple stars in space, moons with moon phases, etc).
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
-            var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
-            float r = Vector3.Distance(builtinParams.worldSpaceCameraPos, pbrSky.planetCenterPosition.value);
-            float R = pbrSky.planetaryRadius.value;
+            float r = Vector3.Distance(builtinParams.worldSpaceCameraPos, m_Settings.planetCenterPosition.value);
+            float R = m_Settings.planetaryRadius.value;
 
             bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
 
             CommandBuffer cmd = builtinParams.commandBuffer;
 
             // Precomputation is done, shading is next.
-            Quaternion planetRotation = Quaternion.Euler(pbrSky.planetRotation.value.x,
-                                                         pbrSky.planetRotation.value.y,
-                                                         pbrSky.planetRotation.value.z);
+            Quaternion planetRotation = Quaternion.Euler(m_Settings.planetRotation.value.x,
+                                                         m_Settings.planetRotation.value.y,
+                                                         m_Settings.planetRotation.value.z);
 
-            Quaternion spaceRotation  = Quaternion.Euler(pbrSky.spaceRotation.value.x,
-                                                         pbrSky.spaceRotation.value.y,
-                                                         pbrSky.spaceRotation.value.z);
+            Quaternion spaceRotation  = Quaternion.Euler(m_Settings.spaceRotation.value.x,
+                                                         m_Settings.spaceRotation.value.y,
+                                                         m_Settings.spaceRotation.value.z);
 
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
             s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  builtinParams.worldSpaceCameraPos);
@@ -359,28 +371,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int hasGroundAlbedoTexture = 0;
 
-            if (pbrSky.groundAlbedoTexture.value != null)
+            if (m_Settings.groundAlbedoTexture.value != null)
             {
                 hasGroundAlbedoTexture = 1;
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundAlbedoTexture, pbrSky.groundAlbedoTexture.value);
+                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundAlbedoTexture, m_Settings.groundAlbedoTexture.value);
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundAlbedoTexture, hasGroundAlbedoTexture);
 
             int hasGroundEmissionTexture = 0;
 
-            if (pbrSky.groundEmissionTexture.value != null)
+            if (m_Settings.groundEmissionTexture.value != null)
             {
                 hasGroundEmissionTexture = 1;
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture, pbrSky.groundEmissionTexture.value);
+                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture, m_Settings.groundEmissionTexture.value);
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundEmissionTexture, hasGroundEmissionTexture);
 
             int hasSpaceEmissionTexture = 0;
 
-            if (pbrSky.spaceEmissionTexture.value != null)
+            if (m_Settings.spaceEmissionTexture.value != null)
             {
                 hasSpaceEmissionTexture = 1;
-                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture, pbrSky.spaceEmissionTexture.value);
+                s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture, m_Settings.spaceEmissionTexture.value);
             }
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
 

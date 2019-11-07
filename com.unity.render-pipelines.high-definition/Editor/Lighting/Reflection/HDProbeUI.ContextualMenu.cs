@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var planarProbe = plane.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(10, 0.01f, 10);
 
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             var material = hdrp != null ? hdrp.GetDefaultMirrorMaterial() : null;
 
             if (material)

@@ -10,6 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDAdditionalLightData : ISerializationCallbackReceiver, IVersionable<HDAdditionalLightData.Version>
     {
+        // TODO: Use proper migration toolkit
+
         enum Version
         {
             _Unused00,
@@ -19,8 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowLayer,
             _Unused02,
             ShadowResolution,
-            RemoveAdditionalShadowData,
-            AreaLightShapeTypeLogicIsolation,
         }
 
         /// <summary>
@@ -35,17 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
             VeryHigh
         }
 
-        /// <summary>
-        /// Type used previous isolation of AreaLightShape as we use Point for realtime area light due to culling
-        /// </summary>
-        [Obsolete]
-        enum LightTypeExtent
-        {
-            Punctual,
-            Rectangle,
-            Tube
-        };
-
         Version IVersionable<Version>.version
         {
             get => m_Version;
@@ -58,83 +47,57 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static readonly MigrationDescription<Version, HDAdditionalLightData> k_HDLightMigrationSteps
             = MigrationDescription.New(
-                MigrationStep.New(Version.ShadowNearPlane, (HDAdditionalLightData data) =>
+                MigrationStep.New(Version.ShadowNearPlane, (HDAdditionalLightData t) =>
                 {
                     // Added ShadowNearPlane to HDRP additional light data, we don't use Light.shadowNearPlane anymore
                     // ShadowNearPlane have been move to HDRP as default legacy unity clamp it to 0.1 and we need to be able to go below that
-                    data.shadowNearPlane = data.legacyLight.shadowNearPlane;
+                    t.shadowNearPlane = t.legacyLight.shadowNearPlane;
                 }),
-                MigrationStep.New(Version.LightLayer, (HDAdditionalLightData data) =>
+                MigrationStep.New(Version.LightLayer, (HDAdditionalLightData t) =>
                 {
                     // Migrate HDAdditionalLightData.lightLayer to Light.renderingLayerMask
-                    data.legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)data.m_LightLayers, data.legacyLight.renderingLayerMask);
+                    t.legacyLight.renderingLayerMask = LightLayerToRenderingLayerMask((int)t.m_LightLayers, t.legacyLight.renderingLayerMask);
                 }),
-                MigrationStep.New(Version.ShadowLayer, (HDAdditionalLightData data) =>
+                MigrationStep.New(Version.ShadowLayer, (HDAdditionalLightData t) =>
                 {
                     // Added the ShadowLayer
                     // When we upgrade the option to decouple light and shadow layers will be disabled
                     // so we can sync the shadow layer mask (from the legacyLight) and the new light layer mask
-                    data.lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(data.legacyLight.renderingLayerMask);
+                    t.lightlayersMask = (LightLayerEnum)RenderingLayerMaskToLightLayer(t.legacyLight.renderingLayerMask);
                 }),
-                MigrationStep.New(Version.ShadowResolution, (HDAdditionalLightData data) =>
+                MigrationStep.New(Version.ShadowResolution, (HDAdditionalLightData t) =>
                 {
-                    var additionalShadow = data.GetComponent<AdditionalShadowData>();
+                    var additionalShadow = t.GetComponent<AdditionalShadowData>();
                     if (additionalShadow != null)
                     {
-                        data.m_ObsoleteCustomShadowResolution = additionalShadow.customResolution;
-                        data.m_ObsoleteContactShadows = additionalShadow.contactShadows;
+                        t.m_ObsoleteCustomShadowResolution = additionalShadow.customResolution;
+                        t.m_ObsoleteContactShadows = additionalShadow.contactShadows;
 
-                        data.shadowDimmer = additionalShadow.shadowDimmer;
-                        data.volumetricShadowDimmer = additionalShadow.volumetricShadowDimmer;
-                        data.shadowFadeDistance = additionalShadow.shadowFadeDistance;
-                        data.shadowTint = additionalShadow.shadowTint;
-                        data.normalBias = additionalShadow.normalBias;
-                        data.shadowUpdateMode = additionalShadow.shadowUpdateMode;
-                        data.shadowCascadeRatios = additionalShadow.shadowCascadeRatios;
-                        data.shadowCascadeBorders = additionalShadow.shadowCascadeBorders;
-                        data.shadowAlgorithm = additionalShadow.shadowAlgorithm;
-                        data.shadowVariant = additionalShadow.shadowVariant;
-                        data.shadowPrecision = additionalShadow.shadowPrecision;
+                        t.shadowDimmer = additionalShadow.shadowDimmer;
+                        t.volumetricShadowDimmer = additionalShadow.volumetricShadowDimmer;
+                        t.shadowFadeDistance = additionalShadow.shadowFadeDistance;
+                        t.shadowTint = additionalShadow.shadowTint;
+                        t.normalBias = additionalShadow.normalBias;
+                        t.constantBias = additionalShadow.constantBias;
+                        t.shadowUpdateMode = additionalShadow.shadowUpdateMode;
+                        t.shadowCascadeRatios = additionalShadow.shadowCascadeRatios;
+                        t.shadowCascadeBorders = additionalShadow.shadowCascadeBorders;
+                        t.shadowAlgorithm = additionalShadow.shadowAlgorithm;
+                        t.shadowVariant = additionalShadow.shadowVariant;
+                        t.shadowPrecision = additionalShadow.shadowPrecision;
                         CoreUtils.Destroy(additionalShadow);
                     }
 
-                    data.shadowResolution.@override = data.m_ObsoleteCustomShadowResolution;
-                    switch (data.m_ObsoleteShadowResolutionTier)
+                    t.shadowResolution.@override = t.m_ObsoleteCustomShadowResolution;
+                    switch (t.m_ObsoleteShadowResolutionTier)
                     {
-                        case ShadowResolutionTier.Low: data.shadowResolution.level = 0; break;
-                        case ShadowResolutionTier.Medium: data.shadowResolution.level = 1; break;
-                        case ShadowResolutionTier.High: data.shadowResolution.level = 2; break;
-                        case ShadowResolutionTier.VeryHigh: data.shadowResolution.level = 3; break;
+                        case ShadowResolutionTier.Low: t.shadowResolution.level = 0; break;
+                        case ShadowResolutionTier.Medium: t.shadowResolution.level = 1; break;
+                        case ShadowResolutionTier.High: t.shadowResolution.level = 2; break;
+                        case ShadowResolutionTier.VeryHigh: t.shadowResolution.level = 3; break;
                     }
-                    data.shadowResolution.useOverride = !data.m_ObsoleteUseShadowQualitySettings;
-                    data.useContactShadow.@override = data.m_ObsoleteContactShadows;
-                }),
-                MigrationStep.New(Version.RemoveAdditionalShadowData, (HDAdditionalLightData data) =>
-                {
-                    var shadow = data.GetComponent<AdditionalShadowData>();
-                    if (shadow != null)
-                        CoreUtils.Destroy(shadow);
-                }),
-                MigrationStep.New(Version.AreaLightShapeTypeLogicIsolation, (HDAdditionalLightData data) =>
-                {
-                    // It is now mixed in an other Enum: PointLightHDType
-                    // As it is int that live under Enum and used for serialization,
-                    // there is no serialization issue but we must move datas where they should be.
-                    switch ((LightTypeExtent)data.m_PointlightHDType)
-                    {
-                        case LightTypeExtent.Punctual:
-                            data.m_PointlightHDType = PointLightHDType.Punctual;
-                            break;
-                        case LightTypeExtent.Rectangle:
-                            data.m_PointlightHDType = PointLightHDType.Area;
-                            data.m_AreaLightShape = AreaLightShape.Rectangle;
-                            break;
-                        case LightTypeExtent.Tube:
-                            data.m_PointlightHDType = PointLightHDType.Area;
-                            data.m_AreaLightShape = AreaLightShape.Tube;
-                            break;
-                        //No other AreaLight types where supported at this time
-                    }
+                    t.shadowResolution.useOverride = !t.m_ObsoleteUseShadowQualitySettings;
+                    t.useContactShadow.@override = t.m_ObsoleteContactShadows;
                 })
             );
 #pragma warning restore 0618, 0612
@@ -153,14 +116,15 @@ namespace UnityEngine.Rendering.HighDefinition
             SetEmissiveMeshRendererEnabled(true);
         }
 
-        void Migrate()
+        void Awake()
         {
             k_HDLightMigrationSteps.Migrate(this);
-            // OnValidate might be called before migration but migration is needed to call UpdateBounds() properly so we call it again here to make sure that they are updated properly.
-            OnValidate();
+#pragma warning disable 0618
+            var shadow = GetComponent<AdditionalShadowData>();
+            if (shadow != null)
+                CoreUtils.Destroy(shadow);
+#pragma warning restore 0618
         }
-
-        void Awake() => Migrate();
 
         #region Obsolete fields
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)

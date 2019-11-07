@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel--;
 
             bool volumetricLightingAvailable = false;
-            var hdpipe = HDRenderPipeline.currentAsset;
+            var hdpipe = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             if (hdpipe != null)
                 volumetricLightingAvailable = hdpipe.currentPlatformRenderPipelineSettings.supportVolumetrics;
 

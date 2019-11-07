@@ -53,9 +53,8 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            float2 positionNDC = uv;
-            int2   positionSS  = uv * _BlitTex_TexelSize.zw;
+            float2 positionNDC = input.uv;
+            int2   positionSS  = input.uv * _BlitTex_TexelSize.zw;
 
             half3 color = Load(positionSS, 0, 0).xyz;
 

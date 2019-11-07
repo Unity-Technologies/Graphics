@@ -43,9 +43,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Undo.undoRedoPerformed += () =>
             {
                 // Serialized object is lossing references after an undo
-                if (m_SerializedHDLight.serializedObject.targetObject != null)
+                if (m_SerializedHDLight.serializedLightDatas.targetObject != null)
                 {
-                    m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
+                    m_SerializedHDLight.serializedLightDatas.ApplyModifiedProperties();
                     foreach (var hdLightData in m_AdditionalLightDatas)
                         if (hdLightData != null)
                             hdLightData.UpdateAreaLightEmissiveMesh();
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
             var flags = HideFlags.None;
 
-            foreach (var t in m_SerializedHDLight.serializedObject.targetObjects)
+            foreach (var t in m_SerializedHDLight.serializedLightDatas.targetObjects)
                 ((HDAdditionalLightData)t).hideFlags = flags;
         }
 
@@ -103,14 +103,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Each handles manipulate only one light
             // Thus do not rely on serialized properties
-            HDLightType lightType = targetAdditionalData.type;
-
-            if (lightType == HDLightType.Directional
-                || lightType == HDLightType.Point
-                || lightType == HDLightType.Area && targetAdditionalData.areaLightShape == AreaLightShape.Disc)
+            Light light = target as Light;
+            HDAdditionalLightData additionalLightData = targetAdditionalData;
+            if (additionalLightData.lightTypeExtent == LightTypeExtent.Punctual && (light.type == LightType.Directional || light.type == LightType.Point))
                 base.OnSceneGUI();
             else
-                HDLightUI.DrawHandles(targetAdditionalData, this);
+                HDLightUI.DrawHandles(additionalLightData, this);
         }
 
         internal Color legacyLightColor

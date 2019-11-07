@@ -17,19 +17,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         RenderTargetHandle m_AfterPostProcessColorHandle;
         RenderTargetHandle m_ColorGradingLutHandle;
 
-        Material m_BlitMaterial;
-
         Renderer2DData m_Renderer2DData;
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
-
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_Render2DLightingPass = new Render2DLightingPass(data);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, CoreUtils.CreateEngineMaterial(data.blitShader));
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -37,11 +33,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_ColorGradingLutHandle.Init("_InternalGradingLut");
 
             m_Renderer2DData = data;
-        }
-
-        public override void Cleanup()
-        {
-            CoreUtils.Destroy(m_BlitMaterial);
         }
 
         public Renderer2DData GetRenderer2DData()
@@ -101,7 +92,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         m_AfterPostProcessColorHandle,
                         RenderTargetHandle.CameraTarget,
                         m_ColorGradingLutHandle,
-                        false,
                         false
                     );
                     EnqueuePass(m_PostProcessPass);
@@ -117,8 +107,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         m_AfterPostProcessColorHandle,
                         RenderTargetHandle.CameraTarget,
                         m_ColorGradingLutHandle,
-                        true,
-                        false
+                        true
                     );
                     EnqueuePass(m_PostProcessPass);
 
@@ -135,8 +124,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         RenderTargetHandle.CameraTarget,
                         RenderTargetHandle.CameraTarget,
                         m_ColorGradingLutHandle,
-                        false,
-                        true
+                        false
                     );
                     EnqueuePass(m_PostProcessPass);
 

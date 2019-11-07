@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        bool showAffectTransparency => ((target as DecalProjector).material != null) && DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
+        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
@@ -48,11 +48,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool show = DecalSystem.IsHDRenderPipelineDecal((targets[0] as DecalProjector).material.shader);
                 for (int index = 0; index < targets.Length; ++index)
                 {
-                    if ((targets[index] as DecalProjector).material != null)
-                    {
-                        if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjector).material.shader) ^ show)
-                            return true;
-                    }
+                    if (DecalSystem.IsHDRenderPipelineDecal((targets[index] as DecalProjector).material.shader) ^ show)
+                        return true;
                 }
                 return false;
             }
@@ -137,22 +134,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void UpdateMaterialEditor()
         {
-            int validMaterialsCount = 0;
-            for (int index = 0; index < targets.Length; ++index)
-            {
-                DecalProjector decalProjector = (targets[index] as DecalProjector);
-                if((decalProjector != null) && (decalProjector.material != null))
-                    validMaterialsCount++;
-            }
             // Update material editor with the new material
-            UnityEngine.Object[] materials = new UnityEngine.Object[validMaterialsCount];
-            validMaterialsCount = 0;
+            UnityEngine.Object[] materials = new UnityEngine.Object[targets.Length];
             for (int index = 0; index < targets.Length; ++index)
             {
-                DecalProjector decalProjector = (targets[index] as DecalProjector);
-
-                if((decalProjector != null) && (decalProjector.material != null))
-                    materials[validMaterialsCount++] = (targets[index] as DecalProjector).material;
+                materials[index] = (targets[index] as DecalProjector).material;
             }
             m_MaterialEditor = (MaterialEditor)CreateEditor(materials);
         }
@@ -360,7 +346,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // We need to prevent the user to edit default decal materials
                 bool isDefaultMaterial = false;
-                var hdrp = HDRenderPipeline.currentAsset;
+                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 if (hdrp != null)
                 {
                     foreach(var decalProjector in targets)

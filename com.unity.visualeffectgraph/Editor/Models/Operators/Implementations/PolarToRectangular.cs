@@ -9,15 +9,14 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the angular coordinate (Polar angle).")]
-            public float Angle = 45.0f;
-            [Tooltip("Sets the radial coordinate (Radius).")]
+            [Tooltip("The angular coordinate (Polar angle).")]
+            public float angle = 45.0f;
+            [Tooltip("The radial coordinate (Radius).")]
             public float distance = 1.0f;
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the polar coordinates (r,θ) in rectangular (x,y) coordinates.")]
             public Vector2 coord = Vector2.zero;
         }
 

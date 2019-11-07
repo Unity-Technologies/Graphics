@@ -25,13 +25,13 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
         public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on the chosen attribute. The value derived from this block can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How to compose the attribute with its previous value")]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
 
-        [VFXSetting, Tooltip("Specifies the mode by which to sample the attribute map. This can be done via an index, sequentially, by sampling a 2D/3D texture, or randomly.")]
+        [VFXSetting, Tooltip("How to sample inside the AttributeMap")]
         public AttributeMapSampleMode SampleMode = AttributeMapSampleMode.RandomConstantPerParticle;
 
-        [VFXSetting, Tooltip("Specifies which channels to use in this block. This is useful for only affecting the relevant data if not all channels are used.")]
+        [VFXSetting]
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
         private static readonly char[] channelNames = new char[] { 'x', 'y', 'z' };
 

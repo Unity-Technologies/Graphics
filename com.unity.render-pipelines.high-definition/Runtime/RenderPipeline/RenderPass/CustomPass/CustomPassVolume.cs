@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
         /// </summary>
         /// <value>The fade value that should be applied to the custom pass effect</value>
-        public float fadeValue { get; private set; }
+        protected float fadeValue { get; private set; }
 
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
@@ -61,9 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDisable() => UnRegister(this);
 
-        void OnDestroy() => Cleanup();
-
-        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
+        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CustomPass.RenderTargets targets)
         {
             bool executed = false;
 
@@ -74,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (pass != null && pass.enabled)
                     using (new ProfilingSample(cmd, pass.name))
                     {
-                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                        pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, targets, fadeValue);
                         executed = true;
                     }
             }
@@ -119,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 volume.m_OverlappingColliders.Clear();
 
-                float sqrFadeRadius = Mathf.Max(float.Epsilon, volume.fadeRadius * volume.fadeRadius);
+                float sqrFadeRadius = volume.fadeRadius * volume.fadeRadius;
                 float minSqrDistance = 1e20f;
 
                 foreach (var collider in volume.m_Colliders)
@@ -159,8 +157,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (v1.isGlobal && v2.isGlobal) return 0;
-                if (v1.isGlobal) return 1;
-                if (v2.isGlobal) return -1;
+                if (v1.isGlobal) return -1;
+                if (v2.isGlobal) return 1;
                 
                 return GetVolumeExtent(v1).CompareTo(GetVolumeExtent(v2));
             });

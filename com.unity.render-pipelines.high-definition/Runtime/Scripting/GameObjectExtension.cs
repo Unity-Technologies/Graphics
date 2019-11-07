@@ -7,15 +7,15 @@ namespace UnityEngine.Rendering.HighDefinition
         ///  Add a new HDRP Light to a GameObject
         /// </summary>
         /// <param name="gameObject">The GameObject on which the light is going to be added</param>
-        /// <param name="lightTypeAndShape">The Type of the HDRP light to Add</param>
+        /// <param name="lightType">The Type of the HDRP light to Add</param>
         /// <returns>The created HDRP Light component</returns>
-        public static HDAdditionalLightData AddHDLight(this GameObject gameObject, HDLightTypeAndShape lightTypeAndShape)
+        public static HDAdditionalLightData AddHDLight(this GameObject gameObject, HDLightType lightType)
         {
             var hdLight = gameObject.AddComponent< HDAdditionalLightData >();
 
             HDAdditionalLightData.InitDefaultHDAdditionalLightData(hdLight);
 
-            hdLight.SetLightTypeAndShape(lightTypeAndShape);
+            hdLight.SetLightType(lightType);
 
             return hdLight;
         }

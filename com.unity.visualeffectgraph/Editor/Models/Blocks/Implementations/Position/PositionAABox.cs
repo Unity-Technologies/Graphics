@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            [Tooltip("Sets the box used for positioning the particles.")]
+            [Tooltip("The box used for positioning particles.")]
             public AABox Box = new AABox() { size = Vector3.one };
         }
 

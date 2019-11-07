@@ -47,9 +47,9 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            [Tooltip("Specifies the mesh used to render the particle.")]
+            [Tooltip("Mesh to be used for particle rendering.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
-            [Tooltip("Defines a bitmask to control which submeshes are rendered."), BitField]
+            [Tooltip("Define a bitmask to control which submeshes are rendered."), BitField]
             public uint subMeshMask = 0xffffffff;
         }
 

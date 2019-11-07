@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (importer == null)
                     return;
 
-                var currentHDAsset = HDRenderPipeline.currentAsset;
+                var currentHDAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 if (currentHDAsset == null)
                     throw new Exception("Can't upgrade diffusion profile when the HDRenderPipeline asset is not assigned in Graphic Settings");
 

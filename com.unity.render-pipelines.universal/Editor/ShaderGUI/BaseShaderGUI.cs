@@ -343,14 +343,9 @@ namespace UnityEditor
             // UniversalRP does not support RealtimeEmissive. We set it to bake emissive and handle the emissive is black right.
             if (emissive)
             {
-                var oldFlags = material.globalIlluminationFlags;
-                var newFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
-
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
                 if (brightness <= 0f)
-                    newFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-
-                if (newFlags != oldFlags)
-                    material.globalIlluminationFlags = newFlags;
+                    material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
             }
         }
 

@@ -9,13 +9,13 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("Sets the sphere used for the volume calculation.")]
+            [Tooltip("The sphere used for the volume calculation.")]
             public Sphere sphere = new Sphere();
         }
 
         public class OutputProperties
         {
-            [Tooltip("Outputs the volume of the sphere.")]
+            [Tooltip("The volume of the sphere.")]
             public float volume;
         }
 

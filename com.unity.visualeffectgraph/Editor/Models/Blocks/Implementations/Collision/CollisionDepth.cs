@@ -14,10 +14,10 @@ namespace UnityEditor.VFX.Block
             Custom,
         }
 
-        [VFXSetting, Tooltip("Specifies which Camera to use for the particles to collide with its depth buffer. Can use the camera tagged 'Main', or a custom camera.")]
+        [VFXSetting]
         public CameraMode camera;
 
-        [VFXSetting, SerializeField, Tooltip("Specifies the thickness mode for the colliding surface. It can have an infinite thickness, or be set to a custom value.")]
+        [VFXSetting, SerializeField]
         SurfaceThickness surfaceThickness = SurfaceThickness.Infinite;
 
         public override string name { get { return "Collide with Depth Buffer"; } }

@@ -395,7 +395,6 @@ Shader "HDRP/Unlit"
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "IndirectDXR"
