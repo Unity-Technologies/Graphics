@@ -1,5 +1,4 @@
 using UnityEngine.Rendering.Universal.Internal;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -341,9 +340,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
             {
                 bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
-                // keep in sync with UnityGBuffer.hlsl
-                GraphicsFormat colorFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // Project Settings -> Graphics -> Tier Settings -> HDR Mode : FP16 / R11G11B10
-                var colorDescriptor = new RenderTextureDescriptor(descriptor.width, descriptor.height, colorFormat, 0);  // GI     GI     GI  [unused]     (lighting buffer)
+                var colorDescriptor = descriptor; // Camera descides if HDR format is needed. ScriptableRenderPipelineCore.cs decides between FP16 and R11G11B10.
                 colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                 cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
             }
