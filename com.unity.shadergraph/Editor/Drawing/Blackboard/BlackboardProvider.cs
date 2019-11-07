@@ -273,7 +273,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var expandedInput in expandedInputs)
             {
-                SessionState.SetBool(expandedInput.Key.ToString(), expandedInput.Value);
+                SessionState.SetBool($"Unity.ShaderGraph.Input.{expandedInput.Key}.isExpanded", expandedInput.Value);
             }
 
             if (m_Graph.movedInputs.Any())
@@ -354,7 +354,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (!create)
             {
-                m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), false);
+                m_InputRows[input.guid].expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{input.guid.ToString()}.isExpanded", false);
             }
             else
             {
