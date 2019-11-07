@@ -1519,5 +1519,29 @@ namespace UnityEngine.Rendering
         public MaterialParameter(Material value, bool overrideState = false)
             : base(value, overrideState) {}
 
+         /// <summary>
+        /// Interpolates between two <c>Material</c> values.
+        /// </summary>
+        /// <param name="from">The start value</param>
+        /// <param name="to">The end value</param>
+        /// <param name="t">The interpolation factor in range [0,1]</param>
+        public sealed override void Interp(Material from, Material to, float t)
+        {
+            if((m_Value != null) && (from != null) && (to != null))
+            {
+                m_Value.Lerp(from, to, t);
+                return; 
+            }
+            if((m_Value == null) && (to != null))
+            {
+                m_Value = new Material(to);
+                return; 
+            }
+            if((m_Value != null) && (to == null))
+            {
+                m_Value = null;
+                return; 
+            }
+        }
     }    
 }
