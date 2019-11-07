@@ -351,9 +351,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Remove this data copy.
             for (int i = 0, iLen = data.Length; i < iLen; ++i)
             {
-                data[i].shAr = new Vector4(sh[i][0, 1], sh[i][0, 2], sh[i][0, 3], sh[i][0, 0]);
-                data[i].shAg = new Vector4(sh[i][1, 1], sh[i][1, 2], sh[i][1, 3], sh[i][1, 0]);
-                data[i].shAb = new Vector4(sh[i][2, 1], sh[i][2, 2], sh[i][2, 3], sh[i][2, 0]);
+                data[i].shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0] - sh[i][0, 6]);
+                data[i].shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]);
+                data[i].shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6]);
                 dataValidity[i] = validity[i];
             }
 
