@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         private Vector3 m_Offset = new Vector3(0, -0.5f, 0);
         /// <summary>
-        /// Change the offset position. 
+        /// Change the offset position.
         /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
         /// </summary>
         internal Vector3 offset
@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                var hdrp = HDRenderPipeline.defaultAsset;
                 m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Handle = null;
             }
         }
-        
+
         /// <summary>
         /// Event called each time the used material change.
         /// </summary>
@@ -249,13 +249,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 // handle material changes, because decals are stored as sets sorted by material, if material changes decal needs to be removed and re-added to that it goes into correct set
                 if (m_OldMaterial != m_Material)
                 {
-                    DecalSystem.instance.RemoveDecal(m_Handle);
-                    m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
-                    m_OldMaterial = m_Material;
-
-                    if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                    if (m_OldMaterial != null)
                     {
-                        m_AffectsTransparency = false;
+                        DecalSystem.instance.RemoveDecal(m_Handle);
+                    }
+
+                    if (m_Material != null)
+                    {
+                        m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+
+                        if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                        {
+                            m_AffectsTransparency = false;
+                        }
                     }
 
                     // notify the editor that material has changed so it can update the shader foldout
@@ -263,6 +269,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         OnMaterialChange();
                     }
+
+                    m_OldMaterial = m_Material;
                 }
                 else // no material change, just update whatever else changed
                 {
@@ -295,7 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
 #if UNITY_EDITOR
-            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdrp = HDRenderPipeline.defaultAsset;
             if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
                 return false;
 #endif

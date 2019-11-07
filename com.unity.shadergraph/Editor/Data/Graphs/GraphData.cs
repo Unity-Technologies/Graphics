@@ -359,7 +359,9 @@ namespace UnityEditor.ShaderGraph
 
                 // If adding a Sub Graph node whose asset contains Keywords
                 // Need to restest Keywords against the variant limit
-                if(node is SubGraphNode subGraphNode && subGraphNode.asset.keywords.Count > 0)
+                if(node is SubGraphNode subGraphNode &&
+                    subGraphNode.asset != null && 
+                    subGraphNode.asset.keywords.Count > 0)
                 {
                     OnKeywordChangedNoValidate();
                 }
@@ -1202,12 +1204,21 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
+
+                // If the node has a group guid and no group has been copied, reset the group guid.
                 // Check if the node is inside a group
+                if (abstractMaterialNode.groupGuid != Guid.Empty)
+                {
                 if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
                 {
                     var absNode = pastedNode as AbstractMaterialNode;
                     absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
                     pastedNode = absNode;
+                }
+                    else
+                    {
+                        pastedNode.groupGuid = Guid.Empty;
+                    }
                 }
 
                 var drawState = node.drawState;

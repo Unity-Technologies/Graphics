@@ -150,9 +150,11 @@ void RayGenReflectionHalfRes()
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
+    // Make sure the new ray is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(outputCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(outputCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+        uint3 counterIdx = uint3(outputCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_REFLECTION_FORWARD));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
 
     // Evaluate the ray intersection
@@ -265,9 +267,11 @@ void RayGenReflectionFullRes()
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
+    // Make sure the new ray is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+        uint3 counterIdx = uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_REFLECTION_FORWARD));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
 
     // Evaluate the ray intersection
@@ -365,9 +369,11 @@ void RayGenIntegration()
         if (dot(sampleDir, normalData.normalWS) <= 0.0)
             continue;
 
+        // Make sure the new ray is taken into account in the ray counters
         if (_RayCountEnabled > 0)
         {
-            _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+            uint3 counterIdx = uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_REFLECTION_FORWARD));
+            _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
         }
 
         // Create the ray descriptor for this pixel

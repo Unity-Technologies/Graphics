@@ -38,13 +38,8 @@ Shadow maps are essentially textures projected from the point of view of the Lig
 In HDRP, each individual Light component controls its own shadow biasing using the following parameters:
 
 - **Near Plane**
-- **ShadowMask Mode**
-- **View Bias Scale**
-- **View Bias**
+- **Slope-Scale Depth Bias**
 - **Normal Bias**
-- **Edge Leak Fixup**
-- **Edge Tolerance Normal**
-- **Edge Tolerance**
 
 Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.html) cog to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.html).
 
@@ -71,8 +66,8 @@ HDRP supports two [Mixed Lighting Modes](https://docs.unity3d.com/Manual/LightMo
 
 To use shadowmasks in HDRP, you must enable shadowmask support in your Unity Project’s HDRP Asset and then make your Cameras use shadowmasks in their [Frame Settings](Frame-Settings.html) :
 
-1. Under **Render Pipeline Supported Features**, tick the **Shadow Mask** checkbox. This enables support for shadowmasks in your Unity Project.
-2. Next, you must make your Cameras use shadowmasks. In your HDRP Asset, navigate to **Default Frame Settings > Lighting** and tick the **Shadow Mask** checkbox to make Cameras use shadowmasks by default.
+1. Under **Render Pipeline Supported Features**, enable the **Shadowmask** checkbox. This enables support for shadowmasks in your Unity Project.
+2. Next, you must make your Cameras use shadowmasks. In your HDRP Asset, navigate to **Default Frame Settings > Lighting** and enable the **Shadowmask** checkbox to make Cameras use shadowmasks by default.
 
 ### Specific settings in HDRP
 

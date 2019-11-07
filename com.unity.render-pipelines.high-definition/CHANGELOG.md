@@ -16,8 +16,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added after post process injection point for custom passes
 - Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
 - Added falloff distance on Reflection Probe and Planar Reflection Probe
+- Added hability to name LightLayers in HDRenderPipelineAsset
+- Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
+- Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
+- Added non temporal version of SSAO.
+- Added more detailed ray tracing stats in the debug window
+- Added Disc area light (bake only)
+- Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
 
 ### Fixed
+- Sorting, undo, labels, layout in the Lighting Explorer.
 - Fixed sky settings and materials in Shader Graph Samples package
 - Fix/workaround a probable graphics driver bug in the GTAO shader.
 - Fixed Hair and PBR shader graphs double sided modes
@@ -69,26 +77,77 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed moving objects not rendered in custom passes
 - Fixed abstract classes listed in the + menu of the custom pass list
 - Fixed custom pass that was rendered in previews
+- Fixed precision error in zero value normals when applying decals (case 1181639)
 - Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
 - Assign default volume profile when creating a new HDRP Asset
 - Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
-- Fixed bugs with shadow caching 
+- Fixed bugs with shadow caching
 - Reassign the same camera for a realtime probe face render request to have appropriate history buffer during realtime probe rendering.
 - Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
 - Fixed issue with decal and htile optimization
 - Fixed TerrainLit shader compilation error regarding `_Control0_TexelSize` redefinition (case 1178480).
+- Fixed warning about duplicate HDRuntimeReflectionSystem when configuring play mode without domain reload.
+- Fixed an editor crash when multiple decal projectors were selected and some had null material
+- Added all relevant fix actions to FixAll button in Wizard
+- Moved FixAll button on top of the Wizard
+- Fixed an issue where fog color was not pre-exposed correctly
+- Fix priority order when custom passes are overlapping
+- Fix cleanup not called when the custom pass GameObject is destroyed
+- Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides.
+- Fixed an issue with Realtime GI not working on upgraded projects.
+- Fixed issue with screen space shadows fallback texture was not set as a texture array.
+- Fixed Pyramid Lights bounding box
+- Fixed terrain heightmap default/null values and epsilons
+- Fixed custom post-processing effects breaking when an abstract class inherited from `CustomPostProcessVolumeComponent`
+- Fixed XR single-pass rendering in Editor by using ShaderConfig.s_XrMaxViews to allocate matrix array
+- Multiple different skies rendered at the same time by different cameras are now handled correctly without flickering
+- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present. 
+- Fixed issue causing planar probes to disappear if there is no light in the scene.
+- Fixed a number of issues with the prefab isolation mode (Volumes leaking from the main scene and reflection not working properly)
+- Fixed an issue with fog volume component upgrade not working properly
+- Fixed Spot light Pyramid Shape has shadow artifacts on aspect ratio values lower than 1
+- Fixed issue with AO upsampling in XR
+- Fixed camera without HDAdditionalCameraData component not rendering
+- Removed the macro ENABLE_RAYTRACING for most of the ray tracing code
+- Fixed prefab containing camera reloading in loop while selected in the Project view
+- Fixed issue causing NaN wheh the Z scale of an object is set to 0.
+- Fixed DXR shader passes attempting to render before pipeline loaded
+- Fixed black ambient sky issue when importing a project after deleting Library.
+- Fixed issue when upgrading a Standard transparent material (case 1186874)
+- Fixed area light cookies not working properly with stack lit
+- Fixed material render queue not updated when the shader is changed in the material inspector.
+- Fixed a number of issues with full screen debug modes not reseting correctly when setting another mutually exclusive mode
+- Fixed compile errors for platforms with no VR support
+- Fixed an issue with volumetrics and RTHandle scaling (case 1155236)
+- Fixed an issue where sky lighting might be updated uselessly
+- Fixed issue preventing to allow setting decal material to none (case 1196129)
+- Fixed XR multi-pass decals rendering
+- Fixed several fields on Light Inspector that not supported Prefab overrides
+- Fixed EOL for some files
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
 - Rename Emission Radius to Radius in UI in Point, Spot
 - Angular Diameter parameter for directional light is no longuer an advanced property
-- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead. 
+- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead.
 - Remove MaxSmoothness parameters from UI for point, spot and directional light. The MaxSmoothness is now deduce from Radius Parameters
 - DXR: Remove the Ray Tracing Environement Component. Add a Layer Mask to the ray Tracing volume components to define which objects are taken into account for each effect.
 - Removed second cubemaps used for shadowing in lookdev
 - Disable Physically Based Sky below ground
 - Increase max limit of area light and reflection probe to 128
 - Change default texture for detailmap to grey
+- Optimize Shadow RT load on Tile based architecture platforms. 
+- Improved quality of SSAO.
+- Moved RequestShadowMapRendering() back to public API.
+- Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
+- Added SceneSelection pass for TerrainLit shader.
+- Simplified Light's type API regrouping the logic in one place (Check type in HDAdditionalLightData)
+- The support of LOD CrossFade (Dithering transition) in master nodes now required to enable it in the master node settings (Save variant)
+- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias. 
+- Fix the default stencil values when a material is created from a SSS ShaderGraph.
+- Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
+- Slightly tweaked the behaviour of bloom when resolution is low to reduce artifacts.
+- Hidden fields in Light Inspector that is not relevant while in BakingOnly mode.
 
 ## [7.1.1] - 2019-09-05
 
@@ -103,11 +162,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom passes volume component with 3 injection points: Before Rendering, Before Transparent and Before Post Process
 - Alpha channel is now properly exported to camera render textures when using FP16 color buffer format
 - Support for XR SDK mirror view modes
-- HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage. 
+- HD Master nodes in Shader Graph now support Normal and Tangent modification in vertex stage.
 - DepthOfFieldCoC option in the fullscreen debug modes.
 - Added override Ambient Occlusion option on debug windows
 - Added Custom Post Processes with 3 injection points: Before Transparent, Before Post Process and After Post Process
-- Add draft of minimal interactive path tracing (experimental) based on DXR API - Support only 4 area light, lit and unlit shader (non-shadergraph)
+- Added draft of minimal interactive path tracing (experimental) based on DXR API - Support only 4 area light, lit and unlit shader (non-shadergraph)
 
 ### Fixed
 - Fixed wizard infinite loop on cancellation

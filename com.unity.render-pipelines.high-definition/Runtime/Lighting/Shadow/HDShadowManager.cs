@@ -22,22 +22,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector2      atlasOffset;
         public float        worldTexelSize;
-        public int          _pad0;
+        public float        normalBias;
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4      zBufferParam;
         public Vector4      shadowMapSize;
 
-        public float        normalBias;
-        public float        constantBias;
-        public float        _pad1;
-        public float        _pad2;
-
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4      shadowFilterParams0;
 
         public Vector3      cacheTranslationDelta;
-        public float        _padding1;
+        public float         _pad0;
 
         public Matrix4x4    shadowToWorld;
     }
@@ -77,7 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Store the final shadow indice in the shadow data array
         // Warning: the index is computed during ProcessShadowRequest and so is invalid before calling this function
         public int                  shadowIndex;
-        public int                  lightType;
 
         // Determine in which atlas the shadow will be rendered
         public ShadowMapType        shadowMapType = ShadowMapType.PunctualAtlas;
@@ -89,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float                normalBias;
         public float                worldTexelSize;
-        public float                constantBias;
+        public float                slopeBias;
 
         // PCSS parameters
         public float                shadowSoftness;
@@ -193,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int              lightID;
         public int              indexInLight = 0;
         public int              lastFrameActive = 0;
-        public bool             emptyRequest = false; 
+        public bool             emptyRequest = false;
         public bool             hasBeenStoredInCachedList = false;
 
         public HDShadowResolutionRequest ShallowCopy()
@@ -269,8 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
-            var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-            switch (hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+            switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
             {
                 case HDShadowFilteringQuality.Low:
                 {
@@ -310,7 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             int cachedIndex = -1;
-            
+
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].resolution = resolution;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].shadowMapType = shadowMapType;
             m_ShadowResolutionRequests[m_ShadowResolutionRequestCounter].lightID = lightID;
@@ -531,7 +524,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.shadowMapSize = new Vector4(shadowRequest.atlasViewport.width, shadowRequest.atlasViewport.height, 1.0f / shadowRequest.atlasViewport.width, 1.0f / shadowRequest.atlasViewport.height);
 
-            data.constantBias = shadowRequest.constantBias;
             data.normalBias = shadowRequest.normalBias;
             data.worldTexelSize = shadowRequest.worldTexelSize;
 
@@ -539,8 +531,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.shadowFilterParams0.y = HDShadowUtils.Asfloat(shadowRequest.blockerSampleCount);
             data.shadowFilterParams0.z = HDShadowUtils.Asfloat(shadowRequest.filterSampleCount);
             data.shadowFilterParams0.w = shadowRequest.minFilterSize;
-
-            var hdAsset = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
 
             if (atlas.HasBlurredEVSM())
             {
@@ -558,9 +548,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
+        public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams, float maxShadowDistance)
         {
-            cullingParams.shadowDistance = Mathf.Min(VolumeManager.instance.stack.GetComponent<HDShadowSettings>().maxShadowDistance.value, cullingParams.shadowDistance);
+            cullingParams.shadowDistance = Mathf.Min(maxShadowDistance, cullingParams.shadowDistance);
         }
 
         public void LayoutShadowMaps(LightingDebugSettings lightingDebugSettings)

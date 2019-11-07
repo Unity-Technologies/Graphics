@@ -45,16 +45,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-#if ENABLE_RAYTRACING
-                // Update the light clusters that we need to update
-                BuildRayTracingLightCluster(cmd, hdCamera);
-
-                if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+                if (m_RayTracingSupported)
                 {
-                    HDRaytracingLightCluster lightCluster = RequestLightCluster();
-                    lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
+                    // Update the light clusters that we need to update
+                    BuildRayTracingLightCluster(cmd, hdCamera);
+
+                    if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+                    {
+                        HDRaytracingLightCluster lightCluster = RequestLightCluster();
+                        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
+                    }
                 }
-#endif
 
                 BuildGPULightList(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.stencilBufferCopy, prepassOutput.gbuffer);
 
