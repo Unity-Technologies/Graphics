@@ -53,7 +53,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool IsActive()
         {
-            return intensity.value > 0.0f;
+            if(algorithm != MotionBlurAlgorithm.Accumulation)
+            { 
+                //TODO: Explore activation needs (play mode only?)
+                return true;
+            }
+            else
+            {
+                return intensity.value > 0.0f;
+            }
         }
     }
 }
