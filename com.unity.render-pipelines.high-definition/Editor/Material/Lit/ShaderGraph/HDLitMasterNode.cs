@@ -115,6 +115,34 @@ namespace UnityEditor.Rendering.HighDefinition
             Premultiply,
             Additive,
         }
+        
+        // Some details for Speedtree support within Lit shader
+        // SpeedTree modal info
+        public enum SpeedTreeVersion
+        {
+            None,
+            SpeedTree7,
+            SpeedTree8,
+        }
+
+        public enum SpeedTreeGeomType
+        {
+            Branch,
+            BranchDetail,
+            Frond,
+            Leaf,
+            Mesh,
+        }
+        
+        public enum SpeedTreeWindQuality
+        {
+            None = 0,
+            Fastest,
+            Fast,
+            Better,
+            Best,
+            Palm,
+        }
 
         // Just for convenience of doing simple masks. We could run out of bits of course.
         [Flags]
@@ -339,12 +367,47 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // ------ Speedtree-specific support -----
+        [SerializeField]
+        SpeedTreeVersion m_SpeedTreeVersion;
+
+        public SpeedTreeVersion speedTreeVersion
+        {
+            get { return m_SpeedTreeVersion; }
+            set
+            {
+                if (m_SpeedTreeVersion == value)
+                    return;
+
+                m_SpeedTreeVersion = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_LODFadePercentage;
+
+        public ToggleData lodFadePercentage
+        {
+            get { return new ToggleData(m_LODFadePercentage); }
+            set
+            {
+                if (m_LODFadePercentage == value.isOn)
+                    return;
+                m_LODFadePercentage = value.isOn;
+                Dirty(ModificationScope.Node);
+            }
+        }
+        // ------ Speedtree-specific support -----
+
         [SerializeField]
         bool m_AlphaTest;
 
         public ToggleData alphaTest
         {
-            get { return new ToggleData(m_AlphaTest); }
+            // As a rule, if we are targeting SpeedTree assets, alphaTest is always on.
+            get { return new ToggleData(m_AlphaTest || m_SpeedTreeVersion != SpeedTreeVersion.None); }
             set
             {
                 if (m_AlphaTest == value.isOn)
@@ -996,6 +1059,42 @@ namespace UnityEditor.Rendering.HighDefinition
             return materialType == HDLitMasterNode.MaterialType.SubsurfaceScattering;
         }
 
+        public void AddSpeedTreeGeometryDefines(ref List<String> ExtraDefines)
+        {
+            // This is all only applicable to SpeedTree Assets.
+            if (speedTreeVersion == SpeedTreeVersion.None)
+                return;
+
+            ExtraDefines.Add("#pragma enable_d3d11_debug_symbols");
+            ExtraDefines.Add("#pragma shader_feature_local ENABLE_WIND");
+            ExtraDefines.Add("#pragma shader_feature_local EFFECT_BILLBOARD");
+            ExtraDefines.Add("#define _ALPHATEST_ON");
+            ExtraDefines.Add("#define SPEEDTREE_Y_UP");
+            if (speedTreeVersion == SpeedTreeVersion.SpeedTree7)
+            {
+                ExtraDefines.Add("#pragma shader_feature_local _ GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH");
+                ExtraDefines.Add("#define WIND_QUALITY_NONE    0");
+                ExtraDefines.Add("#define WIND_QUALITY_FASTEST 1");
+                ExtraDefines.Add("#define WIND_QUALITY_FAST    2");
+                ExtraDefines.Add("#define WIND_QUALITY_BETTER  3");
+                ExtraDefines.Add("#define WIND_QUALITY_BEST    4");
+                ExtraDefines.Add("#define WIND_QUALITY_PALM    5");
+            }
+            else
+            {
+                ExtraDefines.Add("#pragma shader_feature_local _ _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM");
+                ExtraDefines.Add("#define GEOM_TYPE_BRANCH 0");
+                ExtraDefines.Add("#define GEOM_TYPE_FROND 1");
+                ExtraDefines.Add("#define GEOM_TYPE_LEAF 2");
+                ExtraDefines.Add("#define GEOM_TYPE_FACINGLEAF 3");
+            }
+
+            if (lodFadePercentage.isOn)
+            {
+                ExtraDefines.Add("#define LOD_FADE_PERCENTAGE");
+            }
+        }
+
         public override void ProcessPreviewMaterial(Material previewMaterial)
         {
             // Fixup the material settings:
@@ -1059,6 +1158,64 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+
+            // SpeedTree mode
+            if (speedTreeVersion != SpeedTreeVersion.None)
+            {
+                if (speedTreeVersion == SpeedTreeVersion.SpeedTree7)
+                {
+                    // In SpeedTree8, this is embedded in one of the UV channels
+                    collector.AddShaderProperty(new Vector1ShaderProperty()
+                    {
+                        overrideReferenceName = "_SpeedTreeGeom",
+                        floatType = FloatType.Enum,
+                        value = (float)SpeedTreeGeomType.Branch,
+                        enumType = EnumType.KeywordEnum,
+                        enumNames = { "Branch", "BranchDetail", "Frond", "Leaf", "Mesh" },
+                        hidden = true,
+                    });
+                }
+
+                collector.AddShaderProperty(new BooleanShaderProperty()
+                {
+                    overrideReferenceName = "_WindEnabled",
+                    value = true,
+                    hidden = true,
+                });
+
+                collector.AddShaderProperty(new Vector1ShaderProperty()
+                {
+                    overrideReferenceName = "_WindQuality",
+                    floatType = FloatType.Enum,
+                    value = (int)SpeedTreeWindQuality.Best,
+                    enumNames = { "None", "Fastest", "Fast", "Better", "Best", "Palm" },
+                    enumValues = { (int)SpeedTreeWindQuality.None,
+                                    (int)SpeedTreeWindQuality.Fastest,
+                                    (int)SpeedTreeWindQuality.Fast,
+                                    (int)SpeedTreeWindQuality.Better,
+                                    (int)SpeedTreeWindQuality.Best,
+                                    (int)SpeedTreeWindQuality.Palm },
+                    enumType = EnumType.KeywordEnum,
+                    hidden = true,
+                });
+
+                collector.AddShaderProperty(new BooleanShaderProperty()
+                {
+                    overrideReferenceName = "_Billboard",
+                    value = false,
+                    hidden = true,
+                });
+
+                if (speedTreeVersion == SpeedTreeVersion.SpeedTree7)
+                {
+                    collector.AddShaderProperty(new BooleanShaderProperty()
+                    {
+                        overrideReferenceName = "_BillboardFacing",
+                        value = false,
+                        hidden = true,
+                    });
+                }
+            }
 
             base.CollectShaderProperties(collector, generationMode);
         }

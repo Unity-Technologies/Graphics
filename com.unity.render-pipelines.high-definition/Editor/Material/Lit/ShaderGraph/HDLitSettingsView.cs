@@ -393,6 +393,28 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
+            // Speedtree-specific 
+            ps.Add(new PropertyRow(CreateLabel("Speedtree Asset version", indentLevel)), (row) =>
+            {
+                row.Add(new EnumField(HDLitMasterNode.SpeedTreeVersion.SpeedTree7), (e) =>
+                {
+                    e.value = m_Node.speedTreeVersion;
+                    e.RegisterValueChangedCallback(ChangeSpeedTreeVersion);
+                });
+            });
+
+            if (m_Node.speedTreeVersion != HDLitMasterNode.SpeedTreeVersion.None)
+            {
+                ps.Add(new PropertyRow(CreateLabel("LOD Percentage Fade", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.lodFadePercentage.isOn;
+                        toggle.OnToggleChanged(ChangeLODPercentageFade);
+                    });
+                });
+            }
+
             Add(ps);
         }
 
@@ -730,6 +752,24 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                         return HDLitMasterNode.AlphaModeLit.Alpha;
                     }
             }
+        }
+
+        // SpeedTree-specific
+        void ChangeSpeedTreeVersion(ChangeEvent<Enum> evt)
+        {
+            if (Equals(m_Node.speedTreeVersion, evt.newValue))
+                return;
+
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SpeedTree Version Change");
+            m_Node.speedTreeVersion = (HDLitMasterNode.SpeedTreeVersion)evt.newValue;
+        }
+
+        void ChangeLODPercentageFade(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("LOD Percentage Fade Change");
+            ToggleData td = m_Node.lodFadePercentage;
+            td.isOn = evt.newValue;
+            m_Node.lodFadePercentage = td;
         }
     }
 }

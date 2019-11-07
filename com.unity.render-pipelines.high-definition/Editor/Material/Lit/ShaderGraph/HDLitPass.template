@@ -56,6 +56,8 @@ Pass
     $TransparentWritesMotionVec:         #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
     $DepthOffset:                        #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+    $SpeedtreeVersion7:                 #define SPEEDTREE_V7
+    $SpeedtreeVersion8:                 #define SPEEDTREE_V8
 
     //-------------------------------------------------------------------------------------
     // End Variant Definitions
