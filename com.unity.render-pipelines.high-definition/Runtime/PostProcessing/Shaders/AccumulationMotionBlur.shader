@@ -50,9 +50,9 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             float3 color = Fetch(_InputTexture, uv, 0.0, _RTHandleScale.xy);
             float3 history = Fetch(_InputHistoryTexture, uv, 0.0, _RTHandleScale.xy); //TODO: History Scale
 
-            color = lerp(color, history, 0.99);
+            //Pass-thru history blend.
+            color = lerp(color, history, 0.45);
 
-            //Pass-thru for now.
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color;
         }

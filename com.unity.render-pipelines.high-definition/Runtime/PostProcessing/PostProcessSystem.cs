@@ -471,7 +471,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
-                    // 
                     if (m_MotionBlur.IsActive() && m_MotionBlur.algorithm == MotionBlurAlgorithm.Accumulation && !isSceneView)
                     {
                         using (new ProfilingSample(cmd, "Accumulation Motion Blur", CustomSamplerId.AccumulationMotionBlur))

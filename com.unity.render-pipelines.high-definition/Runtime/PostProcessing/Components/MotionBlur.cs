@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool IsActive()
         {
-            switch(algorithm)
+            switch(algorithm.value)
             {
                 case MotionBlurAlgorithm.Realtime: return intensity.value > 0.0f;
                 case MotionBlurAlgorithm.Accumulation: return true; //TODO: Explore accumulation activation needs (play mode only?)
