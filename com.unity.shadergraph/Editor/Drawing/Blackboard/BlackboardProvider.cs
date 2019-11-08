@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -270,6 +272,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var input in m_Graph.addedInputs)
             {
+                Debug.Log("   count: " + m_Graph.addedInputs.Count());
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
             }
 
@@ -294,6 +297,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddInputRow(ShaderInput input, bool create = false, int index = -1)
         {
+            Debug.Log("Add Input Row \n\n" + System.Environment.StackTrace);
+
+            foreach (ShaderInput si in m_Graph.addedInputs)
+            {
+                Debug.Log("   added- " + si + " (" + si.displayName + ")");
+            }
+            foreach (AbstractShaderProperty bs in m_Graph.properties)
+            {
+                Debug.Log("   prop-- " + bs + " (" + bs.displayName + ") " + m_Graph.GetGraphInputIndex(bs).ToString());
+            }
+
             if (m_InputRows.ContainsKey(input.guid))
                 return;
 
@@ -315,13 +329,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
                     row = new BlackboardRow(field, propertyView) { userData = input };
 
-                    if (index < 0)
+                    if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
 
-                    if (index >= m_InputRows.Count)
+                    if (index == m_InputRows.Count)
                         m_PropertySection.Add(row);
                     else
+                    {
                         m_PropertySection.Insert(index, row);
+                        Debug.Log(" >---> " + index + " " + row + "   ~~~ " + m_PropertySection.IndexOf(row).ToString());
+                    }
+
                     break;
                 }
                 case ShaderKeyword keyword:
@@ -332,13 +350,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
 
-                    if (index < 0)
+                    if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
 
-                    if (index >= m_InputRows.Count)
+                    if (index == m_InputRows.Count)
                         m_KeywordSection.Add(row);
                     else
+                    {
                         m_KeywordSection.Insert(index, row);
+                        Debug.Log(" <---< " + index + " " + row + "   ~~~ " + m_KeywordSection.IndexOf(row).ToString());
+                    }
+
                     break;
                 }
                 default:
@@ -436,6 +458,48 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 m_SelectedNodes.Clear();
             }
+
+//            foreach (ISelectable isel in blackboard.selection)
+//            {
+////                BlackboardFieldView bfv = isel as BlackboardFieldView;
+////                if (bfv != null) Debug.Log("cheese cake");
+////                BlackboardRow br = isel as BlackboardRow;
+////                if (bfv != null) Debug.Log("dog pie");
+//
+//                BlackboardField bf = isel as BlackboardField;
+//                BlackboardSection bs = m_PropertySection;
+//                VisualElement ancestor = bs.FindCommonAncestor(bf);
+//
+//                Debug.Log("     [" + bf.title + "_" + bf.GetHashCode() + "] [" + bs.title + "_" + bs.GetHashCode() + "] common ancestor: " + ancestor + " (" + ancestor.name + "_" + ancestor.GetHashCode() + ")");
+//
+//                if (ancestor == bs)
+//                {
+//                    Debug.Log("wooo hooo! " + bs.childCount.ToString() + " ");
+//
+//                    VisualElement vvv = bf;
+//                    VisualElement old = vvv;
+//                    ;
+//                    for (int x = 0; x < 9; x++)
+//                    {
+//                        Debug.Log(" " + x + "=" + vvv);
+//
+//                        if (vvv is BlackboardSection)
+//                        {
+//                            if (vvv == bs) Debug.Log("Double Confirmed");
+//
+//                            foreach (VisualElement ve in vvv.Children())
+//                            {
+//                                Debug.Log("   ---> " + ve + "    _ " + vvv.IndexOf(old).ToString());
+//                            }
+//                        }
+//
+//                        old = vvv;
+//                        vvv = vvv.parent;
+//                    }
+//                }
+//
+//                Debug.Log(isel + "   My position is...  " + bs.IndexOf(bf).ToString() + " ...     " + ancestor.IndexOf(bf).ToString()); //+ m_Graph.GetGraphInputIndex(isel));
+//            }
         }
     }
 }

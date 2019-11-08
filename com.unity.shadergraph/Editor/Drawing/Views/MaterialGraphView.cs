@@ -500,7 +500,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo("Duplicate Blackboard Property");
 
-            // Create list that we sorted based on position, so that duplication
             List<ShaderInput> selectedProperties = new List<ShaderInput>();
             foreach (var selectable in selection)
             {
@@ -558,6 +557,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             graph.owner.RegisterCompleteObjectUndo(operationName);
             var pastedGraph = CopyPasteGraph.FromJson(serializedData);
+
+
+
             this.InsertCopyPasteGraph(pastedGraph);
         }
 
@@ -647,6 +649,51 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             selection.Clear();
+        }
+
+        public static int GetIndexToInsert(Blackboard blackboard)
+        {
+            int highestIndex = -1;
+
+            foreach (ISelectable selection in blackboard.selection)
+            {
+                if (selection is BlackboardField)
+                {
+                    BlackboardRow row = (selection as VisualElement).GetFirstAncestorOfType<BlackboardRow>();
+                    BlackboardSection section = (selection as VisualElement).GetFirstAncestorOfType<BlackboardSection>();
+
+                    int index = section.IndexOf(row);
+                    if (index > highestIndex)
+                    {
+                        highestIndex = index;
+                    }
+
+//                    BlackboardSection blackboardSection = element.GetFirstAncestorOfType<BlackboardSection>();
+//
+                    // BlackboardSection section;
+//                    for (int x = 0; x < 7; x++)
+//                    {
+//                        element = element.parent;
+//
+//                        if (element.parent == null)
+//                        {
+//                            break;
+//                        }
+//
+//                        if (element.parent is BlackboardSection)
+//                        {
+//                            // section = (BlackboardSection)element.parent;
+//
+//                            if (element.parent.IndexOf(element) > highestIndex)
+//                            {
+//                                highestIndex = element.parent.IndexOf(element);
+//                            }
+//                        }
+//                    }
+                }
+            }
+
+            return highestIndex;
         }
 
         #region Drag and drop
@@ -852,6 +899,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         #endregion
     }
 
+
     static class GraphViewExtensions
     {
         // Sorts based on their position on the blackboard
@@ -879,6 +927,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
 
+            Blackboard blackboard = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
+            // Debug.Log((graphView.GetBlackboard() != null).ToString());
+            Debug.Log("GetIndexToInsert " + MaterialGraphView.GetIndexToInsert(blackboard));
+
+            // Get the position to insert the new shader inputs
+            int insertIndex = 2;
+
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
@@ -889,7 +944,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
 
-                ShaderInput copiedInput = DuplicateShaderInputs(input, graphView.graph);
+                ShaderInput copiedInput = DuplicateShaderInputs(input, graphView.graph, insertIndex);
+                if (insertIndex > 0) insertIndex++;
 
                 switch(input)
                 {
@@ -983,11 +1039,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        static ShaderInput DuplicateShaderInputs(ShaderInput original, GraphData graph)
+        static ShaderInput DuplicateShaderInputs(ShaderInput original, GraphData graph, int index)
         {
+            // Debug.Log("DuplicateShaderInputs " + original.displayName);
+
             ShaderInput copy = original.Copy();
             graph.SanitizeGraphInputName(copy);
-            graph.AddGraphInput(copy);
+            graph.AddGraphInput(copy, index);
             copy.generatePropertyBlock = original.generatePropertyBlock;
             return copy;
         }
