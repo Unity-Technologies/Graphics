@@ -5,7 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class HDTemporalFilter
     {
-#if ENABLE_RAYTRACING
         // Resources used for the denoiser
         ComputeShader m_TemporalFilterCS;
 
@@ -69,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryNormalBufferTexture, historyNormalBuffer);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBufferRW, m_ValidationBuffer);
+            cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Now that we have validated our history, let's accumulate
@@ -87,6 +87,5 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
             cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
         }
-#endif
     }
 }

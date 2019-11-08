@@ -8,6 +8,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassInjectionPoint.cs.hlsl"
 
 float _CustomPassInjectionPoint;
+float _FadeValue;
 
 float3 CustomPassSampleCameraColor(float2 uv, float lod, bool uvGuards = true)
 {

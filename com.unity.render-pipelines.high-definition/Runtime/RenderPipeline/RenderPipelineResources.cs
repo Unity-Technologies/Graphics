@@ -165,14 +165,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]
             public Shader decalNormalBufferPS;
+            [Reload("Runtime/Material/Decal/ClearPropertyMaskBuffer.compute")]
+            public ComputeShader decalClearPropertyMaskBufferCS;
 
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
             public ComputeShader GTAOCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAODenoise.compute")]
             public ComputeShader GTAODenoiseCS;
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOUpsample.compute")]
-            public ComputeShader GTAOUpsampleCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
+            public ComputeShader GTAOBlurAndUpsample;
 
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]
@@ -181,6 +183,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader colorResolvePS;
 
             // Post-processing
+            [Reload("Runtime/PostProcessing/Shaders/AlphaCopy.compute")]
+            public ComputeShader copyAlphaCS;
             [Reload("Runtime/PostProcessing/Shaders/NaNKiller.compute")]
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]

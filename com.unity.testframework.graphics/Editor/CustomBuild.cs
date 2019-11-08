@@ -64,6 +64,26 @@ public static class CustomBuild
         BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
     }
 
+    static void BuildLinuxVulkanLinear()
+    {
+        PlayerSettings.colorSpace = ColorSpace.Linear;
+        BuildTarget buildTarget = BuildTarget.StandaloneLinux64;
+        BuildOptions buildOptions = BuildOptions.None;
+
+        GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.Vulkan };
+        BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
+    }
+
+    static void BuildLinuxOpenGLCoreLinear()
+    {
+        PlayerSettings.colorSpace = ColorSpace.Linear;
+        BuildTarget buildTarget = BuildTarget.StandaloneLinux64;
+        BuildOptions buildOptions = BuildOptions.None;
+
+        GraphicsDeviceType[] graphicsAPIs = { GraphicsDeviceType.OpenGLCore };
+        BuildScenes(".", graphicsAPIs[0].ToString(), buildTarget, buildOptions, graphicsAPIs);
+    }
+
     static void BuildWindowsDX11Linear()
     {
         PlayerSettings.colorSpace = ColorSpace.Linear;

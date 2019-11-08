@@ -150,13 +150,15 @@ void RayGenReflectionHalfRes()
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
+    // Make sure the new ray is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(outputCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(outputCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+        uint3 counterIdx = uint3(outputCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_REFLECTION_FORWARD));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
     float samplePDF = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
@@ -265,13 +267,15 @@ void RayGenReflectionFullRes()
     rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(roughness);
     rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
+    // Make sure the new ray is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
-        _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+        uint3 counterIdx = uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_REFLECTION_FORWARD));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
     }
 
     // Evaluate the ray intersection
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Compute the PDF
     float samplePDF = 1.0;
@@ -365,9 +369,11 @@ void RayGenIntegration()
         if (dot(sampleDir, normalData.normalWS) <= 0.0)
             continue;
 
+        // Make sure the new ray is taken into account in the ray counters
         if (_RayCountEnabled > 0)
         {
-            _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] = _RayCountTexture[COORD_TEXTURE2D_X(currentCoord)][RAYCOUNTVALUES_INDIRECT] + 1;
+            uint3 counterIdx = uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(RAYCOUNTVALUES_REFLECTION_FORWARD));
+            _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
         }
 
         // Create the ray descriptor for this pixel
@@ -392,7 +398,7 @@ void RayGenIntegration()
         rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG, 0, 1, 0, rayDescriptor, rayIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_REFLECTION, 0, 1, 0, rayDescriptor, rayIntersection);
 
         // Contribute to the pixel
         finalColor += rayIntersection.color;

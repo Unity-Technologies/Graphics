@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!InHDRP())
                 return; // do not interfere outside of hdrp
 
-            if ((((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+            if (((HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
                 && HDProjectSettings.defaultDXRScenePrefab == null)
                 || HDProjectSettings.defaultScenePrefab == null)
             {
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static GameObject GetScenePrefab()
         {
-            if ((GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
                 return HDProjectSettings.defaultDXRScenePrefab;
             else
                 return HDProjectSettings.defaultScenePrefab;
@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Assets/Create/HD Template Scene", true, 200)]
         static bool InHDRP()
         {
-            return GraphicsSettings.renderPipelineAsset is HDRenderPipelineAsset;
+            return GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
         }
 
         // Note: Currently we do not add Empty scene in the HDRP package.

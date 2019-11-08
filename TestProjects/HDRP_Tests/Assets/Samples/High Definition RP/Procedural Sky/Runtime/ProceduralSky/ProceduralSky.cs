@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     [VolumeComponentMenu("Sky/Procedural Sky")]
@@ -17,11 +19,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("When enabled, HDRP displays the sun disk.")]
         public BoolParameter enableSunDisk = new BoolParameter(true);
 
-        public override SkyRenderer CreateRenderer()
-        {
-            return new ProceduralSkyRenderer(this);
-        }
-
         public override int GetHashCode()
         {
             int hash = base.GetHashCode();
@@ -39,5 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return hash;
         }
+
+        public override System.Type GetSkyRendererType() { return typeof(ProceduralSkyRenderer); }
     }
 }

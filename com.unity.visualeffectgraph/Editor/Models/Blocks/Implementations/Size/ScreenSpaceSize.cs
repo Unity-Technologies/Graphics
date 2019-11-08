@@ -29,23 +29,26 @@ namespace UnityEditor.VFX.Block
 
         public class InputPropertiesAbsolute
         {
+            [Tooltip("Specifies the size of the particle in pixels.")]
             public float PixelSize = 16.0f;
         }
 
         public class InputPropertiesRelative
         {
+            [Tooltip("Sets the ratio of the particle in relation to the selected size mode. A value of 1 means that the particle resizes to match the specified screen dimension.")]
             public float RelativeSize = 0.1f;
         }
 
         public class InputPropertiesResolution
         {
+            [Tooltip("Sets the screen resolution the particle’s pixel size is relative to.")]
             public Vector2 ReferenceResolution = new Vector2(1920, 1080);
         }
 
-        [SerializeField, VFXSetting]
+        [SerializeField, VFXSetting, Tooltip("Specifies how the particle resizes. This can be an absolute pixel value, or a size relative to the game view resolution.")]
         protected SizeMode sizeMode = SizeMode.PixelAbsolute;
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies how the Z axis of the particle resizes if the ‘Scale Z’ attribute is used in the system.")]
         protected SizeZMode sizeZMode = SizeZMode.SameAsSizeX;
 
         public override string name { get { return "Screen Space Size"; } }

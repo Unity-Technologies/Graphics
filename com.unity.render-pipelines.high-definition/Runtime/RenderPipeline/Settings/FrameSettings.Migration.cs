@@ -350,6 +350,12 @@ namespace UnityEngine.Rendering.HighDefinition
             oldFrameSettingsFormat = null;
         }
 #pragma warning restore 618 // Type or member is obsolete
+        
+        internal static void MigrateToCustomPostprocessAndCustomPass(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.CustomPass, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.CustomPostProcess, true);
+        }
 
         internal static void MigrateToAfterPostprocess(ref FrameSettings cameraFrameSettings)
         {
