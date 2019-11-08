@@ -15,13 +15,13 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("The mesh to sample from.")]
-            public  Mesh mesh = VFXResources.defaultResources.mesh;
+            public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
         public class InputPropertiesVertex
         {
             [Tooltip("The vertex index to read from.")]
-            public int vertex = 0;
+            public uint vertex = 0;
         }
 
         public enum PlacementMode
@@ -37,15 +37,15 @@ namespace UnityEditor.VFX.Operator
             Custom
         };
 
-        //[VFXSetting] // TODO - support surface sampling
-        public PlacementMode Placement = PlacementMode.Vertex;
+        //[VFXSetting, SerializeField] // TODO - support surface sampling
+        private PlacementMode Placement = PlacementMode.Vertex;
 
-        [VFXSetting]
-        public SelectionMode Selection = SelectionMode.Random;
+        [VFXSetting, SerializeField]
+        private SelectionMode Selection = SelectionMode.Random;
 
         // TODO: support flags/mask UI, for outputting multiple attributes from one operator
-        [VFXSetting]
-        public VertexAttribute Output = VertexAttribute.Position;
+        [VFXSetting, SerializeField]
+        private VertexAttribute Output = VertexAttribute.Position;
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -68,13 +68,13 @@ namespace UnityEditor.VFX.Operator
                 case VertexAttribute.Normal: return typeof(Vector3);
                 case VertexAttribute.Tangent: return typeof(Vector4);
                 case VertexAttribute.Color: return typeof(Vector4);
-                case VertexAttribute.TexCoord0: return typeof(Vector2);
-                case VertexAttribute.TexCoord1: return typeof(Vector2);
-                case VertexAttribute.TexCoord2: return typeof(Vector2);
-                case VertexAttribute.TexCoord3: return typeof(Vector2);
-                case VertexAttribute.TexCoord4: return typeof(Vector2);
-                case VertexAttribute.TexCoord5: return typeof(Vector2);
-                case VertexAttribute.TexCoord6: return typeof(Vector2);
+                case VertexAttribute.TexCoord0:
+                case VertexAttribute.TexCoord1:
+                case VertexAttribute.TexCoord2:
+                case VertexAttribute.TexCoord3:
+                case VertexAttribute.TexCoord4:
+                case VertexAttribute.TexCoord5:
+                case VertexAttribute.TexCoord6:
                 case VertexAttribute.TexCoord7: return typeof(Vector2);
                 case VertexAttribute.BlendWeight: return typeof(Vector4);
                 case VertexAttribute.BlendIndices: return typeof(Vector4);
@@ -108,25 +108,24 @@ namespace UnityEditor.VFX.Operator
             var mesh = inputExpression[0];
 
             VFXExpression meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
-            VFXExpression meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<int>((int)Output));
-            VFXExpression meshVertexCount = new VFXExpressionCastIntToFloat(new VFXExpressionMeshVertexCount(mesh));
+            VFXExpression meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<uint>((uint)Output));
+            VFXExpression meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
 
             //if (Placement == PlacementMode.Vertex)
             {
                 VFXExpression vertexIndex;
-
                 switch (Selection)
                 {
                     case SelectionMode.Random:
                         {
-                            VFXExpressionRandom rand = new VFXExpressionRandom(true);
-                            vertexIndex = rand * VFXValue.Constant<float>(0.9999f) * meshVertexCount;
+                            var rand = new VFXExpressionRandom(true);
+                            vertexIndex = rand * new VFXExpressionCastUintToFloat(meshVertexCount);
+                            vertexIndex = new VFXExpressionCastFloatToUint(vertexIndex);
                         }
                         break;
                     case SelectionMode.Custom:
                         {
-                            vertexIndex = new VFXExpressionCastIntToFloat(inputExpression[1]);
-                            vertexIndex = VFXOperatorUtility.Modulo(vertexIndex, meshVertexCount);
+                            vertexIndex = VFXOperatorUtility.Modulo(inputExpression[1], meshVertexCount);
                         }
                         break;
                     default:
@@ -134,8 +133,6 @@ namespace UnityEditor.VFX.Operator
                 }
 
                 var outputType = GetOutputType();
-                vertexIndex = new VFXExpressionCastFloatToInt(vertexIndex);
-
                 if (Output == VertexAttribute.Color)
                     return new[] { new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
                 if (outputType == typeof(float))
@@ -149,7 +146,7 @@ namespace UnityEditor.VFX.Operator
             }
             /*else
             {
-                // todo
+                // todo: Triangle
             }*/
         }
     }

@@ -10,7 +10,6 @@
 #define FIXED_RAND2(h) float2(FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND3(h) float3(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
 #define FIXED_RAND4(h) float4(FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h),FIXED_RAND(h))
-#define RAND_INT RandInt(seed)
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
 #define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
@@ -280,12 +279,6 @@ float Rand(inout uint seed)
     return ToFloat01(seed);
 }
 
-int RandInt(inout uint seed)
-{
-    seed = Lcg(seed);
-    return seed;
-}
-
 float FixedRand(uint seed)
 {
     return ToFloat01(AnotherHash(seed));
@@ -294,28 +287,27 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
-
-float4 SampleMeshFloat4(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
+float4 SampleMeshFloat4(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    int offset = vertexIndex * vertexStride + channelOffset;
-    return float4(vertices[offset], vertices[offset + 1], vertices[offset + 2], vertices[offset + 3]);
+    uint offset = vertexIndex * vertexStride + channelOffset;
+    return float4(vertices[offset], vertices[offset + 1u], vertices[offset + 2u], vertices[offset + 3u]);
 }
 
-float3 SampleMeshFloat3(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
+float3 SampleMeshFloat3(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
         return float3(0.0f, 0.0f, 0.0f);
-    int offset = vertexIndex * vertexStride + channelOffset;
-    return float3(vertices[offset], vertices[offset + 1], vertices[offset + 2]);
+    uint offset = vertexIndex * vertexStride + channelOffset;
+    return float3(vertices[offset], vertices[offset + 1u], vertices[offset + 2u]);
 }
 
-float2 SampleMeshFloat2(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
+float2 SampleMeshFloat2(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
     if (channelOffset == -1)
         return float2(0.0f, 0.0f);
-    int offset = vertexIndex * vertexStride + channelOffset;
+    uint offset = vertexIndex * vertexStride + channelOffset;
     return float2(vertices[offset], vertices[offset + 1]);
 }
 

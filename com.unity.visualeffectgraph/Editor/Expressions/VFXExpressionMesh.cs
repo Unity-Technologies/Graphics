@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionSampleMeshFloat : VFXExpression
     {
-        public VFXExpressionSampleMeshFloat() : this(VFXValue<Mesh>.Default, VFXValue<int>.Default, VFXValue<int>.Default, VFXValue<int>.Default)
+        public VFXExpressionSampleMeshFloat() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
@@ -26,9 +26,9 @@ namespace UnityEditor.VFX
             var vertexStrideReduce = constParents[3];
 
             var mesh = meshReduce.Get<Mesh>();
-            var vertexIndex = vertexIndexReduce.Get<int>();
-            var channelOffset = channelOffsetReduce.Get<int>();
-            var vertexStride = vertexStrideReduce.Get<int>();
+            var vertexIndex = vertexIndexReduce.Get<uint>();
+            var channelOffset = channelOffsetReduce.Get<uint>();
+            var vertexStride = vertexStrideReduce.Get<uint>();
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat(mesh, vertexIndex, channelOffset, vertexStride));
         }
@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSampleMeshFloat2 : VFXExpression
     {
-        public VFXExpressionSampleMeshFloat2() : this(VFXValue<Mesh>.Default, VFXValue<int>.Default, VFXValue<int>.Default, VFXValue<int>.Default)
+        public VFXExpressionSampleMeshFloat2() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
@@ -54,9 +54,9 @@ namespace UnityEditor.VFX
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var mesh = constParents[0].Get<Mesh>();
-            var vertexIndex = constParents[1].Get<int>();
-            var channelOffset = constParents[2].Get<int>();
-            var vertexStride = constParents[3].Get<int>();
+            var vertexIndex = constParents[1].Get<uint>();
+            var channelOffset = constParents[2].Get<uint>();
+            var vertexStride = constParents[3].Get<uint>();
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat2(mesh, vertexIndex, channelOffset, vertexStride));
         }
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSampleMeshFloat3 : VFXExpression
     {
-        public VFXExpressionSampleMeshFloat3() : this(VFXValue<Mesh>.Default, VFXValue<int>.Default, VFXValue<int>.Default, VFXValue<int>.Default)
+        public VFXExpressionSampleMeshFloat3() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
@@ -82,9 +82,9 @@ namespace UnityEditor.VFX
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var mesh = constParents[0].Get<Mesh>();
-            var vertexIndex = constParents[1].Get<int>();
-            var channelOffset = constParents[2].Get<int>();
-            var vertexStride = constParents[3].Get<int>();
+            var vertexIndex = constParents[1].Get<uint>();
+            var channelOffset = constParents[2].Get<uint>();
+            var vertexStride = constParents[3].Get<uint>();
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat3(mesh, vertexIndex, channelOffset, vertexStride));
         }
@@ -97,7 +97,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSampleMeshFloat4 : VFXExpression
     {
-        public VFXExpressionSampleMeshFloat4() : this(VFXValue<Mesh>.Default, VFXValue<int>.Default, VFXValue<int>.Default, VFXValue<int>.Default)
+        public VFXExpressionSampleMeshFloat4() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
@@ -110,9 +110,9 @@ namespace UnityEditor.VFX
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var mesh = constParents[0].Get<Mesh>();
-            var vertexIndex = constParents[1].Get<int>();
-            var channelOffset = constParents[2].Get<int>();
-            var vertexStride = constParents[3].Get<int>();
+            var vertexIndex = constParents[1].Get<uint>();
+            var channelOffset = constParents[2].Get<uint>();
+            var vertexStride = constParents[3].Get<uint>();
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat4(mesh, vertexIndex, channelOffset, vertexStride));
         }
@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionSampleMeshColor : VFXExpression
     {
-        public VFXExpressionSampleMeshColor() : this(VFXValue<Mesh>.Default, VFXValue<int>.Default, VFXValue<int>.Default, VFXValue<int>.Default)
+        public VFXExpressionSampleMeshColor() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
@@ -138,9 +138,9 @@ namespace UnityEditor.VFX
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var mesh = constParents[0].Get<Mesh>();
-            var vertexIndex = constParents[1].Get<int>();
-            var channelOffset = constParents[2].Get<int>();
-            var vertexStride = constParents[3].Get<int>();
+            var vertexIndex = constParents[1].Get<uint>();
+            var channelOffset = constParents[2].Get<uint>();
+            var vertexStride = constParents[3].Get<uint>();
 
             return VFXValue.Constant(VFXExpressionMesh.GetColor(mesh, vertexIndex, channelOffset, vertexStride));
         }
@@ -173,7 +173,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMeshChannelOffset : VFXExpression
     {
-        public VFXExpressionMeshChannelOffset() : this(VFXValue<Mesh>.Default, VFXValue<int>.Default)
+        public VFXExpressionMeshChannelOffset() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default)
         {
         }
 
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX
             var channelIndexReduce = constParents[1];
 
             var mesh = meshReduce.Get<Mesh>();
-            var channelIndex = channelIndexReduce.Get<int>();
+            var channelIndex = channelIndexReduce.Get<uint>();
 
             return VFXValue.Constant(VFXExpressionMesh.GetChannelOffset(mesh, channelIndex));
         }
