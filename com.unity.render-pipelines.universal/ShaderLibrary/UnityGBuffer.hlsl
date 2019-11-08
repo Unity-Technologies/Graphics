@@ -9,6 +9,9 @@
 // backscatter 4 
 // skin 5
 
+#define kMaterialFlagReceiveShadowsOff     1
+#define kMaterialFlagSpecularHighlightsOff 2
+
 struct FragmentOutput
 {
     half4 GBuffer0 : SV_Target0; // maps to GBufferPass.m_GBufferAttachments[0] on C# side
@@ -17,12 +20,22 @@ struct FragmentOutput
     half4 GBuffer3 : SV_Target3; // maps to DeferredPass.m_CameraColorAttachment on C# side
 };
 
-#define PACK_NORMALS_OCT 1
+#define _PACK_NORMALS_OCT 1
+
+float PackMaterialFlags(uint materialFlags)
+{
+    return materialFlags * (1.0h / 255.0h);
+}
+
+uint UnpackMaterialFlags(float packedMaterialFlags)
+{
+    return uint(packedMaterialFlags * 255.0h);
+}
 
 // This will encode SurfaceData into GBuffer
 FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData, half3 globalIllumination, int lightingMode)
 {
-#if PACK_NORMALS_OCT
+#if _PACK_NORMALS_OCT
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
     half2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
@@ -35,11 +48,19 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     if (lightingMode == kLightingSimpleLit)
         packedSmoothness = 0.1h * log2(packedSmoothness) - 0.1h; // See SimpleLitInput.hlsl, SampleSpecularSmoothness(): TODO pass in the original smoothness value
 
+    uint materialFlags = 0;
+
+    // SimpleLit does not use _SPECULARHIGHLIGHTS_OFF to disable specular highlights.
+
+#ifdef _RECEIVE_SHADOWS_OFF
+    materialFlags |= kMaterialFlagReceiveShadowsOff;
+#endif
+
     FragmentOutput output;
-    output.GBuffer0 = half4(surfaceData.albedo.rgb, surfaceData.occlusion);     // albedo          albedo          albedo          occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                       // specular        specular        specular        [unused]     (sRGB rendertarget)
-    output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                  // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
-    output.GBuffer3 = half4(globalIllumination, 0);                             // GI              GI              GI              [unused]     (lighting buffer)
+    output.GBuffer0 = half4(surfaceData.albedo.rgb, PackMaterialFlags(materialFlags));   // albedo          albedo          albedo          materialFlags   (sRGB rendertarget)
+    output.GBuffer1 = half4(surfaceData.specular.rgb, 0);                                // specular        specular        specular        [unused]        (sRGB rendertarget)
+    output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                           // encoded-normal  encoded-normal  encoded-normal  packed-smoothness
+    output.GBuffer3 = half4(globalIllumination, 0);                                      // GI              GI              GI              [not_available] (lighting buffer)
 
     return output;
 }
@@ -50,9 +71,9 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
     SurfaceData surfaceData;
 
     surfaceData.albedo = gbuffer0.rgb;
-    surfaceData.occlusion = gbuffer0.a;
+    uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
+    surfaceData.occlusion = 1.0; // Not used by SimpleLit material.
     surfaceData.specular = gbuffer1.rgb;
-
     half smoothness = gbuffer2.a;
 
     if (lightingMode == kLightingSimpleLit)
@@ -69,9 +90,9 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half occlusion, half smoothness, half3 globalIllumination)
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
 {
-#if PACK_NORMALS_OCT
+#if _PACK_NORMALS_OCT
     half2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1]
     half2 remappedOctNormalWS = octNormalWS * 0.5 + 0.5;   // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);
@@ -79,19 +100,26 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half oc
     half3 packedNormalWS = inputData.normalWS * 0.5 + 0.5;   // values between [ 0,  1]
 #endif
 
+    uint materialFlags = 0;
+
 #ifdef _SPECULARHIGHLIGHTS_OFF
     // During deferred shading pass, we don't use a shader variant that disable specular calculations.
     // Instead, we can silence specular contribution when writing the gbuffer.
     half3 specular = 0.0;
 #else
     half3 specular = brdfData.specular.rgb;
+    materialFlags |= kMaterialFlagSpecularHighlightsOff;
+#endif
+
+#ifdef _RECEIVE_SHADOWS_OFF
+    materialFlags |= kMaterialFlagReceiveShadowsOff;
 #endif
 
     FragmentOutput output;
-    output.GBuffer0 = half4(brdfData.diffuse.rgb, occlusion);              // diffuse         diffuse         diffuse         occlusion    (sRGB rendertarget)
-    output.GBuffer1 = half4(specular, brdfData.reflectivity);              // specular        specular        specular        reflectivity (sRGB rendertarget)
-    output.GBuffer2 = half4(packedNormalWS, smoothness);                   // encoded-normal  encoded-normal  encoded-normal  smoothness
-    output.GBuffer3 = half4(globalIllumination, 0);                        // GI              GI              GI              [unused]     (lighting buffer)
+    output.GBuffer0 = half4(brdfData.diffuse.rgb, PackMaterialFlags(materialFlags)); // diffuse         diffuse         diffuse         materialFlags   (sRGB rendertarget)
+    output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
+    output.GBuffer2 = half4(packedNormalWS, smoothness);                             // encoded-normal  encoded-normal  encoded-normal  smoothness
+    output.GBuffer3 = half4(globalIllumination, 0);                                  // GI              GI              GI              [not_available] (lighting buffer)
 
     return output;
 }
@@ -100,6 +128,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half oc
 BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
 {
     half3 diffuse = gbuffer0.rgb;
+    uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
     half3 specular = gbuffer1.rgb;
     half reflectivity = gbuffer1.a;
     half oneMinusReflectivity = 1.0h - reflectivity;
@@ -118,7 +147,7 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     inputData.positionWS = wsPos;
 
     half3 packedNormalWS = gbuffer2.xyz;
-#if PACK_NORMALS_OCT
+#if _PACK_NORMALS_OCT
     half2 remappedOctNormalWS = Unpack888ToFloat2(packedNormalWS); // values between [ 0,  1]
     half2 octNormalWS = remappedOctNormalWS.xy * 2.0 - 1.0;        // values between [-1, +1]
     inputData.normalWS = UnpackNormalOctQuadEncode(octNormalWS);

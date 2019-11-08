@@ -194,6 +194,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
         posWS.xyz *= 1.0 / posWS.w;
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+        uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
+        bool materialFlagReceiveShadows = (materialFlags & kMaterialFlagReceiveShadowsOff) == 0;
 
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
@@ -214,7 +216,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialFlagReceiveShadows);
                     color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
                 }
             }
@@ -231,7 +233,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialFlagReceiveShadows);
 
                     half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
                     half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);

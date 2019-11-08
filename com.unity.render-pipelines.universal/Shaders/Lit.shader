@@ -198,6 +198,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature _SPECULAR_SETUP
+            #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords

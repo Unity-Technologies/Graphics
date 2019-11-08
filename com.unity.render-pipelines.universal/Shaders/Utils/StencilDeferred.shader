@@ -92,6 +92,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         posWS.xyz *= 1.0 / posWS.w;
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+        uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
+        bool materialFlagReceiveShadows = (materialFlags & kMaterialFlagReceiveShadowsOff) == 0;
 
         Light unityLight;
 
@@ -99,7 +101,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             unityLight.direction = _LightDirection;
             unityLight.color = _LightColor.rgb;
             unityLight.distanceAttenuation = 1.0;
-            unityLight.shadowAttenuation = 1.0;
+            unityLight.shadowAttenuation = 1.0; // TODO materialFlagReceiveShadows
         #else
             PunctualLightData light;
             light.posWS = _LightPosWS;
@@ -108,7 +110,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.attenuation = _LightAttenuation;
             light.spotDirection = _LightDirection;
             light.shadowLightIndex = _ShadowLightIndex;
-            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz);
+            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialFlagReceiveShadows);
         #endif
 
         half3 color = 0.0.xxx;
