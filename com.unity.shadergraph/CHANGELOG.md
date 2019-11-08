@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - You can now save your graph as a new Asset.
 - Added support for vertex skinning when you use the DOTS animation package.
 - You can now use the right-click context menu to set the precision on multiple selected nodes.
-- Properties in the blackboard remember its state now for the duration of each session.
+- Properties in the Blackboard now store their states for the duration of each session.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
