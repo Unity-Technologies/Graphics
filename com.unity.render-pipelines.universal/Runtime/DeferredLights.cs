@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using UnityEngine.Profiling;
 using Unity.Collections;
 using Unity.Jobs;
@@ -723,7 +724,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             for (int visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
             {
-                if (IsTileLight(visibleLights[visLightIndex].light))
+                if (IsTileLight(visibleLights[visLightIndex]))
                     return true;
             }
 
@@ -749,7 +750,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (ushort visLightIndex = 0; visLightIndex < visibleLights.Length; ++visLightIndex)
             {
                 VisibleLight vl = visibleLights[visLightIndex];
-                if (this.tiledDeferredShading && IsTileLight(vl.light))
+
+                if (this.tiledDeferredShading && IsTileLight(vl))
                     ++tileLightOffsets[(int)vl.lightType];
                 else // All remaining lights are processed as stencil volumes.
                     ++stencilLightOffsets[(int)vl.lightType];
@@ -779,11 +781,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 VisibleLight vl = visibleLights[visLightIndex];
 
-                if (this.tiledDeferredShading && IsTileLight(vl.light))
+                if (this.tiledDeferredShading && IsTileLight(vl))
                 {
                     DeferredTiler.PrePunctualLight ppl;
-                    ppl.posVS = view.MultiplyPoint(vl.light.transform.position); // By convention, OpenGL RH coordinate space
-                    ppl.radius = vl.light.range;
+                    ppl.posVS = view.MultiplyPoint(vl.localToWorldMatrix.GetColumn(3)); // By convention, OpenGL RH coordinate space
+                    ppl.radius = vl.range;
                     ppl.minDist = max(0.0f, length(ppl.posVS) - ppl.radius);
 
                     ppl.screenPos = new Vector2(ppl.posVS.x, ppl.posVS.y);
@@ -1063,7 +1065,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (vl.lightType != LightType.Spot)
                         break;
 
-                    float alpha = Mathf.Deg2Rad * vl.light.spotAngle * 0.5f;
+                    float alpha = Mathf.Deg2Rad * vl.spotAngle * 0.5f;
                     float cosAlpha = Mathf.Cos(alpha);
                     float sinAlpha = Mathf.Sin(alpha);
                     // Artificially inflate the geometric shape to fit the analytic spot shape.
@@ -1073,31 +1075,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Vector4 lightAttenuation;
                     Vector4 lightSpotDir4;
                     ForwardLights.GetLightAttenuationAndSpotDirection(
-                        vl.light.type, vl.range /*vl.light.range*/, vl.localToWorldMatrix,
+                        vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
                         vl.spotAngle, vl.light?.innerSpotAngle,
                         out lightAttenuation, out lightSpotDir4);
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
-                    if (vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
+                    if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                         cmd.EnableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
                     else
                         cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
 
-                    cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.light.range));
+                    cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                     cmd.SetGlobalVector(ShaderConstants._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
-                    cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.light.range));
-                    cmd.SetGlobalVector(ShaderConstants._LightPosWS, vl.light.transform.position);
-                    cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+                    cmd.SetGlobalVector(ShaderConstants._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
+                    cmd.SetGlobalVector(ShaderConstants._LightPosWS, vl.localToWorldMatrix.GetColumn(3));
+                    cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
                     cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
                     cmd.SetGlobalVector(ShaderConstants._LightDirection, new Vector3(lightSpotDir4.x, lightSpotDir4.y, lightSpotDir4.z));
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
                     // Stencil pass.
-                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 0);
 
                     // Lighting pass.
-                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
-                    cmd.DrawMesh(m_HemisphereMesh, vl.light.transform.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 1); // Lit
+                    cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, 2); // SimpleLit
                 }
 
                 cmd.DisableShaderKeyword(ShaderConstants._SPOT);
@@ -1119,7 +1121,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (visLightIndex == renderingData.lightData.mainLightIndex)
                         continue;
 
-                    cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+                    cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
                     cmd.SetGlobalVector(ShaderConstants._LightDirection, -(Vector3)vl.localToWorldMatrix.GetColumn(2));
 
                     // Lighting pass.
@@ -1139,30 +1141,30 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (vl.lightType != LightType.Point)
                         break;
 
-                    Vector3 posWS = vl.light.transform.position;
+                    Vector3 posWS = vl.localToWorldMatrix.GetColumn(3);
 
                     Matrix4x4 transformMatrix = new Matrix4x4(
-                        new Vector4(vl.light.range,           0.0f,           0.0f, 0.0f),
-                        new Vector4(          0.0f, vl.light.range,           0.0f, 0.0f),
-                        new Vector4(          0.0f,           0.0f, vl.light.range, 0.0f),
-                        new Vector4(       posWS.x,        posWS.y,         posWS.z, 1.0f)
+                        new Vector4(vl.range,     0.0f,     0.0f, 0.0f),
+                        new Vector4(    0.0f, vl.range,     0.0f, 0.0f),
+                        new Vector4(    0.0f,     0.0f, vl.range, 0.0f),
+                        new Vector4( posWS.x,  posWS.y,  posWS.z, 1.0f)
                     );
 
                     Vector4 lightAttenuation;
                     Vector4 lightSpotDir4;
                     ForwardLights.GetLightAttenuationAndSpotDirection(
-                        vl.light.type, vl.range /*vl.light.range*/, vl.localToWorldMatrix,
+                        vl.lightType, vl.range /*vl.range*/, vl.localToWorldMatrix,
                         vl.spotAngle, vl.light?.innerSpotAngle,
                         out lightAttenuation, out lightSpotDir4);
 
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass.GetShadowLightIndexForLightIndex(visLightIndex);
-                    if (vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
+                    if (vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0)
                         cmd.EnableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
                     else
                         cmd.DisableShaderKeyword(ShaderConstants._ADDITIONAL_LIGHT_SHADOWS);
 
                     cmd.SetGlobalVector(ShaderConstants._LightPosWS, posWS);
-                    cmd.SetGlobalVector(ShaderConstants._LightColor, /*vl.light.color*/ vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
+                    cmd.SetGlobalVector(ShaderConstants._LightColor, vl.finalColor ); // VisibleLight.finalColor already returns color in active color space
                     cmd.SetGlobalVector(ShaderConstants._LightAttenuation, lightAttenuation);
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
 
@@ -1226,7 +1228,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // tile lights do not support shadows, so shadowLightIndex is -1.
             int shadowLightIndex = -1;
-            Vector3 posWS = visibleLights[index].light.transform.position;
+            Vector3 posWS = visibleLights[index].localToWorldMatrix.GetColumn(3);
 
             Vector4 lightAttenuation;
             Vector4 lightSpotDir;
@@ -1247,12 +1249,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             tileList[storeIndex] = new Vector4UInt { x = tileID, y = listBitMask, z = relLightOffset | ((uint)lightCount << 16), w = 0 };
         }
 
-        bool IsTileLight(Light light)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool IsTileLight(VisibleLight visibleLight)
         {
             // tileDeferred might render a lot of point lights in the same draw call.
             // point light shadows require generating cube shadow maps in real-time, requiring extra CPU/GPU resources ; which can become expensive quickly
-            return (light.type == LightType.Point && light.shadows == LightShadows.None)
-                || (light.type == LightType.Spot && light.shadows == LightShadows.None);
+            return (visibleLight.lightType == LightType.Point && (visibleLight.light == null || visibleLight.light.shadows == LightShadows.None))
+                || (visibleLight.lightType  == LightType.Spot && (visibleLight.light == null || visibleLight.light.shadows == LightShadows.None));
         }
 
         static Mesh CreateSphereMesh()
