@@ -253,6 +253,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Use SRP managed View&Proj
             if(URPCameraMode.isPureURP)
             {
+                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
@@ -374,13 +377,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
                     Matrix4x4 viewMatrix = Matrix4x4.identity;
                     Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                    Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
                     cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
 
                     if (m_Destination == RenderTargetHandle.CameraTarget)
                         cmd.SetViewport(cameraData.camera.pixelRect);
@@ -412,6 +409,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (tempTarget2Used)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget2);
+            }
+
+            if (URPCameraMode.isPureURP)
+            {
+                // XRTODO: Remove this once pure mode is on globally
+                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
             }
         }
 
@@ -1239,6 +1242,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
+                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;
                 // XRTODO: This is a bit hacky, we have to assume the img is already y-flipped in previous postFX pass.
@@ -1246,17 +1252,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
 
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
+
+                // XRTODO: Remove this once pure mode is on globally
+                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
             }
             else
             {

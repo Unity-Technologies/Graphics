@@ -274,12 +274,17 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.isStereoEnabled)
             {
+                // Turn off pure mode for XR globally.
                 Shader.DisableKeyword("UNITY_PURE_URP_ON");
                 URPCameraMode.isPureURP = false;
             }
             else
             {
-                Shader.EnableKeyword("UNITY_PURE_URP_ON");
+                // We turn on pure mode on a per pass basis through cmd.EnableGlobalShaderKeyword in relevant passes
+                // This enables us to deprecate no-pure usage without breaking existing custom passes/render features
+                // XRTODO: Enable pure mode globally by uncomment the following line
+                // Shader.EnableKeyword("UNITY_PURE_URP_ON");
+                Shader.DisableKeyword("UNITY_PURE_URP_ON");
                 URPCameraMode.isPureURP = true;
             }
 

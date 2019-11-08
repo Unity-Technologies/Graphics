@@ -55,6 +55,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
+                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
                 // meanwhile we set to load so split screen case works.
@@ -79,6 +82,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
+
+                // XRTODO: Remove this once pure mode is on globally
+                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
             else
             {

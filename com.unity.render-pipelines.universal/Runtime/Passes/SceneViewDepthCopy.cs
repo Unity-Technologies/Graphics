@@ -45,14 +45,18 @@ namespace UnityEngine.Rendering.Universal
 
             if (URPCameraMode.isPureURP)
             {
+                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
 
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
-                // XRTODO: fullscreen triangle/quad if support vertexID
-                //cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                // XRTODO: Remove this once pure mode is on globally
+                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
             }
             else
             {

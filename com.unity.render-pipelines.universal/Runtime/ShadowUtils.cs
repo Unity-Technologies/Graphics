@@ -75,10 +75,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
             if (URPCameraMode.isPureURP)
             {
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-                projMatrix = GL.GetGPUProjectionMatrix(proj, true);
-                viewMatrix = view;
+                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(proj, true);
+                Matrix4x4 viewMatrix = view;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
@@ -87,16 +88,23 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                context.DrawShadows(ref settings);
+                cmd.DisableScissorRect();
+
+                // XRTODO: Remove this once pure mode is on globally
+                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
             }
             else
             {
                 cmd.SetViewProjectionMatrices(view, proj);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                context.DrawShadows(ref settings);
+                cmd.DisableScissorRect();
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-            context.DrawShadows(ref settings);
-            cmd.DisableScissorRect();
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
         }

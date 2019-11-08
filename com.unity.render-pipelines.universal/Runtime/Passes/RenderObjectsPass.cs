@@ -86,55 +86,83 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                if (m_CameraSettings.overrideCamera)
+                if (URPCameraMode.isPureURP)
                 {
-                    Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
-                        camera.nearClipPlane, camera.farClipPlane);
+                    // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                    cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
 
                     Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
-                    Vector4 cameraTranslation = viewMatrix.GetColumn(3);
-                    viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
-
-                    if (URPCameraMode.isPureURP)
+                    Matrix4x4 projectionMatrix = camera.projectionMatrix;
+                    if (m_CameraSettings.overrideCamera)
                     {
-                        Matrix4x4 projMatrix;
-                        projMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, true);
-                        Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                        Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                        projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
+                            camera.nearClipPlane, camera.farClipPlane);
 
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+                        viewMatrix = camera.worldToCameraMatrix;
+                        Vector4 cameraTranslation = viewMatrix.GetColumn(3);
+                        viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
+                    }
+                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, true);
+                    Matrix4x4 viewProjMatrix = projectionMatrix * viewMatrix;
+                    Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
 
-                        // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
-                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-                    }
-                    else
-                    {
-                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-                    }
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projectionMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projectionMatrix));
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                    // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
+                    // Right now this need to be called to not break custom render feature that uses custom material
+                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+                    
                     context.ExecuteCommandBuffer(cmd);
+                }
+                else
+                {
+                    if (m_CameraSettings.overrideCamera)
+                    {
+                        Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
+                            camera.nearClipPlane, camera.farClipPlane);
+
+                        Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+                        Vector4 cameraTranslation = viewMatrix.GetColumn(3);
+                        viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
+                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+
+                        context.ExecuteCommandBuffer(cmd);
+                    }
                 }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
                     ref m_RenderStateBlock);
 
-                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera)
+                if (URPCameraMode.isPureURP)
                 {
-                    Matrix4x4 projectionMatrix = Matrix4x4.Perspective(camera.fieldOfView, cameraAspect,
-                        camera.nearClipPlane, camera.farClipPlane);
+                    if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera)
+                    {
+                        Matrix4x4 projectionMatrix = Matrix4x4.Perspective(camera.fieldOfView, cameraAspect,
+                            camera.nearClipPlane, camera.farClipPlane);
 
-                    cmd.Clear();
-                    if (URPCameraMode.isPureURP)
-                    {
-                       // Pure Mode Does not require reset
-                    }
-                    else
-                    {
+                        cmd.Clear();
+                        // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
                         cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
+                    }
+                    // XRTODO: Remove this once pure mode is on globally
+                    cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+                }
+                else
+                {
+                    if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera)
+                    {
+                        Matrix4x4 projectionMatrix = Matrix4x4.Perspective(camera.fieldOfView, cameraAspect,
+                            camera.nearClipPlane, camera.farClipPlane);
+
+                        cmd.Clear();
+                        {
+                            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
+                        }
                     }
                 }
             }

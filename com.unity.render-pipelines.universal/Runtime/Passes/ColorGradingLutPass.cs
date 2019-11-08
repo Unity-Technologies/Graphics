@@ -165,6 +165,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Render the lut
             if(URPCameraMode.isPureURP)
             {
+                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
@@ -179,6 +182,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 CoreUtils.SetRenderTarget(cmd, m_InternalLut.id);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
+
+                // XRTODO: Remove this once pure mode is on globally
+                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
             }
             else
             {

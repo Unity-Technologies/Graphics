@@ -65,7 +65,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
-                switch(cameraSamples)
+                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
+                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+
+                switch (cameraSamples)
                 {
                     case 1:
                         cmd.EnableShaderKeyword(ShaderKeywordStrings.DepthNoMsaa);
@@ -100,6 +103,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 //CoreUtils.SetRenderTarget(cmd, copyDepthSurface);
                 ScriptableRenderer.SetRenderTarget(cmd, copyDepthSurface, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+
+                // XRTODO: Remove this once pure mode is on globally
+                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
             }
             else
             {
