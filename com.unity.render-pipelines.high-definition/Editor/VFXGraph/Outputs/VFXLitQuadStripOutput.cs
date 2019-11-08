@@ -21,6 +21,9 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("Specifies the way the UVs are interpolated along the strip. They can either be stretched or repeated per segment.")]
         private StripTilingMode tilingMode = StripTilingMode.Stretch;
 
+        [VFXSetting, SerializeField, Tooltip("When enabled, uvs for the strips are swapped.")]
+        protected bool swapUV = false;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
@@ -86,6 +89,9 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+
+                if (swapUV)
+                    yield return "VFX_STRIPS_SWAP_UV";
 
                 if (UseCustomZAxis)
                     yield return "VFX_STRIPS_ORIENT_CUSTOM";
