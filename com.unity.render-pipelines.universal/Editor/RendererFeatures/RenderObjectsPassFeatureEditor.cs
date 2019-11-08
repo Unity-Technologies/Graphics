@@ -12,31 +12,31 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    internal class Styles
 	    {
 		    public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-		    public static GUIContent callback = new GUIContent("Event", "Chose the Callback position for this render pass object.");
+		    public static GUIContent callback = new GUIContent("Event", "Choose at which point this render pass is executed in the frame.");
 
 		    //Headers
-		    public static GUIContent filtersHeader = new GUIContent("Filters", "Filters.");
-		    public static GUIContent renderHeader = new GUIContent("Overrides", "Different parts fo the rendering that you can choose to override.");
-
+		    public static GUIContent filtersHeader = new GUIContent("Filters", "Settings that control which objects should be rendered.");
+		    public static GUIContent renderHeader = new GUIContent("Overrides", "Different parts of the rendering that you can choose to override.");
+		    
 		    //Filters
-		    public static GUIContent renderQueueFilter = new GUIContent("Queue", "Filter the render queue range you want to render.");
-		    public static GUIContent layerMask = new GUIContent("Layer Mask", "Chose the Callback position for this render pass object.");
-		    public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Chose the Callback position for this render pass object.");
-
+		    public static GUIContent renderQueueFilter = new GUIContent("Queue", "Only render objects in the selected render queue range.");
+		    public static GUIContent layerMask = new GUIContent("Layer Mask", "Only render objects in a layer that match the given layer mask.");
+		    public static GUIContent shaderPassFilter = new GUIContent("Shader Passes", "Controls which shader passes to use when rendering objects. The name given here must match the LightMode tag in a shader pass.");
+		    
 		    //Render Options
-		    public static GUIContent overrideMaterial = new GUIContent("Material", "Chose an override material, every renderer will be rendered with this material.");
+		    public static GUIContent overrideMaterial = new GUIContent("Material", "Choose an override material, every renderer will be rendered with this material.");
 		    public static GUIContent overrideMaterialPass = new GUIContent("Pass Index", "The pass index for the override material to use.");
-
+		    
 		    //Depth Settings
 		    public static GUIContent overrideDepth = new GUIContent("Depth", "Override depth rendering.");
-		    public static GUIContent writeDepth = new GUIContent("Write Depth", "Chose to write depth to the screen.");
-		    public static GUIContent depthState = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
+		    public static GUIContent writeDepth = new GUIContent("Write Depth", "Choose to write depth to the screen.");
+		    public static GUIContent depthState = new GUIContent("Depth Test", "Choose a new depth test function.");
 
 		    //Camera Settings
-		    public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
+		    public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera matrices.");
 		    public static GUIContent cameraFOV = new GUIContent("Field Of View", "Field Of View to render this pass in.");
 		    public static GUIContent positionOffset = new GUIContent("Position Offset", "This Vector acts as a relative offset for the camera.");
-		    public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera projection before this pass.");
+		    public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera matrices before this pass.");
         }
 
 	    //Headers and layout
