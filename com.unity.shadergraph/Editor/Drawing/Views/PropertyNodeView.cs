@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed class PropertyNodeView : TokenNode, IShaderNodeView
+    sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable
     {
 
         public PropertyNodeView(PropertyNode node, EdgeConnectorListener edgeConnectorListener)
@@ -40,6 +40,23 @@ namespace UnityEditor.ShaderGraph
         public AbstractMaterialNode node { get; }
 
         public VisualElement colorElement => null;
+
+        public string displayName
+        {
+            get
+            {
+                var propNode = node as PropertyNode;
+                var graph = node.owner as GraphData;
+                var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
+                return $"{property.displayName} (Node)";
+            }
+        }
+
+        public PropertySheet GetInspectorContent()
+        {
+            var sheet = new PropertySheet();
+            return sheet;
+        }
 
         public void SetColor(Color newColor)
         {

@@ -163,6 +163,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PropertyContainer.Add(inspectable.GetInspectorContent());
             }
 
+            // These would require SG specific view implementations
+            // For now just handle manually
+            else if(selection.FirstOrDefault() is UnityEditor.Experimental.GraphView.Edge edge)
+            {
+                m_ContextTitle.text = "(Edge)";
+            }
+            else if(selection.FirstOrDefault() is UnityEditor.Experimental.GraphView.Group group)
+            {
+                m_ContextTitle.text = "(Group)";
+            }
+
             m_PropertyContainer.MarkDirtyRepaint();
         }
 
