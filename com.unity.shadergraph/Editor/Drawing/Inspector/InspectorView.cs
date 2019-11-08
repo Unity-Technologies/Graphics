@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
@@ -80,11 +81,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var titleContainer = new VisualElement() { name = "titleContainer" };
             {
-                var titleLabel = new Label(kTitle) { name = "titleLabel" };
-                m_ContextTitle = new Label(" ") { name = "titleValue" };
-
-                titleContainer.Add(titleLabel);
+                m_ContextTitle = new Label(" ") { name = "titleLabel" };
+                var titleLabel = new Label(kTitle) { name = "titleValue" };
+                
                 titleContainer.Add(m_ContextTitle);
+                titleContainer.Add(titleLabel);
             }
             Add(titleContainer);
         }
@@ -143,7 +144,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if(selection.Count == 0)
             {
-                m_ContextTitle.text = " ";
+                SetSelectionToGraph();
                 return;
             }
 
@@ -161,8 +162,42 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ContextTitle.text = inspectable.displayName;
                 m_PropertyContainer.Add(inspectable.GetInspectorContent());
             }
-            
+
             m_PropertyContainer.MarkDirtyRepaint();
+        }
+
+        void SetSelectionToGraph()
+        {
+            var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
+            if(graphEditorView == null)
+                return;
+            
+            m_ContextTitle.text = $"{graphEditorView.assetName} (Graph)";
+
+            var precisionField = new EnumField((Enum)m_GraphData.concretePrecision);
+            precisionField.RegisterValueChangedCallback(evt =>
+            {
+                m_GraphData.owner.RegisterCompleteObjectUndo("Change Precision");
+                if (m_GraphData.concretePrecision == (ConcretePrecision)evt.newValue)
+                    return;
+
+                m_GraphData.concretePrecision = (ConcretePrecision)evt.newValue;
+                var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+                graphEditorView.colorManager.SetNodesDirty(nodeList);
+                m_GraphData.ValidateGraph();
+                graphEditorView.colorManager.UpdateNodeViews(nodeList);
+                foreach (var node in m_GraphData.GetNodes<AbstractMaterialNode>())
+                {
+                    node.Dirty(ModificationScope.Graph);
+                }
+            });
+
+            var sheet = new PropertySheet();
+            sheet.Add(new PropertyRow(new Label("Precision")), (row) =>
+            {
+                row.Add(precisionField); 
+            });
+            m_PropertyContainer.Add(sheet);
         }
 #endregion
 

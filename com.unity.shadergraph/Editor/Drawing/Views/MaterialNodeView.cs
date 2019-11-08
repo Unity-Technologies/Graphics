@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         GraphView m_GraphView;
 
-        public string displayName => $"{node.name} Node";
+        public string displayName => $"{node.name} (Node)";
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, GraphView graphView)
         {

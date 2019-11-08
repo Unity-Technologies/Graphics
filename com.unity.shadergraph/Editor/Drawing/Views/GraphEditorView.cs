@@ -158,22 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (showInProjectRequested != null)
                             showInProjectRequested();
                     }
-
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    GUILayout.Space(4);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-                        m_ColorManager.SetNodesDirty(nodeList);
-                        graph.ValidateGraph();
-                        m_ColorManager.UpdateNodeViews(nodeList);
-                        foreach (var node in graph.GetNodes<AbstractMaterialNode>())
-                        {
-                            node.Dirty(ModificationScope.Graph);
-                        }
-                    }
+                    GUILayout.Space(6);
 
                     if (isCheckedOut != null)
                     {
