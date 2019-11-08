@@ -457,6 +457,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
+        static bool IsReprojectionEnabled(HDCamera hdCamera)
+        {
+            return Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
+                   hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
+        }
+
         void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!Fog.IsVolumetricLightingEnabled(hdCamera))
@@ -473,27 +479,48 @@ namespace UnityEngine.Rendering.HighDefinition
             var currFrameParams = hdCamera.vBufferParams[0];
             var prevFrameParams = hdCamera.vBufferParams[1];
 
-            // All buffers are of the same size, and are resized at the same time, at the beginning of the frame.
-            Vector2Int bufferSize = new Vector2Int(m_LightingBufferHandle.rt.width, m_LightingBufferHandle.rt.height);
+            // The lighting & density buffers are shared by all cameras.
+            // The history & feedback buffers are specific to the camera.
+            // These 2 types of buffers can have different sizes.
+            // The viewport size is the same for all of these buffers.
+            // All of these buffers may have sub-native-resolution viewports.
+            // The 3rd dimension (number of slices) is the same for all of these buffers.
+            Vector2Int sharedBufferSize = new Vector2Int(m_LightingBufferHandle.rt.width, m_LightingBufferHandle.rt.height);
+
+            Debug.Assert(m_LightingBufferHandle.rt.width  == m_DensityBufferHandle.rt.width);
+            Debug.Assert(m_LightingBufferHandle.rt.height == m_DensityBufferHandle.rt.height);
+
+            Vector2Int historyBufferSize = Vector2Int.zero;
+
+            if (IsReprojectionEnabled(hdCamera))
+            {
+                var historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+                var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+
+                Debug.Assert(historyRT.rt.width  == feedbackRT.rt.width);
+                Debug.Assert(historyRT.rt.height == feedbackRT.rt.height);
+
+                historyBufferSize = new Vector2Int(historyRT.rt.width, historyRT.rt.height);
+            }
 
             var cvp = currFrameParams.viewportSize;
             var pvp = prevFrameParams.viewportSize;
 
-            cmd.SetGlobalVector(HDShaderIDs._VBufferResolution,              new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
-            cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,              cvp.z);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,           1.0f / cvp.z);
-            cmd.SetGlobalVector(HDShaderIDs._VBufferUvScaleAndLimit,         currFrameParams.ComputeUvScaleAndLimit(bufferSize));
-            cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,  currFrameParams.depthEncodingParams);
-            cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,  currFrameParams.depthDecodingParams);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,           currFrameParams.ComputeLastSliceDistance());
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,   1.0f / hdCamera.viewCount);
+            cmd.SetGlobalVector(HDShaderIDs._VBufferViewportSize,               new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
+            cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,                 cvp.z);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,              1.0f / cvp.z);
+            cmd.SetGlobalVector(HDShaderIDs._VBufferSharedUvScaleAndLimit,      currFrameParams.ComputeUvScaleAndLimit(sharedBufferSize));
+            cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,     currFrameParams.depthEncodingParams);
+            cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,     currFrameParams.depthDecodingParams);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,              currFrameParams.ComputeLastSliceDistance());
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,      1.0f / hdCamera.viewCount);
 
-            cmd.SetGlobalVector(HDShaderIDs._VBufferPrevResolution,          new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
-            cmd.SetGlobalVector(HDShaderIDs._VBufferPrevUvScaleAndLimit,     prevFrameParams.ComputeUvScaleAndLimit(bufferSize));
-            cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthEncodingParams, prevFrameParams.depthEncodingParams);
-            cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthDecodingParams, prevFrameParams.depthDecodingParams);
+            cmd.SetGlobalVector(HDShaderIDs._VBufferPrevViewportSize,           new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
+            cmd.SetGlobalVector(HDShaderIDs._VBufferHistoryPrevUvScaleAndLimit, prevFrameParams.ComputeUvScaleAndLimit(historyBufferSize));
+            cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthEncodingParams,    prevFrameParams.depthEncodingParams);
+            cmd.SetGlobalVector(HDShaderIDs._VBufferPrevDepthDecodingParams,    prevFrameParams.depthDecodingParams);
 
-            cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,               m_LightingBufferHandle);
+            cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                  m_LightingBufferHandle);
         }
 
         DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera hdCamera, CommandBuffer cmd, float time)
@@ -718,8 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-            parameters.enableReprojection = Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
-                                          hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
+            parameters.enableReprojection = IsReprojectionEnabled(hdCamera);
             bool enableAnisotropy = fog.anisotropy.value != 0;
             bool highQuality = volumetricLightingPreset == VolumetricLightingPreset.High;
 

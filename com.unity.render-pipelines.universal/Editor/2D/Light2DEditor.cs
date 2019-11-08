@@ -529,13 +529,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         List<Vector2> falloffShape = light.GetFalloffShape();
                         Handles.color = Color.white;
 
+
+                        Vector3 falloffOffset = m_ShapeLightFalloffOffset.vector2Value;
+
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
                         {
-                            Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
+                            Handles.DrawLine(t.TransformPoint(falloffShape[i]) + falloffOffset, t.TransformPoint(falloffShape[i + 1]) + falloffOffset);
                             Handles.DrawLine(t.TransformPoint(light.shapePath[i]), t.TransformPoint(light.shapePath[i + 1]));
                         }
 
-                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]) + falloffOffset, t.TransformPoint(falloffShape[0]) + falloffOffset);
                         Handles.DrawLine(t.TransformPoint(light.shapePath[falloffShape.Count - 1]), t.TransformPoint(light.shapePath[0]));
                     }
                     break;
