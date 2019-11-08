@@ -14,7 +14,7 @@
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.test-framework": "1.1.2",
+    "com.unity.test-framework": "1.1.1",
     "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
     "com.unity.textmeshpro": "2.0.1",
     "com.unity.timeline": "1.2.2",
@@ -56,5 +56,6 @@
     "com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal",
     "com.unity.testframework.graphics"
-  ]
+  ],
+  "disableProjectUpdate": true
 }
