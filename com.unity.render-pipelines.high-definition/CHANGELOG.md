@@ -126,6 +126,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed several fields on Light Inspector that not supported Prefab overrides
 - Fixed EOL for some files
 - Fixed scene view rendering with volumetrics and XR enabled
+- Fixed decals to work with multiple cameras
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

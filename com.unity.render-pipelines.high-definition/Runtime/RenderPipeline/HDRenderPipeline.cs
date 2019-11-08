@@ -1799,6 +1799,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingSample(null, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                 {
                     // TODO: update singleton with DecalCullResults
+                    DecalSystem.instance.CurrentCamera = hdCamera.camera; // Singletons are extremely dangerous...
                     DecalSystem.instance.LoadCullResults(decalCullingResults);
                     DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                     DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
