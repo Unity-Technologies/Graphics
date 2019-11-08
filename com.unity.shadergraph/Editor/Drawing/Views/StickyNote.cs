@@ -230,7 +230,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Change change {get; protected set; }
     }
 
-    class StickyNote : GraphElement, IResizable
+    class StickyNote : GraphElement, IResizable, IInspectable
     {
         GraphData m_Graph;
         public new StickyNoteData userData
@@ -397,6 +397,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
+        public string displayName => $"{m_Title.text} (Sticky Note)";
+
         public StickyNote(string uiFile, Rect position, GraphData graph)
         {
             m_Graph = graph;
@@ -481,6 +483,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             //m_Graph.owner.RegisterCompleteObjectUndo("Title Changed");
             //title = m_TitleField.value;
             //userData.title = title;
+        }
+
+        public PropertySheet GetInspectorContent()
+        {
+            var sheet = new PropertySheet();
+            return sheet;
         }
 
         const string fitTextClass = "fit-text";
