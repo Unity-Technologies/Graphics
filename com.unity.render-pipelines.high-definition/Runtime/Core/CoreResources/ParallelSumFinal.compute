@@ -17,8 +17,8 @@ RWTexture2D<float4> _Output;
 
 uint4 _Sizes; // xy: InputSize; zw: OutputSize
 
-#define _InputSizes     _Sizes.xy
-#define _OutputSizes    _Sizes.zw
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
 
 #ifdef VERTICAL
     #define THREAD_PER_GROUP_X 1
@@ -50,7 +50,7 @@ OutType GetInput(uint2 pos)
 // #elif defined(RGBA)
 //     return _Input[pos].rgba;
 // #endif
-    return dot(_Input[pos].rgb, float3(1, 1, 1));
+    return _Input[pos].r;
 }
 
 OutType GetSample(uint2 id, uint i)
@@ -77,33 +77,37 @@ float4 ToOutput(OutType v)
 [numthreads(THREAD_PER_GROUP_X, THREAD_PER_GROUP_Y, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    int i;
-    OutType sum = 0.0f;
+//#ifdef VERTICAL
+//    int sumCount = _InputSizes.y;
+//    if (id.y == 0u)
+//#else
+//    int sumCount = _InputSizes.x;
+//    if (id.x == 0u)
+//#endif
 #ifdef VERTICAL
-    int sumCount = _InputSizes.y;
-    if (id.y == 0u)
+    int sumCount = _InputSize.y;
 #else
-    int sumCount = _InputSizes.x;
-    if (id.x == 0u)
+    int sumCount = _InputSize.x;
 #endif
+    if (all(id.xy < _OutputSize))
     {
 //#ifdef RGB
-        const float coef = (1.0f/float(sumCount)/3.0f); // div by 3, for rgb & dot product cf. GetSample
+        const float coef = 1.0f/float(sumCount); // div by 3, for rgb & dot product cf. GetSample
 //#elif defined(RGBA)
 //        const float coef = (1.0f/float(SumPerThread)/4.0f); // div by 4, for rgba & dot product cf. GetSample
 //#endif
+        int i;
+        OutType sum = 0.0f;
         for (i = 0; i < sumCount; ++i)
         {
             sum += GetSample(id.xy, i)*coef;
         }
 
-        for (i = 0; i < 32; ++i)
-        {
-#ifdef VERTICAL
-            _Output[uint2(id.x    , id.y + i)] = ToOutput(sum);
-#else
-            _Output[uint2(id.x + i, id.y    )] = ToOutput(sum);
-#endif
-        }
+        _Output[id.xy] = ToOutput(sum);
+//#ifdef VERTICAL
+//        _Output[uint2(id.x, id.y)] = ToOutput(sum);
+//#else
+//        _Output[uint2(id.x, id.y)] = ToOutput(sum);
+//#endif
     }
 }

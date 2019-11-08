@@ -689,6 +689,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Input                          = Shader.PropertyToID("_Input");
         public static readonly int _Output                         = Shader.PropertyToID("_Output");
         public static readonly int _Sizes                          = Shader.PropertyToID("_Sizes");
+        public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");

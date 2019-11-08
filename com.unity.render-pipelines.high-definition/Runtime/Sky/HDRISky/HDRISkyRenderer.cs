@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDRISkyRenderer()
         {
+            m_HDRISkyHash = -1;
         }
 
         public override void Build()
@@ -126,11 +127,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToOctahedral);
                 builtinParams.commandBuffer.RequestAsyncReadback(m_OctahedralMap, SaveOcta);
 
-                ParallelSum.ComputeSum(m_OctahedralMap,
-                                       builtinParams.commandBuffer,
-                                       ParallelSum.SumDirection.Horizontal,
-                                       2,
-                                       Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+                // again
+                RTHandle sum = ParallelSum.ComputeSum(m_OctahedralMap,
+                                                      builtinParams.commandBuffer,
+                                                      ParallelSum.SumDirection.Horizontal,
+                                                      2,
+                                                      Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+
+                RTHandle CDFFull = ComputeCDF1D.ComputeCDF(m_OctahedralMap,
+                                                           builtinParams.commandBuffer,
+                                                           ComputeCDF1D.SumDirection.Horizontal,
+                                                           Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+
+                RTHandle CDFSum = ComputeCDF1D.ComputeCDF(sum,
+                                                          builtinParams.commandBuffer,
+                                                          ComputeCDF1D.SumDirection.Horizontal,
+                                                          Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
             }
 
             if (hdriSky.enableBackplate.value == false)

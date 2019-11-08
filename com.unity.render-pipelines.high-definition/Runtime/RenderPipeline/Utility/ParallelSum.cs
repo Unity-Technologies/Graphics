@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering
                 float[] copy = new float[result.Length];
                 result.CopyTo(copy);
                 byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\Out_" + _Idx.ToString() + " .exr";
+                string path = @"C:\UProjects\Sum_" + _Idx.ToString() + " .exr";
                 if (System.IO.File.Exists(path))
                 {
                     System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
@@ -46,6 +46,28 @@ namespace UnityEngine.Rendering
                 System.IO.File.WriteAllBytes(path, bytes0);
                 ++_Idx;
             }
+        }
+
+        static private void Dispatch(CommandBuffer cmd, ComputeShader cs, int kernel, RTHandle input, RTHandle output, SumDirection direction, int inSize, int outSize)
+        {
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Input,  input);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Output, output);
+            int numTilesX;
+            int numTilesY;
+            if (direction == SumDirection.Vertical)
+            {
+                numTilesX =  m_Temp0.rt.width;
+                numTilesY = (outSize + (8 - 1))/8;
+                cmd.SetComputeIntParams(cs, HDShaderIDs._Sizes, input.rt.width, inSize, output.rt.width, outSize);
+            }
+            else
+            {
+                numTilesX = (outSize + (8 - 1))/8;
+                numTilesY =  m_Temp0.rt.height;
+                cmd.SetComputeIntParams(cs, HDShaderIDs._Sizes, inSize, input.rt.height, outSize, output.rt.height);
+            }
+            cmd.DispatchCompute(cs, kernel, numTilesX, numTilesY, 1);
+            cmd.RequestAsyncReadback(output, SaveTempImg);
         }
 
         static public RTHandle ComputeSum(RTHandle input, CommandBuffer cmd, SumDirection sumDirection, int sumPerThread = 8, GraphicsFormat sumFormat = GraphicsFormat.None)
@@ -134,73 +156,25 @@ namespace UnityEngine.Rendering
             }
             sumStep.EnableKeyword("SUM_PER_THREAD_" + sumPerThread.ToString());
 
-            int numTilesX;
-            int numTilesY;
-
             _Idx = 0u;
 
-            int kernel = sumStep.FindKernel("CSMain");
+            int kernelFirst = sumStep.FindKernel("CSMainFirst");
+            int kernel      = sumStep.FindKernel("CSMain");
 
-            cmd.SetComputeTextureParam(sumStep, kernel, HDShaderIDs._Input,    input);
-            cmd.SetComputeTextureParam(sumStep, kernel, HDShaderIDs._Output,   m_Temp0);
-            cmd.SetComputeIntParams(sumStep, HDShaderIDs._Sizes, width, height, m_Temp0.rt.width, m_Temp0.rt.height);
-            if (sumDirection == SumDirection.Vertical)
-            {
-                numTilesX =  m_Temp0.rt.width;
-                numTilesY = (m_Temp0.rt.height + (8 - 1))/8;
-            }
-            else
-            {
-                numTilesX = (m_Temp0.rt.width  + (8 - 1))/8;
-                numTilesY =  m_Temp0.rt.height;
-            }
-            cmd.DispatchCompute(sumStep, kernel, numTilesX, numTilesY, 1);
-            cmd.RequestAsyncReadback(m_Temp0, SaveTempImg);
+            Dispatch(cmd, sumStep, kernelFirst, input, m_Temp0, sumDirection, curSize, curSize/sumPerThread);
 
             RTHandle inRT   = m_Temp0;
             RTHandle outRT  = m_Temp1;
-            curSize /= sumPerThread;
-            while (curSize > sumPerThread)
+            do
             {
-                cmd.SetComputeTextureParam(sumStep, kernel, HDShaderIDs._Input,    inRT);
-                cmd.SetComputeTextureParam(sumStep, kernel, HDShaderIDs._Output,   outRT);
-                if (sumDirection == SumDirection.Vertical)
-                {
-                    numTilesX =  outRT.rt.width;
-                    numTilesY = (curSize + (8 - 1))/8;
-                    cmd.SetComputeIntParams(sumStep, HDShaderIDs._Sizes, width, curSize, width, curSize/sumPerThread);
-                }
-                else
-                {
-                    numTilesX = (curSize + (8 - 1))/8;
-                    numTilesY =  outRT.rt.height;
-                    cmd.SetComputeIntParams(sumStep, HDShaderIDs._Sizes, curSize, height, curSize/sumPerThread, height);
-                }
-                cmd.DispatchCompute(sumStep, kernel, numTilesX, numTilesY, 1);
-                cmd.RequestAsyncReadback(outRT, SaveTempImg);
+                curSize /= sumPerThread;
+                Dispatch(cmd, sumStep, kernel, inRT, outRT, sumDirection, curSize, curSize/sumPerThread);
 
                 CoreUtils.Swap(ref inRT, ref outRT);
-                curSize /= sumPerThread;
-            };
+            } while (curSize > sumPerThread);
 
             kernel = sumFinalStep.FindKernel("CSMain");
-
-            cmd.SetComputeTextureParam(sumFinalStep, kernel, HDShaderIDs._Input,    inRT);
-            cmd.SetComputeTextureParam(sumFinalStep, kernel, HDShaderIDs._Output,   m_Final);
-            if (sumDirection == SumDirection.Vertical)
-            {
-                numTilesX = (m_Final.rt.width + (8 - 1))/8;
-                numTilesY = 1;
-                cmd.SetComputeIntParams(sumFinalStep, HDShaderIDs._Sizes, width, curSize*sumPerThread, width, m_Final.rt.height);
-            }
-            else
-            {
-                numTilesX = 1;
-                numTilesY = (m_Final.rt.height + (8 - 1))/8;
-                cmd.SetComputeIntParams(sumFinalStep, HDShaderIDs._Sizes, curSize*sumPerThread, height, m_Final.rt.width, height);
-            }
-            cmd.DispatchCompute(sumFinalStep, kernel, numTilesX, numTilesY, 1);
-            cmd.RequestAsyncReadback(m_Final, SaveTempImg);
+            Dispatch(cmd, sumStep, kernel, inRT, m_Final, sumDirection, curSize/sumPerThread, 1);
 
             return m_Final;
         }

@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader ParallelSumCS;
             [Reload("Runtime/Core/CoreResources/ParallelSumFinal.compute")]
             public ComputeShader ParallelSumFinalCS;
+            [Reload("Runtime/Core/CoreResources/ComputeCDF1D.compute")]
+            public ComputeShader ComputeCDF1DCS;
 
             // Debug
             [Reload("Runtime/Debug/DebugDisplayLatlong.Shader")]
