@@ -118,7 +118,7 @@ namespace UnityEditor.VFX.Operator
                 {
                     case SelectionMode.Random:
                         {
-                            var rand = new VFXExpressionRandom(true);
+                            var rand = new VFXExpressionRandom(true); //TODOPAUL : Add settings for per particle
                             vertexIndex = rand * new VFXExpressionCastUintToFloat(meshVertexCount);
                             vertexIndex = new VFXExpressionCastFloatToUint(vertexIndex);
                         }
