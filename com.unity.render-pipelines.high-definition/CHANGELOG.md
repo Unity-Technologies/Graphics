@@ -4,7 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [6.9.2] - 2019-10-04
+## [6.9.3-preview] - 2019-11-08
+
+### Fixed
+- Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
+- Fixed crash in prefab mode with matcap view enabled.
+
+## [6.9.2-preview] - 2019-10-04
 
 ### Fixed
 - Fixed issue with Ambient Occlusion flickering
@@ -35,9 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
 - Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
 - Fixed an issue with shader stripper and asset dependencies search that was taking a long time with big projects
-- Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
 - Fixed an issue with Realtime GI not working on upgraded projects. 
-- Fixed crash in prefab mode with matcap view enabled.
 
 ### Changed
 - Added Alembic velocity support to various Shaders.
@@ -48,7 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change default texture for detailmap to grey
 - Improve build time of shader (reduce shader stripper overhead)
 
-## [6.9.1] - 2019-07-29
+## [6.9.1-preview] - 2019-07-29
 
 ### Fixed
 - Fixed PBR master node always opaque (wrong blend modes for forward pass)
@@ -63,7 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - direct strenght properties in ambient occlusion now affect direct specular as well
 - Added a warning in the material UI when the diffusion profile assigned is not in the HDRP asset
 
-## [6.9.0] - 2019-07-02
+## [6.9.0-preview] - 2019-07-02
 
 ### Added
 - Shader Graphs that use time-dependent vertex modification now generate correct motion vectors.
@@ -79,7 +83,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enlighten now uses inverse squared falloff instead of the built-in falloff.
 - Enlighten is now deprecated. Use the CPU or GPU Lightmapper instead.
 
-## [6.8.0] - 2019-06-12
+## [6.8.0-preview] - 2019-06-12
 
 ### Added
 - `Fixed`, `Viewer`, and `Automatic` modes to compute the FOV used when rendering a `PlanarReflectionProbe`
