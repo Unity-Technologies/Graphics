@@ -124,6 +124,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue preventing to allow setting decal material to none (case 1196129)
 - Fixed XR multi-pass decals rendering
 - Fixed several fields on Light Inspector that not supported Prefab overrides
+- Fixed scene view rendering with volumetrics and XR enabled
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

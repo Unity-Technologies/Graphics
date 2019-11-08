@@ -117,9 +117,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return HDUtils.ComputeUvScaleAndLimit(new Vector2Int(viewportSize.x, viewportSize.y), bufferSize);
         }
 
-        public float ComputeLastSliceDistance()
+        public float ComputeLastSliceDistance(int sliceCount)
         {
-            float d = 1.0f - 0.5f / viewportSize.z;
+            float d = 1.0f - 0.5f / sliceCount;
             float ln2 = 0.69314718f;
 
             // DecodeLogarithmicDepthGeneralized(1 - 0.5 / sliceCount)
@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
 
-            int d = ComputeVBufferSliceCount(volumetricLightingPreset, true);
+            int d = ComputeVBufferSliceCount(volumetricLightingPreset);
 
             m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                     slices:            d,
@@ -296,7 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 frameIndex &= 1;
 
-                int d = ComputeVBufferSliceCount(volumetricLightingPreset, true);
+                int d = ComputeVBufferSliceCount(volumetricLightingPreset);
 
                 Vector2Int ComputeHistoryVBufferResolutionXY(Vector2Int screenSize)
                 {
@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static int ComputeVBufferSliceCount(VolumetricLightingPreset preset, bool accountForXR = false)
+        static int ComputeVBufferSliceCount(VolumetricLightingPreset preset)
         {
             var result = 0;
             switch (preset)
@@ -416,13 +416,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.Assert(false, "Encountered an unexpected VolumetricLightingPreset.");
                     result = 0;
                     break;
-            }
-
-            if (accountForXR)
-            {
-                // With XR single-pass, the VBuffer size is increased and split into compartments for each eye
-                if (TextureXR.useTexArray)
-                    result = result * TextureXR.slices;
             }
 
             return result;
@@ -506,13 +499,16 @@ namespace UnityEngine.Rendering.HighDefinition
             var cvp = currFrameParams.viewportSize;
             var pvp = prevFrameParams.viewportSize;
 
+            // Adjust slices for XR rendering: VBuffer is shared for all single-pass views
+            int sliceCount = cvp.z / hdCamera.viewCount;
+
             cmd.SetGlobalVector(HDShaderIDs._VBufferViewportSize,               new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y));
-            cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,                 cvp.z);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,              1.0f / cvp.z);
+            cmd.SetGlobalInt(   HDShaderIDs._VBufferSliceCount,                 sliceCount);
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpSliceCount,              1.0f / sliceCount);
             cmd.SetGlobalVector(HDShaderIDs._VBufferSharedUvScaleAndLimit,      currFrameParams.ComputeUvScaleAndLimit(sharedBufferSize));
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceEncodingParams,     currFrameParams.depthEncodingParams);
             cmd.SetGlobalVector(HDShaderIDs._VBufferDistanceDecodingParams,     currFrameParams.depthDecodingParams);
-            cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,              currFrameParams.ComputeLastSliceDistance());
+            cmd.SetGlobalFloat( HDShaderIDs._VBufferLastSliceDist,              currFrameParams.ComputeLastSliceDistance(sliceCount));
             cmd.SetGlobalFloat( HDShaderIDs._VBufferRcpInstancedViewCount,      1.0f / hdCamera.viewCount);
 
             cmd.SetGlobalVector(HDShaderIDs._VBufferPrevViewportSize,           new Vector4(pvp.x, pvp.y, 1.0f / pvp.x, 1.0f / pvp.y));
