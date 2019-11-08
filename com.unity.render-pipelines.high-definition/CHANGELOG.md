@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with shader stripper and asset dependencies search that was taking a long time with big projects
 - Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
 - Fixed an issue with Realtime GI not working on upgraded projects. 
+- Fixed crash in prefab mode with matcap view enabled.
 
 ### Changed
 - Added Alembic velocity support to various Shaders.

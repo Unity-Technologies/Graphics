@@ -66,8 +66,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         float m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
 
-        public bool sceneLightingWasDisabledForCamera = false;
-
         // XR multipass and instanced views are supported (see XRSystem)
         XRPass m_XRPass;
         public XRPass xr { get { return m_XRPass; } }
