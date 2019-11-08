@@ -7,6 +7,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -154,13 +155,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PropertyContainer.Add(sheet);
                 return;
             }
-                
-            IInspectable inspectable = selection.Select(x => x as IInspectable).FirstOrDefault();
-            if(inspectable != null)
+            
+            if(selection.FirstOrDefault() is IInspectable inspectable)
             {
                 m_ContextTitle.text = inspectable.displayName;
                 m_PropertyContainer.Add(inspectable.GetInspectorContent());
             }
+            
             m_PropertyContainer.MarkDirtyRepaint();
         }
 #endregion

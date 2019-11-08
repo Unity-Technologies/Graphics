@@ -244,7 +244,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
-            var field = (BlackboardField)visualElement;
+            var field = (BlackboardFieldView)visualElement;
             var input = (ShaderInput)field.userData;
             if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
             {
@@ -301,7 +301,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 input.generatePropertyBlock = input.isExposable;
             }
 
-            BlackboardField field = null;
+            BlackboardFieldView field = null;
             BlackboardRow row = null;
 
             switch(input)
@@ -309,9 +309,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
-                    var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
-                    row = new BlackboardRow(field, propertyView) { userData = input };
+                    field = new BlackboardFieldView(m_Graph, input, icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    row = new BlackboardRow(field, null) { userData = input };
                     if (index < 0)
                         index = m_InputRows.Count;
                     if (index == m_InputRows.Count)
@@ -324,9 +323,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var icon = (m_Graph.isSubGraph || (keyword.isExposable && keyword.generatePropertyBlock)) ? exposedIcon : null;
                     var typeText = keyword.isEditable ? keyword.keywordType.ToString() : "Built-in Keyword";
-                    field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
-                    var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
-                    row = new BlackboardRow(field, keywordView);
+                    field = new BlackboardFieldView(m_Graph, input, icon, keyword.displayName, typeText) { userData = keyword };
+                    row = new BlackboardRow(field, null);
                     if (index < 0)
                         index = m_InputRows.Count;
                     if (index == m_InputRows.Count)
@@ -348,7 +346,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
             var expandButton = row.Q<Button>("expandButton");
-            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
+            expandButton.RemoveFromHierarchy();
 
             m_InputRows[input.guid] = row;
             m_InputRows[input.guid].expanded = SessionState.GetBool(input.guid.ToString(), true);
