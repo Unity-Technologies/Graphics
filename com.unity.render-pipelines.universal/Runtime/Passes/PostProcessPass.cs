@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if(URPCameraMode.isPureURP)
             {
                 // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
 
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
@@ -374,7 +374,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (URPCameraMode.isPureURP)
                 {
-                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
+                    // Has final pass means we are rendering into texture
+                    bool isRenderToTexture = m_HasFinalPass || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
+                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                     Matrix4x4 viewMatrix = Matrix4x4.identity;
                     Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                     cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
@@ -414,7 +416,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (URPCameraMode.isPureURP)
             {
                 // XRTODO: Remove this once pure mode is on globally
-                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
         }
 
@@ -1247,9 +1249,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;
-                // XRTODO: This is a bit hacky, we have to assume the img is already y-flipped in previous postFX pass.
-                // We need a better solution where renderer tells renderpass which coord they should render into
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+
+                // Resolve y-flip in final pass.
+                bool isRenderToTexture = cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
+                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
@@ -1258,7 +1261,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
 
                 // XRTODO: Remove this once pure mode is on globally
-                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
             else
             {

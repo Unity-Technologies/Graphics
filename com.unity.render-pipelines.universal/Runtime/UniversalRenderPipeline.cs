@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                // We turn on pure mode on a per pass basis through cmd.EnableGlobalShaderKeyword in relevant passes
+                // We turn on pure mode on a per pass basis through cmd.EnableShaderKeyword in relevant passes
                 // This enables us to deprecate no-pure usage without breaking existing custom passes/render features
                 // XRTODO: Enable pure mode globally by uncomment the following line
                 // Shader.EnableKeyword("UNITY_PURE_URP_ON");

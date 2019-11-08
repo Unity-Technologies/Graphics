@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.Universal
             if (URPCameraMode.isPureURP)
             {
                 // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
 
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(proj, true);
                 Matrix4x4 viewMatrix = view;
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableScissorRect();
 
                 // XRTODO: Remove this once pure mode is on globally
-                cmd.DisableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
             else
             {
