@@ -85,26 +85,30 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+
+                cmd.SetGlobalTexture("_BlitTex", source);
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
-                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
                         break;
                     case Downsampling._2xBilinear:
-                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
                         break;
                     case Downsampling._4xBox:
-                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
                         m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_SamplingMaterial);
                         break;
                     case Downsampling._4xBilinear:
-                        CoreUtils.SetRenderTarget(cmd, opaqueColorRT);
+                        ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
                         break;
                 }
+                // Restore to color attachment as RT since  CoreUtils.SetRenderTarget invalidates URP scriptable renderer's active RT states
+                CoreUtils.SetRenderTarget(cmd, colorAttachment);
 
                 // XRTODO: Remove this once pure mode is on globally
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
