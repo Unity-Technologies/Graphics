@@ -1405,9 +1405,12 @@ namespace UnityEditor.ShaderGraph
 
         public void UpdateTargets()
         {
+            if(outputNode == null)
+                return;
+
             // First get all valid TargetImplementations that are valid with the current graph
             List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())//
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in assembly.GetTypesOrNothing())
                 {
