@@ -581,8 +581,8 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
-  orthographic: 1
+  field of view: 111.9605
+  orthographic: 0
   orthographic size: 3
   m_Depth: -1
   m_CullingMask:
@@ -631,7 +631,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
-  WaitFrames: 0
+  WaitFrames: 3
 --- !u!114 &1592147968
 MonoBehaviour:
   m_ObjectHideFlags: 0
