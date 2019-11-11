@@ -16,7 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return (masterNode is FabricMasterNode ||
                     masterNode is HDLitMasterNode ||
                     masterNode is HDUnlitMasterNode);
-            return false;
         }
 
         public void SetupTarget(ref TargetSetupContext context)
