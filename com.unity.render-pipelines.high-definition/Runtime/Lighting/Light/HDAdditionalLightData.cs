@@ -1563,7 +1563,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 viewportSize = resolutionRequest.resolution;
                 HDLightType lightType = type;
-                bool isDirectional = type == lightType;
 
                 if (shadowRequestIndex == -1)
                     continue;
@@ -1574,7 +1573,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.shouldUseCachedShadow = true;
 
                     // If directional we still need to calculate the split data.
-                    if (isDirectional)
+                    if (lightType == HDLightType.Directional)
                         UpdateDirectionalShadowRequest(manager, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                 }
                 else
