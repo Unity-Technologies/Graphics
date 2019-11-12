@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Disc area light (bake only)
 - Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
 - Added XR single-pass setting into HDRP asset
+- Added a penumbra tint option for lights
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.

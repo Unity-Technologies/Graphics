@@ -1104,6 +1104,23 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_PenumbraTint = false;
+        /// <summary>
+        /// Controls if we want to ray trace the contact shadow.
+        /// </summary>
+        public bool penumbraTint
+        {
+            get => m_PenumbraTint;
+            set
+            {
+                if (m_PenumbraTint == value)
+                    return;
+
+                m_PenumbraTint = value;
+            }
+        }
+
+        [SerializeField]
         float m_NormalBias = 0.75f;
         /// <summary>
         /// Get/Set the normal bias of the shadow maps.

@@ -926,6 +926,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.Slider(serialized.shadowDimmer, 0.0f, 1.0f, s_Styles.shadowDimmer);
                     EditorGUILayout.PropertyField(serialized.shadowTint, s_Styles.shadowTint);
+                    EditorGUILayout.PropertyField(serialized.penumbraTint, s_Styles.penumbraTint);
                 }
 
                 if (lightType != HDLightType.Directional)
