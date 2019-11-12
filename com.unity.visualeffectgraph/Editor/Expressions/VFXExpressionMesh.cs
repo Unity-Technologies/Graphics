@@ -167,7 +167,7 @@ namespace UnityEditor.VFX
         {
             var meshReduce = constParents[0];
             var mesh = meshReduce.Get<Mesh>();
-            return VFXValue.Constant(mesh.vertexCount);
+            return VFXValue.Constant((uint)mesh.vertexCount);
         }
     }
 

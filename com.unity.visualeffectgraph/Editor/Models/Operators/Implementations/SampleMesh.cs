@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Operator
         public class InputPropertiesVertex
         {
             [Tooltip("The vertex index to read from.")]
-            public uint vertex = 0;
+            public uint vertex = 0u;
         }
 
         public enum PlacementMode
