@@ -1,158 +1,162 @@
-# Built-in renderer to High Definition Render Pipeline conversion tutorial
+# Converting a Project from the Built-in Renderer to the High Definition Render Pipeline
 
-The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and new lighting units, both of which are incompatible with the built-in Unity rendering pipeline. To upgrade a Unity Project to HDRP, you must first [convert](#MaterialConversion) all of the [Materials](https://docs.unity3d.com/Manual/class-Material.html) and Shaders in your Project, and then [edit](#LightAdjustment) your individual Light settings accordingly. 
+The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and [lighting units](Physical-Light-Units.html), both of which are incompatible with the Built-in Renderer. To upgrade a Unity Project to HDRP, you must first convert all of your [Materials](#MaterialConversion) and Shaders, then adjust individual [Light](#LightAdjustment) settings accordingly.
 
-This tutorial explains the HDRP upgrade process using a sample [Scene](https://docs.unity3d.com/Manual/CreatingScenes.html) containing Assets from Unity’s [Viking Village Asset package](https://assetstore.unity.com/packages/essentials/tutorial-projects/viking-village-29140). To get the Scene that the example uses, download the [LegacyScene package](https://drive.google.com/open?id=1TQN3XotIBI_xHlq-jdbBm09iDd2tHTam) and add it to a Unity Project. To open the example Scene, in the Project window, go to **Assets > Legacy > _Scene** and double-click the **LegacyScene** Scene file.
+This document explains how to convert the **3D With Extras** template Project to HDRP, but you can use the same workflow to convert your own Project. To follow this document and upgrade the **3D With Extras** Project, create a Project that uses the **3D With Extras** template. To do this:
 
-![](Images/UpgradingToHDRP1Main.png)
-<a name="ImportingHDRP"></a>
+1. Open the Unity Hub.
+
+2. In the **Projects** tab, select **New**.
+
+3. In the **Template **section, select **3D With Extras**.
+
+4. Enter a **Project Name** and set the **Location** for Unity to save the Project to.
+
+5. Click **Create**.
+
+6. The Unity Editor opens and looks like this:
+
+![](Images/UpgradingToHDRP1.png)
 
 ## Setting up HDRP
 
+Firstly, to install HDRP, add the High Definition RP package to your Unity Project:
 
-First, add the HDRP package to your existing Project: 
+1. In the Unity Editor, open the Package Manager window (menu: **Window > Package Manager**).
 
-1. In the Unity Editor, open the Package Manager window (menu: **Window &gt; Package Manager**).
+2. Find and select the** High Definition RP **package, then click **Install**.
 
-2. In the menu at the top of the window, change the package list, located in the top left, to **All packages**.  Now, find and select the **High Definition RP** package, and click **Install**.
+HDRP is now available to use in your Project. To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html).
 
-Next, open the [Render Pipeline Wizard](Render-Pipeline-Wizard.html) (menu: **Window > Render Pipeline > HD Render Pipeline Wizard**). You can use the Render Pipeline Wizard to upgrade your Project, as well as upgrade every Material that uses Shaders from the built-in render pipeline. You can also use it to set up Virtual Reality or DXR (ray tracing) support. To set up base HDRP:
+1. Open the Render Pipeline Wizard window (menu **Window > Render Pipeline > HD Render Pipeline Wizard**).
 
-1. Go to the **HDRP** tab and click **Fix All**.
-2. Whenever a pop-up appears asking you about selecting or creating Assets, click **Create One**.
+2. In the **Configuration Checking** section, go to the **HDRP** tab and click **Fix All**. This fixes every HDRP configuration issue with your Project.
 
-The Scene now does not render correctly:
+HDRP is now set up inside your Project, but your Scene does not render correctly and uses the magenta error Shader to display GameObjects. This is because GameObjects in the Scene still use Shaders made for the Built-in Renderer. To find out how to upgrade Built-in Shaders to HDRP Shaders, see the [Upgrading Materials](#MaterialConversion) section.
 
-![](Images/UpgradingToHDRP2.png)
+HDRP includes its own [implementation for post-processing](Post-Processing-Main.html) and no longer supports the Post Processing package. If you are converting the **3D With Extras** Project, or if your own Project uses the Post Processing package, remove the Post Processing package from the Project. To do this:
 
-This is because the Scene still uses the built-in Shaders. To upgrade these built-in Shaders to an HDRP-compatible Shader click **Upgrade Project Materials to High Definition Materials** in the Render Pipeline Wizard window.
+1. In the Unity Editor, open the Package Manager window (menu: **Window > Package Manager**).
 
-If your Project contains any custom Materials or Shaders then this script can not automatically update them to HDRP. You must [convert these Materials and Shaders manually](#ManualConversion).
+2. Find and select the** Post Processing **package, and click **Remove**.
+
+For details on how to add and customize post-processing effects to the template Project, see the [post-processing](#Post-processing) section.
+
+<a name="MaterialConversion"></a>
+
+## Upgrading Materials
+
+To upgrade the Materials in your Scene to HDRP-compatible Materials, either:
+
+* **Upgrade Project Materials to High Definition Materials**: Converts every compatible Material in your Project to an HDRP Material.
+
+* **Upgrade Selected Materials to High Definition Materials**: Converts every compatible Material currently selected in the Project window to an HDRP Material.
+
+You can find these options in either:
+
+* The **Edit > Render Pipeline **menu.
+
+* The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
+
+This process can not automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion).
+
+<a name="ManualConversion"></a>
+
+### Converting Materials manually
+
+The HDRP Material converter automatically converts Built-in Standard and Unlit Materials to HDRP Lit and Unlit Materials respectively. The process uses an overlay function to blend the color channels together, similar to the process you would use in image editing software, like Photoshop. To help you convert custom Materials manually, this section describes the maps that the converter creates from the Built-in Materials.
+
+#### Mask maps
+
+The Built-in Shader to HDRP Shader conversion process combines the different Material maps of the Built-in Standard Shader into the separate RGBA channels of the mask map in the HDRP [Lit Material](Lit-Shader.html). For information on which color channel each map goes in, see [mask map](Mask-Map-and-Detail-Map.html#MaskMap).
+
+#### Detail maps
+
+The Built-in Shader to HDRP Shader conversion process combines the different detail maps of the Built-in Standard Shader into the separate RGBA channels of the detail map in the HDRP [Lit Material](Lit-Shader.html). It also adds a smoothness detail too. For information on which color channel each map goes in, see [detail map](Mask-Map-and-Detail-Map.html#DetailMap).
 
 <a name="LightAdjustment"></a>
 
-### Adjusting Lights
+## Adjusting lighting
 
-HDRP uses [physical Light units](Physical-Light-Units.html) to control the intensity of Lights. These units do not match the arbitrary units that the built-in render pipeline uses. Directional Light intensities are expressed in [Lux](https://en.wikipedia.org/wiki/Lux)) and other Light intensities are expressed in [Lumen](https://en.wikipedia.org/wiki/Lumen_(unit)).
+HDRP uses [physical Light units](Physical-Light-Units.html) to control the intensity of Lights. These units do not match the arbitrary units that the Built-in render pipeline uses.
 
-So, in the case of the example Scene, start by adding a Directional Light to represent the main, natural light in this Scene: the Moon. A full Moon, on a clear night sky, has a luminous flux of around 0.25 Lux.
+For light intensity units, directional Lights use [Lux](Physical-Light-Units.html#Lux) and all other Lights can use [Lumen](Physical-Light-Units.html#Lumen), [Candela](Physical-Light-Units.html#Candela), [EV](Physical-Light-Units.html#EV), or simulate Lux at a certain distance.
 
-To exclusively see the effect of the Light representing the moon, delete the **Fill_Directional** GameObject and disable all other Lights in the Scene.
+To set up lighting in your HDRP Project:
 
-Note: If your Scene does not render correctly at this point, you must  remove a legacy component from the **Main Camera**. To do this:
+1. Add the default sky [Volume](Volumes.html) to your Scene to set up ambient lighting (menu **GameObject > Volume > Sky and Fog Volume**).
+2. Set the [Environment Lighting](Environment-Lighting.html) to use this new sky:
 
-1. Select **Main Camera** in the Hierarchy to view it in the Inspector.
-2. Remove the **Scene Render Pipeline** script. 
+    1. Open the Lighting window (menu: **Window > Rendering > Lighting Settings**).
+
+    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile) that the Sky and Fog Volume uses.
+
+    3. For the **Static Lighting Sky** property, select **PhysicallyBasedSky**.
+
+    4. Optionally, if you don't want Unity to re-bake the Scene''s lighting when you make the rest of the changes in this section, you can disable the **Auto Generate** checkbox at the bottom of the window.
+3. Currently, the shadows are low quality. To increase their quality, you can change shadow properties:
+    1. Create a new **Global Volume **GameObject (menu: **GameObject > Volume > Global Volume**) and name it **Global Settings**.
+
+    2. Create a new Volume Profile for this Volume. To do this, open the Inspector for the Volume and click the **New** button.
+
+    3. Add a **Shadows** override (**Add Override > Shadowing > Shadows**), then enable **Max Distance** and set it to **50**.
+4. On the Light that represents the Sun (which is the Light component on the **Directional Light** GameObject), set the **Intensity** to **100000** and the **Color** to white. Then, to see the sun in the sky, go to the **General** panel, enable [More Options](More-Options.html), and set the **Angular Diameter** to **3**.
+5. The Scene is now over-exposed. To fix this, select the **Global Settings** GameObject you created in step **3a** and add an **Exposure** override to its Volume component (**Add Override > Exposure**). Then, set the **Mode** to **Automatic**.
+6. To refresh the exposure, go to the Scene view and enable **Animate Materials**.
+    ![](Images/UpgradingToHDRP2.png)
+7. Correct the Light cookie, because HDRP supports colored light cookies, and the Built-in light cookies use a texture format that only contains alpha:
+    1. In the Project window, select **Assets > ExampleAssets> Textures > Light_Cookies > Spotlight_Cookie**.
+
+    2. In the Inspector, change the import type from **Cookie** to **Default**.
+
+    3. Set the **Wrap Mode** to **Clamp**. .
+8. Correct the construction Light:
+    1. In the Hierarchy window, select **ExampleAssets > Props > ConstructionLight > Spot Light** and view the Light component in the Inspector.
+
+    2. Change the **Intensity** to **17000** **Lumen**. This is to represent two 8500 Lumen light bulbs.
+
+    3. In the **Emission** section, enable [More Options](More-Options.html).
+
+    4. Enable the **Reflector** checkbox. This simulates a reflective surface behind the spot Light to adjust the visual intensity.
+9. Make the light bulb Material emissive:
+    1. In the Project window, select **Assets/ExampleAssets/Materials/Lightbulb_Mat.mat**.
+
+    2. In the **Emission Inputs** section of the Inspector, enable **Use Emission Intensity**, set **Emissive Color** to white, and set the **Emission Intensity** to **8500 Luminance**.
+10. Finally, if you disabled **Auto Generate** in step **2d**, go to the Lighting window and press the **Generate Lighting** button. You can also re-enable **Auto Generate**.
+
+<a name="Post-processing"></a>
+
+## Post-processing
+
+HDRP no longer supports the **Post Processing **package and instead includes its own [implementation for post-processing](Post-Processing-Main.html). To convert the Scene to HDRP post-processing:
+
+1. In the Hierarchy, delete the** Post-process Volume** GameObject.
+
+    1. If your Project used the Post Processing package's Scripting API to edit post-processing effects, you need to update your scripts to work with the new post-processing effects.
+2. Create a new **Global Volume **GameObject (menu: **GameObject > Volume > Global Volume**) and name it "**Post-processes**". You can find all the post processes in the **Post-processing** sub-menu when you select **Add Override** in the Volume Inspector.
+3. Add a **Tonemapping** override to the Volume (**Add Override > Post-processing > Tonemapping**) then enable **Mode** and set it to **ACES**.
+4. Add a **Bloom** override to the Volume (**Add Override > Post-processing > Bloom**) then enable **Intensity** and set it to **0.2**.
+    Note that the result of the bloom is not the same as the one in the Post Processing package. This is because HDRP's bloom effect is physically accurate, and mimics the quality of a camera lens.
+5. Add a **Motion Blur** override to the Volume (**Add Override > Post-processing > Motion Blur**) then enable **Intensity** and set it to **0.1**.
+
+6. Add a **Vignette** override to the Volume (**Add Override > Post-processing > Vignette**) then set the following property values.
+    1. Enable **Intensity** and set it to **0.55**.
+
+    2. Enable **Smoothness** and set it to **0.4**.
+
+    3. Enable **Roundness** and set it to **0**.
+7. Add a **Depth Of Field** override to the Volume (**Add Override > Post-processing > Depth Of Field**) then set the following property values:
+    1. Enable **Focus Mode** and set it to **Manual**.
+
+    2. In the **Near Blur** section, enable **Start** and set it to **0** then enable **End** and set it to 0.5
+
+    3. In the **Far Blur** section, enable **Start** and set it to **2** then enable **End** and set it to **10**.
+         Note that this effect is only visible in the Game view.
+8. Finally, select the **Global Settings** GameObject to view it in the Inspector. In the Volume component, add an **Ambient** **Occlusion** override (**Add Override > Lighting > Ambient Occlusion**), then enable **Intensity** and set it to **0.5**.
+
+## Result
+
+Now the Scene in the Game view should look like this:
 
 ![](Images/UpgradingToHDRP3.png)
 
-HDRP handles the Sky differently to the built-in render pipeline, to allow you to use [Volumes](Volumes.html) to alter Sky properties dynamically at run time.
-
-To add a global Volume which already includes sky and fog overrides, select **GameObject &gt; Volume &gt; Sky and Fog Volume**.
-
-This adds a GameObject to your Scene called **Sky and Fog Volume**. Select this GameObject in the Hierarchy to view it in the Inspector and see the list of Volume overrides that it contains. There are three:
-
-* [Visual Environment](Override-Visual-Environment.html).
-
-* [Physically Based Sky](Override-Physically-Based-Sky).
-* [Fog](Override-Fog.html).
-
-#### Lighting 
-The Physically Based Sky’s light intensity is expressed as **Exposure** (units are EV) and **Multiplier**. To convert to Lux, set exposure to 0 Exposure Value (EV) and use the Multiplier as the Lux value. To create believable visuals in this example, set the Multiplier to 0.02 Lux. You can increase the value to 0.05 to make the Scene more visible, while still being low enough to be plausible.
-
-At this point, you can **Generate Lighting** in this Scene to create light bounces and directional soft shadows. To do this, go to **Window &gt; Rendering &gt; Lighting Settings** and, near the bottom of the **Scene** tab, click **Generate Lighting**.
-
-For information on environment lighting, specifically baked lighting and global illumination, see [Environment Lighting](Environment-Lighting.html#LightingEnvironment).
-
-![](Images/UpgradingToHDRP5.png)
-
-<a name="CookieCorrection"></a>
-
-You may notice that the Light Cookie no longer works. That’s because HDRP uses standard Textures as Light Cookies, and handles colored cookies. Simply change the cookie texture (named "TorchCookie") import settings to match the following:
-
-* **Texture Type** to **default**
-
-* **Texture Shape** to **Cube**
-
-* **Mapping** to **Latitude-Longitude Layout (Cylindrical)**
-
-* Disable **sRGB (Color Texture)**
-
-* **Alpha Source** to **None**
-
-* Disable **Border Mip Maps**
-
-* **Wrap Mode** to **Clamp**
-
-![](Images/UpgradingToHDRP6.png)
-
-Fire-lit torches are usually around 100 to 140 Lumen so set the **Intensity** of the Point Lights in the Sene to somewhere between these two values, and make sure you set their **Mode** to **Baked**. Baked lighting allows you to use smooth shadows baked into lightmaps.
-
-Click **Generate Lighting** again. The Scene now looks like this:
-
-![](Images/UpgradingToHDRP7.png) 
-
-Press the **Play** button and you will see the following in your Game window:
-
-![](Images/UpgradingToHDRP8.png)
-
-If you compare this to the legacy screenshot, the changes may not be obvious. This is because this example does not use any of the new HDRP-specific Material features such as anisotropy, subsurface scattering, or parallax occlusion mapping, and the original Materials were already PBR compliant.
-
-## Converting the template Scene
-
-The **3D With Extras** template Scene is another Scene that is interesting to test the conversion process on. You can get the Project by opening [Unity Hub](https://unity3d.com/get-unity/download), creating a new Project, and selecting **3D With Extras** from the Template drop-down. After you create and open the Project, you will see the following Scene:
-
-![](Images/UpgradingToHDRP9.png)
-
-Like with the previous conversion example, [import the HDRP package](#ImportingHDRP) (menu: **Window &gt; Package Manager**) and open the Render Pipeline Wizard, to upgrade the Project and the Materials. Then add the **Sky and Fog Volume**.
-
-HDRP has its own integrated [post-processing solution](Post-Processing-Main.html) that uses the Volumes in HDRP. This means that you must remove the built-in post-processing components. To do this:
-
-* Delete the GameObject called **Post-process Volume**.
-* Remove the Post-Processing Layer component from the GameObject called **Main Camera**.
-
-You must also modify some of the GameObjects in the Scene so they behave correctly. 
-
-1. Add an **Exposure** override to Volume component on the **Sky and Fog Volume** GameObject.
-
-2. Customize the override so that it has the following values: 
-
-![](Images/UpgradingToHDRP10.png)
-
-This accommodates the high difference in light exposition values (Min and Max) and the overall high exposure.
-
-3. The conversion process may have altered the size of the Reflection Probes. If so, alter the **Box Size** field for each Reflection Probe until they match the size of the area they are in.
-
-4. Set the **Intensity** of the Light representing the Sun (the Light attached to the **Directional Light** GameObject in the Scene) to 100000.
-
-5. Create a global [Volume](Volumes.html) (menu: **GameObject > Volume > Global Volume**), next to **Profile** click the **New** button, then add one of HDRP's [sky types](HDRP-Features.html#SkyOverview). Set the sky **Exposure** to 0 and the **Multiplier** to 20000.
-
-6. Set the intensity of the Light attached to the **Spot Light** GameObject to 17000. This is because there are two 8500 lumen lamps. Enable **Angle Affect Intensity** to compensate for the spot angle and its reflector.
-
-7. Correct the Light cookie (Spotlight_Cookie), as shown in the [cookie correction section](#CookieCorrection) in the previous example.
-
-8. Set the emissive intensity of the light bulb Material (LightBulb_Mat) to 13.05. Click on the **Emissive Color** picker and manually enter 13.05 into the **Intensity **field. This value is much lower than the others because the emission color intensity uses EV units and the other values use Lumen. To convert between the two, see the following formulas. Exposure Value is a scale of powers of 2. 
-This means that `x EV = 2 ^ x Lumen` and `y Lumen is ln( y EV ) / ln( 2 )`
-
-For example, `13.05 EV is: 2 ^ 13.05 = 8480 Lumen` therefore `8480 Lumen is: ln( 8480 ) / ln( 2 ) = 13.05 EV`
-
-9. Click  **Generate Lighting** to re-bake the lighting.
-
-You should now have a Scene similar to this:
-
-![](Images/UpgradingToHDRP11.png)
-
-Note how the lighting is different from the original screenshot, and from the original HDRP template. The HDRP template examples were made to look good but were not realistic, whereas this Scene uses physically correct light values: an afternoon direct sun with no clouds in the sky is much brighter than even the best professional construction spotlight. However, the spotlight is still casting light and shadows on the side of the wall.
-<a name="ManualConversion"></a>
-
-## Converting Materials manually
-
-The HDRP Material converter automatically converts Legacy Standard and Unlit Materials to HDRP Lit and Unlit Materials respectively. The process uses an overlay function to blend the color channels together, similar to the process you would use in image editing software, like Photoshop. This section describes the steps the converter takes, to help you convert custom Materials manually. 
-
-### The mask map
-
-The Legacy Standard to Lit conversion process combines the different Material maps of the Legacy Standard Shader into the separate RGBA channels of the mask map in the HDRP [Lit Material](Lit-Shader.html). For information on which color channel each map goes in, see [mask map](Mask-Map-and-Detail-Map.html#MaskMap).
-
-### The detail map
-
-The Legacy Standard to Lit conversion process combines the different detail maps of the Legacy Standard Shader into the separate RGBA channels of the detail map in the HDRP [Lit Material](Lit-Shader.html). It also adds a smoothness detail too. For information on which color channel each map goes in, see [detail map](Mask-Map-and-Detail-Map.html#DetailMap).
