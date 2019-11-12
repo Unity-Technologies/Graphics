@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// GUI for HDRP Lit shader graphs
     /// </summary>
-    class HDLitGUI : HDShaderGUI
+    class SpeedTreeLitGUI : HDShaderGUI
     {
         // For surface option shader graph we only want all unlit features but alpha clip and back then front rendering
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
@@ -53,13 +53,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
 
-            // Because of the fact that HDLit Master node does not set up any of these
-            // keywords when not using the appropriate SpeedTree Asset version, we can assume
+            // Because of the fact that the Master Node does not setup GeomType as a property
+            // when not using the appropriate SpeedTree Asset version, we can assume
             // that detection of the property itself is sufficient to establish that we're in
             // the right mode.
             if (material.HasProperty(SpeedTreeLitOptionsUIBlock.kGeomType))
             {
-                HDLitMasterNode.SpeedTreeGeomType v = (HDLitMasterNode.SpeedTreeGeomType)material.GetInt(SpeedTreeLitOptionsUIBlock.kGeomType);
+                SpeedTreeLitMasterNode.SpeedTreeGeomType v = (SpeedTreeLitMasterNode.SpeedTreeGeomType)material.GetInt(SpeedTreeLitOptionsUIBlock.kGeomType);
                 // Make sure to clear out all the potential options before setting the correct one.
                 // Avoids duplication and/or overlap -- this is especially important for wind.
                 material.DisableKeyword("GEOM_TYPE_BRANCH");
@@ -70,19 +70,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 switch (v)
                 {
-                    case HDLitMasterNode.SpeedTreeGeomType.BranchDetail:
+                    case SpeedTreeLitMasterNode.SpeedTreeGeomType.BranchDetail:
                         material.EnableKeyword("GEOM_TYPE_BRANCH_DETAIL");
                         break;
-                    case HDLitMasterNode.SpeedTreeGeomType.Branch:
+                    case SpeedTreeLitMasterNode.SpeedTreeGeomType.Branch:
                         material.EnableKeyword("GEOM_TYPE_BRANCH");
                         break;
-                    case HDLitMasterNode.SpeedTreeGeomType.Frond:
+                    case SpeedTreeLitMasterNode.SpeedTreeGeomType.Frond:
                         material.EnableKeyword("GEOM_TYPE_FROND");
                         break;
-                    case HDLitMasterNode.SpeedTreeGeomType.Leaf:
+                    case SpeedTreeLitMasterNode.SpeedTreeGeomType.Leaf:
                         material.EnableKeyword("GEOM_TYPE_LEAF");
                         break;
-                    case HDLitMasterNode.SpeedTreeGeomType.Mesh:
+                    case SpeedTreeLitMasterNode.SpeedTreeGeomType.Mesh:
                         material.EnableKeyword("GEOM_TYPE_MESH");
                         break;
                 }
@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (material.HasProperty(SpeedTreeLitOptionsUIBlock.kWindEnable) && windOn && !material.HasProperty(SpeedTreeLitOptionsUIBlock.kGeomType))
                 {
-                    HDLitMasterNode.SpeedTreeWindQuality q = (HDLitMasterNode.SpeedTreeWindQuality)material.GetInt(SpeedTreeLitOptionsUIBlock.kWindQuality);
+                    SpeedTreeLitMasterNode.SpeedTreeWindQuality q = (SpeedTreeLitMasterNode.SpeedTreeWindQuality)material.GetInt(SpeedTreeLitOptionsUIBlock.kWindQuality);
 
                     material.DisableKeyword("_WINDQUALITY_NONE");
                     material.DisableKeyword("_WINDQUALITY_FASTEST");
@@ -111,22 +111,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     switch (q)
                     {
-                        case HDLitMasterNode.SpeedTreeWindQuality.None:
+                        case SpeedTreeLitMasterNode.SpeedTreeWindQuality.None:
                             material.EnableKeyword("_WINDQUALITY_NONE");
                             break;
-                        case HDLitMasterNode.SpeedTreeWindQuality.Fastest:
+                        case SpeedTreeLitMasterNode.SpeedTreeWindQuality.Fastest:
                             material.EnableKeyword("_WINDQUALITY_FASTEST");
                             break;
-                        case HDLitMasterNode.SpeedTreeWindQuality.Fast:
+                        case SpeedTreeLitMasterNode.SpeedTreeWindQuality.Fast:
                             material.EnableKeyword("_WINDQUALITY_FAST");
                             break;
-                        case HDLitMasterNode.SpeedTreeWindQuality.Better:
+                        case SpeedTreeLitMasterNode.SpeedTreeWindQuality.Better:
                             material.EnableKeyword("_WINDQUALITY_BETTER");
                             break;
-                        case HDLitMasterNode.SpeedTreeWindQuality.Best:
+                        case SpeedTreeLitMasterNode.SpeedTreeWindQuality.Best:
                             material.EnableKeyword("_WINDQUALITY_BEST");
                             break;
-                        case HDLitMasterNode.SpeedTreeWindQuality.Palm:
+                        case SpeedTreeLitMasterNode.SpeedTreeWindQuality.Palm:
                             material.EnableKeyword("_WINDQUALITY_PALM");
                             break;
                     }
