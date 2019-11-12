@@ -62,13 +62,8 @@ namespace UnityEngine.TestTools.Graphics
             // This PR adds a dummy rendered frame before doing the real rendering and compare images ( test already has frame delay, but there is no rendering )
             int dummyRenderedFrameCount = 1;
 
-            bool linearColorSpace = QualitySettings.activeColorSpace == ColorSpace.Linear;
-
-            // TODO: Expose API to get URP Default HDR Format
-            // TODO: URP uses GraphicsFormat.B10G11R11_UFloatPack32 but for some reason if we use it here Test 079_TonemappingNeutralLDR fails.
-            GraphicsFormat defaultHDRFormat = GraphicsFormat.R16G16B16A16_SFloat;
-            GraphicsFormat defaultLDRFormat = (linearColorSpace) ? GraphicsFormat.B8G8R8A8_SRGB : GraphicsFormat.B8G8R8A8_UNorm;
-            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, settings.UseHDR ? defaultHDRFormat : defaultLDRFormat, 24);
+            var defaultFormat = (settings.UseHDR) ? SystemInfo.GetGraphicsFormat(DefaultFormat.HDR) : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(width, height, defaultFormat, 24);
 
             var rt = RenderTexture.GetTemporary(desc);
             Texture2D actual = null;
@@ -91,7 +86,7 @@ namespace UnityEngine.TestTools.Graphics
 
                         if (settings.UseHDR)
                         {
-                            desc.graphicsFormat = defaultLDRFormat;
+                            desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
                             dummy = RenderTexture.GetTemporary(desc);
                             UnityEngine.Graphics.Blit(rt, dummy);
                         }
