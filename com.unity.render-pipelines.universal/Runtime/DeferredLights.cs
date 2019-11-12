@@ -304,8 +304,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
-
             float yInversionFactor = SystemInfo.graphicsUVStartsAtTop ? -1.0f : 1.0f;
             // TODO There is an inconsistency in UniversalRP where the screen is already y-inverted. Why?
             yInversionFactor *= -1.0f;
