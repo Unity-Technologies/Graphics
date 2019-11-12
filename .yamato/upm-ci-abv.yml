@@ -1,6 +1,7 @@
 editors:
   - version: 2019.3
   - version: fast-2019.3
+  - version: dynamic-vbo-geomjobs-fixes
 projects:
   - name: Universal
     folder: UniversalGraphicsTest

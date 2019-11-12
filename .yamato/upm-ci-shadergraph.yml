@@ -3,6 +3,8 @@ editors:
     cmd: -u 2019.3/staging
   - version: fast-2019.3
     cmd: -u 2019.3/staging --fast
+  - version: dynamic-vbo-geomjobs-fixes
+    cmd: -u 2019.3/dynamic-vbo-geomjobs-fixes
 platforms:
   - name: Windows64
     type: Unity::VM::GPU
