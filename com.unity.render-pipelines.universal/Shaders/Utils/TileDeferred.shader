@@ -195,7 +195,13 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
-        bool materialFlagReceiveShadows = (materialFlags & kMaterialFlagReceiveShadowsOff) == 0;
+        bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
+        #if SHADER_API_SWITCH
+        // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
+        bool materialSpecularHighlightsOff = false;
+        #else
+        bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff) != 0;
+        #endif
 
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
@@ -216,8 +222,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialFlagReceiveShadows);
-                    color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
+                    color += LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
                 }
             }
             while(++li < input.relLightOffsets.y);
@@ -233,7 +239,7 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
                 float3 L = light.posWS - posWS.xyz;
                 [branch] if (dot(L, L) < light.radius2)
                 {
-                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialFlagReceiveShadows);
+                    Light unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
 
                     half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
                     half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);

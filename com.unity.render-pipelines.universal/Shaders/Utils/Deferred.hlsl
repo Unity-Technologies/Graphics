@@ -39,7 +39,7 @@ struct PunctualLightData
     int shadowLightIndex;
 };
 
-Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, bool materialFlagReceiveShadows)
+Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, bool materialFlagReceiveShadowsOff)
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
 
@@ -55,10 +55,10 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
     light.direction = lightDirection;
     light.color = punctualLightData.color.rgb;
     light.distanceAttenuation = attenuation;
-    [branch] if (materialFlagReceiveShadows)
-        light.shadowAttenuation = AdditionalLightRealtimeShadow(punctualLightData.shadowLightIndex, positionWS);
-    else
+    [branch] if (materialFlagReceiveShadowsOff)
         light.shadowAttenuation = 1.0;
+    else
+        light.shadowAttenuation = AdditionalLightRealtimeShadow(punctualLightData.shadowLightIndex, positionWS);
     return light;
 }
 

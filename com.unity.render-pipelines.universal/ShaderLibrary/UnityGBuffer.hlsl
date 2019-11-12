@@ -102,17 +102,17 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
 
     uint materialFlags = 0;
 
-#ifdef _SPECULARHIGHLIGHTS_OFF
-    // During deferred shading pass, we don't use a shader variant that disable specular calculations.
-    // Instead, we can silence specular contribution when writing the gbuffer.
-    half3 specular = 0.0;
-#else
-    half3 specular = brdfData.specular.rgb;
-    materialFlags |= kMaterialFlagSpecularHighlightsOff;
-#endif
-
 #ifdef _RECEIVE_SHADOWS_OFF
     materialFlags |= kMaterialFlagReceiveShadowsOff;
+#endif
+
+    half3 specular = brdfData.specular.rgb;
+#ifdef _SPECULARHIGHLIGHTS_OFF
+    // During the next deferred shading pass, we don't use a shader variant to disable specular calculations.
+    // Instead, we can either silence specular contribution when writing the gbuffer, and/or reserve a bit in the gbuffer
+    // and use this during shading to skip computations via dynamic branching. Fastest option depends on platforms.
+    materialFlags |= kMaterialFlagSpecularHighlightsOff;
+    specular = 0.0.xxx;
 #endif
 
     FragmentOutput output;

@@ -93,7 +93,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
-        bool materialFlagReceiveShadows = (materialFlags & kMaterialFlagReceiveShadowsOff) == 0;
+        bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
+        #if SHADER_API_SWITCH
+        // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
+        bool materialSpecularHighlightsOff = false;
+        #else
+        bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
+        #endif
 
         Light unityLight;
 
@@ -110,14 +116,14 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.attenuation = _LightAttenuation;
             light.spotDirection = _LightDirection;
             light.shadowLightIndex = _ShadowLightIndex;
-            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialFlagReceiveShadows);
+            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
         #endif
 
         half3 color = 0.0.xxx;
 
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
-            color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS);
+            color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
         #elif defined(_SIMPLELIT)
             SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
             half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
