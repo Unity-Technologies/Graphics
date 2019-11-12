@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
             renderTypeOverride = HDRenderTypeTags.HDUnlitShader.ToString(),
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.Unlit.ShadowCaster },
@@ -24,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
             renderTypeOverride = HDRenderTypeTags.HDUnlitShader.ToString(),
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.PBR.ShadowCaster },
@@ -39,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor HDUnlit = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.HDUnlit.ShadowCaster },
@@ -55,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor HDLit = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.HDLit.ShadowCaster },
@@ -75,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor Eye = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.Eye.ShadowCaster },
@@ -90,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor Fabric = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.Fabric.ShadowCaster },
@@ -104,6 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor Hair = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.Hair.ShadowCaster },
@@ -122,6 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor StackLit = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.StackLit.ShadowCaster },
@@ -138,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor Decal = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { HDPasses.Decal.Projector3RT, new FieldCondition(HDFields.DecalDefault, true) },
@@ -154,6 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor FabricRaytracing = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
             passes = new PassCollection
             {
                 { HDPasses.FabricRaytracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
@@ -166,6 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor HDLitRaytracing = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
             passes = new PassCollection
             {
                 { HDPasses.HDLitRaytracing.Indirect, new FieldCondition(Fields.IsPreview, false) },
@@ -178,6 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static SubShaderDescriptor HDUnlitRaytracing = new SubShaderDescriptor()
         {
             pipelineTag = HDRenderPipeline.k_ShaderTagName,
+            generatesPreview = false,
             passes = new PassCollection
             {
                 { HDPasses.HDUnlitRaytracing.Indirect, new FieldCondition(Fields.IsPreview, false) },

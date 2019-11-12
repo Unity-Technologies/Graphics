@@ -126,6 +126,10 @@ namespace UnityEditor.ShaderGraph
             if(descriptor.passes == null)
                 return;
 
+            //early out of preview generation if no passes are used in preview
+            if (m_Mode == GenerationMode.Preview && descriptor.generatesPreview == false)
+                return;
+
             m_Builder.AppendLine("SubShader");
             using(m_Builder.BlockScope())
             {

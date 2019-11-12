@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static SubShaderDescriptor PBR = new SubShaderDescriptor()
         {
             pipelineTag = kPipelineTag,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { UniversalPasses.Forward },
@@ -22,6 +23,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
         {
             pipelineTag = kPipelineTag,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { UniversalPasses.Unlit },
@@ -33,6 +35,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
         {
             pipelineTag = kPipelineTag,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { UniversalPasses.SpriteLit },
@@ -44,6 +47,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
         {
             pipelineTag = kPipelineTag,
+            generatesPreview = true,
             passes = new PassCollection
             {
                 { UniversalPasses.SpriteUnlit },

@@ -83,6 +83,7 @@ namespace UnityEditor.ShaderGraph
         {
             renderQueueOverride = "Geometry",
             renderTypeOverride = "Opaque",
+            generatesPreview = true,
             passes = new PassCollection { s_PreviewPass },
         };
     }
