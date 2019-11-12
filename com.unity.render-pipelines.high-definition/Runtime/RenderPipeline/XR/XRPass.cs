@@ -6,7 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -36,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyStereoEye = (Camera.StereoscopicEye)(-1);
         }
 
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
         internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
         {
             projMatrix = renderParameter.projection;
@@ -127,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AddViewInternal(new XRView(proj, view, vp));
         }
 
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
         internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, int textureArraySlice, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();

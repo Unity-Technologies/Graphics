@@ -25,17 +25,35 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
         {
-            // When switching shader, the custom RenderQueue is reset due to shader assignment
-            // To keep the correct render queue we need to save it here, do the change and re-assign it
-            int currentRenderQueue = material.renderQueue;
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
-            material.renderQueue = currentRenderQueue;
+
+            ResetMaterialCustomRenderQueue(material);
 
             SetupMaterialKeywordsAndPassInternal(material);
         }
+
+        protected static void ResetMaterialCustomRenderQueue(Material material)
+        {
+            HDRenderQueue.RenderQueueType targetQueueType;
+            switch (material.GetSurfaceType())
+            {
+                case SurfaceType.Opaque:
+                    targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                case SurfaceType.Transparent:
+                    targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                default:
+                    throw new ArgumentException("Unknown SurfaceType");
+            }
+
+            float sortingPriority = material.GetFloat(kTransparentSortPriority);
+            bool alphaTest = material.GetFloat(kAlphaCutoffEnabled) > 0.5f;
+            material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest);
+        }
         
         readonly static string[] floatPropertiesToSynchronize = {
-            kAlphaCutoffEnabled, "_AlphaCutoff", "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
+            kAlphaCutoffEnabled, "_UseShadowThreshold", kReceivesSSR, kUseSplitLighting
         };
 
         protected static void SynchronizeShaderGraphProperties(Material material)

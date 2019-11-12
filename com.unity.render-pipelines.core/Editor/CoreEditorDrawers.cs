@@ -86,6 +86,46 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
+        /// Conditioned drawer that will draw something depending of the return of the switch
+        /// </summary>
+        /// <param name="@switch">Chose witch drawing to use</param>
+        /// <param name="drawIfTrue">This will be draw if the <see cref="@switch"/> is true</param>
+        /// <param name="drawIfFalse">This will be draw if the <see cref="@switch"/> is false</param>
+        public static IDrawer TernaryConditional(Enabler @switch, IDrawer drawIfTrue, IDrawer drawIfFalse)
+            => new TernaryConditionalDrawerInternal(@switch, drawIfTrue.Draw, drawIfFalse.Draw);
+
+        /// <summary>
+        /// Conditioned drawer that will draw something depending of the return of the switch
+        /// </summary>
+        /// <param name="@switch">Chose witch drawing to use</param>
+        /// <param name="drawIfTrue">This will be draw if the <see cref="@switch"/> is true</param>
+        /// <param name="drawIfFalse">This will be draw if the <see cref="@switch"/> is false</param>
+        public static IDrawer TernaryConditional(Enabler @switch, ActionDrawer drawIfTrue, ActionDrawer drawIfFalse)
+            => new TernaryConditionalDrawerInternal(@switch, drawIfTrue, drawIfFalse);
+
+        class TernaryConditionalDrawerInternal : IDrawer
+        {
+            ActionDrawer drawIfTrue;
+            ActionDrawer drawIfFalse;
+            Enabler m_Switch;
+
+            public TernaryConditionalDrawerInternal(Enabler @switch, ActionDrawer drawIfTrue, ActionDrawer drawIfFalse)
+            {
+                this.drawIfTrue = drawIfTrue;
+                this.drawIfFalse = drawIfFalse;
+                m_Switch = @switch;
+            }
+
+            void IDrawer.Draw(TData data, Editor owner)
+            {
+                if (m_Switch != null && !m_Switch(data, owner))
+                    drawIfFalse?.Invoke(data, owner);
+                else
+                    drawIfTrue?.Invoke(data, owner);
+            }
+        }
+
+        /// <summary>
         /// Group of drawing function for inspector.
         /// They will be drawn one after the other.
         /// </summary>

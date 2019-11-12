@@ -40,6 +40,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent overrideMaterialPass = new GUIContent("Pass Name", "The pass for the override material to use.");
             public static GUIContent sortingCriteria = new GUIContent("Sorting", "Sorting settings used to render objects in a certain order.");
 
+		    //Depth Settings
+		    public static GUIContent overrideDepth = new GUIContent("Override Depth", "Override depth state of the objects rendered.");
+		    public static GUIContent depthWrite = new GUIContent("Write Depth", "Chose to write depth to the screen.");
+		    public static GUIContent depthCompareFunction = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
+
             //Camera Settings
             public static GUIContent overrideCamera = new GUIContent("Camera", "Override camera projections.");
             public static GUIContent cameraFOV = new GUIContent("Field Of View", "Field Of View to render this pass in.");
@@ -68,6 +73,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty      m_OverrideMaterial;
         SerializedProperty      m_OverrideMaterialPass;
         SerializedProperty      m_SortingCriteria;
+        
+        // Override depth state
+        SerializedProperty      m_OverrideDepthState;
+        SerializedProperty      m_DepthCompareFunction;
+        SerializedProperty      m_DepthWrite;
 
         ReorderableList         m_ShaderPassesList;
 
@@ -87,6 +97,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_OverrideMaterial = customPass.FindPropertyRelative("overrideMaterial");
             m_OverrideMaterialPass = customPass.FindPropertyRelative("overrideMaterialPassIndex");
             m_SortingCriteria = customPass.FindPropertyRelative("sortingCriteria");
+
+            // Depth options
+            m_OverrideDepthState = customPass.FindPropertyRelative("overrideDepthState");
+            m_DepthCompareFunction = customPass.FindPropertyRelative("depthCompareFunction");
+            m_DepthWrite = customPass.FindPropertyRelative("depthWrite");
 
             m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
@@ -190,6 +205,19 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_OverrideMaterialPass.intValue = Mathf.Max(0, m_OverrideMaterialPass.intValue);
                 EditorGUI.indentLevel--;
             }
+
+            rect.y += Styles.defaultLineSpace;
+            m_OverrideDepthState.boolValue = EditorGUI.Toggle(rect, Styles.overrideDepth, m_OverrideDepthState.boolValue);
+
+            if (m_OverrideDepthState.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                rect.y += Styles.defaultLineSpace;
+                m_DepthCompareFunction.intValue = (int)(CompareFunction)EditorGUI.EnumPopup(rect, Styles.depthCompareFunction, (CompareFunction)m_DepthCompareFunction.intValue);
+                rect.y += Styles.defaultLineSpace;
+                m_DepthWrite.boolValue = EditorGUI.Toggle(rect, Styles.depthWrite, m_DepthWrite.boolValue);
+                EditorGUI.indentLevel--;
+            }
         }
 
         void DoShaderPassesList(ref Rect rect)
@@ -238,6 +266,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_RendererFoldout.boolValue)
             {
                 height += Styles.defaultLineSpace * (m_OverrideMaterial.objectReferenceValue != null ? m_MaterialLines : 1);
+                height += Styles.defaultLineSpace * (m_OverrideDepthState.boolValue ? 3 : 1);
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
 
 #if SHOW_PASS_NAMES

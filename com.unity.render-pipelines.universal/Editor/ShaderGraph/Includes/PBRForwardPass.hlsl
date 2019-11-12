@@ -1,7 +1,13 @@
 ﻿void BuildInputData(Varyings input, float3 normal, out InputData inputData)
 {
     inputData.positionWS = input.positionWS;
-    inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
+#ifdef _NORMALMAP
+    inputData.normalWS = TransformTangentToWorld(normal,
+        half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+#else
+    inputData.normalWS = input.normalWS;
+#endif
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
     inputData.shadowCoord = input.shadowCoord;
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
@@ -52,5 +58,6 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 			surfaceDescription.Emission,
 			surfaceDescription.Alpha); 
 
+    color.rgb = MixFog(color.rgb, inputData.fogCoord); 
     return color;
 }

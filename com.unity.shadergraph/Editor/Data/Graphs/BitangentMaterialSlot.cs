@@ -1,6 +1,6 @@
 using System;
 using UnityEditor.ShaderGraph.Drawing.Slots;
-
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph

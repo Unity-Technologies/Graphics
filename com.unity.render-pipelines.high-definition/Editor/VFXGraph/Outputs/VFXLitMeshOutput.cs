@@ -8,10 +8,10 @@ namespace UnityEditor.VFX
     [VFXInfo]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Lit Mesh Output"; } }
+        public override string name { get { return "Output Particle Lit Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsUV { get { return true; } }
+        public override bool supportsUV { get { return shaderGraph == null; } }
         public override bool implementsMotionVector { get { return true; } }
 
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
@@ -47,9 +47,9 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            [Tooltip("Mesh to be used for particle rendering.")]
+            [Tooltip("Specifies the mesh used to render the particle.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
-            [Tooltip("Define a bitmask to control which submeshes are rendered."), BitField]
+            [Tooltip("Defines a bitmask to control which submeshes are rendered."), BitField]
             public uint subMeshMask = 0xffffffff;
         }
 

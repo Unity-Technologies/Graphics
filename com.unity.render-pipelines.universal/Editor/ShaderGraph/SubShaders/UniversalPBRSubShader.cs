@@ -48,6 +48,12 @@ namespace UnityEditor.Rendering.Universal
             },
 
             // Required fields
+            requiredAttributes = new List<string>()
+            {
+                "Attributes.uv1", //needed for meta vertex position
+            },
+
+            // Required fields
             requiredVaryings = new List<string>()
             {
                 "Varyings.positionWS",
@@ -65,12 +71,10 @@ namespace UnityEditor.Rendering.Universal
             includes = new List<string>()
             {
                 "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl",
             },
             pragmas = new List<string>()
             {
@@ -124,7 +128,6 @@ namespace UnityEditor.Rendering.Universal
             includes = new List<string>()
             {
                 "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
@@ -174,11 +177,9 @@ namespace UnityEditor.Rendering.Universal
             includes = new List<string>()
             {
                 "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
-                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
             },
             pragmas = new List<string>()
             {
@@ -216,6 +217,7 @@ namespace UnityEditor.Rendering.Universal
             requiredAttributes = new List<string>()
             {
                 "Attributes.uv1", //needed for meta vertex position
+                "Attributes.uv2", //needed for meta vertex position
             },
 
             // Render State Overrides
@@ -269,7 +271,6 @@ namespace UnityEditor.Rendering.Universal
             includes = new List<string>()
             {
                 "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
-                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
                 "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
@@ -408,6 +409,11 @@ namespace UnityEditor.Rendering.Universal
             
             if (masterNode.model == PBRMasterNode.Model.Specular)
                 baseActiveFields.Add("SpecularSetup");
+
+            if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
+            {
+                baseActiveFields.Add("Normal");
+            }
 
             // Keywords for transparent
             // #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

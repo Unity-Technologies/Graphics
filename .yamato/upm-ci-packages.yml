@@ -44,7 +44,10 @@ packages:
     id: vfx
     packagename: com.unity.visualeffectgraph
     dependencies:
+      - .yamato/upm-ci-packages.yml#pack_core
+      - .yamato/upm-ci-packages.yml#pack_shadergraph
       - .yamato/upm-ci-packages.yml#pack_vfx
+    hascodependencies: 1
   - name: Config
     id: config
     packagename: com.unity.render-pipelines.high-definition-config
@@ -151,6 +154,13 @@ publish_{{ package.id }}:
 
 publish_all:
   name: Publish all packages
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu:stable
+    flavor: b1.large
+  commands:
+    - git tag v$(cd com.unity.render-pipelines.core && node -e "console.log(require('./package.json').version)")
+    - git push origin --tags
   dependencies:
 {% for package in packages %}
     - .yamato/upm-ci-packages.yml#publish_{{ package.id }}

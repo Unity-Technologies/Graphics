@@ -159,6 +159,8 @@ namespace UnityEditor.VFX
         virtual public string runtimePath { get { return templatePath; } } //optional different path for .hlsl included in runtime
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
+
+        public virtual void SetupMaterial(Material mat) {}
     }
 
     // Not in Universal package because we dont want to add a dependency on VFXGraph
@@ -435,6 +437,7 @@ namespace UnityEditor.VFX
             return types.Where(type => attributeType == null || type.GetCustomAttributes(attributeType, false).Length == 1);
         }
 
+        [NonSerialized]
         private static Dictionary<string, VFXSRPBinder> srpBinders = null;
 
         private static void LoadSRPBindersIfNeeded()
@@ -471,10 +474,10 @@ namespace UnityEditor.VFX
             {
                 LoadSRPBindersIfNeeded();
                 VFXSRPBinder binder = null;
-                srpBinders.TryGetValue(GraphicsSettings.renderPipelineAsset == null ? "None" : GraphicsSettings.renderPipelineAsset.GetType().Name, out binder);
+                srpBinders.TryGetValue(GraphicsSettings.currentRenderPipeline == null ? "None" : GraphicsSettings.currentRenderPipeline.GetType().Name, out binder);
 
                 if (binder == null)
-                    throw new NullReferenceException("The SRP was not registered in VFX: " + GraphicsSettings.renderPipelineAsset.GetType());
+                    throw new NullReferenceException("The SRP was not registered in VFX: " + GraphicsSettings.currentRenderPipeline.GetType());
 
                 return binder;
             }
