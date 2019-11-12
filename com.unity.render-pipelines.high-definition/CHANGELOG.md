@@ -127,6 +127,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed EOL for some files
 - Fixed scene view rendering with volumetrics and XR enabled
 - Fixed decals to work with multiple cameras
+- Fxied optional clear of GBuffer (Was always on)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
