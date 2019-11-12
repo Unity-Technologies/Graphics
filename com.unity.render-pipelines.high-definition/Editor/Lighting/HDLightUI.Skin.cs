@@ -105,10 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent normalBias = new GUIContent("Normal Bias", "Controls the bias this Light applies along the normal of surfaces it illuminates.");
 
             // Shadow filter settings
-            public readonly GUIContent shadowSoftness = new GUIContent("Shadow Softness", "Controls the size of the penumbra. Higher values mimic a larger emission radius while lower values mimic a punctual light.");
             public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Controls the number of samples that HDRP uses to determine the size of the blocker.");
             public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count", "Controls the number of samples that HDRP uses to blur shadows.");
-            public readonly GUIContent minFilterSize = new GUIContent("Minimum Size of the Filter", "Controls the minimum size of the shadow’s blur effect regardless of the distance between the pixel and the shadow caster.");
+            public readonly GUIContent minFilterSize = new GUIContent("Minimum Blur Intensity", "Controls the minimum blur intensity regardless of the distance between the pixel and the shadow caster. The range [0..1] maps to [0..0.001] in UV space.");
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
             public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows", "If selected, ray traced shadows are used in place of rasterized ones.");
