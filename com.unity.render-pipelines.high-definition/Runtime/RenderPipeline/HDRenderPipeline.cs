@@ -1880,18 +1880,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
+
             ClearBuffers(hdCamera, cmd);
 
             // Render XR occlusion mesh to depth buffer early in the frame to improve performance
             if (hdCamera.xr.enabled && m_Asset.currentPlatformRenderPipelineSettings.xrSettings.occlusionMesh)
             {
+                hdCamera.xr.StopSinglePass(cmd, camera, renderContext);
                 hdCamera.xr.RenderOcclusionMeshes(cmd, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)));
+                hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
             }
 
-            hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
-
             // Bind the custom color/depth before the first custom pass
-
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
             {
                 cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, m_CustomPassColorBuffer);

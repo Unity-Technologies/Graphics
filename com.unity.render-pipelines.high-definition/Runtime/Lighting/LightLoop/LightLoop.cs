@@ -3347,9 +3347,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.enableFeatureVariants)
             {
                 if (outputSplitLighting)
-                    cmd.SetRenderTarget(resources.colorBuffers, resources.depthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, resources.colorBuffers, resources.depthStencilBuffer);
                 else
-                    cmd.SetRenderTarget(resources.colorBuffers[0], resources.depthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, resources.colorBuffers[0], resources.depthStencilBuffer);
 
                 for (int variant = 0; variant < parameters.numVariants; variant++)
                 {
