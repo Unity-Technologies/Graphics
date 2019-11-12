@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Only setup render target if current render pass attachments are different from the active ones.
                 if (!RenderingUtils.SequenceEqual(renderPass.colorAttachments, m_ActiveColorAttachments) || renderPass.depthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
-                    SetRenderTarget(cmd, renderPass.colorAttachment, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+                    SetRenderTarget(cmd, renderPass.colorAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
             }
             else
             {
