@@ -28,12 +28,16 @@ CBUFFER_START(UnityPhysicallyBasedSky)
     float  _AerosolSeaLevelExtinction;
 
     float3 _AirSeaLevelScattering;
-    float  _AerosolSeaLevelScattering;
+    float  _PackBetter0;
+
+    float3  _AerosolSeaLevelScattering;
+    float  _PackBetter1;
 
     float3 _GroundAlbedo;
     float  _IntensityMultiplier;
 
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
+    float  _PackBetter2;
 CBUFFER_END
 
 TEXTURE2D(_GroundIrradianceTexture);
@@ -63,7 +67,7 @@ float AirPhase(float LdotV)
     return RayleighPhaseFunction(-LdotV);
 }
 
-float AerosolScatter(float height)
+float3 AerosolScatter(float height)
 {
     return _AerosolSeaLevelScattering * exp(-height * _AerosolDensityFalloff);
 }
