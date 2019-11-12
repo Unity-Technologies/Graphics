@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSettingValue contactShadows;
         public SerializedProperty rayTracedContactShadow;
         public SerializedProperty shadowTint;
+        public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
 
@@ -258,6 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow));
                 rayTracedContactShadow = o.Find("m_RayTracedContactShadow");
                 shadowTint = o.Find("m_ShadowTint");
+                penumbraTint = o.Find("m_PenumbraTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
