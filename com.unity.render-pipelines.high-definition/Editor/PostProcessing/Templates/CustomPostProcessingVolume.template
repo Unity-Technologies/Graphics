@@ -24,8 +24,14 @@ public sealed class #SCRIPTNAME# : CustomPostProcessVolumeComponent, IPostProces
         HDUtils.DrawFullScreen(cmd, m_MaterialParameter.value, destination, null, passIndex);
     }
 
+    // in case a hardcoded static shader needs to be used, it can be setup in this function
+    // public override void Setup()
+    // {
+    //    if (Shader.Find("Hidden/Shader/#SCRIPTNAME#") != null)
+    //        m_Material = new Material(Shader.Find("Hidden/Shader/#SCRIPTNAME#"));
+    // }
+
     public override void Cleanup()
-    {
-        CoreUtils.Destroy(m_MaterialParameter.value);
+    {        
     }
 }
