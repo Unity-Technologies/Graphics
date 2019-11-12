@@ -987,7 +987,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Vector4 screenSize = new Vector4(m_RenderWidth, m_RenderHeight, 1.0f / m_RenderWidth, 1.0f / m_RenderHeight);
                 cmd.SetGlobalVector(ShaderConstants._ScreenSize, screenSize);
 
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
+                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture as readonly but currently not possible yet
 
                 int tileWidth = m_Tilers[0].GetTilePixelWidth();
                 int tileHeight = m_Tilers[0].GetTilePixelHeight();
@@ -1048,7 +1048,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 NativeArray<VisibleLight> visibleLights = renderingData.lightData.visibleLights;
 
-                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthCopyTexture but currently not possible yet
+                cmd.SetGlobalTexture(ShaderConstants._DepthTex, m_DepthCopyTexture.Identifier()); // We should bind m_DepthTexture a readonly but currently not possible yet
 
                 int soffset = 0;
 
