@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
                 "Features to include in this renderer.\nTo add or remove features, use the plus and minus at the bottom of this box.");
 
             public static readonly GUIContent PassNameField =
-                new GUIContent("Name", "This is the name for the current pass.");
+                new GUIContent("Name", "Render pass name. This name is the name displayed in Frame Debugger.");
 
             public static GUIStyle BoldLabelSimple;
 

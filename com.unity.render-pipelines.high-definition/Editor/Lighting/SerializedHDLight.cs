@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty displayAreaLightEmissiveMesh;
         public SerializedProperty renderingLayerMask;
         public SerializedProperty shadowNearPlane;
-        public SerializedProperty shadowSoftness;
         public SerializedProperty blockerSampleCount;
         public SerializedProperty filterSampleCount;
         public SerializedProperty minFilterSize;
@@ -72,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSettingValue contactShadows;
         public SerializedProperty rayTracedContactShadow;
         public SerializedProperty shadowTint;
+        public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
 
@@ -212,7 +212,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 maxSmoothness = o.Find("m_MaxSmoothness");
                 applyRangeAttenuation = o.Find("m_ApplyRangeAttenuation");
                 shadowNearPlane = o.Find("m_ShadowNearPlane");
-                shadowSoftness = o.Find("m_ShadowSoftness");
                 blockerSampleCount = o.Find("m_BlockerSampleCount");
                 filterSampleCount = o.Find("m_FilterSampleCount");
                 minFilterSize = o.Find("m_MinFilterSize");
@@ -258,6 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow));
                 rayTracedContactShadow = o.Find("m_RayTracedContactShadow");
                 shadowTint = o.Find("m_ShadowTint");
+                penumbraTint = o.Find("m_PenumbraTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
