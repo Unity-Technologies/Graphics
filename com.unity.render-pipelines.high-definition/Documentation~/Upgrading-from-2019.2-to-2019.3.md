@@ -21,6 +21,10 @@ The last step is important because, if you haven't installed the sample and load
 
 HDRP has deprecated the Linear Fog, Exponential Fog, Volumetric Fog, and Volumetric Fog Quality overrides in 2019.3 and replaced them with a single [Fog](Override-Fog.html) override. This override acts as an exponential fog with a height component by default and allows you to add additional volumetric fog. To automatically update old fog overrides to the new system, select **Edit > Render Pipeline > Upgrade Fog Volume Components**. Note that it can not safely convert all cases so you may need to upgrade some manually.
 
+## Shadow Maps
+
+Before Unity 2019.3, each Light in HDRP exposed several options for the shadow map bias. From 2019.3, HDRP has replaced every option, except for **Normal Bias**, with **Slope-Scale Depth Bias**. Introducing this property makes the shadow map bias setup fairly different to what it was. This means that, if the default values lead to unexpected results, you may need a new setup for the bias on each Light. 
+
 ## Area Lights
 
 Before Unity 2019.3, HDRP synchronized the width and height of an area [Light](Light-Component.html)'s **Emissive Mesh** with the [localScale](https://docs.unity3d.com/ScriptReference/Transform-localScale.html) of its Transform. From Unity 2019.3, HDRP uses the [lossyScale](https://docs.unity3d.com/ScriptReference/Transform-lossyScale.html) to make the **Emissive Mesh** account for the scale of the parent Transforms. This means that you must resize every area Light in your Unity Project according to the scale of its parent.
@@ -30,3 +34,15 @@ Before Unity 2019.3, HDRP synchronized the width and height of an area [Light](L
 When you upgrade your **High Definition RP** package, Unity now upgrades each of your Materials. This means adds a version number the first time it happens so, if a HDRP Shader change occurs, Unity is able to fix your Material so that it still works correctly with the new changes.
 
 To do this, Unity opens a prompt when you begin the upgrade, asking if you want to save your Project. It keeps attempting to upgrade old files until you agree to save your Project.
+
+## Max Smoothness, Emission Radius, Bake Shadows Radius and Bake Shadows Angle 
+
+Before Unity 2019.3, Max Smoothness, Emission Radius, and Bake Shadows Radius were separate controls for Point and Spot Lights. From Unity 2019.3, the UI displays a single property, called **Radius** that controls all of the properties mentioned above.
+Also, Max Smoothness, Angular Diameter, and Bake Shadows Angle were separate controls for Directional Lights. The UI now displays a single property, called **Angular Diameter**, that controls all the mentioned above.
+
+When upgrading, a slight shift of highlight shape or shadow penumbra size can occur. This happens if you set the original properties to values that do not match what the automatic conversion from "Radius" or "Angular Diameter" results in.
+
+## Custom Shaders
+
+2019.3 introduces a change to Reflection Probes which allows you to compress the range that Unity uses when rendering the probe's content. This comes with a small change to the Shader framework, the function `SampleEnv()` now requires an additional parameter, being the factor to apply to the probe data to compensate the range compression done at probe rendering time. This value is in the data structure `EnvLightData` under the name of `rangeCompressionFactorCompensation`. 
+

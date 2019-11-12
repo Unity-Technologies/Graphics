@@ -137,7 +137,8 @@ $include("SharedCode.template.hlsl")
     {
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
-        surfaceData.ambientOcclusion =      1.0f;
+        surfaceData.ambientOcclusion = 1.0;
+        surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
 
         // copy across graph values, if defined
         $SurfaceDescription.Albedo:               surfaceData.baseColor =             surfaceDescription.Albedo;
@@ -164,21 +165,21 @@ $include("SharedCode.template.hlsl")
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
-
         surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);    // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
-        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
-
-        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
-        // If user provide bent normal then we process a better term
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 
 #if HAVE_DECALS
         if (_EnableDecals)
         {
+            // Both uses and modifies 'surfaceData.normalWS'.
             DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, surfaceDescription.Alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
         }
 #endif
+
+        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion as PBR master node don't have any option
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 
 #ifdef DEBUG_DISPLAY
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)

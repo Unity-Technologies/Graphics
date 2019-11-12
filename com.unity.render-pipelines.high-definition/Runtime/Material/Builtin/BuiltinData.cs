@@ -32,13 +32,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Use for float instead of vector4 to ease the debug (no performance impact)
             // Note: We have no way to remove these value automatically based on either SHADEROPTIONS_BAKED_SHADOW_MASK_ENABLE or s_BakedShadowMaskEnable here. Unless we make two structure... For now always keep this value
-            [SurfaceDataAttributes("Shadow Mask 0", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("Shadowmask 0", precision = FieldPrecision.Real)]
             public float shadowMask0;
-            [SurfaceDataAttributes("Shadow Mask 1", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("Shadowmask 1", precision = FieldPrecision.Real)]
             public float shadowMask1;
-            [SurfaceDataAttributes("Shadow Mask 2", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("Shadowmask 2", precision = FieldPrecision.Real)]
             public float shadowMask2;
-            [SurfaceDataAttributes("Shadow Mask 3", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("Shadowmask 3", precision = FieldPrecision.Real)]
             public float shadowMask3;
 
             [SurfaceDataAttributes("Emissive Color", false, false, FieldPrecision.Real)]

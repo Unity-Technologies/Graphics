@@ -41,6 +41,41 @@ To edit properties for Materials that use Shader Graphs, the Inspector window on
 
 ![](Images/CreatingAndEditingHDRPShaderGraphs1.png)
 
+## Material properties
+
+When you edit a Shader Graph Asset, you can create properties on the [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Blackboard.html) for Materials that use it. This allows you to change the value of the property at run time. 
+
+The best way to create a property depends on how you want to use it:
+
+- If you want the ability to edit the property in the Editor, use the Blackboard, and expose the property.
+- If you want the ability to edit the property at run time, but not in the Editor, use the Blackboard, but don’t expose the property.
+- If you don’t want to edit the property, [use a concrete node](#ConcreteNodes).
+
+### Material properties in the Blackboard
+
+Every Blackboard property contributes to the size of the Material on disk, whether you expose it or not. If you do not need the value of the property to change at all (either in the Editor or at run time), use a concrete node instead, so that it doesn’t add to the size of the Material.
+
+If you want to change the value of a Material’s property in the Unity Editor Inspector, you need to expose that property. To expose a property on the Blackboard to the Inspector:
+
+1. Open the Shader Graph Asset that the Material is using.
+2. Go to the Blackboard and enable the Exposed setting for the properties that you want to see in the Inspector.
+3. In the toolbar, click Save Asset.
+4. When you create a Material from the Shader Graph Asset, the properties appear in the Exposed Properties section.
+
+You should only expose a property if you intend to change it in the Inspector while you develop your application in the Editor. Otherwise, it’s good practice to leave it unexposed, so that it doesn’t take up too much space in the Inspector, and it can’t accidentally change.
+
+If a property is not exposed, you can still edit it. To edit the property for every Material instance that uses the selected Shader, open the Shader Graph Asset and edit the property directly in the Blackboard. To edit the property for a single Material instance that uses the Shader, use a script. 
+
+<a name="ConcreteNodes"></a>
+
+### Material properties in concrete nodes
+
+If you want a property value to be the same for every Material that uses the Shader, and you don’t need to change it at run time or in the Editor, you can use a concrete node. A concrete node is a node that you can create in the Shader Graph Asset that defines a value. You can create concrete nodes for all of the same value types as you can in the Blackboard. You should use concrete nodes whenever possible, because the Shader compiler can perform automatic optimisations to improve performance.
+
+Concrete nodes that define a Texture (or a Texture array) define an unexposed property in the Shader. This means that they contribute to the size of the Material on disk, just like Blackboard properties.
+
+
+
 <a name="KnownIssues"></a>
 
 ## Known issues

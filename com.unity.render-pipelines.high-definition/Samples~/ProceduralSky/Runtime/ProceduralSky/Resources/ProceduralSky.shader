@@ -9,6 +9,7 @@ Shader "Hidden/HDRP/Sky/ProceduralSky"
 
     #pragma vertex Vert
 
+    #pragma editor_sync_compilation
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 

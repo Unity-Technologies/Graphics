@@ -24,11 +24,11 @@ float3 GetFogColor(float3 V, float fragDist)
     {
         // Based on Uncharted 4 "Mip Sky Fog" trick: http://advances.realtimerendering.com/other/2016/naughty_dog/NaughtyDog_TechArt_Final.pdf
         float mipLevel = (1.0 - _MipFogMaxMip * saturate((fragDist - _MipFogNear) / (_MipFogFar - _MipFogNear))) * _SkyTextureMipCount;
-        // For the atmosphéric scattering, we use the GGX convoluted version of the cubemap. That matches the of the idnex 0
+        // For the atmospheric scattering, we use the GGX convoluted version of the cubemap. That matches the of the idnex 0
         return SampleSkyTexture(-V, mipLevel, 0).rgb;
     }
     else // Should not be possible.
-        return  float3(0.0, 0.0, 0.0);
+        return float3(0.0, 0.0, 0.0);
 }
 
 // All units in meters!
@@ -48,7 +48,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
     // TODO: Not sure it's possible to precompute cam rel pos since variables
     // in the two constant buffers may be set at a different frequency?
     const float3 O     = worldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
-    const float  tFrag = distAlongRay * 0.001;                                // Convert m to km
+    const float  tFrag = abs(distAlongRay) * 0.001;                           // Convert m to km and clear the "hit ground" flag
 
     float3 N; float r; // These params correspond to the entry point
     float  tEntry = IntersectAtmosphere(O, V, N, r).x;
@@ -61,25 +61,19 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
     bool rayIntersectsAtmosphere = (tEntry >= 0);
     bool lookAboveHorizon        = (cosChi >= cosHor);
 
-    // If it's outside the atmosphere, we only need one texture look-up.
-    bool rayEndsInsideAtmosphere = tFrag * (1 + 2 * FLT_EPS) < tExit;
-
     // Our precomputed tables only contain information above ground.
-    if (!lookAboveHorizon) // See the ground?
-    {
-        float tGround = tEntry + IntersectSphere(R, cosChi, r).x;
-
-        // Being on or below ground still counts as outside.
-        rayEndsInsideAtmosphere = tFrag * (1 + 2 * FLT_EPS) < min(tGround, tExit);
-    }
+    // Being on or below ground still counts as outside.
+    // If it's outside the atmosphere, we only need one texture look-up.
+    bool hitGround = distAlongRay < 0;
+    bool rayEndsInsideAtmosphere = (tFrag < tExit) && !hitGround;
 
     if (rayIntersectsAtmosphere)
     {
         float2 Z = R * n;
         float r0 = r, cosChi0 = cosChi;
 
-        float r1 = 1.0, cosChi1 = 1.0;
-        float3 N1 = 1.0;
+        float r1 = 0, cosChi1 = 0;
+        float3 N1 = 0;
 
         if (tFrag < tExit)
         {
@@ -260,9 +254,9 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                 posInput.positionNDC,
                 fogFragDist,
-                _VBufferResolution,
-                _VBufferUvScaleAndLimit.xy,
-                _VBufferUvScaleAndLimit.zw,
+                _VBufferViewportSize,
+                _VBufferSharedUvScaleAndLimit.xy,
+                _VBufferSharedUvScaleAndLimit.zw,
                 _VBufferDistanceEncodingParams,
                 _VBufferDistanceDecodingParams,
                 true, false);
@@ -296,16 +290,16 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             float  trFallback = TransmittanceFromOpticalDepth(odFallback);
             float  trCamera = 1 - volFog.a;
 
-            volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * volAlbedo * (1 - trFallback);
+            volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * GetCurrentExposureMultiplier() * volAlbedo * (1 - trFallback);
             volFog.a = 1 - (trCamera * trFallback);
         }
 
-        color = volFog.rgb * GetCurrentExposureMultiplier();
+        color = volFog.rgb; // Already pre-exposed
         opacity = volFog.a;
     }
 
-    // We apply atmospheric scattering to all celestial bodies during the sky pass.
-    // Unfortunately, they don't write depth.
+    // Sky pass already applies atmospheric scattering to the far plane.
+    // This pass only handles geometry.
     if (_PBRFogEnabled && (posInput.deviceDepth != UNITY_RAW_FAR_CLIP_VALUE))
     {
         float3 skyColor = 0, skyOpacity = 0;

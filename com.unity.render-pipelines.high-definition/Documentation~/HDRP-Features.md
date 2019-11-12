@@ -129,27 +129,27 @@ The HDRP light types use [physical light units](#PLU) to help you light your Sce
 - **Directional**
   - Color temperature
   - Colored cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 - **Spot**
   - Color temperature
   - Colored cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
   - Cone, pyramid and box shapes
 
 - **Point**
   - Color temperature
   - Colored cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 - **Rectangle**
   - Color temperature
   - Colored Cookie
-  - Shadow mask support
+  - [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 - **Tube**
   - Color temperature
-  - No shadow masks
+  - No [Shadowmask](Lighting-Mode-Shadowmask.html) support
 
 For more information, including the full list of light properties, see the [Light component documentation](Light-Component.html).
 
@@ -239,16 +239,22 @@ HDRP includes its own purpose-built implementation for post-processing to produc
 
 ![](Images/HDRPFeatures-AntiAliasing.png) 
 
-HDRP includes the following anti-aliasing  methods to help you remove aliasing effects with performance and quality in mind:
+HDRP includes the following [anti-aliasing](Anti-Aliasing.html) methods to help you remove aliasing effects with performance and quality in mind:
 
-- Multisample anti-aliasing: Samples multiple locations within every pixel and combines these samples to produce the final pixel. This is the most resource intensive anti-aliasing technique in HDRP.
-- Temporal anti-aliasing: Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
-- Subpixel morphological anti-aliasing: Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
-- Fast approximate anti-aliasing: Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
+- [Multisample anti-aliasing](Anti-Aliasing.html#MSAA): Samples multiple locations within every pixel and combines these samples to produce the final pixel. This is the most resource intensive anti-aliasing technique in HDRP.
+- [Temporal anti-aliasing](Anti-Aliasing.html#TAA): Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing. It is substantially better at smoothing edges in motion, but you must enable motion vectors for this.
+- [Subpixel morphological anti-aliasing](Anti-Aliasing.html#SMAA): Finds patterns in borders of the image and blends the pixels on these borders according to the pattern.
+- [Fast approximate anti-aliasing](Anti-Aliasing.html#FXAA): Smooths edges on a per-pixel level. This is the least resource intensive anti-aliasing technique in HDRP.
 
 ### Physical Camera
 
 HDRP uses a physically-based Camera system that works seamlessly with the other physical features of HDRP, such as [physical light units](#PLU), to produce physically-accurate, unified results. A physically-based camera works like a real-world camera, and therefore uses the same properties. This allows you to configure an HDRP Camera to mimic the behavior of a real-world camera, with expected results for effects such as exposure and depth of field. For more information on HDRP's physically-based camera, includings a description of how to use it, see the [Camera component documentation](HDRP-Camera.html).
+
+### Custom Passes
+
+![HDRPFeatures-CustomPass](Images/HDRPFeatures-CustomPass.gif)
+
+Custom Passes allow you to inject shader and C# at certain points inside the render loop, giving you the ability to draw objects, do fullscreen passes and read some camera buffers like depth, color or normal, see the [Custom Pass documentation](Custom-Pass.md).
 
 <a name="Tools"></a>
 
