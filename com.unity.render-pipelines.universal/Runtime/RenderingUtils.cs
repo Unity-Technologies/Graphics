@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        public static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
+        internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
             if (colorBuffers != null)
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
-        public static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;
         }
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        internal static bool Contains(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
         {
             foreach (var identifier in source)
             {
@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
+        internal static int IndexOf(RenderTargetIdentifier[] source, RenderTargetIdentifier value)
         {
             for (int i = 0; i < source.Length; ++i)
             {
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static bool Contains(ClearFlag a, ClearFlag b)
+        internal static bool Contains(ClearFlag a, ClearFlag b)
         {
             return (a & b) == b;
         }
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns></returns>
-        public static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
+        internal static bool SequenceEqual(RenderTargetIdentifier[] left, RenderTargetIdentifier[] right)
         {
             if (left.Length != right.Length)
                 return false;
