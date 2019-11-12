@@ -130,6 +130,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals to work with multiple cameras
 - Fixed optional clear of GBuffer (Was always on)
 - Fixed render target clears with XR single-pass rendering
+- Fixed HDRP samples file hierarchy
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
