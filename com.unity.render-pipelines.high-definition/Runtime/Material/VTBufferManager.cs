@@ -11,7 +11,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        RTHandle m_VTFeedbackBufferMSAA;
+        RTHandle m_VTFeedbackBuffer;
         VirtualTextureResolver m_Resolver = new VirtualTextureResolver();
         public static int AdditionalForwardRT = 1;
         int resolveScale = 16;
@@ -28,8 +28,8 @@ namespace  UnityEngine.Rendering.HighDefinition
             if (settings.supportMSAA || settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
             {
                 // Our processing handles both MSAA and regular buffers so we don't need to explicitly resolve here saving a buffer
-                m_VTFeedbackBufferMSAA = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
-                    enableMSAA: true, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
+                m_VTFeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
+                    enableMSAA: settings.supportMSAA, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
             }
         }
 
@@ -54,9 +54,9 @@ namespace  UnityEngine.Rendering.HighDefinition
                 ResolveVTDispatch(cmd, rt, width, height );
             }
 
-            if (m_VTFeedbackBufferMSAA != null)
+            if (m_VTFeedbackBuffer != null)
             {
-                ResolveVTDispatch(cmd, m_VTFeedbackBufferMSAA, width, height );
+                ResolveVTDispatch(cmd, m_VTFeedbackBuffer, width, height );
             }
         }
 
@@ -87,14 +87,15 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void DestroyBuffers()
         {
-            RTHandles.Release(m_VTFeedbackBufferMSAA);
-            m_VTFeedbackBufferMSAA = null;
+            RTHandles.Release(m_VTFeedbackBuffer);
+            m_VTFeedbackBuffer = null;
             m_Resolver.Dispose();
         }
 
-        public RTHandle GetForwardMSAABuffer()
+        // This may be null in some cases where this buffer can be shared with the one used by the Gbuffer
+        public RTHandle GetFeedbackBuffer()
         {
-            return m_VTFeedbackBufferMSAA;
+            return m_VTFeedbackBuffer;
         }
 
 
