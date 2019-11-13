@@ -1125,7 +1125,14 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
             GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask,ref lightData.isRayTracedContactShadow);
-            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+            
+            // We want to have a colored penumbra if the flag is on and the color is not gray            
+            bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
+            lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
+            if (penumbraTint)
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r * additionalLightData.shadowTint.r, additionalLightData.shadowTint.g * additionalLightData.shadowTint.g, additionalLightData.shadowTint.b * additionalLightData.shadowTint.b);
+            else
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
@@ -1374,13 +1381,20 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
             {
                 lightData.cookieIndex = m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
-            }
+            } 
 
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
             lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.volumetricShadowDimmer;
             GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
-            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+
+            // We want to have a colored penumbra if the flag is on and the color is not gray            
+            bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
+            lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
+            if (penumbraTint)
+                lightData.shadowTint = new Vector3(Mathf.Pow(additionalLightData.shadowTint.r, 2.2f), Mathf.Pow(additionalLightData.shadowTint.g, 2.2f), Mathf.Pow(additionalLightData.shadowTint.b, 2.2f));
+            else
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
@@ -3333,9 +3347,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.enableFeatureVariants)
             {
                 if (outputSplitLighting)
-                    cmd.SetRenderTarget(resources.colorBuffers, resources.depthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, resources.colorBuffers, resources.depthStencilBuffer);
                 else
-                    cmd.SetRenderTarget(resources.colorBuffers[0], resources.depthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, resources.colorBuffers[0], resources.depthStencilBuffer);
 
                 for (int variant = 0; variant < parameters.numVariants; variant++)
                 {
