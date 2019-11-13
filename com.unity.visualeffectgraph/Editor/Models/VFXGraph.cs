@@ -25,9 +25,6 @@ namespace UnityEditor.VFX
                 var resource = VisualEffectResource.GetResourceAtPath(assetPath);
                 if( resource != null)
                 {
-                    Debug.Log("Recompiling before import: "+assetPath);
-
-
                     VFXGraph graph = resource.GetOrCreateGraph();
                     if( graph != null)
                     {
@@ -436,7 +433,7 @@ namespace UnityEditor.VFX
             {
                 m_CompilationMode = mode;
                 SetExpressionGraphDirty();
-                RecompileIfNeeded(false, true);
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
             }
         }
 
@@ -448,7 +445,7 @@ namespace UnityEditor.VFX
                 if (m_ForceShaderValidation)
                 {
                     SetExpressionGraphDirty();
-                    RecompileIfNeeded(false, true);
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
                 }
             }
         }
