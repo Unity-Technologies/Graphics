@@ -18,18 +18,24 @@ namespace UnityEditor.VFX.Operator
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
+        public class ConstantInputProperties
+        {
+            [Tooltip("Sets the value used when determining the random number. Using the same seed results in the same random number every time.")]
+            public uint seed = 0u;
+        }
+
         public class InputPropertiesVertex
         {
             [Tooltip("The vertex index to read from.")]
             public uint vertex = 0u;
         }
 
-        public enum PlacementMode
-        {
-            Vertex,
-            Edge,
-            Surface
-        };
+        //public enum PlacementMode
+        //{
+        //    Vertex,
+        //    Edge,
+        //    Surface
+        //};
 
         public enum SelectionMode
         {
@@ -38,14 +44,19 @@ namespace UnityEditor.VFX.Operator
         };
 
         //[VFXSetting, SerializeField] // TODO - support surface sampling
-        private PlacementMode Placement = PlacementMode.Vertex;
-
-        [VFXSetting, SerializeField]
-        private SelectionMode Selection = SelectionMode.Random;
+        //private PlacementMode Placement = PlacementMode.Vertex;
 
         // TODO: support flags/mask UI, for outputting multiple attributes from one operator
-        [VFXSetting, SerializeField]
-        private VertexAttribute Output = VertexAttribute.Position;
+        [VFXSetting, SerializeField, Tooltip("Specifies read output during mesh sampling")]
+        private VertexAttribute output = VertexAttribute.Position;
+
+        [VFXSetting, SerializeField, Tooltip("Specifies the selection mode, embedded random or custom index sampling")]
+        private SelectionMode selection = SelectionMode.Random;
+
+        [VFXSetting, SerializeField, Tooltip("Specifies whether the random number is generated for each particle, each particle strip, or is shared by the whole system.")]
+        private VFXSeedMode seed = VFXSeedMode.PerParticle;
+        [VFXSetting, SerializeField, Tooltip("When enabled, the random number will remain constant. Otherwise, it will change every time it is evaluated.")]
+        private bool constant = true;
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
@@ -53,8 +64,11 @@ namespace UnityEditor.VFX.Operator
             {
                 var properties = PropertiesFromType("InputProperties");
 
-                if (Placement == PlacementMode.Vertex && Selection == SelectionMode.Custom)
+                if (/*Placement == PlacementMode.Vertex && */selection == SelectionMode.Custom)
                     properties = properties.Concat(PropertiesFromType("InputPropertiesVertex"));
+
+                if (selection == SelectionMode.Random && (constant || seed == VFXSeedMode.PerParticleStrip))
+                    properties = properties.Concat(PropertiesFromType("ConstantInputProperties"));
 
                 return properties;
             }
@@ -62,7 +76,7 @@ namespace UnityEditor.VFX.Operator
 
         private Type GetOutputType()
         {
-            switch (Output)
+            switch (output)
             {
                 case VertexAttribute.Position: return typeof(Vector3);
                 case VertexAttribute.Normal: return typeof(Vector3);
@@ -95,11 +109,14 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                if (Placement != PlacementMode.Vertex)
-                    yield return "Selection";
-               
-                foreach (var setting in base.filteredOutSettings)
-                    yield return setting;
+                foreach (var s in base.filteredOutSettings)
+                    yield return s;
+
+                if (seed == VFXSeedMode.PerParticleStrip || selection != SelectionMode.Random)
+                    yield return "constant";
+
+                if (selection != SelectionMode.Random)
+                    yield return "seed";
             }
         }
 
@@ -108,17 +125,17 @@ namespace UnityEditor.VFX.Operator
             var mesh = inputExpression[0];
 
             VFXExpression meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
-            VFXExpression meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<uint>((uint)Output));
+            VFXExpression meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<uint>((uint)output));
             VFXExpression meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
 
             //if (Placement == PlacementMode.Vertex)
             {
                 VFXExpression vertexIndex;
-                switch (Selection)
+                switch (selection)
                 {
                     case SelectionMode.Random:
                         {
-                            var rand = new VFXExpressionRandom(true); //TODOPAUL : Add settings for per particle
+                            var rand = VFXOperatorUtility.BuildRandom(seed, constant, inputExpression[1]);
                             vertexIndex = rand * new VFXExpressionCastUintToFloat(meshVertexCount);
                             vertexIndex = new VFXExpressionCastFloatToUint(vertexIndex);
                         }
@@ -133,7 +150,7 @@ namespace UnityEditor.VFX.Operator
                 }
 
                 var outputType = GetOutputType();
-                if (Output == VertexAttribute.Color)
+                if (output == VertexAttribute.Color)
                     return new[] { new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
                 if (outputType == typeof(float))
                     return new[] { new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride) };
