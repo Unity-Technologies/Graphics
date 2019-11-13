@@ -59,9 +59,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.LabelField("Geometry");
+            EditorGUILayout.LabelField("Planet");
 			PropertyField(m_PlanetaryRadius);
 			PropertyField(m_PlanetCenterPosition);
+			PropertyField(m_PlanetRotation);
+			PropertyField(m_GroundColor);
+			PropertyField(m_GroundAlbedoTexture);
+			PropertyField(m_GroundEmissionTexture);
+            EditorGUILayout.LabelField("Space");
+			PropertyField(m_SpaceRotation);
+			PropertyField(m_SpaceEmissionTexture);
             EditorGUILayout.LabelField("Air");
 			PropertyField(m_AirDensityR);
             PropertyField(m_AirDensityG);
@@ -73,14 +80,6 @@ namespace UnityEditor.Rendering.HighDefinition
 			PropertyField(m_AerosolColor);
 			PropertyField(m_AerosolMaximumAltitude);
 			PropertyField(m_AerosolAnisotropy);
-            EditorGUILayout.LabelField("Planet");
-			PropertyField(m_PlanetRotation);
-			PropertyField(m_GroundColor);
-			PropertyField(m_GroundAlbedoTexture);
-			PropertyField(m_GroundEmissionTexture);
-            EditorGUILayout.LabelField("Space");
-			PropertyField(m_SpaceRotation);
-			PropertyField(m_SpaceEmissionTexture);
             EditorGUILayout.LabelField("Miscellaneous");
 			PropertyField(m_NumberOfBounces);
 
