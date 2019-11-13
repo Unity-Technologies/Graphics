@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     class UniversalMeshTarget : ITargetImplementation
     {
         public Type targetType => typeof(MeshTarget);
-        public string displayName => "Universal";
+        public string displayName => "Universal SRP";
         public string passTemplatePath => GenerationUtils.GetDefaultTemplatePath("PassMesh.template");
         public string sharedTemplateDirectory => GenerationUtils.GetDefaultSharedTemplateDirectory();
 
@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("ac9e1a400a9ce404c8f26b9c1238417e")); // UniversalMeshTarget
-            
+
             switch(context.masterNode)
             {
                 case PBRMasterNode pbrMasterNode:

@@ -2,6 +2,6 @@
 {
     class MeshTarget : ITarget
     {
-        public string displayName => "Mesh";
+        public string displayName => "MeshyBoi";
     }
 }
