@@ -246,6 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetTexture(HDShaderIDs._InputDepth, ctx.resources.GetTexture(data.depthBuffer));
                             // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
                             mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
+                            mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                             CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
                         }
                     }
