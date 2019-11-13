@@ -257,7 +257,7 @@ namespace  UnityEditor.VFX.UI
                             filename += "*";
                         }
 
-                        if (autoCompile && graph.IsExpressionGraphDirty())
+                        if (autoCompile && graph.IsExpressionGraphDirty() && ! graph.GetResource().isSubgraph)
                             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
                         else
                             graph.RecompileIfNeeded(true, true);
