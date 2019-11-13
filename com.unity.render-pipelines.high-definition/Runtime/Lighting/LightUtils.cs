@@ -503,13 +503,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else  // For area lights
             {
-                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
+                if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Nits)
                     intensity = LightUtils.ConvertAreaLightLumenToLuminance(hdLight.areaLightShape, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
-                if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
+                if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Lumen)
                     intensity = LightUtils.ConvertAreaLightLuminanceToLumen(hdLight.areaLightShape, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
-                if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev100)
+                if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Ev100)
                     intensity = LightUtils.ConvertLuminanceToEv(intensity);
-                if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Luminance)
+                if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Nits)
                     intensity = LightUtils.ConvertEvToLuminance(intensity);
                 if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
                     intensity = LightUtils.ConvertAreaLightEvToLumen(hdLight.areaLightShape, intensity, hdLight.shapeWidth, hdLight.shapeHeight);
