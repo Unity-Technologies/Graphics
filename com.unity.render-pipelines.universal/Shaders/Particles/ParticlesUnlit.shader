@@ -103,6 +103,50 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             ENDHLSL
         }
+
+        // ------------------------------------------------------------------
+        //  GBuffer pass.
+        Pass
+        {
+            // Lightmode matches the ShaderPassName set in UniversalRenderPipeline.cs. SRPDefaultUnlit and passes with
+            // no LightMode tag are also rendered by Universal Render Pipeline
+            Name "GBuffer"
+            Tags{"LightMode" = "UniversalGBuffer"}
+
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+            ColorMask RGB
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _EMISSION
+
+            // -------------------------------------
+            // Particle Keywords
+            //#pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+            #pragma shader_feature _FLIPBOOKBLENDING_ON
+            //#pragma shader_feature _SOFTPARTICLES_ON
+            //#pragma shader_feature _FADING_ON
+            //#pragma shader_feature _DISTORTION_ON
+
+            #pragma vertex vertParticleUnlitGBuffer
+            #pragma fragment fragParticleUnlitGBuffer
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitGBufferPass.hlsl"
+
+            ENDHLSL
+        }
     }
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.ParticlesUnlitShader"
 }

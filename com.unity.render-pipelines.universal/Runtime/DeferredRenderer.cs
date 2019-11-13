@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         DrawObjectsPass m_RenderOpaqueForwardPass;
         DeferredPass m_DeferredPass;
         DrawSkyboxPass m_DrawSkyboxPass;
+        CopyColorPass m_CopyColorPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         PostProcessPass m_PostProcessPass;
@@ -51,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             Material copyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
-//            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+            Material samplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             Material screenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
             Material tileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
             Material tileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
@@ -83,6 +84,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 3, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, RenderQueueRange.opaque, m_DeferredLights);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.BeforeRenderingTransparents, samplingMaterial);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData);
@@ -230,6 +232,16 @@ namespace UnityEngine.Rendering.Universal
                 m_DrawSkyboxPass.ConfigureTarget(m_CameraColorAttachment.Identifier(), m_DepthTexture.Identifier());
 
                 EnqueuePass(m_DrawSkyboxPass);
+            }
+
+            // This is useful for refraction effects (particle system).
+            if (renderingData.cameraData.requiresOpaqueTexture)
+            {
+                // TODO: Downsampling method should be store in the renderer instead of in the asset.
+                // We need to migrate this data to renderer. For now, we query the method in the active asset.
+                Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
+                m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
+                EnqueuePass(m_CopyColorPass);
             }
 
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).

@@ -4,10 +4,11 @@ using Unity.Collections;
 using Unity.Jobs;
 using static Unity.Mathematics.math;
 
+// TODO _DepthTex may need to be renamed _CameraDepthTexture, as URP uses this name to address the camera depth texture by convention.
 // TODO SimpleLit material, when smoothness is encoded into gbuffer it goes through exp2() -> log2() operations, fix that.
 // TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
-// TODO Debug PACK_NORMALS_OCT
 // TODO use InitializeSimpleLitSurfaceData() in all shader code
+// TODO use InitializeParticleLitSurfaceData() in forward pass for ParticleLitForwardPass.hlsl ? Similar refactoring for ParticleSimpleLitForwardPass.hlsl
 // TODO remove g_deferredLights: it is currently a workaround for IJob not allowed to contains reference types (we need a reference/pointer to a DeferredTiler).
 // TODO use subpass API to hide extra TileDepthPass
 // TODO Improve the way _unproject0/_unproject1 are computed (Clip matrix issue)
@@ -107,6 +108,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InstanceOffset = Shader.PropertyToID("_InstanceOffset");
             public static readonly int _DepthTex = Shader.PropertyToID("_DepthTex");
             public static readonly int _DepthTexSize = Shader.PropertyToID("_DepthTexSize");
+            public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
             public static readonly int _ScreenSize = Shader.PropertyToID("_ScreenSize");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
@@ -696,6 +698,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(k_DeferredPass);
 
             Profiler.BeginSample(k_DeferredPass);
+
+            // We bind a copy of depth buffer because we cannot make it readonly at the moment.
+            // This binding may be used by the deferred shaders (TODO) or the transparent pass (soft-particles).
+            cmd.SetGlobalTexture(ShaderConstants._CameraDepthTexture, this.m_DepthCopyTexture.Identifier());
 
             RenderTiledPunctualLights(context, cmd, ref renderingData);
 

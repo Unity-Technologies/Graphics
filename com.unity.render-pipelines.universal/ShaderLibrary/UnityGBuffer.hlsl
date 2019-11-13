@@ -1,6 +1,9 @@
 #ifndef UNIVERSAL_GBUFFERUTIL_INCLUDED
 #define UNIVERSAL_GBUFFERUTIL_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
 #define kLightingInvalid  -1  // No dynamic lighting: can aliase any other material type as they are skipped using stencil
