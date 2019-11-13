@@ -102,7 +102,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                         viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
                     }
-                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, true);
+                    ref CameraData cameraData = ref renderingData.cameraData;
+                    bool isFinalPassToGameViewBackBuffer = isFinalBackBufferWrite && cameraData.camera.targetTexture == null
+                                           && !(cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
+                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, !isFinalPassToGameViewBackBuffer);// !isFinalPassToGameViewBackBuffer);
                     Matrix4x4 viewProjMatrix = projectionMatrix * viewMatrix;
                     Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
 

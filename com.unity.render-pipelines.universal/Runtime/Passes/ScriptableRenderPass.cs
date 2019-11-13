@@ -55,6 +55,8 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        public bool isFinalBackBufferWrite { get; set; }
+
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 

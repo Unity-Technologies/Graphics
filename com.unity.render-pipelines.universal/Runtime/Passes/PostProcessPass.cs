@@ -1245,7 +1245,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (URPCameraMode.isPureURP)
             {
                 // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableGlobalShaderKeyword("UNITY_PURE_URP_ON");
+                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
 
                 Matrix4x4 projMatrix;
                 Matrix4x4 viewMatrix;
