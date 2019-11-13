@@ -408,6 +408,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        float m_SoftnessScale = 1.0f;
+        /// <summary>
+        /// Get/Set the scale factor applied to shape radius or angular diameter for the softness calculation.
+        /// </summary>
+        public float softnessScale
+        {
+            get => m_SoftnessScale;
+            set
+            {
+                if (m_SoftnessScale == value)
+                    return;
+
+                m_SoftnessScale = Mathf.Clamp(value, 0, float.MaxValue);
+                UpdateAllLightValues();
+            }
+        }
+
         [SerializeField, FormerlySerializedAs("useCustomSpotLightShadowCone")]
         bool m_UseCustomSpotLightShadowCone = false;
         // Custom spot angle for spotlight shadows
@@ -1717,7 +1735,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
                 // We use the light view frustum derived from view projection matrix and angular diameter to work out a filter size in
                 // shadow map space, essentially figuring out the footprint of the cone subtended by the light on the shadow map
-                float halfAngleTan = 0.5f * Mathf.Tan(0.5f * Mathf.Deg2Rad * m_AngularDiameter / 2);
+                float halfAngleTan = 0.5f * Mathf.Tan(0.5f * Mathf.Deg2Rad * (softnessScale * m_AngularDiameter) / 2);
                 float lightFactor1 = halfAngleTan * frustumExtents.z / frustumExtents.x;
                 float lightFactor2 = halfAngleTan * frustumExtents.z / frustumExtents.y;
                 softness = Mathf.Sqrt(lightFactor1 * lightFactor1 + lightFactor2 * lightFactor2);
@@ -1725,7 +1743,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 // This derivation has been fitted with quartic regression checking against raytracing reference and with a resolution of 512
-                float x = m_ShapeRadius;
+                float x = m_ShapeRadius * softnessScale;
                 float x2 = x * x;
                 softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
                 softness = Mathf.Clamp(softness, 0.0f, 4.0f);
@@ -2439,12 +2457,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="blockerSampleCount">Number of samples used to detect blockers</param>
         /// <param name="filterSampleCount">Number of samples used to filter the shadow map</param>
-        /// <param name="minFilterSize">Minimum filter size</param>
-        public void SetPCSSParams(int blockerSampleCount = 16, int filterSampleCount = 24, float minFilterSize = 0.00001f)
+        /// <param name="minFilterSize">Minimum filter intensity</param>
+        /// <param name="radiusScaleForSoftness">Scale applied to shape radius or angular diameter in the softness calculations.</param>
+        public void SetPCSSParams(int blockerSampleCount = 16, int filterSampleCount = 24, float minFilterSize = 0.01f, float radiusScaleForSoftness = 1)
         {
             this.blockerSampleCount = blockerSampleCount;
             this.filterSampleCount = filterSampleCount;
             this.minFilterSize = minFilterSize;
+            this.softnessScale = radiusScaleForSoftness;
         }
 
         /// <summary>
