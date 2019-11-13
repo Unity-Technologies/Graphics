@@ -7,21 +7,15 @@ Pass
     }
    
     // Render State
-    $splice(Blending)
-    $splice(Culling)
-    $splice(ZTest)
-    $splice(ZWrite)
-    $splice(ColorMask)
-
-    HLSLPROGRAM
-    #pragma vertex vert
-    #pragma fragment frag
+    $splice(RenderState)
 
     // Debug
     $splice(Debug)
 
     // --------------------------------------------------
     // Pass
+
+    HLSLPROGRAM
 
     // Pragmas
     $splice(PassPragmas)
@@ -61,13 +55,21 @@ Pass
     $splice(GraphDefines)
 
     // Includes
-    $splice(PassIncludes)
+    $splice(PreGraphIncludes)
+
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
 
     // --------------------------------------------------
     // Graph
 
     // Graph Properties
     $splice(GraphProperties)
+    $splice(DotsInstancedProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
@@ -79,13 +81,6 @@ Pass
     $splice(GraphPixel)
 
     // --------------------------------------------------
-    // Structs and Packing
-
-    $buildType(Attributes)
-
-    $buildType(Varyings)
-
-    // --------------------------------------------------
     // Build Graph Inputs
 
     $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
@@ -94,7 +89,7 @@ Pass
     // --------------------------------------------------
     // Main
 
-    $splice(MainInclude)
+    $splice(PostGraphIncludes)
 
     ENDHLSL
 }

@@ -2,11 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using Data.Util;
 
@@ -14,400 +10,258 @@ namespace UnityEditor.ShaderGraph
 {
     static class GenerationUtils
     {
-        const string kDebugSymbol = "SHADERGRAPH_DEBUG";
+        const string kErrorString = @"ERROR!";
 
-        public static bool GenerateShaderPass(AbstractMaterialNode masterNode, ShaderPass pass, GenerationMode mode, 
-            ActiveFields activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths,
-            List<Dependency[]> dependencies, string resourceClassName, string assemblyName)
+        internal static List<FieldDescriptor> GetActiveFieldsFromConditionals(ConditionalField[] conditionalFields)
         {
-            // --------------------------------------------------
-            // Debug
-
-            // Get scripting symbols
-            BuildTargetGroup buildTargetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(buildTargetGroup);
-
-            bool isDebug = defines.Contains(kDebugSymbol);
-
-            // --------------------------------------------------
-            // Setup
-
-            // Initiailize Collectors
-            var propertyCollector = new PropertyCollector();
-            var keywordCollector = new KeywordCollector();
-            masterNode.owner.CollectShaderKeywords(keywordCollector, mode);
-
-            // Get upstream nodes from ShaderPass port mask
-            List<AbstractMaterialNode> vertexNodes;
-            List<AbstractMaterialNode> pixelNodes;
-            GetUpstreamNodesForShaderPass(masterNode, pass, out vertexNodes, out pixelNodes);
-
-            // Track permutation indices for all nodes
-            List<int>[] vertexNodePermutations = new List<int>[vertexNodes.Count];
-            List<int>[] pixelNodePermutations = new List<int>[pixelNodes.Count];
-
-            // Get active fields from upstream Node requirements
-            ShaderGraphRequirementsPerKeyword graphRequirements;
-            GetActiveFieldsAndPermutationsForNodes(masterNode, pass, keywordCollector, vertexNodes, pixelNodes,
-                vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
-
-            // GET CUSTOM ACTIVE FIELDS HERE!
-
-            // Get active fields from ShaderPass
-            AddRequiredFields(pass.requiredAttributes, activeFields.baseInstance);
-            AddRequiredFields(pass.requiredVaryings, activeFields.baseInstance);
-
-            // Get Port references from ShaderPass
-            var pixelSlots = FindMaterialSlotsOnNode(pass.pixelPorts, masterNode);
-            var vertexSlots = FindMaterialSlotsOnNode(pass.vertexPorts, masterNode);                     
-
-            // Function Registry
-            var functionBuilder = new ShaderStringBuilder();
-            var functionRegistry = new FunctionRegistry(functionBuilder);
-
-            // Hash table of named $splice(name) commands
-            // Key: splice token
-            // Value: string to splice
-            Dictionary<string, string> spliceCommands = new Dictionary<string, string>();
-
-            // --------------------------------------------------
-            // Dependencies
-
-            // Propagate active field requirements using dependencies
-            // Must be executed before types are built
-            foreach (var instance in activeFields.all.instances)
-                ShaderSpliceUtil.ApplyDependencies(instance, dependencies);
-
-            // --------------------------------------------------
-            // Pass Setup
-
-            // Name
-            if(!string.IsNullOrEmpty(pass.displayName))
+            var fields = new List<FieldDescriptor>();
+            foreach(ConditionalField conditionalField in conditionalFields)
             {
-                spliceCommands.Add("PassName", $"Name \"{pass.displayName}\"");
-            }
-            else
-            {
-                spliceCommands.Add("PassName", "// Name: <None>");
-            }
-
-            // Tags
-            if(!string.IsNullOrEmpty(pass.lightMode))
-            {
-                spliceCommands.Add("LightMode", $"\"LightMode\" = \"{pass.lightMode}\"");
-            }
-            else
-            {
-                spliceCommands.Add("LightMode", "// LightMode: <None>");
-            }
-
-            // Render state
-            BuildRenderStatesFromPass(pass, ref spliceCommands);
-
-            // --------------------------------------------------
-            // Pass Code
-
-            // Pragmas
-            using (var passPragmaBuilder = new ShaderStringBuilder())
-            {
-                if(pass.pragmas != null)
+                if(conditionalField.condition == true)
                 {
-                    foreach(string pragma in pass.pragmas)
-                    {
-                        passPragmaBuilder.AppendLine($"#pragma {pragma}");
-                    }
+                    fields.Add(conditionalField.field);
                 }
-                if(passPragmaBuilder.length == 0)
-                    passPragmaBuilder.AppendLine("// PassPragmas: <None>");
-                spliceCommands.Add("PassPragmas", passPragmaBuilder.ToCodeBlack());
             }
 
-            // Includes
-            using (var passIncludeBuilder = new ShaderStringBuilder())
+            return fields;
+        }
+
+        internal static void GenerateSubShaderTags(IMasterNode masterNode, SubShaderDescriptor descriptor, ShaderStringBuilder builder)
+        {
+            builder.AppendLine("Tags");
+            using (builder.BlockScope())
             {
-                if(pass.includes != null)
+                // Pipeline tag
+                if(!string.IsNullOrEmpty(descriptor.pipelineTag))
+                    builder.AppendLine($"\"RenderPipeline\"=\"{descriptor.pipelineTag}\"");
+                else
+                    builder.AppendLine("// RenderPipeline: <None>");
+
+                // Render Type
+                string renderType = !string.IsNullOrEmpty(descriptor.renderTypeOverride) ? 
+                    descriptor.renderTypeOverride : masterNode?.renderTypeTag;
+                if(!string.IsNullOrEmpty(renderType))
+                    builder.AppendLine($"\"RenderType\"=\"{renderType}\"");
+                else
+                    builder.AppendLine("// RenderType: <None>");
+
+                // Render Queue
+                string renderQueue = !string.IsNullOrEmpty(descriptor.renderQueueOverride) ? 
+                    descriptor.renderQueueOverride : masterNode?.renderQueueTag;
+                if(!string.IsNullOrEmpty(renderQueue))
+                    builder.AppendLine($"\"Queue\"=\"{renderQueue}\"");
+                else
+                    builder.AppendLine("// Queue: <None>");
+            }
+        }
+
+        static bool IsFieldActive(FieldDescriptor field, IActiveFields activeFields, bool isOptional)
+        {
+            bool fieldActive = true;
+            if (!activeFields.Contains(field) && isOptional)
+                fieldActive = false; //if the field is optional and not inside of active fields
+            return fieldActive;
+        }
+
+        internal static void GenerateShaderStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out ShaderStringBuilder structBuilder)
+        {
+            structBuilder = new ShaderStringBuilder();
+            structBuilder.AppendLine($"struct {shaderStruct.name}");
+            using(structBuilder.BlockSemicolonScope())
+            {
+                foreach(FieldDescriptor subscript in shaderStruct.fields)
                 {
-                    foreach(string include in pass.includes)
+                    bool fieldIsActive;
+                    var keywordIfDefs = string.Empty;
+
+                    if (activeFields.permutationCount > 0)
                     {
-                        passIncludeBuilder.AppendLine($"#include \"{include}\"");
+                        //find all active fields per permutation
+                        var instances = activeFields.allPermutations.instances
+                            .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
+                        fieldIsActive = instances.Count > 0;
+                        if (fieldIsActive)
+                            keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
                     }
+                    else
+                        fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));
+                        //else just find active fields
+
+                    if (fieldIsActive)
+                    {
+                        //if field is active:
+                        if(subscript.HasPreprocessor())
+                            structBuilder.AppendLine($"#if {subscript.preprocessor}");
+
+                        //if in permutation, add permutation ifdef
+                        if(!string.IsNullOrEmpty(keywordIfDefs))
+                            structBuilder.AppendLine(keywordIfDefs);
+                        
+                        //check for a semantic, build string if valid
+                        string semantic = subscript.HasSemantic() ? $" : {subscript.semantic}" : string.Empty;
+                        structBuilder.AppendLine($"{subscript.type} {subscript.name}{semantic};");
+
+                        //if in permutation, add permutation endif
+                        if (!string.IsNullOrEmpty(keywordIfDefs))
+                            structBuilder.AppendLine("#endif"); //TODO: add debug collector 
+
+                        if(subscript.HasPreprocessor())
+                            structBuilder.AppendLine("#endif");                        
+                    }            
                 }
-                if(passIncludeBuilder.length == 0)
-                    passIncludeBuilder.AppendLine("// PassIncludes: <None>");
-                spliceCommands.Add("PassIncludes", passIncludeBuilder.ToCodeBlack());
             }
+        }
 
-            // Keywords
-            using (var passKeywordBuilder = new ShaderStringBuilder())
+        internal static void GeneratePackedStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out StructDescriptor packStruct)
+        {
+            packStruct = new StructDescriptor() { name = "Packed" + shaderStruct.name, packFields = true,
+                fields = new FieldDescriptor[]{} };
+            List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
+            List<int> packedCounts = new List<int>();
+
+            foreach(FieldDescriptor subscript in shaderStruct.fields)
             {
-                if(pass.keywords != null)
+                var fieldIsActive = false;
+                var keywordIfDefs = string.Empty;
+
+                if (activeFields.permutationCount > 0)
                 {
-                    foreach(KeywordDescriptor keyword in pass.keywords)
-                    {
-                        passKeywordBuilder.AppendLine(keyword.ToDeclarationString());
-                    }
-                }
-                if(passKeywordBuilder.length == 0)
-                    passKeywordBuilder.AppendLine("// PassKeywords: <None>");
-                spliceCommands.Add("PassKeywords", passKeywordBuilder.ToCodeBlack());
-            }
-
-            // --------------------------------------------------
-            // Graph Vertex
-
-            var vertexBuilder = new ShaderStringBuilder();
-
-            // If vertex modification enabled
-            if (activeFields.baseInstance.Contains("features.graphVertex"))
-            {
-                // Setup
-                string vertexGraphInputName = "VertexDescriptionInputs";
-                string vertexGraphOutputName = "VertexDescription";
-                string vertexGraphFunctionName = "VertexDescriptionFunction";
-                var vertexGraphInputGenerator = new ShaderGenerator();
-                var vertexGraphFunctionBuilder = new ShaderStringBuilder();
-                var vertexGraphOutputBuilder = new ShaderStringBuilder();
-
-                // Build vertex graph inputs
-                ShaderSpliceUtil.BuildType(GetTypeForStruct("VertexDescriptionInputs", resourceClassName, assemblyName), activeFields, vertexGraphInputGenerator, isDebug);
-
-                // Build vertex graph outputs
-                // Add struct fields to active fields
-                SubShaderGenerator.GenerateVertexDescriptionStruct(vertexGraphOutputBuilder, vertexSlots, vertexGraphOutputName, activeFields.baseInstance);
-
-                // Build vertex graph functions from ShaderPass vertex port mask
-                SubShaderGenerator.GenerateVertexDescriptionFunction(
-                    masterNode.owner as GraphData,
-                    vertexGraphFunctionBuilder,
-                    functionRegistry,
-                    propertyCollector,
-                    keywordCollector,
-                    mode,
-                    masterNode,
-                    vertexNodes,
-                    vertexNodePermutations,
-                    vertexSlots,
-                    vertexGraphInputName,
-                    vertexGraphFunctionName,
-                    vertexGraphOutputName);
-
-                // Generate final shader strings
-                vertexBuilder.AppendLines(vertexGraphInputGenerator.GetShaderString(0, false));
-                vertexBuilder.AppendNewLine();
-                vertexBuilder.AppendLines(vertexGraphOutputBuilder.ToString());
-                vertexBuilder.AppendNewLine();
-                vertexBuilder.AppendLines(vertexGraphFunctionBuilder.ToString());
-            }
-
-            // Add to splice commands
-            if(vertexBuilder.length == 0)
-                vertexBuilder.AppendLine("// GraphVertex: <None>");
-            spliceCommands.Add("GraphVertex", vertexBuilder.ToCodeBlack());
-
-            // --------------------------------------------------
-            // Graph Pixel
-
-            // Setup
-            string pixelGraphInputName = "SurfaceDescriptionInputs";
-            string pixelGraphOutputName = "SurfaceDescription";
-            string pixelGraphFunctionName = "SurfaceDescriptionFunction";
-            var pixelGraphInputGenerator = new ShaderGenerator();
-            var pixelGraphOutputBuilder = new ShaderStringBuilder();
-            var pixelGraphFunctionBuilder = new ShaderStringBuilder();
-
-            // Build pixel graph inputs
-            ShaderSpliceUtil.BuildType(GetTypeForStruct("SurfaceDescriptionInputs", resourceClassName, assemblyName), activeFields, pixelGraphInputGenerator, isDebug);
-
-            // Build pixel graph outputs
-            // Add struct fields to active fields
-            SubShaderGenerator.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
-
-            // Build pixel graph functions from ShaderPass pixel port mask
-            SubShaderGenerator.GenerateSurfaceDescriptionFunction(
-                pixelNodes,
-                pixelNodePermutations,
-                masterNode,
-                masterNode.owner as GraphData,
-                pixelGraphFunctionBuilder,
-                functionRegistry,
-                propertyCollector,
-                keywordCollector,
-                mode,
-                pixelGraphFunctionName,
-                pixelGraphOutputName,
-                null,
-                pixelSlots,
-                pixelGraphInputName);
-
-            using (var pixelBuilder = new ShaderStringBuilder())
-            {
-                // Generate final shader strings
-                pixelBuilder.AppendLines(pixelGraphInputGenerator.GetShaderString(0, false));
-                pixelBuilder.AppendNewLine();
-                pixelBuilder.AppendLines(pixelGraphOutputBuilder.ToString());
-                pixelBuilder.AppendNewLine();
-                pixelBuilder.AppendLines(pixelGraphFunctionBuilder.ToString());
-                
-                // Add to splice commands
-                if(pixelBuilder.length == 0)
-                    pixelBuilder.AppendLine("// GraphPixel: <None>");
-                spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlack());
-            }
-
-            // --------------------------------------------------
-            // Graph Functions
-
-            if(functionBuilder.length == 0)
-                functionBuilder.AppendLine("// GraphFunctions: <None>");
-            spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlack());
-
-            // --------------------------------------------------
-            // Graph Keywords
-
-            using (var keywordBuilder = new ShaderStringBuilder())
-            {
-                keywordCollector.GetKeywordsDeclaration(keywordBuilder, mode);
-                if(keywordBuilder.length == 0)
-                    keywordBuilder.AppendLine("// GraphKeywords: <None>");
-                spliceCommands.Add("GraphKeywords", keywordBuilder.ToCodeBlack());
-            }
-
-            // --------------------------------------------------
-            // Graph Properties
-
-            using (var propertyBuilder = new ShaderStringBuilder())
-            {
-                propertyCollector.GetPropertiesDeclaration(propertyBuilder, mode, masterNode.owner.concretePrecision);
-                if(propertyBuilder.length == 0)
-                    propertyBuilder.AppendLine("// GraphProperties: <None>");
-                spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlack());
-            }
-
-            // --------------------------------------------------
-            // Graph Defines
-
-            using (var graphDefines = new ShaderStringBuilder())
-            {
-                graphDefines.AppendLine("#define {0}", pass.referenceName);
-
-                if (graphRequirements.permutationCount > 0)
-                {
-                    List<int> activePermutationIndices;
-
-                    // Depth Texture
-                    activePermutationIndices = graphRequirements.allPermutations.instances
-                        .Where(p => p.requirements.requiresDepthTexture)
-                        .Select(p => p.permutationIndex)
-                        .ToList();
-                    if (activePermutationIndices.Count > 0)
-                    {
-                        graphDefines.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
-                        graphDefines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
-                        graphDefines.AppendLine("#endif");
-                    }
-
-                    // Opaque Texture
-                    activePermutationIndices = graphRequirements.allPermutations.instances
-                        .Where(p => p.requirements.requiresCameraOpaqueTexture)
-                        .Select(p => p.permutationIndex)
-                        .ToList();
-                    if (activePermutationIndices.Count > 0)
-                    {
-                        graphDefines.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
-                        graphDefines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
-                        graphDefines.AppendLine("#endif");
-                    }
+                    //find all active fields per permutation
+                    var instances = activeFields.allPermutations.instances
+                        .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
+                    fieldIsActive = instances.Count > 0;
+                    if (fieldIsActive)
+                        keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
                 }
                 else
+                    fieldIsActive = IsFieldActive(subscript, activeFields.baseInstance, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional));
+                    //else just find active fields
+
+                if (fieldIsActive)
                 {
-                    // Depth Texture
-                    if (graphRequirements.baseInstance.requirements.requiresDepthTexture)
-                        graphDefines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
-
-                    // Opaque Texture
-                    if (graphRequirements.baseInstance.requirements.requiresCameraOpaqueTexture)
-                        graphDefines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
-                }
-
-                // Add to splice commands
-                spliceCommands.Add("GraphDefines", graphDefines.ToCodeBlack());
-            }
-
-            // --------------------------------------------------
-            // Main
-
-            // Main include is expected to contain vert/frag definitions for the pass
-            // This must be defined after all graph code
-            using (var mainBuilder = new ShaderStringBuilder())
-            {
-                mainBuilder.AppendLine($"#include \"{pass.varyingsInclude}\"");
-                mainBuilder.AppendLine($"#include \"{pass.passInclude}\"");
-
-                // Add to splice commands
-                spliceCommands.Add("MainInclude", mainBuilder.ToCodeBlack());
-            }
-
-            // --------------------------------------------------
-            // Debug
-
-            // Debug output all active fields
-            
-            using(var debugBuilder = new ShaderStringBuilder())
-            {
-                if (isDebug)
-                {
-                    // Active fields
-                    debugBuilder.AppendLine("// ACTIVE FIELDS:");
-                    foreach (string field in activeFields.baseInstance.fields)
+                    //if field is active:
+                    if(subscript.HasSemantic() || subscript.vectorCount == 0)  
+                        packedSubscripts.Add(subscript);
+                    else
                     {
-                        debugBuilder.AppendLine("// " + field);
+                        // pack float field
+                        int vectorCount = subscript.vectorCount;
+                        // super simple packing: use the first interpolator that has room for the whole value
+                        int interpIndex = packedCounts.FindIndex(x => (x + vectorCount <= 4));
+                        int firstChannel;
+                        if (interpIndex < 0)
+                        {
+                            // allocate a new interpolator
+                            interpIndex = packedCounts.Count;
+                            firstChannel = 0;
+                            packedCounts.Add(vectorCount);
+                        }
+                        else
+                        {
+                            // pack into existing interpolator
+                            firstChannel = packedCounts[interpIndex];
+                            packedCounts[interpIndex] += vectorCount;
+                        }
+                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
+                            "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
+                        packedSubscripts.Add(packedSubscript);                        
+                    }
+                }            
+            }
+            packStruct.fields = packedSubscripts.ToArray();
+        }
+
+        internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
+        {
+            //set up function string builders and struct builder 
+            List<int> packedCounts = new List<int>();
+            var packBuilder = new ShaderStringBuilder();
+            var unpackBuilder = new ShaderStringBuilder();
+            interpolatorBuilder = new ShaderStringBuilder();
+            string packedStruct = "Packed" + shaderStruct.name;
+            
+            //declare function headers
+            packBuilder.AppendLine($"{packedStruct} Pack{shaderStruct.name} ({shaderStruct.name} input)");
+            packBuilder.AppendLine("{");
+            packBuilder.IncreaseIndent();
+            packBuilder.AppendLine($"{packedStruct} output;");
+
+            unpackBuilder.AppendLine($"{shaderStruct.name} Unpack{shaderStruct.name} ({packedStruct} input)");
+            unpackBuilder.AppendLine("{");
+            unpackBuilder.IncreaseIndent();
+            unpackBuilder.AppendLine($"{shaderStruct.name} output;");
+
+            foreach(FieldDescriptor subscript in shaderStruct.fields)
+            {
+                if(IsFieldActive(subscript, activeFields, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional)))
+                {
+                    int vectorCount = subscript.vectorCount;
+                    if(subscript.HasPreprocessor())
+                    {
+                        packBuilder.AppendLine($"#if {subscript.preprocessor}");
+                        unpackBuilder.AppendLine($"#if {subscript.preprocessor}");
+                    }
+                    if(subscript.HasSemantic() || vectorCount == 0)
+                    {
+                        packBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
+                        unpackBuilder.AppendLine($"output.{subscript.name} = input.{subscript.name};");
+                    }
+                    else
+                    {
+                        // pack float field
+                        // super simple packing: use the first interpolator that has room for the whole value
+                        int interpIndex = packedCounts.FindIndex(x => (x + vectorCount <= 4));
+                        int firstChannel;
+                        if (interpIndex < 0)
+                        {
+                            // allocate a new interpolator
+                            interpIndex = packedCounts.Count;
+                            firstChannel = 0;
+                            packedCounts.Add(vectorCount);
+                        }
+                        else
+                        {
+                            // pack into existing interpolator
+                            firstChannel = packedCounts[interpIndex];
+                            packedCounts[interpIndex] += vectorCount;
+                        }
+                        // add code to packer and unpacker -- add subscript to packedstruct
+                        string packedChannels = ShaderSpliceUtil.GetChannelSwizzle(firstChannel, vectorCount);
+                        packBuilder.AppendLine($"output.interp{interpIndex}.{packedChannels} =  input.{subscript.name};");
+                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
+                    }
+                    
+                    if(subscript.HasPreprocessor())
+                    {
+                        packBuilder.AppendLine("#endif");
+                        unpackBuilder.AppendLine("#endif");
                     }
                 }
-                if(debugBuilder.length == 0)
-                    debugBuilder.AppendLine("// <None>");
-                
-                // Add to splice commands
-                spliceCommands.Add("Debug", debugBuilder.ToCodeBlack());
             }
+            //close function declarations
+            packBuilder.AppendLine("return output;");
+            packBuilder.DecreaseIndent();
+            packBuilder.AppendLine("}");
 
-            // --------------------------------------------------
-            // Finalize
-
-            // Get Template
-            string templateLocation = GetTemplatePath("PassMesh.template");
-
-            if (!File.Exists(templateLocation))
-                return false;
+            unpackBuilder.AppendLine("return output;");
+            unpackBuilder.DecreaseIndent();
+            unpackBuilder.AppendLine("}");
             
-            // Get Template preprocessor
-            string templatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates";
-            var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands, 
-                isDebug, templatePath, sourceAssetDependencyPaths, assemblyName, resourceClassName);
-            
-            // Process Template
-            templatePreprocessor.ProcessTemplateFile(templateLocation);
-            result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
-            return true;
+            interpolatorBuilder.Concat(packBuilder);
+            interpolatorBuilder.Concat(unpackBuilder);
         }
 
-        public static Type GetTypeForStruct(string structName, string resourceClassName, string assemblyName)
-        {
-            // 'C# qualified assembly type names' for $buildType() commands
-            string assemblyQualifiedTypeName = $"{resourceClassName}+{structName}, {assemblyName}";
-            return Type.GetType(assemblyQualifiedTypeName);
-        }
-
-        static void GetUpstreamNodesForShaderPass(AbstractMaterialNode masterNode, ShaderPass pass, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
+        internal static void GetUpstreamNodesForShaderPass(AbstractMaterialNode outputNode, PassDescriptor pass, out List<AbstractMaterialNode> vertexNodes, out List<AbstractMaterialNode> pixelNodes)
         {
             // Traverse Graph Data
             vertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts);
+            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts);
 
             pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts);
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts);
         }
 
-        static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode masterNode, ShaderPass pass, 
+        internal static void GetActiveFieldsAndPermutationsForNodes(AbstractMaterialNode outputNode, PassDescriptor pass, 
             KeywordCollector keywordCollector,  List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
             List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
             ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
@@ -425,8 +279,8 @@ namespace UnityEditor.ShaderGraph
                     // Get active nodes for this permutation
                     var localVertexNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
                     var localPixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
-                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
-                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
+                    NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
 
                     // Track each vertex node in this permutation
                     foreach(AbstractMaterialNode vertexNode in localVertexNodes)
@@ -453,8 +307,12 @@ namespace UnityEditor.ShaderGraph
                     pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false));
 
                     // Add active fields
-                    AddActiveFieldsFromGraphRequirements(activeFields[i], vertexRequirements[i].requirements, "VertexDescriptionInputs");
-                    AddActiveFieldsFromGraphRequirements(activeFields[i], pixelRequirements[i].requirements, "SurfaceDescriptionInputs");
+                    var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(vertexRequirements[i].requirements, activeFields[i]));
+                    conditionalFields.AddRange(GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(pixelRequirements[i].requirements, activeFields[i])));
+                    foreach(var field in conditionalFields)
+                    {
+                        activeFields[i].Add(field);
+                    }                    
                 }
             }
             // No Keywords
@@ -465,8 +323,12 @@ namespace UnityEditor.ShaderGraph
                 pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false));
 
                 // Add active fields
-                AddActiveFieldsFromGraphRequirements(activeFields.baseInstance, vertexRequirements.baseInstance.requirements, "VertexDescriptionInputs");
-                AddActiveFieldsFromGraphRequirements(activeFields.baseInstance, pixelRequirements.baseInstance.requirements, "SurfaceDescriptionInputs");
+                var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(vertexRequirements.baseInstance.requirements, activeFields.baseInstance));
+                conditionalFields.AddRange(GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(pixelRequirements.baseInstance.requirements, activeFields.baseInstance)));
+                foreach(var field in conditionalFields)
+                {
+                    activeFields.baseInstance.Add(field);
+                } 
             }
             
             // Build graph requirements
@@ -474,121 +336,109 @@ namespace UnityEditor.ShaderGraph
             graphRequirements.UnionWith(vertexRequirements);
         }
 
-        static void AddActiveFieldsFromGraphRequirements(IActiveFields activeFields, ShaderGraphRequirements requirements, string structName)
+        static ConditionalField[] GetConditionalFieldsFromGraphRequirements(ShaderGraphRequirements requirements, IActiveFields activeFields)
         {
-            if (requirements.requiresScreenPosition)
+            return new ConditionalField[]
             {
-                activeFields.Add($"{structName}.ScreenPosition");
-            }
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ScreenPosition,          requirements.requiresScreenPosition),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ScreenPosition,           requirements.requiresScreenPosition &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexColor,             requirements.requiresVertexColor),
+                new ConditionalField(StructFields.VertexDescriptionInputs.VertexColor,              requirements.requiresVertexColor &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.FaceSign,                requirements.requiresFaceSign),
 
-            if (requirements.requiresVertexColor)
-            {
-                activeFields.Add($"{structName}.VertexColor");
-            }
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,         (requirements.requiresNormal & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,        (requirements.requiresNormal & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceNormal,      (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,        (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceNormal,          (requirements.requiresNormal & NeededCoordinateSpace.View) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceNormal,         (requirements.requiresNormal & NeededCoordinateSpace.World) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceNormal,       (requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceViewDirection, (requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceViewDirection,   (requirements.requiresViewDir & NeededCoordinateSpace.View) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceViewDirection,  (requirements.requiresViewDir & NeededCoordinateSpace.World) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,(requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
 
-            if (requirements.requiresFaceSign)
-            {
-                activeFields.Add($"{structName}.FaceSign");
-            }
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceTangent,        (requirements.requiresTangent & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,       (requirements.requiresTangent & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceTangent,     (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,       (requirements.requiresTangent & NeededCoordinateSpace.Object) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceTangent,         (requirements.requiresTangent & NeededCoordinateSpace.View) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceTangent,        (requirements.requiresTangent & NeededCoordinateSpace.World) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceTangent,      (requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,    (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,      (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,     (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpaceBiTangent,   (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,     (requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpaceBiTangent,       (requirements.requiresBitangent & NeededCoordinateSpace.View) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpaceBiTangent,      (requirements.requiresBitangent & NeededCoordinateSpace.World) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpaceBiTangent,    (requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
 
-            if (requirements.requiresNormal != 0)
-            {
-                if ((requirements.requiresNormal & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add($"{structName}.ObjectSpaceNormal");
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,     (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpacePosition,       (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpacePosition,      (requirements.requiresPosition & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePosition,    (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,(requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpacePosition,     (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpacePosition,       (requirements.requiresPosition & NeededCoordinateSpace.View) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpacePosition,      (requirements.requiresPosition & NeededCoordinateSpace.World) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePosition,    (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,(requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0 &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv0,                     requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv1,                     requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv2,                     requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv3,                     requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv0,                      requirements.requiresMeshUVs.Contains(UVChannel.UV0) &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv1,                      requirements.requiresMeshUVs.Contains(UVChannel.UV1) &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv2,                      requirements.requiresMeshUVs.Contains(UVChannel.UV2) &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv3,                      requirements.requiresMeshUVs.Contains(UVChannel.UV3) &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
 
-                if ((requirements.requiresNormal & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add($"{structName}.ViewSpaceNormal");
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TimeParameters,          requirements.requiresTime),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,           requirements.requiresTime &&
+                                                                                                                activeFields.Contains(Fields.GraphVertex)),
 
-                if ((requirements.requiresNormal & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add($"{structName}.WorldSpaceNormal");
-
-                if ((requirements.requiresNormal & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add($"{structName}.TangentSpaceNormal");
-            }
-
-            if (requirements.requiresTangent != 0)
-            {
-                if ((requirements.requiresTangent & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add($"{structName}.ObjectSpaceTangent");
-
-                if ((requirements.requiresTangent & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add($"{structName}.ViewSpaceTangent");
-
-                if ((requirements.requiresTangent & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add($"{structName}.WorldSpaceTangent");
-
-                if ((requirements.requiresTangent & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add($"{structName}.TangentSpaceTangent");
-            }
-
-            if (requirements.requiresBitangent != 0)
-            {
-                if ((requirements.requiresBitangent & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add($"{structName}.ObjectSpaceBiTangent");
-
-                if ((requirements.requiresBitangent & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add($"{structName}.ViewSpaceBiTangent");
-
-                if ((requirements.requiresBitangent & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add($"{structName}.WorldSpaceBiTangent");
-
-                if ((requirements.requiresBitangent & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add($"{structName}.TangentSpaceBiTangent");
-            }
-
-            if (requirements.requiresViewDir != 0)
-            {
-                if ((requirements.requiresViewDir & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add($"{structName}.ObjectSpaceViewDirection");
-
-                if ((requirements.requiresViewDir & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add($"{structName}.ViewSpaceViewDirection");
-
-                if ((requirements.requiresViewDir & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add($"{structName}.WorldSpaceViewDirection");
-
-                if ((requirements.requiresViewDir & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add($"{structName}.TangentSpaceViewDirection");
-            }
-
-            if (requirements.requiresPosition != 0)
-            {
-                if ((requirements.requiresPosition & NeededCoordinateSpace.Object) > 0)
-                    activeFields.Add($"{structName}.ObjectSpacePosition");
-
-                if ((requirements.requiresPosition & NeededCoordinateSpace.View) > 0)
-                    activeFields.Add($"{structName}.ViewSpacePosition");
-
-                if ((requirements.requiresPosition & NeededCoordinateSpace.World) > 0)
-                    activeFields.Add($"{structName}.WorldSpacePosition");
-
-                if ((requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0)
-                    activeFields.Add($"{structName}.TangentSpacePosition");
-
-                if ((requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0)
-                    activeFields.Add($"{structName}.AbsoluteWorldSpacePosition");
-            }
-
-            foreach (var channel in requirements.requiresMeshUVs.Distinct())
-            {
-                activeFields.Add($"{structName}.{channel.GetUVName()}");
-            }
-
-            if (requirements.requiresTime)
-            {
-                activeFields.Add($"{structName}.TimeParameters");
-            }
-
-            if (requirements.requiresVertexSkinning)
-            {
-                activeFields.Add($"{structName}.BoneWeights");
-                activeFields.Add($"{structName}.BoneIndices");
-            }
+                new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndicies,             requirements.requiresVertexSkinning),
+            };
         }
 
-        static void AddRequiredFields(
-            List<string> passRequiredFields,            // fields the pass requires
-            IActiveFieldsSet activeFields)
+        internal static void AddRequiredFields(FieldDescriptor[] passRequiredFields,IActiveFieldsSet activeFields)
         {
             if (passRequiredFields != null)
             {
@@ -599,45 +449,475 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static List<MaterialSlot> FindMaterialSlotsOnNode(IEnumerable<int> slots, AbstractMaterialNode node)
+        internal static void ApplyFieldDependencies(IActiveFields activeFields, FieldDependency[] dependencies)
         {
-            var activeSlots = new List<MaterialSlot>();
-            if (slots != null)
+            // add active fields to queue
+            Queue<FieldDescriptor> fieldsToPropagate = new Queue<FieldDescriptor>();
+            foreach (var f in activeFields.fields)
             {
-                foreach (var id in slots)
+                fieldsToPropagate.Enqueue(f);
+            }
+
+            // foreach field in queue:
+            while (fieldsToPropagate.Count > 0)
+            {
+                FieldDescriptor field = fieldsToPropagate.Dequeue();
+                if (activeFields.Contains(field))           // this should always be true
                 {
-                    MaterialSlot slot = node.FindSlot<MaterialSlot>(id);
-                    if (slot != null)
+                    if(dependencies == null)
+                        return;
+                        
+                    // find all dependencies of field that are not already active
+                    foreach (FieldDependency d in dependencies.Where(d => (d.field == field) && !activeFields.Contains(d.dependsOn)))
                     {
-                        activeSlots.Add(slot);
+                        // activate them and add them to the queue
+                        activeFields.Add(d.dependsOn);
+                        fieldsToPropagate.Enqueue(d.dependsOn);
                     }
+                }
+            }
+        }
+
+        internal static List<MaterialSlot> FindMaterialSlotsOnNode(IEnumerable<int> slots, AbstractMaterialNode node)
+        {
+            if (slots == null)
+                return null;
+
+            var activeSlots = new List<MaterialSlot>();
+            foreach (var id in slots)
+            {
+                MaterialSlot slot = node.FindSlot<MaterialSlot>(id);
+                if (slot != null)
+                {
+                    activeSlots.Add(slot);
                 }
             }
             return activeSlots;
         }
 
-        static void BuildRenderStatesFromPass(ShaderPass pass, ref Dictionary<string, string> spliceCommands)
+        internal static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
         {
-            spliceCommands.Add("Blending", pass.BlendOverride != null ? pass.BlendOverride : "// Blending: <None>");
-            spliceCommands.Add("Culling", pass.CullOverride != null ? pass.CullOverride : "// Culling: <None>");
-            spliceCommands.Add("ZTest", pass.ZTestOverride != null ? pass.ZTestOverride : "// ZTest: <None>");
-            spliceCommands.Add("ZWrite", pass.ZWriteOverride != null ? pass.ZWriteOverride : "// ZWrite: <None>");
-            spliceCommands.Add("ZClip", pass.ZClipOverride != null ? pass.ZClipOverride : "// ZClip: <None>");
-            spliceCommands.Add("ColorMask", pass.ColorMaskOverride != null ? pass.ColorMaskOverride : "// ColorMask: <None>");
+            var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
 
-            using(var stencilBuilder = new ShaderStringBuilder())
+            if (outputSlot == null)
+                return kErrorString;
+
+            var convertFromType = outputSlot.concreteValueType;
+            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            if (convertFromType == convertToType)
+                return rawOutput;
+
+            switch (convertToType)
             {
-                if (pass.StencilOverride != null)
-                {
-                    foreach (var str in pass.StencilOverride)
-                        stencilBuilder.AppendLine(str);
-                }
-                
-                spliceCommands.Add("Stencil", stencilBuilder.ToCodeBlack());
+                case ConcreteSlotValueType.Vector1:
+                    return string.Format("({0}).x", rawOutput);
+                case ConcreteSlotValueType.Vector2:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("({0}.xx)", rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("({0}.xy)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                case ConcreteSlotValueType.Vector3:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("({0}.xxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("($precision3({0}, 0.0))", rawOutput);
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("({0}.xyz)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                case ConcreteSlotValueType.Vector4:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("({0}.xxxx)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("($precision4({0}, 0.0, 1.0))", rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                            return string.Format("($precision4({0}, 1.0))", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                case ConcreteSlotValueType.Matrix3:
+                    return rawOutput;
+                case ConcreteSlotValueType.Matrix2:
+                    return rawOutput;
+                default:
+                    return kErrorString;
             }
         }
 
-        static string GetTemplatePath(string templateName)
+        internal static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)
+        {
+            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
+            return AdaptNodeOutputForPreview(node, outputSlotId, rawOutput);
+        }
+
+        internal static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int slotId, string variableName)
+        {
+            var slot = node.FindSlot<MaterialSlot>(slotId);
+
+            if (slot == null)
+                return kErrorString;
+
+            var convertFromType = slot.concreteValueType;
+
+            // preview is always dimension 4
+            switch (convertFromType)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
+                case ConcreteSlotValueType.Vector2:
+                    return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", variableName);
+                case ConcreteSlotValueType.Vector3:
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
+                case ConcreteSlotValueType.Vector4:
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", variableName);
+                case ConcreteSlotValueType.Boolean:
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", variableName);
+                default:
+                    return "half4(0, 0, 0, 0)";
+            }
+        }
+
+        static void GenerateSpaceTranslationSurfaceInputs(
+            NeededCoordinateSpace neededSpaces,
+            InterpolatorType interpolatorType,
+            ShaderStringBuilder builder,
+            string format = "float3 {0};")
+        {
+            if ((neededSpaces & NeededCoordinateSpace.Object) > 0)
+                builder.AppendLine(format, CoordinateSpace.Object.ToVariableName(interpolatorType));
+
+            if ((neededSpaces & NeededCoordinateSpace.World) > 0)
+                builder.AppendLine(format, CoordinateSpace.World.ToVariableName(interpolatorType));
+
+            if ((neededSpaces & NeededCoordinateSpace.View) > 0)
+                builder.AppendLine(format, CoordinateSpace.View.ToVariableName(interpolatorType));
+
+            if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
+                builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
+            
+            if ((neededSpaces & NeededCoordinateSpace.AbsoluteWorld) > 0)
+                builder.AppendLine(format, CoordinateSpace.AbsoluteWorld.ToVariableName(interpolatorType));
+        }
+
+        internal static void GeneratePropertiesBlock(ShaderStringBuilder sb, PropertyCollector propertyCollector, KeywordCollector keywordCollector, GenerationMode mode)
+        {
+            sb.AppendLine("Properties");
+            using (sb.BlockScope())
+            {
+                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(prop.GetPropertyBlockString());
+                }
+
+                // Keywords use hardcoded state in preview
+                // Do not add them to the Property Block
+                if(mode == GenerationMode.Preview)
+                    return;
+
+                foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
+                {
+                    sb.AppendLine(key.GetPropertyBlockString());
+                }
+            }
+        }
+
+        internal static void GenerateSurfaceInputStruct(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName)
+        {
+            sb.AppendLine($"struct {structName}");
+            using (sb.BlockSemicolonScope())
+            {
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb);
+
+                if (requirements.requiresVertexColor)
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
+
+                if (requirements.requiresScreenPosition)
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                if (requirements.requiresFaceSign)
+                    sb.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
+                foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                    sb.AppendLine("half4 {0};", channel.GetUVName());
+
+                if (requirements.requiresTime)
+                {
+                    sb.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
+                }
+            }
+        }
+
+        internal static void GenerateSurfaceInputTransferCode(ShaderStringBuilder sb, ShaderGraphRequirements requirements, string structName, string variableName)
+        {
+            sb.AppendLine($"{structName} {variableName};");
+
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb, $"{variableName}.{{0}} = IN.{{0}};");
+
+            if (requirements.requiresVertexColor)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexColor} = IN.{ShaderGeneratorNames.VertexColor};");
+
+            if (requirements.requiresScreenPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.ScreenPosition} = IN.{ShaderGeneratorNames.ScreenPosition};");
+
+            if (requirements.requiresFaceSign)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.FaceSign} = IN.{ShaderGeneratorNames.FaceSign};");
+
+            foreach (var channel in requirements.requiresMeshUVs.Distinct())
+                sb.AppendLine($"{variableName}.{channel.GetUVName()} = IN.{channel.GetUVName()};");
+
+            if (requirements.requiresTime)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
+            }
+        }
+
+        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool useIdsInNames = false)
+        {
+            surfaceDescriptionStruct.AppendLine("struct {0}", structName);
+            using (surfaceDescriptionStruct.BlockSemicolonScope())
+            {
+                if(slots != null)
+                {
+                    foreach (var slot in slots)
+                    {
+                        string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                        if (useIdsInNames)
+                        {
+                            hlslName = $"{hlslName}_{slot.id}";
+                        }
+
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
+
+                        if (activeFields != null)
+                        {
+                            var structField = new FieldDescriptor(structName, hlslName, "");
+                            activeFields.AddAll(structField);
+                        }
+                    }
+                }
+            }
+        }
+
+        internal static void GenerateSurfaceDescriptionFunction(
+            List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
+            AbstractMaterialNode rootNode,
+            GraphData graph,
+            ShaderStringBuilder surfaceDescriptionFunction,
+            FunctionRegistry functionRegistry,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GenerationMode mode,
+            string functionName = "PopulateSurfaceData",
+            string surfaceDescriptionName = "SurfaceDescription",
+            Vector1ShaderProperty outputIdProperty = null,
+            IEnumerable<MaterialSlot> slots = null,
+            string graphInputStructName = "SurfaceDescriptionInputs")
+        {
+            if (graph == null)
+                return;
+
+            graph.CollectShaderProperties(shaderProperties, mode);
+
+            surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
+            using (surfaceDescriptionFunction.BlockScope())
+            {
+                surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
+                for(int i = 0; i < nodes.Count; i++)
+                {
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                        shaderProperties, shaderKeywords,
+                        graph, mode);
+                }
+
+                functionRegistry.builder.currentNode = null;
+                surfaceDescriptionFunction.currentNode = null;
+
+                GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
+                    surfaceDescriptionFunction, mode);
+
+                surfaceDescriptionFunction.AppendLine("return surface;");
+            }
+        }
+
+        static void GenerateDescriptionForNode(
+            AbstractMaterialNode activeNode,
+            List<int> keywordPermutations,
+            FunctionRegistry functionRegistry,
+            ShaderStringBuilder descriptionFunction,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GraphData graph,
+            GenerationMode mode)
+        {
+            if (activeNode is IGeneratesFunction functionNode)
+            {
+                functionRegistry.builder.currentNode = activeNode;
+                functionNode.GenerateNodeFunction(functionRegistry, mode);
+                functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+            }
+
+            if (activeNode is IGeneratesBodyCode bodyNode)
+            {
+                if(keywordPermutations != null)
+                    descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
+
+                descriptionFunction.currentNode = activeNode;
+                bodyNode.GenerateNodeCode(descriptionFunction, mode);
+                descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+
+                if(keywordPermutations != null)
+                    descriptionFunction.AppendLine("#endif");
+            }
+
+            activeNode.CollectShaderProperties(shaderProperties, mode);
+
+            if (activeNode is SubGraphNode subGraphNode)
+            {
+                subGraphNode.CollectShaderKeywords(shaderKeywords, mode);
+            }
+        }
+
+        static void GenerateSurfaceDescriptionRemap(
+            GraphData graph,
+            AbstractMaterialNode rootNode,
+            IEnumerable<MaterialSlot> slots,
+            ShaderStringBuilder surfaceDescriptionFunction,
+            GenerationMode mode)
+        {
+            if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
+            {
+                var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
+                foreach (var input in usedSlots)
+                {
+                    if (input != null)
+                    {
+                        var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                        var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
+                        if (rootNode is SubGraphOutputNode)
+                        {
+                            hlslName = $"{hlslName}_{input.id}";
+                        }
+                        if (foundEdges.Any())
+                        {
+                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                hlslName,
+                                rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
+                        }
+                        else
+                        {
+                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
+                                hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
+                        }
+                    }
+                }
+            }
+            else if (rootNode.hasPreview)
+            {
+                var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
+                if (slot != null)
+                {
+                    var slotValue = rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision);
+                    surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite({slotValue})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
+                }
+            }
+        }
+
+        const string k_VertexDescriptionStructName = "VertexDescription";
+        internal static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots, string structName = k_VertexDescriptionStructName, IActiveFieldsSet activeFields = null)
+        {
+            builder.AppendLine("struct {0}", structName);
+            using (builder.BlockSemicolonScope())
+            {
+                foreach (var slot in slots)
+                {
+                    string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    builder.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
+
+                    if (activeFields != null)
+                    {
+                        var structField = new FieldDescriptor(structName, hlslName, "");
+                        activeFields.AddAll(structField);
+                    }
+                }
+            }
+        }
+
+        internal static void GenerateVertexDescriptionFunction(
+            GraphData graph,
+            ShaderStringBuilder builder,
+            FunctionRegistry functionRegistry,
+            PropertyCollector shaderProperties,
+            KeywordCollector shaderKeywords,
+            GenerationMode mode,
+            AbstractMaterialNode rootNode,
+            List<AbstractMaterialNode> nodes,
+            List<int>[] keywordPermutationsPerNode,
+            List<MaterialSlot> slots,
+            string graphInputStructName = "VertexDescriptionInputs",
+            string functionName = "PopulateVertexData",
+            string graphOutputStructName = k_VertexDescriptionStructName)
+        {
+            if (graph == null)
+                return;
+
+            graph.CollectShaderProperties(shaderProperties, mode);
+
+            builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
+            using (builder.BlockScope())
+            {
+                builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
+                for(int i = 0; i < nodes.Count; i++)
+                {
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                        shaderProperties, shaderKeywords,
+                        graph, mode);
+                }
+
+                functionRegistry.builder.currentNode = null;
+                builder.currentNode = null;
+
+                if(slots.Count != 0)
+                {
+                    foreach (var slot in slots)
+                    {
+                        var isSlotConnected = slot.owner.owner.GetEdges(slot.slotReference).Any();
+                        var slotName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                        var slotValue = isSlotConnected ?
+                            ((AbstractMaterialNode)slot.owner).GetSlotValue(slot.id, mode, slot.owner.concretePrecision) : slot.GetDefaultValue(mode, slot.owner.concretePrecision);
+                        builder.AppendLine("description.{0} = {1};", slotName, slotValue);
+                    }
+                }
+
+                builder.AppendLine("return description;");
+            }
+        }
+
+        internal static string GetSpliceCommand(string command, string token)
+        {
+            return !string.IsNullOrEmpty(command) ? command : $"// {token}: <None>";
+        }
+
+        internal static string GetDefaultTemplatePath(string templateName)
         {
             var basePath = "Packages/com.unity.shadergraph/Editor/Templates/";
             string templatePath = Path.Combine(basePath, templateName);
@@ -646,6 +926,11 @@ namespace UnityEditor.ShaderGraph
                 return templatePath;
 
             throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+        }
+
+        internal static string GetDefaultSharedTemplateDirectory()
+        {
+            return "Packages/com.unity.shadergraph/Editor/Templates";
         }
     }
 }

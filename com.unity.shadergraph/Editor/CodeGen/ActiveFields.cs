@@ -1,23 +1,26 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace Data.Util
 {
     public interface IActiveFields: KeywordDependentCollection.IInstance, KeywordDependentCollection.ISet<IActiveFields>
     {
-        IEnumerable<string> fields { get; }
+        IEnumerable<FieldDescriptor> fields { get; }
 
-        bool Add(string field);
-        bool Contains(string field);
+        bool Add(FieldDescriptor field);
+        bool Contains(FieldDescriptor field);
+        bool Contains(string value);
     }
 
     public interface IActiveFieldsSet: KeywordDependentCollection.ISet<IActiveFields>
     {
-        void AddAll(string field);
+        void AddAll(FieldDescriptor field);
     }
 
     public sealed class ActiveFields: KeywordDependentCollection<
-        HashSet<string>,
+        HashSet<FieldDescriptor>,
         ActiveFields.All,
         ActiveFields.AllPermutations,
         ActiveFields.ForPermutationIndex,
@@ -33,7 +36,7 @@ namespace Data.Util
 
             public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Permutation;
             public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
-            public IEnumerable<string> fields =>
+            public IEnumerable<FieldDescriptor> fields =>
                 m_Source.baseStorage.Union(m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex));
             public int instanceCount => 1;
             public int permutationIndex => m_PermutationIndex;
@@ -44,21 +47,23 @@ namespace Data.Util
                 m_PermutationIndex = index;
             }
 
-            public bool Add(string field)
+            public bool Add(FieldDescriptor field)
              => m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Add(field);
 
-            public bool Contains(string field) =>
+            public bool Contains(FieldDescriptor field) =>
                 m_Source.baseStorage.Contains(field)
                 || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Contains(field);
 
-            public void AddAll(string field) => Add(field);
+            public bool Contains(string value) => m_Source.baseStorage.Where(x => x.ToFieldString() == value).Any()
+                || m_Source.GetOrCreateForPermutationIndex(m_PermutationIndex).Where(x => x.ToFieldString() == value).Any();
+            public void AddAll(FieldDescriptor field) => Add(field);
         }
 
         public struct Base : IActiveFields, IActiveFieldsSet
         {
             private ActiveFields m_Source;
 
-            public IEnumerable<string> fields => m_Source.baseStorage;
+            public IEnumerable<FieldDescriptor> fields => m_Source.baseStorage;
             public int instanceCount => 1;
             public int permutationIndex => -1;
             public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Base;
@@ -69,10 +74,10 @@ namespace Data.Util
                 m_Source = source;
             }
 
-            public bool Add(string field) => m_Source.baseStorage.Add(field);
-            public bool Contains(string field) => m_Source.baseStorage.Contains(field);
-
-            public void AddAll(string field) => Add(field);
+            public bool Add(FieldDescriptor field) => m_Source.baseStorage.Add(field);
+            public bool Contains(FieldDescriptor field) => m_Source.baseStorage.Contains(field);
+            public bool Contains(string value) => m_Source.baseStorage.Where(x => x.ToFieldString() == value).Any();
+            public void AddAll(FieldDescriptor field) => Add(field);
         }
 
         public struct All : IActiveFieldsSet
@@ -85,7 +90,7 @@ namespace Data.Util
                 m_Source = source;
             }
 
-            public void AddAll(string field)
+            public void AddAll(FieldDescriptor field)
             {
                 m_Source.baseInstance.Add(field);
                 for (var i = 0; i < m_Source.permutationCount; ++i)
@@ -114,7 +119,7 @@ namespace Data.Util
                 m_Source = source;
             }
 
-            public void AddAll(string field)
+            public void AddAll(FieldDescriptor field)
             {
                 for (var i = 0; i < m_Source.permutationCount; ++i)
                     m_Source.GetOrCreateForPermutationIndex(i).Add(field);
@@ -135,7 +140,7 @@ namespace Data.Util
         {
             private ActiveFields m_Source;
 
-            public IEnumerable<string> fields => m_Source.baseStorage;
+            public IEnumerable<FieldDescriptor> fields => m_Source.baseStorage;
             public int instanceCount => 1;
             public int permutationIndex => -1;
             public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Base;
@@ -145,10 +150,10 @@ namespace Data.Util
                 m_Source = source;
             }
 
-            public bool Add(string field) => m_Source.baseInstance.Add(field);
-            public bool Contains(string field) => m_Source.baseStorage.Contains(field);
-
-            public void AddAll(string field) => Add(field);
+            public bool Add(FieldDescriptor field) => m_Source.baseInstance.Add(field);
+            public bool Contains(FieldDescriptor field) => m_Source.baseStorage.Contains(field);
+            public bool Contains(string value) => m_Source.baseStorage.Where(x => x.ToFieldString() == value).Any();
+            public void AddAll(FieldDescriptor field) => Add(field);
             public IEnumerable<IActiveFields> instances => Enumerable.Repeat<IActiveFields>(this, 1);
         }
 

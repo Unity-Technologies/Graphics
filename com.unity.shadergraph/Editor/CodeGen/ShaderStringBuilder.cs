@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph
             m_StringBuilder.Replace(oldValue, newValue, start, end );
         }
 
-        public string ToCodeBlack()
+        public string ToCodeBlock()
         {
             // Remove new line
             if(m_StringBuilder.Length > 0)
@@ -230,18 +230,6 @@ namespace UnityEditor.ShaderGraph
         public override string ToString()
         {
             return m_StringBuilder.ToString();
-        }
-
-        public string ToString(out ShaderSourceMap sourceMap)
-        {
-            m_CurrentMapping.count = m_StringBuilder.Length - m_CurrentMapping.startIndex;
-            if (m_CurrentMapping.count > 0)
-                m_Mappings.Add(m_CurrentMapping);
-            var source = m_StringBuilder.ToString();
-            sourceMap = new ShaderSourceMap(source, m_Mappings);
-            m_Mappings.RemoveAt(m_Mappings.Count - 1);
-            m_CurrentMapping.count = 0;
-            return source;
         }
 
         public string ToString(int startIndex, int length)
