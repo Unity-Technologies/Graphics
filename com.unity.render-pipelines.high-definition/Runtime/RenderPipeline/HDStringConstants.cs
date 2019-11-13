@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OffScreenRendering                = Shader.PropertyToID("_OffScreenRendering");
         public static readonly int _OffScreenDownsampleFactor         = Shader.PropertyToID("_OffScreenDownsampleFactor");
         public static readonly int _ReplaceDiffuseForIndirect         = Shader.PropertyToID("_ReplaceDiffuseForIndirect");
-        public static readonly int _EnableSkyLighting                 = Shader.PropertyToID("_EnableSkyLighting");
+        public static readonly int _EnableSkyReflection               = Shader.PropertyToID("_EnableSkyReflection");
 
         public static readonly int _GroundIrradianceTexture           = Shader.PropertyToID("_GroundIrradianceTexture");
         public static readonly int _GroundIrradianceTable             = Shader.PropertyToID("_GroundIrradianceTable");

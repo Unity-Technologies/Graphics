@@ -289,10 +289,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return guardAngle < guardAngleMaxInDeg ? guardAngle : guardAngleMaxInDeg;
         }
 
-        public static float GetSlopeBias(float normalizedSlopeBias)
+        public static float GetSlopeBias(float baseBias, float normalizedSlopeBias)
         {
-            // This base bias is a good value if we expose a [0..1] since values within [0..5] are empirically shown to be sensible for the slope-scale bias.
-            const float baseBias = 5.0f;
             return normalizedSlopeBias * baseBias;
         }
     }
