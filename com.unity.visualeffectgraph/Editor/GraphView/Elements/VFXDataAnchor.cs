@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
-        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
 
