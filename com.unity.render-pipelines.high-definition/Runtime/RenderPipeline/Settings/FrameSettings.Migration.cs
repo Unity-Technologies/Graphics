@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PlanarProbe, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, true);
         }
         
         internal static void MigrateToNoReflectionRealtimeSettings(ref FrameSettings cameraFrameSettings)
@@ -375,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PlanarProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, false);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, true);
         }
 
         internal static void MigrateToNoReflectionSettings(ref FrameSettings cameraFrameSettings)
@@ -383,7 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReflectionProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.PlanarProbe, false);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ReplaceDiffuseForIndirect, true);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyLighting, false);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.SkyReflection, false);
         }
 
         internal static void MigrateToPostProcess(ref FrameSettings cameraFrameSettings)

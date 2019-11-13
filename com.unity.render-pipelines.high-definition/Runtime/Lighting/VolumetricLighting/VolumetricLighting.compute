@@ -221,7 +221,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
 
             // This code works for both surface reflection and thin object transmission.
             float shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
-            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
             // Important:
             // Ideally, all scattering calculations should use the jittered versions
@@ -336,7 +336,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float3 shadowN = L;
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
-                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 
                 // Important:
@@ -417,7 +417,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float3 shadowN = L;
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
-                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 
                 // Important:
