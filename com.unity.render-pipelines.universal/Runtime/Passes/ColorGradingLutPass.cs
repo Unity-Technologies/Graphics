@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetRenderTarget(cmd, m_InternalLut.id);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
 
-                // XRTODO: Remove this once pure mode is on globally
+                // XRTODO: Remove this once pure mode is globally on 
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
             else

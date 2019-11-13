@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Currently unity_CameraInvProjection is managed by built-in. This need to be managed by SRP
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
 
-                // XRTODO: Remove this once pure mode is on globally
+                // XRTODO: Remove this once pure mode is globally on 
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
             else

@@ -43,7 +43,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Basemap Gen)"
         #pragma shader_feature_local _MASKMAP
 
         // Enable Pure URP Camera Management
-        #pragma shader_feature _ UNITY_PURE_URP_ON
+        #pragma multi_compile _ UNITY_PURE_URP_ON
 
         #include "TerrainLitInput.hlsl"
         #include "TerrainLitPasses.hlsl"

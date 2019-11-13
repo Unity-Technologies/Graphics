@@ -63,11 +63,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
             keywords = new KeywordDescriptor[]
             {
                 s_ETCExternalAlphaKeyword,
+                s_PureURPKeyword,
             },
         };
 #endregion
 
 #region Keywords
+        static KeywordDescriptor s_PureURPKeyword = new KeywordDescriptor()
+        {
+            displayName = "Pure URP",
+            referenceName = "UNITY_PURE_URP_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         static KeywordDescriptor s_ETCExternalAlphaKeyword = new KeywordDescriptor()
         {
             displayName = "ETC External Alpha",

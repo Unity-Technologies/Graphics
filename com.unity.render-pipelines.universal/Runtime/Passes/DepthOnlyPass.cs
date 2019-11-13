@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (URPCameraMode.isPureURP)
                 {
-                    // XRTODO: Remove this once pure mode is on globally
+                    // XRTODO: Remove this once pure mode is globally on 
                     cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
                 }
             }

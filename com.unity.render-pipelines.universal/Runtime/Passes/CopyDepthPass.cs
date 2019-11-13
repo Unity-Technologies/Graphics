@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ScriptableRenderer.SetRenderTarget(cmd, copyDepthSurface, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 
-                // XRTODO: Remove this once pure mode is on globally
+                // XRTODO: Remove this once pure mode is globally on 
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
             else

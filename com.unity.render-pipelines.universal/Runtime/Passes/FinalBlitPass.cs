@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
 
-                // XRTODO: Remove this once pure mode is on globally
+                // XRTODO: Remove this once pure mode is globally on 
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
 
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);

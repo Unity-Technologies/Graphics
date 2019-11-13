@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Restore to color attachment as RT since  CoreUtils.SetRenderTarget invalidates URP scriptable renderer's active RT states
                 CoreUtils.SetRenderTarget(cmd, colorAttachment);
 
-                // XRTODO: Remove this once pure mode is on globally
+                // XRTODO: Remove this once pure mode is globally on 
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
             else

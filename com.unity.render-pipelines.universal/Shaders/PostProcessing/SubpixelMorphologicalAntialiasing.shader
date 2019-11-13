@@ -12,7 +12,7 @@ Shader "Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing"
         #pragma exclude_renderers gles
 
         // Enable Pure URP Camera Management
-        #pragma shader_feature _ UNITY_PURE_URP_ON
+        #pragma multi_compile _ UNITY_PURE_URP_ON
 
     ENDHLSL
 
