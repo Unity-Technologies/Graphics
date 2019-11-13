@@ -24,6 +24,31 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
         public override bool supportsUV { get { return true; } }
 
+        public class CustomUVInputProperties
+        {
+            [Tooltip("Specifies the texture coordinate value (u or v depending on swap UV being enabled) used along the strip.")]
+            public float texCoord = 0.0f;
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
+                if (tilingMode == StripTilingMode.Custom)
+                    properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
+                return properties;
+            }
+        }
+
+        protected override IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
+        {
+            foreach (var exp in base.CollectGPUExpressions(slotExpressions))
+                yield return exp;
+            if (tilingMode == StripTilingMode.Custom)
+                yield return slotExpressions.First(o => o.name == "texCoord");
+        }
+
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -33,6 +58,8 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+                else if (tilingMode == StripTilingMode.RepeatPerSegment)
+                    yield return "VFX_STRIPS_UV_PER_SEGMENT";
 
                 if (swapUV)
                     yield return "VFX_STRIPS_SWAP_UV";

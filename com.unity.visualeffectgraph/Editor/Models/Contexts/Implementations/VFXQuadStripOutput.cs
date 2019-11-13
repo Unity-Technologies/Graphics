@@ -30,6 +30,12 @@ namespace UnityEditor.VFX
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
 
+        public class CustomUVInputProperties
+        {
+            [Tooltip("Specifies the texture coordinate value (u or v depending on swap UV being enabled) used along the strip.")]
+            public float texCoord = 0.0f; 
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -37,6 +43,8 @@ namespace UnityEditor.VFX
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
                 if (shaderGraph == null)
                     properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                if (tilingMode == StripTilingMode.Custom)
+                    properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
                 return properties;
             }
         }
@@ -48,6 +56,8 @@ namespace UnityEditor.VFX
 
             if (shaderGraph == null)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
+            if (tilingMode == StripTilingMode.Custom)
+                yield return slotExpressions.First(o => o.name == "texCoord");
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -81,6 +91,8 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+                else if (tilingMode == StripTilingMode.RepeatPerSegment)
+                    yield return "VFX_STRIPS_UV_PER_SEGMENT";
 
                 if (swapUV)
                     yield return "VFX_STRIPS_SWAP_UV";

@@ -33,6 +33,12 @@ namespace UnityEditor.VFX
             public float normalBendingFactor = 0.1f;
         }
 
+        public class CustomUVInputProperties
+        {
+            [Tooltip("Specifies the texture coordinate value (u or v depending on swap UV being enabled) used along the strip.")]
+            public float texCoord = 0.0f;
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -40,6 +46,8 @@ namespace UnityEditor.VFX
                 var properties = base.inputProperties;
                 if (normalBending)
                     properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
+                if (tilingMode == StripTilingMode.Custom)
+                    properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
                 return properties;
             }
         }
@@ -75,6 +83,8 @@ namespace UnityEditor.VFX
 
             if (normalBending)
                 yield return slotExpressions.First(o => o.name == "normalBendingFactor");
+            if (tilingMode == StripTilingMode.Custom)
+                yield return slotExpressions.First(o => o.name == "texCoord");
         }
 
         public override IEnumerable<string> additionalDefines
@@ -89,6 +99,8 @@ namespace UnityEditor.VFX
 
                 if (tilingMode == StripTilingMode.Stretch)
                     yield return "VFX_STRIPS_UV_STRECHED";
+                else if (tilingMode == StripTilingMode.RepeatPerSegment)
+                    yield return "VFX_STRIPS_UV_PER_SEGMENT";
 
                 if (swapUV)
                     yield return "VFX_STRIPS_SWAP_UV";
