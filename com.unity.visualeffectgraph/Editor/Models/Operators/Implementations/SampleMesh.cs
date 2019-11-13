@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Sampling")]
+    [VFXInfo(category = "Sampling", experimental = true)]
     class SampleMesh : VFXOperator
     {
         override public string name { get { return "Sample Mesh"; } }
