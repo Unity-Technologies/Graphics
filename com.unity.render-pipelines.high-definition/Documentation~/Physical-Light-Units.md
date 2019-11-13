@@ -22,9 +22,9 @@ The unit of [luminous flux](Glossary.html#LuminousFlux). Measures the total quan
 
 The unit of [illuminance](Glossary.html#Illuminance). A light source that emits 1 lumen of [luminous flux](Glossary.html#LuminousFlux) onto an area of 1 square meter has an illuminance of 1 lux.
 
-<a name="Luminance"></a>
+<a name="Nits"></a>
 
-#### Luminance (candela per square meter):
+#### Nits (candela per square meter):
 
 Measures the apparent brightness of light either emitted from a light source, or reflected off a surface, to the human eye. A light source that emits 1 candela of [luminous intensity](Glossary.html#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
 
