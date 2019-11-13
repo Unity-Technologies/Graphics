@@ -1592,6 +1592,55 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
             return result;
         }
+        public EventPropagation DuplicateSelectionWithEdges()
+        {
+            List<Controller> sourceControllers = selection.OfType<IControlledElement>().Select(t=>t.controller).ToList();
+            Rect bounds = GetElementsBounds(selection.OfType<IControlledElement>().OfType<GraphElement>());
+
+            object result = VFXCopy.Copy(sourceControllers, bounds);
+
+            var targetControllers = new List<VFXNodeController>();
+            VFXPaste.Paste(controller, pasteCenter, result, null, null, targetControllers);
+
+            ClearSelection();
+            for (int i = 0; i < sourceControllers.Count; ++i)
+            {
+                if(targetControllers[i] != null)
+                {
+                    CopyInputLinks(sourceControllers[i] as VFXNodeController, targetControllers[i]);
+                    AddToSelection(rootNodes[targetControllers[i]]);
+                }
+            }
+
+
+
+
+            return EventPropagation.Stop;
+        }
+
+        void CopyInputLinks(VFXNodeController sourceController, VFXNodeController targetController)
+        {
+            foreach( var st in sourceController.inputPorts.Zip(targetController.inputPorts,(s,t)=> new { source = s,target = t}))
+            {
+                CopyInputLinks(st.source, st.target);
+            }
+            if (sourceController is VFXContextController sourceContext && targetController is VFXContextController targetContext)
+            {
+
+                foreach (var st in sourceContext.blockControllers.Zip(targetContext.blockControllers, (s, t) => new { source = s, target = t }))
+                {
+                    CopyInputLinks(st.source, st.target);
+                }
+            }
+        }
+
+        void CopyInputLinks(VFXDataAnchorController sourceSlot, VFXDataAnchorController targetSlot)
+        {
+            if (sourceSlot.portType != targetSlot.portType)
+                return;
+            if( sourceSlot.HasLink())
+                controller.CreateLink(targetSlot,controller.dataEdges.First(t=>t.input == sourceSlot).output);
+        }
 
         Vector2 pasteCenter
         {
@@ -1826,10 +1875,17 @@ namespace UnityEditor.VFX.UI
                     evt.menu.InsertAction(3, "Convert to Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
                 }
             }
-                if (selection.OfType<VFXOperatorUI>().Any(t => !t.superCollapsed))
-                    evt.menu.AppendAction("Collapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, true);
-                if (selection.OfType<VFXOperatorUI>().Any(t => t.superCollapsed))
-                    evt.menu.AppendAction("Uncollapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, false);
+            if (evt.target is GraphView || evt.target is Node || evt.target is Group)
+            {
+                evt.menu.AppendAction("Duplicate with edges" , (a) => { DuplicateSelectionWithEdges(); },
+                    (a) => { return canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+                evt.menu.AppendSeparator();
+            }
+
+            if (selection.OfType<VFXOperatorUI>().Any(t => !t.superCollapsed))
+                evt.menu.AppendAction("Collapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, true);
+            if (selection.OfType<VFXOperatorUI>().Any(t => t.superCollapsed))
+                evt.menu.AppendAction("Uncollapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, false);
 
         }
 
