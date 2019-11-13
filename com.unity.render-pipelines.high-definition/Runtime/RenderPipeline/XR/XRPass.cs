@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool enabled      { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
+        internal bool copyDepth    { get; private set; }
 
         internal int multipassId    { get; private set; }
         internal int cullingPassId  { get; private set; }
@@ -116,6 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             passInfo.occlusionMeshMaterial = null;
             passInfo.xrSdkEnabled = false;
+            passInfo.copyDepth = false;
 
             return passInfo;
         }
@@ -144,6 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
             passInfo.occlusionMeshMaterial = occlusionMeshMaterial;
             passInfo.xrSdkEnabled = true;
+            passInfo.copyDepth = xrRenderPass.shouldFillOutDepth;
 
             Debug.Assert(passInfo.renderTargetValid, "Invalid render target from XRDisplaySubsystem!");
 
