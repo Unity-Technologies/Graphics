@@ -191,6 +191,7 @@ namespace UnityEngine.Rendering.Universal
             SetCameraRenderState(context, ref renderingData.cameraData);
 
             SortStable(m_ActiveRenderPassQueue);
+            ProcessRenderPassesAfterSort(m_ActiveRenderPassQueue);
 
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
             // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
@@ -533,6 +534,19 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        internal static void ProcessRenderPassesAfterSort(List<ScriptableRenderPass> list)
+        {
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                ScriptableRenderPass curr = list[i];
+                if (curr.colorAttachment == BuiltinRenderTextureType.CameraTarget)
+                {
+                    curr.isFinalBackBufferWrite = true;
+                    return;
+                }
+            }
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)
