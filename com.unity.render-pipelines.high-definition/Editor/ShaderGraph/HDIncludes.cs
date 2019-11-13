@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection UnlitDepthOnly = new IncludeCollection
         {
             { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph, new FieldCondition(UnityEditor.ShaderGraph.VirtualTexturingFeedback.Enabled, true) },//needed for alpha testing
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl", IncludeLocation.Pregraph },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl", IncludeLocation.Pregraph },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl", IncludeLocation.Pregraph },
@@ -50,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection UnlitForwardOnly = new IncludeCollection
         {
             { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl", IncludeLocation.Pregraph },
+            { "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph, new FieldCondition(UnityEditor.ShaderGraph.VirtualTexturingFeedback.Enabled, true) },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl", IncludeLocation.Pregraph },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl", IncludeLocation.Pregraph },
             { "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl", IncludeLocation.Pregraph },

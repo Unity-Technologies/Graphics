@@ -531,6 +531,15 @@ namespace UnityEditor.ShaderGraph
     {
         public const int OutputSlotID = 22021982;
 
+        public static FieldDescriptor Enabled = new FieldDescriptor(string.Empty, "UsesVTStack", "");
+
+        public static bool GetEnabledStatus(IMasterNode iMasterNode)
+        {
+            var masterNode = iMasterNode as AbstractMaterialNode;
+            var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNodeBase>(masterNode);
+            return (stackNodes.Count > 0);
+        }
+
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output
         public static IMasterNode AutoInject(IMasterNode iMasterNode)
         {

@@ -177,6 +177,7 @@ namespace UnityEditor.ShaderGraph
                                                                         FindSlot<Vector1MaterialSlot>(AlphaThresholdSlotId).value > 0.0f),
                 new ConditionalField(Fields.VelocityPrecomputed, addPrecomputedVelocity.isOn),
                 new ConditionalField(Fields.DoubleSided,         twoSided.isOn),
+                new ConditionalField(VirtualTexturingFeedback.Enabled, VirtualTexturingFeedback.GetEnabledStatus(this)),
             };
         }
 
