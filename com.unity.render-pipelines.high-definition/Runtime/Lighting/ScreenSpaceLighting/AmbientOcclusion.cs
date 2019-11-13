@@ -307,11 +307,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 RenderPipelineResources resources,
                                 CommandBuffer       cmd)
         {
-            if(parameters.motionVectorDisabled && parameters.temporalAccumulation)
-            {
-                Debug.LogWarning("Motion Vectors are disabled, please disable the temporal accumulation in the Ambient Occlusion settings.");
-            }
-
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOBufferSize, parameters.aoBufferInfo);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AODepthToViewParams, parameters.toViewSpaceProj);
             cmd.SetComputeVectorParam(parameters.gtaoCS, HDShaderIDs._AOParams0, parameters.aoParams0);
