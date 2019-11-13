@@ -254,6 +254,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 surfaceData.alpha = alpha;
 
                 InputData inputData = (InputData)0;
+                inputData.normalWS = half3(0, 1, 0); // need some default to avoid division by 0.
 
                 return SurfaceDataToGbuffer(surfaceData, inputData, color, kLightingInvalid);
             }
