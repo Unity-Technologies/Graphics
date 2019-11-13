@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Custom Inspector for Update context, display update position/rotation instead of integration
 - Tooltips to blocks, nodes, contexts, and various menus and options
 - New operators: Exp, Log and LoadTexture
+- Right click on edge to create a interstitial node.
 
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)

@@ -1108,7 +1108,11 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+                VFXDataEdge edge = picked.OfType<VFXDataEdge>().FirstOrDefault();
+                if(edge != null)
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
+                else
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1723,6 +1727,37 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void OnCreateNodeOnEdge(DropdownMenuAction e)
+        {
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d,v)=>AddNodeOnEdge(d,v,e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator)}));
+        }
+
+        void AddNodeOnEdge(VFXNodeProvider.Descriptor desc, Vector2 position,VFXDataEdgeController edge)
+        {
+            position = this.ChangeCoordinatesTo(contentViewContainer, position);
+
+            position.x -= 60;
+            position.y -= 60;
+
+            position = contentViewContainer.ChangeCoordinatesTo(this, position);
+
+            var newNodeController = AddNode(desc, position);
+
+            if (newNodeController == null)
+                return;
+
+            foreach (var outputPort in newNodeController.outputPorts)
+            {
+                if (controller.CreateLink(edge.input, outputPort))
+                    break;
+            }
+            foreach (var inputPort in newNodeController.inputPorts)
+            {
+                if (controller.CreateLink(inputPort,edge.output))
+                    break;
+            }
+        }
+
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is VFXGroupNode || evt.target is VFXSystemBorder) // Default behaviour only shows the OnCreateNode if the target is the view itself.
@@ -1741,6 +1776,11 @@ namespace UnityEditor.VFX.UI
                 {
                     evt.menu.AppendAction("Enter Subgraph",OnEnterSubgraph,e=>DropdownMenuAction.Status.Normal, node.controller.model);
                 }
+            }
+
+            if( evt.target is VFXDataEdge edge)
+            {
+                evt.menu.InsertAction(0, "Create Node", OnCreateNodeOnEdge, t=>DropdownMenuAction.Status.Normal,edge.controller) ;
             }
 
             if (evt.target is VFXView)
