@@ -47,15 +47,19 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Number of scattering events.")]
         public ClampedIntParameter numberOfBounces = new ClampedIntParameter(8, 1, 10);
         [Tooltip("Albedo of the planetary surface.")]
-        public ColorParameter groundColor = new ColorParameter(new Color(0.4f, 0.25f, 0.15f), hdr: false, showAlpha: false, showEyeDropper: false);
+        public ColorParameter groundTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
         // Hack. Does not affect the precomputation.
-        public CubemapParameter groundAlbedoTexture = new CubemapParameter(null);
+        public CubemapParameter groundColorTexture = new CubemapParameter(null);
         // Hack. Does not affect the precomputation.
         public CubemapParameter groundEmissionTexture = new CubemapParameter(null);
+        // Hack. Does not affect the precomputation.
+        public MinFloatParameter groundEmissionMultiplier = new MinFloatParameter(1, 0);
         // Hack. Does not affect the precomputation.
         public Vector3Parameter planetRotation = new Vector3Parameter(Vector3.zero);
         // Hack. Does not affect the precomputation.
         public CubemapParameter spaceEmissionTexture = new CubemapParameter(null);
+        // Hack. Does not affect the precomputation.
+        public MinFloatParameter spaceEmissionMultiplier = new MinFloatParameter(1, 0);
         // Hack. Does not affect the precomputation.
         public Vector3Parameter spaceRotation = new Vector3Parameter(Vector3.zero);
 
@@ -196,17 +200,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // No 'planetCenterPosition' or any textures, as they don't affect the precomputation.
                 hash = hash * 23 + earthPreset.GetHashCode();
                 hash = hash * 23 + planetaryRadius.GetHashCode();
+                hash = hash * 23 + groundTint.GetHashCode();
+
+                hash = hash * 23 + airMaximumAltitude.GetHashCode();
                 hash = hash * 23 + airDensityR.GetHashCode();
                 hash = hash * 23 + airDensityG.GetHashCode();
                 hash = hash * 23 + airDensityB.GetHashCode();
                 hash = hash * 23 + airTint.GetHashCode();
-                hash = hash * 23 + airMaximumAltitude.GetHashCode();
+
+                hash = hash * 23 + aerosolMaximumAltitude.GetHashCode();
                 hash = hash * 23 + aerosolDensity.GetHashCode();
                 hash = hash * 23 + aerosolTint.GetHashCode();
-                hash = hash * 23 + aerosolMaximumAltitude.GetHashCode();
                 hash = hash * 23 + aerosolAnisotropy.GetHashCode();
+
                 hash = hash * 23 + numberOfBounces.GetHashCode();
-                hash = hash * 23 + groundColor.GetHashCode();
             }
 
             return hash;
@@ -219,14 +226,18 @@ namespace UnityEngine.Rendering.HighDefinition
             unchecked
             {
                 hash = hash * 23 + planetCenterPosition.GetHashCode();
-                if (groundAlbedoTexture.value != null)
-                    hash = hash * 23 + groundAlbedoTexture.GetHashCode();
+
+                hash = hash * 23 + planetRotation.GetHashCode();
+                if (groundColorTexture.value != null)
+                    hash = hash * 23 + groundColorTexture.GetHashCode();
                 if (groundEmissionTexture.value != null)
                     hash = hash * 23 + groundEmissionTexture.GetHashCode();
-                hash = hash * 23 + planetRotation.GetHashCode();
+                hash = hash * 23 + groundEmissionMultiplier.GetHashCode();
+
+                hash = hash * 23 + spaceRotation.GetHashCode();
                 if (spaceEmissionTexture.value != null)
                     hash = hash * 23 + spaceEmissionTexture.GetHashCode();
-                hash = hash * 23 + spaceRotation.GetHashCode();
+                hash = hash * 23 + spaceEmissionMultiplier.GetHashCode();
             }
 
             return hash;

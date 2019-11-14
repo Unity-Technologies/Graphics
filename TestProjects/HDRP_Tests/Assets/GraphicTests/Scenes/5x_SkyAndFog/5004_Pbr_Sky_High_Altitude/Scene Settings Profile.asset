@@ -197,6 +197,9 @@ MonoBehaviour:
   includeSunInBaking:
     m_OverrideState: 0
     m_Value: 0
+  earthPreset:
+    m_OverrideState: 1
+    m_Value: 0
   planetaryRadius:
     m_OverrideState: 0
     m_Value: 6378.759
@@ -219,7 +222,7 @@ MonoBehaviour:
     m_Value: 0.23264056
     min: 0
     max: 1
-  airColor:
+  airTint:
     m_OverrideState: 0
     m_Value: {r: 0.9, g: 0.9, b: 1, a: 1}
     hdr: 0
@@ -231,12 +234,12 @@ MonoBehaviour:
     min: 0
   aerosolDensity:
     m_OverrideState: 0
-    m_Value: 0.593
+    m_Value: 0.388
     min: 0
     max: 1
-  aerosolColor:
+  aerosolTint:
     m_OverrideState: 0
-    m_Value: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 1
@@ -254,24 +257,32 @@ MonoBehaviour:
     m_Value: 8
     min: 1
     max: 10
-  groundColor:
-    m_OverrideState: 1
-    m_Value: {r: 0.17254902, g: 0.227451, b: 0.3137255, a: 1}
+  groundTint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
-  groundAlbedoTexture:
+  groundColorTexture:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 703a4570dfe8b8e41aff24d2320bd405, type: 3}
   groundEmissionTexture:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: ec98521838f4e7f4a839280309cb08ab, type: 3}
+  groundEmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
   planetRotation:
     m_OverrideState: 1
     m_Value: {x: 180, y: -50, z: 170}
   spaceEmissionTexture:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: b0c5cbf24c773cd449436a2060083b10, type: 3}
+  spaceEmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
   spaceRotation:
     m_OverrideState: 1
     m_Value: {x: 15, y: 30, z: 45}

@@ -21,6 +21,9 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     int _HasSpaceEmissionTexture;   // bool...
     int _RenderSunDisk;             // bool...
 
+    float _GroundEmissionMultiplier;
+    float _SpaceEmissionMultiplier;
+
     // Sky framework does not set up global shader variables (even per-view ones),
     // so they can contain garbage. It's very difficult to not include them, however,
     // since the sky framework includes them internally in many header files.
@@ -128,18 +131,15 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
                 if (_HasGroundEmissionTexture)
                 {
-                    radiance += SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation)).rgb;
+                    float4 ts = SAMPLE_TEXTURECUBE(_GroundEmissionTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation));
+                    radiance += _GroundEmissionMultiplier * ts.rgb;
                 }
 
-                float3 albedo;
+                float3 albedo = _GroundAlbedo;
 
                 if (_HasGroundAlbedoTexture)
                 {
-                    albedo = SAMPLE_TEXTURECUBE(_GroundAlbedoTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation)).rgb;
-                }
-                else
-                {
-                    albedo = _GroundAlbedo;
+                    albedo *= SAMPLE_TEXTURECUBE(_GroundAlbedoTexture, s_trilinear_clamp_sampler, mul(gN, (float3x3)_PlanetRotation)).rgb;
                 }
 
                 float3 gBrdf = INV_PI * albedo;
@@ -165,7 +165,8 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             if (_HasSpaceEmissionTexture)
             {
                 // V points towards the camera.
-                radiance += SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation)).rgb;
+                float4 ts = SAMPLE_TEXTURECUBE(_SpaceEmissionTexture, s_trilinear_clamp_sampler, mul(-V, (float3x3)_SpaceRotation));
+                radiance += _SpaceEmissionMultiplier * ts.rgb;
             }
         }
 
