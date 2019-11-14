@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetTerrainHeightStackName()
         {
-            return "HeightmapStack"; // GetVariableNameForSlot(WorldHeightOutputId) + "_texturestack";          // ????
+            return "HeightmapStack";        // TODO: this should be set based on the name of the Terrain system -- so we can have multiple terrains
         }
 
         string GetTerrainHeightLayerName()
@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph
 
             if (outputConnected || feedbackConnected)
             {
-                string result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz, {0});"            // TODO: need to apply transform to world position to get virtual texture UV
+                string result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0});"
                         , stackName
                         , GetSlotValue(WorldPosInputId, generationMode));
                 sb.AppendLine(result);
@@ -126,7 +126,14 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new StackShaderProperty()
             {
                 overrideReferenceName = stackName + "_cb",
+                m_Batchable = true,
                 slotNames = slotNames
+            });
+
+            properties.AddShaderProperty(new StackShaderProperty()
+            {
+                overrideReferenceName = "float4 " + stackName + "_worldToUVTransform",
+                m_Batchable = true
             });
 
             properties.AddShaderProperty(new StackShaderProperty()

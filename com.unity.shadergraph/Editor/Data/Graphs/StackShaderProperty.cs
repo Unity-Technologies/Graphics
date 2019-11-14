@@ -14,11 +14,14 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private bool m_Modifiable = false;
 
+        [SerializeField]
+        internal bool m_Batchable = false;
+
         public StackShaderProperty()
         {
             displayName = "Stack";
             slotNames = new List<string>();
-            slotNames.Add("Dummy");
+            // slotNames.Add("Dummy");
         }
 
         public override PropertyType propertyType
@@ -26,15 +29,9 @@ namespace UnityEditor.ShaderGraph
             get { return PropertyType.Vector1; }
         }
 
-        public bool modifiable
-        {
-            get { return m_Modifiable; }
-            set { m_Modifiable = value; }
-        }
-
         internal override bool isBatchable
         {
-            get { return referenceName.EndsWith("_cb"); }
+            get { return m_Batchable; }
         }
 
         internal override bool isRenamable
@@ -76,9 +73,13 @@ namespace UnityEditor.ShaderGraph
             {
                 return string.Format("DECLARE_STACK_CB({0}){1}", referenceName.Substring(0, referenceName.Length - 3), delimiter);
             }
-            else
+            else if (numSlots > 0)
             {
                 return string.Format("DECLARE_STACK{0}({1}, {2}){3}", (numSlots <= 1) ? "" : "" + numSlots, referenceName, GetSlotNamesString(), delimiter);
+            }
+            else
+            {
+                return referenceName + delimiter;
             }
         }
 
