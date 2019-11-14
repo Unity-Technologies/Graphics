@@ -324,7 +324,8 @@ float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int channelOffse
     if (channelOffset == -1)
         return float4(0.0f, 0.0f, 0.0f, 0.0f);
     uint colorByte = asuint(vertices[vertexIndex * vertexStride + channelOffset]);
-    return float4(uint4(colorByte << 24, colorByte << 16, colorByte << 8, colorByte) & 255) / 255.0f;
+    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
 }
 
 ///////////////////////////
