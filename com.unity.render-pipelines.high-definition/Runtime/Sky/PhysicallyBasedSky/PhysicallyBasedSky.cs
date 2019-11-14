@@ -18,6 +18,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Simplifies the interface by using paramters suitable to simulate Earth.")]
         public BoolParameter earthPreset = new BoolParameter(true);
+        [Tooltip("Allows to specify the location of the planet. If disabled, the atmosphere and the planet are locked to the camera at the specified altitude.")]
+        public BoolParameter sphericalMode = new BoolParameter(true);
+        [Tooltip("The altitude of the camera with respect to the sea level. Units: m.")]
+        public MinFloatParameter cameraAltitude = new MinFloatParameter (1, 1);
         [Tooltip("Radius of the planet (distance from the center to the sea level). Units: km.")]
         public MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
         [Tooltip("Position of the center of the planet in the world space. Units: km.")]
@@ -113,7 +117,23 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return planetaryRadius.value;
             }
+        }
 
+        // 'camPosWS' is measured in meters rather than kilometers.
+        public Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
+        {
+            if (sphericalMode.value)
+            {
+                return planetCenterPosition.value;
+            }
+            else // Planar mode
+            {
+                float   R = GetPlanetaryRadius();
+                float   h = cameraAltitude.value * 0.001f; // Convert m to km
+                Vector3 X = camPosWS * 0.001f;             // Convert m to km
+                // Place the tip of the planet cameraAltitude meters below (along the Y axis).
+                return X - new Vector3(0, R + h, 0);
+            }
         }
 
         public Vector3 GetAirExtinctionCoefficient()
@@ -197,7 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                // No 'planetCenterPosition' or any textures, as they don't affect the precomputation.
+                // These parameters affect precomputation.
                 hash = hash * 23 + earthPreset.GetHashCode();
                 hash = hash * 23 + planetaryRadius.GetHashCode();
                 hash = hash * 23 + groundTint.GetHashCode();
@@ -225,6 +245,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
+                // These parameters do NOT affect precomputation.
+                hash = hash * 23 + sphericalMode.GetHashCode();
+                hash = hash * 23 + cameraAltitude.GetHashCode();
                 hash = hash * 23 + planetCenterPosition.GetHashCode();
 
                 hash = hash * 23 + planetRotation.GetHashCode();

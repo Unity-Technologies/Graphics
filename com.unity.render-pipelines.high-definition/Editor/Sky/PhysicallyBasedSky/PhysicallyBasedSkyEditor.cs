@@ -8,6 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
     public class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
         SerializedDataParameter m_EarthPreset;
+        SerializedDataParameter m_SphericalMode;
+        SerializedDataParameter m_CameraAltitude;
         SerializedDataParameter m_PlanetaryRadius;
         SerializedDataParameter m_PlanetCenterPosition;
         SerializedDataParameter m_PlanetRotation;
@@ -45,6 +47,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
 			m_EarthPreset              = Unpack(o.Find(x => x.earthPreset));
+			m_SphericalMode            = Unpack(o.Find(x => x.sphericalMode));
+			m_CameraAltitude           = Unpack(o.Find(x => x.cameraAltitude));
 			m_PlanetaryRadius          = Unpack(o.Find(x => x.planetaryRadius));
 			m_PlanetCenterPosition     = Unpack(o.Find(x => x.planetCenterPosition));
 			m_PlanetRotation           = Unpack(o.Find(x => x.planetRotation));
@@ -75,18 +79,29 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.LabelField("Planet");
 			PropertyField(m_EarthPreset);
-
             bool isEarth = !m_EarthPreset.overrideState.boolValue || m_EarthPreset.value.boolValue;
             if (!isEarth)
             {
 			    PropertyField(m_PlanetaryRadius);
             }
-			PropertyField(m_PlanetCenterPosition);
+
+			PropertyField(m_SphericalMode);
+            bool isSpherical = !m_SphericalMode.overrideState.boolValue || m_SphericalMode.value.boolValue;
+            if (isSpherical)
+            {
+			    PropertyField(m_PlanetCenterPosition);
+            }
+            else
+            {
+			    PropertyField(m_CameraAltitude);
+            }
+
 			PropertyField(m_PlanetRotation);
 			PropertyField(m_GroundColorTexture);
 			PropertyField(m_GroundTint);
 			PropertyField(m_GroundEmissionTexture);
 			PropertyField(m_GroundEmissionMultiplier);
+
             EditorGUILayout.LabelField("Space");
 			PropertyField(m_SpaceRotation);
 			PropertyField(m_SpaceEmissionTexture);

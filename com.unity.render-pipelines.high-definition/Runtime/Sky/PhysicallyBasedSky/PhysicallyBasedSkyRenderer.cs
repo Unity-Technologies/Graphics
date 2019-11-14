@@ -94,9 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InScatteredRadianceTables[2] = AllocateInScatteredRadianceTable(2);
         }
 
-        public override void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky)
+        public override void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky, Vector3 cameraPositionWS)
         {
-            UpdateGlobalConstantBuffer(cmd, sky);
+            UpdateGlobalConstantBuffer(cmd, sky, cameraPositionWS);
 
             // TODO: ground irradiance table? Volume SH? Something else?
             if (m_LastPrecomputedBounce > 0)
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // For both precomputation and runtime lighting passes.
-        void UpdateGlobalConstantBuffer(CommandBuffer cmd, SkySettings sky)
+        void UpdateGlobalConstantBuffer(CommandBuffer cmd, SkySettings sky, Vector3 cameraPositionWS)
         {
             var pbrSky = sky as PhysicallyBasedSky;
 
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              pbrSky.groundTint.value);
             cmd.SetGlobalFloat( HDShaderIDs._IntensityMultiplier,       iMul);
 
-            cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      pbrSky.planetCenterPosition.value);
+            cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      pbrSky.GetPlanetCenterPosition(cameraPositionWS));
         }
 
         void PrecomputeTables(CommandBuffer cmd)
@@ -257,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected override bool Update(BuiltinSkyParameters builtinParams)
         {
-            UpdateGlobalConstantBuffer(builtinParams.commandBuffer, builtinParams.skySettings);
+            UpdateGlobalConstantBuffer(builtinParams.commandBuffer, builtinParams.skySettings, builtinParams.worldSpaceCameraPos);
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             int currPrecomputationParamHash = pbrSky.GetPrecomputationHashCode();
@@ -320,8 +320,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
-            float r = Vector3.Distance(builtinParams.worldSpaceCameraPos, pbrSky.planetCenterPosition.value);
-            float R = pbrSky.GetPlanetaryRadius();
+            // TODO: the following expression is somewhat inefficient, but good enough for now.
+            Vector3 X = builtinParams.worldSpaceCameraPos * 0.001f; // Convert m to km
+            float   r = Vector3.Distance(X, pbrSky.GetPlanetCenterPosition(builtinParams.worldSpaceCameraPos));
+            float   R = pbrSky.GetPlanetaryRadius();
 
             bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
 

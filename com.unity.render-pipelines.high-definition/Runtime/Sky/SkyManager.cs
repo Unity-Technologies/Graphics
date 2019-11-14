@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderer = m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId].renderer;
                 if (renderer != null)
             {
-                    renderer.SetGlobalSkyData(cmd, hdCamera.lightingSky.skySettings);
+                    renderer.SetGlobalSkyData(cmd, hdCamera.lightingSky.skySettings, hdCamera.camera.transform.position);
             }
         }
         }

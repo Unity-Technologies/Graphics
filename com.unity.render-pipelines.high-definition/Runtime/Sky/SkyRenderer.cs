@@ -49,7 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cmd">Command buffer provided to setup shader constants.</param>
         /// <param name="sky">Settings for the sky.</param>
-        public virtual void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky)
+        /// <param name="cameraPositionWS">World-space position of the camera.</param>
+        public virtual void SetGlobalSkyData(CommandBuffer cmd, SkySettings sky, Vector3 cameraPositionWS)
         {
 
         }

@@ -1043,13 +1043,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Computes transmittance along the light path segment.
-        static Vector3 EvaluateAtmosphericAttenuation(Vector3 L, Vector3 positionWS)
+        static Vector3 EvaluateAtmosphericAttenuation(Vector3 L, Vector3 camPosWS)
         {
             var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
-            Vector3 X = positionWS * 0.001f; // Convert m to km
-            Vector3 C = skySettings.planetCenterPosition.value;
+            Vector3 X = camPosWS * 0.001f; // Convert m to km
+            Vector3 C = skySettings.GetPlanetCenterPosition(camPosWS);
 
             float r        = Vector3.Distance(X, C);
             float R        = skySettings.GetPlanetaryRadius();
