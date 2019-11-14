@@ -292,7 +292,7 @@ Varyings SplatmapVert(Attributes v)
 
 // Used in Standard Terrain shader
 #ifdef TERRAIN_GBUFFER
-FragmentOutput GBufferSplatmapFragment(Varyings IN)
+FragmentOutput SplatmapFragment(Varyings IN)
 #else
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
 #endif

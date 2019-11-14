@@ -93,7 +93,21 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
         {
             Name "TerrainAddLit(GBuffer)"
             Tags{"LightMode" = "UniversalGBuffer"}
+
             Blend One One
+
+            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // We must unset bit 5 and bit 6 Lit materials.
+            Stencil {
+                Ref 0        // 0b00000000
+                WriteMask 96 // 0b01100000
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
@@ -101,7 +115,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma target 3.0
 
             #pragma vertex SplatmapVert
-            #pragma fragment GBufferSplatmapFragment
+            #pragma fragment SplatmapFragment
 
             // -------------------------------------
             // Universal Pipeline keywords

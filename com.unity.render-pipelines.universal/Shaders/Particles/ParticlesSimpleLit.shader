@@ -140,6 +140,18 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             ZWrite[_ZWrite]
             Cull[_Cull]
 
+            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // We must unset bit 5 and set bit 6 for SimpleLit materials.
+            Stencil {
+                Ref 64       // 0b01000000
+                WriteMask 96 // 0b01100000
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
