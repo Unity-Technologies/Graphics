@@ -409,7 +409,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // We need to specifically clear the camera color target.
                     // But there is still a chance we don't need to issue individual clear() on each render-targets if they all have the same clear parameters.
-                    needCustomCameraColorClear = cameraClearFlag.HasFlag(ClearFlag.Color) != renderPass.clearFlag.HasFlag(ClearFlag.Color)
+                    needCustomCameraColorClear = (cameraClearFlag & ClearFlag.Color) != (renderPass.clearFlag & ClearFlag.Color)
                                               || CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor) != renderPass.clearColor;
                 }
 
@@ -423,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
                     firstTimeStereo = true;
-                    needCustomCameraDepthClear = cameraClearFlag.HasFlag(ClearFlag.Depth) != renderPass.clearFlag.HasFlag(ClearFlag.Depth);
+                    needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
                 }
 
 
@@ -436,10 +436,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Clear camera color render-target separately from the rest of the render-targets.
 
-                    if (cameraClearFlag.HasFlag(ClearFlag.Color))
+                    if ((cameraClearFlag & ClearFlag.Color) != 0)
                         SetRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], renderPass.depthAttachment, ClearFlag.Color, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
-                    if (renderPass.clearFlag.HasFlag(ClearFlag.Color))
+                    if ((renderPass.clearFlag & ClearFlag.Color) != 0)
                     {
                         RenderTargetIdentifier[] nonCameraAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
 
