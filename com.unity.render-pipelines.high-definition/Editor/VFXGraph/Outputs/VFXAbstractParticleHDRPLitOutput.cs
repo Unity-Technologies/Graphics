@@ -77,6 +77,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the normals of the particle are inverted when seen from behind, allowing quads with culling set to off to receive correct lighting information.")]
         protected bool doubleSided = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, specular lighting will be rendered regardless of opacity.")]
+        protected bool preserveSpecularLighting = false;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Simple Lit features"), Tooltip("When enabled, the particle will receive shadows.")]
         protected bool enableShadows = true;
 
@@ -88,9 +91,6 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
         protected bool enableEnvLight = true;
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, specular lighting will be rendered regardless of opacity.")]
-        public bool preserveSpecularLighting = false;
 
         protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
 
