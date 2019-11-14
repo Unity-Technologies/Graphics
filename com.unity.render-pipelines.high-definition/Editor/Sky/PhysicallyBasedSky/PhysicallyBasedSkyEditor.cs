@@ -22,11 +22,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_AirDensityR;
         SerializedDataParameter m_AirDensityG;
         SerializedDataParameter m_AirDensityB;
-        SerializedDataParameter m_AirColor;
+        SerializedDataParameter m_AirTint;
 
         SerializedDataParameter m_AerosolMaximumAltitude;
         SerializedDataParameter m_AerosolDensity;
-        SerializedDataParameter m_AerosolColor;
+        SerializedDataParameter m_AerosolTint;
         SerializedDataParameter m_AerosolAnisotropy;
 
         SerializedDataParameter m_NumberOfBounces;
@@ -57,11 +57,11 @@ namespace UnityEditor.Rendering.HighDefinition
 			m_AirDensityR            = Unpack(o.Find(x => x.airDensityR));
 			m_AirDensityG            = Unpack(o.Find(x => x.airDensityG));
 			m_AirDensityB            = Unpack(o.Find(x => x.airDensityB));
-			m_AirColor               = Unpack(o.Find(x => x.airColor));
+			m_AirTint                = Unpack(o.Find(x => x.airTint));
 
 			m_AerosolMaximumAltitude = Unpack(o.Find(x => x.aerosolMaximumAltitude));
 			m_AerosolDensity         = Unpack(o.Find(x => x.aerosolDensity));
-			m_AerosolColor           = Unpack(o.Find(x => x.aerosolColor));
+			m_AerosolTint            = Unpack(o.Find(x => x.aerosolTint));
 			m_AerosolAnisotropy      = Unpack(o.Find(x => x.aerosolAnisotropy));
 
 			m_NumberOfBounces        = Unpack(o.Find(x => x.numberOfBounces));
@@ -92,12 +92,12 @@ namespace UnityEditor.Rendering.HighDefinition
 			    PropertyField(m_AirDensityR);
                 PropertyField(m_AirDensityG);
                 PropertyField(m_AirDensityB);
-			    PropertyField(m_AirColor);
+			    PropertyField(m_AirTint);
             }
             EditorGUILayout.LabelField("Aerosols");
 			PropertyField(m_AerosolMaximumAltitude);
 			PropertyField(m_AerosolDensity);
-			PropertyField(m_AerosolColor);
+			PropertyField(m_AerosolTint);
 			PropertyField(m_AerosolAnisotropy);
             EditorGUILayout.LabelField("Miscellaneous");
 			PropertyField(m_NumberOfBounces);

@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter airDensityG = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirExtinctionG, k_DefaultAirScaleHeight), 0, 1);
         public ClampedFloatParameter airDensityB = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirExtinctionB, k_DefaultAirScaleHeight), 0, 1);
         [Tooltip("Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
-        public ColorParameter airColor = new ColorParameter(new Color(k_DefaultAirAlbedoR, k_DefaultAirAlbedoG, k_DefaultAirAlbedoB), hdr: false, showAlpha: false, showEyeDropper: true);
+        public ColorParameter airTint = new ColorParameter(new Color(k_DefaultAirAlbedoR, k_DefaultAirAlbedoG, k_DefaultAirAlbedoB), hdr: false, showAlpha: false, showEyeDropper: true);
         [Tooltip("Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: km.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Opacity of aerosols as measured by an observer on the ground looking towards the zenith.")]
         public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000.0f, 1.2f), 0, 1);
         [Tooltip("Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
-        public ColorParameter aerosolColor = new ColorParameter(new Color(0.9f, 0.9f, 0.9f), hdr: false, showAlpha: false, showEyeDropper: true);
+        public ColorParameter aerosolTint = new ColorParameter(new Color(0.9f, 0.9f, 0.9f), hdr: false, showAlpha: false, showEyeDropper: true);
         [Tooltip("Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: km.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
@@ -144,9 +144,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                airAlb.x = airColor.value.r;
-                airAlb.y = airColor.value.g;
-                airAlb.z = airColor.value.b;
+                airAlb.x = airTint.value.r;
+                airAlb.y = airTint.value.g;
+                airAlb.z = airTint.value.b;
             }
 
             return airAlb;
@@ -177,9 +177,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             float aerExt = GetAerosolExtinctionCoefficient();
 
-            return new Vector3(aerExt * aerosolColor.value.r,
-                               aerExt * aerosolColor.value.g,
-                               aerExt * aerosolColor.value.b);
+            return new Vector3(aerExt * aerosolTint.value.r,
+                               aerExt * aerosolTint.value.g,
+                               aerExt * aerosolTint.value.b);
         }
 
         PhysicallyBasedSky()
@@ -199,10 +199,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + airDensityR.GetHashCode();
                 hash = hash * 23 + airDensityG.GetHashCode();
                 hash = hash * 23 + airDensityB.GetHashCode();
-                hash = hash * 23 + airColor.GetHashCode();
+                hash = hash * 23 + airTint.GetHashCode();
                 hash = hash * 23 + airMaximumAltitude.GetHashCode();
                 hash = hash * 23 + aerosolDensity.GetHashCode();
-                hash = hash * 23 + aerosolColor.GetHashCode();
+                hash = hash * 23 + aerosolTint.GetHashCode();
                 hash = hash * 23 + aerosolMaximumAltitude.GetHashCode();
                 hash = hash * 23 + aerosolAnisotropy.GetHashCode();
                 hash = hash * 23 + numberOfBounces.GetHashCode();
