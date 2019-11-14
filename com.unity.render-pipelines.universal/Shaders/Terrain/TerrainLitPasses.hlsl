@@ -11,8 +11,6 @@
     TEXTURE2D(_TerrainHeightmapTexture);
     TEXTURE2D(_TerrainNormalmapTexture);
     SAMPLER(sampler_TerrainNormalmapTexture);
-    float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
 #endif
 
 UNITY_INSTANCING_BUFFER_START(Terrain)
@@ -186,7 +184,7 @@ void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
     half4 weightedHeights = defaultHeight - maxHeight.xxxx;
     // We need to add an epsilon here for active layers (hence the blendMask again)
     // so that at least a layer shows up if everything's too low.
-    weightedHeights = (max(0, weightedHeights + transition) + 1e-5) * splatControl;
+    weightedHeights = (max(0, weightedHeights + transition) + 1e-6) * splatControl;
 
     // Normalize
     half sumHeight = dot(weightedHeights, half4(1, 1, 1, 1));
@@ -309,10 +307,10 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
     splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
-    masks[0] = 1.0h;
-    masks[1] = 1.0h;
-    masks[2] = 1.0h;
-    masks[3] = 1.0h;
+    masks[0] = 0.5h;
+    masks[1] = 0.5h;
+    masks[2] = 0.5h;
+    masks[3] = 0.5h;
 
 #ifdef _MASKMAP
     masks[0] = lerp(masks[0], SAMPLE_TEXTURE2D(_Mask0, sampler_Mask0, IN.uvSplat01.xy), hasMask.x);
@@ -322,12 +320,16 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 #endif
 
     masks[0] *= _MaskMapRemapScale0.rgba;
+    masks[0].b *= splatControl.r;
     masks[0] += _MaskMapRemapOffset0.rgba;
     masks[1] *= _MaskMapRemapScale1.rgba;
+    masks[1].b *= splatControl.g;
     masks[1] += _MaskMapRemapOffset1.rgba;
     masks[2] *= _MaskMapRemapScale2.rgba;
+    masks[2].b *= splatControl.b;
     masks[2] += _MaskMapRemapOffset2.rgba;
     masks[3] *= _MaskMapRemapScale3.rgba;
+    masks[3].b *= splatControl.a;
     masks[3] += _MaskMapRemapOffset3.rgba;
 
 #ifdef _TERRAIN_BLEND_HEIGHT
@@ -440,6 +442,10 @@ half4 DepthOnlyFragment(VaryingsLean IN) : SV_TARGET
 {
 #ifdef _ALPHATEST_ON
 	ClipHoles(IN.texcoord);
+#endif
+#ifdef SCENESELECTIONPASS
+    // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
+    return half4(_ObjectId, _PassValue, 1.0, 1.0);
 #endif
     return 0;
 }

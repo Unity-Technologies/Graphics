@@ -59,6 +59,7 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Maximum** **Decals on Screen**           | The maximum number of decals you can have on screen at one time. |
 
 <a name="DynamicResolution"></a>
+
 ### Dynamic Resolution
 
 | **Property**                    | **Description**                                              |
@@ -81,6 +82,15 @@ These settings control the draw distance and resolution of the decals atlas that
 | **Volumetrics**                    | Enable the checkbox to make HDRP support volumetrics. This allows you to use **Volumetric Fog** for the **Fog Type** in the [Visual Environment](Override-Visual-Environment.html). |
 | **- high quality**                 | Enable the checkbox to increase the resolution of volumetrics. This increases the quality of fog effects, but increases the resource intensity greatly. |
 | **Light Layers**                   | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
+
+### Light Layers
+
+Light Layers are used to separate lighting into different layers in order to make object only reacting to certain lights.
+
+| **Property**           | **Description**                                              |
+| ---------------------- | ------------------------------------------------------------ |
+| **Enable**             | Enable the checkbox to make HDRP support Light Layers. You can assign a Layer to a Light which then only lights up Mesh Renderers with a matching rendering Layer. |
+| **Light Layer Name i** | The name displayed on light and meshes when using this HDRenderPipelineAsset. |
 
 ### Cookies
 

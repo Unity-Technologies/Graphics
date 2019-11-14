@@ -103,8 +103,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                     HDProbeUI.Drawer<TProvider>.DrawAdvancedCaptureSettings
                 ),
-                CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
-                    HDProbeUI.Drawer<TProvider>.DrawCustomSettings),
+                CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
+                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CustomSettingsIsAdvanced),
+                    (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CustomSettingsIsAdvanced),
+                    HDProbeUI.Drawer<TProvider>.DrawCustomSettings,
+                    HDProbeUI.Drawer<TProvider>.DrawAdvancedCustomSettings),
                 CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton)
             ).Draw(serialized, owner);
         }

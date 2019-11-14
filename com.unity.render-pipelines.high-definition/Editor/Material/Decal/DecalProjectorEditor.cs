@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        bool showAffectTransparency => DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
+        bool showAffectTransparency => ((target as DecalProjector).material != null) && DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
@@ -150,6 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition
             for (int index = 0; index < targets.Length; ++index)
             {
                 DecalProjector decalProjector = (targets[index] as DecalProjector);
+
                 if((decalProjector != null) && (decalProjector.material != null))
                     materials[validMaterialsCount++] = (targets[index] as DecalProjector).material;
             }

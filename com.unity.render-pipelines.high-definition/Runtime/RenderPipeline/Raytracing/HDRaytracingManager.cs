@@ -1,12 +1,6 @@
-using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HighDefinition;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -23,7 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracing = 0x80
     }
 
-#if ENABLE_RAYTRACING
     class HDRayTracingLights
     {
         // The list of non-directional lights in the sub-scene
@@ -216,26 +209,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdLight.enabled)
                 {
                     // Check if there is a ray traced shadow in the scene
-                    rayTracedShadow |= hdLight.useRayTracedShadows;
+                    rayTracedShadow |= (hdLight.useRayTracedShadows || (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow));
 
-                    if (hdLight.GetComponent<Light>().type == LightType.Directional)
+                    switch (hdLight.type)
                     {
-                        m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
-                    }
-                    else
-                    {
-                        if (hdLight.lightTypeExtent == LightTypeExtent.Punctual)
-                        {
+                        case HDLightType.Directional:
+                            m_RayTracingLights.hdDirectionalLightArray.Add(hdLight);
+                            break;
+                        case HDLightType.Point:
                             m_RayTracingLights.hdPointLightArray.Add(hdLight);
-                        }
-                        else if (hdLight.lightTypeExtent == LightTypeExtent.Tube)
-                        {
-                            m_RayTracingLights.hdLineLightArray.Add(hdLight);
-                        }
-                        else
-                        {
-                            m_RayTracingLights.hdRectLightArray.Add(hdLight);
-                        }
+                            break;
+                        case HDLightType.Area:
+                            switch (hdLight.areaLightShape)
+                            {
+                                case AreaLightShape.Rectangle:
+                                    m_RayTracingLights.hdRectLightArray.Add(hdLight);
+                                    break;
+                                case AreaLightShape.Tube:
+                                    m_RayTracingLights.hdLineLightArray.Add(hdLight);
+                                    break;
+                                //TODO: case AreaLightShape.Disc:
+                            }
+                            break;
                     }
                 }
             }
@@ -378,6 +373,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        // Ray Tracing is supported if the asset setting supports it and the platform supports it
+        static internal bool AggreateRayTracingSupport(RenderPipelineSettings rpSetting)
+        {
+            return rpSetting.supportRayTracing && UnityEngine.SystemInfo.supportsRayTracing
+#if UNITY_EDITOR
+                && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
+                    || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+#endif
+            ;
+        }
+        
+
         internal BlueNoise GetBlueNoiseManager()
         {
             return m_BlueNoise;
@@ -412,6 +419,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_ValidRayTracingCluster;
         }
+        static internal float GetPixelSpreadTangent(float fov, int width, int height)
+        {
+            return Mathf.Tan(fov * Mathf.Deg2Rad * 0.5f) * 2.0f / Mathf.Min(width, height);
+        }
+
+        static internal float GetPixelSpreadAngle(float fov, int width, int height)
+        {
+            return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
+        }
     }
-#endif
 }

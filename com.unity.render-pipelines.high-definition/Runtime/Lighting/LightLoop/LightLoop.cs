@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -429,11 +430,11 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxViewCount = 1;
 
         // Matrix used for LightList building, keep them around to avoid GC
-        Matrix4x4[] m_LightListProjMatrices;
-        Matrix4x4[] m_LightListProjscrMatrices;
-        Matrix4x4[] m_LightListInvProjscrMatrices;
-        Matrix4x4[] m_LightListProjHMatrices;
-        Matrix4x4[] m_LightListInvProjHMatrices;
+        Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListProjscrMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListInvProjscrMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
+        Matrix4x4[] m_LightListInvProjHMatrices = new Matrix4x4[ShaderConfig.s_XrMaxViews];
 
         internal class LightList
         {
@@ -925,17 +926,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
         {
             m_MaxViewCount = Math.Max(hdCamera.viewCount, m_MaxViewCount);
-
             m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_MaxLightsOnScreen);
-
-            // Allocate matrix arrays used for LightList building
-            {
-                m_LightListProjMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListProjscrMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListInvProjscrMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListProjHMatrices = new Matrix4x4[m_MaxViewCount];
-                m_LightListInvProjHMatrices = new Matrix4x4[m_MaxViewCount];
-            }
         }
 
         internal static Matrix4x4 WorldToCamera(Camera camera)
@@ -1122,6 +1113,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.shadowIndex = lightData.cookieIndex = -1;
             lightData.screenSpaceShadowIndex = -1;
+            lightData.isRayTracedContactShadow = 0.0f;
 
 
             if (lightComponent != null && lightComponent.cookie != null)
@@ -1132,8 +1124,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
-            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.useContactShadow.Value(HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset)));
-            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask,ref lightData.isRayTracedContactShadow);
+            
+            // We want to have a colored penumbra if the flag is on and the color is not gray            
+            bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
+            lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
+            if (penumbraTint)
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r * additionalLightData.shadowTint.r, additionalLightData.shadowTint.g * additionalLightData.shadowTint.g, additionalLightData.shadowTint.b * additionalLightData.shadowTint.b);
+            else
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
 
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
@@ -1356,21 +1355,24 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.cookieIndex = -1;
             lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = -1;
+            lightData.isRayTracedContactShadow = 0.0f;
+
+            HDLightType lightType = additionalLightData.ComputeLightType(lightComponent);
 
             if (lightComponent != null && lightComponent.cookie != null)
             {
                 // TODO: add texture atlas support for cookie textures.
-                switch (light.lightType)
+                switch (lightType)
                 {
-                    case LightType.Spot:
+                    case HDLightType.Spot:
                         lightData.cookieIndex = m_TextureCaches.cookieTexArray.FetchSlice(cmd, lightComponent.cookie);
                         break;
-                    case LightType.Point:
+                    case HDLightType.Point:
                         lightData.cookieIndex = m_TextureCaches.cubeCookieTexArray.FetchSlice(cmd, lightComponent.cookie);
                         break;
                 }
             }
-            else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
+            else if (lightType == HDLightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
             {
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
@@ -1379,15 +1381,21 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
             {
                 lightData.cookieIndex = m_TextureCaches.areaLightCookieManager.FetchSlice(cmd, additionalLightData.areaLightCookie);
-            }
+            } 
 
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
             lightData.shadowDimmer           = shadowDistanceFade * additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = shadowDistanceFade * additionalLightData.volumetricShadowDimmer;
-            lightData.contactShadowMask      = GetContactShadowMask(additionalLightData.useContactShadow.Value(HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset)));
-            lightData.shadowTint             = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
 
-#if ENABLE_RAYTRACING
+            // We want to have a colored penumbra if the flag is on and the color is not gray            
+            bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
+            lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
+            if (penumbraTint)
+                lightData.shadowTint = new Vector3(Mathf.Pow(additionalLightData.shadowTint.r, 2.2f), Mathf.Pow(additionalLightData.shadowTint.g, 2.2f), Mathf.Pow(additionalLightData.shadowTint.b, 2.2f));
+            else
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+
             // If there is still a free slot in the screen space shadow array and this needs to render a screen space shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
                 && screenSpaceShadowIndex < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows
@@ -1410,10 +1418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.shadowIndex = shadowIndex;
                 additionalLightData.shadowIndex = shadowIndex;
             }
-#else
-            // fix up shadow information
-            lightData.shadowIndex = shadowIndex;
-#endif
+
             //Value of max smoothness is derived from Radius. Formula results from eyeballing. Radius of 0 results in 1 and radius of 2.5 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.1725f / (1.01f + Mathf.Pow(1.0f * (additionalLightData.shapeRadius + 0.1f), 2f)) - 0.15f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
@@ -1603,6 +1608,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
             }
+            else if (gpuLightType == GPULightType.Disc)
+            {
+                //not supported at real time at the moment
+            }
             else
             {
                 Debug.Assert(false, "TODO: encountered an unknown GPULightType.");
@@ -1625,7 +1634,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Discard probe if disabled in debug menu
             if (!debugDisplaySettings.data.lightingDebugSettings.showReflectionProbe)
                 return false;
-            
+
             // Discard probe if its distance is too far or if its weight is at 0
             float weight = HDUtils.ComputeWeightedLinearFadeDistance(probe.transform.position, camera.transform.position, probe.weight, probe.fadeDistance);
             if (weight <= 0f)
@@ -1679,7 +1688,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
                         HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
                             probe.settings, probePositionSettings,
-                            out _, out var cameraPositionSettings
+                            out _, out var cameraPositionSettings, 0
                         );
                         capturePosition = cameraPositionSettings.position;
 
@@ -1695,6 +1704,7 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
+            envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
             {
@@ -1840,9 +1850,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowManager.GetShadowRequestCount();
         }
 
-        void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
+        void LightLoopUpdateCullingParameters(ref ScriptableCullingParameters cullingParams, HDCamera hdCamera)
         {
-            m_ShadowManager.UpdateCullingParameters(ref cullingParams);
+            // Note we are using hdCamera.shadowMaxDistance instead of the value coming from the volume stack.
+            // Check comment on hdCamera.shadowMaxDistance for more info.
+            m_ShadowManager.UpdateCullingParameters(ref cullingParams, hdCamera.shadowMaxDistance);
 
             // In HDRP we don't need per object light/probe info so we disable the native code that handles it.
             cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
@@ -1880,76 +1892,81 @@ namespace UnityEngine.Rendering.HighDefinition
             throw new ArgumentException();
         }
 
-        internal static void EvaluateGPULightType(LightType lightType, LightTypeExtent lightTypeExtent, SpotLightShape spotLightShape,
+        internal static void EvaluateGPULightType(HDLightType lightType, SpotLightShape spotLightShape, AreaLightShape areaLightShape,
             ref LightCategory lightCategory, ref GPULightType gpuLightType, ref LightVolumeType lightVolumeType)
         {
             lightCategory = LightCategory.Count;
             gpuLightType = GPULightType.Point;
             lightVolumeType = LightVolumeType.Count;
 
-            if (lightTypeExtent == LightTypeExtent.Punctual)
+            switch (lightType)
             {
-                lightCategory = LightCategory.Punctual;
+                case HDLightType.Spot:
+                    lightCategory = LightCategory.Punctual;
 
-                switch (lightType)
-                {
-                    case LightType.Spot:
-                        switch (spotLightShape)
-                        {
-                            case SpotLightShape.Cone:
-                                gpuLightType = GPULightType.Spot;
-                                lightVolumeType = LightVolumeType.Cone;
-                                break;
-                            case SpotLightShape.Pyramid:
-                                gpuLightType = GPULightType.ProjectorPyramid;
-                                lightVolumeType = LightVolumeType.Cone;
-                                break;
-                            case SpotLightShape.Box:
-                                gpuLightType = GPULightType.ProjectorBox;
-                                lightVolumeType = LightVolumeType.Box;
-                                break;
-                            default:
-                                Debug.Assert(false, "Encountered an unknown SpotLightShape.");
-                                break;
-            }
-                        break;
+                    switch (spotLightShape)
+                    {
+                        case SpotLightShape.Cone:
+                            gpuLightType = GPULightType.Spot;
+                            lightVolumeType = LightVolumeType.Cone;
+                            break;
+                        case SpotLightShape.Pyramid:
+                            gpuLightType = GPULightType.ProjectorPyramid;
+                            lightVolumeType = LightVolumeType.Cone;
+                            break;
+                        case SpotLightShape.Box:
+                            gpuLightType = GPULightType.ProjectorBox;
+                            lightVolumeType = LightVolumeType.Box;
+                            break;
+                        default:
+                            Debug.Assert(false, "Encountered an unknown SpotLightShape.");
+                            break;
+                    }
+                    break;
 
-                    case LightType.Directional:
-                        gpuLightType = GPULightType.Directional;
-                        // No need to add volume, always visible
-                        lightVolumeType = LightVolumeType.Count; // Count is none
-                        break;
+                case HDLightType.Directional:
+                    lightCategory = LightCategory.Punctual;
+                    gpuLightType = GPULightType.Directional;
+                    // No need to add volume, always visible
+                    lightVolumeType = LightVolumeType.Count; // Count is none
+                    break;
 
-                    case LightType.Point:
-                        gpuLightType = GPULightType.Point;
-                        lightVolumeType = LightVolumeType.Sphere;
-                        break;
+                case HDLightType.Point:
+                    lightCategory = LightCategory.Punctual;
+                    gpuLightType = GPULightType.Point;
+                    lightVolumeType = LightVolumeType.Sphere;
+                    break;
 
-                    default:
-                        Debug.Assert(false, "Encountered an unknown LightType.");
-                        break;
-                }
-            }
-            else
-            {
-                lightCategory = LightCategory.Area;
+                case HDLightType.Area:
+                    lightCategory = LightCategory.Area;
 
-                switch (lightTypeExtent)
-                {
-                    case LightTypeExtent.Rectangle:
-                        gpuLightType = GPULightType.Rectangle;
-                        lightVolumeType = LightVolumeType.Box;
-                        break;
+                    switch (areaLightShape)
+                    {
+                        case AreaLightShape.Rectangle:
+                            gpuLightType = GPULightType.Rectangle;
+                            lightVolumeType = LightVolumeType.Box;
+                            break;
 
-                    case LightTypeExtent.Tube:
-                        gpuLightType = GPULightType.Tube;
-                        lightVolumeType = LightVolumeType.Box;
-                        break;
+                        case AreaLightShape.Tube:
+                            gpuLightType = GPULightType.Tube;
+                            lightVolumeType = LightVolumeType.Box;
+                            break;
 
-                    default:
-                        Debug.Assert(false, "Encountered an unknown LightType.");
-                        break;
-                }
+                        case AreaLightShape.Disc:
+                            //not used in real-time at the moment anyway
+                            gpuLightType = GPULightType.Disc;
+                            lightVolumeType = LightVolumeType.Sphere;
+                            break;
+
+                        default:
+                            Debug.Assert(false, "Encountered an unknown AreaLightShape.");
+                            break;
+                    }
+                    break;
+
+                default:
+                    Debug.Assert(false, "Encountered an unknown LightType.");
+                    break;
             }
         }
 
@@ -1995,7 +2012,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
-                if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0)
+                if (cullResults.visibleLights.Length != 0 || cullResults.visibleReflectionProbes.Length != 0 || hdProbeCullingResults.visibleProbes.Count != 0)
                 {
                     // 1. Count the number of lights and sort all lights by category, type and volume - This is required for the fptl/cluster shader code
                     // If we reach maximum of lights available on screen, then we discard the light.
@@ -2026,8 +2043,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
                         var additionalData = GetHDAdditionalLightData(lightComponent);
+                        HDLightType lightType = additionalData.ComputeLightType(lightComponent);
 
-                        if (ShaderConfig.s_AreaLights == 0 && (additionalData.lightTypeExtent == LightTypeExtent.Rectangle || additionalData.lightTypeExtent == LightTypeExtent.Tube))
+                        if (ShaderConfig.s_AreaLights == 0 && (lightType == HDLightType.Area && (additionalData.areaLightShape == AreaLightShape.Rectangle || additionalData.areaLightShape == AreaLightShape.Tube)))
                             continue;
 
                         // First we should evaluate the shadow information for this frame
@@ -2043,7 +2061,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
                         LightVolumeType lightVolumeType = LightVolumeType.Count;
-                        HDRenderPipeline.EvaluateGPULightType(light.lightType, additionalData.lightTypeExtent, additionalData.spotLightShape, 
+                        HDRenderPipeline.EvaluateGPULightType(lightType, additionalData.spotLightShape, additionalData.areaLightShape, 
                                                                 ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                         if (hasDebugLightFilter
@@ -2792,7 +2810,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.nearClipPlane = camera.nearClipPlane;
             parameters.farClipPlane = camera.farClipPlane;
             parameters.lightList = m_lightList;
-            parameters.skyEnabled = m_SkyManager.IsLightingSkyValid();
+            parameters.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
             parameters.screenSize = hdCamera.screenSize;
             parameters.msaaSamples = (int)hdCamera.msaaSamples;
             parameters.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
@@ -3033,16 +3051,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
         // the contact shadow shadowed information (occluded or not). Otherwise -1 is written
-        int GetContactShadowMask(bool contactShadowEnabled)
+        void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCamera hdCamera, ref int contactShadowMask, ref float rayTracingShadowFlag)
         {
-            if (!contactShadowEnabled)
-                return 0;
+            contactShadowMask = 0;
+            rayTracingShadowFlag = 0.0f;
+            // If contact shadows are not enabled or we already reached the manimal number of contact shadows
+            if ((!hdAdditionalLightData.useContactShadow.Value(contactShadowEnabled))
+                || m_ContactShadowIndex >= LightDefinitions.s_LightListMaxPrunedEntries)
+                return;
 
-            // We have 24 max contact shadow light per frame
-            if (m_ContactShadowIndex >= LightDefinitions.s_LightListMaxPrunedEntries)
-                return 0;
+            // Evaluate the contact shadow index of this light
+            contactShadowMask = 1 << m_ContactShadowIndex++;
 
-            return 1 << m_ContactShadowIndex++;
+            // If this light has ray traced contact shadow
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdAdditionalLightData.rayTraceContactShadow)
+                rayTracingShadowFlag = 1.0f;
         }
 
         struct ContactShadowsParameters
@@ -3058,6 +3081,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              numTilesY;
             public int              viewCount;
 
+            public bool             rayTracingEnabled;
+            public RayTracingShader contactShadowsRTS;
+            public RayTracingAccelerationStructure accelerationStructure;
+            public float            rayTracingBias;
+            public int              actualWidth;
+            public int              actualHeight;
             public int              depthTextureParameterName;
         }
 
@@ -3066,13 +3095,25 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new ContactShadowsParameters();
 
             parameters.contactShadowsCS = contactShadowComputeShader;
+            parameters.rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            {
+                RayTracingSettings raySettings = VolumeManager.instance.stack.GetComponent<RayTracingSettings>();
+                parameters.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.shadowRaytracingRT;
+                parameters.rayTracingBias = raySettings.rayBias.value;
+                parameters.accelerationStructure = RequestAccelerationStructure();
+
+                parameters.actualWidth = hdCamera.actualWidth;
+                parameters.actualHeight = hdCamera.actualHeight;
+            }
+
             parameters.kernel = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? s_deferredContactShadowKernelMSAA : s_deferredContactShadowKernel;
 
             float contactShadowRange = Mathf.Clamp(m_ContactShadows.fadeDistance.value, 0.0f, m_ContactShadows.maxDistance.value);
             float contactShadowFadeEnd = m_ContactShadows.maxDistance.value;
             float contactShadowOneOverFadeRange = 1.0f / Math.Max(1e-6f, contactShadowRange);
             parameters.params1 = new Vector4(m_ContactShadows.length.value, m_ContactShadows.distanceScaleFactor.value, contactShadowFadeEnd, contactShadowOneOverFadeRange);
-            parameters.params2 = new Vector4(m_ContactShadows.opacity.value, firstMipOffsetY, 0.0f, 0.0f);
+            parameters.params2 = new Vector4(firstMipOffsetY, 0.0f, 0.0f, 0.0f);
             parameters.sampleCount = m_ContactShadows.sampleCount.value;
 
             int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
@@ -3107,6 +3148,27 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.contactShadowsCS, parameters.kernel, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);
 
             cmd.DispatchCompute(parameters.contactShadowsCS, parameters.kernel, parameters.numTilesX, parameters.numTilesY, parameters.viewCount);
+
+            if (parameters.rayTracingEnabled)
+            {
+                cmd.SetRayTracingShaderPass(parameters.contactShadowsRTS, "VisibilityDXR");
+                cmd.SetRayTracingFloatParam(parameters.contactShadowsRTS, HDShaderIDs._RaytracingRayBias, parameters.rayTracingBias);
+                cmd.SetRayTracingAccelerationStructure(parameters.contactShadowsRTS, HDShaderIDs._RaytracingAccelerationStructureName, parameters.accelerationStructure);
+
+                cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
+                cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters2, parameters.params2);
+                cmd.SetRayTracingIntParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalContactShadowSampleCount, parameters.sampleCount);
+                cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._DirectionalLightDatas, lightLoopLightData.directionalLightData);
+
+                // Send light list to the compute
+                cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs._LightDatas, lightLoopLightData.lightData);
+                cmd.SetRayTracingBufferParam(parameters.contactShadowsRTS, HDShaderIDs.g_vLightListGlobal, tileAndClusterData.lightList);
+
+                cmd.SetRayTracingTextureParam(parameters.contactShadowsRTS, HDShaderIDs._DepthTexture, depthTexture);
+                cmd.SetRayTracingTextureParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowTextureUAV, contactShadowRT);
+
+                cmd.DispatchRays(parameters.contactShadowsRTS, "RayGenContactShadows", (uint)parameters.actualWidth, (uint)parameters.actualHeight, (uint)parameters.viewCount);
+            }
         }
 
         void RenderContactShadows(HDCamera hdCamera, CommandBuffer cmd)
@@ -3285,9 +3347,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.enableFeatureVariants)
             {
                 if (outputSplitLighting)
-                    cmd.SetRenderTarget(resources.colorBuffers, resources.depthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, resources.colorBuffers, resources.depthStencilBuffer);
                 else
-                    cmd.SetRenderTarget(resources.colorBuffers[0], resources.depthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, resources.colorBuffers[0], resources.depthStencilBuffer);
 
                 for (int variant = 0; variant < parameters.numVariants; variant++)
                 {

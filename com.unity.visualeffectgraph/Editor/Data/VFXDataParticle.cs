@@ -203,7 +203,7 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField] // TODO Put back InInsepctor visibility once C++ PR for strips has landed
         protected DataType dataType = DataType.Particle;
-        [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")]
+        [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")][Tooltip("Sets the maximum particle capacity of this system. Particles spawned after the capacity has been reached are discarded.")]
         protected uint capacity = 128;
         [VFXSetting, Delayed, SerializeField]
         protected uint stripCapacity = 16;

@@ -221,7 +221,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
 
             // This code works for both surface reflection and thin object transmission.
             float shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
-            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+            lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
             // Important:
             // Ideally, all scattering calculations should use the jittered versions
@@ -336,7 +336,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float3 shadowN = L;
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
-                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 
                 // Important:
@@ -417,7 +417,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 float3 shadowN = L;
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
-                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint);
+                lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 
                 // Important:
@@ -581,9 +581,9 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            centerWS,
                                            _PrevCamPosRWS,
                                            UNITY_MATRIX_PREV_VP,
-                                           _VBufferPrevResolution,
-                                           _VBufferPrevUvScaleAndLimit.xy,
-                                           _VBufferPrevUvScaleAndLimit.zw,
+                                           _VBufferPrevViewportSize,
+                                           _VBufferHistoryPrevUvScaleAndLimit.xy,
+                                           _VBufferHistoryPrevUvScaleAndLimit.zw,
                                            _VBufferPrevDepthEncodingParams,
                                            _VBufferPrevDepthDecodingParams,
                                            false, true) * float4(GetInversePreviousExposureMultiplier().xxx, 1);
@@ -718,7 +718,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.jitterDirWS = ray.centerDirWS;
 #endif
 
-    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
+    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
 
     // TODO
     LightLoopContext context;
