@@ -225,6 +225,13 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
+
+        // Values used in place of shader features (to save compilation time)
+        [HideInInspector] _EnableGeometricSpecularAA("Enable Geometric Specular AA", Int) = 0
+        [HideInInspector] _UsesSubsurfaceMaskMap("Use Subsurface Mask Map", Int) = 0
+        [HideInInspector] _UsesIridescenceThicknessMap("Use Iridescence Thickness Map", Int) = 0
+        [HideInInspector] _UsesThicknessMap("Use Thickness Map", Int) = 0
+
     }
 
     HLSLINCLUDE
