@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
+
 using UnityEngine.Analytics;
 using UnityEngine;
 
@@ -24,15 +24,15 @@ namespace UnityEditor.ShaderGraph
             return s_EventRegistered;
         }
 
-        private struct AnalyticsData
+        struct AnalyticsData
         {
             public string nodes;
             public int node_count;
-            public string main_guid;
+            public string asset_guid;
             public int subgraph_count;
         }
 
-        public static void SendShaderGraphEvent(string mainGuid, IEnumerable<AbstractMaterialNode> nodes)
+        public static void SendShaderGraphEvent(string assetGuid, IEnumerable<AbstractMaterialNode> nodes)
         {
             //The event shouldn't be able to report if this is disabled but if we know we're not going to report
             //Lets early out and not waste time gathering all the data
@@ -63,17 +63,23 @@ namespace UnityEditor.ShaderGraph
                     nodeTypeAndCount[nType] += 1;
                 }
             }
+            var jsonRepr = DictionaryToJson(nodeTypeAndCount);
 
-            var jsonRepr = JsonConvert.SerializeObject(nodeTypeAndCount);
             var data = new AnalyticsData()
             {
                 nodes = jsonRepr,
                 node_count = nodes.Count(),
-                main_guid = mainGuid,
+                asset_guid = assetGuid,
                 subgraph_count = subgraphCount
             };
 
             EditorAnalytics.SendEventWithLimit(k_EventName, data);
+        }
+
+        static string DictionaryToJson(Dictionary<string, int> dict)
+        {
+            var entries = dict.Select(d => $"\"{d.Key}\":{string.Join(",", d.Value)}");
+            return "{" + string.Join(",", entries) + "}";
         }
     }
 }
