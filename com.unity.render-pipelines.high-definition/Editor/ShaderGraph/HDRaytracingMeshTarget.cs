@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Internal;
 
@@ -16,6 +17,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return (masterNode is FabricMasterNode ||
                     masterNode is HDLitMasterNode ||
                     masterNode is HDUnlitMasterNode);
+        }
+        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        {
+            return currentPipeline is HDRenderPipelineAsset;
         }
 
         public void SetupTarget(ref TargetSetupContext context)

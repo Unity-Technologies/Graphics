@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
@@ -10,6 +11,7 @@ namespace UnityEditor.ShaderGraph.Internal
         string sharedTemplateDirectory { get; }
 
         bool IsValid(IMasterNode masterNode);
+        bool IsPipelineCompatible(RenderPipelineAsset currentPipeline);
         void SetupTarget(ref TargetSetupContext context);
     }
 }

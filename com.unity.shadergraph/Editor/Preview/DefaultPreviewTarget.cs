@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -13,6 +14,10 @@ namespace UnityEditor.ShaderGraph
         public bool IsValid(IMasterNode masterNode)
         {
             return false;
+        }
+        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        {
+            return (currentPipeline != null);
         }
 
         public void SetupTarget(ref TargetSetupContext context)

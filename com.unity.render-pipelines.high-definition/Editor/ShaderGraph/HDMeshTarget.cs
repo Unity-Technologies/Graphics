@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
@@ -22,6 +23,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     masterNode is HairMasterNode ||
                     masterNode is FabricMasterNode ||
                     masterNode is EyeMasterNode);
+        }
+        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        {
+            return currentPipeline is HDRenderPipelineAsset;
         }
 
         public void SetupTarget(ref TargetSetupContext context)

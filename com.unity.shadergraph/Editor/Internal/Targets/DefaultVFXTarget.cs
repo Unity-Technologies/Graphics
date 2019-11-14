@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph.Internal
@@ -13,6 +14,10 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool IsValid(IMasterNode masterNode)
         {
             return masterNode is VfxMasterNode;
+        }
+        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        {
+            return (currentPipeline != null);
         }
 
         public void SetupTarget(ref TargetSetupContext context)

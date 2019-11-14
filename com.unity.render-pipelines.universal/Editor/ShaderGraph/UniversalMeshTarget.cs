@@ -2,6 +2,8 @@
 using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -18,6 +20,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     masterNode is UnlitMasterNode ||
                     masterNode is SpriteLitMasterNode ||
                     masterNode is SpriteUnlitMasterNode);
+        }
+
+        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        {
+            return currentPipeline is UniversalRenderPipelineAsset;
         }
 
         public void SetupTarget(ref TargetSetupContext context)
