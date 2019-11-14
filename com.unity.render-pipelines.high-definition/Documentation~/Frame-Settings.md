@@ -83,7 +83,7 @@ These settings control lighting features for your rendering components. Here you
 | **Reflection Probe**               | Enable the checkbox to allow this Camera to use [Reflection Probes](Reflection-Probe.html). |
 | **Planar Reflection Probe**        | Enable the checkbox to allow this Camera to use [Planar Reflection Probes](Planar-Reflection-Probe.html). |
 | **Metallic Indirect Fallback**     | Enable the checkbox to render Materials with base color as diffuse for this Camera. This renders metals as diffuse Materials. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting. |
-| **Sky Lighting**                   | Enable the checkbox to allow this Camera to use the Sky Ambient Light Probe. The Sky Ambient Light Probe affects diffuse lighting. |
+| **Sky Reflection**                 | Enable the checkbox to allow this Camera to use the Sky Reflection. The Sky Reflection affects specular lighting. |
 | **Direct Specular Lighting**       | Enable the checkbox to allow this Camera to render direct specular lighting. This allows HDRP to disable direct view dependent lighting. It doesn't save any performance. |
 
 ### Asynchronous Compute Shaders

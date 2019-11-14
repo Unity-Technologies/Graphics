@@ -475,19 +475,19 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (serialized.type)
             {
                 case HDLightType.Directional:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
                     break;
                 case HDLightType.Point:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
                     break;
                 case HDLightType.Spot:
                     if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box)
-                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
+                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (DirectionalLightUnit)serialized.lightUnit.GetEnumValue<DirectionalLightUnit>());
                     else
-                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
+                        selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (PunctualLightUnit)serialized.lightUnit.GetEnumValue<PunctualLightUnit>());
                     break;
                 default:
-                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (LightUnit)serialized.lightUnit.GetEnumValue<AreaLightUnit>());
+                    selectedLightUnit = (LightUnit)EditorGUI.EnumPopup(rect, (AreaLightUnit)serialized.lightUnit.GetEnumValue<AreaLightUnit>());
                     break;
             }
             EditorGUI.EndProperty();
@@ -548,13 +548,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
 
                 case HDLightType.Area:
-                    if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
+                    if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Nits)
                         intensity = LightUtils.ConvertAreaLightLumenToLuminance(serialized.areaLightShape, intensity, serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                    if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
+                    if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Lumen)
                         intensity = LightUtils.ConvertAreaLightLuminanceToLumen(serialized.areaLightShape, intensity, serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                    if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev100)
+                    if (oldLightUnit == LightUnit.Nits && newLightUnit == LightUnit.Ev100)
                         intensity = LightUtils.ConvertLuminanceToEv(intensity);
-                    if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Luminance)
+                    if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Nits)
                         intensity = LightUtils.ConvertEvToLuminance(intensity);
                     if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
                         intensity = LightUtils.ConvertAreaLightEvToLumen(serialized.areaLightShape, intensity, serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
