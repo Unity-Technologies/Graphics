@@ -14,14 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Material/Lit/Lit.shader")]
             public Shader defaultPS;
 
-            // Core
-            [Reload("Runtime/Core/CoreResources/ParallelSum.compute")]
-            public ComputeShader ParallelSumCS;
-            [Reload("Runtime/Core/CoreResources/ParallelSumFinal.compute")]
-            public ComputeShader ParallelSumFinalCS;
-            [Reload("Runtime/Core/CoreResources/ComputeCDF1D.compute")]
-            public ComputeShader ComputeCDF1DCS;
-
             // Debug
             [Reload("Runtime/Debug/DebugDisplayLatlong.Shader")]
             public Shader debugDisplayLatlongPS;
@@ -157,8 +149,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearUIntTextureCS;
             [Reload("Runtime/Core/CoreResources/CubeToOctahedral.compute")]
             public ComputeShader cubeToOctahedralCS;
-            [Reload("Runtime/Core/CoreResources/Sum2D.compute")]
-            public ComputeShader sum2DCS;
+            //[Reload("Runtime/Core/CoreResources/Sum2D.compute")]
+            //public ComputeShader sum2DCS;
+            [Reload("Runtime/Core/CoreResources/ParallelOperation.compute")]
+            public ComputeShader ParallelOperationCS;
+            [Reload("Runtime/Core/CoreResources/ParallelOperationFinal.compute")]
+            public ComputeShader ParallelOperationFinalCS;
+            [Reload("Runtime/Core/CoreResources/ComputeCDF1D.compute")]
+            public ComputeShader ComputeCDF1DCS;
+            [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
+            public ComputeShader Rescale01CS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]

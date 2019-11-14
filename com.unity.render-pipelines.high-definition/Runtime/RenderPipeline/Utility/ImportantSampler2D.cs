@@ -9,83 +9,168 @@ namespace UnityEngine.Rendering
 {
     class ImportantSampler2D
     {
-        //ComputeShader m_Shader;
-        //int k_SampleKernel_xyzw2x_8;
-        //int k_SampleKernel_xyzw2x_1;
-        ComputeShader m_ComputeCDF;
-        ComputeShader m_ComputeInvCDF;
+        //ComputeShader m_ComputeCDF;
+        //ComputeShader m_ComputeInvCDF;
 
         Texture2D       m_CFDinv; // Cumulative Function Distribution Inverse
         ComputeBuffer   m_GeneratedSamples;
-        RTHandle        m_Temp0; // Used for Ping/Pong to compute the sum of column
-        RTHandle        m_Temp1;
 
-        int             m_Width;
-        int             m_Height;
-
-        static int m_SumPerThread0 = 16;
-        static int m_SumPerThread1 =  4;
+        RTHandle m_CDFFull;
+        RTHandle m_MinMaxFull;
 
         public ImportantSampler2D()
         {
             //m_Shader = shader;
             //k_SampleKernel_xyzw2x_8 = m_Shader.FindKernel("KSampleCopy4_1_x_8");
             //k_SampleKernel_xyzw2x_1 = m_Shader.FindKernel("KSampleCopy4_1_x_1");
-            var hdrp = HDRenderPipeline.defaultAsset;
-            m_ComputeCDF = hdrp.renderPipelineResources.shaders.sum2DCS;
+            //var hdrp = HDRenderPipeline.defaultAsset;
+            //m_ComputeCDF = hdrp.renderPipelineResources.shaders.sum2DCS;
         }
 
-        public void Init(Texture2D pdfDensity, CommandBuffer cmd)
+        static private void SavePDFDensity(AsyncGPUReadbackRequest request)
         {
-            //if (pdfDensity == null)
-            //{
-            //    return;
-            //}
+            if (!request.hasError)
+            {
+                Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                float[] copy = new float[result.Length];
+                result.CopyTo(copy);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                string path = @"C:\UProjects\PDFDensity_" + _Idx.ToString() + " .exr";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                    System.IO.File.Delete(path);
+                }
+                System.IO.File.WriteAllBytes(path, bytes0);
+                ++_Idx;
+            }
+        }
 
-            m_Width     = pdfDensity.width;
-            m_Height    = pdfDensity.height;
-            //RTHandles desc = RTHandles.Alloc(width: m_Width, height: m_Height/m_SumPerThread0, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, depthBufferBits: 0, enableRandomWrite: true);;
-            //desc.enableRandomWrite = true;
+        static private void SaveCDFFull(AsyncGPUReadbackRequest request)
+        {
+            if (!request.hasError)
+            {
+                Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                float[] copy = new float[result.Length];
+                result.CopyTo(copy);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                string path = @"C:\UProjects\CDFFull_" + _Idx.ToString() + " .exr";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                    System.IO.File.Delete(path);
+                }
+                System.IO.File.WriteAllBytes(path, bytes0);
+                ++_Idx;
+            }
+        }
 
-            //m_Temp0 = new RenderTexture(m_Width, m_Height/m_SumPerThread0,                   1, GraphicsFormat.R32G32B32A32_SFloat);
-            //m_Temp1 = new RenderTexture(m_Width, m_Height/(m_SumPerThread0*m_SumPerThread1), 1, GraphicsFormat.R32G32B32A32_SFloat);
+        static private void SaveMinMaxFull(AsyncGPUReadbackRequest request)
+        {
+            if (!request.hasError)
+            {
+                Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                float[] copy = new float[result.Length];
+                result.CopyTo(copy);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                string path = @"C:\UProjects\MinMaxFull_" + _Idx.ToString() + " .exr";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                    System.IO.File.Delete(path);
+                }
+                System.IO.File.WriteAllBytes(path, bytes0);
+                ++_Idx;
+            }
+        }
 
-            m_Temp0 = RTHandles.Alloc(  m_Width, m_Height/m_SumPerThread0, 1,
-                                        DepthBits.None,
-                                        GraphicsFormat.R32G32B32A32_SFloat,
-                                        FilterMode.Trilinear,
-                                        TextureWrapMode.Repeat,
-                                        TextureDimension.Tex2D,
-                                        true);
-            m_Temp1 = RTHandles.Alloc(  m_Width, m_Height/(m_SumPerThread0*m_SumPerThread1), 1,
-                                        DepthBits.None,
-                                        GraphicsFormat.R32G32B32A32_SFloat,
-                                        FilterMode.Trilinear,
-                                        TextureWrapMode.Repeat,
-                                        TextureDimension.Tex2D,
-                                        true);
-            //m_Temp0 = RTHandles.Alloc(width: m_Width, height: m_Height/m_SumPerThread0,                   slices: 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
-            //m_Temp1 = RTHandles.Alloc(width: m_Width, height: m_Height/(m_SumPerThread0*m_SumPerThread1), slices: 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
+        public void Init(RTHandle pdfDensity, CommandBuffer cmd)
+        {
+            ParallelOperation._Idx = 0;
+            //RTHandle sum = ParallelOperation.ComputeOperation(pdfDensity,
+            //                                        cmd,
+            //                                        ParallelOperation.Operation.Sum,
+            //                                        ParallelOperation.Direction.Horizontal,
+            //                                        2,
+            //                                        Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
 
-            Texture2D readBack = new Texture2D(m_Width, m_Height/m_SumPerThread0, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
+            cmd.RequestAsyncReadback(pdfDensity, SavePDFDensity);
+            m_CDFFull = ComputeCDF1D.ComputeCDF(pdfDensity,
+                                                cmd,
+                                                ComputeCDF1D.SumDirection.Horizontal,
+                                                Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+            cmd.RequestAsyncReadback(m_CDFFull, SaveCDFFull);
+            m_MinMaxFull = ParallelOperation.ComputeOperation(m_CDFFull,
+                                                    cmd,
+                                                    ParallelOperation.Operation.MinMax,
+                                                    ParallelOperation.Direction.Horizontal,
+                                                    2,
+                                                    Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+            cmd.RequestAsyncReadback(m_MinMaxFull, SaveMinMaxFull);
 
-            int passCount = Mathf.RoundToInt(Mathf.Log((float)m_Height, 2.0f));
+            //RTHandle minMax = ParallelOperation.ComputeOperation(sum,
+            //                                        cmd,
+            //                                        ParallelOperation.Operation.MinMax,
+            //                                        ParallelOperation.Direction.Horizontal,
+            //                                        1,
+            //                                        Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
 
-            cmd.SetComputeTextureParam(m_ComputeCDF, 0, HDShaderIDs._Input, pdfDensity);
-            cmd.SetComputeTextureParam(m_ComputeCDF, 0, HDShaderIDs._Output, m_Temp0);
-            int numTilesY = (m_Height + (m_SumPerThread0 - 1))/m_SumPerThread0;
-            cmd.DispatchCompute(m_ComputeCDF, 0, m_Width, numTilesY, 1 );
+            //_Idx = 0;
+            Rescale(m_CDFFull, m_MinMaxFull, ParallelOperation.Direction.Horizontal, cmd);
+            //Rescale(sum,     minMax,     ParallelOperation.Direction.Horizontal, cmd);
+        }
 
-            RenderTexture.active = m_Temp0;
-            readBack.ReadPixels(new Rect(0.0f, 0.0f, m_Width, m_Height/m_SumPerThread0), 0, 0);
-            readBack.Apply();
-            RenderTexture.active = null;
+        static public int _Idx = 0;
 
-            byte[] bytes = readBack.EncodeToEXR(Texture2D.EXRFlags.CompressZIP);
-            System.IO.File.WriteAllBytes(@"C:\UProjects\005\Assets\MidSum.exr", bytes);
-            CoreUtils.Destroy(readBack);
-            CoreUtils.Destroy(m_Temp0);
-            CoreUtils.Destroy(m_Temp1);
+        static private void SaveTempImg(AsyncGPUReadbackRequest request)
+        {
+            if (!request.hasError)
+            {
+                Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                float[] copy = new float[result.Length];
+                result.CopyTo(copy);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                string path = @"C:\UProjects\Rescaled_" + _Idx.ToString() + " .exr";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                    System.IO.File.Delete(path);
+                }
+                System.IO.File.WriteAllBytes(path, bytes0);
+                ++_Idx;
+            }
+        }
+
+        private void Rescale(RTHandle tex, RTHandle minMax, ParallelOperation.Direction direction, CommandBuffer cmd)
+        {
+            var hdrp = HDRenderPipeline.defaultAsset;
+            ComputeShader rescale01 = hdrp.renderPipelineResources.shaders.Rescale01CS;
+
+            rescale01.EnableKeyword("MINMAX");
+            rescale01.EnableKeyword("READ_WRITE");
+            if (direction == ParallelOperation.Direction.Horizontal)
+            {
+                rescale01.EnableKeyword ("HORIZONTAL");
+                rescale01.DisableKeyword("VERTICAL");
+            }
+            else
+            {
+                rescale01.DisableKeyword("HORIZONTAL");
+                rescale01.EnableKeyword ("VERTICAL");
+            }
+
+            int kernel = rescale01.FindKernel("CSMain");
+
+            cmd.SetComputeTextureParam(rescale01, kernel, HDShaderIDs._Output, tex);
+            cmd.SetComputeTextureParam(rescale01, kernel, HDShaderIDs._MinMax, minMax);
+            cmd.SetComputeIntParams   (rescale01,         HDShaderIDs._Sizes,
+                                       tex.rt.width, tex.rt.height, tex.rt.width, tex.rt.height);
+
+            int numTilesX = (tex.rt.width  + (8 - 1))/8;
+            int numTilesY = (tex.rt.height + (8 - 1))/8;
+
+            cmd.DispatchCompute(rescale01, kernel, numTilesX, numTilesY, 1);
+            cmd.RequestAsyncReadback(tex, SaveTempImg);
         }
 
         public void GenerateSamples(uint samplesCount)

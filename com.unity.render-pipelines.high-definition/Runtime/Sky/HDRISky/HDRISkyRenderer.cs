@@ -17,11 +17,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private RTHandle m_OctahedralMap;
         private RTHandle m_PDFHorizontal;
 
-        private int m_HDRISkyHash = 0;
+        private bool m_HDRISkyHash = false;
 
         public HDRISkyRenderer()
         {
-            m_HDRISkyHash = -1;
         }
 
         public override void Build()
@@ -103,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var hdriSky = builtinParams.skySettings as HDRISky;
 
-            int currentHash = hdriSky.hdriSky.GetHashCode();
+            bool currentHash = hdriSky.rectLightShadow.value;
             if (m_HDRISkyHash != currentHash)
             {
                 m_HDRISkyHash = currentHash;
@@ -127,22 +126,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.DrawFullScreen(builtinParams.commandBuffer, cubeToOctahedral);
                 builtinParams.commandBuffer.RequestAsyncReadback(m_OctahedralMap, SaveOcta);
 
-                // again
-                RTHandle sum = ParallelSum.ComputeSum(m_OctahedralMap,
-                                                      builtinParams.commandBuffer,
-                                                      ParallelSum.SumDirection.Horizontal,
-                                                      2,
-                                                      Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+                ImportantSampler2D is2d = new ImportantSampler2D();
 
-                RTHandle CDFFull = ComputeCDF1D.ComputeCDF(m_OctahedralMap,
-                                                           builtinParams.commandBuffer,
-                                                           ComputeCDF1D.SumDirection.Horizontal,
-                                                           Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
-
-                RTHandle CDFSum = ComputeCDF1D.ComputeCDF(sum,
-                                                          builtinParams.commandBuffer,
-                                                          ComputeCDF1D.SumDirection.Horizontal,
-                                                          Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+                is2d.Init(m_OctahedralMap, builtinParams.commandBuffer);
             }
 
             if (hdriSky.enableBackplate.value == false)

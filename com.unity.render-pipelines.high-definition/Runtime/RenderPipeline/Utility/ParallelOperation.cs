@@ -1,0 +1,203 @@
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine;
+using UnityEngine.Rendering;
+//using UnityEngine.Experimental.Rendering;
+//using UnityEngine.Rendering.HighDefinition;
+
+namespace UnityEngine.Rendering
+{
+    // Texture1D 1xN -> Texture2D 1x1
+    // Texture1D Nx1 -> Texture2D 1x1
+    // Texture2D NxM -> Texture2D 1xM
+    // Texture2D NxM -> Texture2D NxM
+    class ParallelOperation
+    {
+        static RTHandle m_Temp0;
+        static RTHandle m_Temp1;
+        static RTHandle m_Final;
+
+        public enum Direction
+        {
+            Vertical,
+            Horizontal
+        }
+
+        public enum Operation
+        {
+            Sum,
+            Min,
+            Max,
+            MinMax,
+            Rescale
+        }
+
+        static public uint _Idx = 0;
+
+        static private void SaveTempImg(AsyncGPUReadbackRequest request)
+        {
+            if (!request.hasError)
+            {
+                Unity.Collections.NativeArray<float> result = request.GetData<float>();
+                float[] copy = new float[result.Length];
+                result.CopyTo(copy);
+                byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
+                string path = @"C:\UProjects\Op_" + _Idx.ToString() + " .exr";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
+                    System.IO.File.Delete(path);
+                }
+                System.IO.File.WriteAllBytes(path, bytes0);
+                ++_Idx;
+            }
+        }
+
+        static private void Dispatch(CommandBuffer cmd, ComputeShader cs, int kernel, RTHandle output, RTHandle input, Direction direction, int inSize, int outSize)
+        {
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Input,  input);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._Output, output);
+            int numTilesX;
+            int numTilesY;
+            if (direction == Direction.Vertical)
+            {
+                numTilesX =  m_Temp0.rt.width;
+                numTilesY = (outSize + (8 - 1))/8;
+                cmd.SetComputeIntParams(cs, HDShaderIDs._Sizes, input.rt.width, inSize, output.rt.width, outSize);
+            }
+            else
+            {
+                numTilesX = (outSize + (8 - 1))/8;
+                numTilesY =  m_Temp0.rt.height;
+                cmd.SetComputeIntParams(cs, HDShaderIDs._Sizes, inSize, input.rt.height, outSize, output.rt.height);
+            }
+            cmd.DispatchCompute(cs, kernel, numTilesX, numTilesY, 1);
+            cmd.RequestAsyncReadback(output, SaveTempImg);
+        }
+
+        static public RTHandle ComputeOperation(RTHandle input, CommandBuffer cmd, Operation operation, Direction opDirection, int opPerThread = 8, GraphicsFormat sumFormat = GraphicsFormat.None)
+        {
+            if (input == null)
+            {
+                return null;
+            }
+
+            if (opPerThread < 1 || opPerThread > 64)
+            {
+                return null;
+            }
+
+            if (opPerThread % 2 == 1 && opPerThread != 1)
+            {
+                return null;
+            }
+
+            var hdrp = HDRenderPipeline.defaultAsset;
+            ComputeShader sumStep = hdrp.renderPipelineResources.shaders.ParallelOperationCS;
+
+            GraphicsFormat format;
+            if (sumFormat == GraphicsFormat.None)
+                format = GraphicsFormat.R32G32B32A32_SFloat;
+            else
+                format = sumFormat;
+
+            int width  = input.rt.width;
+            int height = input.rt.height;
+
+            int outWidth;
+            int outHeight;
+            if (opDirection == Direction.Vertical)
+            {
+                outWidth  = width;
+                outHeight = 1;
+
+                m_Temp0 = RTHandles.Alloc(outWidth, height/opPerThread,               colorFormat: format, enableRandomWrite: true);
+                m_Temp1 = RTHandles.Alloc(outWidth, height/(opPerThread*opPerThread), colorFormat: format, enableRandomWrite: true);
+            }
+            else // if (opDirection == SumDirection.Horizontal)
+            {
+                outWidth  = 1;
+                outHeight = height;
+
+                m_Temp0 = RTHandles.Alloc(width/opPerThread,               outHeight, colorFormat: format, enableRandomWrite: true);
+                m_Temp1 = RTHandles.Alloc(width/(opPerThread*opPerThread), outHeight, colorFormat: format, enableRandomWrite: true);
+            }
+
+            if (m_Temp1.rt.width == 0 || m_Temp1.rt.height == 0)
+            {
+                return null;
+            }
+
+            int curSize;
+            if (opDirection == Direction.Vertical)
+            {
+                curSize = height;
+                sumStep.DisableKeyword("HORIZONTAL");
+                sumStep.EnableKeyword("VERTICAL");
+                m_Final = RTHandles.Alloc(width: outWidth, height: 1, colorFormat: format, enableRandomWrite: true);
+            }
+            else
+            {
+                curSize = width;
+                sumStep.DisableKeyword("VERTICAL");
+                sumStep.EnableKeyword("HORIZONTAL");
+                m_Final = RTHandles.Alloc(width: 1, height: outHeight, colorFormat: format, enableRandomWrite: true);
+            }
+            for (int curSumPerThread = 0; curSumPerThread < 7; ++curSumPerThread)
+            {
+                sumStep.DisableKeyword("OP_PER_THREAD_" + (1 << curSumPerThread).ToString());
+            }
+            sumStep.EnableKeyword("OP_PER_THREAD_" + opPerThread.ToString());
+
+            switch (operation)
+            {
+                case Operation.Sum:
+                    sumStep.EnableKeyword ("SUM");
+                    sumStep.DisableKeyword("MIN");
+                    sumStep.DisableKeyword("MAX");
+                    sumStep.DisableKeyword("MINMAX");
+                    break;
+                case Operation.Min:
+                    sumStep.DisableKeyword("SUM");
+                    sumStep.EnableKeyword ("MIN");
+                    sumStep.DisableKeyword("MAX");
+                    sumStep.DisableKeyword("MINMAX");
+                    break;
+                case Operation.Max:
+                    sumStep.DisableKeyword("SUM");
+                    sumStep.DisableKeyword("MIN");
+                    sumStep.EnableKeyword ("MAX");
+                    sumStep.DisableKeyword("MINMAX");
+                    break;
+                case Operation.MinMax:
+                    sumStep.DisableKeyword("SUM");
+                    sumStep.DisableKeyword("MIN");
+                    sumStep.DisableKeyword("MAX");
+                    sumStep.EnableKeyword ("MINMAX");
+                    break;
+            };
+
+            int kernelFirst = sumStep.FindKernel("CSMainFirst");
+            int kernel      = sumStep.FindKernel("CSMain");
+
+            Dispatch(cmd, sumStep, kernelFirst, opPerThread == 1 ? m_Final : m_Temp0, input, opDirection, curSize, curSize/opPerThread);
+
+            if (opPerThread > 1)
+            {
+                RTHandle inRT   = m_Temp0;
+                RTHandle outRT  = m_Temp1;
+                do
+                {
+                    curSize /= opPerThread;
+                    Dispatch(cmd, sumStep, kernel, outRT, inRT, opDirection, curSize, curSize/opPerThread);
+
+                    CoreUtils.Swap(ref inRT, ref outRT);
+                } while (curSize > opPerThread);
+
+                Dispatch(cmd, sumStep, kernel, m_Final, inRT, opDirection, curSize/opPerThread, 1);
+            }
+
+            return m_Final;
+        }
+    }
+}

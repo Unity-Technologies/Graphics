@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering
 {
-    // CDF: Cummulative Distribution Function
+    // CDF: Cumulative Distribution Function
     class ComputeCDF1D
     {
         static RTHandle m_Temp0;
@@ -91,15 +91,16 @@ namespace UnityEngine.Rendering
             {
                 cmd.SetComputeTextureParam(cdfStep, kernel, HDShaderIDs._Input,     input);
                 cmd.SetComputeTextureParam(cdfStep, kernel, HDShaderIDs._Output,    m_Temp0);
-                cmd.SetComputeIntParams   (cdfStep,         HDShaderIDs._Sizes,     input.rt.width, input.rt.height, m_Temp0.rt.width, m_Temp0.rt.height);
+                cmd.SetComputeIntParams   (cdfStep,         HDShaderIDs._Sizes,
+                                           input.rt.width, input.rt.height, m_Temp0.rt.width, m_Temp0.rt.height);
                 if (sumDirection == SumDirection.Horizontal)
                 {
                     numTilesX = (m_Temp0.rt.width  + (8 - 1))/8;
-                    numTilesY =  m_Temp0.rt.height;
+                    numTilesY = (m_Temp0.rt.height + (8 - 1))/8;
                 }
                 else
                 {
-                    numTilesX =  m_Temp0.rt.width;
+                    numTilesX = (m_Temp0.rt.width  + (8 - 1))/8;
                     numTilesY = (m_Temp0.rt.height + (8 - 1))/8;
                 }
                 cmd.DispatchCompute     (cdfStep, kernel, numTilesX, numTilesY, 1);
@@ -110,11 +111,12 @@ namespace UnityEngine.Rendering
             kernel = cdfStep.FindKernel("CSMain");
             RTHandle ping = m_Temp0;
             RTHandle pong = m_Temp1;
-            for (uint i = 0; i < iteration - 1; ++i)
+            for (uint i = 0; i < iteration; ++i)
             {
                 cmd.SetComputeTextureParam(cdfStep, kernel, HDShaderIDs._Input,     ping);
                 cmd.SetComputeTextureParam(cdfStep, kernel, HDShaderIDs._Output,    pong);
-                cmd.SetComputeIntParams   (cdfStep,         HDShaderIDs._Sizes,     ping.rt.width, input.rt.height, pong.rt.width, pong.rt.height);
+                cmd.SetComputeIntParams   (cdfStep,         HDShaderIDs._Sizes,
+                                           ping.rt.width, input.rt.height, pong.rt.width, pong.rt.height);
                 cmd.SetComputeIntParam    (cdfStep,         HDShaderIDs._Iteration, (int)Mathf.Pow(2.0f, (float)i));
                 if (sumDirection == SumDirection.Horizontal)
                 {
@@ -128,10 +130,14 @@ namespace UnityEngine.Rendering
                 }
                 cmd.DispatchCompute     (cdfStep, kernel, numTilesX, numTilesY, 1);
                 cmd.RequestAsyncReadback(pong, SaveTempImg);
+                if (i == iteration - 1)
+                {
+                    m_CDF = pong;
+                }
                 CoreUtils.Swap(ref ping, ref pong);
             }
 
-            return pong;
+            return m_CDF;
         }
     }
 }

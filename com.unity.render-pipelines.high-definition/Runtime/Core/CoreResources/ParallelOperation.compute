@@ -1,0 +1,132 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMainFirst FIRST
+#pragma kernel CSMain
+
+#pragma multi_compile VERTICAL HORIZONTAL
+#pragma multi_compile OP_PER_THREAD_1 OP_PER_THREAD_2 OP_PER_THREAD_4 OP_PER_THREAD_8 OP_PER_THREAD_16 OP_PER_THREAD_32 OP_PER_THREAD_64
+#pragma multi_compile SUM MAX MIN MINMAX
+
+#ifdef OP_PER_THREAD_1
+    #define OpPerThread 1
+#elif defined(OP_PER_THREAD_2)
+    #define OpPerThread 2
+#elif defined(OP_PER_THREAD_4)
+    #define OpPerThread 4
+#elif defined(OP_PER_THREAD_8)
+    #define OpPerThread 8
+#elif defined(OP_PER_THREAD_16)
+    #define OpPerThread 16
+#elif defined(OP_PER_THREAD_32)
+    #define OpPerThread 32
+#elif defined(OP_PER_THREAD_64)
+    #define OpPerThread 64
+#else
+    #error OpPerThread Not defined
+#endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+  Texture2D<float4> _Input;
+RWTexture2D<float4> _Output;
+
+uint4 _Sizes; // xy: InputSize; zw: OutputSize
+
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
+
+#ifdef VERTICAL
+    #define THREAD_PER_GROUP_X 1
+    #define THREAD_PER_GROUP_Y 8
+#else // if HORIZONTAL
+    #define THREAD_PER_GROUP_X 8
+    #define THREAD_PER_GROUP_Y 1
+#endif
+
+#if defined(MINMAX)
+    #define OutType float2
+#else
+    #define OutType float
+#endif
+
+OutType GetInput(uint2 pos)
+{
+#ifdef FIRST
+    float dotVal = dot(_Input[pos].rgb, float3(1, 1, 1));
+    #if defined(MINMAX)
+        return dotVal.xx;
+    #else
+        return dotVal;
+    #endif
+#else
+    #if defined(MINMAX)
+        return _Input[pos].xy;
+    #else
+        return _Input[pos].x;
+    #endif
+#endif
+}
+
+OutType GetSample(uint2 id, uint i)
+{
+#ifdef VERTICAL
+    return GetInput(uint2(id.x                , id.y*OpPerThread + i));
+#else
+    return GetInput(uint2(id.x*OpPerThread + i, id.y                ));
+#endif
+}
+
+float4 ToOutput(OutType v)
+{
+#if defined(MINMAX)
+    return float4(v.xy, 0, 1);
+#else
+    return float4(v, 0, 0, 1);
+#endif
+}
+
+[numthreads(THREAD_PER_GROUP_X, THREAD_PER_GROUP_Y, 1)]
+#ifdef FIRST
+void CSMainFirst(uint3 id : SV_DispatchThreadID)
+#else
+void CSMain     (uint3 id : SV_DispatchThreadID)
+#endif
+{
+    if (all(id.xy < _OutputSize))
+    {
+    #ifdef SUM
+        OutType opVal =  0.0f;
+    #elif defined(MIN)
+        OutType opVal =  HALF_MAX;
+    #elif defined(MAX)
+        OutType opVal = -HALF_MAX;
+    #elif defined(MINMAX)
+        OutType opVal =  float2(HALF_MAX, -HALF_MAX);
+    #endif
+
+#ifdef OP_PER_THREAD_1
+        UNITY_UNROLL
+#else
+        UNITY_LOOP
+#endif
+        for (int i = 0; i < OpPerThread; ++i)
+        {
+#ifdef SUM
+            opVal  += GetSample(id.xy, i);
+#elif defined(MIN)
+            opVal   = min(GetSample(id.xy, i), opVal);
+#elif defined(MAX)
+            opVal   = max(GetSample(id.xy, i), opVal);
+#elif defined(MINMAX)
+            float2 smpl = GetSample(id.xy, i);
+            opVal.x = min(smpl.x, opVal.x);
+            opVal.y = max(smpl.y, opVal.y);
+#endif
+        }
+
+        _Output[id.xy] = ToOutput(opVal);
+    }
+}

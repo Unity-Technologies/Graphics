@@ -1,0 +1,59 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMain
+
+#pragma multi_compile VERTICAL HORIZONTAL
+#pragma multi_compile _ MINMAX
+#pragma multi_compile _ READ_WRITE
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+#ifdef MINMAX
+  Texture2D<float4> _MinMax;
+#else
+  Texture2D<float4> _Min;
+  Texture2D<float4> _Max;
+#endif
+
+#ifdef READ_WRITE
+RWTexture2D<float4> _Output;
+#define _Input _Output
+#else
+  Texture2D<float4> _Input;
+RWTexture2D<float4> _Output;
+#endif
+
+uint4 _Sizes; // xy: InputSize; zw: OutputSize
+
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < _OutputSize))
+    {
+#ifdef MINMAX
+    #ifdef HORIZONTAL
+        const float2 minMax = _MinMax[uint2(0, id.y)].xy;
+    #else
+        const float2 minMax = _MinMax[uint2(id.x, 0)].xy;
+    #endif
+        const float  minVal = minMax.x;
+        const float  maxVal = minMax.y;
+#else
+    #ifdef HORIZONTAL
+        const float  minVal = _Min[uint2(0, id.y)].x;
+        const float  maxVal = _Max[uint2(0, id.y)].x;
+    #else
+        const float  minVal = _Min[uint2(id.x, 0)].x;
+        const float  maxVal = _Max[uint2(id.x, 0)].x;
+    #endif
+#endif
+
+        _Output[id.xy] = ((_Input[id.xy].x - minVal)/(maxVal - minVal)).xxxx;
+    }
+}

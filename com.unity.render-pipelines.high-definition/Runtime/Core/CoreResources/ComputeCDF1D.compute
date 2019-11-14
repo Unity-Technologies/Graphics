@@ -35,34 +35,35 @@ OutType GetInput(uint2 pos)
     return _Input[pos];
 }
 
-[numthreads(THREAD_PER_GROUP_X, THREAD_PER_GROUP_Y, 1)]
+[numthreads(8, 8, 1)]
 void CSMainFirst(uint3 id : SV_DispatchThreadID)
 {
     if (all(id.xy < _OutputSize))
     {
-        _Output[id.xy] = dot(_Input[id.xy].rgb, (1.0f/3.0f).xxx).xxxx;
+        _Output[id.xy] = (1.0f/HALF_MAX)*dot(_Input[id.xy].rgb, (1.0f).xxx).xxxx;
     }
 }
 
+// Ref: Hillis & Steele Parallel Scan Algorithm (Prefix Sum)
 [numthreads(THREAD_PER_GROUP_X, THREAD_PER_GROUP_Y, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     if (all(id.xy < _OutputSize))
     {
-        int i;
+        uint i;
     #ifdef HORIZONTAL
-        int k = id.x;
+        uint k = id.x;
     #else
-        int k = id.y;
+        uint k = id.y;
     #endif
         const uint off = uint(_Iteration);
         OutType inVal = _Input[id.xy];
-        if (k - off >= 0)
+        if (k >= off)
         {
     #ifdef HORIZONTAL
-            _Output[id.xy] = (inVal + _Input[uint2(id.x - off, id.y      )])*0.5f;
+            _Output[id.xy] = (inVal + _Input[uint2(id.x - off, id.y      )]);
     #else
-            _Output[id.xy] = (inVal + _Input[uint2(id.x      , id.y - off)])*0.5f;
+            _Output[id.xy] = (inVal + _Input[uint2(id.x      , id.y - off)]);
     #endif
         }
         else
