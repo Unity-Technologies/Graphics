@@ -7,14 +7,14 @@ namespace UnityEngine.Rendering.HighDefinition
     public class PhysicallyBasedSky : SkySettings
     {
         /* We use the measurements from Earth as the defaults. */
-        const float k_DefaultEarthRadius        =  6378.759f;
-        const float k_DefaultAirExtinctionR     =  5.8f / 1000.0f; // at 680 nm, without ozone
-        const float k_DefaultAirExtinctionG     = 13.5f / 1000.0f; // at 550 nm, without ozone
-        const float k_DefaultAirExtinctionB     = 33.1f / 1000.0f; // at 440 nm, without ozone
-        const float k_DefaultAirScaleHeight     = 8.0f;
-        const float k_DefaultAirAlbedoR         = 0.9f; // BS values to account for absorption
-        const float k_DefaultAirAlbedoG         = 0.9f; // due to the ozone layer. We assume that ozone
-        const float k_DefaultAirAlbedoB         = 1.0f; // has the same height distribution as air (most certainly WRONG).
+        const float k_DefaultEarthRadius    =  6378.759f;
+        const float k_DefaultAirScatteringR =  5.8f / 1000.0f; // at 680 nm, without ozone
+        const float k_DefaultAirScatteringG = 13.5f / 1000.0f; // at 550 nm, without ozone
+        const float k_DefaultAirScatteringB = 33.1f / 1000.0f; // at 440 nm, without ozone
+        const float k_DefaultAirScaleHeight = 8.0f;
+        const float k_DefaultAirAlbedoR     = 0.9f; // BS values to account for absorption
+        const float k_DefaultAirAlbedoG     = 0.9f; // due to the ozone layer. We assume that ozone
+        const float k_DefaultAirAlbedoB     = 1.0f; // has the same height distribution as air (most certainly WRONG).
 
         [Tooltip("Simplifies the interface by using paramters suitable to simulate Earth.")]
         public BoolParameter earthPreset = new BoolParameter(true);
@@ -28,9 +28,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Does not affect the precomputation.
         public Vector3Parameter planetCenterPosition = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
         [Tooltip("Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith.")]
-        public ClampedFloatParameter airDensityR = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirExtinctionR, k_DefaultAirScaleHeight), 0, 1);
-        public ClampedFloatParameter airDensityG = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirExtinctionG, k_DefaultAirScaleHeight), 0, 1);
-        public ClampedFloatParameter airDensityB = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirExtinctionB, k_DefaultAirScaleHeight), 0, 1);
+        public ClampedFloatParameter airDensityR = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringR, k_DefaultAirScaleHeight), 0, 1);
+        public ClampedFloatParameter airDensityG = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringG, k_DefaultAirScaleHeight), 0, 1);
+        public ClampedFloatParameter airDensityB = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringB, k_DefaultAirScaleHeight), 0, 1);
         [Tooltip("Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
         public ColorParameter airTint = new ColorParameter(new Color(k_DefaultAirAlbedoR, k_DefaultAirAlbedoG, k_DefaultAirAlbedoB), hdr: false, showAlpha: false, showEyeDropper: true);
         [Tooltip("Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: km.")]
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter airMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(k_DefaultAirScaleHeight), 0);
         // Note: aerosols are (fairly large) solid or liquid particles suspended in the air.
         [Tooltip("Opacity of aerosols as measured by an observer on the ground looking towards the zenith.")]
-        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000.0f, 1.2f), 0, 1);
+        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(5.0f / 1000.0f, 1.2f), 0, 1);
         [Tooltip("Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
         public ColorParameter aerosolTint = new ColorParameter(new Color(0.9f, 0.9f, 0.9f), hdr: false, showAlpha: false, showEyeDropper: true);
         [Tooltip("Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: km.")]
@@ -142,9 +142,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (earthPreset.value)
             {
-                airExt.x = k_DefaultAirExtinctionR;
-                airExt.y = k_DefaultAirExtinctionG;
-                airExt.z = k_DefaultAirExtinctionB;
+                airExt.x = k_DefaultAirScatteringR;
+                airExt.y = k_DefaultAirScatteringG;
+                airExt.z = k_DefaultAirScatteringB;
             }
             else
             {

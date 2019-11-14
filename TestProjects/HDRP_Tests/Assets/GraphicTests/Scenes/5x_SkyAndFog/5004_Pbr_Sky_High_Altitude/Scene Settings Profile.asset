@@ -200,6 +200,13 @@ MonoBehaviour:
   earthPreset:
     m_OverrideState: 1
     m_Value: 0
+  sphericalMode:
+    m_OverrideState: 0
+    m_Value: 1
+  cameraAltitude:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 1
   planetaryRadius:
     m_OverrideState: 0
     m_Value: 6378.759
@@ -234,7 +241,7 @@ MonoBehaviour:
     min: 0
   aerosolDensity:
     m_OverrideState: 0
-    m_Value: 0.388
+    m_Value: 0.035
     min: 0
     max: 1
   aerosolTint:
