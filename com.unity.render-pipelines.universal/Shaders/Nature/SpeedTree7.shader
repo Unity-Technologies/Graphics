@@ -113,6 +113,52 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
         Pass
         {
+            Name "GBuffer"
+            Tags{"LightMode" = "UniversalGBuffer"}
+
+            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // We must unset bit 5 and set bit 6 for SimpleLit materials.
+            Stencil {
+                Ref 64       // 0b01000000
+                WriteMask 96 // 0b01100000
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+
+            #pragma vertex SpeedTree7Vert
+            #pragma fragment SpeedTree7Frag
+
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
+            #pragma shader_feature_local EFFECT_BUMP
+            #pragma shader_feature_local EFFECT_HUE_VARIATION
+
+            #define ENABLE_WIND
+            #define VERTEX_COLOR
+            #define GBUFFER
+
+            #include "SpeedTree7Input.hlsl"
+            #include "SpeedTree7Passes.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
