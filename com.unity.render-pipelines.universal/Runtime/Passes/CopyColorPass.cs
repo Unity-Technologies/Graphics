@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
                 cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-
                 cmd.SetGlobalTexture("_BlitTex", source);
+
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
@@ -107,8 +107,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
                         break;
                 }
-                // Restore to color attachment as RT since  CoreUtils.SetRenderTarget invalidates URP scriptable renderer's active RT states
-                CoreUtils.SetRenderTarget(cmd, colorAttachment);
 
                 // XRTODO: Remove this once pure mode is globally on 
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
