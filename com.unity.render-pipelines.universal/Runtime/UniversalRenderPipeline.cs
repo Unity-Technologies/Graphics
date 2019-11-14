@@ -274,6 +274,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.isStereoEnabled)
             {
+                // XRTODO: Enable pure mode for XR
                 // Turn off pure mode for XR globally.
                 Shader.DisableKeyword("UNITY_PURE_URP_ON");
                 URPCameraMode.isPureURP = false;
