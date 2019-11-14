@@ -1018,6 +1018,18 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.blockerSampleCount, s_Styles.blockerSampleCount);
             EditorGUILayout.PropertyField(serialized.filterSampleCount, s_Styles.filterSampleCount);
             EditorGUILayout.PropertyField(serialized.minFilterSize, s_Styles.minFilterSize);
+            GUIContent styleForScale = s_Styles.radiusScaleForSoftness;
+            if (serialized.type == HDLightType.Directional)
+            {
+                styleForScale = s_Styles.diameterScaleForSoftness;
+            }
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serialized.scaleForSoftness, styleForScale);
+            if (EditorGUI.EndChangeCheck())
+            {
+                //Clamp the value and also affect baked shadows
+                serialized.scaleForSoftness.floatValue = Mathf.Max(serialized.scaleForSoftness.floatValue, 0);
+            }
         }
 
         static void DrawVeryHighShadowSettingsContent(SerializedHDLight serialized, Editor owner)

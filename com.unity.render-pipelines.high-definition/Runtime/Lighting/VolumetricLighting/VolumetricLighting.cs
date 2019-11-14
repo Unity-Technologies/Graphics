@@ -490,8 +490,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 var historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
                 var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
-                Debug.Assert(historyRT.rt.width  == feedbackRT.rt.width);
-                Debug.Assert(historyRT.rt.height == feedbackRT.rt.height);
+                //Debug.Assert(historyRT.rt.width  == feedbackRT.rt.width);
+                //Debug.Assert(historyRT.rt.height == feedbackRT.rt.height);
 
                 historyBufferSize = new Vector2Int(historyRT.rt.width, historyRT.rt.height);
             }
