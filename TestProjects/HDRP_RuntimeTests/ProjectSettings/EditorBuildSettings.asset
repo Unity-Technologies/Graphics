@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/002-Lighting.unity
     guid: c516a89c8b6be4741a6399e0aa42190d
+  - enabled: 1
+    path: Assets/Scenes/003-PostProcessing.unity
+    guid: a08196940910d3849a77fd564a56a399
   m_configObjects: {}
