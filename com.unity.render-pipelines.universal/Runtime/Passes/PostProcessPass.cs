@@ -375,7 +375,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (URPCameraMode.isPureURP)
                 {
                     // Has final pass means we are rendering into texture
-                    bool isRenderToTexture = m_HasFinalPass || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
+                    bool isRenderToTexture = !isFinalBackBufferWrite || m_HasFinalPass || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
+                    // If this is not final backbuffer write, we don't flip
                     Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                     Matrix4x4 viewMatrix = Matrix4x4.identity;
                     Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
@@ -1251,7 +1252,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Matrix4x4 viewMatrix;
 
                 // Resolve y-flip in final pass.
-                bool isRenderToTexture = cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
+                bool isRenderToTexture = !isFinalBackBufferWrite || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
                 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
                 viewMatrix = Matrix4x4.identity;
                 Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;

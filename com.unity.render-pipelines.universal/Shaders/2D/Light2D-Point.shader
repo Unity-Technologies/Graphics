@@ -1,4 +1,4 @@
-Shader "Hidden/Light2D-Point"
+Shader "Hidden/Universal Render Pipeline/2D/Light2D-Point"
 {
     Properties
     {

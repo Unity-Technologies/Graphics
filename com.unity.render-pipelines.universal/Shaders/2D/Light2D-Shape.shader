@@ -1,4 +1,4 @@
-Shader "Hidden/Light2D-Shape"
+Shader "Hidden/Universal Render Pipeline/2D/Light2D-Shape"
 {
     Properties
     {

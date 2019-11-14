@@ -1,4 +1,4 @@
-Shader "Hidden/Shadow2DRemoveSelf"
+Shader "Hidden/Universal Render Pipeline/2D/Shadow2DRemoveSelf"
 {
     Properties
     {

@@ -1,4 +1,4 @@
-Shader "Hidden/ShadowGroup2D"
+Shader "Hidden/Universal Render Pipeline/2D/ShadowGroup2D"
 {
     Properties
     {

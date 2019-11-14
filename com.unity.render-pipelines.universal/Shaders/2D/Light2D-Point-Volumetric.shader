@@ -1,4 +1,4 @@
-Shader "Hidden/Light2d-Point-Volumetric"
+Shader "Hidden/Universal Render Pipeline/2D/Light2d-Point-Volumetric"
 {
     SubShader
     {
