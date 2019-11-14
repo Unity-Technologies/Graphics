@@ -120,10 +120,11 @@ namespace UnityEditor.Rendering.Universal
                 if (compilerData.shaderKeywordSet.IsEnabled(m_PureURPOn))
                     return true;
             }
-            // strip non-pure mode shaders for non-XR
+            // strip non-pure mode URP shaders for non-XR
             else
             {
-                if (!compilerData.shaderKeywordSet.IsEnabled(m_PureURPOn))
+                bool isURPBuiltIn = shader.name.Contains("Universal Render Pipeline");
+                if (isURPBuiltIn && !compilerData.shaderKeywordSet.IsEnabled(m_PureURPOn))
                     return true;
             }
 
