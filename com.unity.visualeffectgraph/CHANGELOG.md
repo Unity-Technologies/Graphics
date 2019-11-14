@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
+- Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
 
 ## [7.1.1] - 2019-09-05
 ### Added
