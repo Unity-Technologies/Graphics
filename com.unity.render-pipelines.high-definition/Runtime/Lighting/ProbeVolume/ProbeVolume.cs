@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DisableBaking()
         {
-            UnityEditor.Lightmapping.bakeCompleted -= OnBakeCompleted;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnBakeCompleted;
 
             UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
             UnityEditor.Lightmapping.lightingDataAssetCleared -= OnLightingDataAssetCleared;
@@ -393,7 +393,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void EnableBaking()
         {
-            UnityEditor.Lightmapping.bakeCompleted += OnBakeCompleted;
+            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnBakeCompleted;
 
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
             UnityEditor.Lightmapping.lightingDataAssetCleared += OnLightingDataAssetCleared;

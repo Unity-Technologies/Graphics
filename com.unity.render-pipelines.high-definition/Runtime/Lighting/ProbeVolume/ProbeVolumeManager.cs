@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 v.EnableBaking();
             }
 
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= ReactivateProbes;
+            UnityEditor.Lightmapping.bakeCompleted -= ReactivateProbes;
         }
         public static void BakeSingle()
         {
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 v.DisableBaking();
             }
 
-            UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += manager.ReactivateProbes;
+            UnityEditor.Lightmapping.bakeCompleted += manager.ReactivateProbes;
             UnityEditor.Lightmapping.BakeAsync();
         }
 #endif
