@@ -29,7 +29,7 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
         UNITY_TRANSFER_INSTANCE_ID(input, output);
 
         output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-        output.uv = input.texcoord;
+        output.uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
         return output;
     }
 

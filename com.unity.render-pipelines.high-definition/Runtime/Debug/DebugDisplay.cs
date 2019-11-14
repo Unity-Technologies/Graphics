@@ -404,6 +404,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            list.Add(new DebugUI.BoolField { displayName = "Debug XR Layout", getter = () => XRSystem.dumpDebugInfo, setter = value => XRSystem.dumpDebugInfo = value, onValueChanged = RefreshDisplayStatsDebug });
+            if (XRSystem.dumpDebugInfo)
+            {
+                Func<object> Bind<T>(Func<T, object> func, T arg) => () => func(arg);
+
+                for (int i = 0; i < XRSystem.passDebugInfos.Count; i++)
+                    list.Add(new DebugUI.Value { displayName = "", getter = Bind(XRSystem.ReadPassDebugInfo, i) });
+            }
+#endif
+
             m_DebugDisplayStatsItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);
             panel.flags = DebugUI.Flags.RuntimeOnly;

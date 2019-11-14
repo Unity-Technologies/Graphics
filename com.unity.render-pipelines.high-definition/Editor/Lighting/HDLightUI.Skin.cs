@@ -54,8 +54,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out before HDRP culls it completely. This minimizes popping.");
             public readonly GUIContent spotInnerPercent = new GUIContent("Inner Angle (%)", "Controls size of the angular attenuation, in percent, of the base angle of the Spot Light's cone.");
             public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape of the Spot Light. Impacts the the cookie transformation and the Light's angular attenuation.");
-            public readonly GUIContent areaLightShape = new GUIContent("Shape", "The shape of the Area Light. Note that some are RealTime only and some Bake only.");
-            public readonly string[] areaShapeNames = { "Rectangle", "Tube (realtime)", "Disc (baked)" };
+            public readonly GUIContent areaLightShape = new GUIContent("Shape", "The shape of the Area Light. Note that some are Realtime only and some Baked only.");
+            public readonly GUIContent[] areaShapeNames =
+            {
+                new GUIContent("Rectangle"),
+                new GUIContent("Tube (Realtime only)"),
+                new GUIContent("Disc (Baked only)")
+            };
             public readonly GUIContent shapeWidthTube = new GUIContent("Length", "Length of the Tube Light.");
             public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "Sets the width of the Rectangle Light.");
             public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "Sets the height of the Rectangle Light.");
@@ -87,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "Sets the distance at which Shadows fade before HDRP culls them completely. This minimizes popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Dims the shadows this Light casts.");
             public readonly GUIContent shadowTint = new GUIContent("Tint", "Tint the shadows. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
+            public readonly GUIContent penumbraTint = new GUIContent("Penumbra Tint", "Defines if the tint should only affect the penumbra. This option affect dynamic shadows, contact shadows and shadow mask. It don't affect baked shadows.");
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
             public readonly GUIContent rayTracedContactShadow = new GUIContent("Ray Tracing", "Uses ray tracing to compute the contact shadow for a light.");
             public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
@@ -99,10 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent normalBias = new GUIContent("Normal Bias", "Controls the bias this Light applies along the normal of surfaces it illuminates.");
 
             // Shadow filter settings
-            public readonly GUIContent shadowSoftness = new GUIContent("Shadow Softness", "Controls the size of the penumbra. Higher values mimic a larger emission radius while lower values mimic a punctual light.");
             public readonly GUIContent blockerSampleCount = new GUIContent("Blocker Sample Count", "Controls the number of samples that HDRP uses to determine the size of the blocker.");
             public readonly GUIContent filterSampleCount = new GUIContent("Filter Sample Count", "Controls the number of samples that HDRP uses to blur shadows.");
-            public readonly GUIContent minFilterSize = new GUIContent("Minimum Size of the Filter", "Controls the minimum size of the shadow’s blur effect regardless of the distance between the pixel and the shadow caster.");
+            public readonly GUIContent minFilterSize = new GUIContent("Minimum Blur Intensity", "Controls the minimum blur intensity regardless of the distance between the pixel and the shadow caster. The range [0..1] maps to [0..0.001] in UV space.");
             public readonly GUIContent areaLightShadowCone = new GUIContent("Shadow Cone", "Aperture of the cone used for shadowing the area light.");
             public readonly GUIContent useScreenSpaceShadows = new GUIContent("Screen Space Shadows", "Render screen space shadow.");
             public readonly GUIContent useRayTracedShadows = new GUIContent("Ray Traced Shadows", "If selected, ray traced shadows are used in place of rasterized ones.");

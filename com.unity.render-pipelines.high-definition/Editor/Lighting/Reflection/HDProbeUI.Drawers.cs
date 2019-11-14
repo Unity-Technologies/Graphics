@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent[] k_ModeContents = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
         static readonly int[] k_ModeValues = { (int)ProbeSettings.Mode.Baked, (int)ProbeSettings.Mode.Custom, (int)ProbeSettings.Mode.Realtime };
 
-        protected internal struct Drawer<TProvider>
+        internal struct Drawer<TProvider>
             where TProvider : struct, IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
         {
             // Toolbar content cache
@@ -342,13 +342,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                     case ProbeSettings.Mode.Baked:
                         {
+#pragma warning disable 618
                             if (UnityEditor.Lightmapping.giWorkflowMode
                                 != UnityEditor.Lightmapping.GIWorkflowMode.OnDemand)
                             {
                                 EditorGUILayout.HelpBox("Baking of this probe is automatic because this probe's type is 'Baked' and the Lighting window is using 'Auto Baking'. The texture created is stored in the GI cache.", MessageType.Info);
                                 break;
                             }
-
+#pragma warning restore 618
                             GUI.enabled = serialized.target.enabled;
 
                             // Bake button in non-continous mode

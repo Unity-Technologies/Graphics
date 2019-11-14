@@ -209,10 +209,10 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         ShadowLoopMin(shadowContext, posInput, float3(0, 1, 0), _ShadowFilter, renderingLayers, shadow3);
         shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
 
-        float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint);
+        float3 shadowColor = ComputeShadowColor(shadow, _ShadowTint, 0.0f);
 
-        float3 output = lerp(            GetColorWithRotation(originalDir,                          exposure, _CosSinPhi).rgb,
-                             shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex),  exposure, _CosSinPhi).rgb, blend);
+        float3 output = lerp(            GetColorWithRotation(originalDir,                         exposure, _CosSinPhi).rgb,
+                             shadowColor*GetColorWithRotation(RotationUp(dir, _CosSinPhiPlateTex), exposure, _CosSinPhi).rgb, blend);
 
         return float4(output, exposure);
     }

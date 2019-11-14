@@ -1,7 +1,6 @@
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -28,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty displayAreaLightEmissiveMesh;
         public SerializedProperty renderingLayerMask;
         public SerializedProperty shadowNearPlane;
-        public SerializedProperty shadowSoftness;
         public SerializedProperty blockerSampleCount;
         public SerializedProperty filterSampleCount;
         public SerializedProperty minFilterSize;
@@ -73,13 +71,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSettingValue contactShadows;
         public SerializedProperty rayTracedContactShadow;
         public SerializedProperty shadowTint;
+        public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
 
         // Bias control
         public SerializedProperty slopeBias;
-
         public SerializedProperty normalBias;
+
+        private SerializedProperty pointLightHDType;
+        private SerializedProperty areaLightShapeProperty;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
@@ -118,6 +119,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
             }
         }
+
+        // This scope is here mainly to keep pointLightHDType isolated 
+        public struct LightTypeEditionScope : System.IDisposable
+        {
+            public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
+            {
+                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
+                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+            }
+        }
         
         //areaLightShape need to be accessed by its property to always report modification in the right way
         public AreaLightShape areaLightShape
@@ -150,6 +167,24 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // This scope is here mainly to keep pointLightHDType and areaLightShapeProperty isolated 
+        public struct AreaLightShapeEditionScope : System.IDisposable
+        {
+            public AreaLightShapeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
+            {
+                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
+                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
+                EditorGUI.BeginProperty(rect, label, serialized.areaLightShapeProperty);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+            }
+        }
+
         public SerializedHDLight(HDAdditionalLightData[] lightDatas, LightEditor.Settings settings)
         {
             serializedObject = new SerializedObject(lightDatas);
@@ -177,7 +212,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 maxSmoothness = o.Find("m_MaxSmoothness");
                 applyRangeAttenuation = o.Find("m_ApplyRangeAttenuation");
                 shadowNearPlane = o.Find("m_ShadowNearPlane");
-                shadowSoftness = o.Find("m_ShadowSoftness");
                 blockerSampleCount = o.Find("m_BlockerSampleCount");
                 filterSampleCount = o.Find("m_FilterSampleCount");
                 minFilterSize = o.Find("m_MinFilterSize");
@@ -223,11 +257,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 contactShadows = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.useContactShadow));
                 rayTracedContactShadow = o.Find("m_RayTracedContactShadow");
                 shadowTint = o.Find("m_ShadowTint");
+                penumbraTint = o.Find("m_PenumbraTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
 				slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
+
+                // private references for prefab handling
+                pointLightHDType = o.Find("m_PointlightHDType");
+                areaLightShapeProperty = o.Find("m_AreaLightShape");
             }
         }
 
