@@ -1167,6 +1167,7 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  preserveSpecularLighting: 0
   enableShadows: 1
   enableSpecular: 1
   enableCookie: 1
@@ -1315,6 +1316,7 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  preserveSpecularLighting: 0
   enableShadows: 1
   enableSpecular: 1
   enableCookie: 1
@@ -1809,6 +1811,7 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  preserveSpecularLighting: 0
   enableShadows: 1
   enableSpecular: 1
   enableCookie: 1
@@ -2241,6 +2244,7 @@ MonoBehaviour:
   colorMode: 1
   useEmissive: 0
   doubleSided: 0
+  preserveSpecularLighting: 0
   enableShadows: 1
   enableSpecular: 1
   enableCookie: 1
