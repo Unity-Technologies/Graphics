@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
+using UnityEngine.XR;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
@@ -20,7 +21,8 @@ namespace UnityEditor.Rendering.Universal
             VertexLighting = (1 << 4),
             SoftShadows = (1 << 5),
             MixedLighting = (1 << 6),
-            TerrainHoles = (1 << 7)
+            TerrainHoles = (1 << 7),
+            XRSupport = (1 << 8)
         }
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -38,6 +40,8 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DeprecatedShadowsEnabled = new ShaderKeyword("_SHADOWS_ENABLED");
         ShaderKeyword m_DeprecatedShadowsCascade = new ShaderKeyword("_SHADOWS_CASCADE");
         ShaderKeyword m_DeprecatedLocalShadowsEnabled = new ShaderKeyword("_LOCAL_SHADOWS_ENABLED");
+
+        ShaderKeyword m_PureURPOn = new ShaderKeyword("UNITY_PURE_URP_ON");
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
@@ -109,6 +113,19 @@ namespace UnityEditor.Rendering.Universal
             if (isBuiltInTerrainLit && compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
                !CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles))
                 return true;
+
+            // strip pure mode shaders for XR
+            if (CoreUtils.HasFlag(features, ShaderFeatures.XRSupport))
+            {
+                if (compilerData.shaderKeywordSet.IsEnabled(m_PureURPOn))
+                    return true;
+            }
+            // strip non-pure mode shaders for non-XR
+            else
+            {
+                if (!compilerData.shaderKeywordSet.IsEnabled(m_PureURPOn))
+                    return true;
+            }
 
             return false;
         }
@@ -262,6 +279,12 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.supportsTerrainHoles)
                 shaderFeatures |= ShaderFeatures.TerrainHoles;
+
+            //XRTODO: Move XR Graphics Settings to SRP pipeline asset
+            List<XRDisplaySubsystemDescriptor> displaySubsystemDescriptors = new List<XRDisplaySubsystemDescriptor>();
+            SubsystemManager.GetSubsystemDescriptors(displaySubsystemDescriptors);
+            if (PlayerSettings.virtualRealitySupported || displaySubsystemDescriptors.Count > 0)
+                shaderFeatures |= ShaderFeatures.XRSupport;
 
             return shaderFeatures;
         }

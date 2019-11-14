@@ -173,7 +173,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 s_PureURPKeyword,
             },
         };
-        #endregion
+#endregion
 
 #region Keywords
         static KeywordDescriptor s_PureURPKeyword = new KeywordDescriptor()
