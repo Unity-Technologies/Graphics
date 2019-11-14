@@ -8,13 +8,16 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /* We use the measurements from Earth as the defaults. */
         const float k_DefaultEarthRadius        =  6378.759f;
-        const float k_DefaultAirExtinctionR     =  5.8f / 1000.0f; // at 680 nm
-        const float k_DefaultAirExtinctionG     = 13.5f / 1000.0f; // at 550 nm
-        const float k_DefaultAirExtinctionB     = 33.1f / 1000.0f; // at 440 nm
+        const float k_DefaultAirExtinctionR     =  5.8f / 1000.0f; // at 680 nm, without ozone
+        const float k_DefaultAirExtinctionG     = 13.5f / 1000.0f; // at 550 nm, without ozone
+        const float k_DefaultAirExtinctionB     = 33.1f / 1000.0f; // at 440 nm, without ozone
         const float k_DefaultAirScaleHeight     = 8.0f;
-        const float k_DefaultAerosolExtinction  = 10.0f / 1000.0f; // Arbitrary value
-        const float k_DefaultAerosolScaleHeight = 1.2f;
+        const float k_DefaultAirAlbedoR         = 0.9f; // BS values to account for absorption
+        const float k_DefaultAirAlbedoG         = 0.9f; // due to the ozone layer. We assume that ozone
+        const float k_DefaultAirAlbedoB         = 1.0f; // has the same height distribution as air (most certainly WRONG).
 
+        [Tooltip("Simplifies the interface by using paramters suitable to simulate Earth.")]
+        public BoolParameter earthPreset = new BoolParameter(true);
         [Tooltip("Radius of the planet (distance from the center to the sea level). Units: km.")]
         public MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
         [Tooltip("Position of the center of the planet in the world space. Units: km.")]
@@ -25,22 +28,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter airDensityG = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirExtinctionG, k_DefaultAirScaleHeight), 0, 1);
         public ClampedFloatParameter airDensityB = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirExtinctionB, k_DefaultAirScaleHeight), 0, 1);
         [Tooltip("Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
-        // Note: this allows us to account for absorption due to the ozone layer.
-        // We assume that ozone has the same height distribution as air (most certainly WRONG!).
-        public ColorParameter airColor = new ColorParameter(new Color(0.9f, 0.9f, 1.0f), hdr: false, showAlpha: false, showEyeDropper: true);
+        public ColorParameter airColor = new ColorParameter(new Color(k_DefaultAirAlbedoR, k_DefaultAirAlbedoG, k_DefaultAirAlbedoB), hdr: false, showAlpha: false, showEyeDropper: true);
         [Tooltip("Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: km.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
         public MinFloatParameter airMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(k_DefaultAirScaleHeight), 0);
         // Note: aerosols are (fairly large) solid or liquid particles suspended in the air.
         [Tooltip("Opacity of aerosols as measured by an observer on the ground looking towards the zenith.")]
-        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAerosolExtinction, k_DefaultAerosolScaleHeight), 0, 1);
+        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000.0f, 1.2f), 0, 1);
         [Tooltip("Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
         public ColorParameter aerosolColor = new ColorParameter(new Color(0.9f, 0.9f, 0.9f), hdr: false, showAlpha: false, showEyeDropper: true);
         [Tooltip("Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: km.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
-        public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(k_DefaultAerosolScaleHeight), 0);
+        public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(1.2f), 0);
         [Tooltip("+1: forward  scattering. 0: almost isotropic. -1: backward scattering.")]
         public ClampedFloatParameter aerosolAnisotropy = new ClampedFloatParameter(0, -1, 1);
         [Tooltip("Number of scattering events.")]
@@ -88,27 +89,78 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float GetAirScaleHeight()
         {
-            return ScaleHeightFromLayerDepth(airMaximumAltitude.value);
+            if (earthPreset.value)
+            {
+                return k_DefaultAirScaleHeight;
+            }
+            else
+            {
+                return ScaleHeightFromLayerDepth(airMaximumAltitude.value);
+            }
+        }
+
+        public float GetPlanetaryRadius()
+        {
+            if (earthPreset.value)
+            {
+                return k_DefaultEarthRadius;
+            }
+            else
+            {
+                return planetaryRadius.value;
+            }
+
         }
 
         public Vector3 GetAirExtinctionCoefficient()
         {
             Vector3 airExt = new Vector3();
 
-            airExt.x = ExtinctionFromZenithOpacityAndScaleHeight(airDensityR.value, GetAirScaleHeight());
-            airExt.y = ExtinctionFromZenithOpacityAndScaleHeight(airDensityG.value, GetAirScaleHeight());
-            airExt.z = ExtinctionFromZenithOpacityAndScaleHeight(airDensityB.value, GetAirScaleHeight());
+            if (earthPreset.value)
+            {
+                airExt.x = k_DefaultAirExtinctionR;
+                airExt.y = k_DefaultAirExtinctionG;
+                airExt.z = k_DefaultAirExtinctionB;
+            }
+            else
+            {
+                airExt.x = ExtinctionFromZenithOpacityAndScaleHeight(airDensityR.value, GetAirScaleHeight());
+                airExt.y = ExtinctionFromZenithOpacityAndScaleHeight(airDensityG.value, GetAirScaleHeight());
+                airExt.z = ExtinctionFromZenithOpacityAndScaleHeight(airDensityB.value, GetAirScaleHeight());
+            }
 
             return airExt;
+        }
+
+        public Vector3 GetAirAlbedo()
+        {
+            Vector3 airAlb = new Vector3();
+
+            if (earthPreset.value)
+            {
+                airAlb.x = k_DefaultAirAlbedoR;
+                airAlb.y = k_DefaultAirAlbedoG;
+                airAlb.z = k_DefaultAirAlbedoB;
+            }
+            else
+            {
+                airAlb.x = airColor.value.r;
+                airAlb.y = airColor.value.g;
+                airAlb.z = airColor.value.b;
+            }
+
+            return airAlb;
         }
 
         public Vector3 GetAirScatteringCoefficient()
         {
             Vector3 airExt = GetAirExtinctionCoefficient();
+            Vector3 airAlb = GetAirAlbedo();
 
-            return new Vector3(airExt.x * airColor.value.r,
-                               airExt.y * airColor.value.g,
-                               airExt.z * airColor.value.b);
+
+            return new Vector3(airExt.x * airAlb.x,
+                               airExt.y * airAlb.y,
+                               airExt.z * airAlb.z);
         }
 
         public float GetAerosolScaleHeight()
@@ -142,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
             unchecked
             {
                 // No 'planetCenterPosition' or any textures, as they don't affect the precomputation.
+                hash = hash * 23 + earthPreset.GetHashCode();
                 hash = hash * 23 + planetaryRadius.GetHashCode();
                 hash = hash * 23 + airDensityR.GetHashCode();
                 hash = hash * 23 + airDensityG.GetHashCode();

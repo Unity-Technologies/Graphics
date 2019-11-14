@@ -992,7 +992,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var skySettings = VolumeManager.instance.stack.GetComponent<PhysicallyBasedSky>();
             Debug.Assert(skySettings != null);
 
-            float R = skySettings.planetaryRadius.value;
+            float R = skySettings.GetPlanetaryRadius();
 
             Vector2 H    = new Vector2(skySettings.GetAirScaleHeight(), skySettings.GetAerosolScaleHeight());
             Vector2 rcpH = new Vector2(Rcp(H.x), Rcp(H.y));
@@ -1052,7 +1052,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 C = skySettings.planetCenterPosition.value;
 
             float r        = Vector3.Distance(X, C);
-            float R        = skySettings.planetaryRadius.value;
+            float R        = skySettings.GetPlanetaryRadius();
             float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
             float cosTheta = Vector3.Dot(X - C, L) * Rcp(r);
 

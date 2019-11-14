@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var pbrSky = sky as PhysicallyBasedSky;
 
-            float R    = pbrSky.planetaryRadius.value;
+            float R    = pbrSky.GetPlanetaryRadius();
             float D    = Mathf.Max(pbrSky.airMaximumAltitude.value, pbrSky.aerosolMaximumAltitude.value);
             float airH = pbrSky.GetAirScaleHeight();
             float aerH = pbrSky.GetAerosolScaleHeight();
@@ -321,7 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             float r = Vector3.Distance(builtinParams.worldSpaceCameraPos, pbrSky.planetCenterPosition.value);
-            float R = pbrSky.planetaryRadius.value;
+            float R = pbrSky.GetPlanetaryRadius();
 
             bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
 
