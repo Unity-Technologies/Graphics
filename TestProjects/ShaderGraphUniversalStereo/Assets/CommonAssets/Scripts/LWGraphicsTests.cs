@@ -31,7 +31,11 @@ public class LWGraphicsTests
         
         // Stereo screen capture on Mac generates monoscopic images and won't be fixed.
         Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo tests do not run on MacOSX.");
-            
+        
+        var referenceImage = testCase.ReferenceImage;
+        // make sure we're rendering in the same size as the reference image, otherwise this is not really comparable.
+        Screen.SetResolution(referenceImage.width, referenceImage.height, FullScreenMode.Windowed);
+
         XRSettings.gameViewRenderMode = GameViewRenderMode.BothEyes;
         yield return null;
         
@@ -66,12 +70,24 @@ public class LWGraphicsTests
         // load the screenshot back into memory and change to the same format as we want to compare with
         var actualImage = new Texture2D(1,1);
         actualImage.LoadImage(System.IO.File.ReadAllBytes(tempScreenshotFile));
-        actualImage = ChangeTextureFormat(actualImage, testCase.ReferenceImage.format);
+
+        if(actualImage.width != referenceImage.width || actualImage.height != referenceImage.height) {
+            Debug.LogWarning("[" + testCase.ScenePath + "] Image size differs (ref: " + referenceImage.width + "x" + referenceImage.height + " vs. actual: " + actualImage.width + "x" + actualImage.height + "). " + (Application.isEditor ? " is your GameView set to a different resolution than the reference images?" : "is your build size different than the reference images?"));
+            actualImage = ChangeTextureSize(actualImage, referenceImage.width, referenceImage.height);
+        }
+        // ref is usually in RGB24 or RGBA32 while actual is in ARGB32, we need to convert formats
+        if(referenceImage.format != actualImage.format) {
+            actualImage = ChangeTextureFormat(actualImage, referenceImage.format);
+        }
 
         // delete temporary file
         File.Delete(tempScreenshotFile);
 
-        ImageAssert.AreEqual(testCase.ReferenceImage, actualImage, settings.ImageComparisonSettings);
+        // for testing
+        // File.WriteAllBytes("reference.png", referenceImage.EncodeToPNG());
+        // File.WriteAllBytes("actual.png", actualImage.EncodeToPNG());
+
+        ImageAssert.AreEqual(referenceImage, actualImage, settings.ImageComparisonSettings);
     }
 
     static bool FileAvailable(string path) {
@@ -98,6 +114,21 @@ public class LWGraphicsTests
         }
         
         return true;
+    }
+
+
+    static Texture2D ChangeTextureSize(Texture2D source, int newWidth, int newHeight)
+    {
+        source.filterMode = FilterMode.Bilinear;
+        RenderTexture rt = RenderTexture.GetTemporary(newWidth, newHeight);
+        rt.filterMode = FilterMode.Bilinear;
+        RenderTexture.active = rt;
+        Graphics.Blit(source, rt);
+        var nTex = new Texture2D(newWidth, newHeight, source.format, false);
+        nTex.ReadPixels(new Rect(0, 0, newWidth, newWidth), 0,0);
+        nTex.Apply();
+        RenderTexture.active = null;
+        return nTex;
     }
 
     static Texture2D ChangeTextureFormat(Texture2D texture, TextureFormat newFormat)
