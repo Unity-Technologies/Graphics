@@ -150,8 +150,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
             if (material.HasProperty(kHeightMap))
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
-            if (material.HasProperty(kAnisotropyMap))
-                CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
             if (material.HasProperty(kDetailMap))
                 CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
             if (material.HasProperty(kSubsurfaceMaskMap))
@@ -160,8 +158,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             if (material.HasProperty(kIridescenceThicknessMap))
                 CoreUtils.SetKeyword(material, "_IRIDESCENCE_THICKNESSMAP", material.GetTexture(kIridescenceThicknessMap));
-            if (material.HasProperty(kSpecularColorMap))
-                CoreUtils.SetKeyword(material, "_SPECULARCOLORMAP", material.GetTexture(kSpecularColorMap));
 
             if (material.HasProperty(kUVDetail) || material.HasProperty(kUVBase))
             {
@@ -205,7 +201,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var canHaveRefraction = !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
                 CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
-                CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }
 
             if (material.HasProperty(kAddPrecomputedVelocity))

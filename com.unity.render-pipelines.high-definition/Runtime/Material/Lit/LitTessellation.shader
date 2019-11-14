@@ -266,13 +266,10 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local _ENABLESPECULAROCCLUSION
     #pragma shader_feature_local _HEIGHTMAP
     #pragma shader_feature_local _TANGENTMAP
-    #pragma shader_feature_local _ANISOTROPYMAP
     #pragma shader_feature_local _DETAIL_MAP
     #pragma shader_feature_local _SUBSURFACE_MASK_MAP
     #pragma shader_feature_local _THICKNESSMAP
     #pragma shader_feature_local _IRIDESCENCE_THICKNESSMAP
-    #pragma shader_feature_local _SPECULARCOLORMAP
-    #pragma shader_feature_local _TRANSMITTANCECOLORMAP
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
@@ -314,6 +311,9 @@ Shader "HDRP/LitTessellation"
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
     #endif
+
+    #define NEEDS_TRANSMITTANCE_COLOR (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+    #define NEEDS_THICKNESS defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) || defined(_MATERIAL_FEATURE_TRANSMISSION) || (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
 
     //-------------------------------------------------------------------------------------
     // Include

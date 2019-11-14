@@ -325,7 +325,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.tangentWS = input.tangentToWorld[0].xyz; // The tangent is not normalize in tangentToWorld for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 #endif
 
-#ifdef _ANISOTROPYMAP
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
     surfaceData.anisotropy = SAMPLE_UVMAPPING_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, layerTexCoord.base).r;
 #else
     surfaceData.anisotropy = 1.0;
@@ -333,7 +333,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
 
     surfaceData.specularColor = _SpecularColor.rgb;
-#ifdef _SPECULARCOLORMAP
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
     surfaceData.specularColor *= SAMPLE_UVMAPPING_TEXTURE2D(_SpecularColorMap, sampler_SpecularColorMap, layerTexCoord.base).rgb;
 #endif
 #ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
@@ -347,7 +347,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     {
         surfaceData.ior = _Ior;
         surfaceData.transmittanceColor = _TransmittanceColor;
-#ifdef _TRANSMITTANCECOLORMAP
+#ifdef NEEDS_TRANSMITTANCE_COLOR
         surfaceData.transmittanceColor *= SAMPLE_UVMAPPING_TEXTURE2D(_TransmittanceColorMap, sampler_TransmittanceColorMap, ADD_IDX(layerTexCoord.base)).rgb;
 #endif
 
