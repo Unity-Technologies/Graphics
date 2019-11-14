@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New operators: Exp, Log and LoadTexture
 - Duplicate with edges.
 - Right click on edge to create a interstitial node.
+- New quad distortion output for particle strips
+- New attribute for strips: particleCountInStrip
+- New options for quad strips texture mapping: swap UV and custom mapping
 
 ### Fixed
 - Universal Render Pipeline : Fog integration for Exponential mode [Case 1177594] (https://issuetracker.unity3d.com/issues/urp-slash-fog-vfx-particles)
@@ -37,6 +40,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
 - Make noise expressions work on CPU (Can be plugged into CPU evaluated paths like spawners)
+- Fix shader interpolants with shader graph and particle strips
+- SpawnIndex attribute is now working correctly in Initialize context
 
 ## [7.1.1] - 2019-09-05
 ### Added

@@ -62,6 +62,7 @@ namespace UnityEditor.VFX
         {
             Stretch,
             RepeatPerSegment,
+            Custom,
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]

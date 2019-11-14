@@ -161,4 +161,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Lit/ShadergraphShadowLit.unity
     guid: 2dbb17953af83c24bacf6b650bd0e432
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/006_StripAttributes.unity
+    guid: 6cf5bcccabd797d4db3c44a0d4ac7389
   m_configObjects: {}
