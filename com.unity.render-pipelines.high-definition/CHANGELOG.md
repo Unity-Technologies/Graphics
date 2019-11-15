@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.6] - 2019-11-22
 
+### Added
+- Added support for depth copy with XR SDK
+- Added debug setting to Render Pipeline Window to list the active XR views
+- Added an option to filter the result of the volumetric lighting (off by default).
+
 ### Fixed
+- Fixed y-flip in scene view with XR SDK
+- Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
 - Fixed LOD fade mask by accounting for field of view
 
 ### Changed
