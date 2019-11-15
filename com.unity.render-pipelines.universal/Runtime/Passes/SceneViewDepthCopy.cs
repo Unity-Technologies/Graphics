@@ -48,11 +48,6 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
                 cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
 
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                Matrix4x4 viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 
                 // XRTODO: Remove this once pure mode is globally on 
