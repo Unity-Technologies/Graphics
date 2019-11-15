@@ -149,8 +149,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearUIntTextureCS;
             [Reload("Runtime/Core/CoreResources/CubeToOctahedral.compute")]
             public ComputeShader cubeToOctahedralCS;
-            //[Reload("Runtime/Core/CoreResources/Sum2D.compute")]
-            //public ComputeShader sum2DCS;
             [Reload("Runtime/Core/CoreResources/ParallelOperation.compute")]
             public ComputeShader ParallelOperationCS;
             [Reload("Runtime/Core/CoreResources/CDF1D.compute")]
@@ -159,6 +157,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader InverseCDF1DCS;
             [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
             public ComputeShader Rescale01CS;
+            [Reload("Runtime/Core/CoreResources/ImportanceSample2D.compute")]
+            public ComputeShader ImportanceSample2DCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]

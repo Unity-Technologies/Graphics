@@ -1,0 +1,47 @@
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMainH HORIZONTAL   KerName=CSMainH
+#pragma kernel CSMainV VERTICAL     KerName=CSMainV
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+
+  Texture2D<float4> _SliceInvCDF;
+  Texture2D<float4> _InvCDF;
+RWTexture2D<float4> _Output;
+
+SamplerState sampler_LinearClamp;
+
+uint4               _Sizes; // xy: InputSize; zw: OutputSize
+
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
+
+[numthreads(8, 1, 1)]
+void KerName(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.x < _OutputSize.x))
+    {
+        float2 u = GenerateHashedRandomFloat(id.xy);
+
+#ifdef HORIZONTAL
+        float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(0, u.x), 0);
+        float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(u.y, 0), 0);
+
+        float2 smpl = float2(invCDFValue, sliceInvCDFValue);
+
+        _Output[id.xy] = float4(UnpackNormalOctQuadEncode(smpl), 1);
+#else
+        float sliceInvCDFValue = SAMPLE_TEXTURE2D_LOD(_SliceInvCDF, sampler_LinearClamp, float2(u.x, 0), 0);
+        float invCDFValue      = SAMPLE_TEXTURE2D_LOD(     _InvCDF, sampler_LinearClamp, float2(0, u.y), 0);
+
+        float2 smpl = float2(sliceInvCDFValue, invCDFValue);
+
+        _Output[id.xy] = float4(UnpackNormalOctQuadEncode(smpl), 1);
+#endif
+    }
+}

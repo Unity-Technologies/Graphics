@@ -690,9 +690,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Output                         = Shader.PropertyToID("_Output");
         public static readonly int _Sizes                          = Shader.PropertyToID("_Sizes");
         public static readonly int _Iteration                      = Shader.PropertyToID("_Iteration");
-        public static readonly int _Min                            = Shader.PropertyToID("_Min");
-        public static readonly int _Max                            = Shader.PropertyToID("_Max");
         public static readonly int _MinMax                         = Shader.PropertyToID("_MinMax");
+        public static readonly int _SliceInvCDF                    = Shader.PropertyToID("_SliceInvCDF");
+        public static readonly int _InvCDF                         = Shader.PropertyToID("_InvCDF");
 
         public static readonly int _TargetScale                    = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params                         = Shader.PropertyToID("_Params");
