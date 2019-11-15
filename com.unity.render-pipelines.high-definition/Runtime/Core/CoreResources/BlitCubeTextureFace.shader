@@ -11,6 +11,7 @@ Shader "Hidden/SRP/BlitCubeTextureFace"
             Cull Off
 
             HLSLPROGRAM
+            #pragma editor_sync_compilation
             #pragma prefer_hlslcc gles
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
