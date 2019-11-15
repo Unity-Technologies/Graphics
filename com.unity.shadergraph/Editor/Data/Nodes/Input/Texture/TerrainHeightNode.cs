@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             if (outputConnected)
             {
                 var heightId = GetTerrainHeightLayerName();
-                string resultLayer = string.Format("$precision {1} = SampleStack({0}_info, {2});"
+                string resultLayer = string.Format("$precision {1} = SampleStack({0}_info, {2}) * {0}_heightTransform.x + {0}_heightTransform.y;"
                         , stackName
                         , GetVariableNameForSlot(WorldHeightOutputId)
                         , heightId);
@@ -133,6 +133,12 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new StackShaderProperty()
             {
                 overrideReferenceName = "float4 " + stackName + "_worldToUVTransform",
+                m_Batchable = true
+            });
+
+            properties.AddShaderProperty(new StackShaderProperty()
+            {
+                overrideReferenceName = "float4 " + stackName + "_heightTransform",
                 m_Batchable = true
             });
 
