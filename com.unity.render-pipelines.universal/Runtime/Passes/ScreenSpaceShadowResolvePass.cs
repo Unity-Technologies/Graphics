@@ -59,18 +59,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
                 cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
 
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                Matrix4x4 viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-
                 //XRTODO: ScreenSpace Shader Uses unity_CameraInvProjection to map from world space to camera clip space.
                 // Currently unity_CameraInvProjection is managed by built-in. This need to be managed by SRP
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);

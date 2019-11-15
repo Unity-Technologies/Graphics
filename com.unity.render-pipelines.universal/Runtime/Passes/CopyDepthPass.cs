@@ -92,15 +92,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa4);
                         break;
                 }
-
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
-                Matrix4x4 viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                // XRTODO: Can't use coreutil to set rendertarget becuase it doesn't configure scriptable renderer's internal states
-                // Must use ScriptableRenderer.SetRenderTarget. Better solution is to override Configure to specify rt upfront.
-                // Or redesign renderpass to only specify rt descriptor instead of taking in specific gpu resources.
-                //CoreUtils.SetRenderTarget(cmd, copyDepthSurface);
                 ScriptableRenderer.SetRenderTarget(cmd, copyDepthSurface, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 

@@ -50,7 +50,13 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             UNITY_SETUP_INSTANCE_ID(input);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-            output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+            output.positionCS = half4(input.positionOS.xyz, 1.0f);
+#if UNITY_UV_STARTS_AT_TOP
+            // Our world space, view space, screen space and NDC space are Y-up.
+            // Our clip space is flipped upside-down due to poor legacy Unity design.
+            // To ensure consistency with the rest of the pipeline, we have to y-flip clip space here
+            output.positionCS.y = -output.positionCS.y;
+#endif
 
             float4 projPos = output.positionCS * 0.5;
             projPos.xy = projPos.xy + projPos.w;

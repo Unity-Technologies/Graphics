@@ -37,6 +37,9 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
+            [Reload("Shaders/Utils/CopyColor.shader")]
+            public Shader copyColorPS;
+
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 

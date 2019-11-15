@@ -37,8 +37,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 			return;
 		var shader = data.shaders.samplingPS;
 		m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shader);
-        m_ColorCopyMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-
+        m_ColorCopyMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyColorPS);
     }
 
 	internal class ClearColorPass : ScriptableRenderPass

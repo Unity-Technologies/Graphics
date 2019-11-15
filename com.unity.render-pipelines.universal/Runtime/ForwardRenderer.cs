@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
         StencilState m_DefaultStencilState;
 
         Material m_BlitMaterial;
+        Material m_CopyColorMaterial;
         Material m_CopyDepthMaterial;
         Material m_SamplingMaterial;
         Material m_ScreenspaceShadowsMaterial;
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            m_CopyColorMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyColorPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             m_ScreenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
@@ -102,6 +104,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_PostProcessPass.Cleanup();
             CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_CopyColorMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_ScreenspaceShadowsMaterial);
