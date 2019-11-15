@@ -8,6 +8,9 @@
     #define _TERRAIN_BLEND_DENSITY // enable density blending by default and use DiffuseRemap.w to control whether the density blending is enabled for a layer
 #endif
 
+    // Generic uniform declarations
+    float _ReceivesSSR;
+
 #define DECLARE_TERRAIN_LAYER_PROPS(n)  \
     float4 _Splat##n##_ST;              \
     float _Metallic##n;                 \

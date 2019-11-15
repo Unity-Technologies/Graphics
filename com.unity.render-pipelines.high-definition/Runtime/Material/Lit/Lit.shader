@@ -227,7 +227,6 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
 
         // Values used in place of shader features (to save compilation time)
-        [HideInInspector] _EnableGeometricSpecularAA("Enable Geometric Specular AA", Int) = 0
         [HideInInspector] _UsesSubsurfaceMaskMap("Use Subsurface Mask Map", Int) = 0
         [HideInInspector] _UsesIridescenceThicknessMap("Use Iridescence Thickness Map", Int) = 0
         [HideInInspector] _UsesThicknessMap("Use Thickness Map", Int) = 0
@@ -270,7 +269,6 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _IRIDESCENCE_THICKNESSMAP
 
     #pragma shader_feature_local _DISABLE_DECALS
-    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
