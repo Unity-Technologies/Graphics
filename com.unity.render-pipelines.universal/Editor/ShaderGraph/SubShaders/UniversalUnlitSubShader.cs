@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.Universal
                 "prefer_hlslcc gles",
                 "exclude_renderers d3d11_9x",
                 "target 2.0",
+                // Missing multi_compile_fog,
                 "multi_compile_instancing",
             },
             keywords = new KeywordDescriptor[]
@@ -163,9 +164,71 @@ namespace UnityEditor.Rendering.Universal
                 s_SmoothnessChannelKeyword,
             },
         };
-#endregion
-        
-#region Keywords
+
+        ShaderPass m_GBufferPass = new ShaderPass
+        {
+            // Definition
+            displayName = "GBuffer",
+            referenceName = "SHADERPASS_UNLIT_GBUFFER",
+            lightMode = "UniversalGBuffer",
+            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitGBufferPass.hlsl",
+            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
+            useInPreview = true,
+
+            // Port mask
+            vertexPorts = new List<int>()
+            {
+                UnlitMasterNode.PositionSlotId,
+                UnlitMasterNode.VertNormalSlotId,
+                UnlitMasterNode.VertTangentSlotId
+            },
+            pixelPorts = new List<int>
+            {
+                UnlitMasterNode.ColorSlotId,
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
+            },
+
+            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // We must set bit 5 and unset bit 6 it for Unlit materials.
+            StencilOverride = new List<String>()
+            {
+                "Ref 32",       // 0b00100000
+                "WriteMask 96", // 0b01100000
+                "Comp always",
+                "Pass Replace",
+                "Fail Keep",
+                "ZFail Keep",
+            },
+
+            // Pass setup
+            includes = new List<string>()
+            {
+                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+            },
+            pragmas = new List<string>()
+            {
+                "prefer_hlslcc gles",
+                "exclude_renderers d3d11_9x",
+                "target 2.0",
+                "multi_compile_instancing",
+            },
+            keywords = new KeywordDescriptor[]
+            {
+                s_LightmapKeyword,
+                s_DirectionalLightmapCombinedKeyword,
+                s_SampleGIKeyword,
+            },
+        };
+
+        #endregion
+
+        #region Keywords
         static KeywordDescriptor s_LightmapKeyword = new KeywordDescriptor()
         {
             displayName = "Lightmap",
@@ -287,6 +350,7 @@ namespace UnityEditor.Rendering.Universal
                 
                 GenerateShaderPass(unlitMasterNode, m_UnlitPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(unlitMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(unlitMasterNode, m_GBufferPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(unlitMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);   
             }
             subShader.Deindent();

@@ -194,6 +194,102 @@ namespace UnityEditor.Rendering.Universal
                 "multi_compile_instancing",
             },
         };
+
+        ShaderPass m_GBufferPass = new ShaderPass
+        {
+            // Definition
+            displayName = "Universal GBuffer",
+            referenceName = "SHADERPASS_GBUFFER",
+            lightMode = "UniversalGBuffer",
+            passInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl",
+            varyingsInclude = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl",
+            useInPreview = true,
+
+            // Port mask
+            vertexPorts = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId,
+                PBRMasterNode.VertNormalSlotId,
+                PBRMasterNode.VertTangentSlotId
+            },
+            pixelPorts = new List<int>
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+
+            // Required fields
+            requiredAttributes = new List<string>()
+            {
+                "Attributes.uv1", //needed for meta vertex position
+            },
+
+            // Required fields
+            requiredVaryings = new List<string>()
+            {
+                "Varyings.positionWS",
+                "Varyings.normalWS",
+                "Varyings.tangentWS", //needed for vertex lighting
+                "Varyings.bitangentWS",
+                "Varyings.viewDirectionWS",
+                "Varyings.lightmapUV",
+                "Varyings.sh",
+                "Varyings.fogFactorAndVertexLight", //fog and vertex lighting, vert input is dependency
+                "Varyings.shadowCoord", //shadow coord, vert input is dependency
+            },
+
+            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
+            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
+            // We must unset bit 5 and bit 6 Lit materials.
+            StencilOverride = new List<String>()
+            {
+                "Ref 0",        // 0b00000000
+                "WriteMask 96", // 0b01100000
+                "Comp Always",
+                "Pass Replace",
+                "Fail Keep",
+                "ZFail Keep"
+            },
+
+            // Pass setup
+            includes = new List<string>()
+            {
+                "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl",
+                "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+                "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl",
+            },
+            pragmas = new List<string>()
+            {
+                "prefer_hlslcc gles",
+                "exclude_renderers d3d11_9x",
+                "target 2.0",
+                "multi_compile_instancing",
+            },
+            keywords = new KeywordDescriptor[]
+            {
+                s_LightmapKeyword,
+                s_DirectionalLightmapCombinedKeyword,
+                s_MainLightShadowsKeyword,
+                s_MainLightShadowsCascadeKeyword,
+                s_AdditionalLightsKeyword,
+                s_AdditionalLightShadowsKeyword,
+                s_ShadowsSoftKeyword,
+                s_MixedLightingSubtractiveKeyword,
+            },
+        };
+
         ShaderPass m_LitMetaPass = new ShaderPass()
         {
             // Definition
@@ -480,6 +576,7 @@ namespace UnityEditor.Rendering.Universal
                 
                 GenerateShaderPass(pbrMasterNode, m_ForwardPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_ShadowCasterPass, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(pbrMasterNode, m_GBufferPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_DepthOnlyPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_LitMetaPass, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPass(pbrMasterNode, m_2DPass, mode, subShader, sourceAssetDependencyPaths);
