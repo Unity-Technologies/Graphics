@@ -68,7 +68,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/023_Lighting_Mixed_Indirect.unity
     guid: 99da9ba2c3d1f4b1d92f851028bb7d0a
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/026_Shader_PBRscene.unity
     guid: bcb8635ea84c143f0ae0823f1e9b6f25
   - enabled: 1

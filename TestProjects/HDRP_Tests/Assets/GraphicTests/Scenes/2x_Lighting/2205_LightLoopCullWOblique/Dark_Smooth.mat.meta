@@ -1,6 +1,12 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/PostProcessing/Assets/ReferenceImages/Linear/OSXPlayer.meta
+guid: 48969fe82ee72a50eb63b249caa28e96
+folderAsset: yes
+DefaultImporter:
+=======
 guid: b5f0f640d1c62fa4db25d5f4d69453cc
 NativeFormatImporter:
+>>>>>>> 0e604b48b19ab8d54e58036a8850b2bb126642e5:TestProjects/HDRP_Tests/Assets/GraphicTests/Scenes/2x_Lighting/2205_LightLoopCullWOblique/Dark_Smooth.mat.meta
   externalObjects: {}
   mainObjectFileID: 0
   userData: 

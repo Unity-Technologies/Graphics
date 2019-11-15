@@ -1,6 +1,7 @@
 fileFormatVersion: 2
 <<<<<<< HEAD
 <<<<<<< HEAD:TestProjects/HDRP_RuntimeTests/Assets/ReferenceImages/Linear/WindowsPlayer/Vulkan.meta
+<<<<<<< HEAD
 guid: ad010a08e75134b8f82a59976a7709bf
 =======
 guid: 5c62b0f2d21e81d41aa19ec485fa5494
@@ -11,6 +12,23 @@ guid: 6b59a8277ede28d42ae1e10566067eae
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
+=======
+guid: 31195c89b41147f019ddaf75c37437df
+folderAsset: yes
+DefaultImporter:
+=======
+guid: 837f032d27f4c354faff0847085b8de2
+NativeFormatImporter:
+>>>>>>> 0e604b48b19ab8d54e58036a8850b2bb126642e5:TestProjects/HDRP_Tests/Assets/GraphicTests/Scenes/2x_Lighting/2205_LightLoopCullWOblique/Dark_MetallicAndSmooth.mat.meta
+  externalObjects: {}
+  mainObjectFileID: 0
+=======
+guid: ad010a08e75134b8f82a59976a7709bf
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+>>>>>>> 46dba5cbc6545f535b5eb87890c371cf488c9f3c
+>>>>>>> d88f208066b40a1db0f3362707bb2638081a8448
   userData: 
   assetBundleName: 
   assetBundleVariant: 
