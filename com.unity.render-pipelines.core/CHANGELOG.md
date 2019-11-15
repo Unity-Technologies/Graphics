@@ -16,6 +16,9 @@ The version number for this package has increased due to a version update of a r
 
 ## [7.1.2] - 2019-09-19
 
+### Added
+- Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
+
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
 - Only call SetDirty on an object when actually modifying it in SRP updater utility
