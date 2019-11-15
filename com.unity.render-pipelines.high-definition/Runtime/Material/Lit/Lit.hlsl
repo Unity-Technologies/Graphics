@@ -1687,7 +1687,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-#if SHADERPASS == SHADERPASS_FORWARD
+#if SHADERPASS == SHADERPASS_FORWARD && !defined(_DISABLE_SSR)
     if (_ReceivesSSR)
 #endif
     {

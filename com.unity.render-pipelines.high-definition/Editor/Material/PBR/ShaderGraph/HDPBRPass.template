@@ -28,6 +28,7 @@ Pass
     #pragma instancing_options renderinglayer
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+    #define _DISABLE_SSR 0 // We need to define it all the time since we cannot set a uniform _ReceivesSSR without serialization issues
     //-------------------------------------------------------------------------------------
     // Variant Definitions (active field translations to HDRP defines)
     //-------------------------------------------------------------------------------------
