@@ -135,6 +135,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP samples file hierarchy
 - Fixed Light units not matching light type
 - Fixed QualitySettings panel not displaying HDRP Asset
+- Fixed black reflection probes the first time loading a project
 - Fixed y-flip in scene view with XR SDK
 - Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
 
