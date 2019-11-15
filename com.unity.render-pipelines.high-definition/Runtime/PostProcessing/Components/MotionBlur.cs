@@ -26,9 +26,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter minimumVelocity = new ClampedFloatParameter(2.0f, 0.0f, 64.0f);
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the velocity resulting from Camera rotation can have.")]
         public ClampedFloatParameter cameraRotationVelocityClamp = new ClampedFloatParameter(0.03f, 0.0f, 0.2f);
-
         [Tooltip("Value used for the depth based weighting of samples. Tweak if unwanted leak of background onto foreground or viceversa is detected.")]
         public ClampedFloatParameter depthComparisonExtent = new ClampedFloatParameter(1.0f, 0.0f, 20.0f);
+
+        [Tooltip("")]
+        public MinIntParameter accumulationSampleCount = new MinIntParameter(1, 1);
+        [Tooltip("")]
+        public IntParameter accumulationSampleIndex = new IntParameter(0);
 
         public int sampleCount
         {

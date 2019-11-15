@@ -1449,8 +1449,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 //TODO
             }
 
+            Vector4 accumulationMotionBlurParams = new Vector4(
+                m_MotionBlur.accumulationSampleIndex,
+                m_MotionBlur.accumulationSampleCount,
+                0,
+                0
+            );
+
             m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
+            m_AccumulationMotionBlurPropertyBlock.SetVector(HDShaderIDs._MotionBlurParams, accumulationMotionBlurParams);
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
