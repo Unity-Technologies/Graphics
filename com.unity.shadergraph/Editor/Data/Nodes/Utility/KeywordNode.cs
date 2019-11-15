@@ -11,6 +11,9 @@ namespace UnityEditor.ShaderGraph
     [Title("Utility", "Keyword")]
     class KeywordNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
     {
+        internal const int kMinEnumEntries = 2;
+        internal const int kMaxEnumEntries = 8;
+
         public KeywordNode()
         {
             UpdateNodeAfterDeserialization();
