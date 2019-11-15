@@ -227,7 +227,6 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
 
         // Values used in place of shader features (to save compilation time)
-        [HideInInspector] _UsesSubsurfaceMaskMap("Use Subsurface Mask Map", Int) = 0
         [HideInInspector] _UsesIridescenceThicknessMap("Use Iridescence Thickness Map", Int) = 0
         [HideInInspector] _UsesThicknessMap("Use Thickness Map", Int) = 0
 
@@ -264,9 +263,6 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _HEIGHTMAP
     #pragma shader_feature_local _TANGENTMAP
     #pragma shader_feature_local _DETAIL_MAP
-    #pragma shader_feature_local _SUBSURFACE_MASK_MAP
-    #pragma shader_feature_local _THICKNESSMAP
-    #pragma shader_feature_local _IRIDESCENCE_THICKNESSMAP
 
     #pragma shader_feature_local _DISABLE_DECALS
 

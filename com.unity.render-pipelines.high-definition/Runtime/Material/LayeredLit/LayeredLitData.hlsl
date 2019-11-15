@@ -97,6 +97,8 @@
 #define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap2
 #elif defined(_SUBSURFACE_MASK_MAP3)
 #define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap3
+#else   // If none are set, we sample the default texture and in that case doesn't really matter what sampler we use.
+#define SAMPLER_SUBSURFACE_MASK_MAP_IDX sampler_SubsurfaceMaskMap0
 #endif
 
 #if defined(_THICKNESSMAP0)
@@ -107,6 +109,8 @@
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap2
 #elif defined(_THICKNESSMAP3)
 #define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap3
+#else   // If none are set, we sample the default texture and in that case doesn't really matter what sampler we use.
+#define SAMPLER_THICKNESSMAP_IDX sampler_ThicknessMap0
 #endif
 
 // Define a helper macro

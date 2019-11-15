@@ -376,6 +376,9 @@ Shader "HDRP/LayeredLitTessellation"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
 
+        // Values used in place of shader features (to save compilation time)
+        [HideInInspector] _UsesIridescenceThicknessMap("Use Iridescence Thickness Map", Int) = 0
+        [HideInInspector] _UsesThicknessMap("Use Thickness Map", Int) = 0
     }
 
     HLSLINCLUDE

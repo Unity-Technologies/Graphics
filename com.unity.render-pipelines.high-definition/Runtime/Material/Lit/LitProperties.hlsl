@@ -153,6 +153,7 @@ float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
 float _ReceivesSSR;
+float _UsesIridescenceThicknessMap;
 
 #ifndef LAYERED_LIT_SHADER
 
@@ -203,6 +204,8 @@ float _InvTilingScale;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
 float _LinkDetailsWithBase;
+
+float _UsesThicknessMap;
 
 #else // LAYERED_LIT_SHADER
 
@@ -269,6 +272,8 @@ float4 _UVMappingMaskBlendMask;
 PROP_DECL(float4, _UVMappingMask);
 PROP_DECL(float4, _UVDetailsMappingMask);
 PROP_DECL(float, _LinkDetailsWithBase);
+
+PROP_DECL(float, _UsesThicknessMap);
 
 #endif // LAYERED_LIT_SHADER
 

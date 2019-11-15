@@ -102,7 +102,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kRefractionModel = "_RefractionModel";
 
         // values used to scalar branch instead of shader features (for build time improvement)
-
+        protected const string kUsesIridescenceThicknessMap = "_UsesIridescenceThicknessMap";
+        protected const string kUsesThicknessMap = "_UsesThicknessMap";
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
 
@@ -155,12 +156,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             if (material.HasProperty(kDetailMap))
                 CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
-            if (material.HasProperty(kSubsurfaceMaskMap))
-                CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
+
             if (material.HasProperty(kThicknessMap))
-                CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
+            {
+                material.SetFloat(kUsesThicknessMap, 1.0f);
+            }
+            else
+                material.SetFloat(kUsesThicknessMap, 0.0f);
+
             if (material.HasProperty(kIridescenceThicknessMap))
-                CoreUtils.SetKeyword(material, "_IRIDESCENCE_THICKNESSMAP", material.GetTexture(kIridescenceThicknessMap));
+            {
+                material.SetFloat(kUsesIridescenceThicknessMap, 1.0f);
+            }
+            else
+                material.SetFloat(kUsesIridescenceThicknessMap, 0.0f);
 
             if (material.HasProperty(kUVDetail) || material.HasProperty(kUVBase))
             {

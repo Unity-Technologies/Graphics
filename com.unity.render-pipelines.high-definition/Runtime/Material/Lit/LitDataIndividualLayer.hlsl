@@ -272,16 +272,21 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 
     surfaceData.diffusionProfileHash = asuint(ADD_IDX(_DiffusionProfileHash));
     surfaceData.subsurfaceMask = ADD_IDX(_SubsurfaceMask);
-
-#ifdef _SUBSURFACE_MASK_MAP_IDX
     surfaceData.subsurfaceMask *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_SubsurfaceMaskMap), SAMPLER_SUBSURFACE_MASK_MAP_IDX, ADD_IDX(layerTexCoord.base)).r;
-#endif
 
 #ifdef _THICKNESSMAP_IDX
     surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMap), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
     surfaceData.thickness = ADD_IDX(_ThicknessRemap).x + ADD_IDX(_ThicknessRemap).y * surfaceData.thickness;
 #else
-    surfaceData.thickness = ADD_IDX(_Thickness);
+    if (ADD_IDX(_UsesThicknessMap))
+    {
+        surfaceData.thickness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_ThicknessMap), SAMPLER_THICKNESSMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+        surfaceData.thickness = ADD_IDX(_ThicknessRemap).x + ADD_IDX(_ThicknessRemap).y * surfaceData.thickness;
+    }
+    else
+    {
+        surfaceData.thickness = ADD_IDX(_Thickness);
+    }
 #endif
 
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
@@ -382,12 +387,16 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #endif
 
 #ifdef _MATERIAL_FEATURE_IRIDESCENCE
-    #ifdef _IRIDESCENCE_THICKNESSMAP
-    surfaceData.iridescenceThickness = SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceThicknessMap, sampler_IridescenceThicknessMap, layerTexCoord.base).r;
-    surfaceData.iridescenceThickness = _IridescenceThicknessRemap.x + _IridescenceThicknessRemap.y * surfaceData.iridescenceThickness;
-    #else
-    surfaceData.iridescenceThickness = _IridescenceThickness;
-    #endif
+    if (_UsesIridescenceThicknessMap > 0.0f)
+    {
+        surfaceData.iridescenceThickness = SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceThicknessMap, sampler_IridescenceThicknessMap, layerTexCoord.base).r;
+        surfaceData.iridescenceThickness = _IridescenceThicknessRemap.x + _IridescenceThicknessRemap.y * surfaceData.iridescenceThickness;
+    }
+    else
+    {
+        surfaceData.iridescenceThickness = _IridescenceThickness;
+    }
+
     surfaceData.iridescenceMask = _IridescenceMask;
     surfaceData.iridescenceMask *= SAMPLE_UVMAPPING_TEXTURE2D(_IridescenceMaskMap, sampler_IridescenceMaskMap, layerTexCoord.base).r;
 #else

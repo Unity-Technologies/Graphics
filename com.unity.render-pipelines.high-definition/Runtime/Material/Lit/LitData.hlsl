@@ -120,9 +120,6 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 #ifdef _SUBSURFACE_MASK_MAP
 #define _SUBSURFACE_MASK_MAP_IDX
 #endif
-#ifdef _THICKNESSMAP
-#define _THICKNESSMAP_IDX
-#endif
 #ifdef _MASKMAP
 #define _MASKMAP_IDX
 #endif
