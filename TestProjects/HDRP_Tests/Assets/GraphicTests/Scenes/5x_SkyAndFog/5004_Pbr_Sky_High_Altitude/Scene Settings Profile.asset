@@ -209,7 +209,7 @@ MonoBehaviour:
     min: 1
   planetaryRadius:
     m_OverrideState: 0
-    m_Value: 6378.759
+    m_Value: 6378759
     min: 0
   planetCenterPosition:
     m_OverrideState: 0
@@ -237,22 +237,22 @@ MonoBehaviour:
     showEyeDropper: 1
   airMaximumAltitude:
     m_OverrideState: 0
-    m_Value: 58.3
+    m_Value: 58300
     min: 0
   aerosolDensity:
     m_OverrideState: 0
-    m_Value: 0.035
+    m_Value: 0.1
     min: 0
     max: 1
   aerosolTint:
     m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 1, g: 0, b: 0.15377235, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 1
   aerosolMaximumAltitude:
     m_OverrideState: 0
-    m_Value: 8.3
+    m_Value: 8300
     min: 0
   aerosolAnisotropy:
     m_OverrideState: 0

@@ -7,11 +7,11 @@ namespace UnityEngine.Rendering.HighDefinition
     public class PhysicallyBasedSky : SkySettings
     {
         /* We use the measurements from Earth as the defaults. */
-        const float k_DefaultEarthRadius    =  6378.759f;
-        const float k_DefaultAirScatteringR =  5.8f / 1000.0f; // at 680 nm, without ozone
-        const float k_DefaultAirScatteringG = 13.5f / 1000.0f; // at 550 nm, without ozone
-        const float k_DefaultAirScatteringB = 33.1f / 1000.0f; // at 440 nm, without ozone
-        const float k_DefaultAirScaleHeight = 8.0f;
+        const float k_DefaultEarthRadius    = 6.3781f * 1000000;
+        const float k_DefaultAirScatteringR =  5.8f / 1000000; // at 680 nm, without ozone
+        const float k_DefaultAirScatteringG = 13.5f / 1000000; // at 550 nm, without ozone
+        const float k_DefaultAirScatteringB = 33.1f / 1000000; // at 440 nm, without ozone
+        const float k_DefaultAirScaleHeight = 8000;
         const float k_DefaultAirAlbedoR     = 0.9f; // BS values to account for absorption
         const float k_DefaultAirAlbedoG     = 0.9f; // due to the ozone layer. We assume that ozone
         const float k_DefaultAirAlbedoB     = 1.0f; // has the same height distribution as air (most certainly WRONG).
@@ -20,11 +20,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter earthPreset = new BoolParameter(true);
         [Tooltip("Allows to specify the location of the planet. If disabled, the atmosphere and the planet are locked to the camera at the specified altitude.")]
         public BoolParameter sphericalMode = new BoolParameter(true);
-        [Tooltip("The altitude of the camera with respect to the sea level. Units: m.")]
+        [Tooltip("The altitude of the camera with respect to the sea level. Units: meters.")]
         public MinFloatParameter cameraAltitude = new MinFloatParameter (1, 1);
-        [Tooltip("Radius of the planet (distance from the center to the sea level). Units: km.")]
+        [Tooltip("Radius of the planet (distance from the center to the sea level). Units: meters.")]
         public MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
-        [Tooltip("Position of the center of the planet in the world space. Units: km.")]
+        [Tooltip("Position of the center of the planet in the world space. Units: meters.")]
         // Does not affect the precomputation.
         public Vector3Parameter planetCenterPosition = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
         [Tooltip("Opacity (per color channel) of air as measured by an observer on the ground looking towards the zenith.")]
@@ -33,19 +33,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter airDensityB = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(k_DefaultAirScatteringB, k_DefaultAirScaleHeight), 0, 1);
         [Tooltip("Single scattering albedo of air molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
         public ColorParameter airTint = new ColorParameter(new Color(k_DefaultAirAlbedoR, k_DefaultAirAlbedoG, k_DefaultAirAlbedoB), hdr: false, showAlpha: false, showEyeDropper: true);
-        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: km.")]
+        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of air particles. Controls the rate of height-based density falloff. Units: meters.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
         public MinFloatParameter airMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(k_DefaultAirScaleHeight), 0);
         // Note: aerosols are (fairly large) solid or liquid particles suspended in the air.
         [Tooltip("Opacity of aerosols as measured by an observer on the ground looking towards the zenith.")]
-        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(5.0f / 1000.0f, 1.2f), 0, 1);
+        public ClampedFloatParameter aerosolDensity = new ClampedFloatParameter(ZenithOpacityFromExtinctionAndScaleHeight(10.0f / 1000000, 1200), 0, 1);
         [Tooltip("Single scattering albedo of aerosol molecules (per color channel). The value of 0 results in absorbing molecules, and the value of 1 results in scattering ones.")]
         public ColorParameter aerosolTint = new ColorParameter(new Color(0.9f, 0.9f, 0.9f), hdr: false, showAlpha: false, showEyeDropper: true);
-        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: km.")]
+        [Tooltip("Depth of the atmospheric layer (from the sea level) composed of aerosol particles. Controls the rate of height-based density falloff. Units: meters.")]
         // We assume the exponential falloff of density w.r.t. the height.
         // We can interpret the depth as the height at which the density drops to 0.1% of the initial (sea level) value.
-        public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(1.2f), 0);
+        public MinFloatParameter aerosolMaximumAltitude = new MinFloatParameter(LayerDepthFromScaleHeight(1200), 0);
         [Tooltip("+1: forward  scattering. 0: almost isotropic. -1: backward scattering.")]
         public ClampedFloatParameter aerosolAnisotropy = new ClampedFloatParameter(0, -1, 1);
         [Tooltip("Number of scattering events.")]
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             float optDepth = ext * H;
 
-            return 1.0f - Mathf.Exp(-optDepth);
+            return 1 - Mathf.Exp(-optDepth);
         }
 
         public float GetAirScaleHeight()
@@ -119,7 +119,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // 'camPosWS' is measured in meters rather than kilometers.
         public Vector3 GetPlanetCenterPosition(Vector3 camPosWS)
         {
             if (sphericalMode.value)
@@ -128,11 +127,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else // Planar mode
             {
-                float   R = GetPlanetaryRadius();
-                float   h = cameraAltitude.value * 0.001f; // Convert m to km
-                Vector3 X = camPosWS * 0.001f;             // Convert m to km
+                float R = GetPlanetaryRadius();
+                float h = cameraAltitude.value;
+
                 // Place the tip of the planet cameraAltitude meters below (along the Y axis).
-                return X - new Vector3(0, R + h, 0);
+                return camPosWS - new Vector3(0, R + h, 0);
             }
         }
 

@@ -321,8 +321,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             // TODO: the following expression is somewhat inefficient, but good enough for now.
-            Vector3 X = builtinParams.worldSpaceCameraPos * 0.001f; // Convert m to km
-            float   r = Vector3.Distance(X, pbrSky.GetPlanetCenterPosition(builtinParams.worldSpaceCameraPos));
+            Vector3 X = builtinParams.worldSpaceCameraPos;
+            float   r = Vector3.Distance(X, pbrSky.GetPlanetCenterPosition(X));
             float   R = pbrSky.GetPlanetaryRadius();
 
             bool isPbrSkyActive = r > R; // Disable sky rendering below the ground

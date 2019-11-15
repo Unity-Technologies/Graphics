@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   diffuseDimmer;
         public float   specularDimmer;
         public float   angularDiameter;         // Units: radians
-        public float   distanceFromCamera;      // -1 -> no sky interaction. Units: km
+        public float   distanceFromCamera;      // -1 -> no sky interaction
         public float   isRayTracedContactShadow;
         public float   penumbraTint;
     };

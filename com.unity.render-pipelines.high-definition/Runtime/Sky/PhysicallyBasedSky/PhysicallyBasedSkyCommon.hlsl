@@ -8,7 +8,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRenderer.cs.hlsl"
 
 CBUFFER_START(UnityPhysicallyBasedSky)
-    // All the distance-related entries use km and 1/km units.
+    // All the distance-related entries use SI units (meter, 1/meter, etc).
     float  _PlanetaryRadius;
     float  _RcpPlanetaryRadius;
     float  _AtmosphericDepth;

@@ -66,7 +66,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        const float3 O = _WorldSpaceCameraPos1 * 0.001 - _PlanetCenterPosition; // Convert m to km
+        const float3 O = _WorldSpaceCameraPos1 - _PlanetCenterPosition;
         const float3 V = GetSkyViewDirWS(input.positionCS.xy);
 
         bool renderSunDisk = _RenderSunDisk != 0;
@@ -174,7 +174,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
 
         if (rayIntersectsAtmosphere)
         {
-            float distAlongRay = tFrag * 1000; // Convert km to m
+            float distAlongRay = tFrag;
             EvaluatePbrAtmosphere(_WorldSpaceCameraPos1, V, distAlongRay, renderSunDisk, skyColor, skyOpacity);
         }
 

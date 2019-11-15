@@ -47,8 +47,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
     // TODO: Not sure it's possible to precompute cam rel pos since variables
     // in the two constant buffers may be set at a different frequency?
-    const float3 O     = worldSpaceCameraPos * 0.001 - _PlanetCenterPosition; // Convert m to km
-    const float  tFrag = abs(distAlongRay) * 0.001;                           // Convert m to km and clear the "hit ground" flag
+    const float3 O     = worldSpaceCameraPos - _PlanetCenterPosition;
+    const float  tFrag = abs(distAlongRay); // Clear the "hit ground" flag
 
     float3 N; float r; // These params correspond to the entry point
     float  tEntry = IntersectAtmosphere(O, V, N, r).x;

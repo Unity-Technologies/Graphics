@@ -135,7 +135,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: should probably unify height attenuation somehow...
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
-        float3 X = GetAbsolutePositionWS(posInput.positionWS) * 0.001; // Convert m to km
+        float3 X = GetAbsolutePositionWS(posInput.positionWS);
         float3 C = _PlanetCenterPosition;
 
         float r        = distance(X, C);
