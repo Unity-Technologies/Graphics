@@ -281,6 +281,7 @@ PlayerSettings:
     m_GraphicsJobMode: 0
   - m_BuildTarget: XboxOnePlayer
     m_GraphicsJobMode: 0
+<<<<<<< HEAD
   m_BuildTargetGraphicsAPIs:
   - m_BuildTarget: MacStandaloneSupport
     m_APIs: 10000000
@@ -291,11 +292,13 @@ PlayerSettings:
   - m_BuildTarget: WindowsStandaloneSupport
     m_APIs: 020000001200000015000000
     m_Automatic: 0
+=======
+  m_BuildTargetGraphicsAPIs: []
+>>>>>>> e13e8d55e990992dd53cd5c0c0ec0625527dabcb
   m_BuildTargetVRSettings: []
   openGLRequireES31: 0
   openGLRequireES31AEP: 0
   openGLRequireES32: 0
-  vuforiaEnabled: 0
   m_TemplateCustomTags: {}
   mobileMTRendering:
     Android: 1
@@ -629,3 +632,4 @@ PlayerSettings:
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0
   legacyClampBlendShapeWeights: 0
+  virtualTexturingSupportEnabled: 0

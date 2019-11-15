@@ -465,6 +465,22 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_SupportLodCrossFade;
+
+        public ToggleData supportLodCrossFade
+        {
+            get { return new ToggleData(m_SupportLodCrossFade); }
+            set
+            {
+                if (m_SupportLodCrossFade == value.isOn)
+                    return;
+                m_SupportLodCrossFade = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Node);
+            }
+        }
+
         public EyeMasterNode()
         {
             UpdateNodeAfterDeserialization();

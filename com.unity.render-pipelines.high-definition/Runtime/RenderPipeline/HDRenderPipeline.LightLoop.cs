@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         dimension = TextureDimension.Tex3D,
                         colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                         enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset, true),
+                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
                         /* useDynamicScale: true, // <- TODO ,*/
                         name = "VBufferDensity"
                     }));
@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         dimension = TextureDimension.Tex3D,
                         colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                         enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset, true),
+                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
                         /* useDynamicScale: true, // <- TODO ,*/
                         name = "VBufferIntegral"
                     }, HDShaderIDs._VBufferLighting));

@@ -180,10 +180,10 @@ linux_apis:
 
 {% endif %}
 {% endfor %}
-{% endfor %} 
 
-All_{{ project.name }}:
-  name: All {{ project.name }} CI
+
+All_{{ project.name }}_{{ editor.version }}:
+  name: All {{ project.name }} CI - {{ editor.version }}
   agent:
     type: Unity::VM
     image: cds-ops/ubuntu-18.04-agent:latest
@@ -196,7 +196,7 @@ All_{{ project.name }}:
   {% if platform.name == "OSX_OpenGLCore" %}
   
   {% if testplatform.name == "editmode" %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_trunk
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endif %}
   
   {% elsif platform.name == "OSX_Metal"  and testplatform.name == "editmode" %}
@@ -211,16 +211,16 @@ All_{{ project.name }}:
   {% if win_api.name == "Vulkan" %}
   #skip
   {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_trunk
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
   {% endif %}
   {% endfor %}
 
   {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_trunk 
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }} 
   {% endif %}
     
   {% endfor %}
   {% endfor %}
 
-   
+{% endfor %}    
 {% endfor %}

@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Normal,
         Depth,
         AmbientOcclusion,
-#if ENABLE_RAYTRACING
         RaytracedAmbientOcclusion,
         RaytracedShadow,
         RaytracedAreaAnalytic,
@@ -18,7 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracedIndirectDiffuseHF,
         RaytracedIndirectDiffuseLF,
         PathTracing,
-#endif
         Count
     }
 }

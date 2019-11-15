@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if ENABLE_RAYTRACING
     public partial class HDRenderPipeline
     {
         // The set of parameters that define our ray tracing deferred lighting pass
@@ -300,5 +299,4 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.deferredRaytracingCS, currentKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
     }
-#endif
 }
