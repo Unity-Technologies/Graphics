@@ -101,6 +101,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         viewMatrix = camera.worldToCameraMatrix;
                         Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                         viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
+
+                        // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
+                        // Right now this need to be called to not break custom render feature that uses custom material
+                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                     }
                     ref CameraData cameraData = ref renderingData.cameraData;
                     bool isFinalPassToGameViewBackBuffer = isFinalBackBufferWrite && cameraData.camera.targetTexture == null
@@ -115,10 +119,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projectionMatrix));
                     cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
                     cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-
-                    // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
-                    // Right now this need to be called to not break custom render feature that uses custom material
-                    cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                     
                     context.ExecuteCommandBuffer(cmd);
                 }
