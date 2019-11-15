@@ -4,6 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.1.5] - 2019-11-15
+
+- Fixed black reflection probes the first time loading a project
+
 ## [7.1.4] - 2019-11-13
 
 ### Added
@@ -19,7 +23,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP samples file hierarchy
 - Fixed Light units not matching light type
 - Fixed QualitySettings panel not displaying HDRP Asset
-- Fixed black reflection probes the first time loading a project
 
 ### Changed
 - Changed parametrization of PCSS, now softness is derived from angular diameter (for directional lights) or shape radius (for point/spot lights) and min filter size is now in the [0..1] range.
