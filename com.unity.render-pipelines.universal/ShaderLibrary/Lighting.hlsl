@@ -533,14 +533,14 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
 
 half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
 {
-    half NdotL = saturate(dot(normalWS, lightDirectionWS));
+    float NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = lightColor * (lightAttenuation * NdotL);
     return DirectBDRF(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
 }
 
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
 {
-    return LightingPhysicallyBased(brdfData, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
+    return LightingPhysicallyBased(brdfData, light.color, normalize(light.direction), light.distanceAttenuation * light.shadowAttenuation, normalWS, normalize(viewDirectionWS));
 }
 
 half3 VertexLighting(float3 positionWS, half3 normalWS)
