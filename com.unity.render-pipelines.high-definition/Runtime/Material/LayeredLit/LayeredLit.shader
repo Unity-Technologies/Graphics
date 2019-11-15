@@ -434,8 +434,6 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma shader_feature_local _DISABLE_DECALS
-    #pragma shader_feature_local _DISABLE_SSR
-    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 

@@ -272,9 +272,7 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local _IRIDESCENCE_THICKNESSMAP
 
     #pragma shader_feature_local _DISABLE_DECALS
-    #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
-    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
