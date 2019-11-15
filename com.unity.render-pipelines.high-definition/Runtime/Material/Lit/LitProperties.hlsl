@@ -152,6 +152,8 @@ float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
 
+float _ReceivesSSR;
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables
