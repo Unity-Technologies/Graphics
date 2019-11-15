@@ -270,7 +270,6 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _IRIDESCENCE_THICKNESSMAP
 
     #pragma shader_feature_local _DISABLE_DECALS
-    #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -300,7 +299,6 @@ Shader "HDRP/Lit"
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
-
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
 
@@ -316,6 +314,7 @@ Shader "HDRP/Lit"
     #define NEEDS_TRANSMITTANCE_COLOR (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
     #define NEEDS_THICKNESS defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) || defined(_MATERIAL_FEATURE_TRANSMISSION) || (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
 
+    #define USES_BRANCH_FOR_ENABLE_SSR 1
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
