@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.0.0] - 2019-XX-XX
 
+### Added
+- Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
+
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
 - Only call SetDirty on an object when actually modifying it in SRP updater utility
