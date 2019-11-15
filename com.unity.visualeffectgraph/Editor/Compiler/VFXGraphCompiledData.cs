@@ -964,7 +964,6 @@ namespace UnityEditor.VFX
                 // Update transient renderer settings
                 ShadowCastingMode shadowCastingMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
                 MotionVectorGenerationMode motionVectorGenerationMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasMotionVector) ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
-                resource.SetRendererModes(shadowCastingMode, motionVectorGenerationMode);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 10 / nbSteps);
                 var expressionSheet = new VFXExpressionSheet();
@@ -973,7 +972,7 @@ namespace UnityEditor.VFX
                 expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
 
 
-                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, compiledVersion);
+                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode,compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
 
                 foreach (var dep in dependencies)
