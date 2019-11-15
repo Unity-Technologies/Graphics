@@ -61,18 +61,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
                     cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
-                    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, true);
-                    Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
-                    Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                    Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
                 }
 
                 context.ExecuteCommandBuffer(cmd);

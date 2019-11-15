@@ -30,6 +30,26 @@ Varyings Vert(Attributes input)
     return output;
 }
 
+Varyings VertColorLutBuilder(Attributes input)
+{
+    Varyings output;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+#if defined(UNITY_PURE_URP_ENABLED) 
+    output.positionCS = float4(input.positionOS.xyz, 1.0f);
+#if UNITY_UV_STARTS_AT_TOP
+    // Our world space, view space, screen space and NDC space are Y-up.
+    // Our clip space is flipped upside-down due to poor legacy Unity design.
+    // To ensure consistency with the rest of the pipeline, we have to y-flip clip space here
+    output.positionCS.y = -output.positionCS.y;
+#endif
+#else
+    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+#endif
+    output.uv = input.uv;
+    return output;
+}
+
 // ----------------------------------------------------------------------------------
 // Render fullscreen mesh by using a matrix set directly by the pipeline instead of
 // relying on the matrix set by the C++ engine to avoid issues with XR

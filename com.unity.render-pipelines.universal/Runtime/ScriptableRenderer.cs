@@ -98,6 +98,7 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetCameraRenderStateTag = "Clear Render State";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
+        const string k_SetCameraViewProjection = "Set Camera VP";
 
         static RenderTargetIdentifier m_ActiveColorAttachment;
         static RenderTargetIdentifier m_ActiveDepthAttachment;
@@ -238,6 +239,25 @@ namespace UnityEngine.Rendering.Universal
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
             SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
+            // Setup camera proj view
+            if (URPCameraMode.isPureURP)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraViewProjection);
+
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, true);
+                Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
+                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
+                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
