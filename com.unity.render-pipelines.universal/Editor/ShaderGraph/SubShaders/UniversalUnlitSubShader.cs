@@ -189,17 +189,20 @@ namespace UnityEditor.Rendering.Universal
                 UnlitMasterNode.AlphaThresholdSlotId
             },
 
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must set bit 5 and unset bit 6 it for Unlit materials.
             StencilOverride = new List<String>()
             {
+                "// [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).",
+                "// [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.",
+                "// We must set bit 5 and unset bit 6 it for Unlit materials.",
+                "Stencil",
+                "{",
                 "Ref 32",       // 0b00100000
                 "WriteMask 96", // 0b01100000
                 "Comp always",
                 "Pass Replace",
                 "Fail Keep",
                 "ZFail Keep",
+                "}",
             },
 
             // Pass setup

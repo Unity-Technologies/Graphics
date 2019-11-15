@@ -245,17 +245,20 @@ namespace UnityEditor.Rendering.Universal
                 "Varyings.shadowCoord", //shadow coord, vert input is dependency
             },
 
-            // [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).
-            // [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.
-            // We must unset bit 5 and bit 6 Lit materials.
             StencilOverride = new List<String>()
             {
+                "// [Stencil] Bit 5 is used to mark pixels that must not be shaded (unlit and bakedLit materials).",
+                "// [Stencil] Bit 6 is used to mark pixels that use SimpleLit shading.",
+                "// We must unset bit 5 and bit 6 Lit materials.",
+                "Stencil",
+                "{",
                 "Ref 0",        // 0b00000000
                 "WriteMask 96", // 0b01100000
                 "Comp Always",
                 "Pass Replace",
                 "Fail Keep",
-                "ZFail Keep"
+                "ZFail Keep",
+                "}",
             },
 
             // Pass setup
