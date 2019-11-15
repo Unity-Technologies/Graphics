@@ -88,7 +88,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // XRTODO: Remove this once pure mode is globally on 
                 cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
 
-                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }
             else
             {
