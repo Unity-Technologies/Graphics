@@ -50,7 +50,8 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            int _FlipY;
+            uniform float4 _BlitScaleBias;
+            uniform int _FlipY;
 
             Varyings Vert(Attributes input)
             {
@@ -58,7 +59,7 @@ Shader "Hidden/HDRP/CopyDepthBuffer"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
+                output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID) * _BlitScaleBias.xy;
                 if (_FlipY)
                 {
                     output.texcoord.y = 1.0 - output.texcoord.y;
