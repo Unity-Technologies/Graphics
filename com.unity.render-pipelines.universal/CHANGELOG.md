@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Cinemachine v2.4 couldn't be used together with Universal RP due to a circular dependency between the two packages.
 - Fixed post-processing with XR single-pass rendering modes.
 - Fixed multiple issues where Shader Graph shaders failed to build for XR in the Universal RP.
+- Fixed conflicting meta with HDRP
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
