@@ -1,8 +1,8 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel CSMain
+#pragma kernel CSMainH HORIZONTAL
+#pragma kernel CSMainV VERTICAL
 
-#pragma multi_compile VERTICAL HORIZONTAL
 #pragma multi_compile _ MINMAX
 #pragma multi_compile _ READ_WRITE
 
@@ -32,7 +32,11 @@ uint4 _Sizes; // xy: InputSize; zw: OutputSize
 #define _OutputSize _Sizes.zw
 
 [numthreads(8, 8, 1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+#ifdef HORIZONTAL
+void CSMainH(uint3 id : SV_DispatchThreadID)
+#else
+void CSMainV(uint3 id : SV_DispatchThreadID)
+#endif
 {
     if (all(id.xy < _OutputSize))
     {
@@ -54,6 +58,6 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     #endif
 #endif
 
-        _Output[id.xy] = ((_Input[id.xy].x - minVal)/(maxVal - minVal)).xxxx;
+        _Output[id.xy] = saturate(3.0f*((_Input[id.xy].x - minVal)/(maxVal - minVal))).xxxx;
     }
 }

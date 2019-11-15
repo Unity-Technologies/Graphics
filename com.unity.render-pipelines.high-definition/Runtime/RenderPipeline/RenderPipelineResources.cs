@@ -153,10 +153,10 @@ namespace UnityEngine.Rendering.HighDefinition
             //public ComputeShader sum2DCS;
             [Reload("Runtime/Core/CoreResources/ParallelOperation.compute")]
             public ComputeShader ParallelOperationCS;
-            [Reload("Runtime/Core/CoreResources/ParallelOperationFinal.compute")]
-            public ComputeShader ParallelOperationFinalCS;
-            [Reload("Runtime/Core/CoreResources/ComputeCDF1D.compute")]
-            public ComputeShader ComputeCDF1DCS;
+            [Reload("Runtime/Core/CoreResources/CDF1D.compute")]
+            public ComputeShader CDF1DCS;
+            [Reload("Runtime/Core/CoreResources/InverseCDF1D.compute")]
+            public ComputeShader InverseCDF1DCS;
             [Reload("Runtime/Core/CoreResources/Rescale01.compute")]
             public ComputeShader Rescale01CS;
 

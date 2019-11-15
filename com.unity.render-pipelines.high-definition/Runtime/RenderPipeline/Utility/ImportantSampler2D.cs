@@ -9,22 +9,14 @@ namespace UnityEngine.Rendering
 {
     class ImportantSampler2D
     {
-        //ComputeShader m_ComputeCDF;
-        //ComputeShader m_ComputeInvCDF;
-
         Texture2D       m_CFDinv; // Cumulative Function Distribution Inverse
         ComputeBuffer   m_GeneratedSamples;
 
-        RTHandle m_CDFFull;
-        RTHandle m_MinMaxFull;
+        RTHandle m_InvCDFFull;
+        RTHandle m_InvCDFRows;
 
         public ImportantSampler2D()
         {
-            //m_Shader = shader;
-            //k_SampleKernel_xyzw2x_8 = m_Shader.FindKernel("KSampleCopy4_1_x_8");
-            //k_SampleKernel_xyzw2x_1 = m_Shader.FindKernel("KSampleCopy4_1_x_1");
-            //var hdrp = HDRenderPipeline.defaultAsset;
-            //m_ComputeCDF = hdrp.renderPipelineResources.shaders.sum2DCS;
         }
 
         static private void SavePDFDensity(AsyncGPUReadbackRequest request)
@@ -87,37 +79,46 @@ namespace UnityEngine.Rendering
         public void Init(RTHandle pdfDensity, CommandBuffer cmd)
         {
             ParallelOperation._Idx = 0;
-            //RTHandle sum = ParallelOperation.ComputeOperation(pdfDensity,
-            //                                        cmd,
-            //                                        ParallelOperation.Operation.Sum,
-            //                                        ParallelOperation.Direction.Horizontal,
-            //                                        2,
-            //                                        Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
-
             cmd.RequestAsyncReadback(pdfDensity, SavePDFDensity);
-            m_CDFFull = ComputeCDF1D.ComputeCDF(pdfDensity,
-                                                cmd,
-                                                ComputeCDF1D.SumDirection.Horizontal,
-                                                Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
-            cmd.RequestAsyncReadback(m_CDFFull, SaveCDFFull);
-            m_MinMaxFull = ParallelOperation.ComputeOperation(m_CDFFull,
+            RTHandle cdfFull = ComputeCDF1D.ComputeCDF(pdfDensity,
+                                                       cmd,
+                                                       ComputeCDF1D.SumDirection.Horizontal,
+                                                       Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+            cmd.RequestAsyncReadback(cdfFull, SaveCDFFull);
+            RTHandle minMaxFull = ParallelOperation.ComputeOperation(cdfFull,
                                                     cmd,
                                                     ParallelOperation.Operation.MinMax,
                                                     ParallelOperation.Direction.Horizontal,
                                                     2,
                                                     Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
-            cmd.RequestAsyncReadback(m_MinMaxFull, SaveMinMaxFull);
+            cmd.RequestAsyncReadback(minMaxFull, SaveMinMaxFull);
 
-            //RTHandle minMax = ParallelOperation.ComputeOperation(sum,
-            //                                        cmd,
-            //                                        ParallelOperation.Operation.MinMax,
-            //                                        ParallelOperation.Direction.Horizontal,
-            //                                        1,
-            //                                        Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+            RTHandle sumRows = ParallelOperation.ComputeOperation(pdfDensity,
+                                                    cmd,
+                                                    ParallelOperation.Operation.Sum,
+                                                    ParallelOperation.Direction.Horizontal,
+                                                    2,
+                                                    Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+            cmd.RequestAsyncReadback(sumRows, SaveCDFFull);
+            RTHandle minMaxRows = ParallelOperation.ComputeOperation(sumRows,
+                                                    cmd,
+                                                    ParallelOperation.Operation.MinMax,
+                                                    ParallelOperation.Direction.Vertical,
+                                                    2,
+                                                    Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
 
-            //_Idx = 0;
-            Rescale(m_CDFFull, m_MinMaxFull, ParallelOperation.Direction.Horizontal, cmd);
-            //Rescale(sum,     minMax,     ParallelOperation.Direction.Horizontal, cmd);
+            _Idx = 0;
+            Rescale(cdfFull, minMaxFull, ParallelOperation.Direction.Horizontal, cmd);
+            Rescale(sumRows, minMaxRows, ParallelOperation.Direction.Vertical,   cmd);
+
+            m_InvCDFFull = ComputeCDF1D.ComputeInverseCDF(cdfFull,
+                                                          cmd,
+                                                          ComputeCDF1D.SumDirection.Horizontal,
+                                                          Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+            m_InvCDFRows = ComputeCDF1D.ComputeInverseCDF(sumRows,
+                                                          cmd,
+                                                          ComputeCDF1D.SumDirection.Vertical,
+                                                          Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
         }
 
         static public int _Idx = 0;
@@ -148,18 +149,17 @@ namespace UnityEngine.Rendering
 
             rescale01.EnableKeyword("MINMAX");
             rescale01.EnableKeyword("READ_WRITE");
+            string addon = "";
             if (direction == ParallelOperation.Direction.Horizontal)
             {
-                rescale01.EnableKeyword ("HORIZONTAL");
-                rescale01.DisableKeyword("VERTICAL");
+                addon += "H";
             }
             else
             {
-                rescale01.DisableKeyword("HORIZONTAL");
-                rescale01.EnableKeyword ("VERTICAL");
+                addon += "V";
             }
 
-            int kernel = rescale01.FindKernel("CSMain");
+            int kernel = rescale01.FindKernel("CSMain" + addon);
 
             cmd.SetComputeTextureParam(rescale01, kernel, HDShaderIDs._Output, tex);
             cmd.SetComputeTextureParam(rescale01, kernel, HDShaderIDs._MinMax, minMax);
@@ -177,93 +177,5 @@ namespace UnityEngine.Rendering
         {
             
         }
-
-        /*
-        static readonly int _RectOffset = Shader.PropertyToID("_RectOffset");
-        static readonly int _Result1 = Shader.PropertyToID("_Result1");
-        static readonly int _Source4 = Shader.PropertyToID("_Source4");
-        static int[] _IntParams = new int[2];
-
-        void SampleCopyChannel(
-            CommandBuffer cmd,
-            Rendering.RectInt rect,
-            int _source,
-            RenderTargetIdentifier source,
-            int _target,
-            RenderTargetIdentifier target,
-            int slices,
-            int kernel8,
-            int kernel1)
-        {
-            Rendering.RectInt main, topRow, rightCol, topRight;
-            unsafe
-            {
-                Rendering.RectInt* dispatch1Rects = stackalloc Rendering.RectInt[3];
-                int dispatch1RectCount = 0;
-                Rendering.RectInt dispatch8Rect = Rendering.RectInt.zero;
-
-                if (TileLayoutUtils.TryLayoutByTiles(
-                    rect,
-                    8,
-                    out main,
-                    out topRow,
-                    out rightCol,
-                    out topRight))
-                {
-                    if (topRow.width > 0 && topRow.height > 0)
-                    {
-                        dispatch1Rects[dispatch1RectCount] = topRow;
-                        ++dispatch1RectCount;
-                    }
-                    if (rightCol.width > 0 && rightCol.height > 0)
-                    {
-                        dispatch1Rects[dispatch1RectCount] = rightCol;
-                        ++dispatch1RectCount;
-                    }
-                    if (topRight.width > 0 && topRight.height > 0)
-                    {
-                        dispatch1Rects[dispatch1RectCount] = topRight;
-                        ++dispatch1RectCount;
-                    }
-                    dispatch8Rect = main;
-                }
-                else if (rect.width > 0 && rect.height > 0)
-                {
-                    dispatch1Rects[dispatch1RectCount] = rect;
-                    ++dispatch1RectCount;
-                }
-
-                cmd.SetComputeTextureParam(m_Shader, kernel8, _source, source);
-                cmd.SetComputeTextureParam(m_Shader, kernel1, _source, source);
-                cmd.SetComputeTextureParam(m_Shader, kernel8, _target, target);
-                cmd.SetComputeTextureParam(m_Shader, kernel1, _target, target);
-
-                if (dispatch8Rect.width > 0 && dispatch8Rect.height > 0)
-                {
-                    var r = dispatch8Rect;
-                    // Use intermediate array to avoid garbage
-                    _IntParams[0] = r.x;
-                    _IntParams[1] = r.y;
-                    cmd.SetComputeIntParams(m_Shader, _RectOffset, _IntParams);
-                    cmd.DispatchCompute(m_Shader, kernel8, (int)Mathf.Max(r.width / 8, 1), (int)Mathf.Max(r.height / 8, 1), slices);
-                }
-
-                for (int i = 0, c = dispatch1RectCount; i < c; ++i)
-                {
-                    var r = dispatch1Rects[i];
-                    // Use intermediate array to avoid garbage
-                    _IntParams[0] = r.x;
-                    _IntParams[1] = r.y;
-                    cmd.SetComputeIntParams(m_Shader, _RectOffset, _IntParams);
-                    cmd.DispatchCompute(m_Shader, kernel1, (int)Mathf.Max(r.width, 1), (int)Mathf.Max(r.height, 1), slices);
-                }
-            }
-        }
-        public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RTHandle source, RTHandle target, Rendering.RectInt rect)
-        {
-            Debug.Assert(source.rt.volumeDepth == target.rt.volumeDepth);
-            SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, source.rt.volumeDepth, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
-        }
-        */
     }
 }
