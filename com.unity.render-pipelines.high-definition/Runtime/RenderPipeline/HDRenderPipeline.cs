@@ -1753,15 +1753,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
 
-            if (hdCamera.frameSettings.materialQuality == (MaterialQuality)0)
-                // Set the quality level for this rendering (using current hdrp asset)
-                asset.currentMaterialQualityLevel.SetGlobalShaderKeywords();
-            else
-                // Set the quality level for this rendering (using frame setting value)
-                hdCamera.frameSettings.materialQuality.SetGlobalShaderKeywords();
-
             // Updates RTHandle
-            hdCamera.BeginRender();
+            hdCamera.BeginRender(cmd);
 
             using (ListPool<RTHandle>.Get(out var aovBuffers))
             {
