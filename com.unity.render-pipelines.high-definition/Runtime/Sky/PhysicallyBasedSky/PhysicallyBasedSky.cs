@@ -18,10 +18,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Simplifies the interface by using paramters suitable to simulate Earth.")]
         public BoolParameter earthPreset = new BoolParameter(true);
-        [Tooltip("Allows to specify the location of the planet. If disabled, the atmosphere and the planet are locked to the camera at the specified altitude.")]
+        [Tooltip("Allows to specify the location of the planet. If disabled, the planet is fixed below the camera in the world-space X-Z plane.")]
         public BoolParameter sphericalMode = new BoolParameter(true);
-        [Tooltip("The altitude of the camera with respect to the sea level. Units: meters.")]
-        public MinFloatParameter cameraAltitude = new MinFloatParameter (1, 1);
+        [Tooltip("World-space Y coordinate of the sea level of the planet. Units: meters.")]
+        public FloatParameter seaLevel = new FloatParameter(0);
         [Tooltip("Radius of the planet (distance from the center to the sea level). Units: meters.")]
         public MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
         [Tooltip("Position of the center of the planet in the world space. Units: meters.")]
@@ -128,10 +128,9 @@ namespace UnityEngine.Rendering.HighDefinition
             else // Planar mode
             {
                 float R = GetPlanetaryRadius();
-                float h = cameraAltitude.value;
+                float h = seaLevel.value;
 
-                // Place the tip of the planet cameraAltitude meters below (along the Y axis).
-                return camPosWS - new Vector3(0, R + h, 0);
+                return new Vector3(camPosWS.x, -R + h, camPosWS.z);
             }
         }
 
@@ -246,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // These parameters do NOT affect precomputation.
                 hash = hash * 23 + sphericalMode.GetHashCode();
-                hash = hash * 23 + cameraAltitude.GetHashCode();
+                hash = hash * 23 + seaLevel.GetHashCode();
                 hash = hash * 23 + planetCenterPosition.GetHashCode();
 
                 hash = hash * 23 + planetRotation.GetHashCode();

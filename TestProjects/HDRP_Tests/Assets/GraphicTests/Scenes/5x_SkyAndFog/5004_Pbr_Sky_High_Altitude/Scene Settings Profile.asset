@@ -203,10 +203,9 @@ MonoBehaviour:
   sphericalMode:
     m_OverrideState: 0
     m_Value: 1
-  cameraAltitude:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 1
+  seaLevel:
+    m_OverrideState: 1
+    m_Value: 0
   planetaryRadius:
     m_OverrideState: 0
     m_Value: 6378759

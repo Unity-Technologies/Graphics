@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SerializedDataParameter m_EarthPreset;
         SerializedDataParameter m_SphericalMode;
-        SerializedDataParameter m_CameraAltitude;
+        SerializedDataParameter m_SeaLevel;
         SerializedDataParameter m_PlanetaryRadius;
         SerializedDataParameter m_PlanetCenterPosition;
         SerializedDataParameter m_PlanetRotation;
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 			m_EarthPreset              = Unpack(o.Find(x => x.earthPreset));
 			m_SphericalMode            = Unpack(o.Find(x => x.sphericalMode));
-			m_CameraAltitude           = Unpack(o.Find(x => x.cameraAltitude));
+			m_SeaLevel                 = Unpack(o.Find(x => x.seaLevel));
 			m_PlanetaryRadius          = Unpack(o.Find(x => x.planetaryRadius));
 			m_PlanetCenterPosition     = Unpack(o.Find(x => x.planetCenterPosition));
 			m_PlanetRotation           = Unpack(o.Find(x => x.planetRotation));
@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-			    PropertyField(m_CameraAltitude);
+			    PropertyField(m_SeaLevel);
             }
 
 			PropertyField(m_PlanetRotation);
