@@ -141,6 +141,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1800_Classification.unity
     guid: 5043daebf48d1b740bb244b9a55508ef
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1801_MaterialQuality.unity
+    guid: 57b95311ba922d74c9d1c5168e7ade4d
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1901_AxF_SVBRDF.unity
     guid: 96afd39d83184974299cc32cded820c5
   - enabled: 1
