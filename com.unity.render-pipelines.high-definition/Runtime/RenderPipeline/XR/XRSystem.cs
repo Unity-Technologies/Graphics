@@ -4,7 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -22,12 +25,15 @@ namespace UnityEngine.Rendering.HighDefinition
         internal readonly XRPass emptyPass = new XRPass();
 
         // Display layout override property
-        internal XRLayoutOverride layoutOverride { get; set; } = XRLayoutOverride.None;
+        internal static XRLayoutOverride layoutOverride { get; set; } = XRLayoutOverride.None;
+
+        // Used by test framework
+        internal static bool testModeEnabled { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
 
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
         // XR SDK display interface
         static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
         XRDisplaySubsystem display = null;
@@ -40,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal XRSystem(RenderPipelineResources.ShaderResources shaders)
         {
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             RefreshXrSdk();
 
             if (shaders != null)
@@ -53,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureXR.maxViews = GetMaxViews();
         }
 
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
         // With XR SDK: disable legacy VR system before rendering first frame
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
@@ -70,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             int maxViews = 1;
 
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (display != null)
             {
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
@@ -82,20 +88,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (XRGraphics.stereoRenderingMode == XRGraphics.StereoRenderingMode.SinglePassInstanced)
                     maxViews = 2;
 
-#if UNITY_EDITOR
-                // Apply XR layout override if required
-                if (System.Array.Exists(System.Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"))
-                {
-                    layoutOverride = XRLayoutOverride.TestSinglePassOneEye;
+                if (testModeEnabled)
                     maxViews = 2;
-                }
-#endif
             }
 
             return maxViews;
         }
 
-        internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras)
+        internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed)
         {
             bool xrSdkActive = RefreshXrSdk();
 
@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera == null)
                     continue;
 
-#if ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 // Read XR SDK or legacy settings
                 bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
 
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (xrSdkActive)
                     {
-                        CreateLayoutFromXrSdk(camera);
+                        CreateLayoutFromXrSdk(camera, singlePassAllowed);
                     }
                     else
                     {
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool RefreshXrSdk()
         {
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             SubsystemManager.GetInstances(displayList);
 
             if (displayList.Count > 0)
@@ -213,8 +213,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if ENABLE_XR_MODULE
-        void CreateLayoutFromXrSdk(Camera camera)
+#if ENABLE_VR && ENABLE_XR_MODULE
+        void CreateLayoutFromXrSdk(Camera camera, bool singlePassAllowed)
         {
             bool CanUseSinglePass(XRDisplaySubsystem.XRRenderPass renderPass)
             {
@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 display.GetRenderPass(renderPassIndex, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
 
-                if (CanUseSinglePass(renderPass))
+                if (singlePassAllowed && CanUseSinglePass(renderPass))
                 {
                     var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, textureArraySlice: -1, cullingParams, occlusionMeshMaterial);
 
@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Cleanup()
         {
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
 #endif
@@ -284,28 +284,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderMirrorView(CommandBuffer cmd)
         {
-#if ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (display == null || !display.running)
                 return;
 
             using (new ProfilingSample(cmd, "XR Mirror View"))
             {
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-
-            #if UNITY_2020_1_OR_NEWER
+              
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
-            #else
-                if (display.GetMirrorViewBlitDesc(null, out var blitDesc))
-            #endif
                 {
                     if (blitDesc.nativeBlitAvailable)
                     {
-                    #if UNITY_2020_1_OR_NEWER
                         display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates, mirrorBlitMode);
-                    #else
-                        display.AddGraphicsThreadMirrorViewBlit(cmd, blitDesc.nativeBlitInvalidStates);
-                    #endif
                     }
                     else
                     {
@@ -341,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (camera.TryGetCullingParameters(false, out var cullingParams))
             {
-                cullingParams.stereoProjectionMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+                cullingParams.stereoProjectionMatrix = camera.projectionMatrix;
                 cullingParams.stereoViewMatrix = camera.worldToCameraMatrix;
             }
             else

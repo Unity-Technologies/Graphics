@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class ColorGradingLutPass : ScriptableRenderPass
     {
-        const string m_ProfilerTag = "Color Grading LUT";
+        const string k_ProfilerTag = "Color Grading LUT";
 
         readonly Material m_LutBuilderLdr;
         readonly Material m_LutBuilderHdr;
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (shader == null)
                 {
-                    Debug.LogErrorFormat($"Missing shader. {GetType().DeclaringType.Name} render pass will not execute. Check for missing reference in the renderer resources.");
+                    Debug.LogError($"Missing shader. {GetType().DeclaringType.Name} render pass will not execute. Check for missing reference in the renderer resources.");
                     return null;
                 }
 
@@ -60,18 +60,18 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get(m_ProfilerTag);
+            var cmd = CommandBufferPool.Get(k_ProfilerTag);
 
             // Fetch all color grading settings
             var stack = VolumeManager.instance.stack;
-            var m_ChannelMixer              = stack.GetComponent<ChannelMixer>();
-            var m_ColorAdjustments          = stack.GetComponent<ColorAdjustments>();
-            var m_Curves                    = stack.GetComponent<ColorCurves>();
-            var m_LiftGammaGain             = stack.GetComponent<LiftGammaGain>();
-            var m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
-            var m_SplitToning               = stack.GetComponent<SplitToning>();
-            var m_Tonemapping               = stack.GetComponent<Tonemapping>();
-            var m_WhiteBalance              = stack.GetComponent<WhiteBalance>();
+            var channelMixer              = stack.GetComponent<ChannelMixer>();
+            var colorAdjustments          = stack.GetComponent<ColorAdjustments>();
+            var curves                    = stack.GetComponent<ColorCurves>();
+            var liftGammaGain             = stack.GetComponent<LiftGammaGain>();
+            var shadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
+            var splitToning               = stack.GetComponent<SplitToning>();
+            var tonemapping               = stack.GetComponent<Tonemapping>();
+            var whiteBalance              = stack.GetComponent<WhiteBalance>();
 
             ref var postProcessingData = ref renderingData.postProcessingData;
             bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
@@ -86,35 +86,35 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
 
             // Prepare data
-            var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
-            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
-            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value / 100f, m_ChannelMixer.redOutGreenIn.value / 100f, m_ChannelMixer.redOutBlueIn.value / 100f, 0f);
-            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
-            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value / 100f, m_ChannelMixer.blueOutGreenIn.value / 100f, m_ChannelMixer.blueOutBlueIn.value / 100f, 0f);
+            var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(whiteBalance.temperature.value, whiteBalance.tint.value);
+            var hueSatCon = new Vector4(colorAdjustments.hueShift.value / 360f, colorAdjustments.saturation.value / 100f + 1f, colorAdjustments.contrast.value / 100f + 1f, 0f);
+            var channelMixerR = new Vector4(channelMixer.redOutRedIn.value / 100f, channelMixer.redOutGreenIn.value / 100f, channelMixer.redOutBlueIn.value / 100f, 0f);
+            var channelMixerG = new Vector4(channelMixer.greenOutRedIn.value / 100f, channelMixer.greenOutGreenIn.value / 100f, channelMixer.greenOutBlueIn.value / 100f, 0f);
+            var channelMixerB = new Vector4(channelMixer.blueOutRedIn.value / 100f, channelMixer.blueOutGreenIn.value / 100f, channelMixer.blueOutBlueIn.value / 100f, 0f);
 
             var shadowsHighlightsLimits = new Vector4(
-                m_ShadowsMidtonesHighlights.shadowsStart.value,
-                m_ShadowsMidtonesHighlights.shadowsEnd.value,
-                m_ShadowsMidtonesHighlights.highlightsStart.value,
-                m_ShadowsMidtonesHighlights.highlightsEnd.value
+                shadowsMidtonesHighlights.shadowsStart.value,
+                shadowsMidtonesHighlights.shadowsEnd.value,
+                shadowsMidtonesHighlights.highlightsStart.value,
+                shadowsMidtonesHighlights.highlightsEnd.value
             );
 
             var (shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
-                m_ShadowsMidtonesHighlights.shadows.value,
-                m_ShadowsMidtonesHighlights.midtones.value,
-                m_ShadowsMidtonesHighlights.highlights.value
+                shadowsMidtonesHighlights.shadows.value,
+                shadowsMidtonesHighlights.midtones.value,
+                shadowsMidtonesHighlights.highlights.value
             );
 
             var (lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
-                m_LiftGammaGain.lift.value,
-                m_LiftGammaGain.gamma.value,
-                m_LiftGammaGain.gain.value
+                liftGammaGain.lift.value,
+                liftGammaGain.gamma.value,
+                liftGammaGain.gain.value
             );
 
             var (splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
-                m_SplitToning.shadows.value,
-                m_SplitToning.highlights.value,
-                m_SplitToning.balance.value
+                splitToning.shadows.value,
+                splitToning.highlights.value,
+                splitToning.balance.value
             );
 
             var lutParameters = new Vector4(lutHeight, 0.5f / lutWidth, 0.5f / lutHeight, lutHeight / (lutHeight - 1f));
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Fill in constants
             material.SetVector(ShaderConstants._Lut_Params, lutParameters);
             material.SetVector(ShaderConstants._ColorBalance, lmsColorBalance);
-            material.SetVector(ShaderConstants._ColorFilter, m_ColorAdjustments.colorFilter.value.linear);
+            material.SetVector(ShaderConstants._ColorFilter, colorAdjustments.colorFilter.value.linear);
             material.SetVector(ShaderConstants._ChannelMixerRed, channelMixerR);
             material.SetVector(ShaderConstants._ChannelMixerGreen, channelMixerG);
             material.SetVector(ShaderConstants._ChannelMixerBlue, channelMixerB);
@@ -138,23 +138,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetVector(ShaderConstants._SplitHighlights, splitHighlights);
 
             // YRGB curves
-            material.SetTexture(ShaderConstants._CurveMaster, m_Curves.master.value.GetTexture());
-            material.SetTexture(ShaderConstants._CurveRed, m_Curves.red.value.GetTexture());
-            material.SetTexture(ShaderConstants._CurveGreen, m_Curves.green.value.GetTexture());
-            material.SetTexture(ShaderConstants._CurveBlue, m_Curves.blue.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveMaster, curves.master.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveRed, curves.red.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveGreen, curves.green.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveBlue, curves.blue.value.GetTexture());
 
             // Secondary curves
-            material.SetTexture(ShaderConstants._CurveHueVsHue, m_Curves.hueVsHue.value.GetTexture());
-            material.SetTexture(ShaderConstants._CurveHueVsSat, m_Curves.hueVsSat.value.GetTexture());
-            material.SetTexture(ShaderConstants._CurveLumVsSat, m_Curves.lumVsSat.value.GetTexture());
-            material.SetTexture(ShaderConstants._CurveSatVsSat, m_Curves.satVsSat.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveHueVsHue, curves.hueVsHue.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveHueVsSat, curves.hueVsSat.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveLumVsSat, curves.lumVsSat.value.GetTexture());
+            material.SetTexture(ShaderConstants._CurveSatVsSat, curves.satVsSat.value.GetTexture());
 
             // Tonemapping (baked into the lut for HDR)
             if (hdr)
             {
                 material.shaderKeywords = null;
 
-                switch (m_Tonemapping.mode.value)
+                switch (tonemapping.mode.value)
                 {
                     case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
                     case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;

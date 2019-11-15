@@ -59,6 +59,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action saveRequested { get; set; }
 
+        public Action saveAsRequested { get; set; }
+
         public Func<bool> isCheckedOut { get; set; }
 
         public Action checkOut { get; set; }
@@ -148,6 +150,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                             saveRequested();
                     }
                     GUILayout.Space(6);
+                    if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
+                    {
+                        saveAsRequested();
+                    }
+                    GUILayout.Space(6);
                     if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
                     {
                         if (showInProjectRequested != null)
@@ -219,7 +226,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var content = new VisualElement { name = "content" };
             {
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
-                m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
+                m_GraphView.SetupZoom(0.05f, 8);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
@@ -319,11 +326,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (evt.ctrlKey && evt.keyCode == KeyCode.G)
+            if (evt.actionKey && evt.keyCode == KeyCode.G)
             {
-                if (m_GraphView.selection.OfType<MaterialNodeView>().Any())
+                if (m_GraphView.selection.OfType<GraphElement>().Any())
                 {
                     m_GraphView.GroupSelection();
+                }
+            }
+
+            if (evt.actionKey && evt.keyCode == KeyCode.U)
+            {
+                if (m_GraphView.selection.OfType<GraphElement>().Any())
+                {
+                    m_GraphView.RemoveFromGroupNode();
                 }
             }
         }
@@ -780,7 +795,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddGroup(GroupData groupData)
         {
-            ShaderGroup graphGroup = new ShaderGroup(m_Graph);
+            ShaderGroup graphGroup = new ShaderGroup();
 
             graphGroup.userData = groupData;
             graphGroup.title = groupData.title;
@@ -1010,6 +1025,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_GraphView != null)
             {
                 saveRequested = null;
+                saveAsRequested = null;
                 convertToSubgraphRequested = null;
                 showInProjectRequested = null;
                 foreach (var node in m_GraphView.Children().OfType<IShaderNodeView>())

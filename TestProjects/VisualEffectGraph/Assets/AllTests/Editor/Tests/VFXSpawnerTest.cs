@@ -840,6 +840,74 @@ namespace UnityEditor.VFX.Test
             UnityEngine.Object.DestroyImmediate(gameObj);
             UnityEngine.Object.DestroyImmediate(cameraObj);
         }
+
+
+        [UnityTest]
+        public IEnumerator CreateSpawner_With_All_Zero_Duration() //Cover possible infinite loop
+        {
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
+            Assert.AreEqual(UnityEngine.VFX.VFXManager.fixedTimeStep, 0.1f);
+
+            var graph = MakeTemporaryGraph();
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var spawnerOutput = ScriptableObject.CreateInstance<VFXPointOutput>();
+
+            graph.AddChild(spawnerContext);
+            graph.AddChild(spawnerInit);
+            graph.AddChild(spawnerOutput);
+
+            //Add Position to have minimal data, and thus, valid system
+            var setPosition = ScriptableObject.CreateInstance<SetAttribute>();
+            setPosition.SetSettingValue("attribute", "position");
+            spawnerInit.AddChild(setPosition);
+
+            spawnerInit.LinkFrom(spawnerContext);
+            spawnerOutput.LinkFrom(spawnerInit);
+
+            spawnerContext.SetSettingValue("loopDuration", VFXBasicSpawner.LoopMode.Constant);
+            spawnerContext.SetSettingValue("loopCount", VFXBasicSpawner.LoopMode.Infinite);
+            spawnerContext.SetSettingValue("delayBeforeLoop", VFXBasicSpawner.DelayMode.Constant);
+            spawnerContext.SetSettingValue("delayAfterLoop", VFXBasicSpawner.DelayMode.Constant);
+
+            Assert.AreEqual(3, spawnerContext.inputSlots.Count, "Something change in VFXBasicSpawner");
+            foreach (var slot in spawnerContext.inputSlots)
+            {
+                Assert.AreEqual(slot.valueType, VFXValueType.Float, "Something change in VFXBasicSpawner");
+                slot.value = 0.0f;
+            }
+
+            graph.SetCompilationMode(VFXCompilationMode.Runtime);
+            graph.RecompileIfNeeded();
+
+            var gameObj = new GameObject("CreateSpawner_All_Zero_Duration");
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+            vfxComponent.startSeed = 1986;
+            vfxComponent.resetSeedOnPlay = false;
+
+            var cameraObj = new GameObject("CreateSpawner_All_Zero_Duration_Camera");
+            var camera = cameraObj.AddComponent<Camera>();
+            camera.transform.localPosition = Vector3.one;
+            camera.transform.LookAt(vfxComponent.transform);
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            while (VisualEffectUtility.GetSpawnerState(vfxComponent, 0u).loopIndex < 3 /* arbitrary loop count */)
+            {
+                yield return null;
+            }
+
+            UnityEngine.Object.DestroyImmediate(gameObj);
+            UnityEngine.Object.DestroyImmediate(cameraObj);
+        }
     }
 }
 #endif

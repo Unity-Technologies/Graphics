@@ -44,30 +44,34 @@ namespace UnityEditor.Rendering.HighDefinition
         
         internal static void UpdateEmissiveMeshComponents(this HDAdditionalLightData hdLight)
         {
-            MeshRenderer emissiveMeshRenderer = hdLight.GetComponent<MeshRenderer>();
-            MeshFilter emissiveMeshFilter = hdLight.GetComponent<MeshFilter>();
-
             // If the display emissive mesh is disabled, skip to the next selected light
-            if (emissiveMeshFilter == null || emissiveMeshRenderer == null)
+            if (hdLight.emissiveMeshFilter == null || hdLight.emissiveMeshRenderer == null)
                 return;
 
             // We only load the mesh and it's material here, because we can't do that inside HDAdditionalLightData (Editor assembly)
             // Every other properties of the mesh is updated in HDAdditionalLightData to support timeline and editor records
-            switch (hdLight.lightTypeExtent)
+            if (hdLight.type == HDLightType.Area)
             {
-                case LightTypeExtent.Tube:
-                    emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
-                    break;
-                case LightTypeExtent.Rectangle:
-                default:
-                    emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
-                    break;
+                switch (hdLight.areaLightShape)
+                {
+                    case AreaLightShape.Tube:
+                        hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx");
+                        break;
+                    case AreaLightShape.Rectangle:
+                    default:
+                        hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
+                        break;
+                }
             }
-            if (emissiveMeshRenderer.sharedMaterial == null)
+            else // [TODO: check if we need this for non area lights as it was done]
             {
-                emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
+                hdLight.emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset<Mesh>("Runtime/RenderPipelineResources/Mesh/Quad.FBX");
             }
-            emissiveMeshRenderer.sharedMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
+            if (hdLight.emissiveMeshRenderer.sharedMaterial == null)
+            {
+                hdLight.emissiveMeshRenderer.sharedMaterial = new Material(Shader.Find("HDRP/Unlit"));
+            }
+            hdLight.emissiveMeshRenderer.sharedMaterial.SetFloat("_IncludeIndirectLighting", 0.0f);
         }
     }
 }

@@ -49,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent antialiasingContent = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
         static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("SMAA Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");
+        static readonly GUIContent TAASharpenContent = EditorGUIUtility.TrTextContent("TAA Sharpen Strength", "The intensity of the sharpen filter used to counterbalance the blur introduced by TAA. A high value might create artifacts such as dark lines depending on the frame content.");
         static readonly GUIContent CMAA2QualityPresetContent = EditorGUIUtility.TrTextContent("CMAA2 Quality Preset", "The quality preset for CMAA2, low has the best performance but worst quality, Ultra has the highest quality but worst performance.");
 
         static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");

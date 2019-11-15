@@ -19,8 +19,7 @@ namespace UnityEditor.VFX
             set
             {
                 m_Shader = value;
-                Material.DestroyImmediate(m_CachedMaterial);
-                m_CachedMaterial = null;
+                DestroyCachedMaterial();
             }
         }
 
@@ -34,10 +33,21 @@ namespace UnityEditor.VFX
             if (shader == null) shader = VFXResources.defaultResources.shader;
         }
 
-        public void OnDisable()
+        public void RefreshShader()
+        {
+            DestroyCachedMaterial();
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        private void DestroyCachedMaterial()
         {
             Material.DestroyImmediate(m_CachedMaterial);
             m_CachedMaterial = null;
+        }
+
+        public void OnDisable()
+        {
+            DestroyCachedMaterial();
         }
 
         public override void CopySettings<T>(T dst)

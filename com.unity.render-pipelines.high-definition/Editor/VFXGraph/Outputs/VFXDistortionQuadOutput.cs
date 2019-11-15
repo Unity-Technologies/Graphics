@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         //[VFXSetting] // tmp dont expose as settings atm
         public bool useGeometryShader = false;
 
-        public override string name { get { return "Distortion Quad Output"; } }
+        public override string name { get { return "Output Particle Distortion Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionQuad"); } }
         public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.ParticlePointOutput : VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }

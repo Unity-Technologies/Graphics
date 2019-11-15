@@ -58,8 +58,9 @@ namespace UnityEditor.Rendering.Universal
         public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && settings.isBakedOrMixed; } }
         public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && settings.isBakedOrMixed; } }
         public bool shadowOptionsValue { get { return shadowTypeIsSame && lightProperty.shadows != LightShadows.None; } }
-
+#pragma warning disable 618
         public bool bakingWarningValue { get { return !UnityEditor.Lightmapping.bakedGI && lightmappingTypeIsSame && settings.isBakedOrMixed; } }
+#pragma warning restore 618
         public bool showLightBounceIntensity { get { return true; } }
 
         public bool isShadowEnabled { get { return settings.shadowsType.intValue != 0; } }
@@ -116,7 +117,11 @@ namespace UnityEditor.Rendering.Universal
             // we want the fade group to stay hidden.
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimDirOptions.faded))
                 if (group.visible)
+                #if UNITY_2020_1_OR_NEWER
+                    settings.DrawRange();
+                #else
                     settings.DrawRange(m_AnimAreaOptions.target);
+                #endif
 
             // Spot angle
             using (var group = new EditorGUILayout.FadeGroupScope(m_AnimSpotOptions.faded))
@@ -286,7 +291,7 @@ namespace UnityEditor.Rendering.Universal
                     settings.DrawBakedShadowAngle();
 
             // Runtime shadows - shadow strength, resolution and near plane offset
-            // Bias is handled differently in LWRP
+            // Bias is handled differently in UniversalRP
             using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimRuntimeOptions.faded))
             {
                 if (group.visible)

@@ -238,10 +238,11 @@ namespace UnityEditor.VFX.UI
             var newSubOutputs = new List<VFXSRPSubOutput>(src.subOutputs.Length);
             for (int i = 0; i < src.subOutputs.Length; ++i)
             {
-                if (src.subOutputs[i].type != null)
+                Type type = (Type)src.subOutputs[i].type;
+                if (type != null)
                 {
-                    newSubOutputs.Add((VFXSRPSubOutput)ScriptableObject.CreateInstance(src.subOutputs[i].type));
-                    PasteModelSettings(newSubOutputs[i], src.subOutputs[i].settings, src.subOutputs[i].type);
+                    newSubOutputs.Add((VFXSRPSubOutput)ScriptableObject.CreateInstance(type));
+                    PasteModelSettings(newSubOutputs.Last(), src.subOutputs[i].settings, type);
                 }
             }
 

@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             var pp = new PreviewProperty(PropertyType.Color)
             {
                 name = name,
-                colorValue = new Color(value.x, value.x, value.z, value.w),
+                colorValue = new Color(value.x, value.y, value.z, value.w),
             };
             properties.Add(pp);
         }
