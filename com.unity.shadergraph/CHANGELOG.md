@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the input fields sometimes didn't render properly. [1176268](https://issuetracker.unity3d.com/issues/shadergraph-input-fields-get-cut-off-after-minimizing-and-maximizing-become-unusable)
 - Fixed a bug where the Gradient property didn't work with all system locales. [1140924](https://issuetracker.unity3d.com/issues/shader-graph-shader-doesnt-compile-when-using-a-gradient-property-and-a-regional-format-with-comma-decimal-separator-is-used)
 - Fixed a bug where Properties in the Blackboard could have duplicate names.
+- Sticky Notes can now be grouped properly.
+- Fixed an issue where nodes couldn't be copied from a group.
+- Fixed an issue where converting nodes into a Sub Graph could result in the Sub Graph having duplicate names. 
+- Fixed an issue where adding or removing entries into a Enum Keyword didn't update the number of ports on the Keyword Nodes, which could result in a graph crash.
+- Fixed an issue where changing a Blackboard Property's precision didn't update the colors inside the graph when using Precision as Color Mode.
+
 
 ## [7.1.1] - 2019-09-05
 ### Added
