@@ -13,13 +13,13 @@ namespace UnityEditor.ShaderGraph
     class SampleTerrainHeightNode : AbstractMaterialNode, IGeneratesBodyCode        //, IMayRequireMeshUV
     {
         public const int WorldPosInputId = 0;
-        public const int MipLevelInputId = 1;
+//        public const int MipLevelInputId = 1;         // TODO: add mip bias as optional input ?
         public const int WorldHeightOutputId = 2;
         public const int FeedbackSlotId = 3;
 
-        const string WorldPosInputName = "WorldPos";
-        const string MipLevelInputName = "MipLevel";
-        const string WorldHeightOutputName = "WorldHeight";
+        const string WorldPosInputName = "Position";
+//        const string MipLevelInputName = "MipLevel";
+        const string WorldHeightOutputName = "TerrainHeight";
         const string FeedbackSlotName = "Feedback";
 
         int[] liveIds;
@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             // Allocate IDs
             List<int> usedSlots = new List<int>();
             usedSlots.Add(WorldPosInputId);
-            usedSlots.Add(MipLevelInputId);
+//            usedSlots.Add(MipLevelInputId);
             usedSlots.Add(WorldHeightOutputId);
             usedSlots.Add(FeedbackSlotId);
 
@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
 
             // Create slots
             AddSlot(new PositionMaterialSlot(WorldPosInputId, WorldPosInputName, WorldPosInputName, CoordinateSpace.AbsoluteWorld));        // TODO: not absolute world!  use relative world
-            AddSlot(new Vector1MaterialSlot(MipLevelInputId, MipLevelInputName, MipLevelInputName, SlotType.Input, 0.0f));
+//            AddSlot(new Vector1MaterialSlot(MipLevelInputId, MipLevelInputName, MipLevelInputName, SlotType.Input, 0.0f));
             AddSlot(new Vector1MaterialSlot(WorldHeightOutputId, WorldHeightOutputName, WorldHeightOutputName, SlotType.Output, 0.0f));
 
             // hidden feedback slot         TODO: do we let the user disable this slot, when we don't want to use terrain feedback?
@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
             if (outputConnected)
             {
                 var heightId = GetTerrainHeightLayerName();
-                string resultLayer = string.Format("$precision4 {1} = SampleStack({0}_info, {2});"
+                string resultLayer = string.Format("$precision {1} = SampleStack({0}_info, {2});"
                         , stackName
                         , GetVariableNameForSlot(WorldHeightOutputId)
                         , heightId);
@@ -142,8 +142,5 @@ namespace UnityEditor.ShaderGraph
                 slotNames = slotNames
             });
         }
-
-
     }
-
 }
