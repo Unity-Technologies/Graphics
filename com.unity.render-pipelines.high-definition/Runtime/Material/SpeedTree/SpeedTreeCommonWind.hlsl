@@ -23,10 +23,10 @@ CBUFFER_END
 
 #ifdef SPEEDTREE_V7
 
-void Speedtree7Wind(float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, inout float3 finalPosition, inout float3 finalNormal)
+void Speedtree7Wind(float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, inout float3 finalPosition, inout float3 finalNormal)
 {
 #ifdef ENABLE_WIND
-    half windQuality = ((windOverride >= 0) ? windOverride : _WindQuality) * _WindEnabled;
+    half windQuality = _WindQuality * _WindEnabled;
 
     float3 rotatedWindVector, rotatedBranchAnchor;
     if (windQuality <= WIND_QUALITY_NONE)
@@ -121,7 +121,7 @@ void Speedtree7Wind(float4 color, float4 texcoord0, float4 texcoord1, float4 tex
 #endif // SPEEDTREE_V7
 
 #if defined(SPEEDTREE_V7) && defined(EFFECT_BILLBOARD)
-void Speedtree7BBWind(float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, inout float3 finalPosition, inout float3 finalNormal, inout float3 finalTangent, inout float2 finalUV)
+void Speedtree7BBWind(float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, inout float3 finalPosition, inout float3 finalNormal, inout float3 finalTangent, inout float2 finalUV)
 {
     // This is handling Speedtree v7 billboards
     float4x4 objToWorld = UNITY_MATRIX_M;
@@ -153,15 +153,14 @@ void Speedtree7BBWind(float4 texcoord0, float4 texcoord1, float4 texcoord2, floa
     float3 billboardPos = (percent.x - 0.5f) * unity_BillboardSize.x * widthScale * billboardTangent;
     billboardPos.y += (percent.y * unity_BillboardSize.y + unity_BillboardSize.z) * heightScale;
 
-    half windQuality = ((windOverride >= 0) ? windOverride : _WindQuality) * _WindEnabled;
+    half windQuality = _WindQuality * _WindEnabled;
 
 #ifdef ENABLE_WIND
     if (windQuality > 0)
         billboardPos = GlobalWind(billboardPos, worldPos, true, _ST_WindVector.xyz, texcoord1.w);
 #endif
 
-    //finalPosition.xyz += billboardPos;
-    finalPosition.xyz = billboardPos;
+    finalPosition.xyz = billboardPos + worldPos;
     finalNormal = billboardNormal.xyz;
     finalTangent = billboardTangent.xyz;
 
@@ -329,7 +328,7 @@ void Speedtree8BBFade(float4 texcoord0, inout float3 finalPosition, inout float3
 }
 #endif
 
-void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, float windOverride, out float3 finalPosition, out float3 finalNormal, out float3 finalTangent, out float2 finalUV, out float finalAlpha)
+void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float4 color, float4 texcoord0, float4 texcoord1, float4 texcoord2, float4 texcoord3, out float3 finalPosition, out float3 finalNormal, out float3 finalTangent, out float2 finalUV, out float finalAlpha)
 {
     finalPosition = vertex.xyz;
     finalNormal = normal.xyz;
@@ -339,11 +338,11 @@ void ApplyWindTransformation(float3 vertex, float3 normal, float3 tangent, float
 
 #if defined(SPEEDTREE_V7) && !defined(EFFECT_BILLBOARD)
 
-    Speedtree7Wind(color, texcoord0, texcoord1, texcoord2, texcoord3, windOverride, finalPosition, finalNormal);
+    Speedtree7Wind(color, texcoord0, texcoord1, texcoord2, texcoord3, finalPosition, finalNormal);
 
 #elif defined(SPEEDTREE_V7)
 
-    Speedtree7BBWind(texcoord0, texcoord1, texcoord2, texcoord3, windOverride, finalPosition, finalNormal, finalTangent, finalUV);
+    Speedtree7BBWind(texcoord0, texcoord1, texcoord2, texcoord3, finalPosition, finalNormal, finalTangent, finalUV);
 
 #elif defined(SPEEDTREE_V8)
 

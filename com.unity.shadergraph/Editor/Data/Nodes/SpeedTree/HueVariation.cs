@@ -1,15 +1,11 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
 
-    [Title("SpeedTree", "HueVariation")]
+    [Title("Utility", "SpeedTree", "HueVariation")]
     class HueVariationNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IGeneratesFunction
     {
 
