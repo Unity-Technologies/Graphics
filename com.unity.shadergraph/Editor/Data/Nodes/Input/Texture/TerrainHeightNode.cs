@@ -1,50 +1,67 @@
-using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using System.Collections.Generic;
-using System;
-using System.Globalization;
-using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.UIElements;
+
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Texture", "Sample Terrain Height")]
-    class SampleTerrainHeightNode : AbstractMaterialNode, IGeneratesBodyCode        //, IMayRequireMeshUV
+    class SampleTerrainHeightNodeBase : AbstractMaterialNode, IGeneratesBodyCode, IHasSettings
     {
         public const int WorldPosInputId = 0;
-//        public const int MipLevelInputId = 1;         // TODO: add mip bias as optional input ?
+        public const int MipLevelInputId = 1;
         public const int WorldHeightOutputId = 2;
         public const int FeedbackSlotId = 3;
 
         const string WorldPosInputName = "Position";
-//        const string MipLevelInputName = "MipLevel";
+        const string MipLevelInputName = "MipLevel";
         const string WorldHeightOutputName = "TerrainHeight";
         const string FeedbackSlotName = "Feedback";
 
-        int[] liveIds;
+        [SerializeField]
+        bool useFeedback = true;
+
+        [SerializeField]
+        string textureStackName = "HeightmapStack";
+
+        internal enum MipCalculation
+        {
+            Default,
+            Explicit
+        };
+        MipCalculation mipCalculation = MipCalculation.Default;
 
         public override bool hasPreview { get { return false; } }
 
-        public SampleTerrainHeightNode()
+        private bool explicitMip { get { return (mipCalculation == MipCalculation.Explicit); } }
+
+        public SampleTerrainHeightNodeBase(MipCalculation mipCalculation)
         {
-            name = "Sample Terrain Height";
+            this.mipCalculation = mipCalculation;
+            if (explicitMip)
+                name = "Sample Terrain Height LOD";
+            else
+                name = "Sample Terrain Height";
             UpdateNodeAfterDeserialization();
         }
+
         public override void UpdateNodeAfterDeserialization()
         {
             // Allocate IDs
             List<int> usedSlots = new List<int>();
             usedSlots.Add(WorldPosInputId);
-//            usedSlots.Add(MipLevelInputId);
+            if (explicitMip)
+                usedSlots.Add(MipLevelInputId);
             usedSlots.Add(WorldHeightOutputId);
             usedSlots.Add(FeedbackSlotId);
 
-            liveIds = usedSlots.ToArray();
-
             // Create slots
             AddSlot(new PositionMaterialSlot(WorldPosInputId, WorldPosInputName, WorldPosInputName, CoordinateSpace.AbsoluteWorld));        // TODO: not absolute world!  use relative world
-//            AddSlot(new Vector1MaterialSlot(MipLevelInputId, MipLevelInputName, MipLevelInputName, SlotType.Input, 0.0f));
+            if (explicitMip)
+                AddSlot(new Vector1MaterialSlot(MipLevelInputId, MipLevelInputName, MipLevelInputName, SlotType.Input, 0.0f));
+
             AddSlot(new Vector1MaterialSlot(WorldHeightOutputId, WorldHeightOutputName, WorldHeightOutputName, SlotType.Output, 0.0f));
 
             // hidden feedback slot         TODO: do we let the user disable this slot, when we don't want to use terrain feedback?
@@ -52,7 +69,7 @@ namespace UnityEditor.ShaderGraph
             slot.hidden = true;
             AddSlot(slot);
 
-            RemoveSlotsNameNotMatching(liveIds);
+            RemoveSlotsNameNotMatching(usedSlots);
         }
 
         public override void ValidateNode()
@@ -65,9 +82,26 @@ namespace UnityEditor.ShaderGraph
             get { return PreviewMode.Preview3D; }
         }
 
+        public VisualElement CreateSettingsElement()
+        {
+            PropertySheet ps = new PropertySheet();
+
+            var toggle = new Toggle("Use Virtual Texture Feedback");
+            toggle.value = useFeedback;
+            toggle.RegisterValueChangedCallback((t) => { useFeedback = t.newValue; });
+            ps.Add(toggle);
+
+            var strField = new UnityEngine.UIElements.TextField("Texture Stack Name");
+            strField.value = textureStackName;
+            strField.RegisterValueChangedCallback((t) => { textureStackName = t.newValue; });
+            ps.Add(strField);
+
+            return ps;
+        }
+
         string GetTerrainHeightStackName()
         {
-            return "HeightmapStack";        // TODO: this should be set based on the name of the Terrain system -- so we can have multiple terrains
+            return textureStackName;
         }
 
         string GetTerrainHeightLayerName()
@@ -83,27 +117,40 @@ namespace UnityEditor.ShaderGraph
             string stackName = GetTerrainHeightStackName();
 
             bool outputConnected = IsSlotConnected(WorldHeightOutputId);
-            bool feedbackConnected = IsSlotConnected(FeedbackSlotId); ;
+            bool feedbackConnected = IsSlotConnected(FeedbackSlotId);
 
             if (outputConnected || feedbackConnected)
             {
-                string result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0});"
-                        , stackName
-                        , GetSlotValue(WorldPosInputId, generationMode));
+                string result;
+
+                if (explicitMip)
+                {
+                    result = string.Format("StackInfo {0}_info = PrepareStack_Lod(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0}, {2});"
+                            , stackName
+                            , GetSlotValue(WorldPosInputId, generationMode)
+                            , GetSlotValue(MipLevelInputId, generationMode));
+                }
+                else
+                {
+                    result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0});"
+                            , stackName
+                            , GetSlotValue(WorldPosInputId, generationMode));
+                }
                 sb.AppendLine(result);
             }
 
             if (outputConnected)
             {
                 var heightId = GetTerrainHeightLayerName();
-                string resultLayer = string.Format("$precision {1} = SampleStack({0}_info, {2}) * {0}_heightTransform.x + {0}_heightTransform.y;"
+                string resultLayer = string.Format("$precision {1} = {3}({0}_info, {2}) * {0}_heightTransform.x + {0}_heightTransform.y;"
                         , stackName
                         , GetVariableNameForSlot(WorldHeightOutputId)
-                        , heightId);
+                        , heightId
+                        , explicitMip ? "SampleStack_Lod" : "SampleStack");
                 sb.AppendLine(resultLayer);
             }
 
-            if (feedbackConnected)
+            if (feedbackConnected && !explicitMip)      // TODO can we do feedback for explicit mip?  maybe, as long as it's pixel shader...
             {
                 //TODO: Investigate if the feedback pass can use halfs
                 string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1}_info);",
@@ -126,8 +173,8 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new StackShaderProperty()
             {
                 overrideReferenceName = stackName + "_cb",
-                m_Batchable = true,
-                slotNames = slotNames
+                slotNames = slotNames,
+                m_Batchable = true
             });
 
             properties.AddShaderProperty(new StackShaderProperty()
@@ -148,5 +195,20 @@ namespace UnityEditor.ShaderGraph
                 slotNames = slotNames
             });
         }
+    }
+
+    [Title("Input", "Texture", "Sample Terrain Height")]
+    class SampleTerrainHeightNode : SampleTerrainHeightNodeBase
+    {
+        public SampleTerrainHeightNode() : base(MipCalculation.Default)
+        { }
+    }
+
+
+    [Title("Input", "Texture", "Sample Terrain Height LOD")]
+    class SampleTerrainHeightLODNode : SampleTerrainHeightNodeBase
+    {
+        public SampleTerrainHeightLODNode() : base(MipCalculation.Explicit)
+        { }
     }
 }

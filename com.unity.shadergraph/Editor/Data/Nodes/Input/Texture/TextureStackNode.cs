@@ -227,7 +227,8 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new StackShaderProperty()
             {
                 overrideReferenceName = stackName + "_cb",
-                slotNames = slotNames
+                slotNames = slotNames,
+                m_Batchable = true
             });
 
             properties.AddShaderProperty(new StackShaderProperty()
