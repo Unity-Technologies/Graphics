@@ -220,6 +220,8 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
             skyColor += radiance;
         }
 
+        skyColor   = Desaturate(skyColor,   _ColorSaturation);
+        skyOpacity = Desaturate(skyOpacity, _AlphaSaturation);
     }
 }
 

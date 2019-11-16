@@ -290,6 +290,7 @@ void ToggleBit(inout uint data, uint offset)
     TEMPLATE_3_INT(Max3, a, b, c, return max(max(a, b), c))
 #endif // INTRINSIC_MINMAX3
 
+TEMPLATE_3_REAL(Avg3, a, b, c, return (a + b + c) * 0.33333333)
 
 #ifndef INTRINSIC_QUAD_SHUFFLE
     // Important! Only valid in pixel shaders!

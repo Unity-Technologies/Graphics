@@ -560,6 +560,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _RenderSunDisk                     = Shader.PropertyToID("_RenderSunDisk");
 
+        public static readonly int _ColorSaturation                   = Shader.PropertyToID("_ColorSaturation");
+        public static readonly int _AlphaSaturation                   = Shader.PropertyToID("_AlphaSaturation");
+
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
         public static readonly int _RayTracingLayerMask             = Shader.PropertyToID("_RayTracingLayerMask");

@@ -33,6 +33,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_AerosolTint;
         SerializedDataParameter m_AerosolAnisotropy;
 
+        SerializedDataParameter m_ColorSaturation;
+        SerializedDataParameter m_AlphaSaturation;
+
         SerializedDataParameter m_NumberOfBounces;
 
         public override void OnEnable()
@@ -71,6 +74,9 @@ namespace UnityEditor.Rendering.HighDefinition
 			m_AerosolDensity           = Unpack(o.Find(x => x.aerosolDensity));
 			m_AerosolTint              = Unpack(o.Find(x => x.aerosolTint));
 			m_AerosolAnisotropy        = Unpack(o.Find(x => x.aerosolAnisotropy));
+
+			m_ColorSaturation          = Unpack(o.Find(x => x.colorSaturation));
+			m_AlphaSaturation          = Unpack(o.Find(x => x.alphaSaturation));
 
 			m_NumberOfBounces          = Unpack(o.Find(x => x.numberOfBounces));
         }
@@ -120,6 +126,11 @@ namespace UnityEditor.Rendering.HighDefinition
 			PropertyField(m_AerosolDensity);
 			PropertyField(m_AerosolTint);
 			PropertyField(m_AerosolAnisotropy);
+
+            EditorGUILayout.LabelField("Artistic Overrides");
+			PropertyField(m_ColorSaturation);
+			PropertyField(m_AlphaSaturation);
+
             EditorGUILayout.LabelField("Miscellaneous");
 			PropertyField(m_NumberOfBounces);
 

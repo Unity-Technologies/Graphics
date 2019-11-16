@@ -109,16 +109,17 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 
     float3 L = -light.forward;
 
-    float3 oDepth = 0;
-
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.
     {
         // TODO: should probably unify height attenuation somehow...
-        float cosZenithAngle = L.y;
-        float fragmentHeight = posInput.positionWS.y;
-        oDepth += OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
-                                        _HeightFogExponents, cosZenithAngle, fragmentHeight);
+        float  cosZenithAngle = L.y;
+        float  fragmentHeight = posInput.positionWS.y;
+        float3 oDepth = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                                              _HeightFogExponents, cosZenithAngle, fragmentHeight);
+        // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
+        float3 transm = TransmittanceFromOpticalDepth(oDepth);
+        color.rgb *= transm;
     }
 #endif
 
@@ -144,17 +145,19 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
 
         if (cosTheta >= cosHoriz) // Above horizon
         {
-            oDepth += ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+            float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
+            // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
+            float3 transm = TransmittanceFromOpticalDepth(oDepth);
+            color.rgb *= Desaturate(transm, _AlphaSaturation);
         }
         else
         {
             // return 0; // Kill the light. This generates a warning, so can't early out. :-(
-            oDepth = FLT_INF;
+           color = 0;
         }
     }
-#endif
 
-    color.rgb *= TransmittanceFromOpticalDepth(oDepth);
+#endif
 
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     if (light.cookieIndex >= 0)

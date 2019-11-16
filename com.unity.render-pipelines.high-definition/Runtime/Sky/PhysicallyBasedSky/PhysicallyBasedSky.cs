@@ -66,6 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter spaceEmissionMultiplier = new MinFloatParameter(1, 0);
         // Hack. Does not affect the precomputation.
         public Vector3Parameter spaceRotation = new Vector3Parameter(Vector3.zero);
+        // Hack. Does not affect the precomputation.
+        public ClampedFloatParameter colorSaturation = new ClampedFloatParameter(1, 0, 1);
+        // Hack. Does not affect the precomputation.
+        public ClampedFloatParameter alphaSaturation = new ClampedFloatParameter(1, 0, 1);
 
         static float ScaleHeightFromLayerDepth(float d)
         {
@@ -247,18 +251,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + sphericalMode.GetHashCode();
                 hash = hash * 23 + seaLevel.GetHashCode();
                 hash = hash * 23 + planetCenterPosition.GetHashCode();
-
                 hash = hash * 23 + planetRotation.GetHashCode();
+
                 if (groundColorTexture.value != null)
                     hash = hash * 23 + groundColorTexture.GetHashCode();
+
                 if (groundEmissionTexture.value != null)
                     hash = hash * 23 + groundEmissionTexture.GetHashCode();
+
                 hash = hash * 23 + groundEmissionMultiplier.GetHashCode();
 
                 hash = hash * 23 + spaceRotation.GetHashCode();
+
                 if (spaceEmissionTexture.value != null)
                     hash = hash * 23 + spaceEmissionTexture.GetHashCode();
+
                 hash = hash * 23 + spaceEmissionMultiplier.GetHashCode();
+                hash = hash * 23 + colorSaturation.GetHashCode();
+                hash = hash * 23 + alphaSaturation.GetHashCode();
             }
 
             return hash;
