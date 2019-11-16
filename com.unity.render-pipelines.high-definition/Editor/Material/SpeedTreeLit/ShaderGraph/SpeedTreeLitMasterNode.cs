@@ -812,7 +812,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             base.UpdateNodeAfterDeserialization();
-            name = "Lit Master";
+            name = "SpeedTreeLit Master";
 
             List<int> validSlots = new List<int>();
             if (MaterialTypeUsesSlotMask(SlotMask.Position))

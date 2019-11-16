@@ -1,25 +1,10 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-	enum SpeedTreeWindQuality
-	{
-        NoOverride = -1,
-		None = 0,
-		Fastest = 1,
-		Fast = 2,
-		Better = 3,
-		Best = 4,
-		Palm = 5
-	}
-
-	[Title("SpeedTree", "SpeedTreeWind")]
+	[Title("Utility", "SpeedTree", "SpeedTreeWind")]
 	class SpeedTreeWindNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireVertexColor, IMayRequireMeshUV, IGeneratesFunction
 	{
 		public const int OutPosSlotId = 0;
@@ -32,24 +17,6 @@ namespace UnityEditor.ShaderGraph
         private const string kOutUVSlotName = "OutUV0";
         public const int OutAlphaSlotId = 4;
         private const string kOutAlphaSlotName = "OutAlphaMultiplier";
-
-
-        [SerializeField]
-        private SpeedTreeWindQuality m_WindQuality = SpeedTreeWindQuality.NoOverride;
-
-        [EnumControl("Override Wind Quality")]
-        public SpeedTreeWindQuality windQuality
-        {
-            get { return m_WindQuality; }
-            set
-            {
-                if (m_WindQuality == value)
-                    return;
-
-                m_WindQuality = value;
-                Dirty(ModificationScope.Node);
-            }
-        }
 
         public override bool hasPreview { get { return false; } }
 
@@ -79,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutUVSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutUVSlotId));
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutAlphaSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutAlphaSlotId));
             // Call the Wind Transformation function
-            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, IN.{7}, (int){8}, {9}, {10}, {11}, {12}, {13});",
+            sb.AppendLine("ApplyWindTransformation(IN.{0}, IN.{1}, IN.{2}, IN.{3}, IN.{4}, IN.{5}, IN.{6}, IN.{7}, {8}, {9}, {10}, {11}, {12});",
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Position),
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Normal),
                             CoordinateSpace.Object.ToVariableName(InterpolatorType.Tangent),
@@ -88,7 +55,6 @@ namespace UnityEditor.ShaderGraph
                             UVChannel.UV1.GetUVName(),
                             UVChannel.UV2.GetUVName(),
                             UVChannel.UV3.GetUVName(),
-                            (int)m_WindQuality,
                             GetVariableNameForSlot(OutPosSlotId),
                             GetVariableNameForSlot(OutNormSlotId),
                             GetVariableNameForSlot(OutTanSlotId),

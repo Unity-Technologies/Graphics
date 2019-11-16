@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
 
-    [Title("SpeedTree", "DetailTexBlend")]
+    [Title("Utility", "SpeedTree", "DetailTexBlend")]
     class DetailTexNode : CodeFunctionNode
     {
         public DetailTexNode()
