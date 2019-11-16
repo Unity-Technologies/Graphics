@@ -24,8 +24,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public void SetupTarget(ref TargetSetupContext context)
         {
             // TODO: can't we automate this?
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("8e07e91ae21b01d4498b0eb040daeee0")); // ZackAttackMeshTarget
+            // context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7395c9320da217b42b9059744ceb1de6")); // MeshTarget
+            // context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("8e07e91ae21b01d4498b0eb040daeee0")); // ZackAttackMeshTarget
 
             switch(context.masterNode)
             {
@@ -61,8 +61,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                vertexPorts = ZackAttackVertexPorts.Unlit,
-                pixelPorts = ZackAttackPixelPorts.Unlit,
+                vertexPorts = UnlitMasterNode.VertexPorts,
+                pixelPorts = UnlitMasterNode.PixelPorts,
 
                 // Fields
                 structs = ZackAttackStructCollections.Default,
@@ -77,28 +77,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 #endregion
 
-#region PortMasks
-        // TODO: should be automated
-        static class ZackAttackVertexPorts
-        {
-            public static int[] Unlit = new int[]
-            {
-                UnlitMasterNode.PositionSlotId,
-                UnlitMasterNode.VertNormalSlotId,
-                UnlitMasterNode.VertTangentSlotId,
-            };
-        }
-
-        static class ZackAttackPixelPorts
-        {
-            public static int[] Unlit = new int[]
-            {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId,
-            };
-        }
-#endregion
+//#region PortMasks
+//        // TODO: would be nice if this was inside the master nodes
+//        static class ZackAttackVertexPorts
+//        {
+//            public static int[] Unlit = new int[]
+//            {
+//                UnlitMasterNode.PositionSlotId,
+//                UnlitMasterNode.VertNormalSlotId,
+//                UnlitMasterNode.VertTangentSlotId,
+//            };
+//        }
+//
+//        static class ZackAttackPixelPorts
+//        {
+//            public static int[] Unlit = new int[]
+//            {
+//                UnlitMasterNode.ColorSlotId,
+//                UnlitMasterNode.AlphaSlotId,
+//                UnlitMasterNode.AlphaThresholdSlotId,
+//            };
+//        }
+//#endregion
 
 #region StructDescriptors
         static class ZackAttackStructCollections

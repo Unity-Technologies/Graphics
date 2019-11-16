@@ -155,15 +155,15 @@ namespace UnityEditor.ShaderGraph
             return new ConditionalField[]
             {
                 // Features
-                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) || 
-                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) || 
+                new ConditionalField(Fields.GraphVertex,         IsSlotConnected(PBRMasterNode.PositionSlotId) ||
+                                                                        IsSlotConnected(PBRMasterNode.VertNormalSlotId) ||
                                                                         IsSlotConnected(PBRMasterNode.VertTangentSlotId)),
                 new ConditionalField(Fields.GraphPixel,          true),
-                
+
                 // Surface Type
                 new ConditionalField(Fields.SurfaceOpaque,       surfaceType == ShaderGraph.SurfaceType.Opaque),
                 new ConditionalField(Fields.SurfaceTransparent,  surfaceType != ShaderGraph.SurfaceType.Opaque),
-                
+
                 // Blend Mode
                 new ConditionalField(Fields.BlendAdd,            surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Additive),
                 new ConditionalField(Fields.BlendAlpha,          surfaceType != ShaderGraph.SurfaceType.Opaque && alphaMode == AlphaMode.Alpha),
@@ -231,6 +231,31 @@ namespace UnityEditor.ShaderGraph
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
+        }
+
+
+        static readonly int[] m_VertexPorts = new int[]
+        {
+            UnlitMasterNode.PositionSlotId,
+            UnlitMasterNode.VertNormalSlotId,
+            UnlitMasterNode.VertTangentSlotId,
+        };
+
+        public static int[] VertexPorts
+        {
+            get => m_VertexPorts;
+        }
+
+        static readonly int[] m_PixelPorts = new int[]
+        {
+            UnlitMasterNode.ColorSlotId,
+            UnlitMasterNode.AlphaSlotId,
+            UnlitMasterNode.AlphaThresholdSlotId,
+        };
+
+        public static int[] PixelPorts
+        {
+            get => m_PixelPorts;
         }
     }
 }
