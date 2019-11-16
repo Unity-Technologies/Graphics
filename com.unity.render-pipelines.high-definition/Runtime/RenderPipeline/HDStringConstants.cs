@@ -562,6 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _ColorSaturation                   = Shader.PropertyToID("_ColorSaturation");
         public static readonly int _AlphaSaturation                   = Shader.PropertyToID("_AlphaSaturation");
+        public static readonly int _AlphaMultiplier                   = Shader.PropertyToID("_AlphaMultiplier");
 
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");

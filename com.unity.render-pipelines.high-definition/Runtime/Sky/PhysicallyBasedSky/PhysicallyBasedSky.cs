@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter colorSaturation = new ClampedFloatParameter(1, 0, 1);
         // Hack. Does not affect the precomputation.
         public ClampedFloatParameter alphaSaturation = new ClampedFloatParameter(1, 0, 1);
+        // Hack. Does not affect the precomputation.
+        public ClampedFloatParameter alphaMultiplier = new ClampedFloatParameter(1, 0, 1);
 
         static float ScaleHeightFromLayerDepth(float d)
         {
@@ -269,6 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + spaceEmissionMultiplier.GetHashCode();
                 hash = hash * 23 + colorSaturation.GetHashCode();
                 hash = hash * 23 + alphaSaturation.GetHashCode();
+                hash = hash * 23 + alphaMultiplier.GetHashCode();
             }
 
             return hash;

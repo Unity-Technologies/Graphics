@@ -147,8 +147,9 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         {
             float3 oDepth = ComputeAtmosphericOpticalDepth(r, cosTheta, true);
             // Cannot do this once for both the sky and the fog because the sky may be desaturated. :-(
-            float3 transm = TransmittanceFromOpticalDepth(oDepth);
-            color.rgb *= Desaturate(transm, _AlphaSaturation);
+            float3 transm  = TransmittanceFromOpticalDepth(oDepth);
+            float3 opacity = 1 - transm;
+            color.rgb *= 1 - (Desaturate(opacity, _AlphaSaturation) * _AlphaMultiplier);
         }
         else
         {

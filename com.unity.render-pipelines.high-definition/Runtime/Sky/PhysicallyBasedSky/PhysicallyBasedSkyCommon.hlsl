@@ -28,16 +28,16 @@ CBUFFER_START(UnityPhysicallyBasedSky)
     float  _AerosolSeaLevelExtinction;
 
     float3 _AirSeaLevelScattering;
-    float  _ColorSaturation;
-
-    float3 _AerosolSeaLevelScattering;
-    float  _AlphaSaturation;
-
-    float3 _GroundAlbedo;
     float  _IntensityMultiplier;
 
+    float3 _AerosolSeaLevelScattering;
+    float  _ColorSaturation;
+
+    float3 _GroundAlbedo;
+    float  _AlphaSaturation;
+
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
-    float  _PackBetter0;
+    float  _AlphaMultiplier;
 CBUFFER_END
 
 TEXTURE2D(_GroundIrradianceTexture);

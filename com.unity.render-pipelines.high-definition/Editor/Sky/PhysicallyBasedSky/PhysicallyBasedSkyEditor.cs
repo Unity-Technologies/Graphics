@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_ColorSaturation;
         SerializedDataParameter m_AlphaSaturation;
+        SerializedDataParameter m_AlphaMultiplier;
 
         SerializedDataParameter m_NumberOfBounces;
 
@@ -77,6 +78,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 			m_ColorSaturation          = Unpack(o.Find(x => x.colorSaturation));
 			m_AlphaSaturation          = Unpack(o.Find(x => x.alphaSaturation));
+			m_AlphaMultiplier          = Unpack(o.Find(x => x.alphaMultiplier));
 
 			m_NumberOfBounces          = Unpack(o.Find(x => x.numberOfBounces));
         }
@@ -130,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Artistic Overrides");
 			PropertyField(m_ColorSaturation);
 			PropertyField(m_AlphaSaturation);
+			PropertyField(m_AlphaMultiplier);
 
             EditorGUILayout.LabelField("Miscellaneous");
 			PropertyField(m_NumberOfBounces);
