@@ -769,6 +769,23 @@ namespace UnityEditor.Rendering
             return icon;
         }
 
+        /// <summary>
+        /// Creates a new GameObject and set it's position to the current view
+        /// </summary>
+        /// <param name="name">the name of the new gameobject</param>
+        /// <param name="context">the parent of the gameobject</param>
+        /// <returns></returns>
+        public static GameObject CreateGameObject(string name, UnityEngine.Object context)
+        {
+            var parent = context as GameObject;
+            var go = CoreEditorUtils.CreateGameObject(parent, name);
+            GameObjectUtility.SetParentAndAlign(go, context as GameObject);
+            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+            Selection.activeObject = go;
+            EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+            return go;
+        }
+
         #endregion
     }
 }
