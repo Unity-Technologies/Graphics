@@ -5,6 +5,7 @@ namespace UnityEditor.Rendering
     public static class CoreEditorStyles
     {
         public static readonly GUIStyle smallTickbox;
+        public static readonly GUIStyle smallMixedTickbox;
         public static readonly GUIStyle miniLabelButton;
 
         static readonly Texture2D paneOptionsIconDark;
@@ -14,6 +15,7 @@ namespace UnityEditor.Rendering
         static CoreEditorStyles()
         {
             smallTickbox = new GUIStyle("ShurikenToggle");
+            smallMixedTickbox = new GUIStyle("ShurikenToggleMixed");
 
             var transparentTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
             transparentTexture.SetPixel(0, 0, Color.clear);
