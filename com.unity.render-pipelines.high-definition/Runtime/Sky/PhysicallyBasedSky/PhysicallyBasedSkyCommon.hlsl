@@ -38,6 +38,12 @@ CBUFFER_START(UnityPhysicallyBasedSky)
 
     float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
     float  _AlphaMultiplier;
+
+    float3 _HorizonTint;
+    float  _HorizonZenithShiftPower;
+
+    float3 _ZenithTint;
+    float  _HorizonZenithShiftScale;
 CBUFFER_END
 
 TEXTURE2D(_GroundIrradianceTexture);

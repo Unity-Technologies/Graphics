@@ -36,6 +36,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ColorSaturation;
         SerializedDataParameter m_AlphaSaturation;
         SerializedDataParameter m_AlphaMultiplier;
+        SerializedDataParameter m_HorizonTint;
+        SerializedDataParameter m_ZenithTint;
+        SerializedDataParameter m_HorizonZenithShift;
 
         SerializedDataParameter m_NumberOfBounces;
 
@@ -44,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
 
             m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
-                                   | (uint)SkySettingsUIElement.Exposure
+                                 //| (uint)SkySettingsUIElement.Exposure
                                    | (uint)SkySettingsUIElement.Multiplier
                                    | (uint)SkySettingsUIElement.IncludeSunInBaking;
 
@@ -79,6 +82,9 @@ namespace UnityEditor.Rendering.HighDefinition
 			m_ColorSaturation          = Unpack(o.Find(x => x.colorSaturation));
 			m_AlphaSaturation          = Unpack(o.Find(x => x.alphaSaturation));
 			m_AlphaMultiplier          = Unpack(o.Find(x => x.alphaMultiplier));
+			m_HorizonTint              = Unpack(o.Find(x => x.horizonTint));
+			m_ZenithTint               = Unpack(o.Find(x => x.zenithTint));
+			m_HorizonZenithShift       = Unpack(o.Find(x => x.horizonZenithShift));
 
 			m_NumberOfBounces          = Unpack(o.Find(x => x.numberOfBounces));
         }
@@ -133,6 +139,9 @@ namespace UnityEditor.Rendering.HighDefinition
 			PropertyField(m_ColorSaturation);
 			PropertyField(m_AlphaSaturation);
 			PropertyField(m_AlphaMultiplier);
+			PropertyField(m_HorizonTint);
+			PropertyField(m_HorizonZenithShift);
+			PropertyField(m_ZenithTint);
 
             EditorGUILayout.LabelField("Miscellaneous");
 			PropertyField(m_NumberOfBounces);

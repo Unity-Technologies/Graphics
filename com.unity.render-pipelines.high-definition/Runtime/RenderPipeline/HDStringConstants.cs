@@ -563,6 +563,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ColorSaturation                   = Shader.PropertyToID("_ColorSaturation");
         public static readonly int _AlphaSaturation                   = Shader.PropertyToID("_AlphaSaturation");
         public static readonly int _AlphaMultiplier                   = Shader.PropertyToID("_AlphaMultiplier");
+        public static readonly int _HorizonTint                       = Shader.PropertyToID("_HorizonTint");
+        public static readonly int _ZenithTint                        = Shader.PropertyToID("_ZenithTint");
+        public static readonly int _HorizonZenithShiftPower           = Shader.PropertyToID("_HorizonZenithShiftPower");
+        public static readonly int _HorizonZenithShiftScale           = Shader.PropertyToID("_HorizonZenithShiftScale");
 
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");

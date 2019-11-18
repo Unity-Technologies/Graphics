@@ -134,6 +134,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
+        static Vector2 ComputeExponentialInterpolationParams(float k)
+        {
+            if (k == 0) k = 1e-6f; // Avoid the numerical explosion around 0
+
+            // Remap t: (exp(10 k t) - 1) / (exp(10 k) - 1) = exp(x t) y - y.
+            float x = 10 * k;
+            float y = 1 / (Mathf.Exp(x) - 1);
+
+            return new Vector2(x, y);
+        }
+
         // For both precomputation and runtime lighting passes.
         void UpdateGlobalConstantBuffer(CommandBuffer cmd, SkySettings sky, Vector3 cameraPositionWS)
         {
@@ -144,6 +155,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float airH = pbrSky.GetAirScaleHeight();
             float aerH = pbrSky.GetAerosolScaleHeight();
             float iMul = Mathf.Pow(2.0f, pbrSky.exposure.value) * pbrSky.multiplier.value;
+
+            Vector2 expParams = ComputeExponentialInterpolationParams(pbrSky.horizonZenithShift.value);
 
             cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
             cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
@@ -163,15 +176,22 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelExtinction, pbrSky.GetAerosolExtinctionCoefficient());
 
             cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelScattering,     pbrSky.GetAirScatteringCoefficient());
-            cmd.SetGlobalVector(HDShaderIDs._AerosolSeaLevelScattering, pbrSky.GetAerosolScatteringCoefficient());
-
-            cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              pbrSky.groundTint.value);
             cmd.SetGlobalFloat( HDShaderIDs._IntensityMultiplier,       iMul);
 
-            cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      pbrSky.GetPlanetCenterPosition(cameraPositionWS));
+            cmd.SetGlobalVector(HDShaderIDs._AerosolSeaLevelScattering, pbrSky.GetAerosolScatteringCoefficient());
             cmd.SetGlobalFloat( HDShaderIDs._ColorSaturation,           pbrSky.colorSaturation.value);
+
+            cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              pbrSky.groundTint.value);
             cmd.SetGlobalFloat( HDShaderIDs._AlphaSaturation,           pbrSky.alphaSaturation.value);
+
+            cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      pbrSky.GetPlanetCenterPosition(cameraPositionWS));
             cmd.SetGlobalFloat( HDShaderIDs._AlphaMultiplier,           pbrSky.alphaMultiplier.value);
+
+            cmd.SetGlobalVector(HDShaderIDs._HorizonTint,               pbrSky.horizonTint.value);
+            cmd.SetGlobalFloat( HDShaderIDs._HorizonZenithShiftPower,   expParams.x);
+
+            cmd.SetGlobalVector(HDShaderIDs._ZenithTint,                pbrSky.zenithTint.value);
+            cmd.SetGlobalFloat( HDShaderIDs._HorizonZenithShiftScale,   expParams.y);
         }
 
         void PrecomputeTables(CommandBuffer cmd)

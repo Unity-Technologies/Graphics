@@ -72,6 +72,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter alphaSaturation = new ClampedFloatParameter(1, 0, 1);
         // Hack. Does not affect the precomputation.
         public ClampedFloatParameter alphaMultiplier = new ClampedFloatParameter(1, 0, 1);
+        // Hack. Does not affect the precomputation.
+        public ColorParameter horizonTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
+        // Hack. Does not affect the precomputation.
+        public ColorParameter zenithTint = new ColorParameter(Color.white, hdr: false, showAlpha: false, showEyeDropper: false);
+        // Hack. Does not affect the precomputation.
+        public ClampedFloatParameter horizonZenithShift = new ClampedFloatParameter(0, -1, 1);
 
         static float ScaleHeightFromLayerDepth(float d)
         {
@@ -272,6 +278,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + colorSaturation.GetHashCode();
                 hash = hash * 23 + alphaSaturation.GetHashCode();
                 hash = hash * 23 + alphaMultiplier.GetHashCode();
+                hash = hash * 23 + horizonTint.GetHashCode();
+                hash = hash * 23 + zenithTint.GetHashCode();
+                hash = hash * 23 + horizonZenithShift.GetHashCode();
             }
 
             return hash;
