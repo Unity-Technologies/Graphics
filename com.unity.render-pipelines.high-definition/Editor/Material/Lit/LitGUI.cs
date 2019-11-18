@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {

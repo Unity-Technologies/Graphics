@@ -215,18 +215,6 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        [MenuItem("CONTEXT/Camera/Remove Component")]
-        static void RemoveComponent(MenuCommand command)
-        {
-            Camera cam = command.context as Camera;
-            var comp = cam.GetComponent<UniversalAdditionalCameraData>();
-            if (comp)
-            {
-                Undo.DestroyObjectImmediate(comp);
-            }
-            Undo.DestroyObjectImmediate(command.context);
-        }
-
         public new void OnEnable()
         {
             m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
@@ -1054,6 +1042,22 @@ namespace UnityEditor.Rendering.Universal
         {
             if (m_AdditionalCameraDataSO != null)
                 EditorGUI.EndProperty();
+        }
+    }
+
+    [ScriptableRenderPipelineExtension(typeof(UniversalRenderPipelineAsset))]
+    class UniversalRenderPipelineCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
+    {
+        //The call is delayed to the dispatcher to solve conflict with other SRP
+        public void RemoveComponent(Camera camera)
+        {
+            Undo.SetCurrentGroupName("Remove Universal Camera");
+            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+            if (additionalCameraData)
+            {
+                Undo.DestroyObjectImmediate(additionalCameraData);
+            }
+            Undo.DestroyObjectImmediate(camera);
         }
     }
 }
