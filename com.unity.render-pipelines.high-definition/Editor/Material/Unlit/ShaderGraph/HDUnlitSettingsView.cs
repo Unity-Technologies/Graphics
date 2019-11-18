@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     });
                 });
 
-                if (m_Node.doubleSided.isOn)
+                if (!m_Node.doubleSided.isOn)
                 {
                     ps.Add(new PropertyRow(CreateLabel("Cull Mode", indentLevel)), (row) =>
                     {
