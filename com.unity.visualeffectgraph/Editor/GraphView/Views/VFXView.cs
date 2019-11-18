@@ -238,6 +238,8 @@ namespace UnityEditor.VFX.UI
                             controller.AddVFXModel(mPos, newModel);
 
                             newModel.SetSettingValue("m_Subgraph", subGraph);
+
+                            return controller.GetNewNodeController(newModel);
                         }
                     }
                 }
