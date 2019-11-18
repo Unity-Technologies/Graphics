@@ -1098,6 +1098,9 @@ namespace UnityEngine.Rendering.HighDefinition
             GetOrCreateDefaultVolume();
             GetOrCreateDebugTextures();
 
+            // This function should be called once every render (once for all camera)
+            LightLoopNewRender();
+
             BeginFrameRendering(renderContext, cameras);
 
             // Check if we can speed up FrameSettings process by skiping history
@@ -1728,6 +1731,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_XRSystem.RenderMirrorView(cmd);
                         }
 
+                        // Now that all cameras have been rendered, let's propagate the data required for screen space shadows
+                        PropagateScreenSpaceShadowData();
+
                         renderContext.ExecuteCommandBuffer(cmd);
                         CommandBufferPool.Release(cmd);
                         renderContext.Submit();
@@ -1737,6 +1743,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_XRSystem.ReleaseFrame();
             UnityEngine.Rendering.RenderPipeline.EndFrameRendering(renderContext, cameras);
+        }
+
+
+        void PropagateScreenSpaceShadowData()
+        {
+            // For every unique light that has been registered, update the previous transform
+            foreach (HDAdditionalLightData lightData in m_ScreenSpaceShadowsUnion)
+            {
+                lightData.previousTransform = lightData.transform.localToWorldMatrix;
+            }
         }
 
         void ExecuteRenderRequest(

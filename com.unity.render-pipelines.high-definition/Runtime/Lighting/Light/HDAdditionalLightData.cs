@@ -1251,6 +1251,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized]
         Plane[]             m_ShadowFrustumPlanes = new Plane[6];
 
+        // temporary matrix that stores the previous light transform
+        [System.NonSerialized] internal Matrix4x4 previousTransform = new Matrix4x4();
         // Temporary index that stores the current shadow index for the light
         [System.NonSerialized] internal int shadowIndex;
 
