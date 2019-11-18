@@ -16,7 +16,7 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal partial class XRSystem
+    public partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
         internal readonly XRPass emptyPass = new XRPass();
@@ -25,9 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
 
         // XRTODO: expose and document public API for custom layout
-        internal delegate bool CustomLayout(XRLayout layout);
+        public delegate bool CustomLayout(XRLayout layout);
         private static CustomLayout customLayout = null;
-        static internal void SetCustomLayout(CustomLayout cb) => customLayout = cb;
+        static public void SetCustomLayout(CustomLayout cb) => customLayout = cb;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         // XR SDK display interface
