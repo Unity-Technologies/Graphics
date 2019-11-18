@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
 - Added XR single-pass setting into HDRP asset
 - Added a penumbra tint option for lights
+- Added support for depth copy with XR SDK
+- Added debug setting to Render Pipeline Window to list the active XR views
+- Added an option to filter the result of the volumetric lighting (off by default).
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -134,6 +137,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Light units not matching light type
 - Fixed QualitySettings panel not displaying HDRP Asset
 - Fixed black reflection probes the first time loading a project
+- Fixed y-flip in scene view with XR SDK
+- Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
+- Fixed y-flip in scene view with XR SDK
+- Fixed a number of issues with Material Quality setting
 - VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
 - VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
 
