@@ -136,7 +136,7 @@ class VFXSlotContainerEditor : Editor
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
             GUI.enabled = gizmoableAnchors.Count > 1;
-            int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray(), GUILayout.Width(100));
+            int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray());
             GUI.enabled = true;
             if (EditorGUI.EndChangeCheck() && result != current)
             {
