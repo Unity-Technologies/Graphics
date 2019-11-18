@@ -586,6 +586,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
 
+        HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
+
         // Directional light
         Light m_CurrentSunLight;
         int m_CurrentShadowSortedSunLightIndex = -1;
@@ -860,6 +862,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_CopyStencil);
             CoreUtils.Destroy(m_CopyStencilForSSR);
+        }
+
+        void LightLoopNewRender()
+        {
+            m_ScreenSpaceShadowsUnion.Clear();
         }
 
         void LightLoopNewFrame(FrameSettings frameSettings)
@@ -1141,6 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (additionalLightData.WillRenderScreenSpaceShadow())
                 {
                     lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                    m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                     screenSpaceShadowIndex++;
                 }
                 m_CurrentSunLight = lightComponent;
@@ -1410,6 +1418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
+                m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 screenSpaceShadowIndex++;
             }
             else
