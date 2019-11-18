@@ -295,6 +295,7 @@ namespace UnityEditor.VFX.UI
                 sourceContextController.ApplyChanges();
                 m_SourceNodeController = sourceContextController.blockControllers.First(t=> t.model == m_SourceNode );
                 PostSetup();
+                m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceNodeController.ApplyChanges();
 
                 var targetContextController = m_TargetController.GetRootNodeController(targetContext, 0) as VFXContextController;
@@ -364,6 +365,7 @@ namespace UnityEditor.VFX.UI
                 PostSetup();
                 m_SourceNode.position = m_Rect.center;
                 m_SourceController.graph.AddChild(m_SourceNode);
+                m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceController.LightApplyChanges();
                 m_SourceNodeController = m_SourceController.GetRootNodeController(m_SourceNode, 0);
                 m_SourceNodeController.ApplyChanges();
@@ -371,7 +373,6 @@ namespace UnityEditor.VFX.UI
             void PostSetup()
             {
                 SetupTargetParameters();
-                m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceSlotContainer = m_SourceNode as IVFXSlotContainer;
             }
 
