@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<FinalBlitPassData>("Final Blit (Dev Build Only)", out var passData))
             {
-                passData.parameters = PrepareFinalBlitParameters(hdCamera);
+                passData.parameters = PrepareFinalBlitParameters(hdCamera, 0); // todo viewIndex
                 passData.source = builder.ReadTexture(source);
                 passData.destination = destination;
 

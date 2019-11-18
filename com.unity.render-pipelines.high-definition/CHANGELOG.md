@@ -26,7 +26,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added XR single-pass setting into HDRP asset
 - Added a penumbra tint option for lights
 - Added support for depth copy with XR SDK
-- Added debug setting to Render Pipeline Window to list the active XR views
+- Added debug setting to Render Pipeline Debug Window to list the active XR views
+- Added an option to filter the result of the volumetric lighting (off by default).
+- Added a transmission multiplier for directional lights
+- Added XR single-pass test mode to Render Pipeline Debug Window
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -135,7 +138,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP samples file hierarchy
 - Fixed Light units not matching light type
 - Fixed QualitySettings panel not displaying HDRP Asset
+- Fixed black reflection probes the first time loading a project
 - Fixed y-flip in scene view with XR SDK
+- Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
+- Fixed y-flip in scene view with XR SDK
+- Fixed a number of issues with Material Quality setting
+- Fixed the transparent Cull Mode option in HD unlit master node settings only visible if double sided is ticked.
+- Fixed an issue causing shadowed areas by contact shadows at the edge of far clip plane if contact shadow length is very close to far clip plane.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -164,6 +173,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the copy of the geometry history buffers to right after the depth mip chain generation.
 - Rename "Luminance" to "Nits" in UX for physical light unit
 - Rename FrameSettings "SkyLighting" to "SkyReflection"
+- Reworked XR automated tests
+- The ray traced screen space shadow history for directional, spot and point lights is discarded if the light transform has changed.
 
 ## [7.1.1] - 2019-09-05
 
