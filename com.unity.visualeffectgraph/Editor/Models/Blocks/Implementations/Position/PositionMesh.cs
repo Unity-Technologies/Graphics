@@ -46,9 +46,9 @@ namespace UnityEditor.VFX.Block
                 var mesh = inputSlots[0].GetExpression();
 
                 yield return new VFXNamedExpression(new VFXExpressionMeshVertexStride(mesh), "meshVertexStride");
-                yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<int>((int)VertexAttribute.Position)), "meshPositionOffset");
-                yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<int>((int)VertexAttribute.Normal)), "meshNormalOffset");
-                yield return new VFXNamedExpression(new VFXExpressionCastIntToFloat(new VFXExpressionMeshVertexCount(mesh)), "meshVertexCount");
+                yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position)), "meshPositionOffset");
+                yield return new VFXNamedExpression(new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal)), "meshNormalOffset");
+                yield return new VFXNamedExpression(new VFXExpressionCastUintToFloat(new VFXExpressionMeshVertexCount(mesh)), "meshVertexCount");
             }
         }
 
@@ -80,12 +80,12 @@ namespace UnityEditor.VFX.Block
                     {
                         case SpawnMode.Random:
                             {
-                                source += @"int vertexIndex = (int)(RAND * 0.9999f * meshVertexCount);"; //TODOPAUL : Share the Behavior with SampleMesh operator
+                                source += @"uint vertexIndex = (uint)(RAND * meshVertexCount);"; //TODOPAUL : Share the Behavior with SampleMesh operator
                             }
                             break;
                         case SpawnMode.Custom:
                             {
-                                source += @"int vertexIndex = (vertex % meshVertexCount);";
+                                source += @"uint vertexIndex = (vertex % meshVertexCount);";
                             }
                             break;
                         default:
@@ -93,8 +93,8 @@ namespace UnityEditor.VFX.Block
                     }
 
                     source += @"
-position = SampleMeshFloat3(mesh, (int)vertexIndex, meshPositionOffset, meshVertexStride);
-direction = SampleMeshFloat3(mesh, (int)vertexIndex, meshNormalOffset, meshVertexStride);";
+position = SampleMeshFloat3(mesh, vertexIndex, meshPositionOffset, meshVertexStride);
+direction = SampleMeshFloat3(mesh, vertexIndex, meshNormalOffset, meshVertexStride);";
                 }
                 else
                 {
