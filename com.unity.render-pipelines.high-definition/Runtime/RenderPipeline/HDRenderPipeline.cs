@@ -935,6 +935,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 SetMicroShadowingSettings(cmd);
 
+                HDShadowSettings shadowSettings = VolumeManager.instance.stack.GetComponent<HDShadowSettings>();
+                cmd.SetGlobalFloat(HDShaderIDs._DirectionalTransmissionMultiplier, shadowSettings.directionalTransmissionMultiplier.value);
+
                 m_AmbientOcclusionSystem.PushGlobalParameters(hdCamera, cmd);
 
                 var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
