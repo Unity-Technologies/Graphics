@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for depth copy with XR SDK
 - Added debug setting to Render Pipeline Window to list the active XR views
 - Added an option to filter the result of the volumetric lighting (off by default).
+- Added a transmission multiplier for directional lights
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
