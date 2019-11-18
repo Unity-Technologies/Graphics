@@ -189,10 +189,11 @@ namespace UnityEditor.Rendering
                 using (new EditorGUILayout.VerticalScope())
                 {
                     EditorGUIUtility.labelWidth = 40;
-                    EditorGUI.indentLevel--;
+                    int oldIndentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
                     for (var i = 0; i < ppts.Length; ++i)
                         EditorGUILayout.PropertyField(ppts[i], lbls[i]);
-                    EditorGUI.indentLevel++;
+                    EditorGUI.indentLevel = oldIndentLevel;
                 }
             }
 
@@ -277,7 +278,8 @@ namespace UnityEditor.Rendering
             foldoutRect.y += 1f;
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
-
+            foldoutRect.x = labelRect.xMin + 15 * (EditorGUI.indentLevel - 1); //fix for presset
+            
             // More options 1/2
             var moreOptionsRect = new Rect();
             if (hasMoreOptions != null)
