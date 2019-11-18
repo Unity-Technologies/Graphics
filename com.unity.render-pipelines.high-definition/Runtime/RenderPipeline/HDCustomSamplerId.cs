@@ -53,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ClearSsrBuffers,
         HDRenderPipelineRender,
         CullResultsCull,
+        CustomPassCullResultsCull,
         CopyDepth,
         UpdateStencilCopyForSSRExclusion,
         GizmosPrePostprocess,
@@ -125,7 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FinalPost,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
-        CustomPostProcessBeforeTransparent,
+        CustomPostProcessAfterOpaqueAndSky,
 
         Max
     }
