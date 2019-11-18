@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix shader interpolants with shader graph and particle strips
 - SpawnIndex attribute is now working correctly in Initialize context
 - Remove useless VFXLibrary clears that caused pop-up menu to take long opening times
+- Make sure the subgraph is added to the graph when we set the setting. Fix exception on Convert To Subgraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added
