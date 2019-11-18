@@ -531,7 +531,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.editorLightShape != LightShape.Directional)
             {
                 EditorGUI.BeginChangeCheck();
-                serialized.settings.DrawRange(false);
+                serialized.settings.DrawRange();
                 if (EditorGUI.EndChangeCheck())
                 {
                     // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change

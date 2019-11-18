@@ -31,6 +31,8 @@ namespace UnityEditor.ShaderGraph
             Default,
             Explicit
         };
+
+        [SerializeField]
         MipCalculation mipCalculation = MipCalculation.Default;
 
         public override bool hasPreview { get { return false; } }
@@ -122,7 +124,6 @@ namespace UnityEditor.ShaderGraph
             if (outputConnected || feedbackConnected)
             {
                 string result;
-
                 if (explicitMip)
                 {
                     result = string.Format("StackInfo {0}_info = PrepareStack_Lod(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0}, {2});"
