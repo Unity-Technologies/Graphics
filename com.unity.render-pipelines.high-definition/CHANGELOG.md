@@ -26,9 +26,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added XR single-pass setting into HDRP asset
 - Added a penumbra tint option for lights
 - Added support for depth copy with XR SDK
-- Added debug setting to Render Pipeline Window to list the active XR views
+- Added debug setting to Render Pipeline Debug Window to list the active XR views
 - Added an option to filter the result of the volumetric lighting (off by default).
 - Added a transmission multiplier for directional lights
+- Added XR single-pass test mode to Render Pipeline Debug Window
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -170,6 +171,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the copy of the geometry history buffers to right after the depth mip chain generation.
 - Rename "Luminance" to "Nits" in UX for physical light unit
 - Rename FrameSettings "SkyLighting" to "SkyReflection"
+- Reworked XR automated tests
 
 ## [7.1.1] - 2019-09-05
 
