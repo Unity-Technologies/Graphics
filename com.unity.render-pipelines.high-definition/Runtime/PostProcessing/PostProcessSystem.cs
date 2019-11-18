@@ -1450,8 +1450,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             Vector4 accumulationMotionBlurParams = new Vector4(
-                m_MotionBlur.accumulationSampleIndex,
-                m_MotionBlur.accumulationSampleCount,
+                (float)m_MotionBlur.accumulationSampleIndex,
+                (float)m_MotionBlur.accumulationSampleCount,
                 0,
                 0
             );
