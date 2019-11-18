@@ -1,7 +1,5 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.LookDev;
-
-using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine;
 
@@ -93,7 +91,6 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         /// <summary>open the LookDev window</summary>
-        [MenuItem("Window/Render Pipeline/Look Dev", false, 10200)]
         public static void Open()
         {
             s_ViewDisplayer = EditorWindow.GetWindow<DisplayWindow>();

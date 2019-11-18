@@ -36,6 +36,8 @@
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
+  * [Default Settings](Default-Settings-Window)
+  * [HDRP Config Package](HDRP-Config-Package)
 * Materials
   * [Alpha Clipping](Alpha-Clipping)
   * [Ambient Occlusion](Ambient-Occlusion)
@@ -53,6 +55,7 @@
     * [Decal Shader](Decal-Shader)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Shader](Lit-Shader)
+    * [ShadowMatte Shader](ShadowMatte-Shader)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Creating-and-Editing-HDRP-Shader-Graphs)
@@ -71,13 +74,14 @@
   * [Density Volume](Density-Volume)
   * [Light Layers](Light-Layers)
   * [Shadows](Shadows-in-HDRP)
+  * [Shadowmasks](Lighting-Mode-Shadowmask)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
 * Camera
   * [HD Camera](HDRP-Camera)
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
-  * [Multisampling Anti-Aliasing](MSAA)
+  * [Anti-Aliasing](Anti-Aliasing)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
   * [Effect Execution Order](Post-Processing-Execution-Order)
@@ -98,20 +102,22 @@
     * [Tonemapping](Post-Processing-Tonemapping)
     * [Vignette](Post-Processing-Vignette)
     * [White Balance](Post-Processing-White-Balance)
+  * Authoring Lookup Textures
+    * [Overview](Authoring-LUTs)
+    * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
+    * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
-  * Components
-    * [Ray Tracing Environment](Ray-Tracing-Environment)
   * Effects and Volume Overrides
-    * [Ray Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
-    * [Ray Traced Global Illumination](Ray-Traced-Global-Illumination)
-    * [Ray Traced Reflections](Ray-Traced-Reflections)
-    * [Ray Traced Shadows](Ray-Traced-Shadows)
+    * [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion)
+    * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
+    * [Ray-Traced Reflections](Ray-Traced-Reflections)
+    * [Ray-Traced Shadows](Ray-Traced-Shadows)
     * [Light Cluster](Ray-Tracing-Light-Cluster)
     * [Path Tracing](Ray-Tracing-Path-Tracing)
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
   * Debugging
-    * [Debugging Ray Traced Effects](Ray-Tracing-Debug)
+    * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
   * [Decal Projector](Decal-Projector)
 * Tools

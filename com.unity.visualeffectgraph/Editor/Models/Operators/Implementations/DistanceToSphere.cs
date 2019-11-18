@@ -9,17 +9,17 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            [Tooltip("The sphere used for the distance calculation.")]
+            [Tooltip("Sets the sphere used for the distance calculation.")]
             public Sphere sphere = new Sphere();
-            [Tooltip("The position used for the distance calculation.")]
+            [Tooltip("Sets the position used for the distance calculation.")]
             public Position position = new Position();
         }
 
         public class OutputProperties
         {
-            [Tooltip("The closest point on the sphere to the supplied position.")]
+            [Tooltip("Outputs the closest point on the sphere to the supplied position.")]
             public Vector3 closestPosition;
-            [Tooltip("The signed distance from the sphere. (Negative values represent points that are inside the sphere).")]
+            [Tooltip("Outputs the signed distance from the sphere. Negative values represent points that are inside the sphere.")]
             public float distance;
         }
 

@@ -2,12 +2,10 @@ Shader "Hidden/LookDev/Compositor"
 {
     Properties
     {
-        _Tex0WithSun("First View", 2D) = "white" {}
-        _Tex0WithoutSun("First View without sun", 2D) = "white" {}
+        _Tex0MainView("Main View", 2D) = "white" {}
         _Tex0Shadows("First View shadow mask", 2D) = "white" {}
         _ShadowColor0("Shadow Color for first view", Color) = (1.0, 1.0, 1.0, 1.0)
-        _Tex1WithSun("Second View", 2D) = "white" {}
-        _Tex1WithoutSun("Second View without sun", 2D) = "white" {}
+        _Tex1MainView("Second View", 2D) = "white" {}
         _Tex1Shadows("Second View shadow mask", 2D) = "white" {}
         _ShadowColor1("Shadow Color for second view", Color) = (1.0, 1.0, 1.0, 1.0)
         _CompositingParams("Blend Factor, exposure for first and second view, and current selected side", Vector) = (0.0, 1.0, 1.0, 1.0)
@@ -41,12 +39,10 @@ Shader "Hidden/LookDev/Compositor"
     #define kAll 4.0f
 
 
-    sampler2D   _Tex0WithSun;
-    sampler2D   _Tex0WithoutSun;
+    sampler2D   _Tex0MainView;
     sampler2D   _Tex0Shadows;
     float4      _ShadowColor0;
-    sampler2D   _Tex1WithSun;
-    sampler2D   _Tex1WithoutSun;
+    sampler2D   _Tex1MainView;
     sampler2D   _Tex1Shadows;
     float4      _ShadowColor1;
     float4      _CompositingParams; // x BlendFactor, yz ExposureValue (first/second view), w current selected side
@@ -67,7 +63,7 @@ Shader "Hidden/LookDev/Compositor"
     float4      _ToneMapCoeffs1;
     float4      _ToneMapCoeffs2;
 
-    float4      _Tex0WithSun_ST;
+    float4      _Tex0MainView_ST;
 
     #define ShadowMultiplier0 _CompositingParams2.z
     #define ShadowMultiplier1 _CompositingParams2.w
@@ -287,7 +283,7 @@ Shader "Hidden/LookDev/Compositor"
     {
         v2f OUT;
         OUT.vertex = UnityObjectToClipPos(IN.vertex);
-        OUT.texcoord = TRANSFORM_TEX(IN.texcoord, _Tex0WithSun);
+        OUT.texcoord = TRANSFORM_TEX(IN.texcoord, _Tex0MainView);
         return OUT;
     }
 
@@ -351,10 +347,10 @@ Shader "Hidden/LookDev/Compositor"
         }
     }
 
-    float3 ComputeColor(sampler2D texNormal, sampler2D texWithoutSun, sampler2D texShadowMask, float shadowMultiplier, float4 shadowColor, float2 texcoord)
+    float3 ComputeColor(sampler2D texNormal, sampler2D texShadowMask, float shadowMultiplier, float4 shadowColor, float2 texcoord)
     {
         // Explanation of how this work:
-        // To simulate the shadow of a directional light, we want to interpolate between two environments. One with a skybox without sun for shadowed area and the other with the sun.
+        // To simulate the shadow of a directional light, we want to interpolate between two environments. One environment being the regular cubemap and the other a darkened version of the same cubemap
         // To create the lerp mask we render the scene with a white diffuse material and a single shadow casting directional light.
         // This will create a mask where the shadowed area is 0 and the lit area is 1 with a smooth NDotL transition in-between.
         // However, the DNotL will create an unwanted darkening of the scene (it's not actually part of the lighting equation)
@@ -367,9 +363,8 @@ Shader "Hidden/LookDev/Compositor"
         }
         else
         {
-            float3 colorWithoutsun = tex2D(texWithoutSun, texcoord).rgb;
             float3 shadowMask = sqrt(tex2D(texShadowMask, texcoord).rgb);
-            return lerp(colorWithoutsun * shadowColor.rgb * shadowMultiplier, color, saturate(shadowMask.r));
+            return lerp(color * shadowColor.rgb * shadowMultiplier, color, saturate(shadowMask.r));
         }
     }
 
@@ -398,7 +393,7 @@ Shader "Hidden/LookDev/Compositor"
             float4 frag(float2 texcoord : TEXCOORD0,
             UNITY_VPOS_TYPE vpos : VPOS) : COLOR
             {
-                float4 color = float4(ComputeColor(_Tex0WithSun, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1), 1.0);
+                float4 color = float4(ComputeColor(_Tex0MainView, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1), 1.0);
                 color.rgb = ApplyToneMap(color.rgb);
                 color = ComputeFeedbackColor(color, 1.0, vpos.xy, float2(0.0, 0.0), false, false);
                 return color;
@@ -416,7 +411,7 @@ Shader "Hidden/LookDev/Compositor"
             float4 frag(float2 texcoord : TEXCOORD0,
                         UNITY_VPOS_TYPE vpos : VPOS) : COLOR
             {
-                float4 color = float4(ComputeColor(_Tex1WithSun, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2), 1.0);
+                float4 color = float4(ComputeColor(_Tex1MainView, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2), 1.0);
                 color.rgb = ApplyToneMap(color.rgb);
                 color = ComputeFeedbackColor(color, -1.0, vpos.xy, float2(0.0, 0.0), false, false);
                 return color;
@@ -434,8 +429,8 @@ Shader "Hidden/LookDev/Compositor"
             float4 frag(float2 texcoord : TEXCOORD0,
             UNITY_VPOS_TYPE vpos : VPOS) : COLOR
             {
-                float3 color1 = ComputeColor(_Tex0WithSun, _Tex0WithoutSun, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1);
-                float3 color2 = ComputeColor(_Tex1WithSun, _Tex1WithoutSun, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2);
+                float3 color1 = ComputeColor(_Tex0MainView, _Tex0Shadows, ShadowMultiplier0, _ShadowColor0, texcoord) * exp2(ExposureValue1);
+                float3 color2 = ComputeColor(_Tex1MainView, _Tex1Shadows, ShadowMultiplier1, _ShadowColor1, texcoord) * exp2(ExposureValue2);
 
                 float2 normalizedCoord = ((texcoord * 2.0 - 1.0) * _ScreenRatio.xy);
 

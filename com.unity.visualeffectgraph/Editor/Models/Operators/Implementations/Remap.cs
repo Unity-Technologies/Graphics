@@ -8,20 +8,20 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Remap")]
     class Remap : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
-        [VFXSetting, SerializeField, Tooltip("Whether the values are clamped to the input/output range")]
+        [VFXSetting, SerializeField, Tooltip("When enabled, the input value is clamped between the min and max of the old range.")]
         private bool m_Clamp = false;
 
         public class InputProperties
         {
-            [Tooltip("The value to be remapped into the new range.")]
+            [Tooltip("Sets the value to be remapped into the new range.")]
             public float input = 0.5f;
-            [Tooltip("The start of the old range.")]
+            [Tooltip("Sets the start of the old input range.")]
             public float oldRangeMin = 0.0f;
-            [Tooltip("The end of the old range.")]
+            [Tooltip("Sets the end of the old input range.")]
             public float oldRangeMax = 1.0f;
-            [Tooltip("The start of the new range.")]
+            [Tooltip("Sets the start of the new remapped range.")]
             public float newRangeMin = 5.0f;
-            [Tooltip("The end of the new range.")]
+            [Tooltip("Sets the end of the new remapped range.")]
             public float newRangeMax = 10.0f;
         }
 

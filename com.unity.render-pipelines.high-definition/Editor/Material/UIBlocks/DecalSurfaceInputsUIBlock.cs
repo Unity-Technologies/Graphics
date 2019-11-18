@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AORemapMaxValue = AORemapMax.floatValue;
             maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;
 
-            HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
             bool perChannelMask = hdrp.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
             // Detect any changes to the material
@@ -304,7 +304,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
 
-                            if (unit == EmissiveIntensityUnit.Luminance)
+                            if (unit == EmissiveIntensityUnit.Nits)
                                 materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
                             else
                             {
