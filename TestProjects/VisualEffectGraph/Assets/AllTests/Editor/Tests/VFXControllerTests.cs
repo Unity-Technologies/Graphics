@@ -21,6 +21,7 @@ namespace UnityEditor.VFX.Test
 
         const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
         const string testSubgraphAssetName = "Assets/TmpTests/VFXGraphSub.vfx";
+        const string testSubgraphSubAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfx";
 
         private int m_StartUndoGroupId;
 
@@ -912,7 +913,7 @@ namespace UnityEditor.VFX.Test
             VFXViewWindow window = VFXViewWindow.GetWindow<VFXViewWindow>();
             window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName), null);
 
-            VFXConvertSubgraph.ConvertToSubgraphContext(window.graphView, window.graphView.Query<VFXContextUI>().ToList().Where(t => !(t.controller.model is VFXBasicSpawner)).Select(t => t.controller).Cast<Controller>(), Rect.zero);
+            VFXConvertSubgraph.ConvertToSubgraphContext(window.graphView, window.graphView.Query<VFXContextUI>().ToList().Where(t => !(t.controller.model is VFXBasicSpawner)).Select(t => t.controller).Cast<Controller>(), Rect.zero, testSubgraphSubAssetName);
 
             window.graphView.controller = null;
         }
