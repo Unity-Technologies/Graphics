@@ -365,6 +365,12 @@ void InitContactShadow(PositionInputs posInput, inout LightLoopContext context)
     UnpackContactShadowData(packedContactShadow, context.contactShadowFade, context.contactShadow);
 }
 
+void InvalidateConctactShadow(PositionInputs posInput, inout LightLoopContext context)
+{
+    context.contactShadowFade = 0.0;
+    context.contactShadow = 0;
+}
+
 float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowMask, float rayTracedShadow)
 {
     bool occluded = (lightLoopContext.contactShadow & contactShadowMask) != 0;

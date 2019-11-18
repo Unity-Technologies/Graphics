@@ -145,6 +145,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a number of issues with Material Quality setting
 - Fixed the transparent Cull Mode option in HD unlit master node settings only visible if double sided is ticked.
 - Fixed an issue causing shadowed areas by contact shadows at the edge of far clip plane if contact shadow length is very close to far clip plane.
+- Fixed flickering issues when moving the mouse in the editor with ray tracing on.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
