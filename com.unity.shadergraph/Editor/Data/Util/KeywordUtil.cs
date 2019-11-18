@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
         public static bool IsBuiltinKeyword(ShaderKeyword shaderKeyword)
         {
-            // Only keywords are set to uneditable
+            // Only built in keywords are set to uneditable
             return !shaderKeyword.isEditable;
         }
 

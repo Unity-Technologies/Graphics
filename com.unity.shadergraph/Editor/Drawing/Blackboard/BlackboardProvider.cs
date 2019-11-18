@@ -315,13 +315,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
                     row = new BlackboardRow(field, propertyView) { userData = input };
 
-                    if (index < 0)
+                    if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
 
-                    if (index >= m_InputRows.Count)
+                    if (index == m_InputRows.Count)
                         m_PropertySection.Add(row);
                     else
                         m_PropertySection.Insert(index, row);
+
                     break;
                 }
                 case ShaderKeyword keyword:
@@ -332,13 +333,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
                     row = new BlackboardRow(field, keywordView);
 
-                    if (index < 0)
+                    if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
 
-                    if (index >= m_InputRows.Count)
+                    if (index == m_InputRows.Count)
                         m_KeywordSection.Add(row);
                     else
                         m_KeywordSection.Insert(index, row);
+
                     break;
                 }
                 default:
