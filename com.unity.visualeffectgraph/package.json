@@ -17,7 +17,7 @@
   },    
   "samples" : [
      {
-       "displayName" : "Visual Effect Graph Additions",
+       "displayName" : "VisualEffectGraph Additions",
        "description" : "Additional Assets for use with Visual Effect Graph",
        "path" : "Samples~/VFXGraphAdditions"
      }
