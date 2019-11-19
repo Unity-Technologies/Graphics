@@ -25,6 +25,8 @@ There are properties on the master node as well as properties on the Materials t
 
 ![](Images/MasterNodeHair1.png)
 
+The following table describes the input ports on an Hair Master node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader stage](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Shader-Stage.html).
+
 | **Property**                              | **Type** | **Stage** | **Description**                                              |
 | ----------------------------------------- | -------- | --------- | ------------------------------------------------------------ |
 | **Position**                              | Vector 3 | Vertex    | The vertex position of the hair card or spline.              |
