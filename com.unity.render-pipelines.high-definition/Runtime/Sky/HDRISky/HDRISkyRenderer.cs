@@ -12,10 +12,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private static int m_RenderDepthOnlyCubemapWithBackplateID          = 4; // FragBakingBackplateDepth
         private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 5; // FragRenderBackplateDepth
 
-        int m_BackplateTypeHash  = -1;
-        int m_BackplateScaleHash = -1;
-        int m_HDRISkyHash        = -1;
-
         public HDRISkyRenderer()
         {
         }
