@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
                 // We can't have refraction in pre-refraction queue
                 var canHaveRefraction = !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
-                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
+                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box || refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }

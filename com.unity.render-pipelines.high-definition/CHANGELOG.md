@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a transmission multiplier for directional lights
 - Added XR single-pass test mode to Render Pipeline Debug Window
 - Added debug setting to Render Pipeline Window to list the active XR views
+- Added a new refraction mode for the Lit shader (thin). Which is a box refraction with small thickness values
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
