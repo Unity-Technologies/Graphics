@@ -28,5 +28,5 @@ VFXView #no-asset
 
 VFXView #no-asset *
 {
-    margin-top:128;
+    margin-top:128px;
 }
