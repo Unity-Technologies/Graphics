@@ -165,6 +165,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FrameSettings multi-edition.
 - Fixed a bug happening when denoising multiple ray traced light shadows
 - Fixed minor naming issues in ShaderGraph settings
+- VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
+- VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

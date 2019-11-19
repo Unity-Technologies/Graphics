@@ -90,6 +90,19 @@ namespace UnityEditor.VFX
             get
             {
                 var attribute = VFXAttribute.Find(this.attribute);
+
+                var field = typeof(VFXAttribute).GetField(attribute.name.Substring(0, 1).ToUpper() + attribute.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+
+                TooltipAttribute tooltip = null;
+
+                if (field != null)
+                    tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
+
+
+                VFXPropertyAttribute[] attr = null;
+                if( tooltip != null)
+                    attr = VFXPropertyAttribute.Create(tooltip);
+
                 if (attribute.variadic == VFXVariadic.True)
                 {
                     Type slotType = null;
@@ -103,11 +116,11 @@ namespace UnityEditor.VFX
                     }
 
                     if (slotType != null)
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, attribute.name));
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, attribute.name, attr));
                 }
                 else
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(attribute.type), attribute.name));
+                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(attribute.type), attribute.name, attr));
                 }
             }
         }
