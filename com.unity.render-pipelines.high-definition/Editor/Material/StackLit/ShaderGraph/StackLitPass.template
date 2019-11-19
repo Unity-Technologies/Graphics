@@ -141,12 +141,14 @@ Pass
     // _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
 
 
+    #define _DISABLE_SSR 0 // We need to define it all the time since we cannot set a uniform _ReceivesSSR without serialization issues
     // Common shader_features:
 
     $AlphaFog:                                           #define _ENABLE_FOG_ON_TRANSPARENT
 
     $DisableDecals:                                      #define _DISABLE_DECALS
-    $DisableSSR:                                         #define _DISABLE_SSR
+    $DisableSSR:                                         #undef _DISABLE_SSR
+    $DisableSSR:                                         #define _DISABLE_SSR 1
     $AddPrecomputedVelocity:                           #define _ADD_PRECOMPUTED_VELOCITY
 
     // StackLit shader_features:
