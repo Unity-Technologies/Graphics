@@ -37,6 +37,7 @@
   * [HDRP Asset](HDRP-Asset)
   * [Frame Settings](Frame-Settings)
   * [Default Settings](Default-Settings-Window)
+  * [HDRP Config Package](HDRP-Config-Package)
 * Materials
   * [Alpha Clipping](Alpha-Clipping)
   * [Ambient Occlusion](Ambient-Occlusion)

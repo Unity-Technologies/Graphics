@@ -348,9 +348,7 @@ namespace UnityEngine.Rendering
             return hashCode;
         }
     }
-
-
-
+    
     public static class BitArrayUtilities
     {
         //written here to not duplicate the serialized accessor and runtime accessor
@@ -370,6 +368,7 @@ namespace UnityEngine.Rendering
             : index < 192u
                 ? (data3 & (1uL << (int)(index - 128u))) != 0uL
                 : (data4 & (1uL << (int)(index - 192u))) != 0uL;
+
         public static void Set8(uint index, ref byte data, bool value) => data = (byte)(value ? (data | (1u << (int)index)) : (data & ~(1u << (int)index)));
         public static void Set16(uint index, ref ushort data, bool value) => data = (ushort)(value ? (data | (1u << (int)index)) : (data & ~(1u << (int)index)));
         public static void Set32(uint index, ref uint data, bool value) => data = (value ? (data | (1u << (int)index)) : (data & ~(1u << (int)index)));

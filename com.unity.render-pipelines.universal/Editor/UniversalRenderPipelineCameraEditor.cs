@@ -1056,4 +1056,20 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.EndProperty();
         }
     }
+
+    [ScriptableRenderPipelineExtension(typeof(UniversalRenderPipelineAsset))]
+    class UniversalRenderPipelineCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
+    {
+        //The call is delayed to the dispatcher to solve conflict with other SRP
+        public void RemoveComponent(Camera camera)
+        {
+            Undo.SetCurrentGroupName("Remove Universal Camera");
+            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+            if (additionalCameraData)
+            {
+                Undo.DestroyObjectImmediate(additionalCameraData);
+            }
+            Undo.DestroyObjectImmediate(camera);
+        }
+    }
 }
