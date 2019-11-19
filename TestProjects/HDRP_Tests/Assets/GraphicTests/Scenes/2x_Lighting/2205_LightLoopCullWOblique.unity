@@ -643,7 +643,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &117757305
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -764,7 +763,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -955,7 +954,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -1207,7 +1206,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -1337,7 +1336,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -1528,7 +1527,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -1710,7 +1709,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &193100034
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -1831,7 +1829,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -1982,7 +1980,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &232172517
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2141,7 +2138,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &267185491
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2243,7 +2239,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!4 &267971749
 Transform:
   m_ObjectHideFlags: 0
@@ -2750,7 +2745,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &333033223
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2947,7 +2941,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!4 &392544705
 Transform:
   m_ObjectHideFlags: 0
@@ -3033,7 +3026,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &394574908
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -3154,7 +3146,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -3345,7 +3337,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -3536,7 +3528,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -3806,7 +3798,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &737846365
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -3927,7 +3918,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -4140,7 +4131,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &892709768
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -4246,55 +4236,6 @@ Transform:
   m_Father: {fileID: 364477209}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1025975508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  rotation:
-    m_OverrideState: 0
-    m_Value: 200
-    min: 0
-    max: 360
-  skyIntensityMode:
-    m_OverrideState: 0
-    m_Value: 0
-  exposure:
-    m_OverrideState: 0
-    m_Value: 0
-  multiplier:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  upperHemisphereLuxValue:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0
-  desiredLuxValue:
-    m_OverrideState: 0
-    m_Value: 20000
-  updateMode:
-    m_OverrideState: 0
-    m_Value: 0
-  updatePeriod:
-    m_OverrideState: 0
-    m_Value: 0
-    min: 0
-  includeSunInBaking:
-    m_OverrideState: 0
-    m_Value: 0
-  hdriSky:
-    m_OverrideState: 0
-    m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!1 &1052023017
 GameObject:
   m_ObjectHideFlags: 0
@@ -4367,7 +4308,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1052023020
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -4502,7 +4442,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -4652,7 +4592,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1108849459
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -5251,7 +5190,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -5401,7 +5340,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1323984022
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -5512,7 +5450,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1374533158
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -5614,7 +5551,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1480482788
 GameObject:
   m_ObjectHideFlags: 0
@@ -5686,7 +5622,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1480482791
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -5838,7 +5773,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -6044,6 +5979,55 @@ Transform:
   m_Father: {fileID: 1290275622}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
+--- !u!114 &1818225077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59b6606ef2548734bb6d11b9d160bc7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  rotation:
+    m_OverrideState: 0
+    m_Value: 200
+    min: 0
+    max: 360
+  skyIntensityMode:
+    m_OverrideState: 0
+    m_Value: 0
+  exposure:
+    m_OverrideState: 0
+    m_Value: 0
+  multiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  upperHemisphereLuxValue:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  desiredLuxValue:
+    m_OverrideState: 0
+    m_Value: 20000
+  updateMode:
+    m_OverrideState: 0
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  includeSunInBaking:
+    m_OverrideState: 0
+    m_Value: 0
+  hdriSky:
+    m_OverrideState: 0
+    m_Value: {fileID: 8900000, guid: fb0bf2eac2381484187ba8a68cdca165, type: 3}
 --- !u!1 &1825048013
 GameObject:
   m_ObjectHideFlags: 0
@@ -6123,7 +6107,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!4 &1825048016
 Transform:
   m_ObjectHideFlags: 0
@@ -6273,7 +6256,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1876196548
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -6394,7 +6376,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -6544,7 +6526,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &1964006701
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -6665,7 +6646,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -6856,7 +6837,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -7047,7 +7028,7 @@ MonoBehaviour:
   m_RayTracedContactShadow: 0
   m_ShadowTint: {r: 0, g: 0, b: 0, a: 1}
   m_NormalBias: 0.75
-  m_ConstantBias: 0.15
+  m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
   m_ShadowCascadeRatios:
   - 0.05
@@ -7181,6 +7162,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: xrLayout
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: xrThresholdMultiplier
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
       propertyPath: m_Version
@@ -7190,11 +7181,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RenderingPathCustomFrameSettings.bitDatas.data1
       value: 70005818916701
-      objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: xrLayout
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
@@ -7269,7 +7255,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &2140150471
 MeshFilter:
   m_ObjectHideFlags: 0

@@ -48,6 +48,9 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
 [shader("anyhit")]
 void AnyHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
+#ifdef _SURFACE_TYPE_TRANSPARENT
+    IgnoreHit();
+#else
     // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentvertex;
     GetCurrentIntersectionVertex(attributeData, currentvertex);
@@ -73,4 +76,5 @@ void AnyHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayP
     {
         IgnoreHit();
     }
+#endif
 }

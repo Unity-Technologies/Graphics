@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             int indentLevel = 0;
 
-            ps.Add(new PropertyRow(CreateLabel("Affects Albedo", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel("Affect BaseColor", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
