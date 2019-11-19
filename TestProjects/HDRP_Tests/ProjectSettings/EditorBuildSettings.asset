@@ -365,6 +365,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4037_TonemappingExternal.unity
     guid: a29cfd59900da92428e1dc1fa215b260
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4038_Bloom.unity
+    guid: 38edf17699ac89749b4f368a23b34457
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4050_FXAA.unity
     guid: 736a5167224854841be61166040606c6
@@ -374,6 +377,27 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4060_CustomPostProcess.unity
     guid: cf78ea2211e5e6c45b8a85261bb291dd
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4070_PhysicalCamera-iso-aperture-shutter.unity
+    guid: cc0be4a72d37601449a16c2d168ac449
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4071_PhysicalCamera-Aperture-bladeCount.unity
+    guid: 842b41a0b734f7744870a951a35f6d9e
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4072_PhysicalCamera-Aperture-curvature.unity
+    guid: a7cd68611a456484baf555290cba8d67
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4073_PhysicalCamera-Aperture-barrelClipping.unity
+    guid: eb4329adb36623e4a8aa4f0a72b36203
+  - enabled: 0
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4074_PhysicalCamera-Aperture-anamorphism.unity
+    guid: 9a927a8eae77a07438f6e55cb7c03820
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4075_PhysicalCamera-gateFit.unity
+    guid: c117ad53f0d031344b1a2e850c7e5eac
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4076_PhysicalCamera-lensShift.unity
+    guid: fc67c672737bf414d89053dc0d980bff
   - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
