@@ -50,9 +50,10 @@ linux_apis:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    {% endif %} 
-    image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+    model: rtx2080
+    {% endif %}
+    image: {{ platform.image }}
+    flavor: {{ platform.flavor}}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
