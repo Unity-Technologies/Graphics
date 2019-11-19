@@ -207,18 +207,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateCurrentSkySettings(HDCamera hdCamera)
         {
             hdCamera.UpdateCurrentSky(this);
-            }
+        }
 
         public void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
-            {
+        {
             if (IsCachedContextValid(hdCamera.lightingSky))
-                {
+            {
                 var renderer = m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId].renderer;
                 if (renderer != null)
-            {
+                {
                     renderer.SetGlobalSkyData(cmd, hdCamera.lightingSky.skySettings);
+                }
             }
-        }
         }
 
 #if UNITY_EDITOR
@@ -756,6 +756,49 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
             }
         }
+        internal void GetBuiltinParameters(out BuiltinSkyParameters skyParams, SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        {
+            skyParams = new BuiltinSkyParameters();
+            skyParams.hdCamera                  = hdCamera;
+            skyParams.commandBuffer             = cmd;
+            skyParams.sunLight                  = sunLight;
+            skyParams.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+            skyParams.worldSpaceCameraPos       = hdCamera.mainViewConstants.worldSpaceCameraPos;
+            skyParams.viewMatrix                = hdCamera.mainViewConstants.viewMatrix;
+            skyParams.screenSize                = hdCamera.screenSize;
+            skyParams.colorBuffer               = colorBuffer;
+            skyParams.depthBuffer               = depthBuffer;
+            skyParams.debugSettings             = debugSettings;
+            skyParams.frameIndex                = frameIndex;
+            skyParams.skySettings               = skyContext.skySettings;
+        }
+
+        public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
+        {
+            var skyContext = hdCamera.visualSky;
+            if (skyContext.IsValid())
+            {
+                GetBuiltinParameters(out m_BuiltinParameters,
+                                        skyContext,
+                                        hdCamera,
+                                        sunLight,
+                                        colorBuffer,
+                                        depthBuffer,
+                                        debugSettings,
+                                        frameIndex,
+                                        cmd);
+
+                int skyHash = ComputeSkyHash(skyContext, sunLight, SkyAmbientMode.Static);
+                AcquireSkyRenderingContext(skyContext, skyHash);
+                var cachedContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId];
+                cachedContext.renderer.DoUpdate(m_BuiltinParameters);
+                if (depthBuffer == BuiltinSkyParameters.nullRT)
+                {
+                    CoreUtils.SetRenderTarget(cmd, depthBuffer);
+                }
+                cachedContext.renderer.PreRenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
+            }
+        }
 
         public void RenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
@@ -764,18 +807,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingSample(cmd, "Sky Pass"))
                 {
-                    m_BuiltinParameters.hdCamera = hdCamera;
-                    m_BuiltinParameters.commandBuffer = cmd;
-                    m_BuiltinParameters.sunLight = sunLight;
-                    m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                    m_BuiltinParameters.worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                    m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
-                    m_BuiltinParameters.screenSize = hdCamera.screenSize;
-                    m_BuiltinParameters.colorBuffer = colorBuffer;
-                    m_BuiltinParameters.depthBuffer = depthBuffer;
-                    m_BuiltinParameters.debugSettings = debugSettings;
-                    m_BuiltinParameters.frameIndex = frameIndex;
-                    m_BuiltinParameters.skySettings = skyContext.skySettings;
+                    GetBuiltinParameters(out m_BuiltinParameters,
+                                         skyContext,
+                                         hdCamera,
+                                         sunLight,
+                                         colorBuffer,
+                                         depthBuffer,
+                                         debugSettings,
+                                         frameIndex,
+                                         cmd);
 
                     SkyAmbientMode ambientMode = VolumeManager.instance.stack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
                     int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
@@ -795,7 +835,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // If the luxmeter is enabled, we don't render the sky
                     if (debugSettings.data.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
-        {
+                    {
                         // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
                         cachedContext.renderer.RenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking.value);
                     }

@@ -451,6 +451,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
         public static readonly int _InvOmegaP = Shader.PropertyToID("_InvOmegaP");
         public static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
+        public static readonly int _BackplateParameters0 = Shader.PropertyToID("_BackplateParameters0");
+        public static readonly int _BackplateParameters1 = Shader.PropertyToID("_BackplateParameters1");
+        public static readonly int _BackplateParameters2 = Shader.PropertyToID("_BackplateParameters2");
+        public static readonly int _BackplateShadowTint = Shader.PropertyToID("_BackplateShadowTint");
+        public static readonly int _BackplateShadowFilter = Shader.PropertyToID("_BackplateShadowFilter");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
@@ -900,6 +905,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         public const string kReceivesSSR = "_ReceivesSSR";
         public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
+        public const string kShadowMatteFilter = "_ShadowMatteFilter";
 
         public static readonly Color[] kLayerColors =
         {
