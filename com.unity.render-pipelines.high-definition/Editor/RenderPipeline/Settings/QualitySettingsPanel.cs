@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     makeItem = () => new HDRPAssetHeaderEntry(),
                 };
                 m_HDRPAssetList.AddToClassList("unity-quality-header-list");
-                m_HDRPAssetList.style.height = 200;
+
 #if UNITY_2020_1_OR_NEWER
                 m_HDRPAssetList.onSelectionChange += OnSelectionChange;
 #else
