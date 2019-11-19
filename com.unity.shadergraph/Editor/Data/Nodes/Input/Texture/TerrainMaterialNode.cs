@@ -1,19 +1,17 @@
-using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
 using System.Collections.Generic;
-using System;
-using System.Globalization;
-using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.UIElements;
+
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Texture", "Sample Terrain Material")]
-    class SampleTerrainMaterialNode : AbstractMaterialNode, IGeneratesBodyCode        //, IMayRequireMeshUV
+    class SampleTerrainMaterialNodeBase : AbstractMaterialNode, IGeneratesBodyCode, IHasSettings
     {
         public const int WorldPosInputId = 0;
-//        public const int MipLevelInputId = 1;         // TODO: add mip bias as optional input ?
+        public const int MipLevelInputId = 1;         // TODO: add mip bias as optional input ?
         public const int AlbedoOutputId = 2;
         public const int NormalOutputId = 3;
         public const int SmoothnessOutputId = 4;
@@ -22,7 +20,7 @@ namespace UnityEditor.ShaderGraph
         public const int FeedbackSlotId = 7;
 
         const string WorldPosInputName = "Position";
-//        const string MipLevelInputName = "MipLevel";
+        const string MipLevelInputName = "MipLevel";
         const string AlbedoOutputName = "Color";
         const string NormalOutputName = "Normal";
         const string SmoothnessOutputName = "Smoothness";
@@ -32,11 +30,31 @@ namespace UnityEditor.ShaderGraph
 
         int[] liveIds;
 
-        public override bool hasPreview { get { return false; } }
+        [SerializeField]
+        bool useFeedback = true;
 
-        public SampleTerrainMaterialNode()
+        [SerializeField]
+        string textureStackName = "_TerrainTextureStack";
+
+        internal enum MipCalculation
         {
-            name = "Sample Terrain Height";
+            Default,
+            Explicit
+        };
+
+        [SerializeField]
+        MipCalculation mipCalculation = MipCalculation.Default;
+
+        public override bool hasPreview { get { return false; } }
+        private bool explicitMip { get { return (mipCalculation == MipCalculation.Explicit); } }
+
+        public SampleTerrainMaterialNodeBase(MipCalculation mipCalculation)
+        {
+            this.mipCalculation = mipCalculation;
+            if (explicitMip)
+                name = "Sample Terrain Material LOD";
+            else
+                name = "Sample Terrain Material";
             UpdateNodeAfterDeserialization();
         }
         public override void UpdateNodeAfterDeserialization()
@@ -44,7 +62,8 @@ namespace UnityEditor.ShaderGraph
             // Allocate IDs
             List<int> usedSlots = new List<int>();
             usedSlots.Add(WorldPosInputId);
-//            usedSlots.Add(MipLevelInputId);
+            if (explicitMip)
+                usedSlots.Add(MipLevelInputId);
             usedSlots.Add(AlbedoOutputId);
             usedSlots.Add(NormalOutputId);
             usedSlots.Add(SmoothnessOutputId);
@@ -56,7 +75,8 @@ namespace UnityEditor.ShaderGraph
 
             // Create slots
             AddSlot(new PositionMaterialSlot(WorldPosInputId, WorldPosInputName, WorldPosInputName, CoordinateSpace.AbsoluteWorld));        // TODO: not absolute world!  use relative world
-                                                                                                                                            //            AddSlot(new Vector1MaterialSlot(MipLevelInputId, MipLevelInputName, MipLevelInputName, SlotType.Input, 0.0f));
+            if (explicitMip)
+                AddSlot(new Vector1MaterialSlot(MipLevelInputId, MipLevelInputName, MipLevelInputName, SlotType.Input, 0.0f));
 
             AddSlot(new Vector3MaterialSlot(AlbedoOutputId, AlbedoOutputName, AlbedoOutputName, SlotType.Output, Vector3.one));
             AddSlot(new Vector3MaterialSlot(NormalOutputId, NormalOutputName, NormalOutputName, SlotType.Output, new Vector3(0.0f, 1.0f, 0.0f)));
@@ -82,9 +102,26 @@ namespace UnityEditor.ShaderGraph
             get { return PreviewMode.Preview3D; }
         }
 
+        public VisualElement CreateSettingsElement()
+        {
+            PropertySheet ps = new PropertySheet();
+
+            var toggle = new Toggle("Use Virtual Texture Feedback");
+            toggle.value = useFeedback;
+            toggle.RegisterValueChangedCallback((t) => { useFeedback = t.newValue; });
+            ps.Add(toggle);
+
+            var strField = new UnityEngine.UIElements.TextField("Texture Stack Name");
+            strField.value = textureStackName;
+            strField.RegisterValueChangedCallback((t) => { textureStackName = t.newValue; });
+            ps.Add(strField);
+
+            return ps;
+        }
+
         string GetTerrainMaterialStackName()
         {
-            return "MaterialStack";        // TODO: this should be set based on the name of the Terrain system -- so we can have multiple terrains
+            return textureStackName;
         }
 
         string GetTerrainAlbedoLayerName()
@@ -123,9 +160,20 @@ namespace UnityEditor.ShaderGraph
 
             if (outputConnected || feedbackConnected)
             {
-                string result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0});"
+                string result;
+                if (explicitMip)
+                {
+                    result = string.Format("StackInfo {0}_info = PrepareStack_Lod(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0}, {2});"
+                            , stackName
+                            , GetSlotValue(WorldPosInputId, generationMode)
+                            , GetSlotValue(MipLevelInputId, generationMode));
+                }
+                else
+                {
+                    result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_worldToUVTransform.xy + {0}_worldToUVTransform.zw, {0});"
                         , stackName
                         , GetSlotValue(WorldPosInputId, generationMode));
+                }
                 sb.AppendLine(result);
             }
 
@@ -134,28 +182,31 @@ namespace UnityEditor.ShaderGraph
                 // TODO : the decoding here needs to match what the pixel cache
                 if (IsSlotConnected(AlbedoOutputId))
                 {
-                    string albedo = string.Format("$precision3 {0} = SampleStack({1}_info, {2});"
+                    string albedo = string.Format("$precision3 {0} = {3}({1}_info, {2});"
                             , GetVariableNameForSlot(AlbedoOutputId)
                             , stackName
-                            , GetTerrainAlbedoLayerName());
+                            , GetTerrainAlbedoLayerName()
+                            , explicitMip ? "SampleStack_Lod" : "SampleStack");
                     sb.AppendLine(albedo);
                 }
 
                 if (IsSlotConnected(NormalOutputId))
                 {
-                    string normal = string.Format("$precision3 {0} = SampleStack({1}_info, {2});"
+                    string normal = string.Format("$precision3 {0} = {3}({1}_info, {2});"
                             , GetVariableNameForSlot(NormalOutputId)
                             , stackName
-                            , GetTerrainNormalLayerName());
+                            , GetTerrainNormalLayerName()
+                            , explicitMip ? "SampleStack_Lod" : "SampleStack");
                     sb.AppendLine(normal);
                 }
 
                 if (specularConnected)
                 {
-                    string specular = string.Format("$precision4 {0} = SampleStack({1}_info, {2});"
+                    string specular = string.Format("$precision4 {0} = {3}({1}_info, {2});"
                             , "specularSample"
                             , stackName
-                            , GetTerrainSpecularLayerName());
+                            , GetTerrainSpecularLayerName()
+                            , explicitMip ? "SampleStack_Lod" : "SampleStack");
                     sb.AppendLine(specular);
 
                     if (IsSlotConnected(SmoothnessOutputId))
@@ -222,6 +273,21 @@ namespace UnityEditor.ShaderGraph
                 slotNames = slotNames
             });
         }
+    }
+
+    [Title("Input", "Texture", "Sample Terrain Material")]
+    class SampleTerrainMaterialNode : SampleTerrainMaterialNodeBase
+    {
+        public SampleTerrainMaterialNode() : base(MipCalculation.Default)
+        { }
+    }
+
+
+    [Title("Input", "Texture", "Sample Terrain Material LOD")]
+    class SampleTerrainMaterialLODNode : SampleTerrainMaterialNodeBase
+    {
+        public SampleTerrainMaterialLODNode() : base(MipCalculation.Explicit)
+        { }
     }
 
 }
