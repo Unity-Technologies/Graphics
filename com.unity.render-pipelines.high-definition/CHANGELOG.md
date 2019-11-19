@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FrameSettings multi-edition.
 - Fixed a bug happening when denoising multiple ray traced light shadows
 - Fixed minor naming issues in ShaderGraph settings
+- Fixed an issue with Metal Shader Compiler and GTAO shader for metal
 - Fixed LOD fade mask by accounting for field of view
 
 ### Changed
