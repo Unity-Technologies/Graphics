@@ -16,8 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added after post process injection point for custom passes
 - Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
 - Added falloff distance on Reflection Probe and Planar Reflection Probe
-- Added Backplate projection from the HDRISky
-- Added Shadow Matte in UnlitMasterNode, which only received shadow without lighting
 - Added hability to name LightLayers in HDRenderPipelineAsset
 - Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
 - Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
@@ -25,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added more detailed ray tracing stats in the debug window
 - Added Disc area light (bake only)
 - Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
+- Added Backplate projection from the HDRISky
+- Added Shadow Matte in UnlitMasterNode, which only received shadow without lighting
 - Added XR single-pass setting into HDRP asset
 - Added a penumbra tint option for lights
 - Added support for depth copy with XR SDK
