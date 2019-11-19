@@ -139,6 +139,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #endif
 	
 	${VFXLoadSize}
+#if HAS_STRIPS
+	size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
+#endif
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(
 		attributes.axisX,
