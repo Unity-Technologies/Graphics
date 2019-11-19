@@ -98,6 +98,7 @@ namespace UnityEditor.VFX.UI
             Add(content);
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+            visible = false;
         }
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -192,6 +193,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_WaitingRecompute)
                 return;
+            visible = true;
             //title width should be at least as wide as a context to be valid.
             float titleWidth = m_Title.layout.width;
             bool invalidTitleWidth = float.IsNaN(titleWidth) || titleWidth < 50;

@@ -8,9 +8,11 @@ namespace UnityEngine.Rendering
         /// <summary>Default GlobalXRSettings</summary>
         public static readonly GlobalXRSettings @default = new GlobalXRSettings()
         {
+            singlePass = true,
             occlusionMesh = true
         };
 
+        public bool singlePass;
         public bool occlusionMesh;
     }
 }

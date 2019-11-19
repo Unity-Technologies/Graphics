@@ -31,6 +31,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if UNITY_EDITOR
+        private int m_Layer;
+#endif
+
         [SerializeField]
         private float m_DrawDistance = 1000.0f;
         /// <summary>
@@ -224,6 +228,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
+#if UNITY_EDITOR
+            m_Layer = gameObject.layer;
+#endif
             m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
         }
 
@@ -249,13 +256,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 // handle material changes, because decals are stored as sets sorted by material, if material changes decal needs to be removed and re-added to that it goes into correct set
                 if (m_OldMaterial != m_Material)
                 {
-                    DecalSystem.instance.RemoveDecal(m_Handle);
-                    m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
-                    m_OldMaterial = m_Material;
-
-                    if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                    if (m_OldMaterial != null)
                     {
-                        m_AffectsTransparency = false;
+                        DecalSystem.instance.RemoveDecal(m_Handle);
+                    }
+
+                    if (m_Material != null)
+                    {
+                        m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+
+                        if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
+                        {
+                            m_AffectsTransparency = false;
+                        }
                     }
 
                     // notify the editor that material has changed so it can update the shader foldout
@@ -263,6 +276,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         OnMaterialChange();
                     }
+
+                    m_OldMaterial = m_Material;
                 }
                 else // no material change, just update whatever else changed
                 {
@@ -270,6 +285,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+#if UNITY_EDITOR
+        void Update() // only run in editor
+        {
+            if(m_Layer != gameObject.layer)
+            {
+                Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
+                m_Layer = gameObject.layer;
+                DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
+            }
+        }
+#endif
 
         void LateUpdate()
         {

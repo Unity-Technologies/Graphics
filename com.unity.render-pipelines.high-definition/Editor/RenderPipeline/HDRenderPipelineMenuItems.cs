@@ -430,6 +430,14 @@ namespace UnityEditor.Rendering.HighDefinition
             return anyMaterialDirty;
         }
 
+        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateGlobalVolume(MenuCommand menuCommand)
+        {
+            var go = CoreEditorUtils.CreateGameObject("Custom Pass", menuCommand.context);
+            var volume = go.AddComponent<CustomPassVolume>();
+            volume.isGlobal = true;
+        }
+
         class UnityContextualLogHandler : ILogHandler
         {
             UnityObject m_Context;

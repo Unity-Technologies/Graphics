@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 if (m_Node.distortion.isOn)
                 {
                     ++indentLevel;
-                    ps.Add(new PropertyRow(CreateLabel("Mode", indentLevel)), (row) =>
+                    ps.Add(new PropertyRow(CreateLabel("Distortion Blend Mode", indentLevel)), (row) =>
                     {
                         row.Add(new EnumField(DistortionMode.Add), (field) =>
                         {
@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                             toggle.OnToggleChanged(ChangeDistortionOnly);
                         });
                     });
-                    ps.Add(new PropertyRow(CreateLabel("Depth Test", indentLevel)), (row) =>
+                    ps.Add(new PropertyRow(CreateLabel("Distortion Depth Test", indentLevel)), (row) =>
                     {
                         row.Add(new Toggle(), (toggle) =>
                         {
@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     --indentLevel;
                 }
 
-                ps.Add(new PropertyRow(CreateLabel("ZWrite", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Depth Write", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
                     {
@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     });
                 });
 
-                if (m_Node.doubleSided.isOn)
+                if (!m_Node.doubleSided.isOn)
                 {
                     ps.Add(new PropertyRow(CreateLabel("Cull Mode", indentLevel)), (row) =>
                     {
@@ -178,7 +178,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     });
                 }
 
-                ps.Add(new PropertyRow(CreateLabel("Z Test", indentLevel)), (row) =>
+                ps.Add(new PropertyRow(CreateLabel("Depth Test", indentLevel)), (row) =>
                 {
                     row.Add(new EnumField(m_Node.zTest), (e) =>
                     {

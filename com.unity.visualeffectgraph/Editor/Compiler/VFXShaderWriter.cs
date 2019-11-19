@@ -405,7 +405,7 @@ namespace UnityEditor.VFX
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            WriteFormat("nointerpolation {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName,semantic);
+            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName,semantic);
         }
 
         public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames)

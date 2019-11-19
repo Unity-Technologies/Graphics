@@ -1,0 +1,10 @@
+{
+	SubShader
+	{	
+		Cull Off
+		
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/PassSelection.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/PassDistortion.template")}
+	}
+}

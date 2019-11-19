@@ -135,13 +135,6 @@ namespace UnityEditor.VFX.UI
                     m_SelectionBorder.style.borderLeftWidth =
                         m_SelectionBorder.style.borderRightWidth = (m_Selected ? 2 : (m_Hovered ? 1 : 0));
 
-            /*
-            m_SelectionBorder.style.borderBottom =
-                m_SelectionBorder.style.borderTop =
-                    m_SelectionBorder.style.borderLeft =
-                        m_SelectionBorder.style.borderRight = (m_Selected ? 1 : (m_Hovered ? 1 : 0));*/
-
-
             m_SelectionBorder.style.borderBottomColor =
                 m_SelectionBorder.style.borderTopColor =
                     m_SelectionBorder.style.borderLeftColor =
@@ -273,6 +266,8 @@ namespace UnityEditor.VFX.UI
 
             var newAnchors = ports.Except(existingAnchors.Keys).ToArray();
 
+
+            VFXDataAnchor firstAnchor = null;
             foreach (var newController in newAnchors)
             {
                 Profiler.BeginSample("VFXNodeUI.InstantiateDataAnchor");
@@ -283,7 +278,12 @@ namespace UnityEditor.VFX.UI
 
                 container.Add(newElement);
                 existingAnchors[newController] = newElement;
+                if (firstAnchor == null)
+                    firstAnchor = newElement as VFXDataAnchor;
             }
+
+            if (firstAnchor != null)
+                firstAnchor.AddToClassList("first");
             Profiler.EndSample();
 
             Profiler.BeginSample("VFXNodeUI.SyncAnchors Reorder");

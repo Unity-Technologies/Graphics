@@ -98,6 +98,7 @@ The workspace can be navigated using common controls, here is a recap of all act
   * Ctrl+X (Cut) 
   * Ctrl+V (Paste) 
   * Ctrl+D (Duplicate)
+  * Ctrl+Alt+D (Duplicate with edges)
 
 ### Adding Graph Elements
 

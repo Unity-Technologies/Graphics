@@ -18,7 +18,14 @@ namespace UnityEditor.VFX
 
         // Caps
         public override bool supportsExposure { get { return true; } } 
-        public override bool supportsMotionVector { get { return true; } }
+        public override bool supportsMotionVector
+        {
+            get
+            {
+                return transparentRenderQueue != TransparentRenderQueue.LowResolution
+                    && transparentRenderQueue != TransparentRenderQueue.AfterPostProcessing;
+            }
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -65,7 +72,7 @@ namespace UnityEditor.VFX
                 renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
             }
 
-            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.useAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
+            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
             return prefix + renderQueue.ToString("+#;-#;+0");
         }
 
