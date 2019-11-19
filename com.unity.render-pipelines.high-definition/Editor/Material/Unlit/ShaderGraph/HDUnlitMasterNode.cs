@@ -226,7 +226,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_DoubleSided == value.isOn)
                     return;
                 m_DoubleSided = value.isOn;
-                Dirty(ModificationScope.Graph);
+                Dirty(ModificationScope.Topological);
             }
         }
 

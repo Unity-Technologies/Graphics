@@ -4,17 +4,16 @@ DiffusionProfileSlotControlView {
 }
 
 .unity-base-field {
-     width: 100;
-    margin-top: 1;
-    margin-bottom: 1;
+     width: 100px;
+    margin-top: 1px;
+    margin-bottom: 1px;
 }
 
 .unity-base-field__input{
-    margin-top: 0;
-    margin-bottom: 0;
-    margin-left: 0;
-    margin-right: 0;
-    text-alignment: middle-left;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 .unity-object-field__object{

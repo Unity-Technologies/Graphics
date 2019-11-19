@@ -58,8 +58,9 @@ namespace UnityEditor.Rendering.Universal
         public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && settings.isBakedOrMixed; } }
         public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && settings.isBakedOrMixed; } }
         public bool shadowOptionsValue { get { return shadowTypeIsSame && lightProperty.shadows != LightShadows.None; } }
-
+#pragma warning disable 618
         public bool bakingWarningValue { get { return !UnityEditor.Lightmapping.bakedGI && lightmappingTypeIsSame && settings.isBakedOrMixed; } }
+#pragma warning restore 618
         public bool showLightBounceIntensity { get { return true; } }
 
         public bool isShadowEnabled { get { return settings.shadowsType.intValue != 0; } }

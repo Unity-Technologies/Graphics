@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             LoadMaterialProperties(props);
 
