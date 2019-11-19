@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         [SerializeField, FormerlySerializedAs("angularDiameter")]
-        float m_AngularDiameter = 0;
+        float m_AngularDiameter = 0.5f;
         /// <summary>
         /// Angular diameter of the emissive celestial body represented by the light as seen from the camera (in degrees).
         /// Used to render the sun/moon disk.
@@ -1705,7 +1705,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float softness = 0.0f;
             if (lightType == HDLightType.Directional)
             {
-                
+
                 var devProj = shadowRequest.deviceProjection;
                 Vector3 frustumExtents = new Vector3(
                     2.0f * (devProj.m00 * devProj.m33 - devProj.m03 * devProj.m30) /
