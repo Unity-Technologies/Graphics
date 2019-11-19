@@ -227,7 +227,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CreateVolumetricLightingBuffers();
         }
 
-        // RTHandleSystem API expects a function which computes the resolution. We define it here.
+        // RTHandleSystem API expects a function that computes the resolution. We define it here.
+        // Note that the RTHandleSytem never reduces the size of the render target.
+        // Therefore, if this function returns a smaller resolution, the size of the render target will not change.
         Vector2Int ComputeVBufferResolutionXY(Vector2Int screenSize)
         {
             Vector3Int resolution = ComputeVBufferResolution(volumetricLightingPreset, screenSize.x, screenSize.y);
@@ -279,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          controller.sliceDistributionUniformity.value);
         }
 
-        internal void InitializeVolumetricLightingPerCameraData(HDCamera hdCamera, int bufferCount, RTHandleSystem mainRTHandleSystem)
+        internal void InitializeVolumetricLightingPerCameraData(HDCamera hdCamera, int bufferCount)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics))
                 return;
@@ -294,27 +296,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
             {
-                frameIndex &= 1;
+                frameIndex &= 1; // 0 or 1
 
                 int d = ComputeVBufferSliceCount(volumetricLightingPreset);
 
-                Vector2Int ComputeHistoryVBufferResolutionXY(Vector2Int screenSize)
-                {
-                    Vector2Int resolution = ComputeVBufferResolutionXY(screenSize);
-                    // Since the buffers owned by the VolumetricLightingSystem may have different lifetimes compared
-                    // to those owned by the HDCamera, we need to make sure that the buffer resolution is the same
-                    // (in order to share the UV scale and the UV limit).
-                    // So we compute both resolution from the HDCamera RTHandleSystem and the main RTHandleSystem (passed as a parameters) and choose the biggest one.
-                    Vector2Int mainRTHandleResolution = ComputeVBufferResolutionXY(rtHandleSystem.rtHandleProperties.currentRenderTargetSize);
-
-                    resolution.x = Math.Max(resolution.x, mainRTHandleResolution.x);
-                    resolution.y = Math.Max(resolution.y, mainRTHandleResolution.y);
-
-                    return resolution;
-                }
-
-
-                return rtHandleSystem.Alloc(scaleFunc: ComputeHistoryVBufferResolutionXY,
+                return rtHandleSystem.Alloc(scaleFunc: ComputeVBufferResolutionXY,
                     slices: d,
                     dimension: TextureDimension.Tex3D,
                     colorFormat: GraphicsFormat.R16G16B16A16_SFloat,
@@ -450,12 +436,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return (3.0f / (8.0f * Mathf.PI)) * (1.0f - g * g) / (2.0f + g * g);
         }
 
-        static bool IsReprojectionEnabled(HDCamera hdCamera)
-        {
-            return Application.isPlaying && hdCamera.camera.cameraType == CameraType.Game &&
-                   hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
-        }
-
         void PushVolumetricLightingGlobalParams(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
         {
             if (!Fog.IsVolumetricLightingEnabled(hdCamera))
@@ -475,6 +455,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // The lighting & density buffers are shared by all cameras.
             // The history & feedback buffers are specific to the camera.
             // These 2 types of buffers can have different sizes.
+            // Additionally, history buffers can have different sizes, since they are not resized at the same time
+            // (every frame, we swap the buffers, and resize the feedback buffer but not the history buffer).
             // The viewport size is the same for all of these buffers.
             // All of these buffers may have sub-native-resolution viewports.
             // The 3rd dimension (number of slices) is the same for all of these buffers.
@@ -485,13 +467,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2Int historyBufferSize = Vector2Int.zero;
 
-            if (IsReprojectionEnabled(hdCamera))
+            if (hdCamera.IsVolumetricReprojectionEnabled())
             {
-                var historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-                var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-
-                //Debug.Assert(historyRT.rt.width  == feedbackRT.rt.width);
-                //Debug.Assert(historyRT.rt.height == feedbackRT.rt.height);
+                var historyRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
                 historyBufferSize = new Vector2Int(historyRT.rt.width, historyRT.rt.height);
             }
@@ -743,7 +721,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-            parameters.enableReprojection = IsReprojectionEnabled(hdCamera);
+            parameters.enableReprojection = hdCamera.IsVolumetricReprojectionEnabled();
             bool enableAnisotropy = fog.anisotropy.value != 0;
             bool highQuality = volumetricLightingPreset == VolumetricLightingPreset.High;
 
@@ -834,8 +812,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingSample(cmd, "Volumetric Lighting"))
             {
 
-                var historyRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
-                var feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+                // It is safe to request these RTs even if they have not been allocated.
+                // The system will return NULL in that case.
+                RTHandle historyRT  = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
+                RTHandle feedbackRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting);
 
                 VolumetricLightingPass(parameters, m_DensityBufferHandle, m_LightingBufferHandle, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
 
