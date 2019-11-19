@@ -858,8 +858,8 @@ namespace UnityEditor.VFX.UI
                 title = "Title",
                 position = new Rect(position, Vector2.one * 100),
                 contents = "type something here",
-                theme = StickyNote.Theme.Classic.ToString(),
-                textSize = StickyNote.TextSize.Small.ToString()
+                theme = StickyNoteTheme.Classic.ToString(),
+                textSize = StickyNoteFontSize.Small.ToString()
             };
 
             if (ui.stickyNoteInfos != null)
@@ -1163,6 +1163,22 @@ namespace UnityEditor.VFX.UI
             }
 
             return model;
+        }
+
+
+        public VFXNodeController GetNewNodeController(VFXModel model)
+        {
+            List<VFXNodeController> nodeControllers = null;
+            if ( m_SyncedModels.TryGetValue(model, out nodeControllers))
+            {
+                return nodeControllers.FirstOrDefault();
+            }
+            bool groupNodeChanged = false;
+            SyncControllerFromModel(ref groupNodeChanged);
+
+            m_SyncedModels.TryGetValue(model, out nodeControllers);
+
+            return nodeControllers.FirstOrDefault();
         }
 
         public VFXNodeController AddNode(Vector2 tPos, object modelDescriptor, VFXGroupNodeController groupNode)

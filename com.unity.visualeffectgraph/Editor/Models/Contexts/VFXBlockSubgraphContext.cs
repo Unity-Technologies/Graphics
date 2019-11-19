@@ -59,22 +59,6 @@ namespace UnityEditor.VFX
                 return false;
             }
         }
-
-        protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
-        {
-            base.OnInvalidate(model, cause);
-
-            if (cause == InvalidationCause.kSettingChanged)
-            {
-                //Delete incompatible blocks
-
-                foreach (var block in children.ToList())
-                {
-                    if (!Accept(block))
-                        RemoveChild(block);
-                }
-            }
-        }
         public override bool Accept(VFXBlock block, int index = -1)
         {
             return ((block.compatibleContexts & compatibleContextType) == compatibleContextType);

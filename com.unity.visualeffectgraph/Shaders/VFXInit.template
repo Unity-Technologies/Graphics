@@ -97,6 +97,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if VFX_USE_SEED_CURRENT
         attributes.seed = WangHash(particleIndex ^ systemSeed);
 #endif
+#if VFX_USE_SPAWNINDEX_CURRENT
+        attributes.spawnIndex = id;
+#endif
 #if HAS_STRIPS
 #if !VFX_USE_SPAWNER_FROM_GPU
 		${VFXLoadParameter:{stripIndex}}

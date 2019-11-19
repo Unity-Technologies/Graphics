@@ -18,12 +18,21 @@ namespace UnityEditor.VFX.Operator
         public class OutputProperties
         {
             [Tooltip("Outputs the closest point on the sphere to the supplied position.")]
-            public Vector3 closestPosition;
+            public Position closestPosition;
             [Tooltip("Outputs the signed distance from the sphere. Negative values represent points that are inside the sphere.")]
             public float distance;
         }
 
         override public string name { get { return "Distance (Sphere)"; } }
+
+        public override void Sanitize(int version)
+        {
+            if (version < 4)
+            {
+                SanitizeHelper.MigrateVector3OutputToSpaceableKeepingLegacyBehavior(this, "Position");
+            }
+            base.Sanitize(version);
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
