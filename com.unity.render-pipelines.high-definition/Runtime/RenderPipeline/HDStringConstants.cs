@@ -491,8 +491,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionTexture           = Shader.PropertyToID("_SpaceEmissionTexture");
 
         public static readonly int _RenderSunDisk                  = Shader.PropertyToID("_RenderSunDisk");
-=========
-
 
         public static readonly int _FogEnabled                        = Shader.PropertyToID("_FogEnabled");
         public static readonly int _PBRFogEnabled                     = Shader.PropertyToID("_PBRFogEnabled");
@@ -565,28 +563,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _AirSeaLevelExtinction             = Shader.PropertyToID("_AirSeaLevelExtinction");
         public static readonly int _AerosolSeaLevelExtinction         = Shader.PropertyToID("_AerosolSeaLevelExtinction");
-
-        public static readonly int _AirSeaLevelScattering             = Shader.PropertyToID("_AirSeaLevelScattering");
-        public static readonly int _AerosolSeaLevelScattering         = Shader.PropertyToID("_AerosolSeaLevelScattering");
-
-        public static readonly int _GroundAlbedo                      = Shader.PropertyToID("_GroundAlbedo");
-        public static readonly int _IntensityMultiplier               = Shader.PropertyToID("_IntensityMultiplier");
-
-        public static readonly int _PlanetCenterPosition              = Shader.PropertyToID("_PlanetCenterPosition");
-
-        public static readonly int _PlanetRotation                    = Shader.PropertyToID("_PlanetRotation");
-        public static readonly int _SpaceRotation                     = Shader.PropertyToID("_SpaceRotation");
-
-        public static readonly int _HasGroundAlbedoTexture            = Shader.PropertyToID("_HasGroundAlbedoTexture");
-        public static readonly int _GroundAlbedoTexture               = Shader.PropertyToID("_GroundAlbedoTexture");
-
-        public static readonly int _HasGroundEmissionTexture          = Shader.PropertyToID("_HasGroundEmissionTexture");
-        public static readonly int _GroundEmissionTexture             = Shader.PropertyToID("_GroundEmissionTexture");
-
-        public static readonly int _HasSpaceEmissionTexture           = Shader.PropertyToID("_HasSpaceEmissionTexture");
-        public static readonly int _SpaceEmissionTexture              = Shader.PropertyToID("_SpaceEmissionTexture");
-
-        public static readonly int _RenderSunDisk                     = Shader.PropertyToID("_RenderSunDisk");
 
         // Raytracing variables
         public static readonly int _RaytracingRayBias               = Shader.PropertyToID("_RaytracingRayBias");
