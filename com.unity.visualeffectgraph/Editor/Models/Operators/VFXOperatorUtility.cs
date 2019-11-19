@@ -28,10 +28,30 @@ namespace UnityEditor.VFX
         public static readonly Dictionary<VFXValueType, VFXExpression> ZeroExpression = GenerateExpressionConstant(0.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> TwoExpression = GenerateExpressionConstant(2.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> ThreeExpression = GenerateExpressionConstant(3.0f);
+        public static readonly Dictionary<VFXValueType, VFXExpression> TenExpression = GenerateExpressionConstant(10.0f);
         public static readonly Dictionary<VFXValueType, VFXExpression> PiExpression = GenerateExpressionConstant(Mathf.PI);
         public static readonly Dictionary<VFXValueType, VFXExpression> TauExpression = GenerateExpressionConstant(2.0f * Mathf.PI);
         public static readonly Dictionary<VFXValueType, VFXExpression> E_NapierConstantExpression = GenerateExpressionConstant(Mathf.Exp(1));
         public static readonly Dictionary<VFXValueType, VFXExpression> EpsilonExpression = GenerateExpressionConstant(1e-5f);
+
+        public enum Base
+        {
+            Base2,
+            Base10,
+            BaseE,
+        }
+
+        static private VFXExpression BaseToConstant(Base _base, VFXValueType type)
+        {
+            switch(_base)
+            {
+                case Base.Base2:    return TwoExpression[type];
+                case Base.Base10:   return TenExpression[type];
+                case Base.BaseE:    return E_NapierConstantExpression[type];
+                default:
+                    throw new NotImplementedException();
+            }
+        }
 
         static public VFXExpression Negate(VFXExpression input)
         {
@@ -94,6 +114,16 @@ namespace UnityEditor.VFX
         {
             //log2(x)/log2(b)
             return new VFXExpressionLog2(input) / new VFXExpressionLog2(_base);
+        }
+
+        static public VFXExpression Log(VFXExpression input, Base _base)
+        {
+            return Log(input, BaseToConstant(_base, input.valueType));
+        }
+
+        static public VFXExpression Exp(VFXExpression input, Base _base)
+        {
+            return new VFXExpressionPow(BaseToConstant(_base, input.valueType), input);
         }
 
         static public VFXExpression Atanh(VFXExpression input)

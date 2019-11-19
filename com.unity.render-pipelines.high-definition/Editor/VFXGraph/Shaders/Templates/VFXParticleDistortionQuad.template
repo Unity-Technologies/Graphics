@@ -1,9 +1,0 @@
-{
-	SubShader
-	{	
-		Cull Off
-		
-		${VFXInclude("Shaders/VFXParticleHeader.template")}
-		${VFXIncludeRP("Templates/Quad/PassDistortion.template")}
-	}
-}
