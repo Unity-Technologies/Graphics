@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     CoreUtils.Destroy(comp);
                 }
 
-                InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "Before Transparent", CustomPostProcessInjectionPoint.BeforeTransparent);
+                InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "Before Transparent", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
                 InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
                 InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
                 

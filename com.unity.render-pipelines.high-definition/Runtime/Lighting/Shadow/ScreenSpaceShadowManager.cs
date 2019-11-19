@@ -248,9 +248,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Apply the simple denoiser (if required)
                         if (m_CurrentSunLightAdditionalLightData.filterTracedShadow)
                         {
+                            // We need to set the history as invalid if the directional light has rotated
+                            float historyValidity = 1.0f;
+                            if (m_CurrentSunLightAdditionalLightData.previousTransform.rotation != m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix.rotation)
+                                historyValidity = 0.0f;
+
                             // Apply the temporal denoiser
                             HDTemporalFilter temporalFilter = GetTemporalFilter();
-                            temporalFilter.DenoiseBuffer(cmd, hdCamera, m_ShadowIntermediateBufferRGBA0, shadowHistoryArray, m_ShadowIntermediateBufferRGBA1, singleChannel: true, slotIndex: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex);
+                            temporalFilter.DenoiseBuffer(cmd, hdCamera, m_ShadowIntermediateBufferRGBA0, shadowHistoryArray, m_ShadowIntermediateBufferRGBA1, singleChannel: true, slotIndex: m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex, historyValidity: historyValidity);
 
                             // Apply the spatial denoiser
                             HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
@@ -623,9 +628,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Apply the simple denoiser (if required)
                 if (additionalLightData.filterTracedShadow)
                 {
+                    // We need to set the history as invalid if the directional light has rotated
+                    float historyValidity = 1.0f;
+                    if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix)
+                        historyValidity = 0.0f;
+
                     // Apply the temporal denoiser
                     HDTemporalFilter temporalFilter = GetTemporalFilter();
-                    temporalFilter.DenoiseBuffer(cmd, hdCamera, m_ShadowIntermediateBufferRGBA0, shadowHistoryArray, m_ShadowIntermediateBufferRGBA1, singleChannel: true, slotIndex: lightData.screenSpaceShadowIndex);
+                    temporalFilter.DenoiseBuffer(cmd, hdCamera, m_ShadowIntermediateBufferRGBA0, shadowHistoryArray, m_ShadowIntermediateBufferRGBA1, singleChannel: true, slotIndex: lightData.screenSpaceShadowIndex, historyValidity: historyValidity);
 
                     // Apply the spatial denoiser
                     HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
