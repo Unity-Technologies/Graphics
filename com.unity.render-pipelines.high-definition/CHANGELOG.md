@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
 - Fixed an issue with Realtime GI not working on upgraded projects. 
 - Fixed crash in prefab mode with matcap view enabled.
+- Fixes area light and point light counted together for maximum light count (Backport of case 1193198). 
 
 ### Changed
 - direct strenght properties in ambient occlusion now affect direct specular as well

@@ -1961,6 +1961,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         var light = cullResults.visibleLights[lightIndex];
                         var lightComponent = light.light;
 
+                        switch (lightCategory)
+                        {
+                            case LightCategory.Punctual:
+                                if (punctualLightcount >= m_MaxPunctualLightsOnScreen)
+                                    continue;
+                                break;
+                            case LightCategory.Area:
+                                if (areaLightCount >= m_MaxAreaLightsOnScreen)
+                                    continue;
+                                break;
+                            default:
+                                break;
+                        }
+
                         m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
