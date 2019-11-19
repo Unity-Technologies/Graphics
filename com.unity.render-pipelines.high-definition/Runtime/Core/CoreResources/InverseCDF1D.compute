@@ -1,4 +1,3 @@
-
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #pragma kernel CSMainH HORIZONTAL
@@ -27,7 +26,7 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
     if (all(id.xy < _OutputSize))
     {
         float4 inVal = _Input[id.xy];
-        float u1 = saturate(_Input[id.xy].x);
+        float  u1    = saturate(_Input[id.xy].x);
 
         int i;
 
@@ -42,9 +41,20 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         else
         {
             const int maxIter = ceil(d*_InputSize.x);
+
+            const float y0 = float(id.x - 1)*dp;
+            const float y1 = float(id.x)*dp;
+            const float x0 = float(u0*_InputSize.x);
+            const float x1 = float(u1*_InputSize.x);
+
+            const float a  = (y0 - y1)/(x0 - x1);
+            const float b  = (x0*y1 - x1*y0)/(x0 - x1);
+
             for (i = 0; i <= maxIter; ++i)
             {
-                _Output[uint2(u0*_InputSize.x + i, id.y)] = saturate(float(id.x - 1 + i)*dp);
+                //_Output[uint2(u0*_InputSize.x + i, id.y)] = saturate(float(id.x - 1 + i)*dp);
+                uint xi = uint(u0*_InputSize.x + i);
+                _Output[uint2(xi, id.y)] = saturate(a*float(xi) + b);
             }
         }
     #else
@@ -58,9 +68,20 @@ void CSMainV(uint3 id : SV_DispatchThreadID)
         else
         {
             const int maxIter = ceil(d*_InputSize.y);
+
+            const float y0 = float(id.y - 1)*dp;
+            const float y1 = float(id.y)*dp;
+            const float x0 = float(u0*_InputSize.y);
+            const float x1 = float(u1*_InputSize.y);
+
+            const float a  = (y0 - y1)/(x0 - x1);
+            const float b  = (x0*y1 - x1*y0)/(x0 - x1);
+
             for (i = 0; i <= maxIter; ++i)
             {
-                _Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
+                //_Output[uint2(id.x, u0*_InputSize.y + i)] = saturate(float(id.y - 1 + i)*dp);
+                uint xi = uint(u0*_InputSize.y + i);
+                _Output[uint2(id.x, xi)] = saturate(a*float(xi) + b);
             }
         }
     #endif

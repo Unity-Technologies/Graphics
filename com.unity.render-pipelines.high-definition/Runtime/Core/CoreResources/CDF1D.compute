@@ -1,10 +1,9 @@
-
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #pragma kernel CSMainFirstH FIRST HORIZONTAL    KerName=CSMainFirstH
 #pragma kernel CSMainFirstV FIRST VERTICAL      KerName=CSMainFirstV
-#pragma kernel CSMainH HORIZONTAL               KerName=CSMainH
-#pragma kernel CSMainV VERTICAL                 KerName=CSMainV
+#pragma kernel CSMainH      HORIZONTAL          KerName=CSMainH
+#pragma kernel CSMainV      VERTICAL            KerName=CSMainV
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
@@ -41,7 +40,7 @@ void KerName(uint3 id : SV_DispatchThreadID)
 {
     if (all(id.xy < _OutputSize))
     {
-        _Output[id.xy] = (1.0f/HALF_MAX)*dot(_Input[id.xy].rgb, (1.0f).xxx).xxxx;
+        _Output[id.xy] = dot(_Input[id.xy].rgb, (1.0f).xxx).xxxx;
     }
 }
 #else

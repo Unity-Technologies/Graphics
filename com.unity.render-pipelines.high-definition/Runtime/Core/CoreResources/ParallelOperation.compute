@@ -1,13 +1,13 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel CSMainSumFirstH      FIRST SUM HORIZONTAL    KerName=CSMainSumFirstH
 #pragma kernel CSMainMinMaxFirstH   FIRST MINMAX HORIZONTAL KerName=CSMainMinMaxFirstH
-#pragma kernel CSMainSumH           SUM HORIZONTAL          KerName=CSMainSumH
-#pragma kernel CSMainMinMaxH        MINMAX HORIZONTAL       KerName=CSMainMinMaxH
-#pragma kernel CSMainSumFirstV      FIRST SUM VERTICAL      KerName=CSMainSumFirstV
 #pragma kernel CSMainMinMaxFirstV   FIRST MINMAX VERTICAL   KerName=CSMainMinMaxFirstV
-#pragma kernel CSMainSumV           SUM VERTICAL            KerName=CSMainSumV
+#pragma kernel CSMainSumFirstH      FIRST SUM HORIZONTAL    KerName=CSMainSumFirstH
+#pragma kernel CSMainSumFirstV      FIRST SUM VERTICAL      KerName=CSMainSumFirstV
+#pragma kernel CSMainMinMaxH        MINMAX HORIZONTAL       KerName=CSMainMinMaxH
 #pragma kernel CSMainMinMaxV        MINMAX VERTICAL         KerName=CSMainMinMaxV
+#pragma kernel CSMainSumH           SUM HORIZONTAL          KerName=CSMainSumH
+#pragma kernel CSMainSumV           SUM VERTICAL            KerName=CSMainSumV
 
 //#pragma multi_compile  
 //#pragma multi_compile OP_PER_THREAD_1 OP_PER_THREAD_2 OP_PER_THREAD_4 OP_PER_THREAD_8 OP_PER_THREAD_16 OP_PER_THREAD_32 OP_PER_THREAD_64
@@ -62,7 +62,7 @@ uint  _Iteration;
 OutType GetInput(uint2 pos)
 {
 #ifdef FIRST
-    float dotVal = dot(_Input[pos].rgb, float3(1, 1, 1));
+    float dotVal = dot(_Input[pos].rgb, (1.0f/3.0f).xxx);
     #if defined(MINMAX)
         return dotVal.xx;
     #else
@@ -82,7 +82,7 @@ OutType GetSample(uint2 id, uint i)
 #ifdef VERTICAL
     return GetInput(uint2(id.x               , id.y*_Iteration + i));
 #else
-    return GetInput(uint2(id.x*_Iteration + i, id.y                ));
+    return GetInput(uint2(id.x*_Iteration + i, id.y               ));
 #endif
 }
 
@@ -120,6 +120,9 @@ void KerName(uint3 id : SV_DispatchThreadID)
             float2 smpl = GetSample(id.xy, i);
             opVal.x = min(smpl.x, opVal.x);
             opVal.y = max(smpl.y, opVal.y);
+
+            //opVal.x = max(opVal.x, -HALF_MAX);
+            //opVal.y = min(opVal.y,  HALF_MAX);
 #endif
         }
 

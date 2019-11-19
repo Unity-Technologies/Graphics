@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering
                 float[] copy = new float[result.Length];
                 result.CopyTo(copy);
                 byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\CDF_" + _Idx.ToString() + " .exr";
+                string path = @"C:\UProjects\CDF_" + _Idx.ToString() + ".exr";
                 if (System.IO.File.Exists(path))
                 {
                     System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);
@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering
                 float[] copy = new float[result.Length];
                 result.CopyTo(copy);
                 byte[] bytes0 = ImageConversion.EncodeArrayToEXR(copy, Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat, (uint)request.width, (uint)request.height, 0, Texture2D.EXRFlags.CompressZIP);
-                string path = @"C:\UProjects\InvCDF_" + _Idx.ToString() + " .exr";
+                string path = @"C:\UProjects\InvCDF_" + _Idx.ToString() + ".exr";
                 if (System.IO.File.Exists(path))
                 {
                     System.IO.File.SetAttributes(path, System.IO.FileAttributes.Normal);

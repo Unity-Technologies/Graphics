@@ -159,6 +159,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader Rescale01CS;
             [Reload("Runtime/Core/CoreResources/ImportanceSample2D.compute")]
             public ComputeShader ImportanceSample2DCS;
+            [Reload("Runtime/Core/CoreResources/OutputDebug.compute")]
+            public ComputeShader OutputDebugCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
