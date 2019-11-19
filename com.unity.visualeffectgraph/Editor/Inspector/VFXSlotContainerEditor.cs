@@ -20,13 +20,11 @@ class VFXSlotContainerEditor : Editor
 {
     protected void OnEnable()
     {
-        //SceneView.onSceneGUIDelegate += OnSceneGUI;
         SceneView.duringSceneGui += OnSceneGUI;
     }
 
     protected void OnDisable()
     {
-        //SceneView.onSceneGUIDelegate -= OnSceneGUI;
         SceneView.duringSceneGui -= OnSceneGUI;
     }
 
