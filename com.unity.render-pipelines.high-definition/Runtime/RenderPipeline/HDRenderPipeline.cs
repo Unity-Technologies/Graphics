@@ -1920,9 +1920,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforeRendering);
 
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
-
-            PreRenderSky(hdCamera, cmd);
-
             if (!shouldRenderMotionVectorAfterGBuffer)
             {
                 // If objects motion vectors if enabled, this will render the objects with motion vector into the target buffers (in addition to the depth)
@@ -2138,6 +2135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
+
 
                 if (hdCamera.frameSettings.SSRRunsAsync())
                 {
@@ -3234,6 +3232,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.TransparencyOverdraw);
 
                 // weighted sum of m_DebugFullScreenTempBuffer and m_DebugTranparencyLowRes done in DebugFullScreen.shader
+
             }
         }
 
@@ -3248,25 +3247,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RequestSkyEnvironmentUpdate()
         {
             m_SkyManager.RequestEnvironmentUpdate();
-        }
-
-        void PreRenderSky(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            if(m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
-            {
-                return;
-            }
-
-            // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
-            // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
-            // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
-            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            var colorBuffer = msaaEnabled ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-            var intermediateBuffer = msaaEnabled ? m_OpaqueAtmosphericScatteringMSAABuffer : m_OpaqueAtmosphericScatteringBuffer;
-            var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled);
-
-            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            m_SkyManager.PreRenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
         }
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)

@@ -46,7 +46,17 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector4 GetBackplateParameters0(HDRISky hdriSky)
         {
             // xy: scale, z: groundLevel, w: projectionDistance
-            return new Vector4(hdriSky.scale.value.x, hdriSky.scale.value.y, hdriSky.groundLevel.value, hdriSky.projectionDistance.value);
+            float scaleX = Mathf.Abs(hdriSky.scale.value.x);
+            float scaleY = Mathf.Abs(hdriSky.scale.value.y);
+            if (hdriSky.backplateType.value == BackplateType.Ellipse && Mathf.Abs(scaleX - scaleY) < 1e-4f)
+            {
+                scaleY += 1e-4f;
+            }
+            if (hdriSky.backplateType.value == BackplateType.Disc)
+            {
+                scaleY = scaleX;
+            }
+            return new Vector4(scaleX, scaleY, hdriSky.groundLevel.value, hdriSky.projectionDistance.value);
         }
 
         private Vector4 GetBackplateParameters1(float backplatePhi, HDRISky hdriSky)
