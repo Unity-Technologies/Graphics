@@ -26,16 +26,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
+            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, 4, SurfaceOptionUIBlock.Features.All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass),
             new TessellationOptionsUIBlock(MaterialUIBlock.Expandable.Tesselation),
             new LitSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input, kMaxLayerCount, features: commonLitSurfaceInputsFeatures),
-            new MaterialToCopyUIBlock(MaterialUIBlock.Expandable.MaterialReferences),
+            new LayerListUIBlock(MaterialUIBlock.Expandable.MaterialReferences),
             new LayersUIBlock(),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive, features: emissionFeatures),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
         };
 
-        public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
+        protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             using (var changed = new EditorGUI.ChangeCheckScope())
             {

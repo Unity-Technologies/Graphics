@@ -5,7 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class HDTemporalFilter
     {
-#if ENABLE_RAYTRACING
         // Resources used for the denoiser
         ComputeShader m_TemporalFilterCS;
 
@@ -39,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
         public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera,
             RTHandle noisySignal, RTHandle historySignal,
             RTHandle outputSignal, 
-            bool singleChannel = true, int slotIndex = -1)
+            bool singleChannel = true, int slotIndex = -1, float historyValidity = 1.0f)
         {
             // If we do not have a depth and normal history buffers, we can skip right away
             var historyDepthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
@@ -69,7 +68,9 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._HistoryNormalBufferTexture, historyNormalBuffer);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBufferRW, m_ValidationBuffer);
-            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, 1);
+            cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._HistoryValidity, historyValidity);
+            cmd.SetComputeFloatParam(m_TemporalFilterCS, HDShaderIDs._PixelSpreadAngleTangent, HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             // Now that we have validated our history, let's accumulate
             m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (slotIndex == -1 ? "TemporalAccumulationSingle" : "TemporalAccumulationSingleArray") : "TemporalAccumulationColor");
@@ -79,14 +80,13 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._ValidationBuffer, m_ValidationBuffer);
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
-            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, 1);
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
 
             m_KernelFilter = m_TemporalFilterCS.FindKernel(singleChannel ? (slotIndex == -1 ? "CopyHistorySingle" : "CopyHistorySingleArray") : "CopyHistoryColor");
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, outputSignal);
             cmd.SetComputeTextureParam(m_TemporalFilterCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, historySignal);
             cmd.SetComputeIntParam(m_TemporalFilterCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
-            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, 1);
+            cmd.DispatchCompute(m_TemporalFilterCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
         }
-#endif
     }
 }

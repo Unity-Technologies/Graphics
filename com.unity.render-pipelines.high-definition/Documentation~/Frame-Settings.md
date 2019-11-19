@@ -39,7 +39,7 @@ These settings determine the method that the Cameras and Reflection Probes using
 | **Motion Vectors**                  | Enable the checkbox to make HDRP perform a Motion Vectors pass, allowing Cameras using these Frame Settings to use Motion Vectors. Disabling this feature means the Cameras using these Frame Settings do not calculate object motion vectors or camera motion vectors. |
 | - **Opaque Object Motion**          | Enable the checkbox to make HDRP support object motion vectors. Enabling this feature causes HDRP to calculate motion vectors for moving objects and objects with vertex animations. HDRP Cameras using these Frame Settings still calculate camera motion vectors if you disable this feature. |
 | - **Transparent Object Motion**     | Enable the checkbox to allow HDRP to write the velocity of transparent GameObjects to the velocity buffer. To make HDRP write transparent GameObjects to the velocity buffer, you must also enable the **Transparent Writes Velocity** checkbox on each transparent Material. Enabling this feature means that effects, such as motion blur, affect transparent GameObjects.  This is useful for alpha blended objects like hair. |
-| **Rough Refraction**                | Enable the checkbox to make HDRP process Rough Refraction for Cameras/Reflection Probes using these Frame Settings. |
+| **Rough Refraction**                | Enable the checkbox to make HDRP process Rough Refraction for Cameras/Reflection Probes using these Frame Settings. Rough refraction is when a rough, transparent, surface widely scatters light that passes through it. A rougher surface gives a blurry refractive effect. |
 | **Distortion**                      | Enable the checkbox to make HDRP process Distortion. Enabling this feature causes HDRP to calculate a distortion pass. This allows Meshes with transparent Materials to distort the light that enters them. |
 | **Post-process**                    | Enable the checkbox to make HDRP perform a Post-processing pass. Disable this feature to remove all post-processing effects from this Camera/Reflection Probe. |
 | - **Stop NaN**                        | Enable the checkbox to allow HDRP to replace pixel values that are not a number (NaN) with black pixels for [Cameras](HDRP-Camera.html) that have **Stop NaNs** enabled. |
@@ -70,7 +70,7 @@ These settings control lighting features for your rendering components. Here you
 | **Shadow Maps**                    | Enable the checkbox to make HDRP process Shadows. This makes this Camera/Reflection Probe capture shadows. |
 | **Contact Shadows**                | Enable the checkbox to make HDRP process [Contact Shadows](Override-Contact-Shadows.html). Enabling this feature causes HDRP to calculate Contact Shadows for this Camera/Reflection Probe. |
 | **Screen Space Shadows**           | [DXR only] Enable the checkbox to allow [Lights](Light-Component.html) to render shadow maps into screen space buffers to reduce lighting Shader complexity. This technique increases processing speed but also increases the memory footprint. |
-| **Shadowmask**                     | Enable the checkbox to make HDRP support Shadow Masks.       |
+| **Shadowmask**                     | Enable the checkbox to make HDRP support the [Shadowmasks lighting mode](Lighting-Mode-Shadowmask.html).       |
 | **Screen Space Refection**         | Enable the checkbox to make HDRP process Screen Space Reflections (SSR). This allows HDRP to calculate SSR for this Camera/Reflection Probe. |
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
 | **Subsurface Scattering**          | Enable the checkbox to make HDRP process subsurface scattering. Enabling this feature causes HDRP to simulate how light penetrates surfaces of translucent GameObjects, scatters inside them, and exits from different locations. |
@@ -83,7 +83,7 @@ These settings control lighting features for your rendering components. Here you
 | **Reflection Probe**               | Enable the checkbox to allow this Camera to use [Reflection Probes](Reflection-Probe.html). |
 | **Planar Reflection Probe**        | Enable the checkbox to allow this Camera to use [Planar Reflection Probes](Planar-Reflection-Probe.html). |
 | **Metallic Indirect Fallback**     | Enable the checkbox to render Materials with base color as diffuse for this Camera. This renders metals as diffuse Materials. This is a useful Frame Setting to use for real-time Reflection Probes because it renders metals as diffuse Materials to stop them appearing black when Unity can't calculate several bounces of specular lighting. |
-| **Sky Lighting**                   | Enable the checkbox to allow this Camera to use the Sky Ambient Light Probe. The Sky Ambient Light Probe affects diffuse lighting. |
+| **Sky Reflection**                 | Enable the checkbox to allow this Camera to use the Sky Reflection. The Sky Reflection affects specular lighting. |
 | **Direct Specular Lighting**       | Enable the checkbox to allow this Camera to render direct specular lighting. This allows HDRP to disable direct view dependent lighting. It doesn't save any performance. |
 
 ### Asynchronous Compute Shaders

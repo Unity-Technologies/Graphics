@@ -186,6 +186,8 @@ namespace UnityEditor.VFX
         {
             if (value == null)
                 return null;
+            if (value is UnityObject obj && obj == null)
+                return null;
             var fromType = value.GetType();
 
             var converter = GetConverter(fromType, type);

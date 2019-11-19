@@ -1,9 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System.IO;
@@ -31,6 +32,23 @@ public class HDRP_GraphicTestRunner
         }
 
         Time.captureFramerate = settings.captureFramerate;
+
+        if (XRSystem.testModeEnabled)
+        {
+            if (settings.xrCompatible)
+            {
+                XRSystem.automatedTestRunning = true;
+
+                // Increase tolerance to account for slight changes due to float precision
+                settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
+                settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
+            }
+            else
+            {
+                // Skip incompatible XR tests
+                yield break;
+            }
+        }
 
         if (settings.doBeforeTest != null)
         {
@@ -121,6 +139,12 @@ public class HDRP_GraphicTestRunner
     public void DumpImagesInEditor()
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
+
+    [TearDown]
+    public void ResetSystemState()
+    {
+        XRSystem.automatedTestRunning = false;
     }
 #endif
 

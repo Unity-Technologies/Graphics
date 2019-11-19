@@ -79,13 +79,14 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         transmittedIntersection.t = 0.0f;
         transmittedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
         transmittedIntersection.rayCount = 1;
+        transmittedIntersection.pixelCoord = rayIntersection.pixelCoord;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         transmittedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
         transmittedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, transmittedRay, transmittedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, transmittedRay, transmittedIntersection);
 
         // Override the transmitted color
         transmitted = transmittedIntersection.color;
@@ -119,13 +120,14 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
         reflectedIntersection.t = 0.0f;
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth - 1;
         reflectedIntersection.rayCount = 1;
+        reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
 
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
 
         // Evaluate the ray intersection
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACING_OPAQUE_FLAG | RAYTRACING_TRANSPARENT_FLAG, 0, 1, 0, reflectedRay, reflectedIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_RECURSIVE_RENDERING, 0, 1, 0, reflectedRay, reflectedIntersection);
 
         // Override the transmitted color
         reflected = reflectedIntersection.color;

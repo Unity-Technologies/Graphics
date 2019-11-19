@@ -59,9 +59,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BuildGPULightListPassData
         {
+            public LightDataGlobalParameters lightDataGlobalParameters;
+            public ShadowGlobalParameters shadowGlobalParameters;
+            public LightLoopGlobalParameters lightLoopGlobalParameters;
+
             public BuildGPULightListParameters buildGPULightListParameters;
             public BuildGPULightListResources buildGPULightListResources;
-            public LightLoopGlobalParameters lightLoopGlobalParameters;
             public RenderGraphResource depthBuffer;
             public RenderGraphResource stencilTexture;
             public RenderGraphResource[] gBuffer = new RenderGraphResource[RenderGraph.kMaxMRTCount];
@@ -74,6 +77,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
+                passData.lightDataGlobalParameters = PrepareLightDataGlobalParameters(hdCamera);
+                passData.shadowGlobalParameters = PrepareShadowGlobalParameters(hdCamera);
                 passData.lightLoopGlobalParameters = PrepareLightLoopGlobalParameters(hdCamera);
                 passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera);
                 // TODO: Move this inside the render function onces compute buffers are RenderGraph ready
@@ -108,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, data.buildGPULightListResources, tileFlagsWritten, context.cmd);
 
+                    // WARNING: Note that the three set of variables are bound here, but it should be handled differently.
+                    PushLightDataGlobalParams(data.lightDataGlobalParameters, context.cmd);
+                    PushShadowGlobalParams(data.shadowGlobalParameters, context.cmd);
                     PushLightLoopGlobalParams(data.lightLoopGlobalParameters, context.cmd);
                 });
 
@@ -407,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         dimension = TextureDimension.Tex3D,
                         colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                         enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset, true),
+                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
                         /* useDynamicScale: true, // <- TODO ,*/
                         name = "VBufferDensity"
                     }));
@@ -457,7 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         dimension = TextureDimension.Tex3D,
                         colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                         enableRandomWrite = true,
-                        slices = ComputeVBufferSliceCount(volumetricLightingPreset, true),
+                        slices = ComputeVBufferSliceCount(volumetricLightingPreset),
                         /* useDynamicScale: true, // <- TODO ,*/
                         name = "VBufferIntegral"
                     }, HDShaderIDs._VBufferLighting));

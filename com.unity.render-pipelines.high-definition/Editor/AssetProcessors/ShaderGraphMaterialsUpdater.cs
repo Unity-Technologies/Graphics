@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void OnShaderGraphSaved(Shader shader)
         {
+            shader.IsShaderGraph();
             // Iterate all Materials
             string[] materialGuids = AssetDatabase.FindAssets(kMaterialFilter);
             try
@@ -26,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (i % 10 == 9)
                     {
                         EditorUtility.DisplayProgressBar(
-                            "Updating dependent materials...",
-                            string.Format("{0} / {1} materials updated.", i, length),
+                            "Checking material dependencies...",
+                            $"{i} / {length} materials.",
                             i / (float)(length - 1));
                     }
 
@@ -38,11 +39,18 @@ namespace UnityEditor.Rendering.HighDefinition
                      // Reset keywords
                     if (material.shader.name == shader.name)
                         HDShaderUtils.ResetMaterialKeywords(material);
+
+                    material = null;
+
+                    // Free the materials every 200 iterations, on big project loading all materials in memory can lead to a crash
+                    if ((i % 200 == 0) && i != 0)
+                        EditorUtility.UnloadUnusedAssetsImmediate(true);
                 }
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
+                EditorUtility.UnloadUnusedAssetsImmediate(true);
             }
         }
     }

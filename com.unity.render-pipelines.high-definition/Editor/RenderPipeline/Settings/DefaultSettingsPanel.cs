@@ -34,7 +34,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             const int k_LabelWidth = 220;
 
-            VolumeComponentListEditor m_ComponentList;
             Editor m_Cached;
 
             ReorderableList m_BeforeTransparentCustomPostProcesses;
@@ -195,12 +194,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 var ppVolumeTypeInjectionPoints = new Dictionary<Type, CustomPostProcessInjectionPoint>();
                 foreach (var ppVolumeType in ppVolumeTypes)
                 {
+                    if (ppVolumeType.IsAbstract)
+                        continue;
+
                     var comp = ScriptableObject.CreateInstance(ppVolumeType) as CustomPostProcessVolumeComponent;
                     ppVolumeTypeInjectionPoints[ppVolumeType] = comp.injectionPoint;
                     CoreUtils.Destroy(comp);
                 }
 
-                InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "Before Transparent", CustomPostProcessInjectionPoint.BeforeTransparent);
+                InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "Before Transparent", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
                 InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
                 InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
                 

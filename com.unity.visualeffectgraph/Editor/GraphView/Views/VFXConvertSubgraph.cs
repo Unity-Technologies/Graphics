@@ -13,10 +13,10 @@ namespace UnityEditor.VFX.UI
 {
     static class VFXConvertSubgraph
     {
-        public static void ConvertToSubgraphContext(VFXView sourceView, IEnumerable<Controller> controllers,Rect rect)
+        public static void ConvertToSubgraphContext(VFXView sourceView, IEnumerable<Controller> controllers,Rect rect,string path = null)
         {
             var ctx = new Context();
-            ctx.ConvertToSubgraphContext(sourceView, controllers, rect);
+            ctx.ConvertToSubgraphContext(sourceView, controllers, rect,path);
         }
 
 
@@ -212,11 +212,23 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            public void ConvertToSubgraphContext(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
+            public void ConvertToSubgraphContext(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path)
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                CreateUniqueSubgraph("Subgraph", VisualEffectResource.Extension,VisualEffectAssetEditorUtility.CreateNewAsset);
+                if (path == null)
+                { 
+                    if (!CreateUniqueSubgraph("Subgraph", VisualEffectResource.Extension, VisualEffectAssetEditorUtility.CreateNewAsset))
+                        return;
+                }
+                else
+                {
+                    m_TargetSubgraph = VisualEffectAssetEditorUtility.CreateNewAsset(path);
+
+                    m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
+                    m_TargetController.useCount++;
+                    m_TargetControllers = new List<VFXNodeController>();
+                }
                 CopyPasteNodes();
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphContext>();
                 PostSetupNode();
@@ -230,7 +242,8 @@ namespace UnityEditor.VFX.UI
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension,VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>);
+                if (!CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
+                    return;
                 CopyPasteNodes();
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
                 PostSetupNode();
@@ -248,7 +261,8 @@ namespace UnityEditor.VFX.UI
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                CreateUniqueSubgraph("SubgraphBlock", VisualEffectSubgraphBlock.Extension,VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>);
+                if (!CreateUniqueSubgraph("SubgraphBlock", VisualEffectSubgraphBlock.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphBlock>))
+                    return;
 
                 m_SourceControllers.RemoveAll(t => t is VFXContextController); // Don't copy contexts
                 CopyPasteNodes();
@@ -292,6 +306,7 @@ namespace UnityEditor.VFX.UI
                 sourceContextController.ApplyChanges();
                 m_SourceNodeController = sourceContextController.blockControllers.First(t=> t.model == m_SourceNode );
                 PostSetup();
+                m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceNodeController.ApplyChanges();
 
                 var targetContextController = m_TargetController.GetRootNodeController(targetContext, 0) as VFXContextController;
@@ -302,7 +317,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            void CreateUniqueSubgraph(string typeName, string extension, Func<string,VisualEffectObject> createFunc)
+            bool CreateUniqueSubgraph(string typeName, string extension, Func<string,VisualEffectObject> createFunc)
             {
                 string graphPath = AssetDatabase.GetAssetPath(m_SourceView.controller.model);
                 string graphName;
@@ -333,18 +348,27 @@ namespace UnityEditor.VFX.UI
                 }
                 targetSubgraphPath = EditorUtility.SaveFilePanelInProject("Create Subgraph", fileName, extension.Substring(1),"Select where you want to save your subgraph.");
 
+                if (string.IsNullOrEmpty(targetSubgraphPath))
+                    return false;
+
                 if( Path.GetExtension(targetSubgraphPath) != extension)
                 {
                     targetSubgraphPath += extension;
                 }
 
-                
+                if(File.Exists(targetSubgraphPath))
+                {
+                    Debug.LogError("Can't overwrite a subgraph");
+                    return false;
+                }
 
                 m_TargetSubgraph = createFunc(targetSubgraphPath);
 
                 m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
                 m_TargetController.useCount++;
                 m_TargetControllers = new List<VFXNodeController>();
+
+                return true;
             }
 
             void PostSetupNode()
@@ -352,6 +376,7 @@ namespace UnityEditor.VFX.UI
                 PostSetup();
                 m_SourceNode.position = m_Rect.center;
                 m_SourceController.graph.AddChild(m_SourceNode);
+                m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceController.LightApplyChanges();
                 m_SourceNodeController = m_SourceController.GetRootNodeController(m_SourceNode, 0);
                 m_SourceNodeController.ApplyChanges();
@@ -359,7 +384,6 @@ namespace UnityEditor.VFX.UI
             void PostSetup()
             {
                 SetupTargetParameters();
-                m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceSlotContainer = m_SourceNode as IVFXSlotContainer;
             }
 
@@ -558,20 +582,25 @@ namespace UnityEditor.VFX.UI
                         targetNode = m_TargetControllers[m_SourceControllers.IndexOf(newSourceOutputs[i].sourceNode)];
                     }
 
-                    VFXDataAnchorController targetAnchor = targetNode.outputPorts.First(t => t.path == newSourceOutputs[i].path);
+                    VFXDataAnchorController targetAnchor = targetNode.outputPorts.FirstOrDefault(t => t.path == newSourceOutputs[i].path);
 
-                    VFXNodeController parameterNode = m_TargetController.AddVFXParameter(targetNode.position + new Vector2(400, 0), newTargetParamController, null);
+                    if(targetAnchor != null)
+                    {
+                        VFXNodeController parameterNode = m_TargetController.AddVFXParameter(targetNode.position + new Vector2(400, 0), newTargetParamController, null);
 
-                    // Link the parameternode and the input in the target
-                    m_TargetController.CreateLink(parameterNode.inputPorts[0], targetAnchor);
+                        // Link the parameternode and the input in the target
+                        m_TargetController.CreateLink(parameterNode.inputPorts[0], targetAnchor);
 
-                    if (m_SourceSlotContainer is VFXOperator)
-                        (m_SourceSlotContainer as VFXOperator).ResyncSlots(true);
-                    m_SourceNodeController.ApplyChanges();
+                        if (m_SourceSlotContainer is VFXOperator)
+                            (m_SourceSlotContainer as VFXOperator).ResyncSlots(true);
+                        m_SourceNodeController.ApplyChanges();
+                    }
                     //Link all the outputs to the matching input of the subgraph
                     foreach (var input in inputs)
                     {
-                        m_SourceController.CreateLink(input, m_SourceNodeController.outputPorts.First(t => t.model == m_SourceSlotContainer.outputSlots.Last()));
+                        var port = m_SourceNodeController.outputPorts.FirstOrDefault(t => t.model == m_SourceSlotContainer.outputSlots.Last());
+                        if( port != null)
+                            m_SourceController.CreateLink(input, port);
                     }
                 }
             }

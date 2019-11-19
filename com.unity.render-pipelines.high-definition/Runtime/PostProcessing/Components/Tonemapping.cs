@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool ValidateLUT()
         {
-            var hdAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            var hdAsset = HDRenderPipeline.currentAsset;
             if (hdAsset == null || lutTexture.value == null)
                 return false;
 

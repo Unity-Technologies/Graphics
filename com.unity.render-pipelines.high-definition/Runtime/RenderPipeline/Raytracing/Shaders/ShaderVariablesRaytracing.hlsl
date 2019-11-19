@@ -1,6 +1,4 @@
-#define RAYTRACING_OPAQUE_FLAG      0x01
-#define RAYTRACING_TRANSPARENT_FLAG 0x02
-#define RAYTRACING_CAST_SHADOW_FLAG 0x04
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDRayTracingManager.cs.hlsl"
 
 // The target acceleration acceleration structure should only be defined for non compute shaders
 #ifndef SHADER_STAGE_COMPUTE
@@ -21,5 +19,5 @@ float                                   _RaytracingPixelSpreadAngle;
 int                                     _RayCountEnabled;
 float                                   _RaytracingCameraNearPlane;
 uint                                    _RaytracingDiffuseRay;
-RWTexture2D<uint4>                      _RayCountTexture;
 int                                     _RaytracingPreExposition;
+RW_TEXTURE2D_ARRAY(uint,                _RayCountTexture);
