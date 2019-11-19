@@ -26,8 +26,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added XR single-pass setting into HDRP asset
 - Added a penumbra tint option for lights
 - Added support for depth copy with XR SDK
-- Added debug setting to Render Pipeline Window to list the active XR views
+- Added debug setting to Render Pipeline Debug Window to list the active XR views
 - Added an option to filter the result of the volumetric lighting (off by default).
+- Added a transmission multiplier for directional lights
+- Added XR single-pass test mode to Render Pipeline Debug Window
+- Added debug setting to Render Pipeline Window to list the active XR views
 
 ### Fixed
 - Sorting, undo, labels, layout in the Lighting Explorer.
@@ -141,6 +144,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
 - Fixed y-flip in scene view with XR SDK
 - Fixed a number of issues with Material Quality setting
+- Fixed the transparent Cull Mode option in HD unlit master node settings only visible if double sided is ticked.
+- Fixed an issue causing shadowed areas by contact shadows at the edge of far clip plane if contact shadow length is very close to far clip plane.
+- Fixed flickering issues when moving the mouse in the editor with ray tracing on.
+- Fixed the ShaderGraph main preview being black after switching to SSS in the master node settings
+- Fixed custom fullscreen passes in VR
+- Fixed camera culling masks not taken in account in custom pass volumes
+- Fixed object not drawn in custom pass when using a DrawRenderers with an HDRP shader in a build.
+- Fixed injection points for Custom Passes (AfterDepthAndNormal and BeforePreRefraction were missing)
+- Fixed a enum to choose shader tags used for drawing objects (DepthPrepass or Forward) when there is no override material.
+- Fixed lit objects in the BeforePreRefraction, BeforeTransparent and BeforePostProcess.
+- Fixed the None option when binding custom pass render targets to allow binding only depth or color.
+- Fixed custom pass buffers allocation so they are not allocated if they're not used.
+- Fixed the Custom Pass entry in the volume create asset menu items.
+- Fixed Prefab Overrides workflow on Camera.
+- Fixed alignment issue in Preset for Camera.
+- Fixed alignment issue in Physical part for Camera.
+- Fixed FrameSettings multi-edition.
+- Fixed a bug happening when denoising multiple ray traced light shadows
+- Fixed minor naming issues in ShaderGraph settings
 - VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
 - VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
 
@@ -171,6 +193,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the copy of the geometry history buffers to right after the depth mip chain generation.
 - Rename "Luminance" to "Nits" in UX for physical light unit
 - Rename FrameSettings "SkyLighting" to "SkyReflection"
+- Reworked XR automated tests
+- The ray traced screen space shadow history for directional, spot and point lights is discarded if the light transform has changed.
+- Changed the behavior for ray tracing in case a mesh renderer has both transparent and opaque submeshes.
+- Improve history buffer management
 
 ## [7.1.1] - 2019-09-05
 
