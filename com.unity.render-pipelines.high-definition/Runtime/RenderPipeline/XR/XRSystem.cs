@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
         {
-            bool xrSdkActive = RefreshXrSdk();
+            //bool xrSdkActive = RefreshXrSdk();
 
             if (framePasses.Count > 0)
             {
@@ -114,10 +114,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
+            /*if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
                 SetCustomLayout(LayoutSinglePassTestMode);
             else
-                SetCustomLayout(null);
+                SetCustomLayout(null);*/
 
             foreach (var camera in cameras)
             {
@@ -125,16 +125,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 // Read XR SDK or legacy settings
-                bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
+                //bool xrEnabled = xrSdkActive || (camera.stereoEnabled && XRGraphics.enabled);
 
                 // Enable XR layout only for gameview camera
-                bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
+                //bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null;
 
                 if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
                 {
                     // custom layout in used
                 }
-                else if (xrEnabled && xrSupported)
+                /*else if (xrEnabled && xrSupported)
                 {
                     if (XRGraphics.renderViewportScale != 1.0f)
                     {
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     AddPassToFrame(camera, emptyPass);
-                }
+                }*/
             }
 
             CaptureDebugInfo();
