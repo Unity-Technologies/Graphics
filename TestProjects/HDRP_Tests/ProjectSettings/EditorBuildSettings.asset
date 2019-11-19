@@ -265,7 +265,7 @@ EditorBuildSettings:
     guid: 5246b0356ec7dbf4aa0a3afc6b27b122
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2316_ShadowTint.unity
-    guid: bdba4e77a656ff546827f067d31f7103
+    guid: c59b82120d32fbf4d96793fb7e0ec339
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
@@ -437,6 +437,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8105_BlendStates.unity
     guid: e75b9916869e2384b8e53bc6bffb1314
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8106_UnlitShadowMatte.unity
+    guid: 446a8abf33eabaa4eb3228747da30066
   - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8201_VertexAnimation.unity
     guid: 328570ab5ddac484bbf26d8504f7f417

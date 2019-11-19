@@ -278,7 +278,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDUnlitMasterNode.ColorSlotId,
                 HDUnlitMasterNode.AlphaSlotId,
                 HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.EmissionSlotId
+                HDUnlitMasterNode.EmissionSlotId,
+                HDUnlitMasterNode.ShadowTintSlotId
             },
             VertexShaderSlots = new List<int>()
             {
@@ -441,6 +442,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (masterNode.addPrecomputedVelocity.isOn)
             {
                 baseActiveFields.Add("AddPrecomputedVelocity");
+            }
+
+            if (masterNode.enableShadowMatte.isOn)
+            {
+                baseActiveFields.Add("EnableShadowMatte");
             }
 
             return activeFields;
