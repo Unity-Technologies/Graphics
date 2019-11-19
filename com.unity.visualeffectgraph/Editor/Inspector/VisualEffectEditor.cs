@@ -115,10 +115,12 @@ namespace UnityEditor.VFX
             m_RendererEditor = new RendererEditor(renderers);
 
             s_FakeObjectSerializedCache = new SerializedObject(targets[0]);
+            SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
         protected void OnDisable()
         {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect != null)
             {
@@ -515,7 +517,7 @@ namespace UnityEditor.VFX
             effect.playRate = rate;
         }
 
-        protected virtual void OnSceneGUI()
+        protected virtual void OnSceneViewGUI(SceneView sv)
         {
             SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
