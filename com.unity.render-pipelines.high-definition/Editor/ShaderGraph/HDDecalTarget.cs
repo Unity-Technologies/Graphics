@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph.Internal;
 
@@ -14,6 +15,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public bool IsValid(IMasterNode masterNode)
         {
             return (masterNode is DecalMasterNode);
+        }
+        public bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        {
+            return currentPipeline is HDRenderPipelineAsset;
         }
 
         public void SetupTarget(ref TargetSetupContext context)

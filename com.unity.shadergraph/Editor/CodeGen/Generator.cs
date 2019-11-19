@@ -197,10 +197,18 @@ namespace UnityEditor.ShaderGraph
             // Get Port references from ShaderPass
             List<MaterialSlot> pixelSlots;
             List<MaterialSlot> vertexSlots;
-            if(m_OutputNode is IMasterNode || m_OutputNode is SubGraphOutputNode)
+            if(m_OutputNode is IMasterNode)
             {
                 pixelSlots = GenerationUtils.FindMaterialSlotsOnNode(pass.pixelPorts, m_OutputNode);
                 vertexSlots = GenerationUtils.FindMaterialSlotsOnNode(pass.vertexPorts, m_OutputNode);
+            }
+            else if(m_OutputNode is SubGraphOutputNode)
+            {
+                pixelSlots = new List<MaterialSlot>()
+                {
+                    m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault(),
+                };
+                vertexSlots = new List<MaterialSlot>();
             }
             else
             {
@@ -481,7 +489,10 @@ namespace UnityEditor.ShaderGraph
 
             // Build pixel graph outputs
             // Add struct fields to active fields
-            GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
+            if (m_OutputNode is SubGraphOutputNode)
+                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, true);
+            else
+                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
 
             // Build pixel graph functions from ShaderPass pixel port mask
             GenerationUtils.GenerateSurfaceDescriptionFunction(

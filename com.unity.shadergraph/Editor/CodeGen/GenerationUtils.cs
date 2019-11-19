@@ -690,29 +690,35 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool useIdsInNames = false)
+        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool isSubgraphOutput = false)
         {
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
             {
                 if(slots != null)
                 {
-                    foreach (var slot in slots)
+                    if (isSubgraphOutput)
                     {
-                        string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
-                        if (useIdsInNames)
-                        {
-                            hlslName = $"{hlslName}_{slot.id}";
-                        }
-
-                        surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
-
-                        if (activeFields != null)
-                        {
-                            var structField = new FieldDescriptor(structName, hlslName, "");
-                            activeFields.AddAll(structField);
-                        }
+                        var firstSlot = slots.FirstOrDefault();
+                        var hlslName = $"{NodeUtils.GetHLSLSafeName(firstSlot.shaderOutputName)}_{firstSlot.id}";
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", firstSlot.concreteValueType.ToShaderString(firstSlot.owner.concretePrecision), hlslName);
+                        surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(firstSlot.owner.concretePrecision), "Out");
                     }
+                    else
+                    {
+                        foreach (var slot in slots)
+                        {
+                            string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+
+                            surfaceDescriptionStruct.AppendLine("{0} {1};", slot.concreteValueType.ToShaderString(slot.owner.concretePrecision), hlslName);
+
+                            if (activeFields != null)
+                            {
+                                var structField = new FieldDescriptor(structName, hlslName, "");
+                                activeFields.AddAll(structField);
+                            }
+                        }
+                    }                    
                 }
             }
         }
@@ -804,7 +810,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder surfaceDescriptionFunction,
             GenerationMode mode)
         {
-            if (rootNode is IMasterNode || rootNode is SubGraphOutputNode)
+            if (rootNode is IMasterNode)
             {
                 var usedSlots = slots ?? rootNode.GetInputSlots<MaterialSlot>();
                 foreach (var input in usedSlots)
@@ -813,22 +819,25 @@ namespace UnityEditor.ShaderGraph
                     {
                         var foundEdges = graph.GetEdges(input.slotReference).ToArray();
                         var hlslName = NodeUtils.GetHLSLSafeName(input.shaderOutputName);
-                        if (rootNode is SubGraphOutputNode)
-                        {
-                            hlslName = $"{hlslName}_{input.id}";
-                        }
                         if (foundEdges.Any())
-                        {
-                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                hlslName,
-                                rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision));
-                        }
+                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(input.id, mode, rootNode.concretePrecision)};");
                         else
-                        {
-                            surfaceDescriptionFunction.AppendLine("surface.{0} = {1};",
-                                hlslName, input.GetDefaultValue(mode, rootNode.concretePrecision));
-                        }
+                            surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {input.GetDefaultValue(mode, rootNode.concretePrecision)};");
                     }
+                }
+            }
+            else if (rootNode is SubGraphOutputNode)
+            {
+                var slot = slots.FirstOrDefault();
+                if (slot != null)
+                {
+                    var foundEdges = graph.GetEdges(slot.slotReference).ToArray();
+                    var hlslName = $"{NodeUtils.GetHLSLSafeName(slot.shaderOutputName)}_{slot.id}";
+                    if (foundEdges.Any())
+                        surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision)};");
+                    else
+                        surfaceDescriptionFunction.AppendLine($"surface.{hlslName} = {slot.GetDefaultValue(mode, rootNode.concretePrecision)};");
+                    surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite(surface.{hlslName})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id, "surface." + hlslName)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
                 }
             }
             else if (rootNode.hasPreview)
