@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int MaskSlotId = 8;
 
         public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
+        public const string DiffusionProfileHashSlotDisplayName = "Diffusion Profile";
         public const int DiffusionProfileHashSlotId = 9;
 
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
@@ -586,7 +587,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Diffusion Profile
             if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && subsurfaceScattering.isOn)
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotDisplayName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(DiffusionProfileHashSlotId);
             }
 

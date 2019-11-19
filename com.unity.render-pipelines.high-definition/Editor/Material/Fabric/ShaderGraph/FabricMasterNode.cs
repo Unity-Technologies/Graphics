@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public const int SpecularColorSlotId = 6;
 
         public const string DiffusionProfileHashSlotName = "DiffusionProfileHash";
+        public const string DiffusionProfileHashSlotDisplayName = "Diffusion Profile";
         public const int DiffusionProfileHashSlotId = 7;
 
         public const string SubsurfaceMaskSlotName = "SubsurfaceMask";
@@ -608,7 +609,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Diffusion Profile
             if (MaterialTypeUsesSlotMask(SlotMask.DiffusionProfile) && (subsurfaceScattering.isOn || transmission.isOn))
             {
-                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
+                AddSlot(new DiffusionProfileInputMaterialSlot(DiffusionProfileHashSlotId, DiffusionProfileHashSlotDisplayName, DiffusionProfileHashSlotName, ShaderStageCapability.Fragment));
                 validSlots.Add(DiffusionProfileHashSlotId);
             }
 

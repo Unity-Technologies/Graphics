@@ -162,6 +162,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alignment issue in Physical part for Camera.
 - Fixed FrameSettings multi-edition.
 - Fixed a bug happening when denoising multiple ray traced light shadows
+- Fixed minor naming issues in ShaderGraph settings
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
