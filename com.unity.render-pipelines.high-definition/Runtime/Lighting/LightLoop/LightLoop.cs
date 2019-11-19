@@ -586,6 +586,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
 
+        HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
+
         // Directional light
         Light m_CurrentSunLight;
         int m_CurrentShadowSortedSunLightIndex = -1;
@@ -860,6 +862,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_CopyStencil);
             CoreUtils.Destroy(m_CopyStencilForSSR);
+        }
+
+        void LightLoopNewRender()
+        {
+            m_ScreenSpaceShadowsUnion.Clear();
         }
 
         void LightLoopNewFrame(FrameSettings frameSettings)
@@ -1141,6 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (additionalLightData.WillRenderScreenSpaceShadow())
                 {
                     lightData.screenSpaceShadowIndex = screenSpaceShadowIndex;
+                    m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                     screenSpaceShadowIndex++;
                 }
                 m_CurrentSunLight = lightComponent;
@@ -1410,6 +1418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].additionalLightData = additionalLightData;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].lightDataIndex = m_lightList.lights.Count;
                 m_CurrentScreenSpaceShadowData[screenSpaceShadowIndex].valid = true;
+                m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 screenSpaceShadowIndex++;
             }
             else
@@ -2901,6 +2910,12 @@ namespace UnityEngine.Rendering.HighDefinition
             PushLightLoopGlobalParams(globalParams, cmd);
         }
 
+        void BindLightDataParameters(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            var globalParams = PrepareLightDataGlobalParameters(hdCamera);
+            PushLightDataGlobalParams(globalParams, cmd);
+        }
+
         void UpdateDataBuffers()
         {
             m_LightLoopLightData.directionalLightData.SetData(m_lightList.directionalLights);
@@ -2924,47 +2939,63 @@ namespace UnityEngine.Rendering.HighDefinition
             return add;
         }
 
+        struct LightDataGlobalParameters
+        {
+            public HDCamera hdCamera;
+            public LightList lightList;
+            public LightLoopTextureCaches textureCaches;
+            public LightLoopLightData lightData;
+        }
+
+        LightDataGlobalParameters PrepareLightDataGlobalParameters(HDCamera hdCamera)
+        {
+            LightDataGlobalParameters parameters = new LightDataGlobalParameters();
+            parameters.hdCamera = hdCamera;
+            parameters.lightList = m_lightList;
+            parameters.textureCaches = m_TextureCaches;
+            parameters.lightData = m_LightLoopLightData;
+            return parameters;
+        }
+
+        struct ShadowGlobalParameters
+        {
+            public HDCamera hdCamera;
+            public HDShadowManager shadowManager;
+            public int sunLightIndex;
+        }
+
+        ShadowGlobalParameters PrepareShadowGlobalParameters(HDCamera hdCamera)
+        {
+            ShadowGlobalParameters parameters = new ShadowGlobalParameters();
+            parameters.hdCamera = hdCamera;
+            parameters.shadowManager = m_ShadowManager;
+            HDAdditionalLightData sunLightData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<HDAdditionalLightData>() : null;
+            bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
+            parameters.sunLightIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
+            return parameters;
+        }
+
         struct LightLoopGlobalParameters
         {
             public HDCamera                 hdCamera;
-            public HDShadowManager          shadowManager;
-            public LightList                lightList;
-            public LightLoopTextureCaches   textureCaches;
-            public LightLoopLightData       lightData;
             public TileAndClusterData       tileAndClusterData;
             public float                    clusterScale;
-            public int                      sunLightIndex;
-            public int                      maxScreenSpaceShadows;
         }
 
         LightLoopGlobalParameters PrepareLightLoopGlobalParameters(HDCamera hdCamera)
         {
             LightLoopGlobalParameters parameters = new LightLoopGlobalParameters();
             parameters.hdCamera = hdCamera;
-            parameters.shadowManager = m_ShadowManager;
-            parameters.lightList = m_lightList;
-            parameters.textureCaches = m_TextureCaches;
-            parameters.lightData = m_LightLoopLightData;
             parameters.tileAndClusterData = m_TileAndClusterData;
             parameters.clusterScale = m_ClusterScale;
-            parameters.maxScreenSpaceShadows = m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows;
-
-            HDAdditionalLightData sunLightData = m_CurrentSunLight != null ? m_CurrentSunLight.GetComponent<HDAdditionalLightData>() : null;
-            bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
-            parameters.sunLightIndex = sunLightShadow ? m_CurrentShadowSortedSunLightIndex : -1;
-
             return parameters;
         }
 
-        static void PushLightLoopGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
+        static void PushLightDataGlobalParams(in LightDataGlobalParameters param, CommandBuffer cmd)
         {
-            using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
+            using (new ProfilingSample(cmd, "Push Light DataGlobal Parameters", CustomSamplerId.PushLightDataGlobalParameters.GetSampler()))
             {
                 Camera camera = param.hdCamera.camera;
-
-                // Shadows
-                param.shadowManager.SyncData();
-                param.shadowManager.BindResources(cmd);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CookieTextures, param.textureCaches.cookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._AreaCookieTextures, param.textureCaches.areaLightCookieManager.GetTexCache());
@@ -2989,6 +3020,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, param.lightData.decalData);
                 cmd.SetGlobalInt(HDShaderIDs._DecalCount, DecalSystem.m_DecalDatasCount);
 
+                cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) ? 1 : 0);
+
+                // Directional lights are made available immediately after PrepareLightsForGPU for the PBR sky.
+                cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, param.lightData.directionalLightData);
+                cmd.SetGlobalInt(HDShaderIDs._DirectionalLightCount, param.lightList.directionalLights.Count);
+            }
+        }
+
+        static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Push Shadow Global Parameters", CustomSamplerId.PushShadowGlobalParameters.GetSampler()))
+            {
+                Camera camera = param.hdCamera.camera;
+
+                // Shadows
+                param.shadowManager.SyncData();
+                param.shadowManager.BindResources(cmd);
+                cmd.SetGlobalInt(HDShaderIDs._DirectionalShadowIndex, param.sunLightIndex);
+            }
+        }
+
+        static void PushLightLoopGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Push Light Loop Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
+            {
+                Camera camera = param.hdCamera.camera;
+
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileX, GetNumTileBigTileX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileBigTileY, GetNumTileBigTileY(param.hdCamera));
 
@@ -2997,8 +3055,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(param.hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(param.hdCamera));
-
-                cmd.SetGlobalInt(HDShaderIDs._EnableSSRefraction, param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughRefraction) ? 1 : 0);
 
                 if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
@@ -3022,15 +3078,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Set up clustered lighting for volumetrics.
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, param.tileAndClusterData.perVoxelLightLists);
                 }
-
-                cmd.SetGlobalInt(HDShaderIDs._DirectionalShadowIndex, param.sunLightIndex);
             }
         }
+
 
         void RenderShadowMaps(ScriptableRenderContext renderContext, CommandBuffer cmd, CullingResults cullResults, HDCamera hdCamera)
         {
             // kick off the shadow jobs here
             m_ShadowManager.RenderShadows(renderContext, cmd, cullResults, hdCamera);
+
+            // Bind the shadow data
+            var globalParams = PrepareShadowGlobalParameters(hdCamera);
+            PushShadowGlobalParams(globalParams, cmd);
         }
 
         bool WillRenderContactShadow()

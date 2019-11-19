@@ -108,7 +108,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
 
         float depthDiff = sampleDepth - sampleAlongRay.z;
 
-        if (depthDiff > 0.0f && depthDiff < compareThreshold)
+        if (depthDiff > 0.0f && depthDiff < compareThreshold && sampleAlongRay.z > 0)
         {
             if (tracingHalfRes)
             {
