@@ -376,10 +376,20 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUI.BeginChangeCheck();
                             EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthRect);
                             EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.shapeHeightRect);
+                            if (ShaderConfig.s_BarnDoor == 1)
+                            {
+                                EditorGUILayout.PropertyField(serialized.barnDoorAngle, s_Styles.barnDoorAngle);
+                                EditorGUILayout.PropertyField(serialized.barnDoorLength, s_Styles.barnDoorLength);
+                            }
                             if (EditorGUI.EndChangeCheck())
                             {
                                 serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
                                 serialized.settings.areaSizeY.floatValue = serialized.shapeHeight.floatValue;
+                                if (ShaderConfig.s_BarnDoor == 1)
+                                {
+                                    serialized.barnDoorAngle.floatValue = Mathf.Clamp(serialized.barnDoorAngle.floatValue, 0.0f, 90.0f);
+                                    serialized.barnDoorLength.floatValue = Mathf.Clamp(serialized.barnDoorLength.floatValue, 0.0f, float.MaxValue);
+                                }
                             }
                             break;
                         case AreaLightShape.Tube:
