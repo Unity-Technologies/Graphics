@@ -4,7 +4,7 @@ editors:
   - version: fast-2019.3
     cmd: -u 2019.3/staging --fast
 platforms:
-  - name: Windows64
+  - name: Win
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
@@ -27,7 +27,7 @@ projects:
 {{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on {{ platform.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    {% if testplatform.name == "editmode" and platform.name == "Windows64" %}
+    {% if testplatform.name == "editmode" and platform.name == "Win" %}
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
