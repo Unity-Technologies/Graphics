@@ -210,10 +210,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 newAsset.name = Path.GetFileName(pathName);
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
+                PostCreateAssetWork(newAsset);
             }
+
+            protected virtual void PostCreateAssetWork(TAssetType asset) {}
         }
 
-        class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings> { }
+        class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings>
+        {
+            protected override void PostCreateAssetWork(DiffusionProfileSettings asset)
+            {
+                // Update the hash after that the asset was saved on the disk (hash requires the GUID of the asset)
+                DiffusionProfileHashTable.UpdateDiffusionProfileHashNow(asset);
+            }
+        }
 
         [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
         static void MenuCreateDiffusionProfile()
