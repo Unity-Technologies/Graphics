@@ -5,19 +5,15 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
 
-        //TODO: Remove
+        //TODO: Remove. Dependant on Fetch()
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
-        
+
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
         RW_TEXTURE2D_X(float3, _OutputHistoryTexture);
-
-        //TODO: Setup params
 
         struct Attributes
         {
@@ -51,7 +47,15 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             float3 history = Fetch(_InputHistoryTexture, uv, 0.0, _RTHandleScale.xy); //TODO: History Scale
 
             //Pass-thru history blend.
-            color = lerp(color, history, 0.45);
+            if(_AccumulationSampleIndex == 2)
+            {
+                color = color / (float)_AccumulationSampleCount;
+            }
+            else
+            {
+                color = (color / (float)_AccumulationSampleCount) + history;
+            }
+            
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color;
@@ -67,6 +71,7 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
+                #pragma enable_d3d11_debug_symbols
                 #pragma vertex   Vert
                 #pragma fragment FragAccumulation
             ENDHLSL

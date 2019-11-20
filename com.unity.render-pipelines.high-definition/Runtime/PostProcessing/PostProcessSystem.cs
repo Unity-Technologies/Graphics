@@ -1450,15 +1450,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             Vector4 accumulationMotionBlurParams = new Vector4(
-                (float)m_MotionBlur.accumulationSampleIndex,
                 (float)m_MotionBlur.accumulationSampleCount,
+                (float)m_MotionBlur.accumulationSampleIndex,
                 0,
-                0
+                0 //TODO: Enabled, 
             );
 
             m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_AccumulationMotionBlurPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
-            m_AccumulationMotionBlurPropertyBlock.SetVector(HDShaderIDs._MotionBlurParams, accumulationMotionBlurParams);
+            m_AccumulationMotionBlurPropertyBlock.SetVector(HDShaderIDs._MotionBlurParams3, accumulationMotionBlurParams);
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);

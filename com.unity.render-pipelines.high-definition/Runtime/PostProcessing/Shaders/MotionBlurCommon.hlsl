@@ -29,8 +29,9 @@ CBUFFER_START(MotionBlurUniformBuffer)
 float4x4 _PrevVPMatrixNoTranslation;
 float4 _TileTargetSize;     // .xy size, .zw 1/size
 float4 _MotionBlurParams0;  // Unpacked below.
-float4 _MotionBlurParams1;  // Upacked below.
-float4 _MotionBlurParams2;  // Upacked below.
+float4 _MotionBlurParams1;  // Unpacked below.
+float4 _MotionBlurParams2;  // Unpacked below.
+float4 _MotionBlurParams3;  // Unpacked below.
 CBUFFER_END
 
 #define _ScreenMagnitude                    _MotionBlurParams0.x
@@ -44,6 +45,9 @@ CBUFFER_END
 #define _SampleCount                        uint(_MotionBlurParams2.x)
 #define _TileSize                           uint(_MotionBlurParams2.y)
 #define _DepthScale                         _MotionBlurParams2.z
+#define _AccumulationSampleCount            _MotionBlurParams3.x
+#define _AccumulationSampleIndex            uint(_MotionBlurParams3.y)
+#define _AccumulationEnabled                _MotionBlurParams3.w
 
 
 #if defined(USING_STEREO_MATRICES)
