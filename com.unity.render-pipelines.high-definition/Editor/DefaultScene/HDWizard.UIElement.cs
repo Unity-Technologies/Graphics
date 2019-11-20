@@ -206,18 +206,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrpAsset = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
             hdrpAsset.name = "HDRenderPipelineAsset";
 
-            int index = 0;
-            hdrpAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList.Length];
-            foreach (var defaultProfile in hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList)
-            {
-                string defaultDiffusionProfileSettingsPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + defaultProfile.name + ".asset";
-                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultProfile), defaultDiffusionProfileSettingsPath);
-
-                DiffusionProfileSettings defaultDiffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-
-                hdrpAsset.diffusionProfileSettingsList[index++] = defaultDiffusionProfile;
-            }
-
             AssetDatabase.CreateAsset(hdrpAsset, "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.name + ".asset");
 
             GraphicsSettings.renderPipelineAsset = hdrpAsset;
