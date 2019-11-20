@@ -23,25 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void Reset() => OnValidate();
 
-        protected override UnityEngine.Rendering.RenderPipeline CreatePipeline()
-        {
-            // safe: When we return a null render pipline it will do nothing in the rendering
-            HDRenderPipeline pipeline = null;
-
-            // We need to do catch every errors that happend during the HDRP build, when we upgrade the
-            // HDRP package, some required assets are not yet imported by the package manager when the
-            // pipeline is created so in that case, we just return a null pipeline. Some error may appear
-            // when we upgrade the pipeline but it's better than breaking HDRP resources an causing more
-            // errors.
-            try
-            {
-                pipeline = new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
-            } catch (Exception e) {
-                UnityEngine.Debug.LogError(e);
-            }
-
-            return pipeline;
-        }
+        protected override RenderPipeline CreatePipeline()
+            => new HDRenderPipeline(this, HDRenderPipeline.defaultAsset);
 
         protected override void OnValidate()
         {
