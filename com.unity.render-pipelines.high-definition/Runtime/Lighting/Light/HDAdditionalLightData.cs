@@ -1174,6 +1174,45 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Only for Rectangle area lights.
+        [Range(0.0f, 90.0f)]
+        [SerializeField]
+        float m_BarnDoorAngle = 90.0f;
+        /// <summary>
+        /// Get/Set the angle so that it behaves like a barn door.
+        /// </summary>
+        public float barnDoorAngle
+        {
+            get => m_BarnDoorAngle;
+            set
+            {
+                if (m_BarnDoorAngle == value)
+                    return;
+
+                m_BarnDoorAngle = Mathf.Clamp(value, 0.0f, 90.0f);
+                UpdateAllLightValues();
+            }
+        }
+
+        // Only for Rectangle area lights
+        [SerializeField]
+        float m_BarnDoorLength = 0.05f;
+        /// <summary>
+        /// Get/Set the length for the barn door sides.
+        /// </summary>
+        public float barnDoorLength
+        {
+            get => m_BarnDoorLength;
+            set
+            {
+                if (m_BarnDoorLength == value)
+                    return;
+
+                m_BarnDoorLength = Mathf.Clamp(value, 0.0f, float.MaxValue);
+                UpdateAllLightValues();
+            }
+        }
+
 #endregion
 
 #region Internal API for moving shadow datas from AdditionalShadowData to HDAdditionalLightData

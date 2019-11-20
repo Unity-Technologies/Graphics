@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 shadowMaskSelector;      // Used with ShadowMask feature
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public Vector2 size;                    // Used by area (X = length or width, Y = height) and punctual lights (X = radius)
+        public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius) 
         public float   diffuseDimmer;
         public float   specularDimmer;
         public float   isRayTracedContactShadow;
