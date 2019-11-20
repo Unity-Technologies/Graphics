@@ -279,7 +279,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 FixHdrpAssetUsed(fromAsync: false);
 
             var hdAsset = HDRenderPipeline.currentAsset;
-            hdAsset.diffusionProfileSettingsList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
+            var defaultAssetList = hdAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
+            hdAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
+
+            foreach (var diffusionProfileAsset in defaultAssetList)
+            {
+                string defaultDiffusionProfileSettingsPath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + diffusionProfileAsset.name + ".asset";
+                AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(diffusionProfileAsset), defaultDiffusionProfileSettingsPath);
+
+                var userAsset = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
+                hdAsset.AddDiffusionProfile(userAsset);
+            }
+
             EditorUtility.SetDirty(hdAsset);
         }
 
