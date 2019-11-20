@@ -172,6 +172,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed spot light missing from ray tracing indirect effects.
 - Fixed a UI bug in the diffusion profile list after fixing them from the wizard.
 - Fixed the hash collision when creating new diffusion profile assets.
+- Improved a bit the GC calls generated during the rendering.
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled

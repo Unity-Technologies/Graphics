@@ -21,10 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = hash * 23 + bottom.GetHashCode();
-                hash = hash * 23 + top.GetHashCode();
-                hash = hash * 23 + middle.GetHashCode();
-                hash = hash * 23 + gradientDiffusion.GetHashCode();
+                hash = hash * 23 + bottom.value.GetHashCode();
+                hash = hash * 23 + top.value.GetHashCode();
+                hash = hash * 23 + middle.value.GetHashCode();
+                hash = hash * 23 + gradientDiffusion.value.GetHashCode();
             }
 
             return hash;
