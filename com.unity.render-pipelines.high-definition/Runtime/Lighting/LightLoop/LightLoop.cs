@@ -1186,6 +1186,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             lightData.angularDiameter = additionalLightData.angularDiameter * Mathf.Deg2Rad;
+            lightData.flareSize       = Mathf.Max(additionalLightData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
+            lightData.flareFalloff    = additionalLightData.flareFalloff;
+            lightData.flareIntensity  = additionalLightData.flareIntensity;
 
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;

@@ -427,24 +427,30 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawCelestialBodyContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serialized.angularDiameter, s_Styles.angularDiameter);
-
-            EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
-
-            using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
             {
-                EditorGUI.indentLevel++;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serialized.distance, s_Styles.distance);
-                EditorGUI.indentLevel--;
+                EditorGUILayout.PropertyField(serialized.angularDiameter,  s_Styles.angularDiameter);
+                EditorGUILayout.PropertyField(serialized.interactsWithSky, s_Styles.interactsWithSky);
+
+                using (new EditorGUI.DisabledScope(!serialized.interactsWithSky.boolValue))
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(serialized.flareSize,      s_Styles.flareSize);
+                    EditorGUILayout.PropertyField(serialized.flareIntensity, s_Styles.flareIntensity);
+                    EditorGUILayout.PropertyField(serialized.flareFalloff,   s_Styles.flareFalloff);
+                    EditorGUILayout.PropertyField(serialized.distance,       s_Styles.distance);
+                    EditorGUI.indentLevel--;
+                }
             }
 
             if (EditorGUI.EndChangeCheck())
             {
-                //Clamp the value and also affect baked shadows
-                serialized.angularDiameter.floatValue = Mathf.Clamp(serialized.angularDiameter.floatValue, 0, 90);
+                // Clamp the value and also affect baked shadows.
+                serialized.angularDiameter.floatValue               = Mathf.Clamp(serialized.angularDiameter.floatValue, 0, 90);
                 serialized.settings.bakedShadowAngleProp.floatValue = serialized.angularDiameter.floatValue;
-                serialized.distance.floatValue = Mathf.Max(0, serialized.distance.floatValue);
+                serialized.flareSize.floatValue                     = Mathf.Clamp(serialized.flareSize.floatValue, 0, 90);
+                serialized.flareIntensity.floatValue                = Mathf.Clamp(serialized.flareIntensity.floatValue, 0, 1);
+                serialized.flareFalloff.floatValue                  = Mathf.Max(serialized.flareFalloff.floatValue, 0);
+                serialized.distance.floatValue                      = Mathf.Max(serialized.distance.floatValue, 0);
             }
         }
 

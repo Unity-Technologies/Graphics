@@ -592,7 +592,58 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_AngularDiameter == value)
                     return;
 
-                m_AngularDiameter = Mathf.Clamp(value, 0, 360);
+                m_AngularDiameter = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareSize")]
+        float m_FlareSize = 2.0f;
+        /// <summary>
+        /// Size the flare around the celestial body (in degrees).
+        /// </summary>
+        public float flareSize
+        {
+            get => m_FlareSize;
+            set
+            {
+                if (m_FlareSize == value)
+                    return;
+
+                m_FlareSize = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareIntensity")]
+        float m_FlareIntensity = 0.001f;
+        /// <summary>
+        /// Intensity of the flare around the celestial body.
+        /// </summary>
+        public float flareIntensity
+        {
+            get => m_FlareIntensity;
+            set
+            {
+                if (m_FlareIntensity == value)
+                    return;
+
+                m_FlareIntensity = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("flareFalloff")]
+        float m_FlareFalloff = 8.0f;
+        /// <summary>
+        /// The falloff rate of flare intensity as the angle from the light increases.
+        /// </summary>
+        public float flareFalloff
+        {
+            get => m_FlareFalloff;
+            set
+            {
+                if (m_FlareFalloff == value)
+                    return;
+
+                m_FlareFalloff = value; // Serialization code clamps
             }
         }
 
@@ -609,7 +660,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Distance == value)
                     return;
 
-                m_Distance = value;
+                m_Distance = value; // Serialization code clamps
             }
         }
 
@@ -1915,6 +1966,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;
             data.angularDiameter = angularDiameter;
+            data.flareSize = flareSize;
+            data.flareIntensity = flareIntensity;
             data.distance = distance;
 
             shadowResolution.CopyTo(data.shadowResolution);

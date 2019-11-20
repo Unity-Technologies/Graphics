@@ -37,6 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useScreenSpaceShadows;
         public SerializedProperty interactsWithSky;
         public SerializedProperty angularDiameter;
+        public SerializedProperty flareSize;
+        public SerializedProperty flareIntensity;
+        public SerializedProperty flareFalloff;
         public SerializedProperty distance;
         public SerializedProperty useRayTracedShadows;
         public SerializedProperty numRayTracingSamples;
@@ -222,6 +225,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows");
                 interactsWithSky = o.Find("m_InteractsWithSky");
                 angularDiameter = o.Find("m_AngularDiameter");
+                flareSize = o.Find("m_FlareSize");
+                flareIntensity = o.Find("m_FlareIntensity");
+                flareFalloff = o.Find("m_FlareFalloff");
                 distance = o.Find("m_Distance");
                 useRayTracedShadows = o.Find("m_UseRayTracedShadows");
                 numRayTracingSamples = o.Find("m_NumRayTracingSamples");
