@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (String.IsNullOrEmpty(assetPath))
                 return 0;
 
-                Debug.Log("Generating new hash");
             uint hash32 = (uint)AssetDatabase.AssetPathToGUID(assetPath).GetHashCode();
             uint mantissa = hash32 & 0x7FFFFF;
             uint exponent = 0b10000000; // 0 as exponent
