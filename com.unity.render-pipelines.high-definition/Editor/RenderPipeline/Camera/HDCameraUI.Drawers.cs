@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
 
         public static readonly CED.IDrawer SectionXRSettings = CED.Conditional(
-            (serialized, owner) => PlayerSettings.virtualRealitySupported,
+            (serialized, owner) => XRGraphics.tryEnable,
             CED.FoldoutGroup(
                 xrSettingsHeaderContent,
                 Expandable.XR,
