@@ -101,29 +101,27 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     // We may be able to see the celestial body.
                     float3 L = -light.forward.xyz;
 
-                    float LdotV      = dot(L, V);
+                    float LdotV      = -dot(L, V);
+                    float rad        = acos(LdotV);
                     float radInner   = 0.5 * light.angularDiameter;
                     float cosInner   = cos(radInner);
                     float cosOuter   = cos(radInner + light.flareSize);
-                    float solidAngle = TWO_PI * (1 - cos(light.angularDiameter));
+                    float solidAngle = TWO_PI * (1 - cosInner);
 
-
-                    if (-LdotV >= cosOuter)
+                    if (LdotV >= cosOuter)
                     {
-                        float scale = rcp(solidAngle);
-                        // Assume uniform emission.
-
                         // Sun flare is visible. Sun disk may or may not be visible.
-                        if (-LdotV >= cosInner)
+                        // Assume uniform emission.
+                        float scale = rcp(solidAngle);
+
+                        if (LdotV >= cosInner) // Sun disk.
                         {
-                            // Sun disk is visible.
                             tFrag = light.distanceFromCamera;
 
                         }
-                        else
+                        else // Flare region.
                         {
-                            // Flare region.
-                            float r = max(0, acos(-LdotV) - radInner);
+                            float r = max(0, rad - radInner);
                             float w = saturate(1 - r * rcp(light.flareSize));
 
                             scale *= light.flareIntensity * pow(w, light.flareFalloff);

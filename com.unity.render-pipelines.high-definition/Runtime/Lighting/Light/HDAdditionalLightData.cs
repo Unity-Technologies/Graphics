@@ -614,9 +614,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("flareIntensity")]
-        float m_FlareIntensity = 0.001f;
+        float m_FlareIntensity = 0.0001f;
         /// <summary>
-        /// Intensity of the flare around the celestial body.
+        /// Intensity of the flare around the celestial body relative to the brightness of the celestial body itself.
         /// </summary>
         public float flareIntensity
         {
@@ -631,7 +631,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("flareFalloff")]
-        float m_FlareFalloff = 8.0f;
+        float m_FlareFalloff = 4.0f;
         /// <summary>
         /// The falloff rate of flare intensity as the angle from the light increases.
         /// </summary>
