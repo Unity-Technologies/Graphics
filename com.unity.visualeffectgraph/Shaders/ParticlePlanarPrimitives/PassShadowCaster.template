@@ -8,7 +8,10 @@ Pass
 	
 	HLSLPROGRAM
 	#pragma target 4.5
-	
+	#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE
+	#define USE_ALPHA_TEST 1
+	#endif
+
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
