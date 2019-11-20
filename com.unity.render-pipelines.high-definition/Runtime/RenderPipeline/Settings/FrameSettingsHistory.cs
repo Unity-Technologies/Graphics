@@ -37,15 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             FrameSettingsHistory IFrameSettingsHistoryContainer.frameSettingsHistory
             {
                 get => m_FrameSettingsHistory;
-                set
-                {
-                    // do not loss the struct position so only change content
-                    m_FrameSettingsHistory.defaultType = value.defaultType;
-                    m_FrameSettingsHistory.customMask = value.customMask;
-                    m_FrameSettingsHistory.overridden = value.overridden;
-                    m_FrameSettingsHistory.sanitazed = value.sanitazed;
-                    m_FrameSettingsHistory.debug = value.debug;
-                }
+                set => m_FrameSettingsHistory = value;
             }
 
             // never used as hasCustomFrameSettings forced to false
@@ -64,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 => "Scene Camera";
 
             Action IDebugData.GetReset()
-                //caution: we actually need to retrieve the 
+                //caution: we actually need to retrieve the
                 //m_FrameSettingsHistory as it is a struct so no direct
                 // => m_FrameSettingsHistory.TriggerReset
                 => () => m_FrameSettingsHistory.TriggerReset();
@@ -124,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ref aggregatedFrameSettings,
                 camera,
 #if UNITY_EDITOR
-                camera.cameraType == CameraType.SceneView ? sceneViewFrameSettingsContainer : 
+                camera.cameraType == CameraType.SceneView ? sceneViewFrameSettingsContainer :
 #endif
                 additionalData,
                 ref defaultHdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
@@ -145,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             aggregatedFrameSettings = defaultFrameSettings;
             bool updatedComponent = false;
 
-            if (historyContainer != null && !historyContainer.Equals(null) && historyContainer.hasCustomFrameSettings)
+            if (historyContainer.hasCustomFrameSettings)
             {
                 FrameSettings.Override(ref aggregatedFrameSettings, historyContainer.frameSettings, historyContainer.frameSettingsMask);
                 updatedComponent = history.customMask.mask != historyContainer.frameSettingsMask.mask;
@@ -153,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             history.overridden = aggregatedFrameSettings;
             FrameSettings.Sanitize(ref aggregatedFrameSettings, camera, supportedFeatures);
-            
+
             history.hasDebug = history.debug != aggregatedFrameSettings;
             updatedComponent |= history.sanitazed != aggregatedFrameSettings;
             bool dirtyDebugData = !history.hasDebug || updatedComponent;
@@ -304,10 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Register FrameSettingsHistory for DebugMenu</summary>
         public static IDebugData RegisterDebug(IFrameSettingsHistoryContainer frameSettingsContainer, bool sceneViewCamera = false)
         {
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-            var defaultHdrpAsset = HDRenderPipeline.defaultAsset;
-            Assertions.Assert.IsNotNull(hdrpAsset);
-            
 #if UNITY_EDITOR
             if (sceneViewCamera)
                 frameSettingsContainer = sceneViewFrameSettingsContainer;

@@ -174,6 +174,13 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Called when the render pipeline gets destroyed on quit or domain reload.
+        /// </summary>
+        public virtual void Cleanup()
+        {
+        }
+
+        /// <summary>
         /// Execute the enqueued render passes. This automatically handles editor and stereo rendering.
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution.</param>
@@ -255,7 +262,8 @@ namespace UnityEngine.Rendering.Universal
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
-            InternalFinishRendering(context);
+            //if (renderingData.resolveFinalTarget)
+                InternalFinishRendering(context);
             blockRanges.Dispose();
         }
 
@@ -282,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
             cameraClearFlags = CameraClearFlags.SolidColor;
 #endif
 
-            // LWRP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
+            // Universal RP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
             // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
             // CameraClearFlags.Nothing clears Depth on PC/Desktop and in mobile it clears both
             // depth and color.
@@ -382,6 +390,12 @@ namespace UnityEngine.Rendering.Universal
 
                 Camera camera = cameraData.camera;
                 ClearFlag clearFlag = GetCameraClearFlag(camera.clearFlags);
+
+                // Overlay cameras composite on top of previous ones. They don't clear.
+                // MTT: Commented due to not implemented yet
+//                if (renderingData.cameraData.renderType == CameraRenderType.Overlay)
+//                    clearFlag = ClearFlag.None;
+
                 SetRenderTarget(cmd, m_CameraColorTarget, m_CameraDepthTarget, clearFlag,
                     CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 

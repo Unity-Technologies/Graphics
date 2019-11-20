@@ -10,15 +10,22 @@ namespace UnityEditor.VFX
 {
     class VFXHDRPSubOutput : VFXSRPSubOutput
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue opaque particles are drawn. This is useful for drawing particles after post processing so they are not affected by effects such as Depth of Field.")]
         public OpaqueRenderQueue opaqueRenderQueue = OpaqueRenderQueue.Default;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
         public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;
 
         // Caps
         public override bool supportsExposure { get { return true; } } 
-        public override bool supportsMotionVector { get { return true; } }
+        public override bool supportsMotionVector
+        {
+            get
+            {
+                return transparentRenderQueue != TransparentRenderQueue.LowResolution
+                    && transparentRenderQueue != TransparentRenderQueue.AfterPostProcessing;
+            }
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -65,7 +72,7 @@ namespace UnityEditor.VFX
                 renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
             }
 
-            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.useAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
+            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
             return prefix + renderQueue.ToString("+#;-#;+0");
         }
 

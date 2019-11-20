@@ -8,10 +8,13 @@ using System.Text;
 
 namespace UnityEditor.VFX
 {
-    class VFXDataMesh : VFXData
+    class VFXDataMesh : VFXData, ISerializationCallbackReceiver
     {
         [SerializeField, FormerlySerializedAs("shader")]
         private Shader m_Shader;
+
+        [SerializeField]
+        private string shaderGUID;
 
         public Shader shader
         {
@@ -19,9 +22,25 @@ namespace UnityEditor.VFX
             set
             {
                 m_Shader = value;
-                Material.DestroyImmediate(m_CachedMaterial);
-                m_CachedMaterial = null;
+                DestroyCachedMaterial();
             }
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            if (m_Shader != null)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(m_Shader);
+                if( ! string.IsNullOrEmpty(assetPath))
+                    shaderGUID = AssetDatabase.AssetPathToGUID(assetPath);
+            }
+            else
+                shaderGUID = null;
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            //Restoration code moved to OnEnable
         }
 
         private Material m_CachedMaterial = null; // Transient material used to retrieve key words and properties
@@ -31,13 +50,35 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             base.OnEnable();
+            if( ! object.ReferenceEquals(shader,null)) // try to get back the correct object from the instance id in case we point on a "null" ScriptableObject which can exists because of reimport.
+                shader = EditorUtility.InstanceIDToObject(shader.GetInstanceID()) as Shader;
+
+            if ( shader == null && !string.IsNullOrEmpty(shaderGUID))
+            {
+                // restore shader from saved GUID in case of loss
+                string assetPath = AssetDatabase.GUIDToAssetPath(shaderGUID);
+                if( !string.IsNullOrEmpty(assetPath))
+                shader = AssetDatabase.LoadAssetAtPath<Shader>(assetPath);
+            }
+
             if (shader == null) shader = VFXResources.defaultResources.shader;
+        }
+
+        public void RefreshShader()
+        {
+            DestroyCachedMaterial();
+            Invalidate(InvalidationCause.kSettingChanged);
+        }
+
+        private void DestroyCachedMaterial()
+        {
+            Material.DestroyImmediate(m_CachedMaterial);
+            m_CachedMaterial = null;
         }
 
         public void OnDisable()
         {
-            Material.DestroyImmediate(m_CachedMaterial);
-            m_CachedMaterial = null;
+            DestroyCachedMaterial();
         }
 
         public override void CopySettings<T>(T dst)

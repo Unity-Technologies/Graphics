@@ -1,6 +1,9 @@
 using System;
 using UnityEditor;
+
+#if ENABLE_VR && ENABLE_VR_MODULE
 using UnityEngine.XR;
+#endif
 
 namespace UnityEngine.Rendering
 {

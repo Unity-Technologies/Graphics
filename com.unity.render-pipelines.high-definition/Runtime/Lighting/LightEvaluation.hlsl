@@ -11,13 +11,11 @@
 //  F, the *normalized* vector irradiance
 float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
 {
-    // L[0] = top-right
-    // L[1] = bottom-right
-    // L[2] = bottom-left
-    // L[3] = top-left
-    float3  origin = L[2];
-    float3  right = L[1] - origin;
-    float3  up = L[3] - origin;
+    // L[0..3] : LL UL UR LR
+
+    float3  origin = L[0];
+    float3  right = L[3] - origin;
+    float3  up = L[1] - origin;
 
     float3  normal = cross(right, up);
     float   sqArea = dot(normal, normal);
@@ -61,22 +59,79 @@ float3 SampleAreaLightCookie(int cookieIndex, float4x3 L, float3 F)
     // TODO: Invesigate more!
     float2  hitUV = float2(1.0 - u, v);
 
-    // Assuming the original cosine lobe distribution Do is enclosed in a cone of 90° aperture,
+    // Assuming the original cosine lobe distribution Do is enclosed in a cone of 90 deg  aperture,
     //  following the idea of orthogonal projection upon the area light's plane we find the intersection
-    //  of the cone to be a disk of area PI*d² where d is the hit distance we computed above.
-    // We also know the area of the transformed polygon A = sqrt( sqArea ) and we pose the ratio of covered area as PI.d² / A.
+    //  of the cone to be a disk of area PI*d^2 where d is the hit distance we computed above.
+    // We also know the area of the transformed polygon A = sqrt( sqArea ) and we pose the ratio of covered area as PI.d^2 / A.
     //
     // Knowing the area in square texels of the cookie texture A_sqTexels = texture width * texture height (default is 128x128 square texels)
     //  we can deduce the actual area covered by the cone in square texels as:
-    //  A_covered = Pi.d² / A * A_sqTexels
+    //  A_covered = Pi.d^2 / A * A_sqTexels
     //
     // From this, we find the mip level as: mip = log2( sqrt( A_covered ) ) = log2( A_covered ) / 2
-    // Also, assuming that A_sqTexels is of the form 2^n * 2^n we get the simplified expression: mip = log2( Pi.d² / A ) / 2 + n
+    // Also, assuming that A_sqTexels is of the form 2^n * 2^n we get the simplified expression: mip = log2( Pi.d^2 / A ) / 2 + n
     //
     const float COOKIE_MIPS_COUNT = _CookieSizePOT;
     float   mipLevel = 0.5 * log2(1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea)) + COOKIE_MIPS_COUNT;
 
     return SAMPLE_TEXTURE2D_ARRAY_LOD(_AreaCookieTextures, s_trilinear_clamp_sampler, hitUV, cookieIndex, mipLevel).xyz;
+}
+
+// This function transforms a rectangular area light according the the barn door inputs defined by the user.
+void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPosition)
+{
+    // If we are above 89° or the depth is smaller than 5cm this is not worth it.
+    if (lightData.size.z > 0.017f && lightData.size.w > 0.05f)
+    {
+        // Compute the half size of the light source
+        float halfWidth  = lightData.size.x * 0.5;
+        float halfHeight = lightData.size.y * 0.5;
+
+        // Transform the point to light source space. First position then orientation
+        float3 lightRelativePointPos = -(lightData.positionRWS - pointPosition);
+        float3 pointLS = float3(dot(lightRelativePointPos, lightData.right), dot(lightRelativePointPos, lightData.up), dot(lightRelativePointPos, lightData.forward));
+        
+        // Compute the depth of the point in the pyramid space
+        float pointDepth = min(pointLS.z, lightData.size.z * lightData.size.w);
+
+        // Compute the ratio between the point's depth and the maximal depth of the pyramid
+        float pointDepthRatio = pointDepth / (lightData.size.z * lightData.size.w);
+        float sinTheta = sqrt(1 - max(0, lightData.size.z * lightData.size.z));
+
+        // Compute the barn door projection
+        float barnDoorProjection = sinTheta * lightData.size.w * pointDepthRatio;
+        
+        // Compute the sign of the point when in the local light space
+        float2 pointSign = sign(pointLS.xy);
+        // Clamp the point to the closest edge
+        pointLS.xy = float2(pointSign.x, pointSign.y) * max(abs(pointLS.xy), float2(halfWidth, halfHeight) + barnDoorProjection.xx);
+        
+        // Compute the closest rect lignt corner, offset by the barn door size
+        float3 closestLightCorner = float3(pointSign.x * (halfWidth + barnDoorProjection), pointSign.y * (halfHeight + barnDoorProjection), pointDepth);
+            
+        // Compute the point projection onto the edge and deduce the size that should be removed from the light dimensions
+        float3 pointProjection  = pointLS - closestLightCorner;
+        // Phi being the angle between the point projection point and the forward vector of the light source
+        float  cosPhi = max(0, pointProjection.z);
+        // If the angle is too perpendicular, we make the point infinitely far
+        float2 tanPhi = cosPhi > 0.001f ? abs(pointProjection.xy) / cosPhi : 99999.0f;
+        float2 projectionDistance = pointDepth * tanPhi;
+
+        // Compute the positions of the new vertices of the culled light
+        float2 topRight = float2(-halfWidth, halfWidth);
+        float2 bottomLeft = float2(-halfHeight, halfHeight);
+        topRight += (projectionDistance.x - barnDoorProjection) * float2(max(0, -pointSign.x), -max(0, pointSign.x));
+        bottomLeft += (projectionDistance.y - barnDoorProjection) * float2(max(0, -pointSign.y), -max(0, pointSign.y));
+        topRight = clamp(topRight, -halfWidth, halfWidth);
+        bottomLeft = clamp(bottomLeft, -halfHeight, halfHeight);
+        
+        // Compute the offset that needs to be applied to the origin points to match the culling of the barn door
+        float2 lightCenterOffset = 0.5f * float2(topRight.x + topRight.y, bottomLeft.x + bottomLeft.y);
+
+        // Change the input data of the light to adjust the rectangular area light
+        lightData.size.xy = float2(topRight.y - topRight.x, bottomLeft.y - bottomLeft.x);
+        lightData.positionRWS = lightData.positionRWS + lightData.right * lightCenterOffset.x + lightData.up * lightCenterOffset.y;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -218,7 +273,7 @@ float EvaluateShadow_Directional(LightLoopContext lightLoopContext, PositionInpu
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask) : 1.0);
+    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
 #endif
 
 #ifdef DEBUG_DISPLAY
@@ -415,7 +470,7 @@ float EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 
     // Transparents have no contact shadow information
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(LIGHT_EVALUATION_NO_CONTACT_SHADOWS)
-    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask) : 1.0);
+    shadow = min(shadow, NdotL > 0.0 ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
 #endif
 
 #ifdef DEBUG_DISPLAY

@@ -189,10 +189,11 @@ namespace UnityEditor.Rendering
                 using (new EditorGUILayout.VerticalScope())
                 {
                     EditorGUIUtility.labelWidth = 40;
-                    EditorGUI.indentLevel--;
+                    int oldIndentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
                     for (var i = 0; i < ppts.Length; ++i)
                         EditorGUILayout.PropertyField(ppts[i], lbls[i]);
-                    EditorGUI.indentLevel++;
+                    EditorGUI.indentLevel = oldIndentLevel;
                 }
             }
 
@@ -277,7 +278,8 @@ namespace UnityEditor.Rendering
             foldoutRect.y += 1f;
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
-
+            foldoutRect.x = labelRect.xMin + 15 * (EditorGUI.indentLevel - 1); //fix for presset
+            
             // More options 1/2
             var moreOptionsRect = new Rect();
             if (hasMoreOptions != null)
@@ -568,7 +570,7 @@ namespace UnityEditor.Rendering
                 for(int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
-                    suffixRect.x += fieldWidth + .66f;
+                    suffixRect.x += fieldWidth + .33f;
                 }
             }
 
@@ -584,12 +586,12 @@ namespace UnityEditor.Rendering
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
-                suffixRect.x += fieldWidth  - .5f;
+                suffixRect.x += fieldWidth  + 0.33f;
                 colorMark.normal.textColor = colors[1];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
-                suffixRect.x += fieldWidth;
+                suffixRect.x += fieldWidth + .33f;
                 colorMark.normal.textColor = colors[2];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
                 suffixRect.x += 1;
@@ -767,6 +769,23 @@ namespace UnityEditor.Rendering
             }
 
             return icon;
+        }
+
+        /// <summary>
+        /// Creates a new GameObject and set it's position to the current view
+        /// </summary>
+        /// <param name="name">the name of the new gameobject</param>
+        /// <param name="context">the parent of the gameobject</param>
+        /// <returns></returns>
+        public static GameObject CreateGameObject(string name, UnityEngine.Object context)
+        {
+            var parent = context as GameObject;
+            var go = CoreEditorUtils.CreateGameObject(parent, name);
+            GameObjectUtility.SetParentAndAlign(go, context as GameObject);
+            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+            Selection.activeObject = go;
+            EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+            return go;
         }
 
         #endregion

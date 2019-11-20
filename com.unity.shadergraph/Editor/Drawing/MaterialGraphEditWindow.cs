@@ -344,7 +344,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (GraphData.onSaveGraph != null)
                 {
                     var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
-                    GraphData.onSaveGraph(shader);
+                    if (shader != null)
+                    {
+                        GraphData.onSaveGraph(shader);
+                    }                    
                 }
             }
 

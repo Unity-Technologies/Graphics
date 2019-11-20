@@ -4,6 +4,7 @@
 		Cull Back
 		
 		${VFXInclude("Shaders/VFXParticleHeader.template")}
+        ${VFXInclude("Shaders/ParticleHexahedron/PassSelection.template")}
 		${VFXInclude("Shaders/ParticleHexahedron/PassDepth.template"),IS_OPAQUE_PARTICLE}
 		${VFXInclude("Shaders/ParticleHexahedron/PassVelocity.template"),USE_MOTION_VECTORS_PASS}
 		${VFXInclude("Shaders/ParticleHexahedron/PassBasicForward.template")}

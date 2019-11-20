@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <returns>The projection matrix.</returns>
             public Matrix4x4 ComputeProjectionMatrix()
             {
-                return Matrix4x4.Perspective(fieldOfView, aspect, nearClipPlane, farClipPlane);
+                return Matrix4x4.Perspective(HDUtils.ClampFOV(fieldOfView), aspect, nearClipPlane, farClipPlane);
             }
 
             public Matrix4x4 GetUsedProjectionMatrix()
@@ -149,13 +149,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly Culling @default = new Culling
             {
                 cullingMask = -1,
-                useOcclusionCulling = true
+                useOcclusionCulling = true,
+                sceneCullingMaskOverride = 0
             };
 
             /// <summary>True when occlusion culling will be performed during rendering, false otherwise.</summary>
             public bool useOcclusionCulling;
             /// <summary>The mask for visible objects.</summary>
             public LayerMask cullingMask;
+            /// <summary>Scene culling mask override.</summary>
+            public ulong sceneCullingMaskOverride;
         }
 
         /// <summary>Default value.</summary>
@@ -169,7 +172,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes = Volumes.@default,
             flipYMode = HDAdditionalCameraData.FlipYMode.Automatic,
             invertFaceCulling = false,
-            probeLayerMask = ~0
+            probeLayerMask = ~0,
+            probeRangeCompressionFactor = 1.0f
         };
 
         public static CameraSettings From(HDCamera hdCamera)
@@ -177,6 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var settings = @default;
             settings.culling.cullingMask = hdCamera.camera.cullingMask;
             settings.culling.useOcclusionCulling = hdCamera.camera.useOcclusionCulling;
+            settings.culling.sceneCullingMaskOverride = HDUtils.GetSceneCullingMaskFromCamera(hdCamera.camera);
             settings.frustum.aspect = hdCamera.camera.aspect;
             settings.frustum.farClipPlane = hdCamera.camera.farClipPlane;
             settings.frustum.nearClipPlane = hdCamera.camera.nearClipPlane;
@@ -241,6 +246,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMask probeLayerMask;
         /// <summary>Which default FrameSettings should be used when rendering with these parameters.</summary>
         public FrameSettingsRenderType defaultFrameSettings;
+
+        // Marked as internal as it is here just for propagation purposes, the correct way to edit this value is through the probe itself.
+        internal float probeRangeCompressionFactor;
 
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;

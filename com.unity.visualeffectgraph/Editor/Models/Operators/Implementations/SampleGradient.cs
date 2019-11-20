@@ -13,14 +13,15 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            [Tooltip("The gradient to sample from.")]
+            [Tooltip("Sets the gradient to sample from.")]
             public Gradient gradient = VFXResources.defaultResources.gradient;
-            [Range(0.0f, 1.0f), Tooltip("The time along the gradient to take a sample from.")]
+            [Range(0.0f, 1.0f), Tooltip("Sets the time along the gradient to take a sample from.")]
             public float time = 0.0f;
         }
 
         public class OutputProperties
         {
+            [Tooltip("Outputs the sampled value from the gradient at the specified time.")]
             public Vector4 s = Vector4.zero;
         }
 
