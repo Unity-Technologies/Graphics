@@ -763,10 +763,10 @@ namespace UnityEditor.VFX
             {
                 m_asset = component.visualEffectAsset;
                 if (m_asset != null)
-                {
                     m_graph = m_asset.GetResource().GetOrCreateGraph();
-                }
             }
+            if (m_asset == null)
+                m_graph = null;
 
             GUI.enabled = true;
             if (m_graph != null)
