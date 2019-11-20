@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [7.1.6] - 2019-11-22
 
 ### Changed
+- ResourceReloader will now add additional InvalidImport check while it cannot load due to AssetDatabase not available.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
 
 ## [7.1.5] - 2019-11-15
