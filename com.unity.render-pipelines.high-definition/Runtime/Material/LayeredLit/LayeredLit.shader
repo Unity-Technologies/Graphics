@@ -381,13 +381,13 @@ Shader "HDRP/LayeredLit"
     #pragma shader_feature_local _DOUBLESIDED_ON
     // custom-begin:                
     //#pragma shader_feature_local _ _VERTEX_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature_local _ _VERTEX_DISPLACEMENT
+    #pragma shader_feature_local _ _PIXEL_DISPLACEMENT
     // custom-end
-    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    // custom-begin:
+    // #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    // custom-end
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
-    // custom-begin:                
-    //#pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
-    // custom-end
+    #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
 
     #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
     #pragma shader_feature_local _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
@@ -443,10 +443,7 @@ Shader "HDRP/LayeredLit"
 
     #pragma shader_feature_local _DISABLE_DECALS
     
-    // custom-begin:                
-    //#pragma shader_feature_local _DISABLE_SSR
-    #define _DISABLE_SSR
-    // custom-end
+    #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
