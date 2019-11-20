@@ -213,6 +213,8 @@
 #define WaveGetLaneCount ERROR_ON_UNSUPPORTED_FUNCTION(WaveGetLaneCount)
 #endif
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
+
 #if !defined(SHADER_API_GLES)
 
 #ifndef INTRINSIC_BITFIELD_EXTRACT
@@ -1100,19 +1102,15 @@ float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 // LOD0 must use this function with ditherFactor 1..0
 // LOD1 must use this function with ditherFactor -1..0
 // This is what is provided by unity_LODFade
-void LODDitheringTransition(uint3 fadeMaskSeed, float ditherFactor)
+void LODDitheringTransition(uint2 fadeMaskSeed, float ditherFactor)
 {
-    ditherFactor = ditherFactor < 0.0 ? 1 + ditherFactor : ditherFactor;
-
     // Generate a spatially varying pattern.
     // Unfortunately, varying the pattern with time confuses the TAA, increasing the amount of noise.
     float p = GenerateHashedRandomFloat(fadeMaskSeed);
 
-    // We want to have a symmetry between 0..0.5 ditherFactor and 0.5..1 so no pixels are transparent during the transition
-    // this is handled by this test which reverse the pattern
-    // TODO: replace the test (ditherFactor >= 0.5) with (isLod0) to avoid the distracting pattern flip around 0.5.
-    p = (ditherFactor >= 0.5) ? p : 1 - p;
-    clip(ditherFactor - p);
+    // This preserves the symmetry s.t. if LOD 0 has f = x, LOD 1 has f = -x.
+    float f = ditherFactor - CopySign(p, ditherFactor);
+    clip(f);
 }
 
 #endif

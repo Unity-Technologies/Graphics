@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added SceneSelection pass for TerrainLit shader.
 - Remove final blit pass to force alpha to 1.0 on mobile platforms.
 - Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
+- Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
