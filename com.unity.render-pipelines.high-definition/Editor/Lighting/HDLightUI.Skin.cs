@@ -77,6 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent flareSize = new GUIContent("Flare Size", "Size the flare around the celestial body (in degrees).");
             public readonly GUIContent flareIntensity = new GUIContent("Flare Intesity", "Intensity of the flare around the celestial body relative to the brightness of the celestial body itself.");
             public readonly GUIContent flareFalloff = new GUIContent("Flare Falloff", "The falloff rate of flare intensity as the angle from the light increases.");
+            public readonly GUIContent surfaceTexture = new GUIContent("Surface Texture", "2D (disk) texture of the surface of the celestial body. Acts like a multiplier.");
             public readonly GUIContent distance = new GUIContent("Distance", "Distance from the camera (in meters) to the emissive celestial body represented by the light. Primarily used for sorting.");
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");

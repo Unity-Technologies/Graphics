@@ -89,6 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   flareIntensity;
         public float   flareFalloff;
 
+        public int     surfaceTextureIndex;     // -1 if unused (TODO: 16 bit)
         public float   distanceFromCamera;      // -1 -> no sky interaction
     };
 

@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty flareSize;
         public SerializedProperty flareIntensity;
         public SerializedProperty flareFalloff;
+        public SerializedProperty surfaceTexture;
         public SerializedProperty distance;
         public SerializedProperty useRayTracedShadows;
         public SerializedProperty numRayTracingSamples;
@@ -228,6 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 flareSize = o.Find("m_FlareSize");
                 flareIntensity = o.Find("m_FlareIntensity");
                 flareFalloff = o.Find("m_FlareFalloff");
+                surfaceTexture = o.Find("m_SurfaceTexture");
                 distance = o.Find("m_Distance");
                 useRayTracedShadows = o.Find("m_UseRayTracedShadows");
                 numRayTracingSamples = o.Find("m_NumRayTracingSamples");

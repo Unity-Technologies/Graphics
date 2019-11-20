@@ -101,23 +101,34 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     // We may be able to see the celestial body.
                     float3 L = -light.forward.xyz;
 
-                    float LdotV      = -dot(L, V);
-                    float rad        = acos(LdotV);
-                    float radInner   = 0.5 * light.angularDiameter;
-                    float cosInner   = cos(radInner);
-                    float cosOuter   = cos(radInner + light.flareSize);
-                    float solidAngle = TWO_PI * (1 - cosInner);
+                    float LdotV    = -dot(L, V);
+                    float rad      = acos(LdotV);
+                    float radInner = 0.5 * light.angularDiameter;
+                    float cosInner = cos(radInner);
+                    float cosOuter = cos(radInner + light.flareSize);
+
+                    float solidAngle = 1; // Don't scale...
+                    // float solidAngle = TWO_PI * (1 - cosInner);
 
                     if (LdotV >= cosOuter)
                     {
                         // Sun flare is visible. Sun disk may or may not be visible.
                         // Assume uniform emission.
-                        float scale = rcp(solidAngle);
+                        float3 color = light.color.rgb;
+                        float  scale = rcp(solidAngle);
 
                         if (LdotV >= cosInner) // Sun disk.
                         {
                             tFrag = light.distanceFromCamera;
 
+                            if (light.surfaceTextureIndex != -1)
+                            {
+                                float2 proj = float2(dot(-V, normalize(light.right)), dot(-V, normalize(light.up)));
+                                float2 angles = HALF_PI - acos(proj);
+                                float2 uv = angles * rcp(radInner) * 0.5 + 0.5;
+
+                                color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;
+                            }
                         }
                         else // Flare region.
                         {
@@ -127,7 +138,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                             scale *= light.flareIntensity * pow(w, light.flareFalloff);
                         }
 
-                        radiance = light.color.rgb * scale;
+                        radiance = color * scale;
                     }
                 }
             }

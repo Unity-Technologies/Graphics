@@ -79,6 +79,7 @@ struct DirectionalLightData
     float flareSize;
     float flareIntensity;
     float flareFalloff;
+    int surfaceTextureIndex;
     float distanceFromCamera;
 };
 

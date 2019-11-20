@@ -437,6 +437,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.flareSize,      s_Styles.flareSize);
                     EditorGUILayout.PropertyField(serialized.flareIntensity, s_Styles.flareIntensity);
                     EditorGUILayout.PropertyField(serialized.flareFalloff,   s_Styles.flareFalloff);
+                    EditorGUILayout.PropertyField(serialized.surfaceTexture, s_Styles.surfaceTexture);
                     EditorGUILayout.PropertyField(serialized.distance,       s_Styles.distance);
                     EditorGUI.indentLevel--;
                 }

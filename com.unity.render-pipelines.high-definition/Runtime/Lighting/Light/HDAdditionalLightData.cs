@@ -614,7 +614,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField, FormerlySerializedAs("flareIntensity")]
-        float m_FlareIntensity = 0.0001f;
+        float m_FlareIntensity = 1.0f;
         /// <summary>
         /// Intensity of the flare around the celestial body relative to the brightness of the celestial body itself.
         /// </summary>
@@ -644,6 +644,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_FlareFalloff = value; // Serialization code clamps
+            }
+        }
+
+        [SerializeField, FormerlySerializedAs("surfaceTexture")]
+        Texture2D m_SurfaceTexture = null;
+        /// <summary>
+        /// 2D (disk) texture of the surface of the celestial body. Acts like a multiplier.
+        /// </summary>
+        public Texture2D surfaceTexture
+        {
+            get => m_SurfaceTexture;
+            set
+            {
+                if (m_SurfaceTexture == value)
+                    return;
+
+                m_SurfaceTexture = value;
             }
         }
 
