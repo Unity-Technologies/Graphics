@@ -128,16 +128,16 @@ namespace UnityEngine.Rendering.HighDefinition
             unchecked
             {
                 // No 'planetCenterPosition' or any textures, as they don't affect the precomputation.
-                hash = hash * 23 + planetaryRadius.GetHashCode();
-                hash = hash * 23 + airOpacity.GetHashCode();
-                hash = hash * 23 + airAlbedo.GetHashCode();
-                hash = hash * 23 + airMaximumAltitude.GetHashCode();
-                hash = hash * 23 + aerosolOpacity.GetHashCode();
-                hash = hash * 23 + aerosolAlbedo.GetHashCode();
-                hash = hash * 23 + aerosolMaximumAltitude.GetHashCode();
-                hash = hash * 23 + aerosolAnisotropy.GetHashCode();
-                hash = hash * 23 + numberOfBounces.GetHashCode();
-                hash = hash * 23 + groundColor.GetHashCode();
+                hash = hash * 23 + planetaryRadius.value.GetHashCode();
+                hash = hash * 23 + airOpacity.value.GetHashCode();
+                hash = hash * 23 + airAlbedo.value.GetHashCode();
+                hash = hash * 23 + airMaximumAltitude.value.GetHashCode();
+                hash = hash * 23 + aerosolOpacity.value.GetHashCode();
+                hash = hash * 23 + aerosolAlbedo.value.GetHashCode();
+                hash = hash * 23 + aerosolMaximumAltitude.value.GetHashCode();
+                hash = hash * 23 + aerosolAnisotropy.value.GetHashCode();
+                hash = hash * 23 + numberOfBounces.value.GetHashCode();
+                hash = hash * 23 + groundColor.value.GetHashCode();
             }
 
             return hash;
@@ -149,15 +149,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = hash * 23 + planetCenterPosition.GetHashCode();
+                hash = hash * 23 + planetCenterPosition.value.GetHashCode();
                 if (groundAlbedoTexture.value != null)
-                    hash = hash * 23 + groundAlbedoTexture.GetHashCode();
+                    hash = hash * 23 + groundAlbedoTexture.value.GetHashCode();
                 if (groundEmissionTexture.value != null)
-                    hash = hash * 23 + groundEmissionTexture.GetHashCode();
-                hash = hash * 23 + planetRotation.GetHashCode();
+                    hash = hash * 23 + groundEmissionTexture.value.GetHashCode();
+                hash = hash * 23 + planetRotation.value.GetHashCode();
                 if (spaceEmissionTexture.value != null)
-                    hash = hash * 23 + spaceEmissionTexture.GetHashCode();
-                hash = hash * 23 + spaceRotation.GetHashCode();
+                    hash = hash * 23 + spaceEmissionTexture.value.GetHashCode();
+                hash = hash * 23 + spaceRotation.value.GetHashCode();
             }
 
             return hash;

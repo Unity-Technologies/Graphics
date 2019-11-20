@@ -1403,7 +1403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
-                                Enumerable.Repeat(visibility, 1),
+                                new List<(int index, float weight)>{visibility},
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView
                             );
@@ -1429,7 +1429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 void AddHDProbeRenderRequests(
                     HDProbe visibleProbe,
                     Transform viewerTransform,
-                    IEnumerable<(int index, float weight)> visibilities,
+                    List<(int index, float weight)> visibilities,
                     ulong overrideSceneCullingMask,
                     float referenceFieldOfView = 90
                 )
