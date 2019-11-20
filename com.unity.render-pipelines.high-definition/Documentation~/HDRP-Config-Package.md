@@ -39,6 +39,10 @@ To ensure that the two files are synchronized, you should follow the first metho
 3. Back in Unity, select **Edit > RenderPipeline > Generate Include Files**.
 4. Unity automatically configures your Project and Shaders to use the new configuration.
 
+<a name="Example"></a>
 ### Example
 
-You can use the method described above to change the shadow filtering mode for the [Lit Shader](Lit-Shader.html) in deferred mode. In the **ShaderConfig.cs** file, set **DeferredShadowFiltering** to **HDShadowFilteringQuality.High**. Now, when you generate the ShaderConfig.cs.hlsl file, it should have **#define SHADEROPTIONS_DEFERRED_SHADOW_FILTERING (2)**.
+You can use the method described above to change the shadow filtering mode for the [Lit Shader](Lit-Shader.html) in deferred mode:
+
+1. In the **ShaderConfig.cs** file, set **DeferredShadowFiltering** to **HDShadowFilteringQuality.High**.
+2. Generate the **ShaderConfig.cs.hlsl** file (**Edit > RenderPipeline > Generate Include Files**). Now, in the **ShaderConfig.cs.hlsl** file, the **SHADEROPTIONS_DEFERRED_SHADOW_FILTERING** define should be set to **2** (**#define SHADEROPTIONS_DEFERRED_SHADOW_FILTERING (2)**).
