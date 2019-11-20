@@ -113,6 +113,8 @@ struct LightData
     float specularDimmer;
     float isRayTracedContactShadow;
     float penumbraTint;
+    float3 padding;
+    float boxLightSafeExtent;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData

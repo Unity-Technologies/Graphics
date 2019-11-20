@@ -135,10 +135,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius) 
+
         public float   diffuseDimmer;
         public float   specularDimmer;
         public float   isRayTracedContactShadow;
         public float   penumbraTint;
+
+        public Vector3 padding;
+        public float   boxLightSafeExtent;
     };
 
 

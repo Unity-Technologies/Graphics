@@ -172,7 +172,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed spot light missing from ray tracing indirect effects.
 - Fixed a UI bug in the diffusion profile list after fixing them from the wizard.
 - Fixed the hash collision when creating new diffusion profile assets.
-- Improved a bit the GC calls generated during the rendering.
+- Fixed a light leaking issue with box light casting shadows (case 1184475)
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -206,6 +206,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the behavior for ray tracing in case a mesh renderer has both transparent and opaque submeshes.
 - Improve history buffer management
 - Remove redundant FrameSettings RealTimePlanarReflection
+- Improved a bit the GC calls generated during the rendering.
 
 ## [7.1.1] - 2019-09-05
 
