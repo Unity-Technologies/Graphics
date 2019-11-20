@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.1.6] - 2019-11-22
 
+### Fixed
+- Fixed LOD fade mask by accounting for field of view
+
 ### Changed
 - Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 
