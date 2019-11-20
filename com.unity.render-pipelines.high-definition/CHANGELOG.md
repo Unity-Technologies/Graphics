@@ -204,6 +204,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The ray traced screen space shadow history for directional, spot and point lights is discarded if the light transform has changed.
 - Changed the behavior for ray tracing in case a mesh renderer has both transparent and opaque submeshes.
 - Improve history buffer management
+- Remove redundant FrameSettings RealTimePlanarReflection
 
 ## [7.1.1] - 2019-09-05
 
