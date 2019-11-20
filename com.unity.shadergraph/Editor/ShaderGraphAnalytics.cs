@@ -11,12 +11,11 @@ namespace UnityEditor.ShaderGraph
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.shadergraph";
-        const string k_EventName = "uShaderGraphUsage";
-        const int k_Version = 1;
+        const string k_EventName = "analytics.uShaderGraphUsage";
 
         static bool EnableAnalytics()
         {
-            AnalyticsResult result = EditorAnalytics.RegisterEventWithLimit(k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey, k_Version);
+            AnalyticsResult result = EditorAnalytics.RegisterEventWithLimit(k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey);
             if (result == AnalyticsResult.Ok)
                 s_EventRegistered = true;
 
@@ -31,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             public int subgraph_count;
         }
 
-        public static void SendShaderGraphEvent(string assetGuid, IEnumerable<AbstractMaterialNode> nodes)
+        public static void SendShaderGraphEvent(string assetGuid, GraphData graph)
         {
             //The event shouldn't be able to report if this is disabled but if we know we're not going to report
             //Lets early out and not waste time gathering all the data
@@ -42,6 +41,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             Dictionary<string, int> nodeTypeAndCount = new Dictionary<string, int>();
+            var nodes = graph.GetNodes<AbstractMaterialNode>();
 
             int subgraphCount = 0;
             foreach (var materialNode in nodes)
