@@ -1403,7 +1403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
-                                Enumerable.Repeat(visibility, 1),
+                                new List<(int index, float weight)>{visibility},
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView
                             );
@@ -1429,7 +1429,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 void AddHDProbeRenderRequests(
                     HDProbe visibleProbe,
                     Transform viewerTransform,
-                    IEnumerable<(int index, float weight)> visibilities,
+                    List<(int index, float weight)> visibilities,
                     ulong overrideSceneCullingMask,
                     float referenceFieldOfView = 90
                 )
@@ -2578,8 +2578,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 QualitySettings.lodBias = hdCamera.frameSettings.GetResolvedLODBias(hdrp);
                 QualitySettings.maximumLODLevel = hdCamera.frameSettings.GetResolvedMaximumLODLevel(hdrp);
 
-            var includePlanarProbe = hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe);
-
             DecalSystem.CullRequest decalCullRequest = null;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
@@ -2591,7 +2589,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: use a parameter to select probe types to cull depending on what is enabled in framesettings
             var hdProbeCullState = new HDProbeCullState();
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includePlanarProbe)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
                 hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
             // We need to set the ambient probe here because it's passed down to objects during the culling process.
@@ -2606,7 +2604,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
             }
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection) && includePlanarProbe)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
                 HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
             else
                 cullingResults.hdProbeCullingResults = default;

@@ -356,7 +356,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Sort non-cached requests
             // Perform a deep copy.
             int n = (m_ShadowResolutionRequests != null) ? m_ShadowResolutionRequests.Count : 0;
-            var nonCachedRequests = new List<HDShadowResolutionRequest>(n);
 
             // First add in front the cached shadows
             int i = 0;
