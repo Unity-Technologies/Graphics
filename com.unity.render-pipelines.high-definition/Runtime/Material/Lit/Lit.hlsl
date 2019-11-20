@@ -1290,16 +1290,16 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     cbsdf.diffR = diffTerm * clampedNdotL;
     cbsdf.diffT = diffTerm * flippedNdotL;
 
+//forest-begin: lightmap occlusion
+    specTerm *= lerp(1.f, bsdfData.specularOcclusion, _LightmapOcclusionScalePowerReflStrengthSpecStrength.w);
+//forest-end:
+
     // Probably worth branching here for perf reasons.
     // This branch will be optimized away if there's no transmission.
     if (NdotL > 0)
     {
         cbsdf.specR = specTerm * clampedNdotL;
     }
-
-//forest-begin: lightmap occlusion
-    specularLighting *= lerp(1.f, bsdfData.specularOcclusion, _LightmapOcclusionScalePowerReflStrengthSpecStrength.w);
-//forest-end:
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     return cbsdf;

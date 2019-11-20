@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
 		public static event Action<ScriptableRenderContext, Camera, FrameSettings, CommandBuffer> OnBeginCamera;
 		public static event Action<ScriptableRenderContext, HDCamera, FrameSettings/*, CommandBuffer*/> OnBeforeCameraCull;
 		public static event Action<ScriptableRenderContext, HDCamera, CommandBuffer> OnPrepareCamera;
-		public static event Action<ScriptableRenderContext, HDCamera, /*PostProcessLayer,*/ RTHandleSystem.RTHandle, RTHandleSystem.RTHandle, CommandBuffer> OnBeforeForwardOpaque;
+		public static event Action<ScriptableRenderContext, HDCamera, /*PostProcessLayer,*/ RTHandle, RTHandle, CommandBuffer> OnBeforeForwardOpaque;
 		public static event Action<Camera> OnAfterCameraSubmit;
 //forest-end:
 
@@ -1674,7 +1674,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 //forest-begin: Prepare frame callback
                         if(OnBeginCamera != null)
-                            OnBeginCamera(renderContext, renderRequest.hdCamera.camera, currentFrameSettings, cmd);
+                            OnBeginCamera(renderContext, renderRequest.hdCamera.camera, renderRequest.hdCamera.frameSettings /*MERGE-TODO: verify if correct*/, cmd);
 //forest-end:
 
                         // var aovRequestIndex = 0;
@@ -2879,12 +2879,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     result.rayTracingOpaqueRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllOpaqueRaytracing);
                     result.rayTracingTransparentRLDesc = CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, renderQueueRange: HDRenderQueue.k_RenderQueue_AllTransparentRaytracing);
-//forest-begin: customizable sorting flags //TODO
-                            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
-//forest-end:
-//forest-begin: customizable sorting flags
-                            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
-//forest-end:
                 }
             }
 
