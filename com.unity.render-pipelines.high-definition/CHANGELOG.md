@@ -174,6 +174,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the hash collision when creating new diffusion profile assets.
 - Fixed a light leaking issue with box light casting shadows (case 1184475)
 - Fixed Cookie texture type in the cookie slot of lights (Now displays a warning because it is not supported).
+- Fixed a nullref that happens when using the Shuriken particle light module
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
