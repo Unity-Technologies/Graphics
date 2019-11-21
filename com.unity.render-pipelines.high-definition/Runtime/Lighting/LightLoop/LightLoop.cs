@@ -1286,6 +1286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightDimensions.y = additionalLightData.shapeHeight;
             lightDimensions.z = light.range;
 
+            lightData.boxLightSafeExtent = 1.0f;
             if (lightData.lightType == GPULightType.ProjectorBox)
             {
                 // Rescale for cookies and windowing.
@@ -1293,7 +1294,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.up    *= 2.0f / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
 
                 // If we have shadows, we need to shrink the valid range so that we don't leak light due to filtering going out of bounds.
-                lightData.boxLightSafeExtent = 1.0f;
                 if (shadowIndex >= 0)
                 {
                     // We subtract a bit from the safe extent depending on shadow resolution
