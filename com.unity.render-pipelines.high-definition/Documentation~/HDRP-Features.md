@@ -37,7 +37,7 @@ Use Volumes to localize environmental Scene settings and post-processing effects
 
 ## Materials
 
-The HDRP Shaders allow you to use the following features:
+HDRP Shaders allow you to use the following features:
 
 - [Opaque/transparent surfaces](Surface-Type.html).
 
