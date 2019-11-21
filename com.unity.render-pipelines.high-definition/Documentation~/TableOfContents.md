@@ -131,5 +131,6 @@
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering)
   * [Creating a Custom Sky ](Creating-a-Custom-Sky)
+  * [Creating a Custom Post-Process Effect](Custom-Post-Process)
 * [HDRP Glossary](Glossary)
 
