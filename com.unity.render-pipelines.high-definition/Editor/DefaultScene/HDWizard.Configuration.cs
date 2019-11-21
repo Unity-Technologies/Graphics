@@ -581,20 +581,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #endregion
 
-        #region LocalConfigPackage
+        #region Packman
 
-        const string localConfigPackagePath = "LocalPackages/com.unity.render-pipelines.high-definition-config";
+        const string k_HdrpPackageName = "com.unity.render-pipelines.high-definition";
+        const string k_HdrpConfigPackageName = "com.unity.render-pipelines.high-definition-config";
+        const string k_LocalHdrpConfigPackagePath = "LocalPackages/com.unity.render-pipelines.high-definition-config";
         bool lastPackageConfigInstalledCheck = false;
         void IsLocalConfigurationPackageInstalledAsync(Action<bool> callback)
         {
-            if (!Directory.Exists(localConfigPackagePath))
+            if (!Directory.Exists(k_LocalHdrpConfigPackagePath))
             {
                 callback?.Invoke(lastPackageConfigInstalledCheck = false);
                 return;
             }
             
-            m_PackageRetriever.ProcessAsync(
-                "com.unity.render-pipelines.high-definition-config",
+            m_UsedPackageRetriever.ProcessAsync(
+                k_HdrpConfigPackageName,
                 info =>
                 {
                     DirectoryInfo directoryInfo = new DirectoryInfo(info.resolvedPath);
@@ -607,23 +609,23 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         void InstallLocalConfigurationPackage(Action onCompletion)
-            => m_PackageRetriever.ProcessAsync(
-                "com.unity.render-pipelines.high-definition-config",
+            => m_UsedPackageRetriever.ProcessAsync(
+                k_HdrpConfigPackageName,
                 info =>
                 {
-                    if (!Directory.Exists(localConfigPackagePath))
+                    if (!Directory.Exists(k_LocalHdrpConfigPackagePath))
                     {
-                        CopyFolder(info.resolvedPath, "LocalPackages/com.unity.render-pipelines.high-definition-config");
+                        CopyFolder(info.resolvedPath, k_LocalHdrpConfigPackagePath);
                     }
                     
-                    PackageManager.Client.Add("file:../LocalPackages/com.unity.render-pipelines.high-definition-config");
+                    PackageManager.Client.Add($"file:..{k_LocalHdrpConfigPackagePath}");
                     lastPackageConfigInstalledCheck = true;
                     onCompletion?.Invoke();
                 });
         
         void RefreshDisplayOfConfigPackageArea()
         {
-            if (!m_PackageRetriever.isRunning)
+            if (!m_UsedPackageRetriever.isRunning)
                 IsLocalConfigurationPackageInstalledAsync(present => UpdateDisplayOfConfigPackageArea(present ? ConfigPackageState.Present : ConfigPackageState.Missing));
         }
 
@@ -716,8 +718,72 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-        UsedPackageRetriever m_PackageRetriever = new UsedPackageRetriever();
+        UsedPackageRetriever m_UsedPackageRetriever = new UsedPackageRetriever();
+        
+        class LastAvailablePackageVersionRetriever
+        {
+            PackageManager.Requests.SearchRequest m_CurrentRequest;
+            Action<string> m_CurrentAction;
+            string m_CurrentPackageName;
 
+            Queue<(string packageName, Action<string> action)> m_Queue = new Queue<(string packageName, Action<string> action)>();
+
+            bool isCurrentInProgress => m_CurrentRequest != null && !m_CurrentRequest.Equals(null) && !m_CurrentRequest.IsCompleted;
+
+            public bool isRunning => isCurrentInProgress || m_Queue.Count() > 0;
+
+            public void ProcessAsync(string packageName, Action<string> action)
+            {
+                if (isCurrentInProgress)
+                    m_Queue.Enqueue((packageName, action));
+                else
+                    Start(packageName, action);
+            }
+
+            void Start(string packageName, Action<string> action)
+            {
+                m_CurrentAction = action;
+                m_CurrentPackageName = packageName;
+                m_CurrentRequest = PackageManager.Client.Search(packageName, offlineMode: false);
+                EditorApplication.update += Progress;
+            }
+
+            void Progress()
+            {
+                //Can occures on Wizard close or if scripts reloads
+                if (m_CurrentRequest == null || m_CurrentRequest.Equals(null))
+                {
+                    EditorApplication.update -= Progress;
+                    return;
+                }
+
+                if (m_CurrentRequest.IsCompleted)
+                    Finished();
+            }
+
+            void Finished()
+            {
+                EditorApplication.update -= Progress;
+                if (m_CurrentRequest.Status == PackageManager.StatusCode.Success)
+                {
+                    string lastVersion = m_CurrentRequest.Result[0].versions.latestCompatible;
+                    m_CurrentAction?.Invoke(lastVersion);
+                }
+                else if (m_CurrentRequest.Status >= PackageManager.StatusCode.Failure)
+                    Debug.LogError($"Failed to find package {m_CurrentPackageName}. Reason: {m_CurrentRequest.Error.message}");
+                else
+                    Debug.LogError("Unsupported progress state " + m_CurrentRequest.Status);
+
+                m_CurrentRequest = null;
+
+                if (m_Queue.Count > 0)
+                {
+                    (string packageIdOrName, Action<string> action) = m_Queue.Dequeue();
+                    EditorApplication.delayCall += () => Start(packageIdOrName, action);
+                }
+            }
+        }
+        LastAvailablePackageVersionRetriever m_LastAvailablePackageRetriever = new LastAvailablePackageVersionRetriever();
         #endregion
     }
 }
