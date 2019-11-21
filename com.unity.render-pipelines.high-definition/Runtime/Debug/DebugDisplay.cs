@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorLog,
         DepthOfFieldCoc,
         TransparencyOverdraw,
+        VariableRateShading,
         MaxRenderingFullScreenDebug,
 
         //Material

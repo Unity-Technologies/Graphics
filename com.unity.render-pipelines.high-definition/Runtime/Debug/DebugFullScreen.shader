@@ -256,6 +256,14 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(color, 1.0);
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VARIABLE_RATE_SHADING)
+                {
+                    float4 shadingRate = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
+
+                    shadingRate.x = 1.0f - saturate(shadingRate.x);
+
+                    return float4(shadingRate.xxx, 1.0);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
                     uint contactShadowData = LOAD_TEXTURE2D_X(_ContactShadowTexture, input.texcoord * _ScreenSize.xy).r;

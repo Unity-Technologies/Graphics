@@ -150,6 +150,10 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/ShaderLibrary/XROcclusionMesh.shader")]
             public Shader xrOcclusionMeshPS;
 
+            // Variable Rate Shading
+            [Reload("Runtime/ShaderLibrary/FoveatedShadingRate.shader")]
+            public Shader foveatedShadingRatePS;
+
             // Shadow
             [Reload("Runtime/Lighting/Shadow/ShadowClear.shader")]
             public Shader shadowClearPS;

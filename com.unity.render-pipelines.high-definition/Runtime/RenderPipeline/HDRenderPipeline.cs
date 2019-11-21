@@ -98,6 +98,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_CopyDepth;
         Material m_DownsampleDepthMaterial;
         Material m_UpsampleTransparency;
+        Material m_FoveatedShadingRateMaterial;
+        MaterialPropertyBlock m_FoveatedShadingRatePropertyBlock = new MaterialPropertyBlock();
         GPUCopy m_GPUCopy;
         MipGenerator m_MipGenerator;
         BlueNoise m_BlueNoise;
@@ -139,7 +141,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_ContactShadowBuffer;
         RTHandle m_ScreenSpaceShadowsBuffer;
         RTHandle m_DistortionBuffer;
-
+        RTHandle m_ShadingRateBuffer;
+        RTHandle m_ShadingRateBufferDebug;
         RTHandle m_LowResTransparentBuffer;
 
         // TODO: remove me, I am just a temporary debug texture. :-)
@@ -382,6 +385,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DownsampleDepthMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.downsampleDepthPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
 
+            m_FoveatedShadingRateMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.foveatedShadingRatePS);
+
             m_ApplyDistortionMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.applyDistortionPS);
 
             InitializeDebugMaterials();
@@ -552,6 +557,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
 
+            if (true) // TODO: caps
+            {
+                float oneOverTileSize = 1.0f / VariableRateShading.textureTileSize;
+                Vector2 scaleFactor = new Vector2(oneOverTileSize, oneOverTileSize);
+
+                m_ShadingRateBuffer      = RTHandles.Alloc(scaleFactor, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: VariableRateShading.textureFormat, enableRandomWrite: false, useMipMap: false, useDynamicScale: true, name: "ShadingRateTexture");
+                m_ShadingRateBufferDebug = RTHandles.Alloc(scaleFactor, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8_SNorm, enableRandomWrite: false, useMipMap: false, useDynamicScale: true, name: "ShadingRateTexture_DEBUG");
+            }
+
             if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
             {
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
@@ -608,7 +622,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_ContactShadowBuffer);
-
+            RTHandles.Release(m_ShadingRateBuffer);
+            RTHandles.Release(m_ShadingRateBufferDebug);
             RTHandles.Release(m_LowResTransparentBuffer);
 
             // RTHandles.Release(m_SsrDebugTexture);
@@ -1138,7 +1153,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (newFrame)
                 {
-                    m_ProbeCameraCache.ClearCamerasUnusedFor(2, Time.frameCount);
+                    m_ProbeCameraCache?.ClearCamerasUnusedFor(2, Time.frameCount);
                     HDCamera.CleanUnused();
 
                     if (newTime > m_Time)
@@ -1898,6 +1913,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdCamera.xr.StartSinglePass(cmd, camera, renderContext);
 
+            // Update shading rate texture
+            using (new ProfilingSample(cmd, "Generate ShadingRate Texture", CustomSamplerId.ShadingRateTexture.GetSampler()))
+            {
+                m_FoveatedShadingRatePropertyBlock.Clear();
+                VariableRateShading.BindShaderParameters(m_MSAASamples, m_FoveatedShadingRatePropertyBlock);
+
+                CoreUtils.SetRenderTarget(cmd, m_ShadingRateBuffer);
+                cmd.DrawProcedural(Matrix4x4.identity, m_FoveatedShadingRateMaterial, 0, MeshTopology.Quads, 4, 1, m_FoveatedShadingRatePropertyBlock);
+
+                // Re-execute the shader to fill up a debug texture
+                // TODO: figure out why we need this second copy (texture format is somehow interfering)
+                if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.VariableRateShading)
+                {
+                    CoreUtils.SetRenderTarget(cmd, m_ShadingRateBufferDebug);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FoveatedShadingRateMaterial, 1, MeshTopology.Quads, 4, 1, m_FoveatedShadingRatePropertyBlock);
+
+                    PushFullScreenDebugTexture(hdCamera, cmd, m_ShadingRateBufferDebug, FullScreenDebugMode.VariableRateShading);
+                }
+            }
+
             ClearBuffers(hdCamera, cmd);
 
             // Render XR occlusion mesh to depth buffer early in the frame to improve performance
@@ -2146,7 +2181,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDeferredLighting(hdCamera, cmd);
 
+                //cmd.SetVariableRateShading(m_VariableRateShadingBuffer);
                 RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
+                //cmd.SetVariableRateShading(new RenderTargetIdentifier(-1));
 
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, GetSSSBufferMSAA(), GetSSSBuffer());
