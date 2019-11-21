@@ -253,19 +253,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Use SRP managed View&Proj
             if(URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
                 Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
                 Matrix4x4 viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+                RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projMatrix);
             }
             // XRTODO: remove _FullscreenProjMat once we are in pure URP
             cmd.SetGlobalMatrix(ShaderConstants._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
@@ -374,18 +364,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (URPCameraMode.isPureURP)
                 {
-                    // Has final pass means we are rendering into texture
-                    bool isRenderToTexture = !isFinalBackBufferWrite || m_HasFinalPass || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
-                    // If this is not final backbuffer write, we don't flip
+                    bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                    bool isRenderToTexture = m_Destination != RenderTargetHandle.CameraTarget || isCameraTargetIntermediateTexture;
                     Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
-                    Matrix4x4 viewMatrix = Matrix4x4.identity;
-                    Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-
+                    RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                     if (m_Destination == RenderTargetHandle.CameraTarget)
                         cmd.SetViewport(cameraData.camera.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+                    RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture));
                 }
                 else
                 {
@@ -412,12 +399,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (tempTarget2Used)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget2);
-            }
-
-            if (URPCameraMode.isPureURP)
-            {
-                // XRTODO: Remove this once pure mode is globally on 
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
             }
         }
 
@@ -576,7 +557,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
-
                 // Compute CoC
                 cmd.SetRenderTarget(ShaderConstants._FullCoCTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
@@ -627,12 +607,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Blur
                 cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
 
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), ShaderConstants._PingTexture);
                 cmd.Blit(ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), ShaderConstants._PongTexture);
                 cmd.Blit(ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
 
                 // Composite
                 cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
                 cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, 4);
             }
 
@@ -727,15 +710,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 // Compute CoC
                 cmd.SetRenderTarget(ShaderConstants._FullCoCTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 0);
                 cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-
                 // Downscale & prefilter color + coc
                 cmd.SetRenderTarget(ShaderConstants._PingTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
-                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, 1);
 
                 // Bokeh blur
@@ -756,6 +737,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 // Compute CoC
                 cmd.Blit(source, ShaderConstants._FullCoCTexture, material, 0);
                 cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
@@ -987,6 +969,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 cmd.Blit(source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
 
                 // Downsample - gaussian pyramid
@@ -1245,24 +1228,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
-                Matrix4x4 projMatrix;
-                Matrix4x4 viewMatrix;
-
-                // Resolve y-flip in final pass.
-                bool isRenderToTexture = !isFinalBackBufferWrite || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview || cameraData.camera.targetTexture != null;
-                projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
-                viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-
+                bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                bool isRenderToTexture = m_Destination != RenderTargetHandle.CameraTarget || isCameraTargetIntermediateTexture;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
+                Matrix4x4 viewMatrix = Matrix4x4.identity;
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, viewMatrix, projMatrix);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-
-                // XRTODO: Remove this once pure mode is on globally
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, cameraData.camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(cameraData.camera.projectionMatrix, isRenderToTexture));
             }
             else
             {

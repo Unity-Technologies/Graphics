@@ -65,9 +65,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
                 switch (cameraSamples)
                 {
                     case 1:
@@ -93,10 +90,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
                 ScriptableRenderer.SetRenderTarget(cmd, copyDepthSurface, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
+                ref Camera camera = ref renderingData.cameraData.camera;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
-
-                // XRTODO: Remove this once pure mode is globally on 
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, true));
             }
             else
             {

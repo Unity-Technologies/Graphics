@@ -50,9 +50,6 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "UnlitInput.hlsl"
 
             struct Attributes
@@ -133,9 +130,6 @@ Shader "Universal Render Pipeline/Unlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
@@ -155,9 +149,6 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma exclude_renderers d3d11_9x
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaUnlit
-
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitMetaPass.hlsl"

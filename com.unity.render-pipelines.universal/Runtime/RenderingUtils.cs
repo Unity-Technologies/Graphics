@@ -142,5 +142,21 @@ namespace UnityEngine.Rendering.Universal
 
             return support;
         }
+
+        public static void SetViewProjectionRelatedMatricesAll(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projMatrix)
+        {
+            Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixV"), viewMatrix);
+            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixInvV"), Matrix4x4.Inverse(viewMatrix));
+            cmd.SetGlobalMatrix(Shader.PropertyToID("glstate_matrix_projection"), projMatrix);
+            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixVP"), viewProjMatrix);
+            cmd.SetGlobalMatrix(Shader.PropertyToID("_InvCameraViewProj"), Matrix4x4.Inverse(viewProjMatrix));
+        }
+
+        public static void SetViewProjectionRelatedMatricesVP(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projMatrix)
+        {
+            Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixVP"), viewProjMatrix);
+        }
     }
 }

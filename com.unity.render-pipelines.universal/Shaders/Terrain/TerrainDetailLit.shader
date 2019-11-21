@@ -39,9 +39,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -150,9 +147,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
@@ -173,9 +167,6 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #pragma fragment UniversalFragmentMetaSimple
 
             #pragma shader_feature _SPECGLOSSMAP
-
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitMetaPass.hlsl"

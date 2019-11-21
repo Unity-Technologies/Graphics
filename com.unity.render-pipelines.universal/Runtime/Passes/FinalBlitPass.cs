@@ -55,9 +55,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
                 // meanwhile we set to load so split screen case works.
@@ -71,22 +68,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_TargetDimension);
 
                 cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-
                 Camera camera = cameraData.camera;
 
-                // Scene camera renders to texuture, game camera renders to backbuffer
-                bool isFinalPassToGameViewBackBuffer = isFinalBackBufferWrite && cameraData.camera.targetTexture == null
-                                       && !(cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, !isFinalPassToGameViewBackBuffer);
-                Matrix4x4 viewMatrix = Matrix4x4.identity;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-
+                bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                bool isRenderToTexture = isCameraTargetIntermediateTexture;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, isRenderToTexture);
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-
-                // XRTODO: Remove this once pure mode is globally on 
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, isRenderToTexture));
+                cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             }
             else

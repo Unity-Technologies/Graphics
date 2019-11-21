@@ -50,21 +50,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (renderingData.lightData.mainLightIndex == -1)
                 return;
 
-            Camera camera = renderingData.cameraData.camera;
+            ref Camera camera = ref renderingData.cameraData.camera;
             bool stereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             if (URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 //XRTODO: ScreenSpace Shader Uses unity_CameraInvProjection to map from world space to camera clip space.
                 // Currently unity_CameraInvProjection is managed by built-in. This need to be managed by SRP
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
-
-                // XRTODO: Remove this once pure mode is globally on 
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, true));
             }
             else
             {

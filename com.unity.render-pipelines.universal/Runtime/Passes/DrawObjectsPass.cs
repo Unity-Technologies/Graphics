@@ -41,29 +41,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                if (URPCameraMode.isPureURP)
-                {
-                    // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                    cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-                    ref CameraData cameraData = ref renderingData.cameraData;
-                    if (isFinalBackBufferWrite)
-                    {
-                        bool isFinalPassToGameViewBackBuffer = cameraData.camera.targetTexture == null
-                                           && !(cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
-                        Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, !isFinalPassToGameViewBackBuffer);
-                        Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
-                        Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                        Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                        cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
-                    }
-                }
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -74,12 +51,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
-
-                if (URPCameraMode.isPureURP)
-                {
-                    // XRTODO: Remove this once pure mode is globally on 
-                    cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
-                }
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -88,9 +88,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if (URPCameraMode.isPureURP)
                 {
-                    // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                    cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
                     Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
                     Matrix4x4 projectionMatrix = camera.projectionMatrix;
                     if (m_CameraSettings.overrideCamera)
@@ -101,24 +98,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         viewMatrix = camera.worldToCameraMatrix;
                         Vector4 cameraTranslation = viewMatrix.GetColumn(3);
                         viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
-
-                        // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
-                        // Right now this need to be called to not break custom render feature that uses custom material
-                        cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                     }
-                    ref CameraData cameraData = ref renderingData.cameraData;
-                    bool isFinalPassToGameViewBackBuffer = isFinalBackBufferWrite && cameraData.camera.targetTexture == null
-                                           && !(cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
-                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, !isFinalPassToGameViewBackBuffer);// !isFinalPassToGameViewBackBuffer);
-                    Matrix4x4 viewProjMatrix = projectionMatrix * viewMatrix;
-                    Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
 
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projectionMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projectionMatrix));
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                    cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+                    ref CameraData cameraData = ref renderingData.cameraData;
+                    bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                    bool isRenderToTexture = colorAttachment != RenderTargetHandle.CameraTarget.id || isCameraTargetIntermediateTexture;
+                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, isRenderToTexture);
+                    RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projectionMatrix);
                     
                     context.ExecuteCommandBuffer(cmd);
                 }
@@ -149,11 +135,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             camera.nearClipPlane, camera.farClipPlane);
 
                         cmd.Clear();
-                        // XRTODO: deprecate and remove cmd.SetViewProjectionMatrices once custom passes are moved to pure URP land
-                        cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, projectionMatrix);
+                        {
+                            ref CameraData cameraData = ref renderingData.cameraData;
+                            bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                            bool isRenderToTexture = colorAttachment != RenderTargetHandle.CameraTarget.id || isCameraTargetIntermediateTexture;
+                            RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(projectionMatrix, isRenderToTexture));
+                        }
                     }
-                    // XRTODO: Remove this once pure mode is on globally
-                    cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
                 }
                 else
                 {

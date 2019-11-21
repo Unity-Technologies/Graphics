@@ -29,9 +29,6 @@ Shader "Hidden/Universal Render Pipeline/2D/ShadowGroup2D"
             #pragma vertex vert
             #pragma fragment frag
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             struct Attributes
@@ -107,9 +104,6 @@ Shader "Hidden/Universal Render Pipeline/2D/ShadowGroup2D"
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 

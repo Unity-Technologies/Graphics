@@ -7,9 +7,6 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local _ _DITHERING
 		#pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
 
-        // Enable Pure URP Camera Management
-        #pragma multi_compile _ UNITY_PURE_URP_ON
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

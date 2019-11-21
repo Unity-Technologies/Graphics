@@ -21,9 +21,6 @@ Shader "Hidden/Universal Render Pipeline/CopyColor"
 
             #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #ifdef _LINEAR_TO_SRGB_CONVERSION
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -48,17 +45,8 @@ Shader "Hidden/Universal Render Pipeline/CopyColor"
             {
                 Varyings output;
 
-#if defined(UNITY_PURE_URP_ENABLED) 
-                output.positionCS = float4(input.positionOS.xyz, 1.0f);
-    #if UNITY_UV_STARTS_AT_TOP
-                    // Our world space, view space, screen space and NDC space are Y-up.
-                    // Our clip space is flipped upside-down due to poor legacy Unity design.
-                    // To ensure consistency with the rest of the pipeline, we have to y-flip clip space here
-                    output.positionCS.y = -output.positionCS.y;
-    #endif
-#else
                 output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-#endif
+
                 output.uv = input.uv;
                 return output;
             }

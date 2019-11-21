@@ -9,24 +9,15 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 
         #pragma target 3.5
 
-        // Enable Pure URP Camera Management
-        #pragma multi_compile _ UNITY_PURE_URP_ON
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-#if defined(UNITY_PURE_URP_ENABLED)
         TEXTURE2D_X(_BlitTex);
         float4 _BlitTex_TexelSize;
-        #define _MainTex _BlitTex
-        #define _MainTex_TexelSize _BlitTex_TexelSize
-#else
-        TEXTURE2D_X(_MainTex);
-        float4 _MainTex_TexelSize;
-#endif
+
         TEXTURE2D_X(_ColorTexture);
         TEXTURE2D_X(_FullCoCTexture);
         TEXTURE2D_X(_HalfCoCTexture);
@@ -84,7 +75,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 	    
-            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _MainTex_TexelSize.zw * uv).x;
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _BlitTex_TexelSize.zw * uv).x;
             depth = LinearEyeDepth(depth, _ZBufferParams);
             half coc = (depth - FarStart) / (FarEnd - FarStart);
             return saturate(coc);
@@ -156,10 +147,10 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // Use the center CoC as radius
-            int2 positionSS = int2(_MainTex_TexelSize.zw * uv);
+            int2 positionSS = int2(_BlitTex_TexelSize.zw * uv);
             half samp0CoC = LOAD_TEXTURE2D_X(_HalfCoCTexture, positionSS).x;
 
-            float2 offset = _MainTex_TexelSize.xy * dir * samp0CoC * MaxRadius;
+            float2 offset = _BlitTex_TexelSize.xy * dir * samp0CoC * MaxRadius;
             half4 acc = 0.0;
 
             UNITY_UNROLL
@@ -167,7 +158,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             {
                 float2 sampCoord = uv + kOffsets[i] * offset;
                 half sampCoC = SAMPLE_TEXTURE2D_X(_HalfCoCTexture, sampler_LinearClamp, sampCoord).x;
-                half3 sampColor = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, sampCoord).xyz;
+                half3 sampColor = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, sampCoord).xyz;
 
                 // Weight & pre-multiply to limit bleeding on the focused area
                 half weight = saturate(1.0 - (samp0CoC - sampCoC));
@@ -193,8 +184,8 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
-            half3 baseColor = LOAD_TEXTURE2D_X(_MainTex, _MainTex_TexelSize.zw * uv).xyz;
-            half coc = LOAD_TEXTURE2D_X(_FullCoCTexture, _MainTex_TexelSize.zw * uv).x;
+            half3 baseColor = LOAD_TEXTURE2D_X(_BlitTex, _BlitTex_TexelSize.zw * uv).xyz;
+            half coc = LOAD_TEXTURE2D_X(_FullCoCTexture, _BlitTex_TexelSize.zw * uv).x;
 
         #if _HIGH_QUALITY_SAMPLING && !defined(SHADER_API_GLES)
             half3 farColor = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_ColorTexture, sampler_LinearClamp), uv, _ColorTexture_TexelSize.zwxy, 1.0, unity_StereoEyeIndex).xyz;

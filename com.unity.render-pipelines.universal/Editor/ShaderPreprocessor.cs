@@ -41,8 +41,6 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DeprecatedShadowsCascade = new ShaderKeyword("_SHADOWS_CASCADE");
         ShaderKeyword m_DeprecatedLocalShadowsEnabled = new ShaderKeyword("_LOCAL_SHADOWS_ENABLED");
 
-        ShaderKeyword m_PureURPOn = new ShaderKeyword("UNITY_PURE_URP_ON");
-
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
@@ -113,20 +111,6 @@ namespace UnityEditor.Rendering.Universal
             if (isBuiltInTerrainLit && compilerData.shaderKeywordSet.IsEnabled(m_AlphaTestOn) &&
                !CoreUtils.HasFlag(features, ShaderFeatures.TerrainHoles))
                 return true;
-
-            // strip pure mode shaders for XR
-            if (CoreUtils.HasFlag(features, ShaderFeatures.XRSupport))
-            {
-                if (compilerData.shaderKeywordSet.IsEnabled(m_PureURPOn))
-                    return true;
-            }
-            // strip non-pure mode URP shaders for non-XR
-            else
-            {
-                bool isURPBuiltIn = shader.name.Contains("Universal Render Pipeline");
-                if (isURPBuiltIn && !compilerData.shaderKeywordSet.IsEnabled(m_PureURPOn))
-                    return true;
-            }
 
             return false;
         }

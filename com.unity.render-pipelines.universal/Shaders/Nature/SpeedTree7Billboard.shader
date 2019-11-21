@@ -46,9 +46,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
 
             #define ENABLE_WIND
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "SpeedTree7BillboardInput.hlsl"
             #include "SpeedTree7BillboardPasses.hlsl"
 
@@ -71,9 +68,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #define ENABLE_WIND
             #define DEPTH_ONLY
             #define SHADOW_CASTER
-
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
 
             #include "SpeedTree7BillboardInput.hlsl"
             #include "SpeedTree7BillboardPasses.hlsl"
@@ -98,9 +92,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
 
             #define ENABLE_WIND
             #define DEPTH_ONLY
-
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
 
             #include "SpeedTree7BillboardInput.hlsl"
             #include "SpeedTree7BillboardPasses.hlsl"

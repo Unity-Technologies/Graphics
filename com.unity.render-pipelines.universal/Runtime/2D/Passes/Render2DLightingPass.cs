@@ -46,22 +46,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.Clear();
             if (URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
                 ref CameraData cameraData = ref renderingData.cameraData;
-                bool isFinalPassToGameViewBackBuffer = isFinalBackBufferWrite && cameraData.camera.targetTexture == null
-                                        && !(cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview);
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, !isFinalPassToGameViewBackBuffer);
+                bool isCameraTargetIntermediateTexture = cameraData.camera.targetTexture != null || cameraData.camera.cameraType == CameraType.SceneView || cameraData.camera.cameraType == CameraType.Preview;
+                bool isRenderToTexture = colorAttachment != RenderTargetHandle.CameraTarget.id || isCameraTargetIntermediateTexture;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, isRenderToTexture);
                 Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+                RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projMatrix);
             }
 
             Profiler.BeginSample("RenderSpritesWithLighting - Create Render Textures");
@@ -137,11 +127,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RendererLighting.ReleaseRenderTextures(cmd);
             Profiler.EndSample();
 
-            if (URPCameraMode.isPureURP)
-            {
-                // XRTODO: Remove this once pure mode is on globally
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
-            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 

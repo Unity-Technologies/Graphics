@@ -78,10 +78,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Render the lut
             if (URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
                 cmd.SetGlobalTexture("_BlitTex", source);
+                ref Camera camera = ref renderingData.cameraData.camera;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
@@ -102,9 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyColorMaterial);
                         break;
                 }
-
-                // XRTODO: Remove this once pure mode is globally on 
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, true));
             }
             else
             {

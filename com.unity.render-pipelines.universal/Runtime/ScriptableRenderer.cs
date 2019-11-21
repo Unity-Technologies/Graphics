@@ -192,7 +192,6 @@ namespace UnityEngine.Rendering.Universal
             SetCameraRenderState(context, ref renderingData.cameraData);
 
             SortStable(m_ActiveRenderPassQueue);
-            ProcessRenderPassesAfterSort(m_ActiveRenderPassQueue);
 
             // Cache the time for after the call to `SetupCameraProperties` and set the time variables in shader
             // For now we set the time variables per camera, as we plan to remove `SetupCamearProperties`.
@@ -239,25 +238,19 @@ namespace UnityEngine.Rendering.Universal
             // They might be a frame behind.
             // We can remove this after removing `SetupCameraProperties` as the values should be per frame, and not per camera.
             SetShaderTimeValues(time, deltaTime, smoothDeltaTime);
-            // Setup camera proj view
-            if (URPCameraMode.isPureURP)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraViewProjection);
+            //// Setup camera proj view
+            //if (URPCameraMode.isPureURP)
+            //{
+            //    CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraViewProjection);
 
-                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, true);
-                Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
-                Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-                Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewMatrix"), viewMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewMatrix"), Matrix4x4.Inverse(viewMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ProjMatrix"), projMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvProjMatrix"), Matrix4x4.Inverse(projMatrix));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_ViewProjMatrix"), viewProjMatrix);
-                cmd.SetGlobalMatrix(Shader.PropertyToID("_InvViewProjMatrix"), Matrix4x4.Inverse(viewProjMatrix));
+            //    Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(renderingData.cameraData.camera.projectionMatrix, true);
+            //    Matrix4x4 viewMatrix = renderingData.cameraData.camera.worldToCameraMatrix;
 
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-            }
+            //    RenderingUtils.SetViewProjectionRelatedMatricesAll(cmd, viewMatrix, projMatrix);
+
+            //    context.ExecuteCommandBuffer(cmd);
+            //    CommandBufferPool.Release(cmd);
+            //}
 
             if (stereoEnabled)
                 BeginXRRendering(context, camera);
@@ -554,19 +547,6 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        internal static void ProcessRenderPassesAfterSort(List<ScriptableRenderPass> list)
-        {
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                ScriptableRenderPass curr = list[i];
-                if (curr.colorAttachment == BuiltinRenderTextureType.CameraTarget)
-                {
-                    curr.isFinalBackBufferWrite = true;
-                    return;
-                }
-            }
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

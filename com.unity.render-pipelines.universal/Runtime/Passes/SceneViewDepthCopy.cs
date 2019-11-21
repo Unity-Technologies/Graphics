@@ -31,11 +31,8 @@ namespace UnityEngine.Rendering.Universal
             // Note: Scene view camera always perform depth prepass
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            // XRTODO: logic here is flawed.
-            // Anything but BuiltinRenderTextureType.CameraTarget would not work.
-            // ScriptableRenderer has its own states about current active rt. It accidentially works here becuase the current rt happens to be built-in camera rt.
-            // However, this assumption does not always hold
-            // Do logic using ScriptableRenderer.SetRenderTarget or override Configure to specify rt upfront.
+            // XRTODO:
+            // Replace this with ScriptableRenderer.SetRenderTarget
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
 
             cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
@@ -45,13 +42,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (URPCameraMode.isPureURP)
             {
-                // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-
+                ref Camera camera = ref renderingData.cameraData.camera;
+                Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(Matrix4x4.identity, true);
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
-
-                // XRTODO: Remove this once pure mode is globally on 
-                cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
+                RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, true));
+                cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixVP"), projMatrix);
             }
             else
             {

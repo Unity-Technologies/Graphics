@@ -51,9 +51,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
@@ -163,9 +160,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
-
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
@@ -185,9 +179,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma exclude_renderers d3d11_9x
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaBakedLit
-
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"
@@ -212,9 +203,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma fragment frag
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
-
-            // Enable Pure URP Camera Management
-            #pragma multi_compile _ UNITY_PURE_URP_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"

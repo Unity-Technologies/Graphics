@@ -57,12 +57,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingSample(cmd, m_ProfilerTag))
             {
-                if (URPCameraMode.isPureURP)
-                {
-                    // XRTODO: Enable pure mode globally in UniversalRenderPipeline.cs
-                    cmd.EnableShaderKeyword("UNITY_PURE_URP_ON");
-                }
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -76,12 +70,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     context.StartMultiEye(camera);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
-
-                if (URPCameraMode.isPureURP)
-                {
-                    // XRTODO: Remove this once pure mode is globally on 
-                    cmd.DisableShaderKeyword("UNITY_PURE_URP_ON");
-                }
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

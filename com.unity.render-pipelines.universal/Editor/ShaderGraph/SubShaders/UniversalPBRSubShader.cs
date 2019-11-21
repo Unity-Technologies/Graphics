@@ -94,7 +94,6 @@ namespace UnityEditor.Rendering.Universal
                 s_AdditionalLightShadowsKeyword,
                 s_ShadowsSoftKeyword,
                 s_MixedLightingSubtractiveKeyword,
-                s_PureURPKeyword,
             },
         };
 
@@ -139,10 +138,6 @@ namespace UnityEditor.Rendering.Universal
                 "exclude_renderers d3d11_9x",
                 "target 2.0",
                 "multi_compile_instancing",
-            },
-            keywords = new KeywordDescriptor[]
-            {
-                s_PureURPKeyword,
             },
         };
 
@@ -192,10 +187,6 @@ namespace UnityEditor.Rendering.Universal
                 "exclude_renderers d3d11_9x",
                 "target 2.0",
                 "multi_compile_instancing",
-            },
-            keywords = new KeywordDescriptor[]
-            {
-                s_PureURPKeyword,
             },
         };
         ShaderPass m_LitMetaPass = new ShaderPass()
@@ -251,7 +242,6 @@ namespace UnityEditor.Rendering.Universal
             keywords = new KeywordDescriptor[]
             {
                 s_SmoothnessChannelKeyword,
-                s_PureURPKeyword,
             },
         };
 
@@ -292,23 +282,10 @@ namespace UnityEditor.Rendering.Universal
                 "target 2.0",
                 "multi_compile_instancing",
             },
-            keywords = new KeywordDescriptor[]
-            {
-                s_PureURPKeyword,
-            },
         };
 #endregion
 
 #region Keywords
-        static KeywordDescriptor s_PureURPKeyword = new KeywordDescriptor()
-        {
-            displayName = "Pure URP",
-            referenceName = "UNITY_PURE_URP_ON",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
         static KeywordDescriptor s_LightmapKeyword = new KeywordDescriptor()
         {
             displayName = "Lightmap",
