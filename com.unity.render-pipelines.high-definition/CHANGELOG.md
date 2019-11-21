@@ -165,6 +165,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed minor naming issues in ShaderGraph settings
 - VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
 - VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
+- Fixed an issue with Metal Shader Compiler and GTAO shader for metal
+- Fixed resources load issue while upgrading HDRP package.
+- Fix LOD fade mask by accounting for field of view
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
@@ -197,6 +200,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The ray traced screen space shadow history for directional, spot and point lights is discarded if the light transform has changed.
 - Changed the behavior for ray tracing in case a mesh renderer has both transparent and opaque submeshes.
 - Improve history buffer management
+- Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 
 ## [7.1.1] - 2019-09-05
 
