@@ -186,19 +186,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (filteredSelection.Count > 0)
                         return DropdownMenuAction.Status.Normal;
-<<<<<<< HEAD
-                    else
-                        return DropdownMenuAction.Status.Disabled;
-                });
-
-                var editorView = GetFirstAncestorOfType<GraphEditorView>();
-                if (editorView.colorManager.activeSupportsCustom && selection.OfType<MaterialNodeView>().Any())
-                {
-                    evt.menu.AppendSeparator();
-                    evt.menu.AppendAction("Color/Change...", ChangeCustomNodeColor,
-                        eventBase => DropdownMenuAction.Status.Normal);
-=======
->>>>>>> refs/heads/master
 
                     return DropdownMenuAction.Status.Disabled;
                 });
