@@ -435,7 +435,6 @@ namespace UnityEditor.VFX
                         break;
                 }
                 if (!isBlendModeOpaque)
-                    forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
 
                 yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);
                 var forwardPassName = new VFXShaderWriter();

@@ -40,6 +40,7 @@ The version number for this package has increased due to a version update of a r
 - Fix output settings correctly filtered dependeing on shader graph use or not
 - Fix some cases were normal/tangent were not passes as interpolants with shader graph
 - Make normals/tangents work in unlit output with shader graph
+- Sample Scene Color & Scene Depth from Shader Graph Integration using High Definition and Universal Render Pipeline
 
 ## [7.1.2] - 2019-09-19
 ### Fixed
