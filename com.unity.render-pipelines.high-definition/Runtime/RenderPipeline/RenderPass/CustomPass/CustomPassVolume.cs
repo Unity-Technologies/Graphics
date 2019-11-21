@@ -225,9 +225,9 @@ namespace UnityEngine.Rendering.HighDefinition
         
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
-            foreach (var passVolume in m_OverlappingPassVolumes)
-                if (passVolume.injectionPoint == injectionPoint)
-                    return passVolume;
+            foreach (var volume in m_OverlappingPassVolumes)
+                if (volume.injectionPoint == injectionPoint)
+                    return volume;
             return null;
         }
 

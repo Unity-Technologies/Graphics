@@ -15,14 +15,19 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 m_ProjectionMatrix;
             [SerializeField, FormerlySerializedAs("capturePosition")]
             Vector3 m_CapturePosition;
+            [SerializeField]
             Quaternion m_CaptureRotation;
+            [SerializeField]
             float m_FieldOfView;
+            [SerializeField]
+            float m_Aspect;
 
             public Matrix4x4 worldToCameraRHS => m_WorldToCameraRHS;
             public Matrix4x4 projectionMatrix => m_ProjectionMatrix;
             public Vector3 capturePosition => m_CapturePosition;
             public Quaternion captureRotation => m_CaptureRotation;
             public float fieldOfView => m_FieldOfView;
+            public float aspect => m_Aspect;
 
             public RenderData(CameraSettings camera, CameraPositionSettings position)
                 : this(
@@ -30,7 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     camera.frustum.GetUsedProjectionMatrix(),
                     position.position,
                     position.rotation,
-                    camera.frustum.fieldOfView
+                    camera.frustum.fieldOfView,
+                    camera.frustum.aspect
                 )
             {
             }
@@ -40,7 +46,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 Matrix4x4 projectionMatrix,
                 Vector3 capturePosition,
                 Quaternion captureRotation,
-                float fov
+                float fov,
+                float aspect
             )
             {
                 m_WorldToCameraRHS = worldToCameraRHS;
@@ -48,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CapturePosition = capturePosition;
                 m_CaptureRotation = captureRotation;
                 m_FieldOfView = fov;
+                m_Aspect = aspect;
             }
         }
 

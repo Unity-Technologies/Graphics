@@ -4,6 +4,11 @@ using UnityEditor;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    class HDSaveContext
+    {
+        public bool updateMaterials; 
+    }
+
     [InitializeOnLoad]
     public class ShaderGraphMaterialsUpdater
     {
@@ -14,9 +19,15 @@ namespace UnityEditor.Rendering.HighDefinition
             GraphData.onSaveGraph += OnShaderGraphSaved;
         }
 
-        static void OnShaderGraphSaved(Shader shader)
+        static void OnShaderGraphSaved(Shader shader, object saveContext)
         {
-            shader.IsShaderGraph();
+            // In case the shader is not HDRP
+            if (!(saveContext is HDSaveContext hdSaveContext))
+                return;
+
+            if (!hdSaveContext.updateMaterials)
+                return;
+
             // Iterate all Materials
             string[] materialGuids = AssetDatabase.FindAssets(kMaterialFilter);
             try
@@ -44,13 +55,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // Free the materials every 200 iterations, on big project loading all materials in memory can lead to a crash
                     if ((i % 200 == 0) && i != 0)
-                        EditorUtility.UnloadUnusedAssetsImmediate(true);
+                        EditorUtility.UnloadUnusedAssetsImmediate(false);
                 }
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
-                EditorUtility.UnloadUnusedAssetsImmediate(true);
+                EditorUtility.UnloadUnusedAssetsImmediate(false);
             }
         }
     }
