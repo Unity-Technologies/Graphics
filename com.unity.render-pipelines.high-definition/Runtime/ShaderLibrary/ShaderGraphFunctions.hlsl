@@ -23,6 +23,11 @@ float3 shadergraph_HDSampleSceneColor(float2 uv)
     return float3(0, 0, 0);
 }
 
+float4 shadergraph_HDLoadCustomBlitInput(float2 uv)
+{
+    return LoadCustomBlitInput(uv);
+}
+
 float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)
 {
     float3 positionRWS = GetCameraRelativePositionWS(positionWS);

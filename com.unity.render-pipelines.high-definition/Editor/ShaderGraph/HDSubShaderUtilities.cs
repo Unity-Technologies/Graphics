@@ -42,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             [Semantic("BLENDWEIGHTS")][Optional]    Vector4 weights;
             [Semantic("BLENDINDICES")][Optional]    UInt32_4 indices;
             [Semantic("COLOR")][Optional]           Vector4 color;
+            [Semantic("VERTEXID_SEMANTIC")] [Optional] uint vertexID;
             [Semantic("INSTANCEID_SEMANTIC")] [PreprocessorIf("UNITY_ANY_INSTANCING_ENABLED")] uint instanceID;
         };
 
