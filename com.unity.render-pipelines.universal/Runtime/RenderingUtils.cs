@@ -143,20 +143,42 @@ namespace UnityEngine.Rendering.Universal
             return support;
         }
 
-        public static void SetViewProjectionRelatedMatricesAll(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projMatrix)
+        internal static readonly int UNITY_MATRIX_V = Shader.PropertyToID("unity_MatrixV");
+        internal static readonly int UNITY_MATRIX_IV = Shader.PropertyToID("unity_MatrixInvV");
+        internal static readonly int UNITY_MATRIX_P = Shader.PropertyToID("glstate_matrix_projection");
+        internal static readonly int UNITY_MATRIX_VP = Shader.PropertyToID("unity_MatrixVP");
+        internal static readonly int UNITY_MATRIX_IVP = Shader.PropertyToID("_InvCameraViewProj");
+
+        /// <summary>
+        /// Helper function to set all view and projection related matricies
+        /// Interal usage only, function name and signature may be subject to change
+        /// </summary>
+        /// <param name="cmd">The command buffer to queue Gfx commands to.</param>
+        /// <param name="viewMatrix">Desired view matrix to set to</param>
+        /// <param name="projMatrix">Desired projection matrix to set to.</param>
+        /// <returns>Void</c></returns>
+        internal static void SetViewProjectionRelatedMatricesAll(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projMatrix)
         {
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixV"), viewMatrix);
-            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixInvV"), Matrix4x4.Inverse(viewMatrix));
-            cmd.SetGlobalMatrix(Shader.PropertyToID("glstate_matrix_projection"), projMatrix);
-            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixVP"), viewProjMatrix);
-            cmd.SetGlobalMatrix(Shader.PropertyToID("_InvCameraViewProj"), Matrix4x4.Inverse(viewProjMatrix));
+            cmd.SetGlobalMatrix(UNITY_MATRIX_V, viewMatrix);
+            cmd.SetGlobalMatrix(UNITY_MATRIX_IV, Matrix4x4.Inverse(viewMatrix));
+            cmd.SetGlobalMatrix(UNITY_MATRIX_P, projMatrix);
+            cmd.SetGlobalMatrix(UNITY_MATRIX_VP, viewProjMatrix);
+            cmd.SetGlobalMatrix(UNITY_MATRIX_IVP, Matrix4x4.Inverse(viewProjMatrix));
         }
 
-        public static void SetViewProjectionRelatedMatricesVP(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projMatrix)
+        /// <summary>
+        /// Helper function to set only view projection matrix
+        /// Interal usage only, function name and signature may be subject to change
+        /// </summary>
+        /// <param name="cmd">The command buffer to queue Gfx commands to.</param>
+        /// <param name="viewMatrix">Desired view matrix to set to</param>
+        /// <param name="projMatrix">Desired projection matrix to set to.</param>
+        /// <returns>Void</returns>
+        internal static void SetViewProjectionRelatedMatricesVP(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projMatrix)
         {
             Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
-            cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixVP"), viewProjMatrix);
+            cmd.SetGlobalMatrix(UNITY_MATRIX_VP, viewProjMatrix);
         }
     }
 }
