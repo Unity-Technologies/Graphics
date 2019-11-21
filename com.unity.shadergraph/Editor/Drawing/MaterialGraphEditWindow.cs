@@ -347,7 +347,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (shader != null)
                     {
                         GraphData.onSaveGraph(shader);
-                    }                    
+                    }
                 }
             }
 
@@ -369,6 +369,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (!string.IsNullOrEmpty(newPath))
                     {
+                        // need to check if it is recursive here then log it and return.
+                        if (graphObject.graph.isSubGraph)
+                        {
+                            var asset = AssetDatabase.LoadAssetAtPath(path, typeof(SubGraphAsset)) as SubGraphAsset;
+                            var guid = AssetDatabase.AssetPathToGUID(newPath);
+                            if (asset.descendents.Contains(guid))
+                            {
+                                Debug.LogError($"Cannot save {newPath} because recursion will happen between {path} and {newPath}.");
+                                return;
+                            }
+                        }
+
                         var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
                         AssetDatabase.ImportAsset(newPath);
                         if (success)
