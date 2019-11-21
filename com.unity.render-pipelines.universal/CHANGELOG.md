@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.0.0] - 2019-XX-XX
+## [8.0.0] - 2019-11-18
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added SceneSelection pass for TerrainLit shader.
 - Remove final blit pass to force alpha to 1.0 on mobile platforms.
 - Deprecated the CinemachineUniversalPixelPerfect extension. Use the one from Cinemachine v2.4 instead.
+- Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.

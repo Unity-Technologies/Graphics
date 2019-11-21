@@ -60,6 +60,20 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
+        public void RefreshShader(Shader shader)
+        {
+            if( this.shader == shader)
+            {
+                //Get back the correct shader C# object after the importer created a new one with the same instance ID as the old one.
+                if (!object.ReferenceEquals(shader, null))
+                    this.shader = EditorUtility.InstanceIDToObject(shader.GetInstanceID()) as Shader;
+                var data = (VFXDataMesh)GetData();
+                data.shader = shader;
+                data.RefreshShader();
+            }
+        }
+            
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get

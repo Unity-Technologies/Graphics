@@ -108,11 +108,13 @@ struct LightData
     real minRoughness;
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
-    real2 size;
+    real4 size;
     float diffuseDimmer;
     float specularDimmer;
     float isRayTracedContactShadow;
     float penumbraTint;
+    float3 padding;
+    float boxLightSafeExtent;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData

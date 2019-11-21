@@ -1,0 +1,13 @@
+Pass
+{		
+	Tags { "LightMode"="SceneSelectionPass" }
+
+	ZWrite On
+	Blend Off
+	
+	HLSLPROGRAM
+	#define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION
+	${VFXIncludeRP("Templates/Mesh/PassDepthOrMV.template")}
+
+	ENDHLSL
+}
