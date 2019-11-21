@@ -1405,7 +1405,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 viewerTransform,
                                 new List<(int index, float weight)>{visibility},
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
-                                visibleInRenderRequest.hdCamera.camera.fieldOfView
+                                visibleInRenderRequest.hdCamera.camera.fieldOfView,
+                                visibleInRenderRequest.hdCamera.camera.aspect
                             );
                         }
                     }
@@ -1431,7 +1432,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     Transform viewerTransform,
                     List<(int index, float weight)> visibilities,
                     ulong overrideSceneCullingMask,
-                    float referenceFieldOfView = 90
+                    float referenceFieldOfView = 90,
+                    float referenceAspect = 1
                 )
                 {
                     var position = ProbeCapturePositionSettings.ComputeFrom(
@@ -1443,7 +1445,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDRenderUtilities.GenerateRenderingSettingsFor(
                         visibleProbe.settings, position,
                         cameraSettings, cameraPositionSettings, overrideSceneCullingMask,
-                        referenceFieldOfView: referenceFieldOfView
+                        referenceFieldOfView: referenceFieldOfView,
+                        referenceAspect: referenceAspect
                     );
 
                     switch (visibleProbe.type)
@@ -1483,7 +1486,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
                         additionalCameraData.hasPersistentHistory = true;
 
-                        camera.targetTexture = visibleProbe.realtimeTexture; // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
+                        // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
+                        camera.targetTexture = visibleProbe.realtimeTexture;
                         camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
                         camera.gameObject.SetActive(false);
                         // Warning: accessing Object.name generate 48B of garbage at each frame here
@@ -1529,7 +1533,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 camera.projectionMatrix,
                                 camera.transform.position,
                                 camera.transform.rotation,
-                                cameraSettings[j].frustum.fieldOfView
+                                cameraSettings[j].frustum.fieldOfView,
+                                cameraSettings[j].frustum.aspect
                             )
                         );
 
