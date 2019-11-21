@@ -7,8 +7,6 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurCommon.hlsl"
-
-        //TODO: Remove. Dependant on Fetch()
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 
         TEXTURE2D_X(_InputTexture);
@@ -47,7 +45,7 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             //TODO: Remove Fetch
             float3 color   = Fetch(_InputTexture,        uv, 0.0, _RTHandleScale.xy);
             float3 history = Fetch(_InputHistoryTexture, uv, 0.0, _RTHandleScale.xy); //TODO: History Scale
-            color = (color * rcp(asfloat(_AccumulationSampleCount))) + (history * step(2, _AccumulationSampleIndex));
+            color = (color * rcp(asfloat(_AccumulationSampleCount))) + (history * step(1, _AccumulationSampleIndex));
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color;
             outColor = color;
@@ -63,7 +61,6 @@ Shader "Hidden/HDRP/AccumulationMotionBlur"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-                #pragma enable_d3d11_debug_symbols
                 #pragma vertex   Vert
                 #pragma fragment FragAccumulation
             ENDHLSL
