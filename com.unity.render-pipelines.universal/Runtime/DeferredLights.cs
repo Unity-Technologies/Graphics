@@ -1392,8 +1392,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static Mesh CreateFullscreenMesh()
         {
             // TODO reorder for pre&post-transform cache optimisation.
-            // This capped hemisphere shape is in unit dimensions. It will be slightly inflated in the vertex shader
-            // to fit the cone analytical shape.
+            // Simple full-screen triangle.
             Vector3 [] positions = {
                 new Vector3(-1.0f,  1.0f, 0.0f),
                 new Vector3(-1.0f, -3.0f, 0.0f),
