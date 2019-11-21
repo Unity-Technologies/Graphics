@@ -37,6 +37,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
+- Replaced reference to Lightweight Render Pipeline by Universal Render Pipeline in the package description
 
 ## [7.1.1] - 2019-09-05
 

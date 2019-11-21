@@ -91,8 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
         LowResTransparent = 18,
         [FrameSettingsField(0, displayedName: "Ray Tracing", customOrderInGroup: 10, tooltip: "When enabled, HDRP updates ray tracing for Cameras using these Frame Settings.")]
         RayTracing = 92,
-        [FrameSettingsField(0, autoName: RealtimePlanarReflection, customOrderInGroup: 11, tooltip: "When enabled, HDRP updates Planar Reflection Probes every frame for Cameras using these Frame Settings.")]
-        RealtimePlanarReflection = 4,
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
 
@@ -291,7 +289,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ZTestAfterPostProcessTAA,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 (uint)FrameSettingsField.SSRAsync,
@@ -344,7 +341,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 (uint)FrameSettingsField.SSRAsync,
@@ -395,7 +391,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //(uint)FrameSettingsField.AfterPostprocess,
                 (uint)FrameSettingsField.OpaqueObjects,
                 (uint)FrameSettingsField.TransparentObjects,
-                (uint)FrameSettingsField.RealtimePlanarReflection,
                 (uint)FrameSettingsField.AsyncCompute,
                 (uint)FrameSettingsField.LightListAsync,
                 //(uint)FrameSettingsField.SSRAsync,

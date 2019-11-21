@@ -167,7 +167,8 @@ namespace UnityEngine.Rendering.HighDefinition
             bool forceFlipY = false,
             bool forceInvertBackfaceCulling = false,
             uint staticFlags = 0,
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             Render(
@@ -176,7 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 forceFlipY,
                 forceInvertBackfaceCulling,
                 staticFlags,
-                referenceFieldOfView
+                referenceFieldOfView,
+                referenceAspect
             );
         }
 
@@ -193,14 +195,16 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeSettings settings, ProbeCapturePositionSettings position,
             List<CameraSettings> cameras, List<CameraPositionSettings> cameraPositions,
             ulong overrideSceneCullingMask,
-            bool forceFlipY = false, float referenceFieldOfView = 90
+            bool forceFlipY = false,
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
                 settings, position,
                 out var cameraSettings, out var cameraPositionSettings, overrideSceneCullingMask,
-                referenceFieldOfView
+                referenceFieldOfView, referenceAspect
             );
 
             if (forceFlipY)
@@ -236,7 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
             out CameraSettings cameraSettings,
             out CameraPositionSettings cameraPositionSettings,
             ulong overrideSceneCullingMask,
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             // Copy settings
@@ -247,7 +252,8 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeSettingsUtilities.ApplySettings(
                 ref settings, ref position,
                 ref cameraSettings, ref cameraPositionSettings,
-                referenceFieldOfView
+                referenceFieldOfView,
+                referenceAspect
             );
 
             cameraSettings.culling.sceneCullingMaskOverride = overrideSceneCullingMask;
@@ -262,13 +268,15 @@ namespace UnityEngine.Rendering.HighDefinition
             bool forceFlipY = false,
             bool forceInvertBackfaceCulling = false,
             uint staticFlags = 0,
-            float referenceFieldOfView = 90
+            float referenceFieldOfView = 90,
+            float referenceAspect = 1
         )
         {
             // Copy settings
             ComputeCameraSettingsFromProbeSettings(
                 settings, position,
-                out cameraSettings, out cameraPositionSettings, 0
+                out cameraSettings, out cameraPositionSettings, 0,
+                referenceFieldOfView, referenceAspect
             );
 
             if (forceFlipY)

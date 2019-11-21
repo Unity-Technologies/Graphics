@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_ProceduralSkyMaterial;
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
-        readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
+        readonly int _SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
         readonly int _SunSizeParam = Shader.PropertyToID("_SunSize");
         readonly int _SunSizeConvergenceParam = Shader.PropertyToID("_SunSizeConvergence");
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!renderSunDisk)
                 sunSize = 0.0f;
 
-            m_PropertyBlock.SetVector(_SkyParam, new Vector4(GetExposure(skySettings, builtinParams.debugSettings), skySettings.multiplier.value, 0.0f, 0.0f));
+            m_PropertyBlock.SetFloat(_SkyIntensity, GetSkyIntensity(skySettings, builtinParams.debugSettings));
             m_PropertyBlock.SetFloat(_SunSizeParam, sunSize);
             m_PropertyBlock.SetFloat(_SunSizeConvergenceParam, skySettings.sunSizeConvergence.value);
             m_PropertyBlock.SetFloat(_AtmoshpereThicknessParam, skySettings.atmosphereThickness.value);
