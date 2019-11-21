@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         Exposure,
         Lux,
+        Multiplier,
     }
 
     [System.Flags]

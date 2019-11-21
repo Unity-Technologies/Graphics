@@ -11,8 +11,6 @@ namespace UnityEditor.Rendering.HighDefinition
         : SkySettingsEditor
     {
         SerializedDataParameter m_hdriSky;
-        SerializedDataParameter m_DesiredLuxValue;
-        SerializedDataParameter m_IntensityMode;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
 
@@ -39,14 +37,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnEnable();
 
+            m_EnableLuxIntensityMode = true;
+
             // HDRI sky does not have control over sun display.
             m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
-            m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
-            m_DesiredLuxValue           = Unpack(o.Find(x => x.desiredLuxValue));
-            m_IntensityMode             = Unpack(o.Find(x => x.skyIntensityMode));
-            m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+            m_hdriSky = Unpack(o.Find(x => x.hdriSky));
+            m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
@@ -109,10 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             {
                 PropertyField(m_hdriSky);
-
-                EditorGUILayout.Space();
-
-                PropertyField(m_IntensityMode);
+                base.CommonSkySettingsGUI();
             }
             bool updateDefaultShadowTint = false;
             if (EditorGUI.EndChangeCheck())
@@ -120,28 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 GetUpperHemisphereLuxValue();
                 updateDefaultShadowTint = true;
             }
-
-            if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
-            {
-                EditorGUI.indentLevel++;
-                PropertyField(m_DesiredLuxValue);
-                // Hide exposure and multiplier
-                m_CommonUIElementsMask &= ~(uint)(SkySettingsUIElement.Exposure | SkySettingsUIElement.Multiplier);
-                m_CommonUIElementsMask |= (uint)SkySettingsUIElement.IndentExposureAndMultiplier;
-
-                // Show the multiplier
-                EditorGUILayout.HelpBox(System.String.Format("Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
-                    m_UpperHemisphereLuxValue.value.floatValue,
-                    (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
-                ), MessageType.Info);
-                EditorGUI.indentLevel--;
-            }
-            else
-            {
-                m_CommonUIElementsMask |= (uint)(SkySettingsUIElement.Exposure | SkySettingsUIElement.Multiplier);
-            }
-
-            base.CommonSkySettingsGUI();
 
             if (isInAdvancedMode)
             {
