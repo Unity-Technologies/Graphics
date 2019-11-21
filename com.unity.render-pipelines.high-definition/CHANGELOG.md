@@ -220,6 +220,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
 - Remove redundant FrameSettings RealTimePlanarReflection
 - Improved a bit the GC calls generated during the rendering.
+- Material update is now only triggered when the relevant settings are touched in the shader graph master nodes
 
 ## [7.1.1] - 2019-09-05
 
