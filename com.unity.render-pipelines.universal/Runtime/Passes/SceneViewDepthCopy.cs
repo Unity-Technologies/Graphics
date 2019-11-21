@@ -47,7 +47,6 @@ namespace UnityEngine.Rendering.Universal
                 RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, Matrix4x4.identity, projMatrix);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
                 RenderingUtils.SetViewProjectionRelatedMatricesVP(cmd, camera.worldToCameraMatrix, GL.GetGPUProjectionMatrix(camera.projectionMatrix, true));
-                cmd.SetGlobalMatrix(Shader.PropertyToID("unity_MatrixVP"), projMatrix);
             }
             else
             {

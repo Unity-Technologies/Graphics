@@ -275,6 +275,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                     else
                     {
+                        cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), GetSource());
                         cmd.Blit(GetSource(), BlitDstDiscardContent(cmd, GetDestination()), m_Materials.stopNaN);
                         Swap();
                     }
@@ -801,6 +802,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
             }
 
@@ -840,6 +842,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
+                cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTex"), source);
                 cmd.Blit(source, BlitDstDiscardContent(cmd, destination), material);
             }
         }
