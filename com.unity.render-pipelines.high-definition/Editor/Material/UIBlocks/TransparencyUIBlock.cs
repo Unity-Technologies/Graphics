@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public class Styles
         {
-            public const string header = "Transparency Inputs";
+            public const string header = "Refraction Inputs";
         }
 
         Expandable  m_ExpandableBit;
@@ -30,8 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList transparencyBlocks = new MaterialUIBlockList
         {
-            new RefractionUIBlock(1), // This block will not be used in by a layered shader so we can safely set the layer count to 1
-            new DistortionUIBlock(),
+            new RefractionUIBlock(1)    // This block will not be used in by a layered shader so we can safely set the layer count to 1
         };
 
         public TransparencyUIBlock(Expandable expandableBit, Features features = Features.All)

@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty spotLightShape;
         public SerializedProperty shapeWidth;
         public SerializedProperty shapeHeight;
+        public SerializedProperty barnDoorAngle;
+        public SerializedProperty barnDoorLength;
         public SerializedProperty aspectRatio;
         public SerializedProperty shapeRadius;
         public SerializedProperty maxSmoothness;
@@ -208,6 +210,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 spotLightShape = o.Find("m_SpotLightShape");
                 shapeWidth = o.Find("m_ShapeWidth");
                 shapeHeight = o.Find("m_ShapeHeight");
+                barnDoorAngle = o.Find("m_BarnDoorAngle");
+                barnDoorLength = o.Find("m_BarnDoorLength");
                 aspectRatio = o.Find("m_AspectRatio");
                 shapeRadius = o.Find("m_ShapeRadius");
                 maxSmoothness = o.Find("m_MaxSmoothness");

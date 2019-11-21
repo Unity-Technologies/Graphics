@@ -614,10 +614,6 @@ namespace UnityEngine.Rendering.HighDefinition
         HDShadowManager m_ShadowManager;
         HDShadowInitParameters m_ShadowInitParameters;
 
-        Material m_CopyStencil;
-        // We need a copy for SSR because setting render states through uniform constants does not work with MaterialPropertyBlocks so it would override values set for the regular copy
-        Material m_CopyStencilForSSR;
-
         // Used to shadow shadow maps with use selection enabled in the debug menu
         int m_DebugSelectedLightShadowIndex;
         int m_DebugSelectedLightShadowCount;
@@ -821,9 +817,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Screen space shadow
             int numMaxShadows = Math.Max(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadows, 1);
             m_CurrentScreenSpaceShadowData = new ScreenSpaceShadowData[numMaxShadows];
-
-            m_CopyStencil = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
-            m_CopyStencilForSSR = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
         }
 
         void CleanupLightLoop()
@@ -859,9 +852,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
-
-            CoreUtils.Destroy(m_CopyStencil);
-            CoreUtils.Destroy(m_CopyStencilForSSR);
         }
 
         void LightLoopNewRender()
@@ -1286,11 +1276,23 @@ namespace UnityEngine.Rendering.HighDefinition
             lightDimensions.y = additionalLightData.shapeHeight;
             lightDimensions.z = light.range;
 
+            lightData.boxLightSafeExtent = 1.0f;
             if (lightData.lightType == GPULightType.ProjectorBox)
             {
                 // Rescale for cookies and windowing.
                 lightData.right *= 2.0f / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
                 lightData.up    *= 2.0f / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
+
+                // If we have shadows, we need to shrink the valid range so that we don't leak light due to filtering going out of bounds.
+                if (shadowIndex >= 0)
+                {
+                    // We subtract a bit from the safe extent depending on shadow resolution
+                    float shadowRes = additionalLightData.shadowResolution.Value(m_ShadowInitParameters.shadowResolutionPunctual);
+                    shadowRes = Mathf.Clamp(shadowRes, 128.0f, 2048.0f); // Clamp in a somewhat plausible range.
+                    // The idea is to subtract as much as 0.05 for small resolutions.
+                    float shadowResFactor = Mathf.Lerp(0.05f, 0.01f, Mathf.Max(shadowRes / 2048.0f, 0.0f));
+                    lightData.boxLightSafeExtent = 1.0f - shadowResFactor;
+                }
             }
             else if (lightData.lightType == GPULightType.ProjectorPyramid)
             {
@@ -1347,12 +1349,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightData.lightType != GPULightType.Directional && lightData.lightType != GPULightType.ProjectorBox)
             {
                 // Store the squared radius of the light to simulate a fill light.
-                lightData.size = new Vector2(additionalLightData.shapeRadius * additionalLightData.shapeRadius, 0);
+                lightData.size = new Vector4(additionalLightData.shapeRadius * additionalLightData.shapeRadius, 0, 0, 0);
             }
 
             if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube)
             {
-                lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
+                lightData.size = new Vector4(additionalLightData.shapeWidth, additionalLightData.shapeHeight, Mathf.Cos(additionalLightData.barnDoorAngle * Mathf.PI / 180.0f), additionalLightData.barnDoorLength);
             }
 
             lightData.lightDimmer           = lightDistanceFade * (additionalLightData.lightDimmer);
@@ -1659,7 +1661,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case PlanarReflectionProbe planarProbe:
                     {
                         if (probe.mode == ProbeSettings.Mode.Realtime
-                            && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.RealtimePlanarReflection))
+                            && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
                             break;
 
                         var fetchIndex = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture);
@@ -2037,6 +2039,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var light = cullResults.visibleLights[lightIndex];
 
+                        // For Shuriken particle light, the light from the culling result can be null
+                        if (light.light == null)
+                            continue;
+
                         // We can skip the processing of lights that are so small to not affect at least a pixel on screen.
                         // TODO: The minimum pixel size on screen should really be exposed as parameter, to allow small lights to be culled to user's taste.
                         const int minimumPixelAreaOnScreen = 1;
@@ -2045,7 +2051,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
                         }
 
-                        if (light.light != null && !aovRequest.IsLightEnabled(light.light.gameObject))
+                        if (!aovRequest.IsLightEnabled(light.light.gameObject))
                             continue;
 
                         var lightComponent = light.light;
@@ -2718,7 +2724,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int i = 0; i < resources.gBuffer.Length; ++i)
                         cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], resources.gBuffer[i]);
-                    cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
+
+                    if(resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
+                    {
+                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
+                    }
+                    else
+                    {
+                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
+                    }
 
                     cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
                 }
@@ -2886,7 +2900,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var resources = PrepareBuildGPULightListResources(
                     m_TileAndClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
-                    m_SharedRTManager.GetStencilBufferCopy()
+                    m_SharedRTManager.GetStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                 );
 
                 bool tileFlagsWritten = false;
