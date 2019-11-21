@@ -187,7 +187,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with contact shadows shifting when MSAA is enabled.
 - Fixed EV100 in the PBR sky
 - Fixed an issue In URP where sometime the camera is not passed to the volume system and causes a null ref exception (case 1199388)
-- Fixed the scene id map warning happening in the template
 - Fixed nullref when releasing HDRP with custom pass disabled
 - Fixed performance issue derived from copying stencil buffer.
 - Fixed an editor freeze when importing a diffusion profile asset from a unity package.
