@@ -13,7 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_hdriSky;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
-
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
         SerializedDataParameter m_GroundLevel;
@@ -43,8 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
-            m_hdriSky = Unpack(o.Find(x => x.hdriSky));
-            m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+            m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
+            m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
