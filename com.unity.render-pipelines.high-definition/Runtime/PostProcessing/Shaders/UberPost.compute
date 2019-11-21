@@ -41,6 +41,7 @@ CBUFFER_START(cb0)
     float4 _BloomTint;
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
+    float4 _MotionBlurParams3;
     float4 _DebugFlags;
 CBUFFER_END
 
@@ -73,6 +74,10 @@ CBUFFER_END
 #define DirtEnabled             _BloomParams.w
 #define DirtScale               _BloomDirtScaleOffset.xy
 #define DirtOffset              _BloomDirtScaleOffset.zw
+
+#define _AccumulationSampleCount            _MotionBlurParams3.x
+#define _AccumulationSampleIndex            uint(_MotionBlurParams3.y)
+#define _AccumulationEnabled                _MotionBlurParams3.w
 
 #define OutputLogEnabled        _DebugFlags.x
 
@@ -166,6 +171,12 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
             float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
             color += bloom * dirt * DirtIntensity;
         }
+    }
+
+    UNITY_BRANCH
+    if (true)
+    {
+        color *= rcp(_AccumulationSampleIndex / _AccumulationSampleCount);
     }
 
     // Vignette

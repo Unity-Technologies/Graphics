@@ -560,6 +560,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             DoColorGrading(cmd, cs, kernel);
                         }
 
+                        //Set Accumulation normalization term
+                        Vector4 accumulationMotionBlurParams = new Vector4(
+                            (float)m_MotionBlur.accumulationSampleCount,
+                            (float)m_MotionBlur.accumulationSampleIndex,
+                            0,
+                            0 //TODO: Enabled, 
+                        );
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams3, accumulationMotionBlurParams);
+
                         // Setup the rest of the effects
                         DoLensDistortion(cmd, cs, kernel, featureFlags);
                         DoChromaticAberration(cmd, cs, kernel, featureFlags);
